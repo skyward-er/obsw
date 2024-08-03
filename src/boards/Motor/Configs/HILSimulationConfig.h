@@ -34,6 +34,7 @@
 #include <units/Frequency.h>
 #include <utils/Debug.h>
 #include <utils/DependencyManager/DependencyManager.h>
+#include <utils/KernelTime.h>
 #include <utils/Stats/Stats.h>
 
 #include <chrono>
@@ -58,14 +59,15 @@ constexpr auto SIMULATION_RATE    = 10_hz;
 constexpr int SIMULATION_RATE_INT = static_cast<int>(SIMULATION_RATE.value());
 
 /** sampling periods of sensors [ms] */
-constexpr auto BARO_CHAMBER_RATE = Motor::Config::Sensors::ADS131M08::SAMPLING_RATE;
+constexpr auto BARO_CHAMBER_RATE = Motor::Config::Sensors::ADS131M08::PERIOD;
 
-static_assert((static_cast<int>(BARO_CHAMBER_RATE.value()) % SIMULATION_RATE_INT) == 0,
+static_assert((static_cast<int>(BARO_CHAMBER_RATE.value()) %
+               SIMULATION_RATE_INT) == 0,
               "N_DATA_BARO_CHAMBER not an integer");
 
-
 /** Number of samples per sensor at each simulator iteration */
-constexpr int N_DATA_BARO_CHAMBER = BARO_CHAMBER_RATE.value() / SIMULATION_RATE_INT;
+constexpr int N_DATA_BARO_CHAMBER =
+    BARO_CHAMBER_RATE.value() / SIMULATION_RATE_INT;
 
 // Sensors Data
 using MotorHILChamberBarometerData =
@@ -140,15 +142,6 @@ class MotorHILTransceiver
                                     ActuatorData>::HILTransceiver;
 };
 
-class MainHIL
-    : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
-      public Boardcore::Injectable
-{
-    using Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>::HIL;
-
-    virtual ~MotorHIL() = default;
-};
-
 class MotorHILPhasesManager
     : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
                                          ActuatorData>
@@ -185,7 +178,7 @@ public:
 
         std::vector<MotorFlightPhases> changed_flags;
 
-         if (simulatorData.signal == 1)
+        if (simulatorData.signal == 1)
         {
             miosix::reboot();
         }
@@ -263,4 +256,49 @@ private:
     void updateSimulatorFlags(const SimulatorData& simulatorData) {}
 };
 
+class MotorHIL
+    : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
+      public Boardcore::InjectableWithDeps<Motor::Buses, Motor::Actuators>
+
+{
+public:
+    MotorHIL()
+        : Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>(
+              nullptr, nullptr, [this]() { return updateActuatorData(); },
+              1000 / SIMULATION_RATE_INT)
+    {
+    }
+
+    bool start() override
+    {
+        auto& hilUsart = getModule<Motor::Buses>()->getHILUart();
+
+        hilPhasesManager = new MotorHILPhasesManager(
+            [&]()
+            {
+                Boardcore::TimedTrajectoryPoint timedTrajectoryPoint;
+                timedTrajectoryPoint.timestamp =
+                    Boardcore::Kernel::getOldTick();
+                return timedTrajectoryPoint;
+            });
+
+        hilTransceiver = new MotorHILTransceiver(hilUsart, hilPhasesManager);
+
+        return Boardcore::HIL<MotorFlightPhases, SimulatorData,
+                              ActuatorData>::start();
+    }
+
+private:
+    ActuatorData updateActuatorData()
+    {
+        auto actuators = getModule<Motor::Actuators>();
+
+        ActuatorsStateHIL actuatorsStateHIL{
+            (actuators->getServoPosition(MAIN_VALVE)),
+            (actuators->getServoPosition(VENTING_VALVE))};
+
+        // Returning the feedback for the simulator
+        return ActuatorData{actuatorsStateHIL};
+    };
+};
 }  // namespace HILConfig

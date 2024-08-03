@@ -49,37 +49,25 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Sensors *sensors       = (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
+    Sensors *sensors =
+        (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
 
     // HIL
-    MotorHIL* hil = nullptr;
+    MotorHIL *hil = nullptr;
     if (hilSimulationActive)
     {
-        auto updateActuatorData = [&]()
-        {
-            HILConfig::ActuatorsStateHIL actuatorsStateHIL{
-                actuators->getServoPosition(ServosList::MAIN_VALVE),
-                actuators->getServoPosition(ServosList::VENTING_VALVE)};
+        hil = new HILConfig::MotorHIL();
 
-            // Returning the feedback for the simulator
-            return HILConfig::ActuatorData(actuatorsStateHIL);
-        };
-    
-        hil = new HILConfig::MotorHIL(nullptr, nullptr, updateActuatorData,
-                                        1000 / SIMULATION_RATE_INT);
-
-        initResult = initResult && depman.insert(hil);
+        initResult = initResult && manager.insert(hil);
     }
 
-    bool initResult = initResult &&
-                      manager.insert<Buses>(buses) &&
-                      manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Sensors>(sensors) &&
-                      manager.insert<Actuators>(actuators) &&
-                      manager.insert<CanHandler>(canHandler) &&
-                      manager.inject();
+    initResult = initResult && manager.insert<Buses>(buses) &&
+                 manager.insert<BoardScheduler>(scheduler) &&
+                 manager.insert<Sensors>(sensors) &&
+                 manager.insert<Actuators>(actuators) &&
+                 manager.insert<CanHandler>(canHandler) && manager.inject();
 
     manager.graphviz(std::cout);
 
@@ -138,17 +126,17 @@ int main()
         LOG_INFO(logger, "Sensor {} {}", info.id, info.isInitialized);
     }
 
-    //  if (hilSimulationActive)
-    // {
-    //     if (!modules.get<MotorHIL>()->start())
-    //     {
-    //         initResult = false;
-    //         LOG_ERR(logger, "Error starting the HIL module");
-    //     }
+    if (hilSimulationActive)
+    {
+        if (!hil->start())
+        {
+            initResult = false;
+            LOG_ERR(logger, "Error starting the HIL module");
+        }
 
-    //     // Waiting for start of simulation
-    //     ModuleManager::getInstance().get<MotorHIL>()->waitStartSimulation();
-    // } 
+        // Waiting for start of simulation
+        hil->waitStartSimulation();
+    }
 
     while (true)
     {
