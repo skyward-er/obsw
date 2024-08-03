@@ -33,26 +33,6 @@
 namespace Main
 {
 
-/**
- * @brief Mock sensor which is used as fake sensor for the combustion chamber
- * pressure coming from the canbus.
- */
-class MockChamberSensor : public Boardcore::Sensor<Boardcore::PressureData>
-{
-public:
-    explicit MockChamberSensor() {}
-
-    Boardcore::PressureData sampleImpl() override
-    {
-        return Boardcore::PressureData{0, 0};
-    }
-
-protected:
-    bool init() override { return true; }
-
-    bool selfTest() override { return true; }
-};
-
 class HILSensors
     : public Boardcore::InjectableWithDeps<Boardcore::InjectableBase<Sensors>,
                                            HILConfig::MainHIL>
@@ -70,11 +50,13 @@ private:
         if (!HILConfig::IS_FULL_HIL)
         {
             // Creating the fake sensors for the can transmitted samples
-            chamberPressureCreation();
             pitotCreation();
 
-            hillificator<>(chamber, enableHw,
-                           [this]() { return updateCCData(); });
+            // Adding to sensorManager's scheduler a task to "sample" the
+            // combustion chamber pressure
+            getSensorsScheduler().addTask([this]()
+                                          { setCanCCPress(updateCCData()); },
+                                          HILConfig::BARO_CHAMBER_RATE);
         }
 
         hillificator<>(lps28dfw, enableHw,
@@ -96,47 +78,8 @@ private:
         // hillificator<>(imu, enableHw,
         //                [this, hil]() { return updateIMUData(*this); });
 
-        // If full hil, use the can received samples
-        if (!HILConfig::IS_FULL_HIL)
-        {
-            // Registering the fake can sensors
-            if (chamber)
-            {
-                SensorInfo info{
-                    "Chamber",
-                    static_cast<int>(1000 /
-                                     HILConfig::BARO_CHAMBER_RATE.value()),
-                    [this]() { chamberPressureCallback(); }};
-                map.emplace(chamber.get(), info);
-            }
-
-            if (pitot)
-            {
-                SensorInfo info{
-                    "Pitot",
-                    static_cast<int>(1000 / HILConfig::PITOT_RATE.value()),
-                    [this]() { pitotCallback(); }};
-                map.emplace(pitot, info);
-            }
-        }
-
         return true;
     };
-
-    void chamberPressureCreation()
-    {
-        chamber = std::make_unique<MockChamberSensor>();
-    }
-
-    void chamberPressureCallback()
-    {
-        // Warning! Here we must use sensor->getLastSample() instead of
-        // getSensorLastSample() since we have to update the "can received
-        // value"
-        auto lastSample = chamber->getLastSample();
-        Boardcore::Logger::getInstance().log(lastSample);
-        setCanCCPress(lastSample);
-    }
 
     void pitotCreation()
     {
@@ -364,7 +307,6 @@ private:
         return staticPressure;
     };
 
-    std::unique_ptr<MockChamberSensor> chamber;
     Boardcore::Pitot* pitot = nullptr;
     bool enableHw;
 };
