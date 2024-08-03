@@ -25,8 +25,10 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/Configs/HILSimulationConfig.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
+#include <Main/Sensors/HILSensors.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -40,6 +42,7 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
+#include <hil/HIL.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
@@ -50,17 +53,21 @@ using namespace Boardcore;
 using namespace Main;
 using namespace Common;
 
+constexpr bool hilSimulationActive = true;
+
 int main()
 {
     ledOff();
 
     DependencyManager manager;
 
+    bool initResult = true;
+
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
+    Sensors *sensors;
     Actuators *actuators    = new Actuators();
-    Sensors *sensors        = new Sensors();
     Radio *radio            = new Radio();
     CanHandler *canHandler  = new CanHandler();
     PinHandler *pinHandler  = new PinHandler();
@@ -71,6 +78,21 @@ int main()
     MEAController *mea      = new MEAController();
     ABKController *abk      = new ABKController();
     StatsRecorder *recorder = new StatsRecorder();
+    HILConfig::MainHIL *hil = nullptr;
+
+    // HIL
+    if (hilSimulationActive)
+    {
+        hil = new HILConfig::MainHIL();
+
+        initResult &= manager.insert<HILConfig::MainHIL>(hil);
+
+        sensors = new HILSensors(HILConfig::ENABLE_HW);
+    }
+    else
+    {
+        sensors = new Sensors();
+    }
 
     Logger &sdLogger    = Logger::getInstance();
     EventBroker &broker = EventBroker::getInstance();
@@ -85,20 +107,20 @@ int main()
         });
 
     // Insert modules
-    bool initResult =
-        manager.insert<Buses>(buses) &&
-        manager.insert<BoardScheduler>(scheduler) &&
-        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
-        manager.insert<Actuators>(actuators) &&
-        manager.insert<CanHandler>(canHandler) &&
-        manager.insert<PinHandler>(pinHandler) &&
-        manager.insert<FlightModeManager>(fmm) &&
-        manager.insert<AlgoReference>(ref) &&
-        manager.insert<ADAController>(ada) &&
-        manager.insert<NASController>(nas) &&
-        manager.insert<MEAController>(mea) &&
-        manager.insert<ABKController>(abk) &&
-        manager.insert<StatsRecorder>(recorder) && manager.inject();
+    initResult = initResult && manager.insert<Buses>(buses) &&
+                 manager.insert<BoardScheduler>(scheduler) &&
+                 manager.insert<Sensors>(sensors) &&
+                 manager.insert<Radio>(radio) &&
+                 manager.insert<Actuators>(actuators) &&
+                 manager.insert<CanHandler>(canHandler) &&
+                 manager.insert<PinHandler>(pinHandler) &&
+                 manager.insert<FlightModeManager>(fmm) &&
+                 manager.insert<AlgoReference>(ref) &&
+                 manager.insert<ADAController>(ada) &&
+                 manager.insert<NASController>(nas) &&
+                 manager.insert<MEAController>(mea) &&
+                 manager.insert<ABKController>(abk) &&
+                 manager.insert<StatsRecorder>(recorder) && manager.inject();
 
     manager.graphviz(std::cout);
 
@@ -113,6 +135,56 @@ int main()
     // led2: Radio ok
     // led3: CanBus ok
     // led4: Everything ok
+
+    if (hilSimulationActive)
+    {
+        printf("starting hil\n");
+        hil->start();
+
+        if (!HILConfig::IS_FULL_HIL)
+        {
+            hil->registerToFlightPhase(
+                HILConfig::MainFlightPhases::SHUTDOWN, [&]()
+                { actuators->setCanServoOpen(ServosList::MAIN_VALVE, false); });
+        }
+
+        hil->registerToFlightPhase(HILConfig::MainFlightPhases::LIFTOFF,
+                                   [&]()
+                                   {
+                                       printf("liftoff\n");
+                                       if (!HILConfig::IS_FULL_HIL)
+                                       {
+                                           printf("open main valve\n");
+
+                                           // TODO: add can message sending
+                                           actuators->setCanServoOpen(
+                                               ServosList::MAIN_VALVE, true);
+                                       }
+                                   });
+
+        hil->registerToFlightPhase(HILConfig::MainFlightPhases::ARMED,
+                                   [&]()
+                                   {
+                                       printf("ARMED\n");
+                                       // Comment this if we want to trigger
+                                       // liftoff by hand
+                                       EventBroker::getInstance().post(
+                                           Events::FLIGHT_LAUNCH_PIN_DETACHED,
+                                           Topics::TOPIC_FLIGHT);
+                                   });
+
+        hil->registerToFlightPhase(HILConfig::MainFlightPhases::CALIBRATION_OK,
+                                   [&]()
+                                   {
+                                       TRACE("ARM COMMAND SENT\n");
+                                       EventBroker::getInstance().post(
+                                           Events::TMTC_ARM,
+                                           Topics::TOPIC_TMTC);
+                                   });
+
+        printf("Waiting start simulation\n");
+        hil->waitStartSimulation();
+    }
 
     if (!broker.start())
     {
