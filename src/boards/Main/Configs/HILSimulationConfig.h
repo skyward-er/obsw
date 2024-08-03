@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/Buses.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -46,9 +47,10 @@
 // FMM
 // #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 
-// // ADA
-// #include <Main/StateMachines/ADAController/ADAControllerData.h>
-// #include <algorithms/ADA/ADAData.h>
+// ADA
+#include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/ADAController/ADAControllerData.h>
+#include <algorithms/ADA/ADAData.h>
 
 // // NAS
 // #include <Main/StateMachines/NASController/NASControllerData.h>
@@ -79,14 +81,14 @@ constexpr bool ENABLE_HW   = true;
 constexpr auto SIMULATION_RATE    = 10_hz;
 constexpr int SIMULATION_RATE_INT = static_cast<int>(SIMULATION_RATE.value());
 
-constexpr auto ACCEL_RATE = Main::Config::Sensors::LSM6DSRX::PERIOD;
-constexpr auto GYRO_RATE  = Main::Config::Sensors::LSM6DSRX::PERIOD;
-constexpr auto MAGN_RATE  = Main::Config::Sensors::LIS2MDL::PERIOD;
-// constexpr auto IMU_RATE          = Main::Config::Sensors::IMU::PERIOD;
-constexpr auto ANALOG_BARO_RATE  = Main::Config::Sensors::ADS131M08::PERIOD;
-constexpr auto DIGITAL_BARO_RATE = Main::Config::Sensors::LPS22DF::PERIOD;
+constexpr auto ACCEL_RATE = Main::Config::Sensors::LSM6DSRX::RATE;
+constexpr auto GYRO_RATE  = Main::Config::Sensors::LSM6DSRX::RATE;
+constexpr auto MAGN_RATE  = Main::Config::Sensors::LIS2MDL::RATE;
+// constexpr auto IMU_RATE          = Main::Config::Sensors::IMU::RATE;
+constexpr auto ANALOG_BARO_RATE  = Main::Config::Sensors::ADS131M08::RATE;
+constexpr auto DIGITAL_BARO_RATE = Main::Config::Sensors::LPS22DF::RATE;
 constexpr auto TEMP_RATE         = SIMULATION_RATE;  // One sample
-constexpr auto GPS_RATE          = Main::Config::Sensors::UBXGPS::PERIOD;
+constexpr auto GPS_RATE          = Main::Config::Sensors::UBXGPS::RATE;
 constexpr auto BARO_CHAMBER_RATE = 50_hz;
 constexpr auto PITOT_RATE        = 20_hz;
 
@@ -163,17 +165,11 @@ struct ADAStateHIL
     {
     }
 
-    // ADAStateHIL(Boardcore::ADAState adaState,
-    //             Main::ADAControllerStatus adaStatus)
-    //     : mslAltitude(adaState.mslAltitude),
-    //     aglAltitude(adaState.aglAltitude),
-    //       verticalSpeed(adaState.verticalSpeed),
-    //       apogeeDetected(adaStatus.state == Main::ADAControllerState::END),
-    //       updating(adaStatus.state == Main::ADAControllerState::ARMED ||
-    //                adaStatus.state == Main::ADAControllerState::SHADOW_MODE
-    //                || adaStatus.state == Main::ADAControllerState::ACTIVE)
-    // {
-    // }
+    ADAStateHIL(Boardcore::ADAState adaState)
+        : mslAltitude(adaState.mslAltitude), aglAltitude(adaState.aglAltitude),
+          verticalSpeed(adaState.verticalSpeed), apogeeDetected(0), updating(0)
+    {
+    }
 
     void print()
     {
@@ -663,8 +659,8 @@ private:
 class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<Main::Buses, Main::Actuators,
-                                           Main::FlightModeManager /*,
-             Main::ADAController, Main::MEAController, Main::ABKController,
+                                           Main::FlightModeManager,
+             Main::ADAController/*, Main::MEAController, Main::ABKController,
              Main::NASController */>
 
 {
@@ -699,9 +695,8 @@ private:
     {
         auto actuators = getModule<Main::Actuators>();
 
-        ADAStateHIL adaStateHIL{/*
-                modules.get<ADAController>()->getADAState(),
-                modules.get<ADAController>()->getStatus()*/};
+        ADAStateHIL adaStateHIL{
+            getModule<Main::ADAController>()->getADAState()};
 
         NASStateHIL nasStateHIL{
                 /* modules.get<NASController>()->getNasState(),
@@ -714,9 +709,9 @@ private:
                 /* modules.get<MEAController>()->getMEAState(),
                 modules.get<MEAController>()->getStatus() */};
 
-        // TODO: get actuators state
         ActuatorsStateHIL actuatorsStateHIL{
-            0, 0,
+            actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
+            actuators->getServoPosition(ServosList::EXPULSION_SERVO),
             (actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1.f : 0.f),
             (actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1.f : 0.f),
             static_cast<float>(miosix::gpios::mainDeploy::value())};
