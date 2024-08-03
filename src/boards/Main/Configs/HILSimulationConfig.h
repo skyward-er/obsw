@@ -52,9 +52,10 @@
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
 #include <algorithms/ADA/ADAData.h>
 
-// // NAS
-// #include <Main/StateMachines/NASController/NASControllerData.h>
-// #include <algorithms/NAS/NASState.h>
+// NAS
+#include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/NASController/NASControllerData.h>
+#include <algorithms/NAS/NASState.h>
 
 // // ABK
 // #include <Main/StateMachines/ABKController/ABKController.h>
@@ -211,14 +212,12 @@ struct NASStateHIL
     {
     }
 
-    // NASStateHIL(Boardcore::NASState adaState,
-    //             Main::NASControllerStatus adaStatus)
-    //     : n(adaState.n), e(adaState.e), d(adaState.d), vn(adaState.vn),
-    //       ve(adaState.ve), vd(adaState.vd), qx(adaState.qx), qy(adaState.qy),
-    //       qz(adaState.qz), qw(adaState.qw),
-    //       updating(adaStatus.state == Main::NASControllerState::ACTIVE)
-    // {
-    // }
+    NASStateHIL(Boardcore::NASState nasState)
+        : n(nasState.n), e(nasState.e), d(nasState.d), vn(nasState.vn),
+          ve(nasState.ve), vd(nasState.vd), qx(nasState.qx), qy(nasState.qy),
+          qz(nasState.qz), qw(nasState.qw), updating(0)
+    {
+    }
 
     void print()
     {
@@ -658,10 +657,10 @@ private:
 
 class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
-      public Boardcore::InjectableWithDeps<Main::Buses, Main::Actuators,
-                                           Main::FlightModeManager,
-             Main::ADAController/*, Main::MEAController, Main::ABKController,
-             Main::NASController */>
+      public Boardcore::InjectableWithDeps<
+          Main::Buses, Main::Actuators, Main::FlightModeManager,
+          Main::ADAController,
+          Main::NASController /*, Main::MEAController, Main::ABKController */>
 
 {
 public:
@@ -674,15 +673,12 @@ public:
 
     bool start() override
     {
-        // auto* nas      = getModule<Main::NASController>();
+        auto* nas      = getModule<Main::NASController>();
         auto& hilUsart = getModule<Main::Buses>()->getHILUart();
 
         hilPhasesManager = new MainHILPhasesManager(
-            [/* nas */]()
-            {
-                return Boardcore::TimedTrajectoryPoint(
-                    /* nas->getNasState() */);
-            });
+            [nas]()
+            { return Boardcore::TimedTrajectoryPoint(nas->getNASState()); });
 
         hilTransceiver = new MainHILTransceiver(hilUsart, hilPhasesManager);
 
@@ -699,8 +695,7 @@ private:
             getModule<Main::ADAController>()->getADAState()};
 
         NASStateHIL nasStateHIL{
-                /* modules.get<NASController>()->getNasState(),
-                modules.get<NASController>()->getStatus() */};
+            getModule<Main::NASController>()->getNASState()};
 
         AirBrakesStateHIL abkStateHIL{
             /* modules.get<ABKController>()->getStatus() */};
