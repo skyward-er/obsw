@@ -54,6 +54,8 @@ public:
 
     [[nodiscard]] bool start();
 
+    void calibrate();
+
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
@@ -71,6 +73,7 @@ public:
     Boardcore::PressureData getDplBayPressureLastSample();
 
     Boardcore::IMUData getIMULastSample();
+    Boardcore::PressureData getAtmosPressureLastSample();
 
     Boardcore::PressureData getCanTopTankPress1LastSample();
     Boardcore::PressureData getCanTopTankPress2LastSample();

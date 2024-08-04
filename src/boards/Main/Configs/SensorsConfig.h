@@ -170,6 +170,15 @@ constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace IMU
 
+namespace Atmos
+{
+
+// Setting this to true changes the atmospheric pressure to be the static
+// pressure port number 2
+constexpr bool USE_PORT_2 = false;
+
+}  // namespace Atmos
+
 }  // namespace Sensors
 
 }  // namespace Config

@@ -39,6 +39,9 @@ namespace NAS
 
 constexpr Hertz SAMPLE_RATE = 50_hz;
 
+constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
+constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+
 static const Boardcore::NASConfig CONFIG = {
     .T              = 0.02,  // [s]
     .SIGMA_BETA     = 0.0001,
@@ -58,6 +61,16 @@ static const Boardcore::NASConfig CONFIG = {
     .P_BIAS         = 0.01,
     .SATS_NUM       = 6.0,
     .NED_MAG        = Common::ReferenceConfig::nedMag};
+
+// Only use one out of every 50 samples (1 Hz)
+constexpr int MAGNETOMETER_DECIMATE = 50;
+
+// How much confidence (in m/s^2) to apply to the accelerometer to check if it
+// is 1g
+constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;
+// How many samples will determine that we are in fact measuring gravity
+// acceleration
+constexpr int ACCELERATION_1G_SAMPLES = 20;
 
 }  // namespace NAS
 

@@ -24,12 +24,15 @@
 
 #include <Main/Configs/NASConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
+#include <algorithms/NAS/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
+
+#include <algorithm>
 
 using namespace Main;
 using namespace Boardcore;
@@ -81,10 +84,16 @@ bool NASController::start()
 
 NASControllerState NASController::getState() { return state; }
 
-Boardcore::NASState NASController::getNASState()
+NASState NASController::getNASState()
 {
     Lock<FastMutex> lock{nasMutex};
     return nas.getState();
+}
+
+ReferenceValues NASController::getReferenceValues()
+{
+    Lock<FastMutex> lock{nasMutex};
+    return nas.getReferenceValues();
 }
 
 void NASController::update()
@@ -95,13 +104,127 @@ void NASController::update()
 
     if (curState == NASControllerState::ACTIVE)
     {
-        // TODO:
+        Sensors* sensors = getModule<Sensors>();
+
+        IMUData imu       = sensors->getIMULastSample();
+        UBXGPSData gps    = sensors->getUBXGPSLastSample();
+        PressureData baro = sensors->getAtmosPressureLastSample();
+
+        // Perform initial NAS prediction
+        // TODO: What about stale data?
+        nas.predictGyro(imu);
+        nas.predictAcc(imu);
+
+        // Then perform necessary corrections
+        if (lastMagTimestamp < imu.magneticFieldTimestamp &&
+            magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
+        {
+            nas.correctMag(imu);
+            magDecimateCount = 0;
+        }
+        else
+        {
+            magDecimateCount++;
+        }
+
+        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix != 0)
+        {
+            nas.correctGPS(gps);
+        }
+
+        if (lastBaroTimestamp < baro.pressureTimestamp)
+        {
+            nas.correctBaro(baro.pressure);
+        }
+
+        // TODO: Correct with pitot
+
+        // Check if the accelerometer is measuring 1g
+        Eigen::Vector3f acc = static_cast<AccelerometerData>(imu);
+        float accLength     = acc.norm();
+
+        if (accLength <
+                (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
+            accLength >
+                (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
+        {
+            if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
+            {
+                acc1gSamplesCount++;
+            }
+            else
+            {
+                acc1g = true;
+            }
+        }
+        else
+        {
+            acc1gSamplesCount = 0;
+            acc1g             = false;
+        }
+
+        lastGyroTimestamp = imu.angularSpeedTimestamp;
+        lastAccTimestamp  = imu.accelerationTimestamp;
+        lastMagTimestamp  = imu.magneticFieldTimestamp;
+        lastGpsTimestamp  = gps.gpsTimestamp;
+        lastBaroTimestamp = baro.pressureTimestamp;
+
+        sdLogger.log(nas.getState());
     }
 }
 
 void NASController::calibrate()
 {
-    // TODO:
+    Sensors* sensors = getModule<Sensors>();
+
+    Eigen::Vector3f accAcc = Eigen::Vector3f::Zero();
+    Eigen::Vector3f magAcc = Eigen::Vector3f::Zero();
+    Stats baroStats;
+
+    // First sample and average the data over a number of samples
+    for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        IMUData imu       = sensors->getIMULastSample();
+        PressureData baro = sensors->getAtmosPressureLastSample();
+
+        Eigen::Vector3f acc = static_cast<AccelerometerData>(imu);
+        Eigen::Vector3f mag = static_cast<MagnetometerData>(imu);
+
+        accAcc += acc;
+        magAcc += mag;
+
+        baroStats.add(baro.pressure);
+
+        Thread::sleep(Config::NAS::CALIBRATION_SLEEP_TIME);
+    }
+
+    accAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
+    accAcc.normalize();
+    magAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
+    magAcc.normalize();
+
+    // Use the triad to compute initial state
+    StateInitializer init;
+    init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
+
+    Lock<FastMutex> lock{nasMutex};
+
+    // Compute reference values
+    ReferenceValues reference = nas.getReferenceValues();
+    reference.refPressure     = baroStats.getStats().mean;
+    reference.refAltitude = Aeroutils::relAltitude(baroStats.getStats().mean);
+
+    // Also updated the reference with the GPS if we have fix
+    UBXGPSData gps = sensors->getUBXGPSLastSample();
+    if (gps.fix != 0)
+    {
+        // We do not use the GPS altitude because it sucks
+        reference.refLatitude  = gps.latitude;
+        reference.refLongitude = gps.longitude;
+    }
+
+    nas.setX(init.getInitX());
+    nas.setReferenceValues(reference);
 
     EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }

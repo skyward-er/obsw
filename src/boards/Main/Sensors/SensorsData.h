@@ -30,7 +30,7 @@ namespace Main
 
 struct StaticPressureData1 : Boardcore::PressureData
 {
-    StaticPressureData1(const Boardcore::PressureData &data)
+    explicit StaticPressureData1(const Boardcore::PressureData &data)
         : Boardcore::PressureData(data)
     {
     }
@@ -39,7 +39,7 @@ struct StaticPressureData1 : Boardcore::PressureData
 };
 struct StaticPressureData2 : Boardcore::PressureData
 {
-    StaticPressureData2(const Boardcore::PressureData &data)
+    explicit StaticPressureData2(const Boardcore::PressureData &data)
         : Boardcore::PressureData(data)
     {
     }
@@ -48,7 +48,7 @@ struct StaticPressureData2 : Boardcore::PressureData
 };
 struct DplBayPressureData : Boardcore::PressureData
 {
-    DplBayPressureData(const Boardcore::PressureData &data)
+    explicit DplBayPressureData(const Boardcore::PressureData &data)
         : Boardcore::PressureData(data)
     {
     }

@@ -42,6 +42,9 @@ public:
     [[nodiscard]] bool start() override;
 
     Boardcore::ADAState getADAState();
+    Boardcore::ReferenceValues getReferenceValues();
+
+    float getDeploymentAltitude();
 
     ADAControllerState getState();
 
