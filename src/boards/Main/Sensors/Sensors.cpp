@@ -101,6 +101,12 @@ bool Sensors::start()
     return true;
 }
 
+void Sensors::calibrate()
+{
+    // TODO: Lol
+    Thread::sleep(2000);
+}
+
 Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
 {
     return lps22df ? lps22df->getLastSample() : LPS22DFData{};
@@ -176,6 +182,18 @@ PressureData Sensors::getDplBayPressureLastSample()
 IMUData Sensors::getIMULastSample()
 {
     return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
+}
+
+PressureData Sensors::getAtmosPressureLastSample()
+{
+    if (Config::Sensors::Atmos::USE_PORT_2)
+    {
+        return getStaticPressure2LastSample();
+    }
+    else
+    {
+        return getStaticPressure1LastSample();
+    }
 }
 
 PressureData Sensors::getCanTopTankPress1LastSample()

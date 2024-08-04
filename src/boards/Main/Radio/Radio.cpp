@@ -430,12 +430,83 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             return true;
         }
 
+        case MAV_ADA_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_ada_tm_t tm;
+
+            // Get the current ADA state
+            ADAController* ada = getModule<ADAController>();
+
+            ADAState state      = ada->getADAState();
+            ReferenceValues ref = ada->getReferenceValues();
+
+            tm.timestamp       = state.timestamp;
+            tm.state           = static_cast<uint8_t>(ada->getState());
+            tm.kalman_x0       = state.x0;
+            tm.kalman_x1       = state.x1;
+            tm.kalman_x2       = state.x2;
+            tm.vertical_speed  = state.verticalSpeed;
+            tm.msl_altitude    = state.mslAltitude;
+            tm.msl_pressure    = ref.mslPressure;
+            tm.msl_temperature = ref.mslTemperature - 273.15f;
+            tm.ref_altitude    = ref.refAltitude;
+            tm.ref_temperature = ref.refTemperature - 273.15f;
+            tm.ref_pressure    = ref.refPressure;
+            tm.dpl_altitude    = ada->getDeploymentAltitude();
+
+            mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_NAS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_nas_tm_t tm;
+
+            // Get the current NAS state
+            NASController* nas = getModule<NASController>();
+
+            NASState state      = nas->getNASState();
+            ReferenceValues ref = nas->getReferenceValues();
+
+            tm.timestamp       = state.timestamp;
+            tm.state           = static_cast<uint8_t>(nas->getState());
+            tm.nas_n           = state.n;
+            tm.nas_e           = state.e;
+            tm.nas_d           = state.d;
+            tm.nas_vn          = state.vn;
+            tm.nas_ve          = state.ve;
+            tm.nas_vd          = state.vd;
+            tm.nas_qx          = state.qx;
+            tm.nas_qy          = state.qy;
+            tm.nas_qz          = state.qz;
+            tm.nas_qw          = state.qw;
+            tm.nas_bias_x      = state.bx;
+            tm.nas_bias_y      = state.by;
+            tm.nas_bias_z      = state.bz;
+            tm.ref_pressure    = ref.refPressure;
+            tm.ref_temperature = ref.refTemperature - 273.15f;
+            tm.ref_latitude    = ref.refLatitude;
+            tm.ref_longitude   = ref.refLongitude;
+
+            mavlink_msg_nas_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
         case MAV_FLIGHT_ID:
         {
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
             Sensors* sensors       = getModule<Sensors>();
+            Actuators* actuators   = getModule<Actuators>();
             PinHandler* pinHandler = getModule<PinHandler>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
             ADAController* ada     = getModule<ADAController>();
@@ -447,6 +518,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressStatic = sensors->getStaticPressure1LastSample();
             auto pressDpl    = sensors->getDplBayPressureLastSample();
             auto adaState    = ada->getADAState();
+            auto nasState    = nas->getNASState();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_digi   = pressDigi.pressure;
@@ -457,7 +529,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.ada_vert_speed = adaState.verticalSpeed;
 
             tm.airspeed_pitot = -1.0f;  // TODO
-            tm.altitude_agl   = -1.0f;  // TODO
             tm.mea_mass       = -1.0f;  // TODO
 
             // Sensors
@@ -476,20 +547,24 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.gps_fix = gps.fix;
 
             // Algorithms
-            tm.abk_angle  = -1.0f;  // TODO
-            tm.nas_n      = -1.0f;  // TODO
-            tm.nas_e      = -1.0f;  // TODO
-            tm.nas_d      = -1.0f;  // TODO
-            tm.nas_vn     = -1.0f;  // TODO
-            tm.nas_ve     = -1.0f;  // TODO
-            tm.nas_vd     = -1.0f;  // TODO
-            tm.nas_qx     = -1.0f;  // TODO
-            tm.nas_qy     = -1.0f;  // TODO
-            tm.nas_qz     = -1.0f;  // TODO
-            tm.nas_qw     = -1.0f;  // TODO
-            tm.nas_bias_x = -1.0f;  // TODO
-            tm.nas_bias_y = -1.0f;  // TODO
-            tm.nas_bias_z = -1.0f;  // TODO
+            tm.nas_n        = nasState.n;
+            tm.nas_e        = nasState.e;
+            tm.nas_d        = nasState.d;
+            tm.nas_vn       = nasState.vn;
+            tm.nas_ve       = nasState.ve;
+            tm.nas_vd       = nasState.vd;
+            tm.nas_qx       = nasState.qx;
+            tm.nas_qy       = nasState.qy;
+            tm.nas_qz       = nasState.qz;
+            tm.nas_qw       = nasState.qw;
+            tm.nas_bias_x   = nasState.bx;
+            tm.nas_bias_y   = nasState.by;
+            tm.nas_bias_z   = nasState.bz;
+            tm.altitude_agl = -nasState.d;
+
+            // TODO: I don't like this very much
+            tm.abk_angle =
+                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO);
 
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
             tm.cam_battery_voltage =
@@ -498,7 +573,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
-            tm.dpl_state = 255;  // TODO
+            tm.dpl_state =
+                255;  // This should be removed, DPLController no longer exists
             tm.abk_state = 255;  // TODO
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.mea_state = 255;  // TODO

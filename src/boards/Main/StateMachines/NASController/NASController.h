@@ -43,6 +43,7 @@ public:
     [[nodiscard]] bool start() override;
 
     Boardcore::NASState getNASState();
+    Boardcore::ReferenceValues getReferenceValues();
 
     NASControllerState getState();
 
@@ -66,6 +67,16 @@ private:
 
     miosix::FastMutex nasMutex;
     Boardcore::NAS nas;
+
+    int magDecimateCount  = 0;
+    int acc1gSamplesCount = 0;
+    bool acc1g            = false;
+
+    uint64_t lastGyroTimestamp = 0;
+    uint64_t lastAccTimestamp  = 0;
+    uint64_t lastMagTimestamp  = 0;
+    uint64_t lastGpsTimestamp  = 0;
+    uint64_t lastBaroTimestamp = 0;
 };
 
 }  // namespace Main

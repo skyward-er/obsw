@@ -114,12 +114,21 @@ ADAState ADAController::getADAState()
     return ada.getState();
 }
 
+ReferenceValues ADAController::getReferenceValues()
+{
+    Lock<FastMutex> lock{adaMutex};
+    return ada.getReferenceValues();
+}
+
+float ADAController::getDeploymentAltitude()
+{
+    return Config::ADA::DEPLOYMENT_ALTITUDE_TARGET;
+}
+
 ADAControllerState ADAController::getState() { return state; }
 
 void ADAController::update()
 {
-    PressureData baro = getModule<Sensors>()->getStaticPressure1LastSample();
-
     ADAControllerState curState = state;
 
     // Lock ADA for the whole duration of the update
@@ -132,6 +141,8 @@ void ADAController::update()
         curState == ADAControllerState::ACTIVE_DROGUE_DESCENT ||
         curState == ADAControllerState::ACTIVE_TERMINAL_DESCENT)
     {
+        PressureData baro = getModule<Sensors>()->getAtmosPressureLastSample();
+
         if (baro.pressureTimestamp > lastBaroTimestamp)
         {
             // Barometer is valid, correct with it
@@ -142,6 +153,8 @@ void ADAController::update()
             // Do not perform correction
             ada.update();
         }
+
+        lastBaroTimestamp = baro.pressureTimestamp;
     }
 
     // Then run detections
@@ -171,8 +184,7 @@ void ADAController::update()
 
     if (curState == ADAControllerState::ACTIVE_DROGUE_DESCENT)
     {
-        if (ada.getState().aglAltitude <
-            Config::ADA::DEPLOYMENT_ALTITUDE_TARGET)
+        if (ada.getState().aglAltitude < getDeploymentAltitude())
         {
             detectedDeployments++;
         }
@@ -194,8 +206,6 @@ void ADAController::update()
                                     detectedApogees, detectedDeployments,
                                     curState};
     sdLogger.log(data);
-
-    lastBaroTimestamp = baro.pressureTimestamp;
 }
 
 void ADAController::calibrate()
@@ -204,8 +214,7 @@ void ADAController::calibrate()
 
     for (int i = 0; i < Config::ADA::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        PressureData baro =
-            getModule<Sensors>()->getStaticPressure1LastSample();
+        PressureData baro = getModule<Sensors>()->getAtmosPressureLastSample();
         baroStats.add(baro.pressure);
 
         Thread::sleep(Config::ADA::CALIBRATION_SLEEP_TIME);
