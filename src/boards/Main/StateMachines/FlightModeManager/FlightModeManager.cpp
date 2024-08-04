@@ -191,9 +191,10 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FlightModeManagerState::CALIBRATE_SENSORS);
-            // TODO(davide.mor): Calibrate sensors
-            Thread::sleep(2000);
+
+            getModule<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
+
             return HANDLED;
         }
         case EV_EXIT:
