@@ -26,6 +26,7 @@
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/HILSimulationConfig.h>
+#include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/HILSensors.h>
@@ -53,8 +54,6 @@ using namespace Boardcore;
 using namespace Main;
 using namespace Common;
 
-constexpr bool hilSimulationActive = true;
-
 int main()
 {
     ledOff();
@@ -63,8 +62,9 @@ int main()
 
     bool initResult = true;
 
-    Buses *buses              = new Buses();
-    BoardScheduler *scheduler = new BoardScheduler();
+    PersistentVars *persistentVars = new PersistentVars();
+    Buses *buses                   = new Buses();
+    BoardScheduler *scheduler      = new BoardScheduler();
 
     Sensors *sensors;
     Actuators *actuators    = new Actuators();
@@ -81,7 +81,7 @@ int main()
     HILConfig::MainHIL *hil = nullptr;
 
     // HIL
-    if (hilSimulationActive)
+    if (persistentVars->getHilMode())
     {
         hil = new HILConfig::MainHIL();
 
@@ -107,7 +107,8 @@ int main()
         });
 
     // Insert modules
-    initResult = initResult && manager.insert<Buses>(buses) &&
+    initResult = initResult && manager.insert<PersistentVars>(persistentVars) &&
+                 manager.insert<Buses>(buses) &&
                  manager.insert<BoardScheduler>(scheduler) &&
                  manager.insert<Sensors>(sensors) &&
                  manager.insert<Radio>(radio) &&
@@ -136,56 +137,6 @@ int main()
     // led3: CanBus ok
     // led4: Everything ok
 
-    if (hilSimulationActive)
-    {
-        printf("starting hil\n");
-        hil->start();
-
-        if (!HILConfig::IS_FULL_HIL)
-        {
-            hil->registerToFlightPhase(
-                HILConfig::MainFlightPhases::SHUTDOWN, [&]()
-                { actuators->setCanServoOpen(ServosList::MAIN_VALVE, false); });
-        }
-
-        hil->registerToFlightPhase(HILConfig::MainFlightPhases::LIFTOFF,
-                                   [&]()
-                                   {
-                                       printf("liftoff\n");
-                                       if (!HILConfig::IS_FULL_HIL)
-                                       {
-                                           printf("open main valve\n");
-
-                                           // TODO: add can message sending
-                                           actuators->setCanServoOpen(
-                                               ServosList::MAIN_VALVE, true);
-                                       }
-                                   });
-
-        hil->registerToFlightPhase(HILConfig::MainFlightPhases::ARMED,
-                                   [&]()
-                                   {
-                                       printf("ARMED\n");
-                                       // Comment this if we want to trigger
-                                       // liftoff by hand
-                                       EventBroker::getInstance().post(
-                                           Events::FLIGHT_LAUNCH_PIN_DETACHED,
-                                           Topics::TOPIC_FLIGHT);
-                                   });
-
-        hil->registerToFlightPhase(HILConfig::MainFlightPhases::CALIBRATION_OK,
-                                   [&]()
-                                   {
-                                       TRACE("ARM COMMAND SENT\n");
-                                       EventBroker::getInstance().post(
-                                           Events::TMTC_ARM,
-                                           Topics::TOPIC_TMTC);
-                                   });
-
-        printf("Waiting start simulation\n");
-        hil->waitStartSimulation();
-    }
-
     if (!broker.start())
     {
         initResult = false;
@@ -196,16 +147,6 @@ int main()
     {
         initResult = false;
         std::cout << "Error failed to start Actuators module" << std::endl;
-    }
-
-    if (!sensors->start())
-    {
-        initResult = false;
-        std::cout << "Error failed to start Sensors module" << std::endl;
-    }
-    else
-    {
-        led1On();
     }
 
     if (!radio->start())
@@ -281,6 +222,66 @@ int main()
     {
         initResult = false;
         std::cout << "Error failed to start SD" << std::endl;
+    }
+
+    if (persistentVars->getHilMode())
+    {
+        printf("starting hil\n");
+        hil->start();
+
+        if (!HILConfig::IS_FULL_HIL)
+        {
+            hil->registerToFlightPhase(
+                HILConfig::MainFlightPhases::SHUTDOWN, [&]()
+                { actuators->setCanServoOpen(ServosList::MAIN_VALVE, false); });
+        }
+
+        hil->registerToFlightPhase(HILConfig::MainFlightPhases::LIFTOFF,
+                                   [&]()
+                                   {
+                                       printf("liftoff\n");
+                                       if (!HILConfig::IS_FULL_HIL)
+                                       {
+                                           printf("open main valve\n");
+
+                                           // TODO: add can message sending
+                                           actuators->setCanServoOpen(
+                                               ServosList::MAIN_VALVE, true);
+                                       }
+                                   });
+
+        hil->registerToFlightPhase(HILConfig::MainFlightPhases::ARMED,
+                                   [&]()
+                                   {
+                                       printf("ARMED\n");
+                                       // Comment this if we want to trigger
+                                       // liftoff by hand
+                                       EventBroker::getInstance().post(
+                                           Events::FLIGHT_LAUNCH_PIN_DETACHED,
+                                           Topics::TOPIC_FLIGHT);
+                                   });
+
+        hil->registerToFlightPhase(HILConfig::MainFlightPhases::CALIBRATION_OK,
+                                   [&]()
+                                   {
+                                       TRACE("ARM COMMAND SENT\n");
+                                       EventBroker::getInstance().post(
+                                           Events::TMTC_ARM,
+                                           Topics::TOPIC_TMTC);
+                                   });
+
+        printf("Waiting start simulation\n");
+        hil->waitStartSimulation();
+    }
+
+    if (!sensors->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start Sensors module" << std::endl;
+    }
+    else
+    {
+        led1On();
     }
 
     if (initResult)

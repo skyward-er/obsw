@@ -24,6 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Configs/CanHandlerConfig.h>
+#include <Main/PersistentVars/PersistentVars.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <common/Mavlink.h>
@@ -38,7 +39,7 @@ class Actuators;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
-                                           FlightModeManager>
+                                           FlightModeManager, PersistentVars>
 {
 public:
     struct CanStatus

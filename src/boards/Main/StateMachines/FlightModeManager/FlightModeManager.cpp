@@ -73,6 +73,23 @@ State FlightModeManager::state_on_ground(const Event& event)
             reboot();
             return HANDLED;
         }
+        case TMTC_EXIT_HIL_MODE:
+        {
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EXIT_HIL_MODE);
+            miosix::Thread::sleep(1000);
+            // Fallthrough
+        }
+        case CAN_EXIT_HIL_MODE:
+        {
+            // Reboot only if in HIL mode
+            if (getModule<PersistentVars>()->getHilMode())
+            {
+                getModule<PersistentVars>()->setHilMode(false);
+                miosix::reboot();
+            }
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;
@@ -410,6 +427,19 @@ State FlightModeManager::state_test_mode(const Event& event)
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::EXIT_TEST_MODE);
             return transition(&FlightModeManager::state_disarmed);
+        }
+        case TMTC_ENTER_HIL_MODE:
+        {
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_HIL_MODE);
+            Thread::sleep(1000);
+            // Fallthrough
+        }
+        case CAN_ENTER_HIL_MODE:
+        {
+            getModule<PersistentVars>()->setHilMode(true);
+            reboot();
+            __builtin_unreachable();
         }
         default:
         {
