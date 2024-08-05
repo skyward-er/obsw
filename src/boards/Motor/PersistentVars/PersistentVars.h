@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,43 +22,23 @@
 
 #pragma once
 
-#include <Motor/BoardScheduler.h>
-#include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/Sensors.h>
-#include <common/CanConfig.h>
-#include <drivers/canbus/CanProtocol/CanProtocol.h>
+#include <drivers/bsram/BSRAM.h>
 #include <utils/DependencyManager/DependencyManager.h>
-
-#include <atomic>
 
 namespace Motor
 {
 
-class Actuators;
-
-class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
-                                           PersistentVars>
+class PersistentVars : public Boardcore::BSRAM, public Boardcore::Injectable
 {
 public:
-    CanHandler();
+    PersistentVars();
 
-    bool start();
+    void setHilMode(bool _hilMode);
 
-    void setInitStatus(uint8_t status);
+    bool getHilMode();
 
 private:
-    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
-    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
-    void handleCommand(const Boardcore::Canbus::CanMessage &msg);
-
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
-
-    std::atomic<uint8_t> initStatus{0};
-
-    Boardcore::Canbus::CanbusDriver driver;
-    Boardcore::Canbus::CanProtocol protocol;
+    static bool PRESERVE hilMode;
 };
 
 }  // namespace Motor

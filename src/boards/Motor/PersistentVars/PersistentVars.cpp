@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,45 +20,28 @@
  * THE SOFTWARE.
  */
 
-#pragma once
-
-#include <Motor/BoardScheduler.h>
-#include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/Sensors.h>
-#include <common/CanConfig.h>
-#include <drivers/canbus/CanProtocol/CanProtocol.h>
-#include <utils/DependencyManager/DependencyManager.h>
-
-#include <atomic>
+#include "PersistentVars.h"
 
 namespace Motor
 {
 
-class Actuators;
+bool PRESERVE PersistentVars::hilMode;
 
-class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
-                                           PersistentVars>
+PersistentVars::PersistentVars() : Boardcore::BSRAM()
 {
-public:
-    CanHandler();
+    if (lastReset == Boardcore::ResetReason::RST_POWER_ON)
+    {
+        setHilMode(false);
+    }
+}
 
-    bool start();
+void PersistentVars::setHilMode(bool _hilMode)
+{
+    enableWrite();
+    hilMode = _hilMode;
+    disableWrite();
+}
 
-    void setInitStatus(uint8_t status);
-
-private:
-    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
-    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
-    void handleCommand(const Boardcore::Canbus::CanMessage &msg);
-
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
-
-    std::atomic<uint8_t> initStatus{0};
-
-    Boardcore::Canbus::CanbusDriver driver;
-    Boardcore::Canbus::CanProtocol protocol;
-};
+bool PersistentVars::getHilMode() { return hilMode; }
 
 }  // namespace Motor

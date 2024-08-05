@@ -25,6 +25,7 @@
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
@@ -37,11 +38,11 @@ using namespace Motor;
 using namespace miosix;
 using namespace HILConfig;
 
-constexpr bool hilSimulationActive = true;
-
 int main()
 {
     bool initResult = true;
+
+    PersistentVars *persistentVars = new PersistentVars();
 
     PrintLogger logger = Logging::getLogger("main");
     DependencyManager manager;
@@ -49,21 +50,22 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Sensors *sensors =
-        (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
+    Sensors *sensors = (persistentVars->getHilMode() ? new HILSensors(ENABLE_HW)
+                                                     : new Sensors());
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
 
     // HIL
     MotorHIL *hil = nullptr;
-    if (hilSimulationActive)
+    if (persistentVars->getHilMode())
     {
         hil = new HILConfig::MotorHIL();
 
         initResult = initResult && manager.insert(hil);
     }
 
-    initResult = initResult && manager.insert<Buses>(buses) &&
+    initResult = initResult && manager.insert<PersistentVars>(persistentVars) &&
+                 manager.insert<Buses>(buses) &&
                  manager.insert<BoardScheduler>(scheduler) &&
                  manager.insert<Sensors>(sensors) &&
                  manager.insert<Actuators>(actuators) &&
@@ -78,11 +80,6 @@ int main()
     }
 
     // Start modules
-    if (!sensors->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to start Sensors module");
-    }
 
     if (!actuators->start())
     {
@@ -126,7 +123,7 @@ int main()
         LOG_INFO(logger, "Sensor {} {}", info.id, info.isInitialized);
     }
 
-    if (hilSimulationActive)
+    if (persistentVars->getHilMode())
     {
         if (!hil->start())
         {
@@ -136,6 +133,12 @@ int main()
 
         // Waiting for start of simulation
         hil->waitStartSimulation();
+    }
+
+    if (!sensors->start())
+    {
+        initResult = false;
+        LOG_ERR(logger, "Error failed to start Sensors module");
     }
 
     while (true)

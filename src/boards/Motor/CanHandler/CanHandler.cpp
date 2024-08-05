@@ -67,7 +67,7 @@ bool CanHandler::start()
                     static_cast<int16_t>(stats.logNumber),
                     static_cast<uint8_t>(initStatus),
                     false,
-                    false,  // TODO: HIL
+                    getModule<PersistentVars>()->getHilMode(),
                     stats.lastWriteError == 0,
                 });
         },
@@ -206,6 +206,13 @@ void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
 
 void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage &msg)
 {
+    if (static_cast<Common::CanConfig::EventId>(msg.getSecondaryType()) ==
+        Common::CanConfig::EventId::ENTER_HIL_MODE)
+    {
+        getModule<PersistentVars>()->setHilMode(true);
+        miosix::reboot();
+    }
+
     // TODO: Log event
     LOG_INFO(logger, "Received event");
 }
