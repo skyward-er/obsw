@@ -388,6 +388,15 @@ State FlightModeManager::state_test_mode(const Event& event)
                 CanConfig::EventId::EXIT_TEST_MODE);
             return transition(&FlightModeManager::state_disarmed);
         }
+        case CAN_ENTER_HIL_MODE:
+        case TMTC_ENTER_HIL_MODE:
+        {
+            getModule<PersistentVars>()->setHilMode(true);
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_HIL_MODE);
+            reboot();
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;

@@ -24,6 +24,7 @@
 
 #include <Main/Actuators/Actuators.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/PersistentVars/PersistentVars.h>
 #include <Main/Sensors/Sensors.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>
@@ -31,11 +32,13 @@
 
 #include "FlightModeManagerData.h"
 
+
 namespace Main
 {
 
 class FlightModeManager
-    : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler>,
+    : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler,
+                                           PersistentVars>,
       public Boardcore::HSM<FlightModeManager>
 {
 public:

@@ -22,6 +22,7 @@
 
 #include "Radio.h"
 
+#include <Main/PersistentVars/PersistentVars.h>
 #include <common/Events.h>
 #include <common/Radio.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -276,6 +277,8 @@ Events cmdToEvent(uint8_t id)
             return TMTC_ENTER_TEST_MODE;
         case MAV_CMD_EXIT_TEST_MODE:
             return TMTC_EXIT_TEST_MODE;
+        case MAV_CMD_ENTER_HIL:
+            return TMTC_ENTER_HIL_MODE;
         case MAV_CMD_START_RECORDING:
             return TMTC_START_RECORDING;
         case MAV_CMD_STOP_RECORDING:
@@ -638,7 +641,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.motor_can_status   = canStatus.isMotorConnected() ? 1 : 0;
             tm.rig_can_status     = canStatus.isRigConnected() ? 1 : 0;
 
-            tm.hil_state = 0;  // TODO
+            tm.hil_state =
+                getModule<PersistentVars>()->getHilMode() ? 1 : 0;  // TODO
 
             mavlink_msg_rocket_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                Config::Radio::MAV_COMPONENT_ID,

@@ -44,9 +44,10 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio : public Boardcore::InjectableWithDeps<
-                  Buses, BoardScheduler, Actuators, PinHandler, CanHandler,
-                  Sensors, FlightModeManager, ADAController, NASController>
+class Radio
+    : public Boardcore::InjectableWithDeps<
+          Buses, BoardScheduler, Actuators, PinHandler, CanHandler, Sensors,
+          FlightModeManager, ADAController, NASController, PersistentVars>
 {
 public:
     Radio() {}

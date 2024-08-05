@@ -31,6 +31,7 @@ set(HIL
 )
 
 set(MAIN_COMPUTER
+    src/boards/Main/PersistentVars/PersistentVars.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/CanHandler/CanHandler.cpp
