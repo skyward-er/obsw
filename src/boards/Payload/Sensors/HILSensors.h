@@ -243,10 +243,11 @@ private:
         return data;
     };
 
-    IMUData updateIMUData()
+    Boardcore::IMUData updateIMUData()
     {
-        return IMUData{getLSM6DSRXLastSample(), getLSM6DSRXLastSample(),
-                       getCalibratedMagnetometerLastSample()};
+        return Boardcore::IMUData{getLSM6DSRXLastSample(),
+                                  getLSM6DSRXLastSample(),
+                                  getCalibratedMagnetometerLastSample()};
     };
 
     bool enableHw;
