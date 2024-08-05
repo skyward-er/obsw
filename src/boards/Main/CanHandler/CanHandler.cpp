@@ -73,7 +73,7 @@ bool CanHandler::start()
                     static_cast<int16_t>(stats.logNumber),
                     static_cast<uint8_t>(state),
                     state == FlightModeManagerState::ARMED,
-                    false,  // TODO: HIL
+                    getModule<PersistentVars>()->getHilMode(),
                     stats.lastWriteError == 0,
                 });
         },

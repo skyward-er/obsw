@@ -26,6 +26,7 @@ set(OBSW_INCLUDE_DIRS
 
 set(MAIN_COMPUTER
     src/boards/Main/Data/ABKTrajectorySet.cpp
+    src/boards/Main/PersistentVars/PersistentVars.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/AlgoReference/AlgoReference.cpp
     src/boards/Main/Radio/Radio.cpp
