@@ -29,6 +29,7 @@
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/HILSimulationConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Payload/PersistentVars/PersistentVars.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
 #include <Payload/Sensors/HILSensors.h>
@@ -54,8 +55,6 @@ using namespace Boardcore;
 using namespace Payload;
 using namespace Common;
 using namespace HILConfig;
-
-constexpr bool hilSimulationActive = true;
 
 /**
  * @brief Starts a module and checks if it started correctly.
@@ -118,6 +117,8 @@ int main()
               << "(" << BUILD_TYPE << ")"
               << " by Skyward Experimental Rocketry" << std::endl;
 
+    auto persistentVars = new PersistentVars();
+
     // Unused but needed to set the log level properly
     auto logger = Logging::getLogger("Payload");
     DependencyManager depman{};
@@ -134,8 +135,8 @@ int main()
     auto nas = new NASController();
 
     // Sensors
-    auto sensors =
-        (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
+    auto sensors    = (persistentVars->getHilMode() ? new HILSensors(ENABLE_HW)
+                                                    : new Sensors());
     auto pinHandler = new PinHandler();
 
     // Radio and CAN
@@ -155,7 +156,7 @@ int main()
 
     // HIL
     HILConfig::PayloadHIL* hil = nullptr;
-    if (hilSimulationActive)
+    if (persistentVars->getHilMode())
     {
         hil        = new HILConfig::PayloadHIL();
         initResult = initResult && depman.insert(hil);
@@ -164,14 +165,14 @@ int main()
     std::cout << "Injecting module dependencies" << std::endl;
 
     // Insert modules
-    initResult = initResult && depman.insert(buses) &&
-                 depman.insert(scheduler) && depman.insert(flightModeManager) &&
-                 depman.insert(nas) && depman.insert(sensors) &&
-                 depman.insert(pinHandler) && depman.insert(radio) &&
-                 depman.insert(canHandler) && depman.insert(altitudeTrigger) &&
-                 depman.insert(wingController) &&
-                 depman.insert(windEstimation) && depman.insert(actuators) &&
-                 depman.insert(statsRecorder);
+    initResult =
+        initResult && depman.insert(persistentVars) && depman.insert(buses) &&
+        depman.insert(scheduler) && depman.insert(flightModeManager) &&
+        depman.insert(nas) && depman.insert(sensors) &&
+        depman.insert(pinHandler) && depman.insert(radio) &&
+        depman.insert(canHandler) && depman.insert(altitudeTrigger) &&
+        depman.insert(wingController) && depman.insert(windEstimation) &&
+        depman.insert(actuators) && depman.insert(statsRecorder);
 
     // Populate module dependencies
     initResult &= depman.inject();
@@ -190,7 +191,33 @@ int main()
         std::cerr << "No SD card detected, Logger will not work" << std::endl;
     }
 
-    if (hilSimulationActive)
+    // Start global modules
+    START_SINGLETON(EventBroker);
+    // Start module instances
+    START_MODULE(pinHandler);
+    START_MODULE(radio) { miosix::led2On(); }
+    START_MODULE(canHandler) { miosix::led3On(); }
+    START_MODULE(flightModeManager);
+    START_MODULE(nas);
+    START_MODULE(altitudeTrigger);
+    START_MODULE(wingController);
+    START_MODULE(windEstimation);
+    START_MODULE(actuators);
+    START_MODULE(statsRecorder);
+
+    START_MODULE(scheduler);
+
+    // Log all posted events
+    std::cout << "Starting event sniffer" << std::endl;
+    EventSniffer sniffer(
+        EventBroker::getInstance(), TOPICS_LIST,
+        [](uint8_t event, uint8_t topic)
+        {
+            EventData ev{TimestampTimer::getTimestamp(), event, topic};
+            Logger::getInstance().log(ev);
+        });
+
+    if (persistentVars->getHilMode())
     {
         START_MODULE(hil);
 
@@ -216,33 +243,7 @@ int main()
         printf("started HIL\n");
         hil->waitStartSimulation();
     }
-
-    // Start global modules
-    START_SINGLETON(EventBroker);
-    // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
-    START_MODULE(pinHandler);
-    START_MODULE(radio) { miosix::led2On(); }
-    START_MODULE(canHandler) { miosix::led3On(); }
-    START_MODULE(flightModeManager);
-    START_MODULE(nas);
-    START_MODULE(altitudeTrigger);
-    START_MODULE(wingController);
-    START_MODULE(windEstimation);
-    START_MODULE(actuators);
-    START_MODULE(statsRecorder);
-
-    START_MODULE(scheduler);
-
-    // Log all posted events
-    std::cout << "Starting event sniffer" << std::endl;
-    EventSniffer sniffer(
-        EventBroker::getInstance(), TOPICS_LIST,
-        [](uint8_t event, uint8_t topic)
-        {
-            EventData ev{TimestampTimer::getTimestamp(), event, topic};
-            Logger::getInstance().log(ev);
-        });
 
     if (initResult)
     {
@@ -257,6 +258,13 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         actuators->setStatusError();
         std::cerr << "Failed to initialize Payload" << std::endl;
+    }
+
+    std::cout << "Sensor status:" << std::endl;
+    for (auto info : sensors->getSensorInfo())
+    {
+        std::cout << "- " << info.id << " status: " << info.isInitialized
+                  << std::endl;
     }
 
     auto toggleBoardLed = [on = false]() mutable

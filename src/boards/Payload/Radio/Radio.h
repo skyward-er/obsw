@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Payload/Configs/RadioConfig.h>
+#include <Payload/PersistentVars/PersistentVars.h>
 #include <common/Mavlink.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
@@ -50,7 +51,7 @@ class CanHandler;
 class Radio : public Boardcore::InjectableWithDeps<
                   BoardScheduler, Sensors, Buses, FlightModeManager, Actuators,
                   NASController, WingController, AltitudeTrigger, PinHandler,
-                  CanHandler>
+                  CanHandler, PersistentVars>
 {
 public:
     /**

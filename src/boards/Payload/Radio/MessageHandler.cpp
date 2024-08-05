@@ -198,6 +198,7 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
                     case MAV_CMD_EXIT_TEST_MODE:   return TMTC_EXIT_TEST_MODE;
                     case MAV_CMD_START_RECORDING:  return TMTC_START_RECORDING;
                     case MAV_CMD_STOP_RECORDING:   return TMTC_STOP_RECORDING;
+                    case MAV_CMD_ENTER_HIL:        return TMTC_ENTER_HIL_MODE;
                     default:                       return LAST_EVENT;
                 }  // clang-format on
             }();
@@ -462,7 +463,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.rig_can_status   = canStatus.isRigConnected();
             tm.motor_can_status = canStatus.isMotorConnected();
 
-            tm.hil_state = 0;  // TODO: hil
+            tm.hil_state =
+                parent.getModule<PersistentVars>()->getHilMode() ? 1 : 0;
 
             mavlink_msg_payload_stats_tm_encode(config::Mavlink::SYSTEM_ID,
                                                 config::Mavlink::COMPONENT_ID,

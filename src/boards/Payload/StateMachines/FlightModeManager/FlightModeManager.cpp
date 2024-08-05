@@ -428,6 +428,18 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
             __builtin_unreachable();
         }
 
+        case TMTC_ENTER_HIL_MODE:
+        {
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_HIL_MODE);
+        }
+
+        case CAN_ENTER_HIL_MODE:
+        {
+            getModule<PersistentVars>()->setHilMode(true);
+            miosix::reboot();
+            __builtin_unreachable();
+        }
         case TMTC_EXIT_TEST_MODE:
         {
             getModule<CanHandler>()->sendEvent(

@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/PersistentVars/PersistentVars.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -41,7 +42,7 @@ class AltitudeTrigger;
 class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
       public Boardcore::InjectableWithDeps<Sensors, CanHandler, Actuators,
-                                           AltitudeTrigger>
+                                           AltitudeTrigger, PersistentVars>
 {
 public:
     FlightModeManager();
