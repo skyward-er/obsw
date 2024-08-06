@@ -352,12 +352,15 @@ State FlightModeManager::state_test_mode(const Event& event)
             updateAndLogStatus(FlightModeManagerState::TEST_MODE);
             EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            getModule<Sensors>()->resetMagCalibrator();
+            getModule<Sensors>()->enableMagCalibrator();
             return HANDLED;
         }
         case EV_EXIT:
         {
             EventBroker::getInstance().post(ADA_FORCE_STOP, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+            getModule<Sensors>()->disableMagCalibrator();
             return HANDLED;
         }
         case EV_EMPTY:

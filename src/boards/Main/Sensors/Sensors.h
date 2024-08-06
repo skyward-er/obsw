@@ -38,6 +38,7 @@
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <utils/DependencyManager/DependencyManager.h>
+#include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 
 #include <memory>
 #include <vector>
@@ -56,6 +57,11 @@ public:
 
     void calibrate();
 
+    void resetMagCalibrator();
+    void enableMagCalibrator();
+    void disableMagCalibrator();
+    bool saveMagCalibration();
+
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
@@ -72,6 +78,7 @@ public:
     Boardcore::PressureData getStaticPressure2LastSample();
     Boardcore::PressureData getDplBayPressureLastSample();
 
+    Boardcore::MagnetometerData getCalibratedMagLastSample();
     Boardcore::IMUData getIMULastSample();
     Boardcore::PressureData getAtmosPressureLastSample();
 
@@ -89,6 +96,8 @@ public:
     void setCanCCPress(Boardcore::PressureData data);
     void setCanTankTemp(Boardcore::TemperatureData data);
     void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
+
+    bool hasValidMagCalibration = false;
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
@@ -160,6 +169,12 @@ private:
     void rotatedImuCallback();
 
     bool sensorManagerInit();
+
+    miosix::FastMutex magCalibrationMutex;
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    Boardcore::SixParametersCorrector lastValidMagCalibration;
+    uint8_t magCalibrationTaskId = 0;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
