@@ -89,6 +89,8 @@ enum class EventId : uint8_t
     ARM,
     ENTER_TEST_MODE,
     EXIT_TEST_MODE,
+    ENTER_HIL_MODE,
+    EXIT_HIL_MODE,
     CALIBRATE,
     DISARM,
     LIFTOFF,
@@ -104,6 +106,8 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::FORCE_INIT, Common::CAN_FORCE_INIT},
     {Common::CanConfig::EventId::ENTER_TEST_MODE, Common::CAN_ENTER_TEST_MODE},
     {Common::CanConfig::EventId::EXIT_TEST_MODE, Common::CAN_EXIT_TEST_MODE},
+    {Common::CanConfig::EventId::ENTER_HIL_MODE, Common::CAN_ENTER_HIL_MODE},
+    {Common::CanConfig::EventId::EXIT_HIL_MODE, Common::CAN_EXIT_HIL_MODE},
     {Common::CanConfig::EventId::APOGEE_DETECTED, Common::CAN_APOGEE_DETECTED},
     {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
 };
