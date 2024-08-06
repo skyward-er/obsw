@@ -30,6 +30,8 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <units/Frequency.h>
 
+#include <string>
+
 namespace Main
 {
 
@@ -39,10 +41,16 @@ namespace Config
 namespace Sensors
 {
 
-namespace LPS22DF
-{
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
+constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
+constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+
+constexpr Hertz MAG_CALIBRATION_RATE = 50_hz;
+static const std::string MAG_CALIBRATION_FILENAME{"/sd/magCalibration.csv"};
+
+namespace LPS22DF
+{
 constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
 
@@ -52,8 +60,6 @@ constexpr bool ENABLED = true;
 
 namespace LPS28DFW
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::LPS28DFW::FullScaleRange FS = Boardcore::LPS28DFW::FS_1260;
 constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_4;
 constexpr Boardcore::LPS28DFW::ODR ODR           = Boardcore::LPS28DFW::ODR_100;
@@ -64,8 +70,6 @@ constexpr bool ENABLED = true;
 
 namespace H3LIS331DL
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
     Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
@@ -77,8 +81,6 @@ constexpr bool ENABLED = true;
 
 namespace LIS2MDL
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr unsigned int TEMP_DIVIDER   = 5;
 
@@ -88,16 +90,12 @@ constexpr bool ENABLED = true;
 
 namespace UBXGPS
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Hertz RATE   = 5_hz;
 constexpr bool ENABLED = true;
 }  // namespace UBXGPS
 
 namespace LSM6DSRX
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
     Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
 constexpr Boardcore::LSM6DSRXConfig::ACC_ODR ACC_ODR =
@@ -118,8 +116,6 @@ constexpr bool ENABLED = true;
 
 namespace ADS131M08
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
@@ -146,8 +142,6 @@ constexpr bool ENABLED = true;
 
 namespace InternalADC
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::InternalADC::Channel VBAT_CH =
     Boardcore::InternalADC::Channel::CH8;
 constexpr Boardcore::InternalADC::Channel CAM_VBAT_CH =
@@ -164,8 +158,6 @@ constexpr bool ENABLED = true;
 
 namespace IMU
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace IMU

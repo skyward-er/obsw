@@ -37,6 +37,9 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
+    // Read the magnetometer calibration from predefined file
+    magCalibration.fromFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
+
     if (Config::Sensors::LPS22DF::ENABLED)
     {
         lps22dfInit();
@@ -97,6 +100,25 @@ bool Sensors::start()
         return false;
     }
 
+    magCalibrationTaskId = getSensorsScheduler().addTask(
+        [this]()
+        {
+            auto mag = getLIS2MDLLastSample();
+
+            Lock<FastMutex> lock{magCalibrationMutex};
+            magCalibrator.feed(mag);
+        },
+        Config::Sensors::MAG_CALIBRATION_RATE);
+
+    if (magCalibrationTaskId == 0)
+    {
+        LOG_ERR(logger, "Failed to add mag calibration task");
+        return false;
+    }
+
+    // Immediately disable the task
+    getSensorsScheduler().disableTask(magCalibrationTaskId);
+
     started = true;
     return true;
 }
@@ -105,6 +127,46 @@ void Sensors::calibrate()
 {
     // TODO: Lol
     Thread::sleep(2000);
+}
+
+void Sensors::resetMagCalibrator()
+{
+    Lock<FastMutex> lock{magCalibrationMutex};
+    magCalibrator = SoftAndHardIronCalibration{};
+    lastValidMagCalibration = SixParametersCorrector{};
+    hasValidMagCalibration = false; 
+}
+
+void Sensors::enableMagCalibrator()
+{
+    getSensorsScheduler().enableTask(magCalibrationTaskId);
+}
+
+void Sensors::disableMagCalibrator()
+{
+    getSensorsScheduler().disableTask(magCalibrationTaskId);
+}
+
+bool Sensors::saveMagCalibration()
+{
+    Lock<FastMutex> lock{magCalibrationMutex};
+
+    SixParametersCorrector calibration = magCalibrator.computeResult();
+
+    // Check if the calibration is valid
+    if (!std::isnan(calibration.getb()[0]) &&
+        !std::isnan(calibration.getb()[1]) &&
+        !std::isnan(calibration.getb()[2]) &&
+        !std::isnan(calibration.getA()[0]) &&
+        !std::isnan(calibration.getA()[1]) &&
+        !std::isnan(calibration.getA()[2]))
+    {
+        // Its valid, save it and apply it
+        magCalibration = calibration;
+        return magCalibration.toFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
+    } else {
+        return false;
+    }
 }
 
 Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
@@ -177,6 +239,21 @@ PressureData Sensors::getStaticPressure2LastSample()
 PressureData Sensors::getDplBayPressureLastSample()
 {
     return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
+}
+
+MagnetometerData Sensors::getCalibratedMagLastSample()
+{
+    auto sample        = static_cast<MagnetometerData>(getLIS2MDLLastSample());
+    uint64_t timestamp = sample.magneticFieldTimestamp;
+
+    {
+        Lock<FastMutex> lock{magCalibrationMutex};
+        sample = static_cast<MagnetometerData>(magCalibration.correct(sample));
+    }
+
+    sample.magneticFieldTimestamp = timestamp;
+
+    return sample;
 }
 
 IMUData Sensors::getIMULastSample()
@@ -531,7 +608,7 @@ void Sensors::rotatedImuInit()
         [this]()
         {
             auto imu6 = getLSM6DSRXLastSample();
-            auto mag  = getLIS2MDLLastSample();
+            auto mag  = getCalibratedMagLastSample();
 
             return IMUData{imu6, imu6, mag};
         });
