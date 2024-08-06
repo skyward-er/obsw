@@ -114,9 +114,8 @@ bool Actuators::wiggleServo(ServosList servo)
     }
     else
     {
-        // TODO(davide.mor): Send the command via CanBus, maybe someone else has
-        // this servo
-        return false;
+        wiggleCanServo(servo);
+        return true;
     }
 }
 
