@@ -97,6 +97,9 @@ ActuationStatus Actuators::setSpeed(StepperList axis, float speed)
     const auto *config  = getStepperConfig(axis);
     auto *stepper       = getStepper(axis);
     auto actuationState = ActuationStatus::OK;
+    auto multiplier     = getStepperMultiplier(axis);
+
+    speed *= multiplier;
 
     if (speed > config->MAX_SPEED)
     {
