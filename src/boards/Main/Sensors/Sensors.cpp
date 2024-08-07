@@ -273,16 +273,16 @@ PressureData Sensors::getAtmosPressureLastSample()
     }
 }
 
-PressureData Sensors::getCanTopTankPress1LastSample()
+PressureData Sensors::getCanTopTankPressLastSample()
 {
     Lock<FastMutex> lock{canMutex};
-    return canTopTankPressure1;
+    return canTopTankPressure;
 }
 
-PressureData Sensors::getCanTopTankPress2LastSample()
+PressureData Sensors::getCanBottomTankPressLastSample()
 {
     Lock<FastMutex> lock{canMutex};
-    return canTopTankPressure2;
+    return canBottomTankPressure;
 }
 
 PressureData Sensors::getCanCCPressLastSample()
@@ -303,16 +303,16 @@ VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
     return canMotorBatteryVoltage;
 }
 
-void Sensors::setCanTopTankPress1(Boardcore::PressureData data)
+void Sensors::setCanTopTankPress(Boardcore::PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canTopTankPressure1 = data;
+    canTopTankPressure = data;
 }
 
-void Sensors::setCanTopTankPress2(Boardcore::PressureData data)
+void Sensors::setCanBottomTankPress(Boardcore::PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canTopTankPressure2 = data;
+    canBottomTankPressure = data;
 }
 
 void Sensors::setCanCCPress(Boardcore::PressureData data)
