@@ -610,7 +610,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                         .lastState
                     ? 1
                     : 0;
-            tm.pin_expulsion   = 255;  // TODO
+            tm.pin_expulsion =
+                pinHandler->getPinData(PinHandler::PinList::EXPULSION_SENSE)
+                        .lastState
+                    ? 1
+                    : 0;
             tm.cutter_presence = 255;  // TODO
 
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -680,8 +684,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             // Sensors (either CAN or local)
             tm.top_tank_pressure =
-                sensors->getCanTopTankPress1LastSample().pressure;
-            tm.bottom_tank_pressure = -1.0f;  // Doesn't exist
+                sensors->getCanTopTankPressLastSample().pressure;
+            tm.bottom_tank_pressure =
+                sensors->getCanBottomTankPressLastSample().pressure;
             tm.combustion_chamber_pressure =
                 sensors->getCanCCPressLastSample().pressure;
             tm.tank_temperature =

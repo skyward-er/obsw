@@ -205,7 +205,15 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanTopTankPress1(data);
+            sensors->setCanTopTankPress(data);
+            break;
+        }
+
+        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanBottomTankPress(data);
             break;
         }
 
