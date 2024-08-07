@@ -127,7 +127,7 @@ void NASController::update()
             magDecimateCount++;
         }
 
-        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix != 0)
+        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3)
         {
             nas.correctGPS(gps);
         }
@@ -138,6 +138,12 @@ void NASController::update()
         }
 
         // TODO: Correct with pitot
+
+        // Correct with accelerometer if the acceleration is in specs
+        if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
+        {
+            nas.correctAcc(imu);
+        }
 
         // Check if the accelerometer is measuring 1g
         Eigen::Vector3f acc = static_cast<AccelerometerData>(imu);
@@ -212,11 +218,12 @@ void NASController::calibrate()
     // Compute reference values
     ReferenceValues reference = nas.getReferenceValues();
     reference.refPressure     = baroStats.getStats().mean;
-    reference.refAltitude = Aeroutils::relAltitude(baroStats.getStats().mean);
+    reference.refAltitude     = Aeroutils::relAltitude(
+            reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // Also updated the reference with the GPS if we have fix
     UBXGPSData gps = sensors->getUBXGPSLastSample();
-    if (gps.fix != 0)
+    if (gps.fix == 3)
     {
         // We do not use the GPS altitude because it sucks
         reference.refLatitude  = gps.latitude;

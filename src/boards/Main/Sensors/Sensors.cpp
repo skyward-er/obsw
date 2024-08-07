@@ -133,8 +133,6 @@ void Sensors::resetMagCalibrator()
 {
     Lock<FastMutex> lock{magCalibrationMutex};
     magCalibrator = SoftAndHardIronCalibration{};
-    lastValidMagCalibration = SixParametersCorrector{};
-    hasValidMagCalibration = false; 
 }
 
 void Sensors::enableMagCalibrator()
@@ -164,7 +162,9 @@ bool Sensors::saveMagCalibration()
         // Its valid, save it and apply it
         magCalibration = calibration;
         return magCalibration.toFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
-    } else {
+    }
+    else
+    {
         return false;
     }
 }

@@ -312,18 +312,23 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_SAVE_CALIBRATION:
         {
-            if(getModule<FlightModeManager>()->getState() ==
+            if (getModule<FlightModeManager>()->getState() ==
                 FlightModeManagerState::TEST_MODE)
             {
-                if(getModule<Sensors>()->saveMagCalibration()) {
+                if (getModule<Sensors>()->saveMagCalibration())
+                {
                     enqueueAck(msg);
-                } else {
+                }
+                else
+                {
                     enqueueNack(msg);
                 }
-            } else {
+            }
+            else
+            {
                 enqueueNack(msg);
             }
-            
+
             break;
         }
 
@@ -546,7 +551,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.ada_vert_speed = adaState.verticalSpeed;
 
             tm.airspeed_pitot = -1.0f;  // TODO
-            tm.mea_mass       = sensors->hasValidMagCalibration ? 1 : 0;  // TODO
+            tm.mea_mass       = -1.0f;  // TODO
 
             // Sensors
             tm.acc_x   = imu.accelerationX;
