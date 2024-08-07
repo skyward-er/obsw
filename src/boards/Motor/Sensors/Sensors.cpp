@@ -57,6 +57,7 @@ bool Sensors::start()
     {
         ads131m08Init();
         topTankPressureInit();
+        bottomTankPressureInit();
         ccPressureInit();
     }
 
@@ -115,6 +116,12 @@ PressureData Sensors::getTopTankPress()
     return topTankPressure ? topTankPressure->getLastSample() : PressureData{};
 }
 
+PressureData Sensors::getBottomTankPress()
+{
+    return bottomTankPressure ? bottomTankPressure->getLastSample()
+                              : PressureData{};
+}
+
 PressureData Sensors::getCCPress()
 {
     return ccPressure ? ccPressure->getLastSample() : PressureData{};
@@ -141,6 +148,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
                 manager->getSensorInfo(ads131m08.get()),
                 manager->getSensorInfo(internalAdc.get()),
                 manager->getSensorInfo(topTankPressure.get()),
+                manager->getSensorInfo(bottomTankPressure.get()),
                 manager->getSensorInfo(ccPressure.get())};
     }
     else
@@ -151,9 +159,6 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
 
 void Sensors::lps22dfInit()
 {
-    if (!Config::Sensors::LPS22DF::ENABLED)
-        return;
-
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -170,9 +175,6 @@ void Sensors::lps22dfCallback() { sdLogger.log(lps22df->getLastSample()); }
 
 void Sensors::h3lis331dlInit()
 {
-    if (!Config::Sensors::H3LIS331DL::ENABLED)
-        return;
-
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -190,9 +192,6 @@ void Sensors::h3lis331dlCallback()
 
 void Sensors::lis2mdlInit()
 {
-    if (!Config::Sensors::LIS2MDL::ENABLED)
-        return;
-
     SPIBusConfig spiConfig = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -210,9 +209,6 @@ void Sensors::lis2mdlCallback() { sdLogger.log(lis2mdl->getLastSample()); }
 
 void Sensors::lsm6dsrxInit()
 {
-    if (!Config::Sensors::LSM6DSRX::ENABLED)
-        return;
-
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
     spiConfig.mode         = SPI::Mode::MODE_0;
@@ -242,9 +238,6 @@ void Sensors::lsm6dsrxCallback() { sdLogger.log(lsm6dsrx->getLastSample()); }
 
 void Sensors::ads131m08Init()
 {
-    if (!Config::Sensors::ADS131M08::ENABLED)
-        return;
-
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
@@ -272,6 +265,13 @@ void Sensors::ads131m08Init()
         .offset  = 0,
         .gain    = 1.0};
 
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
     config.channelsConfig[(int)Config::Sensors::ADS131M08::ENGINE_PT_CHANNEL] =
         {.enabled = true,
          .pga     = ADS131M08Defs::PGA::PGA_1,
@@ -287,9 +287,6 @@ void Sensors::ads131m08Callback() { sdLogger.log(ads131m08->getLastSample()); }
 
 void Sensors::internalAdcInit()
 {
-    if (!Config::Sensors::InternalADC::ENABLED)
-        return;
-
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(InternalADC::CH9);
     internalAdc->enableChannel(InternalADC::CH14);
@@ -304,9 +301,6 @@ void Sensors::internalAdcCallback()
 
 void Sensors::topTankPressureInit()
 {
-    if (!Config::Sensors::ADS131M08::ENABLED)
-        return;
-
     topTankPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
@@ -327,11 +321,30 @@ void Sensors::topTankPressureCallback()
     sdLogger.log(data);
 }
 
+void Sensors::bottomTankPressureInit()
+{
+    bottomTankPressure = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADS131M08LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL);
+        },
+        Config::Sensors::Trafag::TANK_BOTTOM_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+}
+
+void Sensors::bottomTankPressureCallback()
+{
+    PressureData sample = bottomTankPressure->getLastSample();
+    PTsData data{sample.pressureTimestamp, 1, sample.pressure};
+    sdLogger.log(data);
+}
+
 void Sensors::ccPressureInit()
 {
-    if (!Config::Sensors::ADS131M08::ENABLED)
-        return;
-
     ccPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
@@ -348,7 +361,7 @@ void Sensors::ccPressureInit()
 void Sensors::ccPressureCallback()
 {
     PressureData sample = topTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 1, sample.pressure};
+    PTsData data{sample.pressureTimestamp, 2, sample.pressure};
     sdLogger.log(data);
 }
 
@@ -409,6 +422,14 @@ bool Sensors::sensorManagerInit()
         SensorInfo info("TopTankPressure", Config::Sensors::ADS131M08::PERIOD,
                         [this]() { topTankPressureCallback(); });
         map.emplace(std::make_pair(topTankPressure.get(), info));
+    }
+
+    if (bottomTankPressure)
+    {
+        SensorInfo info("BottomTankPressure",
+                        Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { bottomTankPressureCallback(); });
+        map.emplace(std::make_pair(bottomTankPressure.get(), info));
     }
 
     if (ccPressure)
