@@ -56,6 +56,7 @@ public:
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
 
     Boardcore::PressureData getTopTankPress();
+    Boardcore::PressureData getBottomTankPress();
     Boardcore::PressureData getCCPress();
     Boardcore::TemperatureData getTankTemp();
     Boardcore::VoltageData getBatteryVoltage();
@@ -75,6 +76,7 @@ protected:
 
     // Analog sensors
     std::unique_ptr<Boardcore::TrafagPressureSensor> topTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> bottomTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
@@ -100,6 +102,9 @@ private:
 
     void topTankPressureInit();
     void topTankPressureCallback();
+
+    void bottomTankPressureInit();
+    void bottomTankPressureCallback();
 
     void ccPressureInit();
     void ccPressureCallback();

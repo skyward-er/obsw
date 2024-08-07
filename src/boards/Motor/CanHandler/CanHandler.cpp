@@ -99,6 +99,14 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::TOP_TANK_PRESSURE),
                 static_cast<PressureData>(sensors->getTopTankPress()));
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(CanConfig::SensorId::BOTTOM_TANK_PRESSURE),
+                static_cast<PressureData>(sensors->getBottomTankPress()));
         },
         Config::CanHandler::PRESSURE_PERIOD);
 
