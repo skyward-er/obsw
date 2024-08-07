@@ -100,7 +100,7 @@ void Actuators::openExpulsion()
     servoExp->setPosition(1.0f);
 }
 
-bool Actuators::wiggleServo(ServosList servo)
+void Actuators::wiggleServo(ServosList servo)
 {
     Lock<FastMutex> lock{servosMutex};
     Servo *info = getServo(servo);
@@ -109,13 +109,11 @@ bool Actuators::wiggleServo(ServosList servo)
         info->setPosition(1.0f);
         Thread::sleep(1000);
         info->setPosition(0.0f);
-
-        return true;
     }
     else
     {
+        // Wiggle via CAN, maybe someone else has it
         wiggleCanServo(servo);
-        return true;
     }
 }
 
