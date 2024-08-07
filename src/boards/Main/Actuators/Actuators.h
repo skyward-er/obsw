@@ -48,7 +48,7 @@ public:
     void setAbkPosition(float position);
     void openExpulsion();
 
-    bool wiggleServo(ServosList servo);
+    void wiggleServo(ServosList servo);
     float getServoPosition(ServosList servo);
 
     void wiggleCanServo(ServosList servo);
