@@ -123,7 +123,7 @@ void Leds::ledOn(LedColor color)
     switch (color)
     {
         case LedColor::RED:
-            miosix::led3On;
+            miosix::led3On();
             miosix::commBox::ledTimR2::high();
             break;
         case LedColor::YELLOW:

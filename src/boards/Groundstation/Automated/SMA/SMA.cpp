@@ -239,6 +239,12 @@ void SMA::update()
             follower.update();  // step the follower
             FollowerState follow = follower.getState();
 
+            // Log the target angles and propagations info
+            AntennaAngles target{follow.timestamp, follow.yaw, follow.pitch,
+                                 predicted.nPropagations};
+            Boardcore::Logger::getInstance().log(
+                static_cast<Boardcore::AntennaAngles>(target));
+
             // actuate the steppers
             auto steppers = ModuleManager::getInstance().get<Actuators>();
             steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
@@ -300,6 +306,12 @@ void SMA::update()
             follower.setLastAntennaAttitude(fakeAttitudeData);
             follower.update();  // step the follower
             FollowerState follow = follower.getState();
+
+            // Log the target angles and propagations info
+            AntennaAngles target{follow.timestamp, follow.yaw, follow.pitch,
+                                 predicted.nPropagations};
+            Boardcore::Logger::getInstance().log(
+                static_cast<Boardcore::AntennaAngles>(target));
 
             // actuate the steppers
             steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
