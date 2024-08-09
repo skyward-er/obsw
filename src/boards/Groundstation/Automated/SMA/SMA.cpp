@@ -526,6 +526,44 @@ State SMA::state_init_error(const Event& event)
     }
 }
 
+State SMA::state_init_fatal(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatus(SMAState::INIT_FATAL);
+            ModuleManager::getInstance().get<Leds>()->setFastBlink(
+                LedColor::RED);
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&SMA::state_config);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+        case TMTC_ARP_FORCE_NO_FEEDBACK:
+        {
+            return transition(&SMA::state_insert_info);
+        }
+        case TMTC_ARP_FORCE_INIT:
+        {
+            return transition(&SMA::state_init_done);
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
 State SMA::state_init_done(const Event& event)
 {
     switch (event)

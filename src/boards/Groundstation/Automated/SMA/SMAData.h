@@ -33,36 +33,37 @@ namespace Antennas
 enum class SMAState : uint8_t
 {
     INIT = 0,       ///< 0
-    INIT_ERROR,     ///< 1
-    INIT_DONE,      ///< 2
-    INSERT_INFO,    ///< 3
-    ARMED,          ///< 4
-    ARMED_NF,       ///< 5
-    TEST,           ///< 6
-    TEST_NF,        ///< 7
-    CALIBRATE,      ///< 8
-    FIX_ANTENNAS,   ///< 9
-    FIX_ROCKET,     ///< 10
-    FIX_ROCKET_NF,  ///< 11
-    ARM_READY,      ///< 12
-    ACTIVE,         ///< 13
-    ACTIVE_NF,      ///< 14
+    INIT_FATAL,     ///< 1
+    INIT_ERROR,     ///< 2
+    INIT_DONE,      ///< 3
+    INSERT_INFO,    ///< 4
+    ARMED,          ///< 5
+    ARMED_NF,       ///< 6
+    TEST,           ///< 7
+    TEST_NF,        ///< 8
+    CALIBRATE,      ///< 9
+    FIX_ANTENNAS,   ///< 10
+    FIX_ROCKET,     ///< 11
+    FIX_ROCKET_NF,  ///< 12
+    ARM_READY,      ///< 13
+    ACTIVE,         ///< 14
+    ACTIVE_NF,      ///< 15
     /**
      * @brief macro state for configuration (init, init_error,
      * init_done, state_insert_info)
      */
-    CONFIG,  ///< 15
+    CONFIG,  ///< 16
     /**
      * @brief macro state for feedback (armed, test, calibrate,
      * fix_antennas, fix_rocket, active)
      */
-    FEEDBACK,  ///< 16
+    FEEDBACK,  ///< 17
     /**
      * @brief macro state for no feedback (armed_nf, test_nf,
      * fix_rocket_nf, active_nf)
      */
-    NO_FEEDBACK,  ///< 17
-    INVALID,      ///< 18
+    NO_FEEDBACK,  ///< 18
+    INVALID,      ///< 19
 };
 
 struct SMAStatus

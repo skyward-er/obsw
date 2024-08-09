@@ -197,7 +197,8 @@ int main()
     if (!Logger::getInstance().start())
     {
         LOG_ERR(logger, "ERROR: Failed to start Logger\n");
-        ok = false;
+        ok         = false;
+        init_fatal = true;
     }
 #endif
 
@@ -334,8 +335,8 @@ int main()
                     "ARP's modules initialization has failed. Init fatal "
                     "error. Cannot proceed, a restart and fix of the "
                     "boards/module is required.\n");
-            ModuleManager::getInstance().get<Antennas::Leds>()->endlessBlink(
-                Antennas::LedColor::RED, LED_BLINK_FAST_PERIOD_MS);
+            EventBroker::getInstance().post(Common::ARP_INIT_FATAL,
+                                            Common::TOPIC_ARP);
         }  // If another module is in error
         else if (!ok)
         {

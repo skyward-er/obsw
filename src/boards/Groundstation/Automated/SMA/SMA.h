@@ -54,6 +54,7 @@ public:
     Boardcore::State state_no_feedback(const Boardcore::Event& event);
     Boardcore::State state_init(const Boardcore::Event& event);
     Boardcore::State state_init_error(const Boardcore::Event& event);
+    Boardcore::State state_init_fatal(const Boardcore::Event& event);
     Boardcore::State state_init_done(const Boardcore::Event& event);
     Boardcore::State state_insert_info(const Boardcore::Event& event);
     Boardcore::State state_arm_ready(const Boardcore::Event& event);
