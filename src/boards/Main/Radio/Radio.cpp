@@ -141,7 +141,8 @@ void Radio::enqueuePacket(const mavlink_message_t& msg)
 void Radio::flushPackets()
 {
     // Flush all packets of the queue
-    size_t count = queuedPackets.count();
+    size_t count =
+        std::min(queuedPackets.count(), Config::Radio::MAX_PACKETS_PER_FLUSH);
     for (size_t i = 0; i < count; i++)
     {
         try
