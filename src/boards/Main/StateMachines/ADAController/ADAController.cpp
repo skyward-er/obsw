@@ -177,6 +177,13 @@ void ADAController::update()
             // DO NOT THROW EVENTS IN SHADOW_MODE!
             if (detectedApogees > Config::ADA::APOGEE_N_SAMPLES)
             {
+                auto gps = getModule<Sensors>()->getUBXGPSLastSample();
+
+                // Notify stats recorder
+                getModule<StatsRecorder>()->apogeeDetected(
+                    TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
+                    ada.getState().mslAltitude);
+
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
             }
         }
@@ -195,7 +202,10 @@ void ADAController::update()
 
         if (detectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
         {
-            // TODO(davide.mor): Rename this event
+            // Notify stats recorder
+            getModule<StatsRecorder>()->deploymentDetected(
+                TimestampTimer::getTimestamp(), ada.getState().mslAltitude);
+
             EventBroker::getInstance().post(ADA_DEPLOY_ALTITUDE_DETECTED,
                                             TOPIC_ADA);
         }

@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
+#include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/NAS/NAS.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
@@ -35,7 +36,8 @@ namespace Main
 
 class NASController
     : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
+      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                           StatsRecorder>
 {
 public:
     NASController();

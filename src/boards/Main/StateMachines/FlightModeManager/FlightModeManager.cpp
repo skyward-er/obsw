@@ -350,6 +350,10 @@ State FlightModeManager::state_test_mode(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FlightModeManagerState::TEST_MODE);
+
+            // Reset all stats
+            getModule<StatsRecorder>()->reset();
+
             EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             getModule<Sensors>()->resetMagCalibrator();
@@ -406,6 +410,9 @@ State FlightModeManager::state_armed(const Event& event)
         {
             updateAndLogStatus(FlightModeManagerState::ARMED);
 
+            // Reset all stats
+            getModule<StatsRecorder>()->reset();
+
             Logger::getInstance().stop();
             Logger::getInstance().start();
             Logger::getInstance().resetStats();
@@ -441,6 +448,8 @@ State FlightModeManager::state_armed(const Event& event)
         case TMTC_FORCE_LAUNCH:
         case FLIGHT_LAUNCH_PIN_DETACHED:
         {
+            getModule<StatsRecorder>()->liftoffDetected(
+                TimestampTimer::getTimestamp());
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
             return transition(&FlightModeManager::state_flying);
         }
