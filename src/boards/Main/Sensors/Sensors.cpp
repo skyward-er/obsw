@@ -412,7 +412,11 @@ void Sensors::h3lis331dlInit()
 
 void Sensors::h3lis331dlCallback()
 {
-    Logger::getInstance().log(getH3LIS331DLLastSample());
+    auto sample = getH3LIS331DLLastSample();
+
+    // Also update StatsRecorder
+    getModule<StatsRecorder>()->updateAcc(sample);
+    Logger::getInstance().log(sample);
 }
 
 void Sensors::lis2mdlInit()
@@ -598,8 +602,10 @@ void Sensors::dplBayPressureInit()
 
 void Sensors::dplBayPressureCallback()
 {
-    Logger::getInstance().log(
-        DplBayPressureData{getDplBayPressureLastSample()});
+    auto sample = getDplBayPressureLastSample();
+
+    getModule<StatsRecorder>()->updateDplPressure(sample);
+    Logger::getInstance().log(DplBayPressureData{sample});
 }
 
 void Sensors::rotatedImuInit()

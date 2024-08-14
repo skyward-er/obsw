@@ -30,6 +30,7 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StatsRecorder/StatsRecorder.h>
 #include <actuators/Servo/Servo.h>
 #include <drivers/timer/PWM.h>
 #include <events/EventBroker.h>
@@ -52,26 +53,28 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Actuators *actuators   = new Actuators();
-    Sensors *sensors       = new Sensors();
-    Radio *radio           = new Radio();
-    CanHandler *canHandler = new CanHandler();
-    PinHandler *pinHandler = new PinHandler();
-    FlightModeManager *fmm = new FlightModeManager();
-    ADAController *ada     = new ADAController();
-    NASController *nas     = new NASController();
+    Actuators *actuators    = new Actuators();
+    Sensors *sensors        = new Sensors();
+    Radio *radio            = new Radio();
+    CanHandler *canHandler  = new CanHandler();
+    PinHandler *pinHandler  = new PinHandler();
+    FlightModeManager *fmm  = new FlightModeManager();
+    ADAController *ada      = new ADAController();
+    NASController *nas      = new NASController();
+    StatsRecorder *recorder = new StatsRecorder();
 
     // Insert modules
-    bool initResult = manager.insert<Buses>(buses) &&
-                      manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Sensors>(sensors) &&
-                      manager.insert<Radio>(radio) &&
-                      manager.insert<Actuators>(actuators) &&
-                      manager.insert<CanHandler>(canHandler) &&
-                      manager.insert<PinHandler>(pinHandler) &&
-                      manager.insert<FlightModeManager>(fmm) &&
-                      manager.insert<ADAController>(ada) &&
-                      manager.insert<NASController>(nas) && manager.inject();
+    bool initResult =
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<CanHandler>(canHandler) &&
+        manager.insert<PinHandler>(pinHandler) &&
+        manager.insert<FlightModeManager>(fmm) &&
+        manager.insert<ADAController>(ada) &&
+        manager.insert<NASController>(nas) &&
+        manager.insert<StatsRecorder>(recorder) && manager.inject();
 
     manager.graphviz(std::cout);
 

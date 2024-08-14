@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
+#include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/ADA/ADA.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -33,7 +34,8 @@ namespace Main
 {
 
 class ADAController
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>,
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                           StatsRecorder>,
       public Boardcore::FSM<ADAController>
 {
 public:

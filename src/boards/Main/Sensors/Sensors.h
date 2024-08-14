@@ -24,6 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/StatsRecorder/StatsRecorder.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
@@ -46,7 +47,8 @@
 namespace Main
 {
 
-class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
+class Sensors
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder>
 {
 public:
     Sensors() {}

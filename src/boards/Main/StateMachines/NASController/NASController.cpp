@@ -175,7 +175,10 @@ void NASController::update()
         lastGpsTimestamp  = gps.gpsTimestamp;
         lastBaroTimestamp = baro.pressureTimestamp;
 
-        sdLogger.log(nas.getState());
+        auto state = nas.getState();
+
+        getModule<StatsRecorder>()->updateNas(state);
+        sdLogger.log(state);
     }
 }
 
