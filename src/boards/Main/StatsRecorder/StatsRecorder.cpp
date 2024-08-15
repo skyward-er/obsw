@@ -23,11 +23,14 @@
 #include "StatsRecorder.h"
 
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <common/ReferenceConfig.h>
+#include <utils/AeroUtils/AeroUtils.h>
 
 using namespace Boardcore;
 using namespace Main;
 using namespace miosix;
 using namespace Eigen;
+using namespace Common;
 
 StatsRecorder::StatsRecorder() {}
 
@@ -123,7 +126,16 @@ void StatsRecorder::updateNas(const NASState &data)
             stats.maxSpeedTs  = data.timestamp;
         }
 
-        // TODO: Update mach
+        // TODO: Grab ref temperature from global ReferenceValues
+        float mach = Aeroutils::computeMach(
+            data.d, speed,
+            ReferenceConfig::defaultReferenceValues.refTemperature);
+
+        if (mach > stats.maxMach)
+        {
+            stats.maxMach   = mach;
+            stats.maxMachTs = data.timestamp;
+        }
     }
 }
 
