@@ -220,20 +220,22 @@ void ADAController::update()
 
 void ADAController::calibrate()
 {
-    Stats baroStats;
+    float baroAcc = 0.0f;
 
     for (int i = 0; i < Config::ADA::CALIBRATION_SAMPLES_COUNT; i++)
     {
         PressureData baro = getModule<Sensors>()->getAtmosPressureLastSample();
-        baroStats.add(baro.pressure);
+        baroAcc += baro.pressure;
 
         Thread::sleep(Config::ADA::CALIBRATION_SLEEP_TIME);
     }
 
+    baroAcc /= Config::ADA::CALIBRATION_SAMPLES_COUNT;
+
     Lock<FastMutex> lock{adaMutex};
 
     ReferenceValues reference = ada.getReferenceValues();
-    reference.refPressure     = baroStats.getStats().mean;
+    reference.refPressure     = baroAcc;
     reference.refAltitude     = Aeroutils::relAltitude(
             reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
