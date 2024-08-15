@@ -38,6 +38,7 @@ using namespace Main;
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
+using namespace Eigen;
 
 NASController::NASController()
     : FSM{&NASController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
@@ -48,8 +49,8 @@ NASController::NASController()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 
     // TODO: Review this code
-    Eigen::Matrix<float, 13, 1> x = Eigen::Matrix<float, 13, 1>::Zero();
-    Eigen::Vector4f q             = SkyQuaternion::eul2quat({0, 0, 0});
+    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
+    Vector4f q             = SkyQuaternion::eul2quat({0, 0, 0});
 
     x(6) = q(0);
     x(7) = q(1);
@@ -146,8 +147,8 @@ void NASController::update()
         }
 
         // Check if the accelerometer is measuring 1g
-        Eigen::Vector3f acc = static_cast<AccelerometerData>(imu);
-        float accLength     = acc.norm();
+        Vector3f acc    = static_cast<AccelerometerData>(imu);
+        float accLength = acc.norm();
 
         if (accLength <
                 (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
@@ -186,9 +187,9 @@ void NASController::calibrate()
 {
     Sensors* sensors = getModule<Sensors>();
 
-    Eigen::Vector3f accAcc = Eigen::Vector3f::Zero();
-    Eigen::Vector3f magAcc = Eigen::Vector3f::Zero();
-    Stats baroStats;
+    Vector3f accAcc = Vector3f::Zero();
+    Vector3f magAcc = Vector3f::Zero();
+    float baroAcc   = 0.0f;
 
     // First sample and average the data over a number of samples
     for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
@@ -196,13 +197,13 @@ void NASController::calibrate()
         IMUData imu       = sensors->getIMULastSample();
         PressureData baro = sensors->getAtmosPressureLastSample();
 
-        Eigen::Vector3f acc = static_cast<AccelerometerData>(imu);
-        Eigen::Vector3f mag = static_cast<MagnetometerData>(imu);
+        Vector3f acc = static_cast<AccelerometerData>(imu);
+        Vector3f mag = static_cast<MagnetometerData>(imu);
 
         accAcc += acc;
         magAcc += mag;
 
-        baroStats.add(baro.pressure);
+        baroAcc += baro.pressure;
 
         Thread::sleep(Config::NAS::CALIBRATION_SLEEP_TIME);
     }
@@ -211,6 +212,7 @@ void NASController::calibrate()
     accAcc.normalize();
     magAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
     magAcc.normalize();
+    baroAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
 
     // Use the triad to compute initial state
     StateInitializer init;
@@ -220,7 +222,7 @@ void NASController::calibrate()
 
     // Compute reference values
     ReferenceValues reference = nas.getReferenceValues();
-    reference.refPressure     = baroStats.getStats().mean;
+    reference.refPressure     = baroAcc;
     reference.refAltitude     = Aeroutils::relAltitude(
             reference.refPressure, reference.mslPressure, reference.mslTemperature);
 

@@ -75,6 +75,9 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
+    Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRXLastSample();
+
     Boardcore::VoltageData getBatteryVoltageLastSample();
     Boardcore::VoltageData getCamBatteryVoltageLastSample();
 
@@ -82,7 +85,6 @@ public:
     Boardcore::PressureData getStaticPressure2LastSample();
     Boardcore::PressureData getDplBayPressureLastSample();
 
-    Boardcore::MagnetometerData getCalibratedMagLastSample();
     Boardcore::IMUData getIMULastSample();
     Boardcore::PressureData getAtmosPressureLastSample();
 
@@ -180,6 +182,9 @@ private:
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
+
+    miosix::FastMutex gyroCalibrationMutex;
+    Boardcore::BiasCorrector gyroCalibration;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");

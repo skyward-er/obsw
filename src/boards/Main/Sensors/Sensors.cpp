@@ -24,6 +24,7 @@
 
 #include <Main/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
+#include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -32,6 +33,7 @@
 using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
+using namespace Eigen;
 
 bool Sensors::isStarted() { return started; }
 
@@ -130,8 +132,42 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
-    // TODO: Lol
-    Thread::sleep(2000);
+    BiasCalibration gyroCalibrator{};
+    float staticPressure1Acc = 0.0f;
+    float staticPressure2Acc = 0.0f;
+    float dplBayPressureAcc  = 0.0f;
+    float lps28dfwAcc        = 0.0f;
+
+    for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        auto lsm6dsrx        = getLSM6DSRXLastSample();
+        auto staticPressure1 = getStaticPressure1LastSample();
+        auto staticPressure2 = getStaticPressure2LastSample();
+        auto dplBayPressure  = getDplBayPressureLastSample();
+        auto lps28dfw        = getLPS28DFWLastSample();
+
+        gyroCalibrator.feed(static_cast<GyroscopeData>(lsm6dsrx));
+        staticPressure1Acc += staticPressure1.pressure;
+        staticPressure2Acc += staticPressure2.pressure;
+        dplBayPressureAcc += dplBayPressure.pressure;
+        lps28dfwAcc += lps28dfw.pressure;
+
+        Thread::sleep(Config::Sensors::CALIBRATION_SLEEP_TIME);
+    }
+
+    staticPressure1Acc /= Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+    staticPressure2Acc /= Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+    dplBayPressureAcc /= Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+    lps28dfwAcc /= Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+
+    // Calibrate all analog pressure sensors against the LPS28DFW
+    float reference = lps28dfwAcc;
+    staticPressure1->updateOffset(staticPressure1Acc - reference);
+    staticPressure2->updateOffset(staticPressure2Acc - reference);
+    dplBayPressure->updateOffset(dplBayPressureAcc - reference);
+
+    Lock<FastMutex> lock{gyroCalibrationMutex};
+    gyroCalibration = gyroCalibrator.computeResult();
 }
 
 void Sensors::resetMagCalibrator()
@@ -251,17 +287,35 @@ PressureData Sensors::getDplBayPressureLastSample()
     return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
 }
 
-MagnetometerData Sensors::getCalibratedMagLastSample()
+LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 {
-    auto sample        = static_cast<MagnetometerData>(getLIS2MDLLastSample());
-    uint64_t timestamp = sample.magneticFieldTimestamp;
+    auto sample = getLIS2MDLLastSample();
 
     {
         Lock<FastMutex> lock{magCalibrationMutex};
-        sample = static_cast<MagnetometerData>(magCalibration.correct(sample));
+        auto corrected =
+            magCalibration.correct(static_cast<MagnetometerData>(sample));
+        sample.magneticFieldX = corrected.x();
+        sample.magneticFieldY = corrected.y();
+        sample.magneticFieldZ = corrected.z();
     }
 
-    sample.magneticFieldTimestamp = timestamp;
+    return sample;
+}
+
+LSM6DSRXData Sensors::getCalibratedLSM6DSRXLastSample()
+{
+    auto sample = getLSM6DSRXLastSample();
+
+    {
+        // This is for my boy Giuseppe <3
+        Lock<FastMutex> lock{gyroCalibrationMutex};
+        auto corrected =
+            gyroCalibration.correct(static_cast<GyroscopeData>(sample));
+        sample.angularSpeedX = corrected.x();
+        sample.angularSpeedY = corrected.y();
+        sample.angularSpeedZ = corrected.z();
+    }
 
     return sample;
 }
@@ -620,8 +674,8 @@ void Sensors::rotatedImuInit()
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-            auto imu6 = getLSM6DSRXLastSample();
-            auto mag  = getCalibratedMagLastSample();
+            auto imu6 = getCalibratedLSM6DSRXLastSample();
+            auto mag  = getCalibratedLIS2MDLLastSample();
 
             return IMUData{imu6, imu6, mag};
         });
@@ -633,7 +687,7 @@ void Sensors::rotatedImuInit()
     rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
     rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
     // Invert the Y axis on the magnetometer
-    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     rotatedImu->addMagTransformation(m);
     // Magnetometer
     rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(+90));
