@@ -528,12 +528,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors       = getModule<Sensors>();
-            Actuators* actuators   = getModule<Actuators>();
-            PinHandler* pinHandler = getModule<PinHandler>();
-            FlightModeManager* fmm = getModule<FlightModeManager>();
-            ADAController* ada     = getModule<ADAController>();
-            NASController* nas     = getModule<NASController>();
+            Sensors* sensors     = getModule<Sensors>();
+            Actuators* actuators = getModule<Actuators>();
+            ADAController* ada   = getModule<ADAController>();
+            NASController* nas   = getModule<NASController>();
 
             auto pressDigi   = sensors->getLPS22DFLastSample();
             auto imu         = sensors->getIMULastSample();
@@ -543,31 +541,42 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto adaState    = ada->getADAState();
             auto nasState    = nas->getNASState();
 
-            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            tm.airspeed_pitot = -1.0f;  // TODO
+            tm.mea_mass       = -1.0f;  // TODO
+            tm.mea_apogee     = -1.0f;  // TODO
+
+            // Sensors
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
 
-            tm.pressure_ada   = adaState.x0;
-            tm.ada_vert_speed = adaState.verticalSpeed;
+            tm.acc_x = imu.accelerationX;
+            tm.acc_y = imu.accelerationY;
+            tm.acc_z = imu.accelerationZ;
 
-            tm.airspeed_pitot = -1.0f;  // TODO
-            tm.mea_mass       = -1.0f;  // TODO
+            tm.gyro_x = imu.angularSpeedX;
+            tm.gyro_y = imu.angularSpeedY;
+            tm.gyro_z = imu.angularSpeedZ;
 
-            // Sensors
-            tm.acc_x   = imu.accelerationX;
-            tm.acc_y   = imu.accelerationY;
-            tm.acc_z   = imu.accelerationZ;
-            tm.gyro_x  = imu.angularSpeedX;
-            tm.gyro_y  = imu.angularSpeedY;
-            tm.gyro_z  = imu.angularSpeedZ;
-            tm.mag_x   = imu.magneticFieldX;
-            tm.mag_y   = imu.magneticFieldY;
-            tm.mag_z   = imu.magneticFieldZ;
+            tm.mag_x = imu.magneticFieldX;
+            tm.mag_y = imu.magneticFieldY;
+            tm.mag_z = imu.magneticFieldZ;
+
             tm.gps_alt = gps.height;
             tm.gps_lat = gps.latitude;
             tm.gps_lon = gps.longitude;
             tm.gps_fix = gps.fix;
+
+            tm.vn100_qx = -1.0f;
+            tm.vn100_qy = -1.0f;
+            tm.vn100_qz = -1.0f;
+            tm.vn100_qw = -1.0f;
+
+            // Actuators
+            tm.abk_angle =
+                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO);
 
             // Algorithms
             tm.nas_n        = nasState.n;
@@ -585,22 +594,77 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.nas_bias_z   = nasState.bz;
             tm.altitude_agl = -nasState.d;
 
-            // TODO: I don't like this very much
-            tm.abk_angle =
-                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO);
+            tm.pressure_ada   = adaState.x0;
+            tm.ada_vert_speed = adaState.verticalSpeed;
 
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
             tm.cam_battery_voltage =
                 sensors->getCamBatteryVoltageLastSample().voltage;
             tm.temperature = pressDigi.temperature;
 
+            mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                                Config::Radio::MAV_COMPONENT_ID,
+                                                &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+        case MAV_STATS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_rocket_stats_tm_t tm;
+
+            PinHandler* pinHandler  = getModule<PinHandler>();
+            FlightModeManager* fmm  = getModule<FlightModeManager>();
+            ADAController* ada      = getModule<ADAController>();
+            NASController* nas      = getModule<NASController>();
+            Actuators* actuators    = getModule<Actuators>();
+            StatsRecorder* recorder = getModule<StatsRecorder>();
+
+            // General flight stats
+            StatsRecorder::Stats stats = recorder->getStats();
+            tm.liftoff_ts              = stats.liftoffTs;
+            tm.liftoff_max_acc         = stats.liftoffMaxAcc;
+            tm.liftoff_max_acc_ts      = stats.liftoffMaxAccTs;
+            tm.max_speed_ts            = stats.maxSpeedTs;
+            tm.max_speed               = stats.maxSpeed;
+            tm.max_speed_altitude      = stats.maxSpeedAlt;
+            tm.max_mach_ts             = stats.maxMachTs;
+            tm.max_mach                = stats.maxMach;
+            tm.apogee_ts               = stats.apogeeTs;
+            tm.apogee_lat              = stats.apogeeLat;
+            tm.apogee_lon              = stats.apogeeLon;
+            tm.apogee_alt              = stats.apogeeAlt;
+            tm.apogee_max_acc_ts       = stats.apogeeMaxAccTs;
+            tm.apogee_max_acc          = stats.apogeeMaxAcc;
+            tm.dpl_ts                  = stats.dplTs;
+            tm.dpl_alt                 = stats.dplAlt;
+            tm.dpl_max_acc_ts          = stats.dplMaxAccTs;
+            tm.dpl_max_acc             = stats.dplMaxAcc;
+            tm.dpl_bay_max_pressure_ts = stats.maxDplPressureTs;
+            tm.dpl_bay_max_pressure    = stats.maxDplPressure;
+
+            // NAS reference
+            auto reference = nas->getReferenceValues();
+            tm.ref_lat     = reference.refLatitude;
+            tm.ref_lon     = reference.refLongitude;
+            tm.ref_alt     = reference.refAltitude;
+
+            // Cpu stuff
+            CpuMeterData cpuStats = CpuMeter::getCpuStats();
+            CpuMeter::resetCpuStats();
+            tm.cpu_load  = cpuStats.mean;
+            tm.free_heap = cpuStats.freeHeap;
+
+            // FMM states
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
-            tm.dpl_state =
-                255;  // This should be removed, DPLController no longer exists
             tm.abk_state = 255;  // TODO
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.mea_state = 255;  // TODO
+
+            // Actuators
+            tm.exp_angle =
+                actuators->getServoPosition(ServosList::EXPULSION_SERVO);
 
             tm.pin_launch =
                 pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState
@@ -617,39 +681,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     ? 1
                     : 0;
             tm.cutter_presence = 255;  // TODO
-
-            mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                                Config::Radio::MAV_COMPONENT_ID,
-                                                &msg, &tm);
-            enqueuePacket(msg);
-            return true;
-        }
-        case MAV_STATS_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_rocket_stats_tm_t tm;
-
-            tm.liftoff_ts           = 0;      // TODO
-            tm.liftoff_max_acc      = -1.0f;  // TODO
-            tm.liftoff_max_acc_ts   = 0;      // TODO
-            tm.dpl_ts               = 0;      // TODO
-            tm.dpl_max_acc          = -1.0f;  // TODO
-            tm.max_z_speed          = -1.0f;  // TODO
-            tm.max_z_speed_ts       = 0;      // TODO
-            tm.max_airspeed_pitot   = -1.0f;
-            tm.max_speed_altitude   = -1.0f;
-            tm.apogee_lat           = -1.0f;  // TODO
-            tm.apogee_lon           = -1.0f;  // TODO
-            tm.apogee_alt           = -1.0f;  // TODO
-            tm.min_pressure         = -1.0f;  // TODO
-            tm.ada_min_pressure     = -1.0f;  // TODO
-            tm.dpl_bay_max_pressure = -1.0f;  // TODO
-
-            // Cpu stuff
-            CpuMeterData cpuStats = CpuMeter::getCpuStats();
-            CpuMeter::resetCpuStats();
-            tm.cpu_load  = cpuStats.mean;
-            tm.free_heap = cpuStats.freeHeap;
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();
