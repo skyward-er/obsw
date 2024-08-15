@@ -32,20 +32,25 @@ struct PinChangeData
 {
     uint64_t timestamp    = 0;
     uint8_t pinId         = 0;
+    bool lastState        = false;
     uint32_t changesCount = 0;
 
-    PinChangeData(uint64_t timestamp, uint8_t pinId, uint32_t changesCount)
-        : timestamp(timestamp), pinId(pinId), changesCount(changesCount)
+    PinChangeData(uint64_t timestamp, uint8_t pinId, bool lastState,
+                  uint32_t changesCount)
+        : timestamp(timestamp), pinId(pinId), lastState(lastState),
+          changesCount(changesCount)
     {
     }
 
-    PinChangeData() : PinChangeData{0, 0, 0} {}
-
-    static std::string header() { return "timestamp,pinId,changesCount\n"; }
+    static std::string header()
+    {
+        return "timestamp,pinId,lastState,changesCount\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)pinId << "," << changesCount << "\n";
+        os << timestamp << "," << static_cast<int>(pinId) << ","
+           << static_cast<int>(lastState) << "," << changesCount << "\n";
     }
 };
 

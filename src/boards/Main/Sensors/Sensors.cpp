@@ -375,7 +375,7 @@ TaskScheduler& Sensors::getSensorsScheduler()
 void Sensors::lps22dfInit()
 {
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
     LPS22DF::Config config;
     config.avg = Config::Sensors::LPS22DF::AVG;
@@ -386,10 +386,7 @@ void Sensors::lps22dfInit()
                                         spiConfig, config);
 }
 
-void Sensors::lps22dfCallback()
-{
-    Logger::getInstance().log(getLPS22DFLastSample());
-}
+void Sensors::lps22dfCallback() { sdLogger.log(getLPS22DFLastSample()); }
 
 void Sensors::lps28dfwInit()
 {
@@ -404,10 +401,7 @@ void Sensors::lps28dfwInit()
         std::make_unique<LPS28DFW>(getModule<Buses>()->getLPS28DFW(), config);
 }
 
-void Sensors::lps28dfwCallback()
-{
-    Logger::getInstance().log(getLPS28DFWLastSample());
-}
+void Sensors::lps28dfwCallback() { sdLogger.log(getLPS28DFWLastSample()); }
 
 void Sensors::h3lis331dlInit()
 {
@@ -427,7 +421,7 @@ void Sensors::h3lis331dlCallback()
 
     // Also update StatsRecorder
     getModule<StatsRecorder>()->updateAcc(sample);
-    Logger::getInstance().log(sample);
+    sdLogger.log(sample);
 }
 
 void Sensors::lis2mdlInit()
@@ -445,10 +439,7 @@ void Sensors::lis2mdlInit()
                                         spiConfig, config);
 }
 
-void Sensors::lis2mdlCallback()
-{
-    Logger::getInstance().log(getLIS2MDLLastSample());
-}
+void Sensors::lis2mdlCallback() { sdLogger.log(getLIS2MDLLastSample()); }
 
 void Sensors::ubxgpsInit()
 {
@@ -460,10 +451,7 @@ void Sensors::ubxgpsInit()
                                          spiConfig, 5);
 }
 
-void Sensors::ubxgpsCallback()
-{
-    Logger::getInstance().log(getUBXGPSLastSample());
-}
+void Sensors::ubxgpsCallback() { sdLogger.log(getUBXGPSLastSample()); }
 
 void Sensors::lsm6dsrxInit()
 {
@@ -500,7 +488,7 @@ void Sensors::lsm6dsrxCallback()
     // For every instance inside the fifo log the sample
     for (uint16_t i = 0; i < lsm6dsrx->getLastFifoSize(); i++)
     {
-        Logger::getInstance().log(lsm6dsrx->getLastFifo().at(i));
+        sdLogger.log(lsm6dsrx->getLastFifo().at(i));
     }
 }
 
@@ -515,10 +503,7 @@ void Sensors::vn100Init()
                                        200);
 }
 
-void Sensors::vn100Callback()
-{
-    Logger::getInstance().log(getVN100LastSample());
-}
+void Sensors::vn100Callback() { sdLogger.log(getVN100LastSample()); }
 
 void Sensors::ads131m08Init()
 {
@@ -550,10 +535,7 @@ void Sensors::ads131m08Init()
                                             spiConfig, config);
 }
 
-void Sensors::ads131m08Callback()
-{
-    Logger::getInstance().log(getADS131M08LastSample());
-}
+void Sensors::ads131m08Callback() { sdLogger.log(getADS131M08LastSample()); }
 
 void Sensors::internalAdcInit()
 {
@@ -567,7 +549,7 @@ void Sensors::internalAdcInit()
 
 void Sensors::internalAdcCallback()
 {
-    Logger::getInstance().log(getInternalADCLastSample());
+    sdLogger.log(getInternalADCLastSample());
 }
 
 void Sensors::staticPressure1Init()
@@ -587,8 +569,7 @@ void Sensors::staticPressure1Init()
 
 void Sensors::staticPressure1Callback()
 {
-    Logger::getInstance().log(
-        StaticPressureData1{getStaticPressure1LastSample()});
+    sdLogger.log(StaticPressureData1{getStaticPressure1LastSample()});
 }
 
 void Sensors::staticPressure2Init()
@@ -608,8 +589,7 @@ void Sensors::staticPressure2Init()
 
 void Sensors::staticPressure2Callback()
 {
-    Logger::getInstance().log(
-        StaticPressureData2{getStaticPressure2LastSample()});
+    sdLogger.log(StaticPressureData2{getStaticPressure2LastSample()});
 }
 
 void Sensors::dplBayPressureInit()
@@ -632,7 +612,7 @@ void Sensors::dplBayPressureCallback()
     auto sample = getDplBayPressureLastSample();
 
     getModule<StatsRecorder>()->updateDplPressure(sample);
-    Logger::getInstance().log(DplBayPressureData{sample});
+    sdLogger.log(DplBayPressureData{sample});
 }
 
 void Sensors::rotatedImuInit()
@@ -660,10 +640,7 @@ void Sensors::rotatedImuInit()
     rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
 }
 
-void Sensors::rotatedImuCallback()
-{
-    Logger::getInstance().log(getIMULastSample());
-}
+void Sensors::rotatedImuCallback() { sdLogger.log(getIMULastSample()); }
 
 bool Sensors::sensorManagerInit()
 {

@@ -72,6 +72,7 @@ private:
     bool enqueueSystemTm(uint8_t tmId);
     bool enqueueSensorsTm(uint8_t tmId);
 
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
 
     Boardcore::CircularBuffer<mavlink_message_t,
