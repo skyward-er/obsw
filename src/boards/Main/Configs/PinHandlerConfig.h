@@ -41,8 +41,9 @@ constexpr uint32_t MAIN_DETACH_PIN_THRESHOLD = 20;
 constexpr Boardcore::PinTransition MAIN_DETACH_PIN_TRIGGER =
     Boardcore::PinTransition::RISING_EDGE;
 
-constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD = 20;
-constexpr uint32_t EXPULSION_PIN_THRESHOLD      = 20;
+constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD  = 20;
+constexpr uint32_t EXPULSION_SENSE_PIN_THRESHOLD = 20;
+constexpr uint32_t CUTTER_SENSE_PIN_THRESHOLD    = 20;
 
 }  // namespace PinHandler
 

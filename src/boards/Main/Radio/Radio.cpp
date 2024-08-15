@@ -680,7 +680,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                         .lastState
                     ? 1
                     : 0;
-            tm.cutter_presence = 255;  // TODO
+            tm.cutter_presence =
+                pinHandler->getPinData(PinHandler::PinList::CUTTER_SENSE)
+                        .lastState
+                    ? 1
+                    : 0;
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();
