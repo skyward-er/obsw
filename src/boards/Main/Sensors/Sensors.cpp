@@ -70,6 +70,11 @@ bool Sensors::start()
         lsm6dsrxInit();
     }
 
+    if (Config::Sensors::VN100::ENABLED)
+    {
+        vn100Init();
+    }
+
     if (Config::Sensors::ADS131M08::ENABLED)
     {
         ads131m08Init();
@@ -169,47 +174,52 @@ bool Sensors::saveMagCalibration()
     }
 }
 
-Boardcore::LPS22DFData Sensors::getLPS22DFLastSample()
+LPS22DFData Sensors::getLPS22DFLastSample()
 {
     return lps22df ? lps22df->getLastSample() : LPS22DFData{};
 }
 
-Boardcore::LPS28DFWData Sensors::getLPS28DFWLastSample()
+LPS28DFWData Sensors::getLPS28DFWLastSample()
 {
     return lps28dfw ? lps28dfw->getLastSample() : LPS28DFWData{};
 }
 
-Boardcore::H3LIS331DLData Sensors::getH3LIS331DLLastSample()
+H3LIS331DLData Sensors::getH3LIS331DLLastSample()
 {
     return h3lis331dl ? h3lis331dl->getLastSample() : H3LIS331DLData{};
 }
 
-Boardcore::LIS2MDLData Sensors::getLIS2MDLLastSample()
+LIS2MDLData Sensors::getLIS2MDLLastSample()
 {
     return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
 }
 
-Boardcore::UBXGPSData Sensors::getUBXGPSLastSample()
+UBXGPSData Sensors::getUBXGPSLastSample()
 {
     return ubxgps ? ubxgps->getLastSample() : UBXGPSData{};
 }
 
-Boardcore::LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+LSM6DSRXData Sensors::getLSM6DSRXLastSample()
 {
     return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
 }
 
-Boardcore::ADS131M08Data Sensors::getADS131M08LastSample()
+VN100SpiData Sensors::getVN100LastSample()
+{
+    return vn100 ? vn100->getLastSample() : VN100SpiData{};
+}
+
+ADS131M08Data Sensors::getADS131M08LastSample()
 {
     return ads131m08 ? ads131m08->getLastSample() : ADS131M08Data{};
 }
 
-Boardcore::InternalADCData Sensors::getInternalADCLastSample()
+InternalADCData Sensors::getInternalADCLastSample()
 {
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
-Boardcore::VoltageData Sensors::getBatteryVoltageLastSample()
+VoltageData Sensors::getBatteryVoltageLastSample()
 {
     auto sample   = getInternalADCLastSample();
     float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
@@ -217,7 +227,7 @@ Boardcore::VoltageData Sensors::getBatteryVoltageLastSample()
     return {sample.timestamp, voltage};
 }
 
-Boardcore::VoltageData Sensors::getCamBatteryVoltageLastSample()
+VoltageData Sensors::getCamBatteryVoltageLastSample()
 {
     auto sample = getInternalADCLastSample();
     float voltage =
@@ -303,37 +313,37 @@ VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
     return canMotorBatteryVoltage;
 }
 
-void Sensors::setCanTopTankPress(Boardcore::PressureData data)
+void Sensors::setCanTopTankPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canTopTankPressure = data;
 }
 
-void Sensors::setCanBottomTankPress(Boardcore::PressureData data)
+void Sensors::setCanBottomTankPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canBottomTankPressure = data;
 }
 
-void Sensors::setCanCCPress(Boardcore::PressureData data)
+void Sensors::setCanCCPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canCCPressure = data;
 }
 
-void Sensors::setCanTankTemp(Boardcore::TemperatureData data)
+void Sensors::setCanTankTemp(TemperatureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canTankTemperature = data;
 }
 
-void Sensors::setCanMotorBatteryVoltage(Boardcore::VoltageData data)
+void Sensors::setCanMotorBatteryVoltage(VoltageData data)
 {
     Lock<FastMutex> lock{canMutex};
     canMotorBatteryVoltage = data;
 }
 
-std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
+std::vector<SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
     {
@@ -343,6 +353,7 @@ std::vector<Boardcore::SensorInfo> Sensors::getSensorInfos()
                 manager->getSensorInfo(lis2mdl.get()),
                 manager->getSensorInfo(ubxgps.get()),
                 manager->getSensorInfo(lsm6dsrx.get()),
+                manager->getSensorInfo(vn100.get()),
                 manager->getSensorInfo(ads131m08.get()),
                 manager->getSensorInfo(internalAdc.get()),
                 manager->getSensorInfo(staticPressure1.get()),
@@ -491,6 +502,22 @@ void Sensors::lsm6dsrxCallback()
     {
         Logger::getInstance().log(lsm6dsrx->getLastFifo().at(i));
     }
+}
+
+void Sensors::vn100Init()
+{
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.mode         = SPI::Mode::MODE_3;
+
+    vn100 = std::make_unique<VN100Spi>(getModule<Buses>()->getVN100(),
+                                       sensors::VN100::cs::getPin(), spiConfig,
+                                       200);
+}
+
+void Sensors::vn100Callback()
+{
+    Logger::getInstance().log(getVN100LastSample());
 }
 
 void Sensors::ads131m08Init()
@@ -682,6 +709,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::RATE,
                         [this]() { lsm6dsrxCallback(); }};
         map.emplace(lsm6dsrx.get(), info);
+    }
+
+    if (vn100)
+    {
+        SensorInfo info{"VN100", Config::Sensors::VN100::RATE,
+                        [this]() { vn100Callback(); }};
+        map.emplace(vn100.get(), info);
     }
 
     if (ads131m08)

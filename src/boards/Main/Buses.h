@@ -40,6 +40,7 @@ public:
     Boardcore::SPIBus &getLPS22DF() { return spi1; }
     Boardcore::SPIBus &getLIS2MDL() { return spi3; }
     Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
+    Boardcore::SPIBus &getVN100() { return spi1; }
     Boardcore::SPIBus &getUBXGps() { return spi3; }
     Boardcore::SPIBus &getADS131M08() { return spi4; }
     Boardcore::SPIBus &getRadio() { return spi6; }
