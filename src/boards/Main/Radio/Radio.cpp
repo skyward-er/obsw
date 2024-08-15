@@ -1033,6 +1033,121 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
+        case MAV_STATIC_PRESS_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample = getModule<Sensors>()->getStaticPressure1LastSample();
+
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "StaticPressure1");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_BACKUP_STATIC_PRESS_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample = getModule<Sensors>()->getStaticPressure2LastSample();
+
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "StaticPressure2");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_DPL_PRESS_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample = getModule<Sensors>()->getDplBayPressureLastSample();
+
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "DplBayPressure");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_TANK_TOP_PRESS_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample = getModule<Sensors>()->getCanTopTankPressLastSample();
+
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "TopTankPressure");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_TANK_BOTTOM_PRESS_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample =
+                getModule<Sensors>()->getCanBottomTankPressLastSample();
+
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "BottomTankPressure");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_COMBUSTION_PRESS_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample = getModule<Sensors>()->getCanCCPressLastSample();
+
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "CCPressure");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
         default:
             return false;
     }
