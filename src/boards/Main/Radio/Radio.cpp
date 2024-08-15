@@ -536,6 +536,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDigi   = sensors->getLPS22DFLastSample();
             auto imu         = sensors->getIMULastSample();
             auto gps         = sensors->getUBXGPSLastSample();
+            auto vn100       = sensors->getVN100LastSample();
             auto pressStatic = sensors->getStaticPressure1LastSample();
             auto pressDpl    = sensors->getDplBayPressureLastSample();
             auto adaState    = ada->getADAState();
@@ -569,10 +570,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.gps_lon = gps.longitude;
             tm.gps_fix = gps.fix;
 
-            tm.vn100_qx = -1.0f;
-            tm.vn100_qy = -1.0f;
-            tm.vn100_qz = -1.0f;
-            tm.vn100_qw = -1.0f;
+            tm.vn100_qx = vn100.quaternionX;
+            tm.vn100_qy = vn100.quaternionY;
+            tm.vn100_qz = vn100.quaternionZ;
+            tm.vn100_qw = vn100.quaternionW;
 
             // Actuators
             tm.abk_angle =
@@ -764,10 +765,10 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_GPS_ID:
         {
             mavlink_message_t msg;
-            mavlink_gps_tm_t tm;
 
             auto sample = getModule<Sensors>()->getUBXGPSLastSample();
 
+            mavlink_gps_tm_t tm;
             tm.fix          = sample.fix;
             tm.height       = sample.height;
             tm.latitude     = sample.latitude;
@@ -791,10 +792,10 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_ADS131M08_ID:
         {
             mavlink_message_t msg;
-            mavlink_adc_tm_t tm;
 
             auto sample = getModule<Sensors>()->getADS131M08LastSample();
 
+            mavlink_adc_tm_t tm;
             tm.channel_0 =
                 sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
             tm.channel_1 =
@@ -824,10 +825,10 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_BATTERY_VOLTAGE_ID:
         {
             mavlink_message_t msg;
-            mavlink_voltage_tm_t tm;
 
             auto data = getModule<Sensors>()->getBatteryVoltageLastSample();
 
+            mavlink_voltage_tm_t tm;
             tm.voltage   = data.voltage;
             tm.timestamp = data.voltageTimestamp;
             strcpy(tm.sensor_name, "BATTERY_VOLTAGE");
@@ -842,77 +843,108 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_LPS28DFW_ID:
         {
             mavlink_message_t msg;
-            mavlink_pressure_tm_t tm;
 
             auto sample = getModule<Sensors>()->getLPS28DFWLastSample();
 
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "LPS28DFW");
+            mavlink_pressure_tm_t tm1;
+            tm1.pressure  = sample.pressure;
+            tm1.timestamp = sample.pressureTimestamp;
+            strcpy(tm1.sensor_name, "LPS28DFW");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-
+                                           &msg, &tm1);
             enqueuePacket(msg);
+
+            mavlink_temp_tm_t tm2;
+            tm2.temperature = sample.temperature;
+            tm2.timestamp   = sample.temperatureTimestamp;
+            strcpy(tm2.sensor_name, "LPS28DFW");
+
+            mavlink_msg_temp_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tm2);
+            enqueuePacket(msg);
+
             return true;
         }
 
         case MAV_LPS22DF_ID:
         {
             mavlink_message_t msg;
-            mavlink_pressure_tm_t tm;
 
             auto sample = getModule<Sensors>()->getLPS22DFLastSample();
 
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "LPS22DF");
+            mavlink_pressure_tm_t tm1;
+            tm1.pressure  = sample.pressure;
+            tm1.timestamp = sample.pressureTimestamp;
+            strcpy(tm1.sensor_name, "LPS22DF");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-
+                                           &msg, &tm1);
             enqueuePacket(msg);
+
+            mavlink_temp_tm_t tm2;
+            tm2.temperature = sample.temperature;
+            tm2.timestamp   = sample.temperatureTimestamp;
+            strcpy(tm2.sensor_name, "LPS22DF");
+
+            mavlink_msg_temp_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tm2);
+            enqueuePacket(msg);
+
             return true;
         }
 
         case MAV_LIS2MDL_ID:
         {
             mavlink_message_t msg;
-            mavlink_imu_tm_t tm;
 
             auto sample = getModule<Sensors>()->getLIS2MDLLastSample();
 
-            tm.acc_x     = 0;
-            tm.acc_y     = 0;
-            tm.acc_z     = 0;
-            tm.gyro_x    = 0;
-            tm.gyro_y    = 0;
-            tm.gyro_z    = 0;
-            tm.mag_x     = sample.magneticFieldX;
-            tm.mag_y     = sample.magneticFieldY;
-            tm.mag_z     = sample.magneticFieldZ;
-            tm.timestamp = sample.magneticFieldTimestamp;
-            strcpy(tm.sensor_name, "LIS2MDL");
+            mavlink_imu_tm_t tm1;
+            tm1.acc_x     = -1.0f;
+            tm1.acc_y     = -1.0f;
+            tm1.acc_z     = -1.0f;
+            tm1.gyro_x    = -1.0f;
+            tm1.gyro_y    = -1.0f;
+            tm1.gyro_z    = -1.0f;
+            tm1.mag_x     = sample.magneticFieldX;
+            tm1.mag_y     = sample.magneticFieldY;
+            tm1.mag_z     = sample.magneticFieldZ;
+            tm1.timestamp = sample.magneticFieldTimestamp;
+            strcpy(tm1.sensor_name, "LIS2MDL");
 
             mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
-                                      &tm);
+                                      &tm1);
             enqueuePacket(msg);
+
+            mavlink_temp_tm_t tm2;
+            tm2.temperature = sample.temperature;
+            tm2.timestamp   = sample.temperatureTimestamp;
+            strcpy(tm2.sensor_name, "LIS2MDL");
+
+            mavlink_msg_temp_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                       Config::Radio::MAV_COMPONENT_ID, &msg,
+                                       &tm2);
+            enqueuePacket(msg);
+
             return true;
         }
 
         case MAV_LSM6DSRX_ID:
         {
             mavlink_message_t msg;
-            mavlink_imu_tm_t tm;
 
             auto sample = getModule<Sensors>()->getLSM6DSRXLastSample();
 
-            tm.mag_x     = 0;
-            tm.mag_y     = 0;
-            tm.mag_z     = 0;
+            mavlink_imu_tm_t tm;
+            tm.mag_x     = -1.0f;
+            tm.mag_y     = -1.0f;
+            tm.mag_z     = -1.0f;
             tm.acc_x     = sample.accelerationX;
             tm.acc_y     = sample.accelerationY;
             tm.acc_z     = sample.accelerationZ;
@@ -932,16 +964,16 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_H3LIS331DL_ID:
         {
             mavlink_message_t msg;
-            mavlink_imu_tm_t tm;
 
             auto sample = getModule<Sensors>()->getH3LIS331DLLastSample();
 
-            tm.mag_x     = 0;
-            tm.mag_y     = 0;
-            tm.mag_z     = 0;
-            tm.gyro_x    = 0;
-            tm.gyro_y    = 0;
-            tm.gyro_z    = 0;
+            mavlink_imu_tm_t tm;
+            tm.mag_x     = -1.0f;
+            tm.mag_y     = -1.0f;
+            tm.mag_z     = -1.0f;
+            tm.gyro_x    = -1.0f;
+            tm.gyro_y    = -1.0f;
+            tm.gyro_z    = -1.0f;
             tm.acc_x     = sample.accelerationX;
             tm.acc_y     = sample.accelerationY;
             tm.acc_z     = sample.accelerationZ;
@@ -952,6 +984,49 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
                                       &tm);
             enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_VN100_ID:
+        {
+            mavlink_message_t msg;
+
+            auto sample = getModule<Sensors>()->getVN100LastSample();
+
+            mavlink_imu_tm_t tm1;
+            tm1.mag_x     = sample.magneticFieldX;
+            tm1.mag_y     = sample.magneticFieldY;
+            tm1.mag_z     = sample.magneticFieldZ;
+            tm1.gyro_x    = sample.angularSpeedX;
+            tm1.gyro_y    = sample.angularSpeedY;
+            tm1.gyro_z    = sample.angularSpeedZ;
+            tm1.acc_x     = sample.accelerationX;
+            tm1.acc_y     = sample.accelerationY;
+            tm1.acc_z     = sample.accelerationZ;
+            tm1.timestamp = sample.accelerationTimestamp;
+            strcpy(tm1.sensor_name, "VN100");
+
+            mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm1);
+            enqueuePacket(msg);
+
+            mavlink_attitude_tm_t tm2;
+            tm2.roll      = -1.0f;
+            tm2.pitch     = -1.0f;
+            tm2.yaw       = -1.0f;
+            tm2.quat_x    = sample.quaternionX;
+            tm2.quat_y    = sample.quaternionY;
+            tm2.quat_z    = sample.quaternionZ;
+            tm2.quat_w    = sample.quaternionW;
+            tm2.timestamp = sample.quaternionTimestamp;
+            strcpy(tm2.sensor_name, "VN100");
+
+            mavlink_msg_attitude_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           Config::Radio::MAV_COMPONENT_ID,
+                                           &msg, &tm2);
+            enqueuePacket(msg);
+
             return true;
         }
 

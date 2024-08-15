@@ -114,6 +114,12 @@ constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
+namespace VN100
+{
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace VN100
+
 namespace ADS131M08
 {
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =

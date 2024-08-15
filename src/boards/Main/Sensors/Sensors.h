@@ -37,6 +37,7 @@
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/VN100/VN100Spi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -70,6 +71,7 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::VN100SpiData getVN100LastSample();
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
@@ -118,6 +120,7 @@ protected:
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::VN100Spi> vn100;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
@@ -149,6 +152,9 @@ private:
 
     void lsm6dsrxInit();
     void lsm6dsrxCallback();
+
+    void vn100Init();
+    void vn100Callback();
 
     void ads131m08Init();
     void ads131m08Callback();
