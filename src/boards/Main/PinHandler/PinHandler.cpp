@@ -64,7 +64,13 @@ bool PinHandler::start()
         sense::expulsionSense::getPin(),
         [this](PinTransition transition)
         { onExpulsionSenseTransition(transition); },
-        Config::PinHandler::EXPULSION_PIN_THRESHOLD);
+        Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD);
+
+    pinObserver->registerPinCallback(
+        sense::cutterSense::getPin(),
+        [this](PinTransition transition)
+        { onCutterSenseTransition(transition); },
+        Config::PinHandler::CUTTER_SENSE_PIN_THRESHOLD);
 
     started = true;
     return true;
@@ -98,6 +104,12 @@ void PinHandler::onExpulsionSenseTransition(PinTransition transition)
              static_cast<int>(transition));
 }
 
+void PinHandler::onCutterSenseTransition(PinTransition transition)
+{
+    LOG_INFO(logger, "onCutterSenseTransition {}",
+             static_cast<int>(transition));
+}
+
 PinData PinHandler::getPinData(PinList pin)
 {
     switch (pin)
@@ -110,6 +122,8 @@ PinData PinHandler::getPinData(PinList pin)
             return pinObserver->getPinData(sense::detachPayload::getPin());
         case PinList::EXPULSION_SENSE:
             return pinObserver->getPinData(sense::expulsionSense::getPin());
+        case PinList::CUTTER_SENSE:
+            return pinObserver->getPinData(sense::cutterSense::getPin());
         default:
             return PinData{};
     }

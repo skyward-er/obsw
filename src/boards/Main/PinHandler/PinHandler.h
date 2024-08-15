@@ -39,7 +39,8 @@ public:
         RAMP_PIN = 0,
         DETACH_MAIN_PIN,
         DETACH_PAYLOAD_PIN,
-        EXPULSION_SENSE
+        EXPULSION_SENSE,
+        CUTTER_SENSE,
     };
 
     PinHandler() {}
@@ -55,6 +56,7 @@ private:
     void onDetachMainTransition(Boardcore::PinTransition transition);
     void onDetachPayloadTransition(Boardcore::PinTransition transition);
     void onExpulsionSenseTransition(Boardcore::PinTransition transition);
+    void onCutterSenseTransition(Boardcore::PinTransition transition);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 
