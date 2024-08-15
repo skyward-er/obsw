@@ -656,6 +656,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.cpu_load  = cpuStats.mean;
             tm.free_heap = cpuStats.freeHeap;
 
+            // Also log this to the SD
+            sdLogger.log(cpuStats);
+
             // FMM states
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());

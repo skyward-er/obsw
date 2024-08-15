@@ -52,12 +52,15 @@ public:
     Boardcore::PinData getPinData(PinList pin);
 
 private:
+    void logPin(PinList pin);
+
     void onRampPinTransition(Boardcore::PinTransition transition);
     void onDetachMainTransition(Boardcore::PinTransition transition);
     void onDetachPayloadTransition(Boardcore::PinTransition transition);
     void onExpulsionSenseTransition(Boardcore::PinTransition transition);
     void onCutterSenseTransition(Boardcore::PinTransition transition);
 
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");
 
     std::atomic<bool> started{false};

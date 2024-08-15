@@ -104,7 +104,7 @@ public:
 protected:
     virtual bool postSensorCreationHook() { return true; }
 
-    Boardcore::TaskScheduler &getSensorsScheduler();
+    Boardcore::TaskScheduler& getSensorsScheduler();
 
     miosix::FastMutex canMutex;
     Boardcore::PressureData canCCPressure;
@@ -181,6 +181,7 @@ private:
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     std::atomic<bool> started{false};

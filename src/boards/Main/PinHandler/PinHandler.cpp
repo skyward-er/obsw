@@ -23,11 +23,11 @@
 #include "PinHandler.h"
 
 #include <Main/Configs/PinHandlerConfig.h>
+#include <Main/PinHandler/PinData.h>
 #include <common/Events.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
-
-#include "PinData.h"
 
 using namespace Main;
 using namespace Boardcore;
@@ -76,40 +76,6 @@ bool PinHandler::start()
     return true;
 }
 
-void PinHandler::onRampPinTransition(PinTransition transition)
-{
-    LOG_INFO(logger, "onRampPinTransition {}", static_cast<int>(transition));
-
-    if (transition == Config::PinHandler::RAMP_PIN_TRIGGER)
-    {
-        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
-                                        TOPIC_FLIGHT);
-    }
-}
-
-void PinHandler::onDetachMainTransition(PinTransition transition)
-{
-    LOG_INFO(logger, "onDetachMainTransition {}", static_cast<int>(transition));
-}
-
-void PinHandler::onDetachPayloadTransition(PinTransition transition)
-{
-    LOG_INFO(logger, "onDetachPayloadTransition {}",
-             static_cast<int>(transition));
-}
-
-void PinHandler::onExpulsionSenseTransition(PinTransition transition)
-{
-    LOG_INFO(logger, "onExpulsionSenseTransition {}",
-             static_cast<int>(transition));
-}
-
-void PinHandler::onCutterSenseTransition(PinTransition transition)
-{
-    LOG_INFO(logger, "onCutterSenseTransition {}",
-             static_cast<int>(transition));
-}
-
 PinData PinHandler::getPinData(PinList pin)
 {
     switch (pin)
@@ -127,4 +93,51 @@ PinData PinHandler::getPinData(PinList pin)
         default:
             return PinData{};
     }
+}
+
+void PinHandler::logPin(PinList pin)
+{
+    auto data = getPinData(pin);
+    sdLogger.log(PinChangeData{TimestampTimer::getTimestamp(),
+                               static_cast<uint8_t>(pin), data.lastState,
+                               data.changesCount});
+}
+
+void PinHandler::onRampPinTransition(PinTransition transition)
+{
+    logPin(PinList::RAMP_PIN);
+    LOG_INFO(logger, "onRampPinTransition {}", static_cast<int>(transition));
+
+    if (transition == Config::PinHandler::RAMP_PIN_TRIGGER)
+    {
+        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
+                                        TOPIC_FLIGHT);
+    }
+}
+
+void PinHandler::onDetachMainTransition(PinTransition transition)
+{
+    logPin(PinList::DETACH_MAIN_PIN);
+    LOG_INFO(logger, "onDetachMainTransition {}", static_cast<int>(transition));
+}
+
+void PinHandler::onDetachPayloadTransition(PinTransition transition)
+{
+    logPin(PinList::DETACH_PAYLOAD_PIN);
+    LOG_INFO(logger, "onDetachPayloadTransition {}",
+             static_cast<int>(transition));
+}
+
+void PinHandler::onExpulsionSenseTransition(PinTransition transition)
+{
+    logPin(PinList::EXPULSION_SENSE);
+    LOG_INFO(logger, "onExpulsionSenseTransition {}",
+             static_cast<int>(transition));
+}
+
+void PinHandler::onCutterSenseTransition(PinTransition transition)
+{
+    logPin(PinList::CUTTER_SENSE);
+    LOG_INFO(logger, "onCutterSenseTransition {}",
+             static_cast<int>(transition));
 }
