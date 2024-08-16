@@ -164,6 +164,9 @@ constexpr bool ENABLED = true;
 
 namespace IMU
 {
+constexpr bool USE_CALIBRATED_LIS2MDL  = true;
+constexpr bool USE_CALIBRATED_LSM6DSRX = true;
+
 constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace IMU
