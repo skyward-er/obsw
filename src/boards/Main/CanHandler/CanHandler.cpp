@@ -30,7 +30,7 @@
 using namespace miosix;
 using namespace Main;
 using namespace Boardcore;
-using namespace Boardcore::Canbus;
+using namespace Canbus;
 using namespace Common;
 
 CanHandler::CanHandler()
@@ -130,7 +130,7 @@ CanHandler::CanStatus CanHandler::getCanStatus()
     return status;
 }
 
-void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 {
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
@@ -169,14 +169,15 @@ void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
+    // TODO: Log event
     CanConfig::EventId event =
         static_cast<CanConfig::EventId>(msg.getSecondaryType());
     LOG_WARN(logger, "Received unrecognized event: {}", event);
 }
 
-void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleSensor(const Canbus::CanMessage &msg)
 {
     CanConfig::SensorId sensor =
         static_cast<CanConfig::SensorId>(msg.getSecondaryType());
@@ -191,15 +192,6 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
             sensors->setCanCCPress(data);
             break;
         }
-
-            /* No longer exists
-            case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
-            {
-                CanPressureData data = pressureDataFromCanMessage(msg);
-                sdLogger.log(data);
-                sensors->setCanBottomTankPress(data);
-                break;
-            }*/
 
         case CanConfig::SensorId::TOP_TANK_PRESSURE:
         {
@@ -240,7 +232,7 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleActuator(const Canbus::CanMessage &msg)
 {
     ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
     CanServoFeedback data = servoFeedbackFromCanMessage(msg);
@@ -249,7 +241,7 @@ void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
     getModule<Actuators>()->setCanServoOpen(servo, data.open);
 }
 
-void CanHandler::handleStatus(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleStatus(const Canbus::CanMessage &msg)
 {
     CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
     CanDeviceStatus deviceStatus = deviceStatusFromCanMessage(msg);

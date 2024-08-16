@@ -23,7 +23,6 @@
 #pragma once
 
 #include <sensors/SensorData.h>
-#include <sensors/analog/pressure/nxp/MPXH6115AData.h>
 
 namespace Main
 {
@@ -37,6 +36,7 @@ struct StaticPressureData1 : Boardcore::PressureData
 
     StaticPressureData1() {}
 };
+
 struct StaticPressureData2 : Boardcore::PressureData
 {
     explicit StaticPressureData2(const Boardcore::PressureData &data)
@@ -46,6 +46,7 @@ struct StaticPressureData2 : Boardcore::PressureData
 
     StaticPressureData2() {}
 };
+
 struct DplBayPressureData : Boardcore::PressureData
 {
     explicit DplBayPressureData(const Boardcore::PressureData &data)
