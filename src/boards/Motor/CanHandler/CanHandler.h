@@ -35,15 +35,22 @@ namespace Motor
 
 class Actuators;
 
+enum class InitStatus : uint8_t
+{
+    UNKNOWN  = 0,
+    INIT_ERR = 1,
+    INIT_OK  = 2,
+};
+
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>
 {
 public:
     CanHandler();
 
-    bool start();
+    [[nodiscard]] bool start();
 
-    void setInitStatus(uint8_t status);
+    void setInitStatus(InitStatus status);
 
 private:
     void handleMessage(const Boardcore::Canbus::CanMessage &msg);
@@ -53,7 +60,7 @@ private:
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 
-    std::atomic<uint8_t> initStatus{0};
+    std::atomic<InitStatus> initStatus{InitStatus::UNKNOWN};
 
     Boardcore::Canbus::CanbusDriver driver;
     Boardcore::Canbus::CanProtocol protocol;

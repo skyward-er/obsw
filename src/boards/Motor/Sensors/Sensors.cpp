@@ -111,25 +111,29 @@ LSM6DSRXData Sensors::getLSM6DSRXLastSample()
     return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
 }
 
-PressureData Sensors::getTopTankPress()
+PressureData Sensors::getTopTankPressLastSample()
 {
     return topTankPressure ? topTankPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getBottomTankPress()
+PressureData Sensors::getBottomTankPressLastSample()
 {
     return bottomTankPressure ? bottomTankPressure->getLastSample()
                               : PressureData{};
 }
 
-PressureData Sensors::getCCPress()
+PressureData Sensors::getCCPressLastSample()
 {
     return ccPressure ? ccPressure->getLastSample() : PressureData{};
 }
 
-TemperatureData Sensors::getTankTemp() { return {}; }
+TemperatureData Sensors::getTankTempLastSample()
+{
+    // TODO: This sensor needs to be properly calibrated and implemented
+    return {};
+}
 
-VoltageData Sensors::getBatteryVoltage()
+VoltageData Sensors::getBatteryVoltageLastSample()
 {
     auto sample   = getInternalADCLastSample();
     float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
@@ -137,7 +141,7 @@ VoltageData Sensors::getBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-std::vector<SensorInfo> Sensors::getSensorInfo()
+std::vector<SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
     {
@@ -157,6 +161,11 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
     }
 }
 
+TaskScheduler& Sensors::getSensorsScheduler()
+{
+    return getModule<BoardScheduler>()->getSensorsScheduler();
+}
+
 void Sensors::lps22dfInit()
 {
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
@@ -171,7 +180,7 @@ void Sensors::lps22dfInit()
                                         spiConfig, config);
 }
 
-void Sensors::lps22dfCallback() { sdLogger.log(lps22df->getLastSample()); }
+void Sensors::lps22dfCallback() { sdLogger.log(getLPS22DFLastSample()); }
 
 void Sensors::h3lis331dlInit()
 {
@@ -185,10 +194,7 @@ void Sensors::h3lis331dlInit()
         Config::Sensors::H3LIS331DL::FS);
 }
 
-void Sensors::h3lis331dlCallback()
-{
-    sdLogger.log(h3lis331dl->getLastSample());
-}
+void Sensors::h3lis331dlCallback() { sdLogger.log(getH3LIS331DLLastSample()); }
 
 void Sensors::lis2mdlInit()
 {
@@ -205,7 +211,7 @@ void Sensors::lis2mdlInit()
                                         spiConfig, config);
 }
 
-void Sensors::lis2mdlCallback() { sdLogger.log(lis2mdl->getLastSample()); }
+void Sensors::lis2mdlCallback() { sdLogger.log(getLIS2MDLLastSample()); }
 
 void Sensors::lsm6dsrxInit()
 {
@@ -234,7 +240,17 @@ void Sensors::lsm6dsrxInit()
                                           spiConfig, config);
 }
 
-void Sensors::lsm6dsrxCallback() { sdLogger.log(lsm6dsrx->getLastSample()); }
+void Sensors::lsm6dsrxCallback()
+{
+    if (!lsm6dsrx)
+        return;
+
+    // For every instance inside the fifo log the sample
+    for (uint16_t i = 0; i < lsm6dsrx->getLastFifoSize(); i++)
+    {
+        sdLogger.log(lsm6dsrx->getLastFifo().at(i));
+    }
+}
 
 void Sensors::ads131m08Init()
 {
@@ -283,20 +299,19 @@ void Sensors::ads131m08Init()
                                             spiConfig, config);
 }
 
-void Sensors::ads131m08Callback() { sdLogger.log(ads131m08->getLastSample()); }
+void Sensors::ads131m08Callback() { sdLogger.log(getADS131M08LastSample()); }
 
 void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC2);
-    internalAdc->enableChannel(InternalADC::CH9);
-    internalAdc->enableChannel(InternalADC::CH14);
+    internalAdc->enableChannel(Config::Sensors::InternalADC::VBAT_CH);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
 }
 
 void Sensors::internalAdcCallback()
 {
-    sdLogger.log(internalAdc->getLastSample());
+    sdLogger.log(getInternalADCLastSample());
 }
 
 void Sensors::topTankPressureInit()
@@ -316,9 +331,7 @@ void Sensors::topTankPressureInit()
 
 void Sensors::topTankPressureCallback()
 {
-    PressureData sample = topTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 0, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(TopTankPressureData{getTopTankPressLastSample()});
 }
 
 void Sensors::bottomTankPressureInit()
@@ -338,9 +351,7 @@ void Sensors::bottomTankPressureInit()
 
 void Sensors::bottomTankPressureCallback()
 {
-    PressureData sample = bottomTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 1, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(BottomTankPressureData{getBottomTankPressLastSample()});
 }
 
 void Sensors::ccPressureInit()
@@ -360,16 +371,11 @@ void Sensors::ccPressureInit()
 
 void Sensors::ccPressureCallback()
 {
-    PressureData sample = topTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 2, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(CCPressureData{getCCPressLastSample()});
 }
 
 bool Sensors::sensorManagerInit()
 {
-    TaskScheduler &scheduler =
-        getModule<BoardScheduler>()->getSensorsScheduler();
-
     SensorManager::SensorMap_t map;
 
     if (lps22df)
@@ -439,6 +445,6 @@ bool Sensors::sensorManagerInit()
         map.emplace(std::make_pair(ccPressure.get(), info));
     }
 
-    manager = std::make_unique<SensorManager>(map, &scheduler);
+    manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
     return manager->start();
 }

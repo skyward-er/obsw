@@ -22,29 +22,38 @@
 
 #pragma once
 
-#include <sensors/ADS131M08/ADS131M08Data.h>
-#include <sensors/MAX31856/MAX31856Data.h>
-
+#include <sensors/SensorData.h>
 namespace Motor
 {
-struct PTsData : Boardcore::PressureData
+
+struct TopTankPressureData : Boardcore::PressureData
 {
-    uint8_t ptNumber = 0;
-
-    PTsData() : PressureData{}, ptNumber{0} {}
-
-    PTsData(uint64_t time, uint8_t num, float pressure)
-        : PressureData{time, pressure}, ptNumber{num}
+    explicit TopTankPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
     {
     }
 
-    static std::string header() { return "timestamp,ptNumber,pressure\n"; }
+    TopTankPressureData() {}
+};
 
-    void print(std::ostream& os) const
+struct BottomTankPressureData : Boardcore::PressureData
+{
+    explicit BottomTankPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
     {
-        os << pressureTimestamp << "," << (int)ptNumber << "," << pressure
-           << "\n";
     }
+
+    BottomTankPressureData() {}
+};
+
+struct CCPressureData : Boardcore::PressureData
+{
+    explicit CCPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    CCPressureData() {}
 };
 
 }  // namespace Motor

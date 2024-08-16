@@ -55,16 +55,18 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
 
-    Boardcore::PressureData getTopTankPress();
-    Boardcore::PressureData getBottomTankPress();
-    Boardcore::PressureData getCCPress();
-    Boardcore::TemperatureData getTankTemp();
-    Boardcore::VoltageData getBatteryVoltage();
+    Boardcore::PressureData getTopTankPressLastSample();
+    Boardcore::PressureData getBottomTankPressLastSample();
+    Boardcore::PressureData getCCPressLastSample();
+    Boardcore::TemperatureData getTankTempLastSample();
+    Boardcore::VoltageData getBatteryVoltageLastSample();
 
-    std::vector<Boardcore::SensorInfo> getSensorInfo();
+    std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
+
+    Boardcore::TaskScheduler& getSensorsScheduler();
 
     // Digital sensors
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
@@ -111,7 +113,7 @@ private:
 
     bool sensorManagerInit();
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
 
