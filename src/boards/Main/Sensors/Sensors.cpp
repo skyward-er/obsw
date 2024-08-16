@@ -691,8 +691,12 @@ void Sensors::rotatedImuInit()
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-            auto imu6 = getCalibratedLSM6DSRXLastSample();
-            auto mag  = getCalibratedLIS2MDLLastSample();
+            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                            ? getCalibratedLSM6DSRXLastSample()
+                            : getLSM6DSRXLastSample();
+            auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+                            ? getCalibratedLIS2MDLLastSample()
+                            : getLIS2MDLLastSample();
 
             return IMUData{imu6, imu6, mag};
         });
