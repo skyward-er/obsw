@@ -25,10 +25,13 @@
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Sensors/Sensors.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include <iostream>
 
 using namespace Boardcore;
 using namespace Motor;
@@ -36,7 +39,8 @@ using namespace miosix;
 
 int main()
 {
-    PrintLogger logger = Logging::getLogger("main");
+    ledOff();
+
     DependencyManager manager;
 
     Buses *buses              = new Buses();
@@ -45,6 +49,8 @@ int main()
     Sensors *sensors       = new Sensors();
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
+
+    Logger &sdLogger = Logger::getInstance();
 
     bool initResult = manager.insert<Buses>(buses) &&
                       manager.insert<BoardScheduler>(scheduler) &&
@@ -57,59 +63,99 @@ int main()
 
     if (!initResult)
     {
-        LOG_ERR(logger, "Failed to inject dependencies");
-        return 0;
+        std::cout << "Failed to inject dependencies" << std::endl;
+        return -1;
     }
+
+    // Status led indicators
+    // led1: Sensors ok
+    // led2: Actuators ok
+    // led3: CanBus ok
+    // led4: Everything ok
 
     // Start modules
     if (!sensors->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Sensors module");
+        std::cout << "Error failed to start Sensors module" << std::endl;
+    }
+    else
+    {
+        led1On();
     }
 
     if (!actuators->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Actuators module");
+        std::cout << "Error failed to start Actuators module" << std::endl;
+    }
+    else
+    {
+        led2On();
     }
 
     if (!canHandler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start CanHandler module");
+        std::cout << "Error failed to start CanHandler module" << std::endl;
+    }
+    else
+    {
+        led3On();
     }
 
     if (!scheduler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start scheduler");
+        std::cout << "Error failed to start scheduler" << std::endl;
     }
 
-    if (!Logger::getInstance().start())
+    if (!sdLogger.start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start SD");
+        std::cout << "Error failed to start SD" << std::endl;
     }
 
-    Logger::getInstance().resetStats();
+    sdLogger.resetStats();
 
-    if (initResult)
+    if (!initResult)
     {
-        canHandler->setInitStatus(2);
-        LOG_INFO(logger, "All good!");
+        std::cout << "Init failure" << std::endl;
+        canHandler->setInitStatus(InitStatus::INIT_ERR);
     }
     else
     {
-        canHandler->setInitStatus(1);
-        LOG_ERR(logger, "Init failure!");
+        std::cout << "All good!" << std::endl;
+        canHandler->setInitStatus(InitStatus::INIT_OK);
+        led4On();
     }
 
+    std::cout << "Sensor status:" << std::endl;
+    for (auto info : sensors->getSensorInfos())
+    {
+        std::cout << "- " << info.id << " status: " << info.isInitialized
+                  << std::endl;
+    }
+
+    CpuMeterData cpuStats;
     while (true)
     {
-        gpios::boardLed::low();
-        Thread::sleep(1000);
+        // Log CpuMeter
+        cpuStats = CpuMeter::getCpuStats();
+        CpuMeter::resetCpuStats();
+
+        sdLogger.log(cpuStats);
+
         gpios::boardLed::high();
+        Thread::sleep(1000);
+
+        // Log CpuMeter
+        cpuStats = CpuMeter::getCpuStats();
+        CpuMeter::resetCpuStats();
+
+        sdLogger.log(cpuStats);
+
+        gpios::boardLed::low();
         Thread::sleep(1000);
     }
 

@@ -30,7 +30,7 @@
 
 using namespace Motor;
 using namespace Boardcore;
-using namespace Boardcore::Canbus;
+using namespace Canbus;
 using namespace Common;
 
 CanHandler::CanHandler()
@@ -65,7 +65,7 @@ bool CanHandler::start()
                 DeviceStatus{
                     TimestampTimer::getTimestamp(),
                     static_cast<int16_t>(stats.logNumber),
-                    static_cast<uint8_t>(initStatus),
+                    static_cast<uint8_t>(initStatus.load()),
                     false,
                     false,  // TODO: HIL
                     stats.lastWriteError == 0,
@@ -90,7 +90,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::CC_PRESSURE),
-                static_cast<PressureData>(sensors->getCCPress()));
+                static_cast<PressureData>(sensors->getCCPressLastSample()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -98,7 +98,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::TOP_TANK_PRESSURE),
-                static_cast<PressureData>(sensors->getTopTankPress()));
+                static_cast<PressureData>(
+                    sensors->getTopTankPressLastSample()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -106,7 +107,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::BOTTOM_TANK_PRESSURE),
-                static_cast<PressureData>(sensors->getBottomTankPress()));
+                static_cast<PressureData>(
+                    sensors->getBottomTankPressLastSample()));
         },
         Config::CanHandler::PRESSURE_PERIOD);
 
@@ -127,7 +129,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::TANK_TEMPERATURE),
-                static_cast<TemperatureData>(sensors->getTankTemp()));
+                static_cast<TemperatureData>(sensors->getTankTempLastSample()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
@@ -135,7 +137,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_VOLTAGE),
-                static_cast<VoltageData>(sensors->getBatteryVoltage()));
+                static_cast<VoltageData>(
+                    sensors->getBatteryVoltageLastSample()));
         },
         Config::CanHandler::TEMPERATURE_PERIOD);
 
@@ -180,12 +183,18 @@ bool CanHandler::start()
         return false;
     }
 
-    return protocol.start();
+    if (!protocol.start())
+    {
+        LOG_ERR(logger, "Failed to start CanProtocol");
+        return false;
+    }
+
+    return true;
 }
 
-void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
+void CanHandler::setInitStatus(InitStatus status) { initStatus = status; }
 
-void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 {
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
@@ -212,13 +221,15 @@ void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
     // TODO: Log event
-    LOG_INFO(logger, "Received event");
+    CanConfig::EventId event =
+        static_cast<CanConfig::EventId>(msg.getSecondaryType());
+    LOG_WARN(logger, "Received unrecognized event: {}", event);
 }
 
-void CanHandler::handleCommand(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleCommand(const Canbus::CanMessage &msg)
 {
     ServosList servo     = static_cast<ServosList>(msg.getSecondaryType());
     ServoCommand command = servoCommandFromCanMessage(msg);

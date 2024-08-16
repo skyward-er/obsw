@@ -126,8 +126,6 @@ constexpr float ENGINE_MAX_PRESSURE      = 40;   // bar
 
 namespace InternalADC
 {
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::InternalADC::Channel VBAT_CH =
     Boardcore::InternalADC::Channel::CH14;
 
