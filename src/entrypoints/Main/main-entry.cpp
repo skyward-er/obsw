@@ -166,13 +166,11 @@ int main()
     {
         std::cout << "Init failure" << std::endl;
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        actuators->setStatusErr();
     }
     else
     {
         std::cout << "All good!" << std::endl;
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-        actuators->setStatusOk();
         led4On();
     }
 

@@ -121,6 +121,7 @@ State FlightModeManager::state_init_error(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FlightModeManagerState::INIT_ERROR);
+            getModule<Actuators>()->setStatusErr();
             return HANDLED;
         }
         case EV_EXIT:
@@ -158,6 +159,7 @@ State FlightModeManager::state_init_done(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FlightModeManagerState::INIT_DONE);
+            getModule<Actuators>()->setStatusOk();
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }

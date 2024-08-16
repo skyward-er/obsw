@@ -429,7 +429,7 @@ TaskScheduler& Sensors::getSensorsScheduler()
 void Sensors::lps22dfInit()
 {
     SPIBusConfig spiConfig = LPS22DF::getDefaultSPIConfig();
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
     LPS22DF::Config config;
     config.avg = Config::Sensors::LPS22DF::AVG;
@@ -580,9 +580,26 @@ void Sensors::ads131m08Init()
     config.channelsConfig[7].enabled = false;
 
     // Enable required channels
-    config.channelsConfig[0].enabled = true;
-    config.channelsConfig[1].enabled = true;
-    config.channelsConfig[2].enabled = true;
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::STATIC_PRESSURE_1_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::STATIC_PRESSURE_2_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::DPL_BAY_PRESSURE_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
 
     ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
                                             sensors::ADS131M08::cs::getPin(),
