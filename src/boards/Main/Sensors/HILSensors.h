@@ -71,12 +71,12 @@ private:
                        [this]() { return updateUBXGPSData(); });
         hillificator<>(lsm6dsrx, enableHw,
                        [this]() { return updateLSM6DSRXData(); });
-        // hillificator<>(hscmrnn015pa_1, enableHw,
-        //                [this]() { return updateStaticPressureData(); });
-        // hillificator<>(hscmrnn015pa_2, enableHw,
-        //                [this]() { return updateStaticPressureData(); });
-        // hillificator<>(imu, enableHw,
-        //                [this, hil]() { return updateIMUData(*this); });
+        hillificator<>(staticPressure1, enableHw,
+                       [this]() { return updateStaticPressureData(); });
+        hillificator<>(staticPressure2, enableHw,
+                       [this]() { return updateStaticPressureData(); });
+        hillificator<>(rotatedImu, enableHw,
+                       [this]() { return updateIMUData(*this); });
 
         return true;
     };
@@ -245,26 +245,26 @@ private:
         return data;
     };
 
-    // Boardcore::HSCMRNN015PAData updateStaticPressureData()
-    // {
-    //     Boardcore::HSCMRNN015PAData data;
+    Boardcore::MPXH6115AData updateStaticPressureData()
+    {
+        Boardcore::MPXH6115AData data;
 
-    //     auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
 
-    //     int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
+        int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
 
-    //     data.pressureTimestamp = miosix::getTime();
-    //     data.pressure          = sensorData->barometer1.measures[iBaro];
+        data.pressureTimestamp = miosix::getTime();
+        data.pressure          = sensorData->barometer1.measures[iBaro];
 
-    //     return data;
-    // };
+        return data;
+    };
 
-    // RotatedIMUData updateIMUData(Main::Sensors& sensors)
-    // {
-    //     return RotatedIMUData{sensors.getLSM6DSRXLastSample(),
-    //                           sensors.getLSM6DSRXLastSample(),
-    //                           sensors.getCalibratedMagnetometerLastSample()};
-    // };
+    Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
+    {
+        return Boardcore::IMUData{sensors.getLSM6DSRXLastSample(),
+                                  sensors.getLSM6DSRXLastSample(),
+                                  sensors.getCalibratedMagLastSample()};
+    };
 
     Boardcore::PressureData updateCCData()
     {
