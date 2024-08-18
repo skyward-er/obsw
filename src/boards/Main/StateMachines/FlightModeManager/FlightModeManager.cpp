@@ -41,6 +41,7 @@ FlightModeManager::FlightModeManager()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
+    EventBroker::getInstance().subscribe(this, TOPIC_MEA);
 }
 
 FlightModeManagerState FlightModeManager::getState() { return state; }
@@ -358,6 +359,7 @@ State FlightModeManager::state_test_mode(const Event& event)
 
             EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
             getModule<Sensors>()->resetMagCalibrator();
             getModule<Sensors>()->enableMagCalibrator();
             return HANDLED;
@@ -366,6 +368,7 @@ State FlightModeManager::state_test_mode(const Event& event)
         {
             EventBroker::getInstance().post(ADA_FORCE_STOP, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+            EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
             getModule<Sensors>()->disableMagCalibrator();
             return HANDLED;
         }
