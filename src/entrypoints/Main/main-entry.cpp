@@ -83,6 +83,9 @@ int main()
     // HIL
     if (persistentVars->getHilMode())
     {
+        printf("MAIN SimulatorData: %d, ActuatorData: %d\n",
+               sizeof(HILConfig::SimulatorData),
+               sizeof(HILConfig::ActuatorData));
         hil = new HILConfig::MainHIL();
 
         initResult &= manager.insert<HILConfig::MainHIL>(hil);
@@ -236,38 +239,22 @@ int main()
                 { actuators->setCanServoOpen(ServosList::MAIN_VALVE, false); });
         }
 
+        // If we are in hil mode, there won't be the rig to send the ignition
+        // command. The Main will do it when receives the LIFTOFF command
         hil->registerToFlightPhase(HILConfig::MainFlightPhases::LIFTOFF,
                                    [&]()
                                    {
                                        printf("liftoff\n");
-                                       if (!HILConfig::IS_FULL_HIL)
+                                       if (HILConfig::IS_FULL_HIL)
                                        {
-                                           printf("open main valve\n");
-
-                                           // TODO: add can message sending
+                                           canHandler->sendServoOpenCommand(
+                                               ServosList::MAIN_VALVE, 7000);
+                                       }
+                                       else
+                                       {
                                            actuators->setCanServoOpen(
                                                ServosList::MAIN_VALVE, true);
                                        }
-                                   });
-
-        hil->registerToFlightPhase(HILConfig::MainFlightPhases::ARMED,
-                                   [&]()
-                                   {
-                                       printf("ARMED\n");
-                                       // Comment this if we want to trigger
-                                       // liftoff by hand
-                                       EventBroker::getInstance().post(
-                                           Events::FLIGHT_LAUNCH_PIN_DETACHED,
-                                           Topics::TOPIC_FLIGHT);
-                                   });
-
-        hil->registerToFlightPhase(HILConfig::MainFlightPhases::CALIBRATION_OK,
-                                   [&]()
-                                   {
-                                       TRACE("ARM COMMAND SENT\n");
-                                       EventBroker::getInstance().post(
-                                           Events::TMTC_ARM,
-                                           Topics::TOPIC_TMTC);
                                    });
 
         printf("Waiting start simulation\n");
