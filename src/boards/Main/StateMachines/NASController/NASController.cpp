@@ -66,7 +66,7 @@ bool NASController::start()
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
     size_t result =
-        scheduler.addTask([this]() { update(); }, Config::NAS::SAMPLE_RATE);
+        scheduler.addTask([this]() { update(); }, Config::NAS::UPDATE_RATE);
 
     if (result == 0)
     {
@@ -111,6 +111,10 @@ void NASController::update()
         UBXGPSData gps    = sensors->getUBXGPSLastSample();
         PressureData baro = sensors->getAtmosPressureLastSample();
 
+        // Calculate acceleration
+        Vector3f acc    = static_cast<AccelerometerData>(imu);
+        float accLength = acc.norm();
+
         // Perform initial NAS prediction
         // TODO: What about stale data?
         nas.predictGyro(imu);
@@ -128,7 +132,8 @@ void NASController::update()
             magDecimateCount++;
         }
 
-        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3)
+        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
+            accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
         {
             nas.correctGPS(gps);
         }
@@ -147,9 +152,6 @@ void NASController::update()
         }
 
         // Check if the accelerometer is measuring 1g
-        Vector3f acc    = static_cast<AccelerometerData>(imu);
-        float accLength = acc.norm();
-
         if (accLength <
                 (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
             accLength >

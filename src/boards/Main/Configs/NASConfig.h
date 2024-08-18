@@ -37,13 +37,14 @@ namespace NAS
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz SAMPLE_RATE = 50_hz;
+constexpr Hertz UPDATE_RATE         = 50_hz;
+constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
 
 constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
 constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
 
 static const Boardcore::NASConfig CONFIG = {
-    .T              = 0.02,  // [s]
+    .T              = UPDATE_RATE_SECONDS,
     .SIGMA_BETA     = 0.0001,
     .SIGMA_W        = 0.3,
     .SIGMA_ACC      = 0.1,
@@ -64,6 +65,9 @@ static const Boardcore::NASConfig CONFIG = {
 
 // Only use one out of every 50 samples (1 Hz)
 constexpr int MAGNETOMETER_DECIMATE = 50;
+
+// Maximum allowed acceleration to correct with GPS
+constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2]
 
 // How much confidence (in m/s^2) to apply to the accelerometer to check if it
 // is 1g

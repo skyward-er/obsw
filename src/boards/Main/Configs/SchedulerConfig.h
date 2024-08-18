@@ -35,6 +35,8 @@ namespace Scheduler
 
 // Used for NAS related activities (state machines/scheduler)
 static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
+// Used for NAS related activities (state machines/scheduler)
+static const miosix::Priority MEA_PRIORITY = miosix::PRIORITY_MAX - 1;
 // Used for ADA related activities (state machines/scheduler)
 static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
 // Used for Sensors TaskScheduler

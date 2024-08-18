@@ -22,11 +22,13 @@
 
 #pragma once
 
+#include <Main/Actuators/Actuators.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
-#include <Main/StateMachines/NASController/NASControllerData.h>
-#include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/NAS/NAS.h>
+#include <Main/StateMachines/MEAController/MEAController.h>
+#include <Main/StateMachines/MEAController/MEAControllerData.h>
+#include <Main/StateMachines/NASController/NASController.h>
+#include <algorithms/MEA/MEA.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -34,51 +36,48 @@
 namespace Main
 {
 
-class NASController
-    : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder>
+class MEAController
+    : public Boardcore::FSM<MEAController>,
+      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
+                                           NASController>
 {
 public:
-    NASController();
+    MEAController();
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::NASState getNASState();
-    Boardcore::ReferenceValues getReferenceValues();
+    Boardcore::MEAState getMEAState();
 
-    NASControllerState getState();
+    MEAControllerState getState();
 
 private:
     void update();
-    void calibrate();
 
     // FSM states
     void state_init(const Boardcore::Event& event);
-    void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
+    void state_armed(const Boardcore::Event& event);
+    void state_shadow_mode(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
+    void state_active_unpowered(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
-    void updateAndLogStatus(NASControllerState state);
+    void updateAndLogStatus(MEAControllerState state);
 
-    std::atomic<NASControllerState> state{NASControllerState::INIT};
+    std::atomic<MEAControllerState> state{MEAControllerState::INIT};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("mea");
 
-    miosix::FastMutex nasMutex;
-    Boardcore::NAS nas;
+    uint16_t shadowModeTimeoutEvent = 0;
 
-    int magDecimateCount  = 0;
-    int acc1gSamplesCount = 0;
-    bool acc1g            = false;
+    miosix::FastMutex meaMutex;
+    Boardcore::MEA mea;
 
-    uint64_t lastGyroTimestamp = 0;
-    uint64_t lastAccTimestamp  = 0;
-    uint64_t lastMagTimestamp  = 0;
-    uint64_t lastGpsTimestamp  = 0;
-    uint64_t lastBaroTimestamp = 0;
+    uint64_t lastAccTimestamp      = 0;
+    uint64_t lastBaroTimestamp     = 0;
+    uint64_t lastNasTimestamp      = 0;
+    unsigned int detectedShutdowns = 0;
 };
 
 }  // namespace Main

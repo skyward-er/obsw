@@ -49,8 +49,8 @@ ADA::KalmanFilter::KalmanConfig computeADAKalmanConfig(float refPressure)
 
     // clang-format off
     F  = ADA::KalmanFilter::MatrixNN({
-        {1.0, Config::ADA::SAMPLE_RATE_SECONDS, 0.5f * Config::ADA::SAMPLE_RATE_SECONDS * Config::ADA::SAMPLE_RATE_SECONDS},
-        {0.0, 1.0,                              Config::ADA::SAMPLE_RATE_SECONDS                                          },
+        {1.0, Config::ADA::UPDATE_RATE_SECONDS, 0.5f * Config::ADA::UPDATE_RATE_SECONDS * Config::ADA::UPDATE_RATE_SECONDS},
+        {0.0, 1.0,                              Config::ADA::UPDATE_RATE_SECONDS                                          },
         {0.0, 0.0,                              1.0                                                                       }});
 
     H = {1.0, 0.0, 0.0};
@@ -91,7 +91,7 @@ bool ADAController::start()
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getAdaScheduler();
 
     uint8_t result =
-        scheduler.addTask([this]() { update(); }, Config::ADA::SAMPLE_RATE);
+        scheduler.addTask([this]() { update(); }, Config::ADA::UPDATE_RATE);
 
     if (result == 0)
     {

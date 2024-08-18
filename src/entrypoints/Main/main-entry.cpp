@@ -29,6 +29,7 @@
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <actuators/Servo/Servo.h>
@@ -61,6 +62,7 @@ int main()
     FlightModeManager *fmm  = new FlightModeManager();
     ADAController *ada      = new ADAController();
     NASController *nas      = new NASController();
+    MEAController *mea      = new MEAController();
     StatsRecorder *recorder = new StatsRecorder();
 
     // Insert modules
@@ -74,6 +76,7 @@ int main()
         manager.insert<FlightModeManager>(fmm) &&
         manager.insert<ADAController>(ada) &&
         manager.insert<NASController>(nas) &&
+        manager.insert<MEAController>(mea) &&
         manager.insert<StatsRecorder>(recorder) && manager.inject();
 
     manager.graphviz(std::cout);
@@ -154,6 +157,12 @@ int main()
     {
         initResult = false;
         std::cout << "Error failed to start NASController" << std::endl;
+    }
+
+    if (!mea->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start MEAController" << std::endl;
     }
 
     if (!fmm->start())

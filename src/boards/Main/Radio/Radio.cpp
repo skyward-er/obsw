@@ -532,6 +532,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             Actuators* actuators = getModule<Actuators>();
             ADAController* ada   = getModule<ADAController>();
             NASController* nas   = getModule<NASController>();
+            MEAController* mea   = getModule<MEAController>();
 
             auto pressDigi   = sensors->getLPS22DFLastSample();
             auto imu         = sensors->getIMULastSample();
@@ -541,12 +542,13 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDpl    = sensors->getDplBayPressureLastSample();
             auto adaState    = ada->getADAState();
             auto nasState    = nas->getNASState();
+            auto meaState    = mea->getMEAState();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
             tm.airspeed_pitot = -1.0f;  // TODO
-            tm.mea_mass       = -1.0f;  // TODO
-            tm.mea_apogee     = -1.0f;  // TODO
+            tm.mea_mass       = meaState.estimatedMass;
+            tm.mea_apogee     = meaState.estimatedApogee;
 
             // Sensors
             tm.pressure_digi   = pressDigi.pressure;
@@ -618,6 +620,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             FlightModeManager* fmm  = getModule<FlightModeManager>();
             ADAController* ada      = getModule<ADAController>();
             NASController* nas      = getModule<NASController>();
+            MEAController* mea      = getModule<MEAController>();
             Actuators* actuators    = getModule<Actuators>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
 
@@ -664,7 +667,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
             tm.abk_state = 255;  // TODO
             tm.nas_state = static_cast<uint8_t>(nas->getState());
-            tm.mea_state = 255;  // TODO
+            tm.mea_state = static_cast<uint8_t>(mea->getState());
 
             // Actuators
             tm.exp_angle =

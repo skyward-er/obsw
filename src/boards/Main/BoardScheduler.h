@@ -74,6 +74,8 @@ public:
 
     Boardcore::TaskScheduler &getNasScheduler() { return nas; }
 
+    Boardcore::TaskScheduler &getMeaScheduler() { return nas; }
+
     Boardcore::TaskScheduler &getAdaScheduler() { return ada; }
 
     Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }

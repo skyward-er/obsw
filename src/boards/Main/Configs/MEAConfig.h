@@ -22,9 +22,8 @@
 
 #pragma once
 
+#include <algorithms/MEA/MEA.h>
 #include <units/Frequency.h>
-
-#include <cstdint>
 
 namespace Main
 {
@@ -32,26 +31,35 @@ namespace Main
 namespace Config
 {
 
-namespace ADA
+namespace MEA
 {
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
+constexpr Hertz UPDATE_RATE = 50_hz;
 
-constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
-constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+constexpr unsigned int SHADOW_MODE_TIMEOUT = 4500;  // [ms]
 
-constexpr unsigned int SHADOW_MODE_TIMEOUT = 18000;  // [ms]
+constexpr float SHUTDOWN_APOGEE_TARGET    = 3200;  // [m]
+constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
 
-constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
-constexpr unsigned int APOGEE_N_SAMPLES      = 5;
+constexpr float SENSOR_NOISE_VARIANCE       = 0.36f;
+constexpr float MODEL_NOISE_VARIANCE        = 0.1f;
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5920f;
 
-constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 350;  // [m]
-constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
+// Pressure threshold after which the kalman is updated
+constexpr float CC_PRESSURE_THRESHOLD = 1.f;
 
-}  // namespace ADA
+constexpr Boardcore::Aeroutils::AerodynamicCoeff AERO_COEFF = {
+    .n000 = 0.596535425207973f,
+    .n100 = -1.81429600946981f,
+    .n200 = 8.47683559348987f,
+    .n300 = -23.1759370919254f,
+    .n400 = 35.8276525337534f,
+    .n500 = -29.2336913633527f,
+    .n600 = 9.84223649075812f};
+
+}  // namespace MEA
 
 }  // namespace Config
 
