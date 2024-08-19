@@ -190,6 +190,22 @@ void CanHandler::handleSensor(const Canbus::CanMessage &msg)
     Sensors *sensors = getModule<Sensors>();
     switch (sensor)
     {
+        case CanConfig::SensorId::PITOT_DYNAMIC_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanPitotDynamicPress(data);
+            break;
+        }
+
+        case CanConfig::SensorId::PITOT_STATIC_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanPitotStaticPress(data);
+            break;
+        }
+
         case CanConfig::SensorId::CC_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);

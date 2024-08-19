@@ -88,6 +88,8 @@ public:
     Boardcore::IMUData getIMULastSample();
     Boardcore::PressureData getAtmosPressureLastSample();
 
+    Boardcore::PressureData getCanPitotDynamicPressLastSample();
+    Boardcore::PressureData getCanPitotStaticPressLastSample();
     Boardcore::PressureData getCanTopTankPressLastSample();
     Boardcore::PressureData getCanBottomTankPressLastSample();
     Boardcore::PressureData getCanCCPressLastSample();
@@ -97,6 +99,8 @@ public:
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
     // Methods for CanHandler
+    void setCanPitotDynamicPress(Boardcore::PressureData data);
+    void setCanPitotStaticPress(Boardcore::PressureData data);
     void setCanTopTankPress(Boardcore::PressureData data);
     void setCanBottomTankPress(Boardcore::PressureData data);
     void setCanCCPress(Boardcore::PressureData data);
@@ -109,6 +113,8 @@ protected:
     Boardcore::TaskScheduler& getSensorsScheduler();
 
     miosix::FastMutex canMutex;
+    Boardcore::PressureData canPitotDynamicPressure;
+    Boardcore::PressureData canPitotStaticPressure;
     Boardcore::PressureData canCCPressure;
     Boardcore::PressureData canTopTankPressure;
     Boardcore::PressureData canBottomTankPressure;
