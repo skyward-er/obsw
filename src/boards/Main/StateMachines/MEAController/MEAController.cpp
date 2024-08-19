@@ -290,7 +290,7 @@ void MEAController::state_shadow_mode(const Event& event)
             break;
         }
 
-        case FLIGHT_APOGEE_DETECTED:
+        case FLIGHT_MOTOR_SHUTDOWN:
         {
             transition(&MEAController::state_active_unpowered);
             break;
@@ -320,7 +320,7 @@ void MEAController::state_active(const Event& event)
             break;
         }
 
-        case FLIGHT_APOGEE_DETECTED:
+        case FLIGHT_MOTOR_SHUTDOWN:
         {
             transition(&MEAController::state_active_unpowered);
             break;
@@ -350,6 +350,7 @@ void MEAController::state_active_unpowered(const Event& event)
             break;
         }
 
+        case FLIGHT_APOGEE_DETECTED:
         case FLIGHT_LANDING_DETECTED:
         {
             transition(&MEAController::state_end);
