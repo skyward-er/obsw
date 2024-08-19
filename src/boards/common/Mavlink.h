@@ -57,16 +57,26 @@ inline Events mavCmdToEvent(uint8_t id)
             return TMTC_FORCE_DEPLOYMENT;
         case MAV_CMD_FORCE_LANDING:
             return TMTC_FORCE_LANDING;
+        case MAV_CMD_START_LOGGING:
+            return TMTC_START_LOGGING;
+        case MAV_CMD_STOP_LOGGING:
+            return TMTC_STOP_LOGGING;
         case MAV_CMD_FORCE_REBOOT:
             return TMTC_RESET_BOARD;
         case MAV_CMD_ENTER_TEST_MODE:
             return TMTC_ENTER_TEST_MODE;
         case MAV_CMD_EXIT_TEST_MODE:
             return TMTC_EXIT_TEST_MODE;
+        case MAV_CMD_ENTER_HIL:
+            return TMTC_ENTER_HIL_MODE;
+        case MAV_CMD_EXIT_HIL:
+            return TMTC_EXIT_HIL_MODE;
         case MAV_CMD_START_RECORDING:
             return TMTC_START_RECORDING;
         case MAV_CMD_STOP_RECORDING:
             return TMTC_STOP_RECORDING;
+        case MAV_CMD_OPEN_NITROGEN:
+            return TMTC_OPEN_NITROGEN;
         default:
             return LAST_EVENT;
     }
