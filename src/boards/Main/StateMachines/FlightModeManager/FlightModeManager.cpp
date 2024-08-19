@@ -22,7 +22,7 @@
 
 #include "FlightModeManager.h"
 
-#include <Main/Configs/FlightModeManagerConfig.h>
+#include <Main/Configs/FMMConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
