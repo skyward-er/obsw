@@ -31,7 +31,7 @@
 using namespace miosix;
 using namespace RIGv2;
 using namespace Boardcore;
-using namespace Boardcore::Canbus;
+using namespace Canbus;
 using namespace Common;
 
 CanHandler::CanHandler()
@@ -74,7 +74,7 @@ bool CanHandler::start()
                     TimestampTimer::getTimestamp(),
                     static_cast<int16_t>(stats.logNumber),
                     static_cast<uint8_t>(state),
-                    state == GroundModeManagerState::GMM_STATE_ARMED,
+                    state == GroundModeManagerState::ARMED,
                     false,
                     stats.lastWriteError == 0,
                 });
@@ -118,19 +118,19 @@ void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
         ServoCommand{TimestampTimer::getTimestamp(), openingTime});
 }
 
-CanHandler::CanStatus CanHandler::getCanStatus()
-{
-    Lock<FastMutex> lock{statusMutex};
-    return status;
-}
-
 void CanHandler::sendServoCloseCommand(ServosList servo)
 {
     // Closing a servo means opening it for 0s
     sendServoOpenCommand(servo, 0);
 }
 
-void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
+CanHandler::CanStatus CanHandler::getCanStatus()
+{
+    Lock<FastMutex> lock{statusMutex};
+    return status;
+}
+
+void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 {
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
@@ -169,14 +169,12 @@ void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
-    CanConfig::EventId event =
-        static_cast<CanConfig::EventId>(msg.getSecondaryType());
-    LOG_WARN(logger, "Received unrecognized event: {}", event);
+    // The RIG doesn't actually listen to any of the rockets internal events
 }
 
-void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleSensor(const Canbus::CanMessage &msg)
 {
     CanConfig::SensorId sensor =
         static_cast<CanConfig::SensorId>(msg.getSecondaryType());
@@ -192,19 +190,19 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
             break;
         }
 
-        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanBottomTankPress(data);
-            break;
-        }
-
         case CanConfig::SensorId::TOP_TANK_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
             sensors->setCanTopTankPress(data);
+            break;
+        }
+
+        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
+        {
+            CanPressureData data = pressureDataFromCanMessage(msg);
+            sdLogger.log(data);
+            sensors->setCanBottomTankPress(data);
             break;
         }
 
@@ -231,7 +229,7 @@ void CanHandler::handleSensor(const Boardcore::Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleActuator(const Canbus::CanMessage &msg)
 {
     ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
     CanServoFeedback data = servoFeedbackFromCanMessage(msg);
@@ -240,7 +238,7 @@ void CanHandler::handleActuator(const Boardcore::Canbus::CanMessage &msg)
     getModule<Actuators>()->setCanServoOpen(servo, data.open);
 }
 
-void CanHandler::handleStatus(const Boardcore::Canbus::CanMessage &msg)
+void CanHandler::handleStatus(const Canbus::CanMessage &msg)
 {
     CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
     CanDeviceStatus deviceStatus = deviceStatusFromCanMessage(msg);

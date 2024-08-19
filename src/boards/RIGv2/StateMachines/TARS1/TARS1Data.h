@@ -29,16 +29,16 @@
 namespace RIGv2
 {
 
-enum TarsActionType : uint8_t
+enum class TarsActionType : uint8_t
 {
-    TARS_ACTION_READY = 0,
-    TARS_ACTION_WASHING,
-    TARS_ACTION_OPEN_FILLING,
-    TARS_ACTION_OPEN_VENTING,
-    TARS_ACTION_CHECK_PRESSURE,
-    TARS_ACTION_CHECK_MASS,
-    TARS_ACTION_AUTOMATIC_STOP,
-    TARS_ACTION_MANUAL_STOP,
+    READY = 0,
+    WASHING,
+    OPEN_FILLING,
+    OPEN_VENTING,
+    CHECK_PRESSURE,
+    CHECK_MASS,
+    AUTOMATIC_STOP,
+    MANUAL_STOP,
 };
 
 struct TarsActionData
@@ -46,7 +46,7 @@ struct TarsActionData
     uint64_t timestamp;
     TarsActionType action;
 
-    TarsActionData() : timestamp{0}, action{TARS_ACTION_READY} {}
+    TarsActionData() : timestamp{0}, action{TarsActionType::READY} {}
 
     TarsActionData(uint64_t timestamp, TarsActionType action)
         : timestamp{timestamp}, action{action}

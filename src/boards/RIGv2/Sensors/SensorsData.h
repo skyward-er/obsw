@@ -24,100 +24,89 @@
 
 #include <sensors/ADS131M08/ADS131M08Data.h>
 #include <sensors/MAX31856/MAX31856Data.h>
+#include <sensors/SensorData.h>
 
 namespace RIGv2
 {
-struct ADCsData : Boardcore::ADS131M08Data
+
+struct ADC1Data : Boardcore::ADS131M08Data
 {
-    uint8_t adcNumber = 0;
-
-    ADCsData() : ADS131M08Data{}, adcNumber{0} {}
-
-    ADCsData(uint64_t time, uint8_t num, float ch1, float ch2, float ch3,
-             float ch4, float ch5, float ch6, float ch7, float ch8)
-        : ADS131M08Data{time, ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8},
-          adcNumber{num}
+    explicit ADC1Data(const Boardcore::ADS131M08Data &data)
+        : Boardcore::ADS131M08Data(data)
     {
     }
 
-    static std::string header()
-    {
-        return "timestamp,adcNumber,voltage_channel_1,voltage_channel_2,"
-               "voltage_channel_3,voltage_channel_4,voltage_channel_5,voltage_"
-               "channel_6,voltage_channel_7,voltage_channel_8\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)adcNumber << "," << voltage[0] << ","
-           << voltage[1] << "," << voltage[2] << "," << voltage[3] << ","
-           << voltage[4] << "," << voltage[5] << "," << voltage[6] << ","
-           << voltage[7] << "\n";
-    }
+    ADC1Data() {}
 };
 
-struct TCsData : Boardcore::MAX31856Data
+struct TC1Data : Boardcore::MAX31856Data
 {
-    uint8_t tcNumber = 0;
-
-    TCsData() : MAX31856Data{}, tcNumber{0} {}
-
-    TCsData(uint64_t time, uint8_t num, float temperature,
-            float coldJunctionTemperature)
-        : MAX31856Data{time, temperature, coldJunctionTemperature}, tcNumber{
-                                                                        num}
+    explicit TC1Data(const Boardcore::MAX31856Data &data)
+        : Boardcore::MAX31856Data(data)
     {
     }
 
-    static std::string header()
-    {
-        return "timestamp,tcNumber,temperature,"
-               "coldJunctionTemperature\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << temperatureTimestamp << "," << (int)tcNumber << "," << temperature
-           << "," << coldJunctionTemperature << "\n";
-    }
+    TC1Data() {}
 };
 
-struct LCsData : Boardcore::LoadCellData
+struct VesselWeightData : Boardcore::LoadCellData
 {
-    uint8_t lcNumber = 0;
-
-    LCsData() : LoadCellData{}, lcNumber{0} {}
-
-    LCsData(uint64_t time, uint8_t num, float load)
-        : LoadCellData{time, load}, lcNumber{num}
+    explicit VesselWeightData(const Boardcore::LoadCellData &data)
+        : Boardcore::LoadCellData(data)
     {
     }
 
-    static std::string header() { return "timestamp,lcNumber,load\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << loadTimestamp << "," << (int)lcNumber << "," << load << "\n";
-    }
+    VesselWeightData() {}
 };
 
-struct PTsData : Boardcore::PressureData
+struct TankWeightData : Boardcore::LoadCellData
 {
-    uint8_t ptNumber = 0;
-
-    PTsData() : PressureData{}, ptNumber{0} {}
-
-    PTsData(uint64_t time, uint8_t num, float pressure)
-        : PressureData{time, pressure}, ptNumber{num}
+    explicit TankWeightData(const Boardcore::LoadCellData &data)
+        : Boardcore::LoadCellData(data)
     {
     }
 
-    static std::string header() { return "timestamp,ptNumber,pressure\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << pressureTimestamp << "," << (int)ptNumber << "," << pressure
-           << "\n";
-    }
+    TankWeightData() {}
 };
+
+struct VesselPressureData : Boardcore::PressureData
+{
+    explicit VesselPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    VesselPressureData() {}
+};
+
+struct FillingPressureData : Boardcore::PressureData
+{
+    explicit FillingPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    FillingPressureData() {}
+};
+
+struct TopTankPressureData : Boardcore::PressureData
+{
+    explicit TopTankPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    TopTankPressureData() {}
+};
+
+struct BottomTankPressureData : Boardcore::PressureData
+{
+    explicit BottomTankPressureData(const Boardcore::PressureData &data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    BottomTankPressureData() {}
+};
+
 }  // namespace RIGv2

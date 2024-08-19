@@ -30,13 +30,6 @@ namespace RIGv2
 
 class Buses : public Boardcore::Injectable
 {
-private:
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi2;
-    Boardcore::SPIBus spi3;
-    Boardcore::SPIBus spi4;
-    Boardcore::SPIBus spi6;
-
 public:
     Buses() : spi1(SPI1), spi2(SPI2), spi3(SPI3), spi4(SPI4), spi6(SPI6) {}
 
@@ -49,6 +42,13 @@ public:
     Boardcore::SPIBus &getMAX31856_1() { return spi3; }
     Boardcore::SPIBus &getMAX31856_2() { return spi1; }
     Boardcore::SPIBus &getRadio() { return spi6; }
+
+private:
+    Boardcore::SPIBus spi1;
+    Boardcore::SPIBus spi2;
+    Boardcore::SPIBus spi3;
+    Boardcore::SPIBus spi4;
+    Boardcore::SPIBus spi6;
 };
 
 }  // namespace RIGv2

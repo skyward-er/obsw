@@ -22,10 +22,9 @@
 
 #pragma once
 
-#include <RIGv2/Configs/GmmConfig.h>
-// #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/CanHandler/CanHandler.h>
+#include <RIGv2/Configs/GMMConfig.h>
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
@@ -68,7 +67,7 @@ private:
     Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
 
-    std::atomic<GroundModeManagerState> state{GMM_STATE_IDLE};
+    std::atomic<GroundModeManagerState> state{GroundModeManagerState::IDLE};
 
     uint16_t openOxidantDelayEventId = -1;
     uint16_t coolingDelayEventId     = -1;

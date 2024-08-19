@@ -25,9 +25,8 @@
 #include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/Configs/ActuatorsConfig.h>
 #include <common/Events.h>
-#include <events/EventBroker.h>
-// TODO(davide.mor): Remove TimestampTimer
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 
 using namespace Boardcore;
 using namespace miosix;

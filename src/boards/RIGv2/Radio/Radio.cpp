@@ -24,10 +24,9 @@
 
 #include <common/Events.h>
 #include <common/Radio.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
-// TODO(davide.mor): Remove TimestampTimer
-#include <drivers/timer/TimestampTimer.h>
 
 #include <atomic>
 #include <unordered_map>
@@ -143,7 +142,7 @@ void Radio::enqueueNack(const mavlink_message_t& msg)
     enqueuePacket(nackMsg);
 }
 
-Boardcore::MavlinkStatus Radio::getMavStatus()
+MavlinkStatus Radio::getMavStatus()
 {
     if (mavDriver)
     {
@@ -194,7 +193,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SENSOR_TM_REQUEST_TC:
         {
-            uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
+            uint8_t tmId =
+                mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg);
             if (enqueueSensorTm(tmId))
             {
                 enqueueAck(msg);
@@ -213,7 +213,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             if (getModule<GroundModeManager>()->getState() ==
-                GMM_STATE_DISARMED)
+                GroundModeManagerState::DISARMED)
             {
                 if (getModule<Actuators>()->wiggleServo(servo))
                 {
@@ -288,26 +288,19 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
 void Radio::handleCommand(const mavlink_message_t& msg)
 {
-    static const std::unordered_map<uint8_t, Events> cmdToEvent{
-        {MAV_CMD_CALIBRATE, TMTC_CALIBRATE},
-        {MAV_CMD_FORCE_INIT, TMTC_FORCE_INIT},
-        {MAV_CMD_FORCE_REBOOT, TMTC_RESET_BOARD},
-        {MAV_CMD_OPEN_NITROGEN, TMTC_OPEN_NITROGEN},
-    };
-
-    uint8_t cmd = mavlink_msg_command_tc_get_command_id(&msg);
-    switch (cmd)
+    uint8_t cmdId = mavlink_msg_command_tc_get_command_id(&msg);
+    switch (cmdId)
     {
         case MAV_CMD_START_LOGGING:
         {
-            if (!Logger::getInstance().start())
-            {
-                enqueueNack(msg);
-            }
-            else
+            if (Logger::getInstance().start())
             {
                 Logger::getInstance().resetStats();
                 enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg);
             }
             break;
         }
@@ -354,19 +347,17 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         default:
         {
-            auto it = cmdToEvent.find(cmd);
-            if (it != cmdToEvent.end())
+            // Try to map the command to an event
+            auto ev = mavCmdToEvent(cmdId);
+            if (ev != LAST_EVENT)
             {
-                EventBroker::getInstance().post(it->second, TOPIC_MOTOR);
+                EventBroker::getInstance().post(ev, TOPIC_TMTC);
                 enqueueAck(msg);
             }
             else
             {
-                // Unrecognized command
                 enqueueNack(msg);
             }
-
-            break;
         }
     }
 }
@@ -550,14 +541,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors
-            tm.loadcell_rocket     = sensors->getTankWeight().load;
-            tm.loadcell_vessel     = sensors->getVesselWeight().load;
-            tm.filling_pressure    = sensors->getFillingPress().pressure;
-            tm.vessel_pressure     = sensors->getVesselPress().pressure;
-            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
-            tm.current_consumption = sensors->getServoCurrent().current;
+            tm.loadcell_rocket  = sensors->getTankWeightLastSample().load;
+            tm.loadcell_vessel  = sensors->getVesselWeightLastSample().load;
+            tm.filling_pressure = sensors->getFillingPressLastSample().pressure;
+            tm.vessel_pressure  = sensors->getVesselPressLastSample().pressure;
+            tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
+            tm.current_consumption =
+                sensors->getServoCurrentLastSample().current;
             tm.umbilical_current_consumption =
-                sensors->getUmbilicalCurrent().current;
+                sensors->getUmbilicalCurrentLastSample().current;
 
             // Log data
             LoggerStats stats = sdLogger.getStats();
@@ -576,12 +568,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.nitrogen_valve_state = actuators->isNitrogenOpen() ? 1 : 0;
 
             // Internal states
-            tm.gmm_state  = getModule<GroundModeManager>()->getState();
-            tm.tars_state = getModule<TARS1>()->isRefueling() ? 1 : 0;
-            tm.arming_state =
-                getModule<GroundModeManager>()->getState() == GMM_STATE_ARMED
-                    ? 1
-                    : 0;
+            tm.gmm_state    = getModule<GroundModeManager>()->getState();
+            tm.tars_state   = getModule<TARS1>()->isRefueling() ? 1 : 0;
+            tm.arming_state = getModule<GroundModeManager>()->getState() ==
+                                      GroundModeManagerState::ARMED
+                                  ? 1
+                                  : 0;
 
             // Can data
             CanHandler::CanStatus canStatus =
@@ -611,11 +603,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.top_tank_pressure    = sensors->getTopTankPress().pressure;
-            tm.bottom_tank_pressure = sensors->getBottomTankPress().pressure;
-            tm.combustion_chamber_pressure = sensors->getCCPress().pressure;
-            tm.tank_temperature = sensors->getTc1LastSample().temperature;
-            tm.battery_voltage  = sensors->getMotorBatteryVoltage().voltage;
+            tm.top_tank_pressure =
+                sensors->getTopTankPressLastSample().pressure;
+            tm.bottom_tank_pressure =
+                sensors->getBottomTankPressLastSample().pressure;
+            tm.combustion_chamber_pressure =
+                sensors->getCCPressLastSample().pressure;
+            tm.tank_temperature = sensors->getTankTempLastSample().temperature;
+            tm.battery_voltage =
+                sensors->getMotorBatteryVoltageLastSample().voltage;
 
             // Valve states
             tm.main_valve_state =
@@ -687,11 +683,12 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getVesselPress();
+            PressureData data =
+                getModule<Sensors>()->getVesselPressLastSample();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "VESSEL_PRESS");
+            strcpy(tm.sensor_name, "VesselPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -705,11 +702,12 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getFillingPress();
+            PressureData data =
+                getModule<Sensors>()->getFillingPressLastSample();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "FILLING_PRESS");
+            strcpy(tm.sensor_name, "FillingPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -723,11 +721,12 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getBottomTankPress();
+            PressureData data =
+                getModule<Sensors>()->getBottomTankPressLastSample();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "BOTTOM_TANK_PRESS");
+            strcpy(tm.sensor_name, "BottomTankPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -741,11 +740,12 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getTopTankPress();
+            PressureData data =
+                getModule<Sensors>()->getTopTankPressLastSample();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "TOP_TANK_PRESS");
+            strcpy(tm.sensor_name, "TopTankPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -777,11 +777,12 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_load_tm_t tm;
 
-            LoadCellData data = getModule<Sensors>()->getVesselWeight();
+            LoadCellData data =
+                getModule<Sensors>()->getVesselWeightLastSample();
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
-            strcpy(tm.sensor_name, "VESSEL_WEIGHT");
+            strcpy(tm.sensor_name, "VesselWeight");
 
             mavlink_msg_load_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                        Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -795,11 +796,11 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_load_tm_t tm;
 
-            LoadCellData data = getModule<Sensors>()->getTankWeight();
+            LoadCellData data = getModule<Sensors>()->getTankWeightLastSample();
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
-            strcpy(tm.sensor_name, "TANK_WEIGHT");
+            strcpy(tm.sensor_name, "TankWeight");
 
             mavlink_msg_load_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                        Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -813,11 +814,12 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_voltage_tm_t tm;
 
-            VoltageData data = getModule<Sensors>()->getBatteryVoltage();
+            VoltageData data =
+                getModule<Sensors>()->getBatteryVoltageLastSample();
 
             tm.timestamp = data.voltageTimestamp;
             tm.voltage   = data.voltage;
-            strcpy(tm.sensor_name, "TANK_WEIGHT");
+            strcpy(tm.sensor_name, "BatteryVoltage");
 
             mavlink_msg_voltage_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,

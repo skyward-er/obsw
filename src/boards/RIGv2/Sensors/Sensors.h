@@ -48,6 +48,8 @@ public:
 
     [[nodiscard]] bool start();
 
+    void calibrate();
+
     bool isStarted();
 
     // Getters for raw data coming from sensors
@@ -56,28 +58,32 @@ public:
     Boardcore::MAX31856Data getTc1LastSample();
 
     // Getters for processed data
-    Boardcore::PressureData getVesselPress();
-    Boardcore::PressureData getFillingPress();
-    Boardcore::PressureData getTopTankPress();
-    Boardcore::PressureData getBottomTankPress();
-    Boardcore::PressureData getCCPress();
-    Boardcore::TemperatureData getTankTemp();
-    Boardcore::LoadCellData getVesselWeight();
-    Boardcore::LoadCellData getTankWeight();
-    Boardcore::CurrentData getUmbilicalCurrent();
-    Boardcore::CurrentData getServoCurrent();
-    Boardcore::VoltageData getBatteryVoltage();
-    Boardcore::VoltageData getMotorBatteryVoltage();
+    Boardcore::PressureData getVesselPressLastSample();
+    Boardcore::PressureData getFillingPressLastSample();
+    Boardcore::PressureData getTopTankPressLastSample();
+    Boardcore::PressureData getBottomTankPressLastSample();
+    Boardcore::PressureData getCCPressLastSample();
+    Boardcore::TemperatureData getTankTempLastSample();
+    Boardcore::LoadCellData getVesselWeightLastSample();
+    Boardcore::LoadCellData getTankWeightLastSample();
+    Boardcore::CurrentData getUmbilicalCurrentLastSample();
+    Boardcore::CurrentData getServoCurrentLastSample();
+    Boardcore::VoltageData getBatteryVoltageLastSample();
+    Boardcore::VoltageData getMotorBatteryVoltageLastSample();
+
+    Boardcore::PressureData getCanTopTankPressLastSample();
+    Boardcore::PressureData getCanBottomTankPressLastSample();
+    Boardcore::PressureData getCanCCPressLastSample();
+    Boardcore::TemperatureData getCanTankTempLastSample();
+    Boardcore::VoltageData getCanMotorBatteryVoltageLastSample();
+
+    std::vector<Boardcore::SensorInfo> getSensorInfos();
 
     void setCanTopTankPress(Boardcore::PressureData data);
     void setCanBottomTankPress(Boardcore::PressureData data);
     void setCanCCPress(Boardcore::PressureData data);
     void setCanTankTemp(Boardcore::TemperatureData data);
     void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
-
-    void calibrate();
-
-    std::vector<Boardcore::SensorInfo> getSensorInfos();
 
 private:
     void vesselPressureInit();

@@ -38,10 +38,10 @@ namespace Config
 namespace Sensors
 {
 
+/* linter off */ using namespace Boardcore::Units::Frequency;
+
 namespace ADS131M08
 {
-
-/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
@@ -85,9 +85,6 @@ constexpr bool ENABLED = true;
 
 namespace MAX31856
 {
-
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Hertz PERIOD = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace MAX31856
@@ -134,9 +131,6 @@ constexpr float VESSEL_P1_MASS    = 6.916;
 
 namespace InternalADC
 {
-
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
 constexpr Boardcore::InternalADC::Channel BATTERY_VOLTAGE_CHANNEL =
     Boardcore::InternalADC::CH14;
 

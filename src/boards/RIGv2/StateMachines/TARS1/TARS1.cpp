@@ -24,9 +24,8 @@
 
 #include <RIGv2/Configs/SchedulerConfig.h>
 #include <common/Events.h>
-#include <events/EventBroker.h>
-// TODO(davide.mor): Remove TimestampTimer
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 
 using namespace Boardcore;
 using namespace RIGv2;
@@ -71,7 +70,7 @@ void TARS1::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            logAction(TARS_ACTION_READY);
+            logAction(TarsActionType::READY);
             break;
         }
 
@@ -97,13 +96,12 @@ void TARS1::state_refueling(const Event& event)
             currentMass       = 0.0f;
             previousPressure  = 0.0f;
             currentPressure   = 0.0f;
-            // TODO(davide.mor): Add the rest
 
             // First close all valves
             actuators->closeAllServos();
 
             LOG_INFO(logger, "TARS start washing");
-            logAction(TARS_ACTION_WASHING);
+            logAction(TarsActionType::WASHING);
 
             // Start washing
             actuators->openServoWithTime(ServosList::VENTING_VALVE,
@@ -126,7 +124,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_WASHING_DONE:
         {
             LOG_INFO(logger, "TARS washing done");
-            logAction(TARS_ACTION_OPEN_FILLING);
+            logAction(TarsActionType::OPEN_FILLING);
 
             // Open the filling for a long time
             actuators->openServoWithTime(ServosList::FILLING_VALVE,
@@ -142,7 +140,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_PRESSURE_STABILIZED:
         {
             LOG_INFO(logger, "TARS check mass");
-            logAction(TARS_ACTION_CHECK_MASS);
+            logAction(TarsActionType::CHECK_MASS);
 
             // Lock in a new mass value
             {
@@ -175,7 +173,7 @@ void TARS1::state_refueling(const Event& event)
             }
 
             LOG_INFO(logger, "TARS open venting");
-            logAction(TARS_ACTION_OPEN_VENTING);
+            logAction(TarsActionType::OPEN_VENTING);
 
             // Open the venting and check for pressure stabilization
             actuators->openServo(ServosList::VENTING_VALVE);
@@ -193,7 +191,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_CHECK_PRESSURE_STABILIZE:
         {
             LOG_INFO(logger, "TARS check pressure");
-            logAction(TARS_ACTION_CHECK_PRESSURE);
+            logAction(TarsActionType::CHECK_PRESSURE);
 
             {
                 Lock<FastMutex> lock(sampleMutex);
@@ -223,7 +221,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_FILLING_DONE:
         {
             LOG_INFO(logger, "TARS filling done");
-            logAction(TARS_ACTION_AUTOMATIC_STOP);
+            logAction(TarsActionType::AUTOMATIC_STOP);
 
             actuators->closeAllServos();
             transition(&TARS1::state_ready);
@@ -233,7 +231,7 @@ void TARS1::state_refueling(const Event& event)
         case MOTOR_MANUAL_ACTION:
         {
             LOG_INFO(logger, "TARS manual stop");
-            logAction(TARS_ACTION_MANUAL_STOP);
+            logAction(TarsActionType::MANUAL_STOP);
 
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
@@ -244,7 +242,7 @@ void TARS1::state_refueling(const Event& event)
         case MOTOR_START_TARS:
         {
             LOG_INFO(logger, "TARS manual stop");
-            logAction(TARS_ACTION_MANUAL_STOP);
+            logAction(TarsActionType::MANUAL_STOP);
 
             // The user requested that we stop
             getModule<Actuators>()->closeAllServos();
@@ -259,8 +257,8 @@ void TARS1::sample()
 {
     Sensors* sensors = getModule<Sensors>();
 
-    pressureFilter.add(sensors->getBottomTankPress().pressure);
-    massFilter.add(sensors->getTankWeight().load);
+    pressureFilter.add(sensors->getBottomTankPressLastSample().pressure);
+    massFilter.add(sensors->getTankWeightLastSample().load);
     medianSamples++;
 
     if (medianSamples == Config::TARS1::MEDIAN_SAMPLE_NUMBER)

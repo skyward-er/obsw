@@ -22,7 +22,6 @@
 
 #include "GroundModeManager.h"
 
-#include <RIGv2/Configs/GmmConfig.h>
 #include <RIGv2/Configs/SchedulerConfig.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -48,13 +47,13 @@ void GroundModeManager::setIgnitionTime(uint32_t time)
     getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
 }
 
-Boardcore::State GroundModeManager::state_idle(const Boardcore::Event &event)
+State GroundModeManager::state_idle(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_IDLE);
+            updateAndLogStatus(GroundModeManagerState::IDLE);
             return HANDLED;
         }
 
@@ -86,13 +85,13 @@ Boardcore::State GroundModeManager::state_idle(const Boardcore::Event &event)
     }
 }
 
-Boardcore::State GroundModeManager::state_init(const Boardcore::Event &event)
+State GroundModeManager::state_init(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_INIT);
+            updateAndLogStatus(GroundModeManagerState::INIT);
             return HANDLED;
         }
 
@@ -128,14 +127,13 @@ Boardcore::State GroundModeManager::state_init(const Boardcore::Event &event)
     }
 }
 
-Boardcore::State GroundModeManager::state_init_error(
-    const Boardcore::Event &event)
+State GroundModeManager::state_init_error(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_INIT_ERR);
+            updateAndLogStatus(GroundModeManagerState::INIT_ERR);
             return HANDLED;
         }
 
@@ -166,14 +164,13 @@ Boardcore::State GroundModeManager::state_init_error(
     }
 }
 
-Boardcore::State GroundModeManager::state_disarmed(
-    const Boardcore::Event &event)
+State GroundModeManager::state_disarmed(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_DISARMED);
+            updateAndLogStatus(GroundModeManagerState::DISARMED);
             getModule<Actuators>()->armLightOff();
             getModule<Registry>()->disarm();
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
@@ -209,8 +206,6 @@ Boardcore::State GroundModeManager::state_disarmed(
         case TMTC_CALIBRATE:
         {
             getModule<Sensors>()->calibrate();
-
-            // TODO(davide.mor): Also send CAN command
             return HANDLED;
         }
 
@@ -221,13 +216,13 @@ Boardcore::State GroundModeManager::state_disarmed(
     }
 }
 
-Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
+State GroundModeManager::state_armed(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_ARMED);
+            updateAndLogStatus(GroundModeManagerState::ARMED);
             getModule<Registry>()->arm();
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             getModule<Actuators>()->armLightOn();
@@ -276,13 +271,13 @@ Boardcore::State GroundModeManager::state_armed(const Boardcore::Event &event)
     }
 }
 
-Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
+State GroundModeManager::state_firing(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_FIRING);
+            updateAndLogStatus(GroundModeManagerState::FIRING);
             return HANDLED;
         }
 
@@ -320,7 +315,6 @@ Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
         case MOTOR_COOLING_TIMEOUT:  // Normal firing end
         case TMTC_DISARM:            // Abort signal
         {
-            // TODO(davide.mor): Set this to a sensible time
             getModule<Actuators>()->openNitrogenWithTime(
                 Config::GroundModeManager::NITROGEN_TIME);
 
@@ -334,14 +328,13 @@ Boardcore::State GroundModeManager::state_firing(const Boardcore::Event &event)
     }
 }
 
-Boardcore::State GroundModeManager::state_igniting(
-    const Boardcore::Event &event)
+State GroundModeManager::state_igniting(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_IGNITING);
+            updateAndLogStatus(GroundModeManagerState::IGNITING);
 
             // Start ignition
             getModule<Actuators>()->igniterOn();
@@ -386,14 +379,13 @@ Boardcore::State GroundModeManager::state_igniting(
     }
 }
 
-Boardcore::State GroundModeManager::state_oxidizer(
-    const Boardcore::Event &event)
+State GroundModeManager::state_oxidizer(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_OXIDIZER);
+            updateAndLogStatus(GroundModeManagerState::OXIDIZER);
 
             getModule<Actuators>()->openServo(ServosList::MAIN_VALVE);
 
@@ -427,13 +419,13 @@ Boardcore::State GroundModeManager::state_oxidizer(
     }
 }
 
-Boardcore::State GroundModeManager::state_cooling(const Boardcore::Event &event)
+State GroundModeManager::state_cooling(const Event &event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(GMM_STATE_COOLING);
+            updateAndLogStatus(GroundModeManagerState::COOLING);
 
             coolingDelayEventId = EventBroker::getInstance().postDelayed(
                 MOTOR_COOLING_TIMEOUT, TOPIC_MOTOR,

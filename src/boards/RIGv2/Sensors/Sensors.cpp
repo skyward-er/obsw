@@ -23,9 +23,8 @@
 #include "Sensors.h"
 
 #include <RIGv2/Configs/SensorsConfig.h>
-#include <interfaces-impl/hwmapping.h>
-// TODO(davide.mor): Remove TimestampTimer
 #include <drivers/timer/TimestampTimer.h>
+#include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
 using namespace miosix;
@@ -81,22 +80,21 @@ MAX31856Data Sensors::getTc1LastSample()
     return tc1 ? tc1->getLastSample() : MAX31856Data{};
 }
 
-PressureData Sensors::getVesselPress()
+PressureData Sensors::getVesselPressLastSample()
 {
     return vesselPressure ? vesselPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getFillingPress()
+PressureData Sensors::getFillingPressLastSample()
 {
     return fillingPressure ? fillingPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getTopTankPress()
+PressureData Sensors::getTopTankPressLastSample()
 {
     if (useCanData)
     {
-        Lock<FastMutex> lock{canMutex};
-        return canTopTankPressure;
+        return getCanTopTankPressLastSample();
     }
     else
     {
@@ -105,12 +103,11 @@ PressureData Sensors::getTopTankPress()
     }
 }
 
-PressureData Sensors::getBottomTankPress()
+PressureData Sensors::getBottomTankPressLastSample()
 {
     if (useCanData)
     {
-        Lock<FastMutex> lock{canMutex};
-        return canBottomTankPressure;
+        return getCanBottomTankPressLastSample();
     }
     else
     {
@@ -119,12 +116,11 @@ PressureData Sensors::getBottomTankPress()
     }
 }
 
-PressureData Sensors::getCCPress()
+PressureData Sensors::getCCPressLastSample()
 {
     if (useCanData)
     {
-        Lock<FastMutex> lock{canMutex};
-        return canCCPressure;
+        return getCanCCPressLastSample();
     }
     else
     {
@@ -132,12 +128,11 @@ PressureData Sensors::getCCPress()
     }
 }
 
-TemperatureData Sensors::getTankTemp()
+TemperatureData Sensors::getTankTempLastSample()
 {
     if (useCanData)
     {
-        Lock<FastMutex> lock{canMutex};
-        return canTankTemperature;
+        return getCanTankTempLastSample();
     }
     else
     {
@@ -145,7 +140,7 @@ TemperatureData Sensors::getTankTemp()
     }
 }
 
-LoadCellData Sensors::getVesselWeight()
+LoadCellData Sensors::getVesselWeightLastSample()
 {
     if (vesselWeight)
     {
@@ -157,7 +152,7 @@ LoadCellData Sensors::getVesselWeight()
     }
 }
 
-LoadCellData Sensors::getTankWeight()
+LoadCellData Sensors::getTankWeightLastSample()
 {
     if (tankWeight)
     {
@@ -169,12 +164,13 @@ LoadCellData Sensors::getTankWeight()
     }
 }
 
-CurrentData Sensors::getUmbilicalCurrent()
+CurrentData Sensors::getUmbilicalCurrentLastSample()
 {
-    return {TimestampTimer::getTimestamp(), -1.0};
+    // TODO: Implement this
+    return {};
 }
 
-CurrentData Sensors::getServoCurrent()
+CurrentData Sensors::getServoCurrentLastSample()
 {
     auto sample = getADC1LastSample();
 
@@ -187,7 +183,7 @@ CurrentData Sensors::getServoCurrent()
     return {sample.timestamp, -current / 5.0f * 50.0f};
 }
 
-VoltageData Sensors::getBatteryVoltage()
+VoltageData Sensors::getBatteryVoltageLastSample()
 {
     auto sample = getInternalADCLastSample();
 
@@ -198,12 +194,11 @@ VoltageData Sensors::getBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-VoltageData Sensors::getMotorBatteryVoltage()
+VoltageData Sensors::getMotorBatteryVoltageLastSample()
 {
     if (useCanData)
     {
-        Lock<FastMutex> lock{canMutex};
-        return canMotorBatteryVoltage;
+        return getCanMotorBatteryVoltageLastSample();
     }
     else
     {
@@ -211,35 +206,65 @@ VoltageData Sensors::getMotorBatteryVoltage()
     }
 }
 
-void Sensors::setCanTopTankPress(Boardcore::PressureData data)
+PressureData Sensors::getCanTopTankPressLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canTopTankPressure;
+}
+
+PressureData Sensors::getCanBottomTankPressLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canBottomTankPressure;
+}
+
+PressureData Sensors::getCanCCPressLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canCCPressure;
+}
+
+TemperatureData Sensors::getCanTankTempLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canTankTemperature;
+}
+
+VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canMotorBatteryVoltage;
+}
+
+void Sensors::setCanTopTankPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canTopTankPressure = data;
     useCanData         = true;
 }
 
-void Sensors::setCanBottomTankPress(Boardcore::PressureData data)
+void Sensors::setCanBottomTankPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canBottomTankPressure = data;
     useCanData            = true;
 }
 
-void Sensors::setCanCCPress(Boardcore::PressureData data)
+void Sensors::setCanCCPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canCCPressure = data;
     useCanData    = true;
 }
 
-void Sensors::setCanTankTemp(Boardcore::TemperatureData data)
+void Sensors::setCanTankTemp(TemperatureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canTankTemperature = data;
     useCanData         = true;
 }
 
-void Sensors::setCanMotorBatteryVoltage(Boardcore::VoltageData data)
+void Sensors::setCanMotorBatteryVoltage(VoltageData data)
 {
     Lock<FastMutex> lock{canMutex};
     canMotorBatteryVoltage = data;
@@ -300,8 +325,7 @@ void Sensors::internalAdcInit()
 
 void Sensors::internalAdcCallback()
 {
-    InternalADCData sample = internalAdc->getLastSample();
-    sdLogger.log(sample);
+    sdLogger.log(getInternalADCLastSample());
 }
 
 void Sensors::adc1Init()
@@ -375,18 +399,7 @@ void Sensors::adc1Init()
                                        spiConfig, config);
 }
 
-void Sensors::adc1Callback()
-{
-    ADS131M08Data sample = adc1->getLastSample();
-
-    ADCsData data{sample.timestamp,  1,
-                  sample.voltage[0], sample.voltage[1],
-                  sample.voltage[2], sample.voltage[3],
-                  sample.voltage[4], sample.voltage[5],
-                  sample.voltage[6], sample.voltage[7]};
-
-    sdLogger.log(data);
-}
+void Sensors::adc1Callback() { sdLogger.log(ADC1Data{getADC1LastSample()}); }
 
 void Sensors::tc1Init()
 {
@@ -398,14 +411,7 @@ void Sensors::tc1Init()
         spiConfig, MAX31856::ThermocoupleType::K_TYPE);
 }
 
-void Sensors::tc1Callback()
-{
-    MAX31856Data sample = tc1->getLastSample();
-
-    TCsData data{sample.temperatureTimestamp, 1, sample.temperature,
-                 sample.coldJunctionTemperature};
-    sdLogger.log(data);
-}
+void Sensors::tc1Callback() { sdLogger.log(TC1Data{getTc1LastSample()}); }
 
 void Sensors::vesselPressureInit()
 {
@@ -424,9 +430,7 @@ void Sensors::vesselPressureInit()
 
 void Sensors::vesselPressureCallback()
 {
-    PressureData sample = vesselPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 1, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(VesselPressureData{getVesselPressLastSample()});
 }
 
 void Sensors::fillingPressureInit()
@@ -446,9 +450,7 @@ void Sensors::fillingPressureInit()
 
 void Sensors::fillingPressureCallback()
 {
-    PressureData sample = fillingPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 2, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(FillingPressureData{getFillingPressLastSample()});
 }
 
 void Sensors::topTankPressureInit()
@@ -468,9 +470,7 @@ void Sensors::topTankPressureInit()
 
 void Sensors::topTankPressureCallback()
 {
-    PressureData sample = topTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 3, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(TopTankPressureData{topTankPressure->getLastSample()});
 }
 
 void Sensors::bottomTankPressureInit()
@@ -490,9 +490,7 @@ void Sensors::bottomTankPressureInit()
 
 void Sensors::bottomTankPressureCallback()
 {
-    PressureData sample = bottomTankPressure->getLastSample();
-    PTsData data{sample.pressureTimestamp, 4, sample.pressure};
-    sdLogger.log(data);
+    sdLogger.log(BottomTankPressureData{bottomTankPressure->getLastSample()});
 }
 
 void Sensors::vesselWeightInit()
@@ -512,9 +510,7 @@ void Sensors::vesselWeightInit()
 
 void Sensors::vesselWeightCallback()
 {
-    LoadCellData sample = vesselWeight->getLastSample();
-    LCsData data{sample.loadTimestamp, 1, sample.load};
-    sdLogger.log(data);
+    sdLogger.log(VesselWeightData{getVesselWeightLastSample()});
 }
 
 void Sensors::tankWeightInit()
@@ -534,9 +530,7 @@ void Sensors::tankWeightInit()
 
 void Sensors::tankWeightCallback()
 {
-    LoadCellData sample = tankWeight->getLastSample();
-    LCsData data{sample.loadTimestamp, 2, sample.load};
-    sdLogger.log(data);
+    sdLogger.log(TankWeightData{getTankWeightLastSample()});
 }
 
 bool Sensors::sensorManagerInit()
