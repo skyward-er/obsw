@@ -73,6 +73,9 @@ enum class Board : uint8_t
 enum class SensorId : uint8_t
 {
     PITOT,
+    PITOT_DYNAMIC_PRESSURE,
+    PITOT_STATIC_PRESSURE,
+    PITOT_TOTAL_PRESSURE,
     CC_PRESSURE,
     BOTTOM_TANK_PRESSURE,
     TOP_TANK_PRESSURE,
@@ -111,6 +114,35 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::APOGEE_DETECTED, Common::CAN_APOGEE_DETECTED},
     {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
 };
+
+inline Events canEventToEvent(EventId canEvent)
+{
+    switch (canEvent)
+    {
+        case EventId::ARM:
+            return CAN_ARM;
+        case EventId::DISARM:
+            return CAN_DISARM;
+        case EventId::CALIBRATE:
+            return CAN_CALIBRATE;
+        case EventId::LIFTOFF:
+            return CAN_LIFTOFF;
+        case EventId::FORCE_INIT:
+            return CAN_FORCE_INIT;
+        case EventId::ENTER_TEST_MODE:
+            return CAN_ENTER_TEST_MODE;
+        case EventId::EXIT_TEST_MODE:
+            return CAN_EXIT_TEST_MODE;
+        case EventId::ENTER_HIL_MODE:
+            return CAN_ENTER_HIL_MODE;
+        case EventId::EXIT_HIL_MODE:
+            return CAN_EXIT_HIL_MODE;
+        case EventId::APOGEE_DETECTED:
+            return CAN_APOGEE_DETECTED;
+        case EventId::IGNITION:
+            return CAN_IGNITION;
+    }
+}
 
 }  // namespace CanConfig
 
