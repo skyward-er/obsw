@@ -82,8 +82,6 @@ ADAController::ADAController()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-
-    ada.setReferenceValues(ReferenceConfig::defaultReferenceValues);
 }
 
 bool ADAController::start()
@@ -105,6 +103,9 @@ bool ADAController::start()
         return false;
     }
 
+    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+    ada.setReferenceValues(ref);
+
     return true;
 }
 
@@ -112,12 +113,6 @@ ADAState ADAController::getADAState()
 {
     Lock<FastMutex> lock{adaMutex};
     return ada.getState();
-}
-
-ReferenceValues ADAController::getReferenceValues()
-{
-    Lock<FastMutex> lock{adaMutex};
-    return ada.getReferenceValues();
 }
 
 float ADAController::getDeploymentAltitude()
@@ -220,28 +215,14 @@ void ADAController::update()
 
 void ADAController::calibrate()
 {
-    float baroAcc = 0.0f;
-
-    for (int i = 0; i < Config::ADA::CALIBRATION_SAMPLES_COUNT; i++)
-    {
-        PressureData baro = getModule<Sensors>()->getAtmosPressureLastSample();
-        baroAcc += baro.pressure;
-
-        Thread::sleep(Config::ADA::CALIBRATION_SLEEP_TIME);
-    }
-
-    baroAcc /= Config::ADA::CALIBRATION_SAMPLES_COUNT;
+    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
 
     Lock<FastMutex> lock{adaMutex};
+    ada.setReferenceValues(ref);
 
-    ReferenceValues reference = ada.getReferenceValues();
-    reference.refPressure     = baroAcc;
-    reference.refAltitude     = Aeroutils::relAltitude(
-            reference.refPressure, reference.mslPressure, reference.mslTemperature);
-
-    ada.setReferenceValues(reference);
-    ada.setKalmanConfig(computeADAKalmanConfig(reference.refPressure));
-    ada.update(reference.refPressure);
+    // TODO: Should this be calculated by ADA at the moment?
+    ada.setKalmanConfig(computeADAKalmanConfig(ref.refPressure));
+    ada.update(ref.refPressure);
 
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 }

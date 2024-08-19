@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
@@ -29,13 +30,12 @@
 #include <algorithms/ADA/ADA.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
-
 namespace Main
 {
 
 class ADAController
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder>,
+                                           StatsRecorder, AlgoReference>,
       public Boardcore::FSM<ADAController>
 {
 public:
@@ -44,7 +44,6 @@ public:
     [[nodiscard]] bool start() override;
 
     Boardcore::ADAState getADAState();
-    Boardcore::ReferenceValues getReferenceValues();
 
     float getDeploymentAltitude();
 

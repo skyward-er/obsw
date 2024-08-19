@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,34 +22,29 @@
 
 #pragma once
 
-#include <units/Frequency.h>
-
-#include <cstdint>
+#include <Main/Sensors/Sensors.h>
+#include <algorithms/ReferenceValues.h>
+#include <miosix.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Main
 {
 
-namespace Config
+class AlgoReference : public Boardcore::InjectableWithDeps<Sensors>
 {
+public:
+    AlgoReference();
 
-namespace ADA
-{
+    void calibrate();
 
-/* linter off */ using namespace Boardcore::Units::Frequency;
+    Boardcore::ReferenceValues getReferenceValues();
 
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
+private:
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("reference");
 
-constexpr unsigned int SHADOW_MODE_TIMEOUT = 18000;  // [ms]
-
-constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
-constexpr unsigned int APOGEE_N_SAMPLES      = 5;
-
-constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 350;  // [m]
-constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
-
-}  // namespace ADA
-
-}  // namespace Config
+    miosix::FastMutex referenceMutex;
+    Boardcore::ReferenceValues reference;
+};
 
 }  // namespace Main

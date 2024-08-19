@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
@@ -37,7 +38,7 @@ namespace Main
 class NASController
     : public Boardcore::FSM<NASController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder>
+                                           StatsRecorder, AlgoReference>
 {
 public:
     NASController();
@@ -45,7 +46,6 @@ public:
     [[nodiscard]] bool start() override;
 
     Boardcore::NASState getNASState();
-    Boardcore::ReferenceValues getReferenceValues();
 
     NASControllerState getState();
 

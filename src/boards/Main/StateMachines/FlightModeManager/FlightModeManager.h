@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
@@ -37,7 +38,7 @@ namespace Main
 
 class FlightModeManager
     : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler,
-                                           StatsRecorder>,
+                                           StatsRecorder, AlgoReference>,
       public Boardcore::HSM<FlightModeManager>
 {
 public:

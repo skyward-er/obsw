@@ -21,6 +21,7 @@
  */
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
@@ -60,6 +61,7 @@ int main()
     CanHandler *canHandler  = new CanHandler();
     PinHandler *pinHandler  = new PinHandler();
     FlightModeManager *fmm  = new FlightModeManager();
+    AlgoReference *ref      = new AlgoReference();
     ADAController *ada      = new ADAController();
     NASController *nas      = new NASController();
     MEAController *mea      = new MEAController();
@@ -74,6 +76,7 @@ int main()
         manager.insert<CanHandler>(canHandler) &&
         manager.insert<PinHandler>(pinHandler) &&
         manager.insert<FlightModeManager>(fmm) &&
+        manager.insert<AlgoReference>(ref) &&
         manager.insert<ADAController>(ada) &&
         manager.insert<NASController>(nas) &&
         manager.insert<MEAController>(mea) &&
