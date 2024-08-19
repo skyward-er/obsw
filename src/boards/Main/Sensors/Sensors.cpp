@@ -335,6 +335,18 @@ PressureData Sensors::getAtmosPressureLastSample()
     }
 }
 
+PressureData Sensors::getCanPitotDynamicPressLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canPitotDynamicPressure;
+}
+
+PressureData Sensors::getCanPitotStaticPressLastSample()
+{
+    Lock<FastMutex> lock{canMutex};
+    return canPitotStaticPressure;
+}
+
 PressureData Sensors::getCanTopTankPressLastSample()
 {
     Lock<FastMutex> lock{canMutex};
@@ -363,6 +375,18 @@ VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
 {
     Lock<FastMutex> lock{canMutex};
     return canMotorBatteryVoltage;
+}
+
+void Sensors::setCanPitotDynamicPress(PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canPitotDynamicPressure = data;
+}
+
+void Sensors::setCanPitotStaticPress(PressureData data)
+{
+    Lock<FastMutex> lock{canMutex};
+    canPitotStaticPressure = data;
 }
 
 void Sensors::setCanTopTankPress(PressureData data)
