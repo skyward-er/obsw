@@ -282,11 +282,10 @@ bool Actuators::toggleServo(ServosList servo)
 
     if (info->closeTs == 0)
     {
-        uint32_t time     = info->getOpeningTime();
-        float maxAperture = info->getMaxAperture();
+        uint32_t time = info->getOpeningTime();
 
         // The servo is closed, open it
-        getModule<CanHandler>()->sendServoOpenCommand(servo, maxAperture, time);
+        getModule<CanHandler>()->sendServoOpenCommand(servo, time);
         info->openServoWithTime(time);
     }
     else
@@ -308,10 +307,8 @@ bool Actuators::openServo(ServosList servo)
         return false;
     }
 
-    uint32_t time     = info->getOpeningTime();
-    float maxAperture = info->getMaxAperture();
-
-    getModule<CanHandler>()->sendServoOpenCommand(servo, maxAperture, time);
+    uint32_t time = info->getOpeningTime();
+    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->openServoWithTime(time);
 
     return true;
@@ -326,9 +323,7 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
         return false;
     }
 
-    float maxAperture = info->getMaxAperture();
-
-    getModule<CanHandler>()->sendServoOpenCommand(servo, maxAperture, time);
+    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->openServoWithTime(time);
     return true;
 }

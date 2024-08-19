@@ -106,8 +106,7 @@ void CanHandler::sendEvent(CanConfig::EventId event)
                           static_cast<uint8_t>(event));
 }
 
-void CanHandler::sendServoOpenCommand(ServosList servo, float maxAperture,
-                                      uint16_t openingTime)
+void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
 {
 
     protocol.enqueueData(
@@ -116,7 +115,7 @@ void CanHandler::sendServoOpenCommand(ServosList servo, float maxAperture,
         static_cast<uint8_t>(CanConfig::Board::RIG),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(servo),
-        ServoCommand{TimestampTimer::getTimestamp(), maxAperture, openingTime});
+        ServoCommand{TimestampTimer::getTimestamp(), openingTime});
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()
@@ -128,7 +127,7 @@ CanHandler::CanStatus CanHandler::getCanStatus()
 void CanHandler::sendServoCloseCommand(ServosList servo)
 {
     // Closing a servo means opening it for 0s
-    sendServoOpenCommand(servo, 0.0f, 0);
+    sendServoOpenCommand(servo, 0);
 }
 
 void CanHandler::handleMessage(const Boardcore::Canbus::CanMessage &msg)
