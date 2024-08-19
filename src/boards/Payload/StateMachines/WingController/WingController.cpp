@@ -364,8 +364,7 @@ void WingController::reset()
 
 void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
 {
-    if (getModule<NASController>()->getStatus().state !=
-        NASControllerState::READY)
+    if (getModule<NASController>()->getState() != NASControllerState::READY)
     {
         this->targetPositionGEO = targetGEO;
         setEarlyManeuverPoints(convertTargetPositionToNED(targetPositionGEO),

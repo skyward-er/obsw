@@ -69,6 +69,11 @@ public:
         return Priority::MEDIUM;
     }
 
+    static Priority::PriorityLevel nasControllerPriority()
+    {
+        return Priority::MEDIUM;
+    }
+
     /**
      * @brief Starts all the schedulers
      */

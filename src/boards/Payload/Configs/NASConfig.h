@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,45 +23,57 @@
 #pragma once
 
 #include <algorithms/NAS/NASConfig.h>
-#include <algorithms/ReferenceValues.h>
 #include <common/ReferenceConfig.h>
+#include <units/Frequency.h>
 
 namespace Payload
 {
-
-namespace NASConfig
+namespace Config
+{
+namespace NAS
 {
 
-constexpr uint32_t UPDATE_PERIOD = 20;  // 50 hz
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr int CALIBRATION_SAMPLES_COUNT = 20;
-constexpr int CALIBRATION_SLEEP_TIME    = 100;  // [ms]
+constexpr Hertz UPDATE_RATE         = 50_hz;
+constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
 
-constexpr int ACCELERATION_THRESHOLD_SAMPLE = 50;
+constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
+constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
 
-constexpr float ACCELERATION_THRESHOLD = 2;  // [m/s^2]
+static const Boardcore::NASConfig CONFIG = {
+    .T              = UPDATE_RATE_SECONDS,
+    .SIGMA_BETA     = 0.0001,
+    .SIGMA_W        = 0.3,
+    .SIGMA_ACC      = 0.1,
+    .SIGMA_MAG      = 0.1,
+    .SIGMA_GPS      = 10.0,
+    .SIGMA_BAR      = 4.3,
+    .SIGMA_POS      = 10.0,
+    .SIGMA_VEL      = 10.0,
+    .SIGMA_PITOT    = 10.0,
+    .P_POS          = 1.0,
+    .P_POS_VERTICAL = 10.0,
+    .P_VEL          = 1.0,
+    .P_VEL_VERTICAL = 10.0,
+    .P_ATT          = 0.01,
+    .P_BIAS         = 0.01,
+    .SATS_NUM       = 6.0,
+    .NED_MAG        = Common::ReferenceConfig::nedMag};
 
-static const Boardcore::NASConfig config = {
-    UPDATE_PERIOD / 1000.0,          // T
-    0.0001f,                         // SIGMA_BETA
-    0.3f,                            // SIGMA_W
-    0.1f,                            // SIGMA_ACC
-    0.1f,                            // SIGMA_MAG
-    10.0f,                           // SIGMA_GPS
-    4.3f,                            // SIGMA_BAR
-    10.0f,                           // SIGMA_POS
-    10.0f,                           // SIGMA_VEL
-    10.0f,                           // SIGMA_PITOT
-    1.0f,                            // P_POS
-    10.0f,                           // P_POS_VERTICAL
-    1.0f,                            // P_VEL
-    10.0f,                           // P_VEL_VERTICAL
-    0.01f,                           // P_ATT
-    0.01f,                           // P_BIAS
-    6.0f,                            // SATS_NUM
-    Common::ReferenceConfig::nedMag  // NED_MAG
-};
+// Only use one out of every 50 samples (1 Hz)
+constexpr int MAGNETOMETER_DECIMATE = 50;
 
-}  // namespace NASConfig
+// Maximum allowed acceleration to correct with GPS
+constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2]
 
+// How much confidence (in m/s^2) to apply to the accelerometer to check if it
+// is 1g
+constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;
+// How many samples will determine that we are in fact measuring gravity
+// acceleration
+constexpr int ACCELERATION_1G_SAMPLES = 20;
+
+}  // namespace NAS
+}  // namespace Config
 }  // namespace Payload
