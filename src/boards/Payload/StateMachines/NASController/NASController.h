@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,56 +48,49 @@ public:
     NASController();
 
     /**
-     * @brief Starts the FSM thread and adds the update function into the
-     * scheduler
+     * @brief Adds the NAS update function into the scheduler and starts the FSM
+     * thread
      */
     bool start() override;
 
-    // NAS FSM called methods
-    void calibrate();
-
-    // NAS setters
-    void setCoordinates(Eigen::Vector2f position);
-    void setOrientation(float yaw, float pitch, float roll);
-    void setReferenceAltitude(float altitude);
-    void setReferenceTemperature(float temperature);
-    void setReferenceValues(const Boardcore::ReferenceValues reference);
-
-    // NAS Getters
-    NASControllerStatus getStatus();
     Boardcore::NASState getNasState();
     Boardcore::ReferenceValues getReferenceValues();
 
-    // FSM states
-    void state_idle(const Boardcore::Event& event);
-    void state_calibrating(const Boardcore::Event& event);
-    void state_ready(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
-    void state_end(const Boardcore::Event& event);
+    NASControllerState getState();
 
 private:
+    void calibrate();
+
     /**
      * @brief Update the NAS estimation
      */
     void update();
 
-    /**
-     * @brief Logs the current NAS status
-     * @param state The current FSM state
-     */
-    void logStatus(NASControllerState state);
+    // FSM states
+    void Init(const Boardcore::Event& event);
+    void Calibrating(const Boardcore::Event& event);
+    void Ready(const Boardcore::Event& event);
+    void Active(const Boardcore::Event& event);
+    void End(const Boardcore::Event& event);
 
-    // Controller state machine status
-    NASControllerStatus status;
-    Boardcore::NAS nas;
+    void updateState(NASControllerState newState);
 
-    // User set (or triac set) initial orientation
-    Eigen::Vector3f initialOrientation;
+    std::atomic<NASControllerState> state{NASControllerState::INIT};
 
-    // Parameters used to decide whether to correct with accelerometer after a
-    // spike is detected
-    bool accelerationValid       = true;
-    u_int8_t accSampleAfterSpike = 0;
+    Boardcore::NAS nas;  ///< The NAS algorithm instance
+    miosix::FastMutex nasMutex;
+
+    int magDecimateCount  = 0;
+    int acc1gSamplesCount = 0;
+    bool acc1g            = false;
+
+    uint64_t lastGyroTimestamp = 0;
+    uint64_t lastAccTimestamp  = 0;
+    uint64_t lastMagTimestamp  = 0;
+    uint64_t lastGpsTimestamp  = 0;
+    uint64_t lastBaroTimestamp = 0;
+
+    std::atomic<bool> started{false};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 };

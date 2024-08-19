@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include <stdint.h>
-
-#include <iostream>
+#include <cstdint>
+#include <ostream>
 #include <string>
 
 namespace Payload
@@ -32,8 +31,7 @@ namespace Payload
 
 enum class NASControllerState : uint8_t
 {
-    UNINIT = 0,
-    IDLE,
+    INIT = 0,
     CALIBRATING,
     READY,
     ACTIVE,
@@ -42,8 +40,8 @@ enum class NASControllerState : uint8_t
 
 struct NASControllerStatus
 {
-    long long timestamp      = 0;
-    NASControllerState state = NASControllerState::UNINIT;
+    uint64_t timestamp       = 0;
+    NASControllerState state = NASControllerState::INIT;
 
     static std::string header() { return "timestamp,state\n"; }
 
