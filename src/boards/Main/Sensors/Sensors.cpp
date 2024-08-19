@@ -26,8 +26,6 @@
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 #include "SensorsData.h"
 
 using namespace Main;

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
@@ -39,7 +40,7 @@ namespace Main
 class MEAController
     : public Boardcore::FSM<MEAController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
-                                           NASController>
+                                           NASController, AlgoReference>
 {
 public:
     MEAController();

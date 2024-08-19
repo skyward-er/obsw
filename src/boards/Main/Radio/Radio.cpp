@@ -453,6 +453,30 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             return true;
         }
 
+        case MAV_REFERENCE_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_reference_tm_t tm;
+
+            ReferenceValues ref =
+                getModule<AlgoReference>()->getReferenceValues();
+
+            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.ref_altitude    = ref.refAltitude;
+            tm.ref_pressure    = ref.refPressure;
+            tm.ref_temperature = ref.refTemperature;
+            tm.ref_latitude    = ref.refLatitude;
+            tm.ref_longitude   = ref.refLongitude;
+            tm.msl_pressure    = ref.mslPressure;
+            tm.msl_temperature = ref.mslTemperature;
+
+            mavlink_msg_reference_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                            Config::Radio::MAV_COMPONENT_ID,
+                                            &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
         case MAV_ADA_ID:
         {
             mavlink_message_t msg;
@@ -461,8 +485,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Get the current ADA state
             ADAController* ada = getModule<ADAController>();
 
-            ADAState state      = ada->getADAState();
-            ReferenceValues ref = ada->getReferenceValues();
+            ADAState state = ada->getADAState();
+            ReferenceValues ref =
+                getModule<AlgoReference>()->getReferenceValues();
 
             tm.timestamp       = state.timestamp;
             tm.state           = static_cast<uint8_t>(ada->getState());
@@ -493,8 +518,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Get the current NAS state
             NASController* nas = getModule<NASController>();
 
-            NASState state      = nas->getNASState();
-            ReferenceValues ref = nas->getReferenceValues();
+            NASState state = nas->getNASState();
+            ReferenceValues ref =
+                getModule<AlgoReference>()->getReferenceValues();
 
             tm.timestamp       = state.timestamp;
             tm.state           = static_cast<uint8_t>(nas->getState());
@@ -534,7 +560,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             NASController* nas   = getModule<NASController>();
             MEAController* mea   = getModule<MEAController>();
 
-            auto pressDigi   = sensors->getLPS22DFLastSample();
+            auto pressDigi   = sensors->getLPS28DFWLastSample();
             auto imu         = sensors->getIMULastSample();
             auto gps         = sensors->getUBXGPSLastSample();
             auto vn100       = sensors->getVN100LastSample();
@@ -611,6 +637,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             enqueuePacket(msg);
             return true;
         }
+
         case MAV_STATS_ID:
         {
             mavlink_message_t msg;
@@ -647,11 +674,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.dpl_bay_max_pressure_ts = stats.maxDplPressureTs;
             tm.dpl_bay_max_pressure    = stats.maxDplPressure;
 
-            // NAS reference
-            auto reference = nas->getReferenceValues();
-            tm.ref_lat     = reference.refLatitude;
-            tm.ref_lon     = reference.refLongitude;
-            tm.ref_alt     = reference.refAltitude;
+            // Algorithms reference
+            auto ref   = getModule<AlgoReference>()->getReferenceValues();
+            tm.ref_lat = ref.refLatitude;
+            tm.ref_lon = ref.refLongitude;
+            tm.ref_alt = ref.refAltitude;
 
             // Cpu stuff
             CpuMeterData cpuStats = CpuMeter::getCpuStats();
@@ -715,6 +742,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             enqueuePacket(msg);
             return true;
         }
+
         case MAV_MOTOR_ID:
         {
             mavlink_message_t msg;

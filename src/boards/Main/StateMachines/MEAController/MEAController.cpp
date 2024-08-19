@@ -129,11 +129,10 @@ void MEAController::update()
     {
         // Perform updates only during this phases
 
-        PressureData baro = getModule<Sensors>()->getCanCCPressLastSample();
-        IMUData imu       = getModule<Sensors>()->getIMULastSample();
-        NASState nas      = getModule<NASController>()->getNASState();
-        ReferenceValues reference =
-            getModule<NASController>()->getReferenceValues();
+        PressureData baro   = getModule<Sensors>()->getCanCCPressLastSample();
+        IMUData imu         = getModule<Sensors>()->getIMULastSample();
+        NASState nas        = getModule<NASController>()->getNASState();
+        ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
 
         // TODO: Is this even correct?
         float aperture =
@@ -157,7 +156,7 @@ void MEAController::update()
 
             if (nas.timestamp > lastNasTimestamp)
             {
-                step.withSpeedAndAlt(-nas.vd, reference.refAltitude - nas.d);
+                step.withSpeedAndAlt(-nas.vd, ref.refAltitude - nas.d);
             }
 
             mea.update(step);

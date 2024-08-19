@@ -47,18 +47,6 @@ NASController::NASController()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-
-    // TODO: Review this code
-    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
-    Vector4f q             = SkyQuaternion::eul2quat({0, 0, 0});
-
-    x(6) = q(0);
-    x(7) = q(1);
-    x(8) = q(2);
-    x(9) = q(3);
-
-    nas.setX(x);
-    nas.setReferenceValues(ReferenceConfig::defaultReferenceValues);
 }
 
 bool NASController::start()
@@ -80,6 +68,21 @@ bool NASController::start()
         return false;
     }
 
+    // Initialize reference
+    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+    nas.setReferenceValues(ref);
+
+    // Initialize state
+    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
+    Vector4f q             = SkyQuaternion::eul2quat({0, 0, 0});
+
+    x(6) = q(0);
+    x(7) = q(1);
+    x(8) = q(2);
+    x(9) = q(3);
+
+    nas.setX(x);
+
     return true;
 }
 
@@ -89,12 +92,6 @@ NASState NASController::getNASState()
 {
     Lock<FastMutex> lock{nasMutex};
     return nas.getState();
-}
-
-ReferenceValues NASController::getReferenceValues()
-{
-    Lock<FastMutex> lock{nasMutex};
-    return nas.getReferenceValues();
 }
 
 void NASController::update()
@@ -191,21 +188,17 @@ void NASController::calibrate()
 
     Vector3f accAcc = Vector3f::Zero();
     Vector3f magAcc = Vector3f::Zero();
-    float baroAcc   = 0.0f;
 
     // First sample and average the data over a number of samples
     for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        IMUData imu       = sensors->getIMULastSample();
-        PressureData baro = sensors->getAtmosPressureLastSample();
+        IMUData imu = sensors->getIMULastSample();
 
         Vector3f acc = static_cast<AccelerometerData>(imu);
         Vector3f mag = static_cast<MagnetometerData>(imu);
 
         accAcc += acc;
         magAcc += mag;
-
-        baroAcc += baro.pressure;
 
         Thread::sleep(Config::NAS::CALIBRATION_SLEEP_TIME);
     }
@@ -214,31 +207,16 @@ void NASController::calibrate()
     accAcc.normalize();
     magAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
     magAcc.normalize();
-    baroAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
 
     // Use the triad to compute initial state
     StateInitializer init;
     init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
 
+    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+
     Lock<FastMutex> lock{nasMutex};
-
-    // Compute reference values
-    ReferenceValues reference = nas.getReferenceValues();
-    reference.refPressure     = baroAcc;
-    reference.refAltitude     = Aeroutils::relAltitude(
-            reference.refPressure, reference.mslPressure, reference.mslTemperature);
-
-    // Also updated the reference with the GPS if we have fix
-    UBXGPSData gps = sensors->getUBXGPSLastSample();
-    if (gps.fix == 3)
-    {
-        // We do not use the GPS altitude because it sucks
-        reference.refLatitude  = gps.latitude;
-        reference.refLongitude = gps.longitude;
-    }
-
     nas.setX(init.getInitX());
-    nas.setReferenceValues(reference);
+    nas.setReferenceValues(ref);
 
     EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }

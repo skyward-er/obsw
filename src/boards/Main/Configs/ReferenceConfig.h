@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,19 @@
 
 #pragma once
 
-#include <units/Frequency.h>
-
-#include <cstdint>
-
 namespace Main
 {
 
 namespace Config
 {
 
-namespace ADA
+namespace Reference
 {
 
-/* linter off */ using namespace Boardcore::Units::Frequency;
+constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
+constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
 
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
-
-constexpr unsigned int SHADOW_MODE_TIMEOUT = 18000;  // [ms]
-
-constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
-constexpr unsigned int APOGEE_N_SAMPLES      = 5;
-
-constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 350;  // [m]
-constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
-
-}  // namespace ADA
+}  // namespace Reference
 
 }  // namespace Config
 

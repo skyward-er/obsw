@@ -195,6 +195,9 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
         {
             updateAndLogStatus(FlightModeManagerState::CALIBRATE_SENSORS);
 
+            // Wait a bit before calibrating
+            Thread::sleep(100);
+
             getModule<Sensors>()->calibrate();
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
 
@@ -234,6 +237,12 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
             // Reset readiness status
             nasReady = false;
             adaReady = false;
+
+            // Wait a bit after sensor calibration
+            Thread::sleep(100);
+
+            // First calibrate the reference
+            getModule<AlgoReference>()->calibrate();
 
             // Post the calibration events
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);

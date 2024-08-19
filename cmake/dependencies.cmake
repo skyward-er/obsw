@@ -26,6 +26,7 @@ set(OBSW_INCLUDE_DIRS
 
 set(MAIN_COMPUTER
     src/boards/Main/Sensors/Sensors.cpp
+    src/boards/Main/AlgoReference/AlgoReference.cpp
     src/boards/Main/Radio/Radio.cpp
     src/boards/Main/CanHandler/CanHandler.cpp
     src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
