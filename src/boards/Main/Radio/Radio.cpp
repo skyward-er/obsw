@@ -828,7 +828,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             mavlink_voltage_tm_t tm;
             tm.voltage   = data.voltage;
             tm.timestamp = data.voltageTimestamp;
-            strcpy(tm.sensor_name, "BATTERY_VOLTAGE");
+            strcpy(tm.sensor_name, "BatteryVoltage");
 
             mavlink_msg_voltage_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
