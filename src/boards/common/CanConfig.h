@@ -115,35 +115,37 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
 };
 
-inline Events canEventToEvent(EventId canEvent)
+}  // namespace CanConfig
+
+inline Events canEventToEvent(uint8_t canEvent)
 {
     switch (canEvent)
     {
-        case EventId::ARM:
+        case (int)CanConfig::EventId::ARM:
             return CAN_ARM;
-        case EventId::DISARM:
+        case (int)CanConfig::EventId::DISARM:
             return CAN_DISARM;
-        case EventId::CALIBRATE:
+        case (int)CanConfig::EventId::CALIBRATE:
             return CAN_CALIBRATE;
-        case EventId::LIFTOFF:
+        case (int)CanConfig::EventId::LIFTOFF:
             return CAN_LIFTOFF;
-        case EventId::FORCE_INIT:
+        case (int)CanConfig::EventId::FORCE_INIT:
             return CAN_FORCE_INIT;
-        case EventId::ENTER_TEST_MODE:
+        case (int)CanConfig::EventId::ENTER_TEST_MODE:
             return CAN_ENTER_TEST_MODE;
-        case EventId::EXIT_TEST_MODE:
+        case (int)CanConfig::EventId::EXIT_TEST_MODE:
             return CAN_EXIT_TEST_MODE;
-        case EventId::ENTER_HIL_MODE:
+        case (int)CanConfig::EventId::ENTER_HIL_MODE:
             return CAN_ENTER_HIL_MODE;
-        case EventId::EXIT_HIL_MODE:
+        case (int)CanConfig::EventId::EXIT_HIL_MODE:
             return CAN_EXIT_HIL_MODE;
-        case EventId::APOGEE_DETECTED:
+        case (int)CanConfig::EventId::APOGEE_DETECTED:
             return CAN_APOGEE_DETECTED;
-        case EventId::IGNITION:
+        case (int)CanConfig::EventId::IGNITION:
             return CAN_IGNITION;
+        default:
+            return LAST_EVENT;
     }
 }
-
-}  // namespace CanConfig
 
 }  // namespace Common

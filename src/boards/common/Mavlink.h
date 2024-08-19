@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 // Ignore warnings as these are auto-generated headers made by a third party
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
@@ -27,3 +29,47 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <mavlink_lib/lyra/mavlink.h>
 #pragma GCC diagnostic pop
+
+#include <common/Events.h>
+
+namespace Common
+{
+
+inline Events mavCmdToEvent(uint8_t id)
+{
+    switch (id)
+    {
+        case MAV_CMD_ARM:
+            return TMTC_ARM;
+        case MAV_CMD_DISARM:
+            return TMTC_DISARM;
+        case MAV_CMD_CALIBRATE:
+            return TMTC_CALIBRATE;
+        case MAV_CMD_FORCE_INIT:
+            return TMTC_FORCE_INIT;
+        case MAV_CMD_FORCE_LAUNCH:
+            return TMTC_FORCE_LAUNCH;
+        case MAV_CMD_FORCE_ENGINE_SHUTDOWN:
+            return TMTC_FORCE_ENGINE_SHUTDOWN;
+        case MAV_CMD_FORCE_EXPULSION:
+            return TMTC_FORCE_EXPULSION;
+        case MAV_CMD_FORCE_DEPLOYMENT:
+            return TMTC_FORCE_DEPLOYMENT;
+        case MAV_CMD_FORCE_LANDING:
+            return TMTC_FORCE_LANDING;
+        case MAV_CMD_FORCE_REBOOT:
+            return TMTC_RESET_BOARD;
+        case MAV_CMD_ENTER_TEST_MODE:
+            return TMTC_ENTER_TEST_MODE;
+        case MAV_CMD_EXIT_TEST_MODE:
+            return TMTC_EXIT_TEST_MODE;
+        case MAV_CMD_START_RECORDING:
+            return TMTC_START_RECORDING;
+        case MAV_CMD_STOP_RECORDING:
+            return TMTC_STOP_RECORDING;
+        default:
+            return LAST_EVENT;
+    }
+}
+
+}  // namespace Common
