@@ -37,6 +37,9 @@
 #include <drivers/timer/PWM.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
+#include <events/EventData.h>
+#include <events/utils/EventSniffer.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
 
 #include <iostream>
@@ -67,6 +70,18 @@ int main()
     MEAController *mea      = new MEAController();
     StatsRecorder *recorder = new StatsRecorder();
 
+    Logger &sdLogger    = Logger::getInstance();
+    EventBroker &broker = EventBroker::getInstance();
+
+    // Setup event sniffer
+    EventSniffer sniffer(
+        broker,
+        [&](uint8_t event, uint8_t topic)
+        {
+            EventData data{TimestampTimer::getTimestamp(), event, topic};
+            sdLogger.log(data);
+        });
+
     // Insert modules
     bool initResult =
         manager.insert<Buses>(buses) &&
@@ -96,7 +111,7 @@ int main()
     // led3: CanBus ok
     // led4: Everything ok
 
-    if (!EventBroker::getInstance().start())
+    if (!broker.start())
     {
         initResult = false;
         std::cout << "Error failed to start EventBroker" << std::endl;

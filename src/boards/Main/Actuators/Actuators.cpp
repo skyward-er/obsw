@@ -119,7 +119,7 @@ void Actuators::wiggleServo(ServosList servo)
 
 void Actuators::wiggleCanServo(ServosList servo)
 {
-    getModule<CanHandler>()->sendServoOpenCommand(servo, 1.0, 1000);
+    getModule<CanHandler>()->sendServoOpenCommand(servo, 1000);
 }
 
 float Actuators::getServoPosition(ServosList servo)

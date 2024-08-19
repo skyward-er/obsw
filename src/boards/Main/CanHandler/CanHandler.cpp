@@ -105,8 +105,7 @@ void CanHandler::sendEvent(Common::CanConfig::EventId event)
                           static_cast<uint8_t>(event));
 }
 
-void CanHandler::sendServoOpenCommand(ServosList servo, float maxAperture,
-                                      uint16_t openingTime)
+void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
 {
 
     protocol.enqueueData(
@@ -115,13 +114,13 @@ void CanHandler::sendServoOpenCommand(ServosList servo, float maxAperture,
         static_cast<uint8_t>(CanConfig::Board::MAIN),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(servo),
-        ServoCommand{TimestampTimer::getTimestamp(), maxAperture, openingTime});
+        ServoCommand{TimestampTimer::getTimestamp(), openingTime});
 }
 
 void CanHandler::sendServoCloseCommand(ServosList servo)
 {
     // Closing a servo means opening it for 0s
-    sendServoOpenCommand(servo, 0.0f, 0);
+    sendServoOpenCommand(servo, 0);
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()
@@ -171,10 +170,16 @@ void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 
 void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
-    // TODO: Log event
-    CanConfig::EventId event =
-        static_cast<CanConfig::EventId>(msg.getSecondaryType());
-    LOG_WARN(logger, "Received unrecognized event: {}", event);
+    Events event = canEventToEvent(msg.getSecondaryType());
+    if (event != LAST_EVENT)
+    {
+        EventBroker::getInstance().post(event, TOPIC_CAN);
+    }
+    else
+    {
+        LOG_WARN(logger, "Received unsupported event: {}",
+                 msg.getSecondaryType());
+    }
 }
 
 void CanHandler::handleSensor(const Canbus::CanMessage &msg)

@@ -96,8 +96,7 @@ public:
 
     void sendEvent(Common::CanConfig::EventId event);
 
-    void sendServoOpenCommand(ServosList servo, float maxAperture,
-                              uint16_t openingTime);
+    void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
     void sendServoCloseCommand(ServosList servo);
 
     CanStatus getCanStatus();
