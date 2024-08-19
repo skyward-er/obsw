@@ -42,8 +42,6 @@ private:
         float limit = 1.0;
         // Should this servo be reversed?
         bool flipped = false;
-        // What angle is the maximum
-        float maxAperture = 1.0f;
         // Timestamp of when the servo should close, 0 if closed
         long long closeTs = 0;
         // Timestamp of last servo action (open/close)
@@ -53,7 +51,6 @@ private:
         void closeServo();
         void unsafeSetServoPosition(float position);
         float getServoPosition();
-        float getMaxAperture();
     };
 
 public:
@@ -61,8 +58,7 @@ public:
 
     [[nodiscard]] bool start();
 
-    bool openServoWithApertureAndTime(ServosList servo, float aperture,
-                                      uint32_t time);
+    bool openServoWithTime(ServosList servo, uint32_t time);
     bool closeServo(ServosList servo);
     bool isServoOpen(ServosList servo);
     float getServoPosition(ServosList servo);
