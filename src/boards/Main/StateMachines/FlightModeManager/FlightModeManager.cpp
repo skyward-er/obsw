@@ -592,6 +592,9 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         case TMTC_FORCE_EXPULSION:
         case FMM_APOGEE_TIMEOUT:
         {
+            EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
+                                            TOPIC_FLIGHT);
+
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
@@ -615,13 +618,12 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::APOGEE_DETECTED);
 
-            EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
+            EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
 
-            // TODO: We need a way to signal a full vent, the current setup
-            // doesn't allow to vent for more than 60s
+            // Vent the tank
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::VENTING_VALVE, 1.0f, 60000);
+                ServosList::VENTING_VALVE, 600000);
 
             return HANDLED;
         }
