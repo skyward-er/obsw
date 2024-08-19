@@ -35,11 +35,11 @@
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <actuators/Servo/Servo.h>
 #include <drivers/timer/PWM.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
-#include <interfaces-impl/hwmapping.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
-#include <drivers/timer/TimestampTimer.h>
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
 #include <iostream>
