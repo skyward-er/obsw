@@ -241,7 +241,6 @@ void CanHandler::handleCommand(const Canbus::CanMessage &msg)
     }
     else
     {
-        getModule<Actuators>()->openServoWithApertureAndTime(
-            servo, command.aperture, command.openingTime);
+        getModule<Actuators>()->openServoWithTime(servo, command.openingTime);
     }
 }

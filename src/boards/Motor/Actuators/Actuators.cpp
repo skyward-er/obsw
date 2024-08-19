@@ -79,8 +79,6 @@ float Actuators::ServoInfo::getServoPosition()
     return position;
 }
 
-float Actuators::ServoInfo::getMaxAperture() { return maxAperture; }
-
 Actuators::Actuators()
 {
     infos[0].servo = std::make_unique<Servo>(
@@ -123,8 +121,7 @@ bool Actuators::start()
     return true;
 }
 
-bool Actuators::openServoWithApertureAndTime(ServosList servo, float aperture,
-                                             uint32_t time)
+bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     ServoInfo *info = getServo(servo);
@@ -133,7 +130,6 @@ bool Actuators::openServoWithApertureAndTime(ServosList servo, float aperture,
         return false;
     }
 
-    info->maxAperture = aperture;
     info->openServoWithTime(time);
     return true;
 }
@@ -220,14 +216,13 @@ void Actuators::updatePositionsTask()
                                    Constants::NS_IN_MS))
             {
                 // We should open the valve all the way
-                unsafeSetServoPosition(idx, infos[idx].getMaxAperture());
+                unsafeSetServoPosition(idx, 1.0f);
             }
             else
             {
                 // Time to wiggle the valve a little
-                unsafeSetServoPosition(
-                    idx, infos[idx].getMaxAperture() *
-                             (1.0 - Config::Servos::SERVO_CONFIDENCE));
+                unsafeSetServoPosition(idx,
+                                       1.0 - Config::Servos::SERVO_CONFIDENCE);
             }
         }
         else
@@ -249,9 +244,7 @@ void Actuators::updatePositionsTask()
             else
             {
                 // Time to wiggle the valve a little
-                unsafeSetServoPosition(idx,
-                                       infos[idx].getMaxAperture() *
-                                           Config::Servos::SERVO_CONFIDENCE);
+                unsafeSetServoPosition(idx, Config::Servos::SERVO_CONFIDENCE);
             }
         }
     }
