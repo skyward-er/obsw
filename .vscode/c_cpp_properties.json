@@ -90,30 +90,6 @@
             ]
         },
         {
-            "name": "stm32f767zi_compute_unit_HIL",
-            "cStandard": "c11",
-            "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
-            "defines": [
-                "{defaultDefines}",
-                "_MIOSIX_BOARDNAME=stm32f767zi_compute_unit",
-                "_BOARD_STM32F767ZI_COMPUTE_UNIT",
-                "_ARCH_CORTEXM7_STM32F7",
-                "STM32F767xx",
-                "HSE_VALUE=25000000",
-                "SYSCLK_FREQ_216MHz=216000000",
-                "__ENABLE_XRAM",
-                "V_DDA_VOLTAGE=3.3f",
-                "HILTest"
-            ],
-            "includePath": [
-                "${defaultIncludePaths}",
-                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
-                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_compute_unit/**",
-                "${workspaceFolder}/src/hardware_in_the_loop"
-            ]
-        },
-        {
             "name": "stm32f767zi_death_stack_v4",
             "cStandard": "c11",
             "cppStandard": "c++14",
@@ -131,29 +107,6 @@
                 "${defaultIncludePaths}",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
                 "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_death_stack_v4/**"
-            ]
-        },
-        {
-            "name": "stm32f767zi_death_stack_v4_HIL",
-            "cStandard": "c11",
-            "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
-            "defines": [
-                "{defaultDefines}",
-                "_ARCH_CORTEXM7_STM32F7",
-                "_BOARD_STM32F767ZI_DEATH_STACK_V4",
-                "_MIOSIX_BOARDNAME=stm32f767zi_death_stack_v4",
-                "HSE_VALUE=8000000",
-                "SYSCLK_FREQ_168MHz=168000000",
-                "ROCCARASO",
-                "HILSimulation",
-                "HILMain"
-            ],
-            "includePath": [
-                "${defaultIncludePaths}",
-                "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
-                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_death_stack_v4/**",
-                "${workspaceFolder}/src/hardware_in_the_loop"
             ]
         },
         {
