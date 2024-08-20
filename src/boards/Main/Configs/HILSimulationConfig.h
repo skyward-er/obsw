@@ -62,9 +62,10 @@
 // #include <Main/StateMachines/ABKController/ABKControllerData.h>
 // #include <algorithms/AirBrakes/AirBrakesInterp.h>
 
-// // MEA
-// #include <Main/StateMachines/MEAController/MEAControllerData.h>
-// #include <algorithms/MEA/MEAData.h>
+// MEA
+#include <Main/StateMachines/MEAController/MEAController.h>
+#include <Main/StateMachines/MEAController/MEAControllerData.h>
+#include <algorithms/MEA/MEAData.h>
 
 // clang-format off
 // Indent to avoid the linter complaining about using namespace
@@ -91,7 +92,7 @@ constexpr auto DIGITAL_BARO_RATE = Main::Config::Sensors::LPS22DF::RATE;
 constexpr auto TEMP_RATE         = SIMULATION_RATE;  // One sample
 constexpr auto GPS_RATE          = Main::Config::Sensors::UBXGPS::RATE;
 constexpr auto BARO_CHAMBER_RATE = 50_hz;
-constexpr auto PITOT_RATE        = 20_hz;
+constexpr auto PITOT_RATE        = 50_hz;
 
 static_assert((static_cast<int>(ACCEL_RATE.value()) % SIMULATION_RATE_INT) == 0,
               "N_DATA_ACCEL not an integer");
@@ -272,13 +273,12 @@ struct MEAStateHIL
     {
     }
 
-    // MEAStateHIL(Boardcore::MEAState state, Main::MEAControllerStatus status)
-    //     : correctedPressure(state.correctedPressure),
-    //       estimatedMass(status.estimatedMass),
-    //       estimatedApogee(status.estimatedApogee), updating(/* TODO update!
-    //       */)
-    // {
-    // }
+    MEAStateHIL(Boardcore::MEAState state)
+        : correctedPressure(state.estimatedPressure),
+          estimatedMass(state.estimatedMass),
+          estimatedApogee(state.estimatedApogee), updating(true)
+    {
+    }
 
     void print()
     {
@@ -632,8 +632,8 @@ class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<
           Main::Buses, Main::Actuators, Main::FlightModeManager,
-          Main::ADAController,
-          Main::NASController /*, Main::MEAController, Main::ABKController */>
+          Main::ADAController, Main::NASController,
+          Main::MEAController /*, Main::ABKController */>
 
 {
 public:
@@ -674,8 +674,7 @@ private:
             /* modules.get<ABKController>()->getStatus() */};
 
         MEAStateHIL meaStateHIL{
-                /* modules.get<MEAController>()->getMEAState(),
-                modules.get<MEAController>()->getStatus() */};
+            getModule<Main::MEAController>()->getMEAState()};
 
         ActuatorsStateHIL actuatorsStateHIL{
             actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
