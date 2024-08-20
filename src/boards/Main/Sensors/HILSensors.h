@@ -263,7 +263,7 @@ private:
     {
         return Boardcore::IMUData{sensors.getLSM6DSRXLastSample(),
                                   sensors.getLSM6DSRXLastSample(),
-                                  sensors.getCalibratedMagLastSample()};
+                                  sensors.getCalibratedLIS2MDLLastSample()};
     };
 
     Boardcore::PressureData updateCCData()
