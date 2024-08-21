@@ -48,33 +48,19 @@ public:
 
 private:
     Boardcore::State state_on_ground(const Boardcore::Event& event);
-
     Boardcore::State state_init(const Boardcore::Event& event);
-
     Boardcore::State state_init_error(const Boardcore::Event& event);
-
     Boardcore::State state_init_done(const Boardcore::Event& event);
-
     Boardcore::State state_calibrate_sensors(const Boardcore::Event& event);
-
     Boardcore::State state_calibrate_algorithms(const Boardcore::Event& event);
-
     Boardcore::State state_disarmed(const Boardcore::Event& event);
-
     Boardcore::State state_test_mode(const Boardcore::Event& event);
-
     Boardcore::State state_armed(const Boardcore::Event& event);
-
     Boardcore::State state_flying(const Boardcore::Event& event);
-
     Boardcore::State state_powered_ascent(const Boardcore::Event& event);
-
     Boardcore::State state_unpowered_ascent(const Boardcore::Event& event);
-
     Boardcore::State state_drogue_descent(const Boardcore::Event& event);
-
     Boardcore::State state_terminal_descent(const Boardcore::Event& event);
-
     Boardcore::State state_landed(const Boardcore::Event& event);
 
     void updateAndLogStatus(FlightModeManagerState state);
@@ -90,7 +76,8 @@ private:
     uint16_t apogeeTimeoutEvent  = 0;
     uint16_t cutterTimeoutEvent  = 0;
 
-    std::atomic<FlightModeManagerState> state{FlightModeManagerState::INVALID};
+    std::atomic<FlightModeManagerState> state{
+        FlightModeManagerState::ON_GROUND};
 };
 
 }  // namespace Main

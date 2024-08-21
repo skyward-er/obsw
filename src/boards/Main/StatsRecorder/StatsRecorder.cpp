@@ -32,8 +32,6 @@ using namespace miosix;
 using namespace Eigen;
 using namespace Common;
 
-StatsRecorder::StatsRecorder() {}
-
 void StatsRecorder::reset()
 {
     Lock<FastMutex> lock{statsMutex};

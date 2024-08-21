@@ -34,10 +34,9 @@ using namespace Canbus;
 using namespace Common;
 
 CanHandler::CanHandler()
-    : driver(CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING),
-      protocol(
-          &driver, [this](const CanMessage &msg) { handleMessage(msg); },
-          Config::Scheduler::OTHERS_PRIORITY)
+    : driver{CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING},
+      protocol{&driver, [this](const CanMessage &msg) { handleMessage(msg); },
+               Config::Scheduler::OTHERS_PRIORITY}
 {
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));

@@ -42,14 +42,13 @@ enum class FlightModeManagerState : uint8_t
     UNPOWERED_ASCENT,
     DROGUE_DESCENT,
     TERMINAL_DESCENT,
-    LANDED,
-    INVALID
+    LANDED
 };
 
 struct FlightModeManagerStatus
 {
     uint64_t timestamp           = 0;
-    FlightModeManagerState state = FlightModeManagerState::INVALID;
+    FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
 
     static std::string header() { return "timestamp,state\n"; }
 
