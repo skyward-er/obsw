@@ -143,7 +143,8 @@ State FlightModeManager::state_init_error(const Event& event)
         }
         case TMTC_FORCE_INIT:
         {
-            getModule<CanHandler>()->sendEvent(CanConfig::EventId::FORCE_INIT);
+            // This doesn't make much sense
+            // getModule<CanHandler>()->sendEvent(CanConfig::EventId::FORCE_INIT);
             return transition(&FlightModeManager::state_init_done);
         }
         default:

@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,10 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <algorithms/AirBrakes/AirBrakesInterp.h>
+#include <units/Frequency.h>
+
+#include <cstdint>
 
 namespace Main
 {
@@ -30,29 +33,40 @@ namespace Main
 namespace Config
 {
 
-namespace Scheduler
+namespace ABK
 {
 
-// Used for NAS related activities (state machines/scheduler)
-static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for MEA related activities (state machines/scheduler)
-static const miosix::Priority MEA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ABK related activities (state machines/scheduler)
-static const miosix::Priority ABK_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ADA related activities (state machines/scheduler)
-static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
-// Used for everything else:
-// - Radio periodic telemetry
-// - CanBus periodic heartbeat
-// - Actuators buzzer
-static const miosix::Priority OTHERS_PRIORITY = miosix::PRIORITY_MAX - 3;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-// Used for FlightModeManager
-static const miosix::Priority FMM_PRIORITY = miosix::PRIORITY_MAX - 1;
+constexpr Hertz UPDATE_RATE = 10_hz;
 
-}  // namespace Scheduler
+constexpr unsigned int SHADOW_MODE_TIMEOUT = 500;  // [ms]
+
+// TODO remove this useless config from interpolation algorithm
+static const Boardcore::AirBrakesConfig BULLSHIT_RANDOM_CONFIG_REMOVE_ME_PLEASE{
+    0.4884,      -1.4391,    6.6940,
+    -18.4272,    29.1044,    -24.5585,
+    8.6058,      9.0426,     159.5995,
+    4.8188,      -208.4471,  47.0771,
+    1.9433e+03,  -205.6689,  -6.4634e+03,
+    331.0332,    8.8763e+03, -161.8111,
+    -3.9917e+03, 2.8025e-06, 0.0373,
+    20,          -0.009216,  0.02492,
+    -0.01627,    0.03191,    0.017671458676443,
+    0,
+};
+
+static const Boardcore::AirBrakesInterpConfig CONFIG = {
+    .FILTER_MINIMUM_ALTITUDE = 1000,
+    .FILTER_MAXIMUM_ALTITUDE = 3000,
+    .STARTING_FILTER_VALUE   = 0.9f,
+    .ABK_CRITICAL_ALTITUDE   = 2990,
+    .DZ                      = 10,
+    .INITIAL_MASS            = 26,
+    .DM                      = 0.4f,
+    .N_FORWARD               = 0};
+
+}  // namespace ABK
 
 }  // namespace Config
 

@@ -28,6 +28,7 @@
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
@@ -68,6 +69,7 @@ int main()
     ADAController *ada      = new ADAController();
     NASController *nas      = new NASController();
     MEAController *mea      = new MEAController();
+    ABKController *abk      = new ABKController();
     StatsRecorder *recorder = new StatsRecorder();
 
     Logger &sdLogger    = Logger::getInstance();
@@ -95,6 +97,7 @@ int main()
         manager.insert<ADAController>(ada) &&
         manager.insert<NASController>(nas) &&
         manager.insert<MEAController>(mea) &&
+        manager.insert<ABKController>(abk) &&
         manager.insert<StatsRecorder>(recorder) && manager.inject();
 
     manager.graphviz(std::cout);
@@ -181,6 +184,12 @@ int main()
     {
         initResult = false;
         std::cout << "Error failed to start MEAController" << std::endl;
+    }
+
+    if (!abk->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start ABKController" << std::endl;
     }
 
     if (!fmm->start())

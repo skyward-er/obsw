@@ -611,6 +611,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             ADAController* ada      = getModule<ADAController>();
             NASController* nas      = getModule<NASController>();
             MEAController* mea      = getModule<MEAController>();
+            ABKController* abk      = getModule<ABKController>();
             Actuators* actuators    = getModule<Actuators>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
 
@@ -655,7 +656,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // FMM states
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
-            tm.abk_state = 255;  // TODO
+            tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.mea_state = static_cast<uint8_t>(mea->getState());
 
