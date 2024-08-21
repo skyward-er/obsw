@@ -347,8 +347,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_message_t msg;
             mavlink_payload_flight_tm_t tm;
 
-            auto* sensors    = parent.getModule<Sensors>();
-            auto* pinHandler = parent.getModule<PinHandler>();
+            auto* sensors = parent.getModule<Sensors>();
 
             auto imu         = sensors->getLSM6DSRXLastSample();
             auto mag         = sensors->getLIS2MDLLastSample();
@@ -405,6 +404,70 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;
             tm.temperature         = pressDigi.temperature;
 
+            mavlink_msg_payload_flight_tm_encode(config::Mavlink::SYSTEM_ID,
+                                                 config::Mavlink::COMPONENT_ID,
+                                                 &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_STATS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_payload_stats_tm_t tm;
+
+            auto* pinHandler = parent.getModule<PinHandler>();
+
+            // Liftoff stats
+            tm.liftoff_ts         = 0;      // TODO
+            tm.liftoff_max_acc_ts = 0;      // TODO
+            tm.liftoff_max_acc    = -1.0f;  // TODO
+
+            // Max speed stats
+            tm.max_speed_ts       = 0;      // TODO
+            tm.max_mach_ts        = 0;      // TODO
+            tm.max_speed          = -1.0f;  // TODO
+            tm.max_speed_altitude = -1.0f;  // TODO
+            tm.max_mach           = -1.0f;  // TODO
+
+            // Apogee stats
+            tm.apogee_ts      = 0;      // TODO
+            tm.apogee_lat     = -1.0f;  // TODO
+            tm.apogee_lon     = -1.0f;  // TODO
+            tm.apogee_alt     = -1.0f;  // TODO
+            tm.apogee_max_acc = -1.0f;  // TODO
+
+            // Wing stats
+            tm.wing_emc_n = -1.0f;  // TODO
+            tm.wing_emc_e = -1.0f;  // TODO
+            tm.wing_m1_n  = -1.0f;  // TODO
+            tm.wing_m1_e  = -1.0f;  // TODO
+            tm.wing_m2_n  = -1.0f;  // TODO
+            tm.wing_m2_e  = -1.0f;  // TODO
+
+            // Deployment stats
+            tm.dpl_ts         = 0;      // TODO
+            tm.dpl_max_acc_ts = 0;      // TODO
+            tm.dpl_alt        = -1.0f;  // TODO
+            tm.dpl_max_acc    = -1.0f;  // TODO
+
+            // NAS reference values
+            tm.ref_lat = -1.0f;  // TODO
+            tm.ref_lon = -1.0f;  // TODO
+            tm.ref_alt = -1.0f;  // TODO
+
+            tm.min_pressure = -1.0f;  // TODO
+
+            // CPU stats
+            auto cpuStats = CpuMeter::getCpuStats();
+            tm.cpu_load   = cpuStats.mean;
+            tm.free_heap  = cpuStats.freeHeap;
+
+            // Logger stats
+            auto loggerStats = Logger::getInstance().getStats();
+            tm.log_good      = (loggerStats.lastWriteError == 0);
+            tm.log_number    = loggerStats.logNumber;
+
             // State machines
             tm.fmm_state = static_cast<uint8_t>(
                 parent.getModule<FlightModeManager>()->getState());
@@ -418,49 +481,13 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
                 pinHandler->getPinData(PinList::NOSECONE_DETACH_PIN).lastState;
             tm.cutter_presence = 255;  // TODO
 
-            mavlink_msg_payload_flight_tm_encode(config::Mavlink::SYSTEM_ID,
-                                                 config::Mavlink::COMPONENT_ID,
-                                                 &msg, &tm);
-            enqueueMessage(msg);
-            return true;
-        }
-
-        case MAV_STATS_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_payload_stats_tm_t tm;
-
-            tm.liftoff_max_acc    = -1.0f;  // TODO
-            tm.liftoff_max_acc_ts = 0;      // TODO
-            tm.dpl_ts             = 0;      // TODO
-            tm.dpl_max_acc        = -1.0f;  // TODO
-            tm.max_z_speed        = -1.0f;  // TODO
-            tm.max_z_speed_ts     = 0;      // TODO
-            tm.max_airspeed_pitot = -1.0f;  // TODO
-            tm.max_speed_altitude = -1.0f;  // TODO
-            tm.apogee_ts          = 0;      // TODO
-            tm.apogee_lat         = -1.0f;  // TODO
-            tm.apogee_lon         = -1.0f;  // TODO
-            tm.apogee_alt         = -1.0f;  // TODO
-            tm.min_pressure       = -1.0f;  // TODO
-
-            // CPU stats
-            auto cpuStats = CpuMeter::getCpuStats();
-            tm.cpu_load   = cpuStats.mean;
-            tm.free_heap  = cpuStats.freeHeap;
-
-            // Logger stats
-            auto loggerStats = Logger::getInstance().getStats();
-            tm.log_good      = (loggerStats.lastWriteError == 0);
-            tm.log_number    = loggerStats.logNumber;
-
             auto canStatus = parent.getModule<CanHandler>()->getCanStatus();
             tm.main_board_state  = canStatus.mainState;
             tm.motor_board_state = canStatus.motorState;
 
             tm.main_can_status  = canStatus.isMainConnected();
-            tm.rig_can_status   = canStatus.isRigConnected();
             tm.motor_can_status = canStatus.isMotorConnected();
+            tm.rig_can_status   = canStatus.isRigConnected();
 
             tm.hil_state = 0;  // TODO: hil
 
