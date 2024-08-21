@@ -25,6 +25,7 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
+    src/boards/Main/Data/ABKTrajectorySet.cpp
     src/boards/Main/Sensors/Sensors.cpp
     src/boards/Main/AlgoReference/AlgoReference.cpp
     src/boards/Main/Radio/Radio.cpp
@@ -34,7 +35,7 @@ set(MAIN_COMPUTER
     src/boards/Main/StateMachines/NASController/NASController.cpp
     src/boards/Main/StateMachines/ADAController/ADAController.cpp
     src/boards/Main/PinHandler/PinHandler.cpp
-    # src/boards/Main/StateMachines/ABKController/ABKController.cpp
+    src/boards/Main/StateMachines/ABKController/ABKController.cpp
     src/boards/Main/StateMachines/MEAController/MEAController.cpp
     src/boards/Main/StatsRecorder/StatsRecorder.cpp
 )

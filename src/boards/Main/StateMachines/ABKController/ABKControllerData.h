@@ -22,38 +22,34 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <cstdint>
+#include <ostream>
+#include <string>
 
 namespace Main
 {
 
-namespace Config
+enum class ABKControllerState : uint8_t
 {
+    INIT = 0,
+    READY,
+    ARMED,
+    SHADOW_MODE,
+    ACTIVE,
+    END
+};
 
-namespace Scheduler
+struct ABKControllerStatus
 {
+    uint64_t timestamp       = 0;
+    ABKControllerState state = ABKControllerState::INIT;
 
-// Used for NAS related activities (state machines/scheduler)
-static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for MEA related activities (state machines/scheduler)
-static const miosix::Priority MEA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ABK related activities (state machines/scheduler)
-static const miosix::Priority ABK_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ADA related activities (state machines/scheduler)
-static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
-// Used for everything else:
-// - Radio periodic telemetry
-// - CanBus periodic heartbeat
-// - Actuators buzzer
-static const miosix::Priority OTHERS_PRIORITY = miosix::PRIORITY_MAX - 3;
+    static std::string header() { return "timestamp,state\n"; }
 
-// Used for FlightModeManager
-static const miosix::Priority FMM_PRIORITY = miosix::PRIORITY_MAX - 1;
-
-}  // namespace Scheduler
-
-}  // namespace Config
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << static_cast<int>(state) << "\n";
+    }
+};
 
 }  // namespace Main

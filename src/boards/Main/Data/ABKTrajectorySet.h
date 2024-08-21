@@ -22,38 +22,22 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <algorithms/AirBrakes/TrajectorySet.h>
 
 namespace Main
 {
 
-namespace Config
+namespace Data
 {
 
-namespace Scheduler
+namespace ABK
 {
 
-// Used for NAS related activities (state machines/scheduler)
-static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for MEA related activities (state machines/scheduler)
-static const miosix::Priority MEA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ABK related activities (state machines/scheduler)
-static const miosix::Priority ABK_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for ADA related activities (state machines/scheduler)
-static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
-// Used for everything else:
-// - Radio periodic telemetry
-// - CanBus periodic heartbeat
-// - Actuators buzzer
-static const miosix::Priority OTHERS_PRIORITY = miosix::PRIORITY_MAX - 3;
+extern Boardcore::TrajectorySet CLOSED_TRAJECTORY_SET;
+extern Boardcore::TrajectorySet OPEN_TRAJECTORY_SET;
 
-// Used for FlightModeManager
-static const miosix::Priority FMM_PRIORITY = miosix::PRIORITY_MAX - 1;
+}  // namespace ABK
 
-}  // namespace Scheduler
-
-}  // namespace Config
+}  // namespace Data
 
 }  // namespace Main

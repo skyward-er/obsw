@@ -30,6 +30,7 @@
 #include <Main/Configs/RadioConfig.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
@@ -49,7 +50,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
 class Radio : public Boardcore::InjectableWithDeps<
                   Buses, BoardScheduler, Actuators, PinHandler, CanHandler,
                   Sensors, FlightModeManager, ADAController, NASController,
-                  MEAController, StatsRecorder, AlgoReference>
+                  MEAController, ABKController, StatsRecorder, AlgoReference>
 {
 public:
     Radio() {}
