@@ -33,8 +33,8 @@ using namespace Boardcore;
 using namespace miosix;
 
 FlightModeManager::FlightModeManager()
-    : HSM(&FlightModeManager::state_on_ground, STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::FMM_PRIORITY)
+    : HSM{&FlightModeManager::state_on_ground, STACK_DEFAULT_FOR_PTHREAD,
+          Config::Scheduler::FMM_PRIORITY}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);

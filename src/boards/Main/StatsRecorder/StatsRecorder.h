@@ -77,7 +77,7 @@ public:
         float maxDplPressure      = 0.0f;
     };
 
-    StatsRecorder();
+    StatsRecorder() {}
 
     void reset();
 

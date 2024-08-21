@@ -35,13 +35,6 @@ struct PinChangeData
     bool lastState        = false;
     uint32_t changesCount = 0;
 
-    PinChangeData(uint64_t timestamp, uint8_t pinId, bool lastState,
-                  uint32_t changesCount)
-        : timestamp(timestamp), pinId(pinId), lastState(lastState),
-          changesCount(changesCount)
-    {
-    }
-
     static std::string header()
     {
         return "timestamp,pinId,lastState,changesCount\n";

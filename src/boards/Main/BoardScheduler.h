@@ -33,10 +33,10 @@ class BoardScheduler : public Boardcore::Injectable
 {
 public:
     BoardScheduler()
-        : nas(Main::Config::Scheduler::NAS_PRIORITY),
-          ada(Main::Config::Scheduler::ADA_PRIORITY),
-          sensors(Main::Config::Scheduler::SENSORS_PRIORITY),
-          others(Main::Config::Scheduler::OTHERS_PRIORITY)
+        : nas{Main::Config::Scheduler::NAS_PRIORITY},
+          ada{Main::Config::Scheduler::ADA_PRIORITY},
+          sensors{Main::Config::Scheduler::SENSORS_PRIORITY},
+          others{Main::Config::Scheduler::OTHERS_PRIORITY}
     {
     }
 

@@ -35,8 +35,8 @@ using namespace miosix;
 using namespace Common;
 
 ABKController::ABKController()
-    : FSM(&ABKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::ABK_PRIORITY),
+    : FSM{&ABKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
+          Config::Scheduler::ABK_PRIORITY},
       abk{[this]() {
               return TimedTrajectoryPoint{
                   getModule<NASController>()->getNASState()};
