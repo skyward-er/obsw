@@ -38,7 +38,7 @@ enum class PinList : uint8_t
 };
 
 /**
- * @brief This class contains the handlers for the detach pins on the rocket.
+ * @brief This class contains the handlers for the detach pins on the payload.
  *
  * It uses Boardcore's PinObserver to bind these functions to the GPIO pins.
  * The handlers post an event on the EventBroker.
@@ -56,6 +56,8 @@ public:
     Boardcore::PinData getPinData(PinList pin);
 
 private:
+    void logPin(PinList pin);
+
     void onRampDetachTransition(Boardcore::PinTransition transition);
     void onNoseconeDetachTransition(Boardcore::PinTransition transition);
 

@@ -43,7 +43,7 @@ constexpr auto PERIOD = 20ms;
 namespace RampDetach
 {
 constexpr auto DETECTION_THRESHOLD   = 20;
-constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::FALLING_EDGE;
+constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
 }  // namespace RampDetach
 
 namespace NoseconeDetach
