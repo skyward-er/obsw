@@ -31,15 +31,19 @@ namespace Payload
 struct PinChangeData
 {
     uint64_t timestamp    = 0;
-    uint8_t pinID         = 0;
+    uint8_t pinId         = 0;
+    bool lastState        = false;
     uint32_t changesCount = 0;
 
-    static std::string header() { return "timestamp,pinID,changesCount\n"; }
+    static std::string header()
+    {
+        return "timestamp,pinId,lastState,changesCount\n";
+    }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)pinID << "," << (int)changesCount
-           << "\n";
+        os << timestamp << "," << static_cast<int>(pinId) << ","
+           << static_cast<int>(lastState) << "," << changesCount << "\n";
     }
 };
 

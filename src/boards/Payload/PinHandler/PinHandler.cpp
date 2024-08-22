@@ -78,39 +78,6 @@ bool PinHandler::start()
 
 bool PinHandler::isStarted() { return started; }
 
-void PinHandler::onRampDetachTransition(PinTransition transition)
-{
-    if (transition == config::RampDetach::TRIGGERING_TRANSITION)
-    {
-        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
-                                        TOPIC_FLIGHT);
-
-        auto pinData       = getPinData(PinList::RAMP_DETACH_PIN);
-        auto pinChangeData = PinChangeData{
-            .timestamp    = TimestampTimer::getTimestamp(),
-            .pinID        = static_cast<uint8_t>(PinList::RAMP_DETACH_PIN),
-            .changesCount = pinData.changesCount,
-        };
-        Logger::getInstance().log(pinChangeData);
-    }
-}
-
-void PinHandler::onNoseconeDetachTransition(PinTransition transition)
-{
-    if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
-    {
-        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
-
-        auto pinData       = getPinData(PinList::NOSECONE_DETACH_PIN);
-        auto pinChangeData = PinChangeData{
-            .timestamp    = TimestampTimer::getTimestamp(),
-            .pinID        = static_cast<uint8_t>(PinList::NOSECONE_DETACH_PIN),
-            .changesCount = pinData.changesCount,
-        };
-        Logger::getInstance().log(pinChangeData);
-    }
-}
-
 PinData PinHandler::getPinData(PinList pin)
 {
     switch (pin)
@@ -121,6 +88,43 @@ PinData PinHandler::getPinData(PinList pin)
             return pinObserver->getPinData(hwmap::detachPayload::getPin());
         default:
             return PinData{};
+    }
+}
+
+void PinHandler::logPin(PinList pin)
+{
+    auto pinData       = getPinData(pin);
+    auto pinChangeData = PinChangeData{
+        .timestamp    = TimestampTimer::getTimestamp(),
+        .pinId        = static_cast<uint8_t>(pin),
+        .lastState    = pinData.lastState,
+        .changesCount = pinData.changesCount,
+    };
+    Logger::getInstance().log(pinChangeData);
+}
+
+void PinHandler::onRampDetachTransition(PinTransition transition)
+{
+    logPin(PinList::RAMP_DETACH_PIN);
+    LOG_INFO(logger, "Ramp Detach Pin trasition detected: {}",
+             static_cast<int>(transition));
+
+    if (transition == config::RampDetach::TRIGGERING_TRANSITION)
+    {
+        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
+                                        TOPIC_FLIGHT);
+    }
+}
+
+void PinHandler::onNoseconeDetachTransition(PinTransition transition)
+{
+    logPin(PinList::NOSECONE_DETACH_PIN);
+    LOG_INFO(logger, "Nosecone Detach Pin transition detected: {}",
+             static_cast<int>(transition));
+
+    if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
+    {
+        EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
     }
 }
 
