@@ -172,12 +172,10 @@ public:
         eventBroker.subscribe(this, Common::TOPIC_ALT);
     }
 
-    void processFlags(const SimulatorData& simulatorData) override
+    void processFlagsImpl(
+        const SimulatorData& simulatorData,
+        std::vector<MotorFlightPhases>& changed_flags) override
     {
-        updateSimulatorFlags(simulatorData);
-
-        std::vector<MotorFlightPhases> changed_flags;
-
         if (simulatorData.signal == 1)
         {
             miosix::reboot();
@@ -200,22 +198,9 @@ public:
         {
             t_start = Boardcore::TimestampTimer::getTimestamp();
 
-            TRACE("[HIL] ------- SIMULATION STARTED ! ------- \n");
+            printf("[HIL] ------- SIMULATION STARTED ! ------- \n");
             changed_flags.push_back(MotorFlightPhases::SIMULATION_STARTED);
         }
-
-        /* calling the callbacks subscribed to the changed flags */
-        for (unsigned int i = 0; i < changed_flags.size(); i++)
-        {
-            std::vector<PhasesCallback> callbacksToCall =
-                callbacks[changed_flags[i]];
-            for (unsigned int j = 0; j < callbacksToCall.size(); j++)
-            {
-                callbacksToCall[j]();
-            }
-        }
-
-        prev_flagsFlightPhases = flagsFlightPhases;
     }
 
     void printOutcomes()
@@ -226,34 +211,15 @@ public:
     }
 
 private:
-    void handleEvent(const Boardcore::Event& e) override
+    void handleEventImpl(const Boardcore::Event& e,
+                         std::vector<MotorFlightPhases>& changed_flags) override
     {
-        std::vector<MotorFlightPhases> changed_flags;
         switch (e)
         {
             default:
-                TRACE("%s event\n", Common::getEventString(e).c_str());
+                printf("%s event\n", Common::getEventString(e).c_str());
         }
-
-        /* calling the callbacks subscribed to the changed flags */
-        for (unsigned int i = 0; i < changed_flags.size(); i++)
-        {
-            std::vector<PhasesCallback> callbacksToCall =
-                callbacks[changed_flags[i]];
-            for (unsigned int j = 0; j < callbacksToCall.size(); j++)
-            {
-                callbacksToCall[j]();
-            }
-        }
-
-        prev_flagsFlightPhases = flagsFlightPhases;
     }
-
-    /**
-     * @brief Updates the flags of the object with the flags sent from matlab
-     * and checks for the apogee
-     */
-    void updateSimulatorFlags(const SimulatorData& simulatorData) {}
 };
 
 class MotorHIL
