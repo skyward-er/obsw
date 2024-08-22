@@ -25,6 +25,7 @@
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -40,21 +41,21 @@ using namespace Motor;
 using namespace miosix;
 using namespace HILConfig;
 
-constexpr bool hilSimulationActive = true;
-
 int main()
 {
     ledOff();
 
     bool initResult = true;
 
+    PersistentVars *persistentVars = new PersistentVars();
+
     DependencyManager manager;
 
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Sensors *sensors =
-        (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
+    Sensors *sensors = (persistentVars->getHilMode() ? new HILSensors(ENABLE_HW)
+                                                     : new Sensors());
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
 
@@ -62,14 +63,15 @@ int main()
 
     // HIL
     MotorHIL *hil = nullptr;
-    if (hilSimulationActive)
+    if (persistentVars->getHilMode())
     {
         hil = new HILConfig::MotorHIL();
 
         initResult = initResult && manager.insert(hil);
     }
 
-    initResult = initResult && manager.insert<Buses>(buses) &&
+    initResult = initResult && manager.insert<PersistentVars>(persistentVars) &&
+                 manager.insert<Buses>(buses) &&
                  manager.insert<BoardScheduler>(scheduler) &&
                  manager.insert<Sensors>(sensors) &&
                  manager.insert<Actuators>(actuators) &&
@@ -90,16 +92,6 @@ int main()
     // led4: Everything ok
 
     // Start modules
-    if (!sensors->start())
-    {
-        initResult = false;
-        std::cout << "Error failed to start Sensors module" << std::endl;
-    }
-    else
-    {
-        led1On();
-    }
-
     if (!actuators->start())
     {
         initResult = false;
@@ -139,6 +131,24 @@ int main()
         std::cout << "Error failed to start SD" << std::endl;
     }
 
+    if (persistentVars->getHilMode())
+    {
+        if (!hil->start())
+        {
+            initResult = false;
+            std::cout << "Error failed to start HIL" << std::endl;
+        }
+
+        // Waiting for start of simulation
+        hil->waitStartSimulation();
+    }
+
+    if (!sensors->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start Sensors" << std::endl;
+    }
+
     if (initResult)
     {
         std::cout << "All good!" << std::endl;
@@ -156,18 +166,6 @@ int main()
     {
         std::cout << "- " << info.id << " status: " << info.isInitialized
                   << std::endl;
-    }
-
-    if (hilSimulationActive)
-    {
-        if (!hil->start())
-        {
-            initResult = false;
-            std::cout << "Error failed to start HIL" << std::endl;
-        }
-
-        // Waiting for start of simulation
-        hil->waitStartSimulation();
     }
 
     CpuMeterData cpuStats;

@@ -70,7 +70,7 @@ bool CanHandler::start()
                     static_cast<int16_t>(stats.logNumber),
                     static_cast<uint8_t>(initStatus.load()),
                     false,
-                    false,  // TODO: HIL
+                    getModule<PersistentVars>()->getHilMode(),
                     stats.lastWriteError == 0,
                 });
         },
@@ -228,7 +228,20 @@ void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
     CanConfig::EventId event =
         static_cast<CanConfig::EventId>(msg.getSecondaryType());
-    LOG_WARN(logger, "Received unrecognized event: {}", event);
+
+    if (event == Common::CanConfig::EventId::ENTER_HIL_MODE)
+    {
+        getModule<PersistentVars>()->setHilMode(true);
+        miosix::reboot();
+    }
+    else if (event == Common::CanConfig::EventId::EXIT_HIL_MODE)
+    {
+        if (getModule<PersistentVars>()->getHilMode())
+        {
+            getModule<PersistentVars>()->setHilMode(false);
+            miosix::reboot();
+        }
+    }
 
     EventData ev{TimestampTimer::getTimestamp(), msg.getSecondaryType(),
                  TOPIC_CAN};
