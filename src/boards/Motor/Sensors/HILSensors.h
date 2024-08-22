@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Giulia Facchi 
+ * Authors: Giulia Facchi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 #pragma once
 
 #include <Motor/Configs/HILSimulationConfig.h>
-#include <Motor/Sensors/ChamberPressureSensor/ChamberPressureSensor.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
 #include <sensors/HILSensor.h>
@@ -36,7 +35,7 @@ namespace Motor
 class HILSensors
     : public Boardcore::InjectableWithDeps<Boardcore::InjectableBase<Sensors>,
                                            HILConfig::MotorHIL>
-{                                          
+{
 public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
 
@@ -45,10 +44,9 @@ private:
     {
         using namespace Boardcore;
 
-        hillificator<>(chamberPressure, enableHw,
-                       [this]()
-                       { return updateChamberPressureSensorData(); });
-        
+        hillificator<>(ccPressure, enableHw,
+                       [this]() { return updateChamberPressureSensorData(); });
+
         return true;
     };
 
@@ -56,7 +54,7 @@ private:
 
     int getSampleCounter(int nData)
     {
-        auto ts           = miosix::getTime();
+        auto ts = miosix::getTime();
         auto tsSensorData =
             getModule<HILConfig::MotorHIL>()->getTimestampSimulatorData();
         auto simulationPeriod =
@@ -84,9 +82,9 @@ private:
         return sampleCounter;
     }
 
-    Boardcore::ChamberPressureSensorData updateChamberPressureSensorData()
+    Boardcore::PressureData updateChamberPressureSensorData()
     {
-        Boardcore::ChamberPressureSensorData data;
+        Boardcore::PressureData data;
 
         auto* sensorData = getModule<HILConfig::MotorHIL>()->getSensorData();
 

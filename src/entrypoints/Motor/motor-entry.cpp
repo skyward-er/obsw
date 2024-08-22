@@ -64,28 +64,16 @@ int main()
     MotorHIL *hil = nullptr;
     if (hilSimulationActive)
     {
-        auto updateActuatorData = [&]()
-        {
-            HILConfig::ActuatorsStateHIL actuatorsStateHIL{
-                actuators->getServoPosition(ServosList::MAIN_VALVE),
-                actuators->getServoPosition(ServosList::VENTING_VALVE)};
+        hil = new HILConfig::MotorHIL();
 
-            // Returning the feedback for the simulator
-            return HILConfig::ActuatorData(actuatorsStateHIL);
-        };
-
-        hil = new HILConfig::MotorHIL(nullptr, nullptr, updateActuatorData,
-                                      1000 / SIMULATION_RATE_INT);
-
-        initResult = initResult && depman.insert(hil);
+        initResult = initResult && manager.insert(hil);
     }
 
-    bool initResult = initResult && manager.insert<Buses>(buses) &&
-                      manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Sensors>(sensors) &&
-                      manager.insert<Actuators>(actuators) &&
-                      manager.insert<CanHandler>(canHandler) &&
-                      manager.inject();
+    initResult = initResult && manager.insert<Buses>(buses) &&
+                 manager.insert<BoardScheduler>(scheduler) &&
+                 manager.insert<Sensors>(sensors) &&
+                 manager.insert<Actuators>(actuators) &&
+                 manager.insert<CanHandler>(canHandler) && manager.inject();
 
     manager.graphviz(std::cout);
 
@@ -170,17 +158,17 @@ int main()
                   << std::endl;
     }
 
-    //  if (hilSimulationActive)
-    // {
-    //     if (!modules.get<MotorHIL>()->start())
-    //     {
-    //         initResult = false;
-    //         LOG_ERR(logger, "Error starting the HIL module");
-    //     }
+    if (hilSimulationActive)
+    {
+        if (!hil->start())
+        {
+            initResult = false;
+            std::cout << "Error failed to start HIL" << std::endl;
+        }
 
-    //     // Waiting for start of simulation
-    //     ModuleManager::getInstance().get<MotorHIL>()->waitStartSimulation();
-    // }
+        // Waiting for start of simulation
+        hil->waitStartSimulation();
+    }
 
     CpuMeterData cpuStats;
 
