@@ -24,6 +24,8 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
+#include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
@@ -36,23 +38,49 @@
 using namespace Boardcore;
 using namespace Motor;
 using namespace miosix;
+using namespace HILConfig;
+
+constexpr bool hilSimulationActive = true;
 
 int main()
 {
     ledOff();
+
+    bool initResult = true;
 
     DependencyManager manager;
 
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Sensors *sensors       = new Sensors();
+    Sensors *sensors =
+        (hilSimulationActive ? new HILSensors(ENABLE_HW) : new Sensors());
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
 
     Logger &sdLogger = Logger::getInstance();
 
-    bool initResult = manager.insert<Buses>(buses) &&
+    // HIL
+    MotorHIL *hil = nullptr;
+    if (hilSimulationActive)
+    {
+        auto updateActuatorData = [&]()
+        {
+            HILConfig::ActuatorsStateHIL actuatorsStateHIL{
+                actuators->getServoPosition(ServosList::MAIN_VALVE),
+                actuators->getServoPosition(ServosList::VENTING_VALVE)};
+
+            // Returning the feedback for the simulator
+            return HILConfig::ActuatorData(actuatorsStateHIL);
+        };
+
+        hil = new HILConfig::MotorHIL(nullptr, nullptr, updateActuatorData,
+                                      1000 / SIMULATION_RATE_INT);
+
+        initResult = initResult && depman.insert(hil);
+    }
+
+    bool initResult = initResult && manager.insert<Buses>(buses) &&
                       manager.insert<BoardScheduler>(scheduler) &&
                       manager.insert<Sensors>(sensors) &&
                       manager.insert<Actuators>(actuators) &&
@@ -142,7 +170,20 @@ int main()
                   << std::endl;
     }
 
+    //  if (hilSimulationActive)
+    // {
+    //     if (!modules.get<MotorHIL>()->start())
+    //     {
+    //         initResult = false;
+    //         LOG_ERR(logger, "Error starting the HIL module");
+    //     }
+
+    //     // Waiting for start of simulation
+    //     ModuleManager::getInstance().get<MotorHIL>()->waitStartSimulation();
+    // }
+
     CpuMeterData cpuStats;
+
     while (true)
     {
         // Log CpuMeter
