@@ -45,6 +45,10 @@ public:
         uint64_t liftoffMaxAccTs = 0;
         float liftoffMaxAcc      = 0.0f;
 
+        // Shutdown
+        uint64_t shutdownTs = 0;
+        float shutdownAlt   = 0.0f;
+
         // Maximum vertical speed
         uint64_t maxSpeedTs = 0;
         float maxSpeed      = 0.0f;
@@ -84,6 +88,7 @@ public:
     Stats getStats();
 
     void liftoffDetected(uint64_t ts);
+    void shutdownDetected(uint64_t ts, float alt);
     void apogeeDetected(uint64_t ts, float lat, float lon, float alt);
     void deploymentDetected(uint64_t ts, float alt);
 

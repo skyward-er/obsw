@@ -198,6 +198,14 @@ int main()
         std::cout << "Error failed to start FlightModeManager" << std::endl;
     }
 
+    if (!sdLogger.start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start SD" << std::endl;
+    }
+
+    sdLogger.resetStats();
+
     if (!initResult)
     {
         std::cout << "Init failure" << std::endl;

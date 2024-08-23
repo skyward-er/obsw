@@ -91,13 +91,13 @@ bool Actuators::start()
 void Actuators::setAbkPosition(float position)
 {
     Lock<FastMutex> lock{servosMutex};
-    servoAbk->setPosition(position);
+    unsafeSetServoPosition(servoAbk.get(), position);
 }
 
 void Actuators::openExpulsion()
 {
     Lock<FastMutex> lock{servosMutex};
-    servoExp->setPosition(1.0f);
+    unsafeSetServoPosition(servoExp.get(), 1.0f);
 }
 
 void Actuators::wiggleServo(ServosList servo)
@@ -106,9 +106,9 @@ void Actuators::wiggleServo(ServosList servo)
     Servo *info = getServo(servo);
     if (info != nullptr)
     {
-        info->setPosition(1.0f);
+        unsafeSetServoPosition(info, 1.0f);
         Thread::sleep(1000);
-        info->setPosition(0.0f);
+        unsafeSetServoPosition(info, 0.0f);
     }
     else
     {
@@ -207,6 +207,12 @@ void Actuators::buzzerOn()
 void Actuators::buzzerOff()
 {
     buzzer->disableChannel(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL);
+}
+
+void Actuators::unsafeSetServoPosition(Servo *servo, float position)
+{
+    servo->setPosition(position);
+    sdLogger.log(servo->getState());
 }
 
 Servo *Actuators::getServo(ServosList servo)

@@ -160,9 +160,14 @@ void Sensors::calibrate()
 
     // Calibrate all analog pressure sensors against the LPS28DFW
     float reference = lps28dfwAcc;
-    staticPressure1->updateOffset(staticPressure1Acc - reference);
-    staticPressure2->updateOffset(staticPressure2Acc - reference);
-    dplBayPressure->updateOffset(dplBayPressureAcc - reference);
+    if (reference > 100.0f)
+    {
+        // Calibrate sensors only if reference is valid
+        // LPS28DFW might be disabled or unresponsive
+        staticPressure1->updateOffset(staticPressure1Acc - reference);
+        staticPressure2->updateOffset(staticPressure2Acc - reference);
+        dplBayPressure->updateOffset(dplBayPressureAcc - reference);
+    }
 
     Lock<FastMutex> lock{gyroCalibrationMutex};
     gyroCalibration = gyroCalibrator.computeResult();
@@ -423,19 +428,74 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
     {
-        return {manager->getSensorInfo(lps22df.get()),
-                manager->getSensorInfo(lps28dfw.get()),
-                manager->getSensorInfo(h3lis331dl.get()),
-                manager->getSensorInfo(lis2mdl.get()),
-                manager->getSensorInfo(ubxgps.get()),
-                manager->getSensorInfo(lsm6dsrx.get()),
-                manager->getSensorInfo(vn100.get()),
-                manager->getSensorInfo(ads131m08.get()),
-                manager->getSensorInfo(internalAdc.get()),
-                manager->getSensorInfo(staticPressure1.get()),
-                manager->getSensorInfo(staticPressure2.get()),
-                manager->getSensorInfo(dplBayPressure.get()),
-                manager->getSensorInfo(rotatedImu.get())};
+        std::vector<SensorInfo> infos{};
+
+        if (lps22df)
+        {
+            infos.push_back(manager->getSensorInfo(lps22df.get()));
+        }
+
+        if (lps28dfw)
+        {
+            infos.push_back(manager->getSensorInfo(lps28dfw.get()));
+        }
+
+        if (h3lis331dl)
+        {
+            infos.push_back(manager->getSensorInfo(h3lis331dl.get()));
+        }
+
+        if (lis2mdl)
+        {
+            infos.push_back(manager->getSensorInfo(lis2mdl.get()));
+        }
+
+        if (ubxgps)
+        {
+            infos.push_back(manager->getSensorInfo(ubxgps.get()));
+        }
+
+        if (lsm6dsrx)
+        {
+            infos.push_back(manager->getSensorInfo(lsm6dsrx.get()));
+        }
+
+        if (vn100)
+        {
+            infos.push_back(manager->getSensorInfo(vn100.get()));
+        }
+
+        if (ads131m08)
+        {
+            infos.push_back(manager->getSensorInfo(ads131m08.get()));
+        }
+
+        if (internalAdc)
+        {
+            infos.push_back(manager->getSensorInfo(internalAdc.get()));
+        }
+
+        if (staticPressure1)
+        {
+            infos.push_back(manager->getSensorInfo(staticPressure1.get()));
+        }
+
+        if (staticPressure2)
+        {
+            infos.push_back(manager->getSensorInfo(staticPressure2.get()));
+        }
+
+        if (dplBayPressure)
+        {
+            infos.push_back(manager->getSensorInfo(dplBayPressure.get()));
+        }
+
+        if (rotatedImu)
+        {
+            infos.push_back(manager->getSensorInfo(rotatedImu.get()));
+        }
+
+        return infos;
     }
     else
     {

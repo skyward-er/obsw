@@ -134,6 +134,8 @@ void MEAController::update()
         NASState nas        = getModule<NASController>()->getNASState();
         ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
 
+        float mslAltitude = ref.refAltitude - nas.d;
+
         // TODO: Is this even correct?
         float aperture =
             getModule<Actuators>()->isCanServoOpen(ServosList::MAIN_VALVE)
@@ -156,7 +158,7 @@ void MEAController::update()
 
             if (nas.timestamp > lastNasTimestamp)
             {
-                step.withSpeedAndAlt(-nas.vd, ref.refAltitude - nas.d);
+                step.withSpeedAndAlt(-nas.vd, mslAltitude);
             }
 
             mea.update(step);
@@ -183,6 +185,9 @@ void MEAController::update()
                     // DO NOT THROW EVENTS IN SHADOW_MODE!
                     if (detectedShutdowns > Config::MEA::SHUTDOWN_N_SAMPLES)
                     {
+                        getModule<StatsRecorder>()->shutdownDetected(
+                            TimestampTimer::getTimestamp(), mslAltitude);
+
                         EventBroker::getInstance().post(MEA_SHUTDOWN_DETECTED,
                                                         TOPIC_MEA);
                     }
