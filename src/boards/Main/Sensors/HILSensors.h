@@ -35,7 +35,7 @@ namespace Main
 
 class HILSensors
     : public Boardcore::InjectableWithDeps<Boardcore::InjectableBase<Sensors>,
-                                           HILConfig::MainHIL>
+                                           MainHIL>
 {
 public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
@@ -49,14 +49,23 @@ private:
         // If full hil, use the can received samples
         if (!HILConfig::IS_FULL_HIL)
         {
-            // Creating the fake sensors for the can transmitted samples
-            pitotCreation();
-
             // Adding to sensorManager's scheduler a task to "sample" the
-            // combustion chamber pressure
+            // combustion chamber pressure coming from motor
             getSensorsScheduler().addTask([this]()
                                           { setCanCCPress(updateCCData()); },
                                           HILConfig::BARO_CHAMBER_RATE);
+
+            // Adding to sensorManager's scheduler a task to "sample" the
+            // pitot static and dynamic pressure coming from payload
+            getSensorsScheduler().addTask(
+                [this]()
+                { setCanPitotStaticPress(updateStaticPressurePitot()); },
+                HILConfig::BARO_CHAMBER_RATE);
+
+            getSensorsScheduler().addTask(
+                [this]()
+                { setCanPitotDynamicPress(updateDynamicPressurePitot()); },
+                HILConfig::BARO_CHAMBER_RATE);
         }
 
         hillificator<>(lps28dfw, enableHw,
@@ -81,32 +90,11 @@ private:
         return true;
     };
 
-    void pitotCreation()
-    {
-        pitot =
-            new Boardcore::Pitot([this]() { return getTotalPressurePitot(); },
-                                 [this]() { return getStaticPressurePitot(); });
-        pitot->setReferenceValues(
-            Common::ReferenceConfig::defaultReferenceValues);
-    }
-
-    void pitotCallback()
-    {
-        // Warning! Here we must use sensor->getLastSample() instead of
-        // getSensorLastSample() since we have to update the "can received
-        // value"
-        auto lastSample = pitot->getLastSample();
-        Boardcore::Logger::getInstance().log(lastSample);
-        // setPitot(lastSample); // TODO: set Pitot values
-    }
-
     int getSampleCounter(int nData)
     {
-        auto ts = miosix::getTime();
-        auto tsSensorData =
-            getModule<HILConfig::MainHIL>()->getTimestampSimulatorData();
-        auto simulationPeriod =
-            getModule<HILConfig::MainHIL>()->getSimulationPeriod();
+        auto ts           = miosix::getTime();
+        auto tsSensorData = getModule<MainHIL>()->getTimestampSimulatorData();
+        auto simulationPeriod = getModule<MainHIL>()->getSimulationPeriod();
 
         assert(ts >= tsSensorData &&
                "Actual timestamp is lesser then the packet timestamp");
@@ -134,7 +122,7 @@ private:
     {
         Boardcore::LPS28DFWData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
         int iTemp = getSampleCounter(sensorData->temperature.NDATA);
@@ -150,7 +138,7 @@ private:
     {
         Boardcore::LPS22DFData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
         int iTemp = getSampleCounter(sensorData->temperature.NDATA);
@@ -166,7 +154,7 @@ private:
     {
         Boardcore::H3LIS331DLData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iAcc = getSampleCounter(sensorData->accelerometer.NDATA);
 
@@ -182,7 +170,7 @@ private:
     {
         Boardcore::LIS2MDLData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iMag = getSampleCounter(sensorData->magnetometer.NDATA);
 
@@ -198,7 +186,7 @@ private:
     {
         Boardcore::UBXGPSData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iGps = getSampleCounter(sensorData->gps.NDATA);
 
@@ -226,7 +214,7 @@ private:
     {
         Boardcore::LSM6DSRXData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iAcc  = getSampleCounter(sensorData->accelerometer.NDATA);
         int iGyro = getSampleCounter(sensorData->gyro.NDATA);
@@ -249,7 +237,7 @@ private:
     {
         Boardcore::MPXH6115AData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
 
@@ -270,7 +258,7 @@ private:
     {
         Boardcore::PressureData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 
@@ -280,34 +268,34 @@ private:
         return data;
     };
 
-    float getTotalPressurePitot()
+    Boardcore::PressureData updateDynamicPressurePitot()
     {
-        float totalPressure;
+        Boardcore::PressureData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iPitot = getSampleCounter(sensorData->pitot.NDATA);
 
-        totalPressure = sensorData->pitot.staticPressure[iPitot] +
-                        sensorData->pitot.deltaP[iPitot];
+        data.pressureTimestamp = miosix::getTime();
+        data.pressure          = sensorData->pitot.deltaP[iPitot];
 
-        return totalPressure;
+        return data;
     };
 
-    float getStaticPressurePitot()
+    Boardcore::PressureData updateStaticPressurePitot()
     {
-        float staticPressure;
+        Boardcore::PressureData data;
 
-        auto* sensorData = getModule<HILConfig::MainHIL>()->getSensorData();
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
 
         int iPitot = getSampleCounter(sensorData->pitot.NDATA);
 
-        staticPressure = sensorData->pitot.staticPressure[iPitot];
+        data.pressureTimestamp = miosix::getTime();
+        data.pressure          = sensorData->pitot.staticPressure[iPitot];
 
-        return staticPressure;
+        return data;
     };
 
-    Boardcore::Pitot* pitot = nullptr;
     bool enableHw;
 };
 }  // namespace Main
