@@ -91,6 +91,8 @@ void ABKController::update()
     {
         // We transitioned into END, shut down the algorithm
         abk.end();
+        // Close the aerobrakes
+        getModule<Actuators>()->setAbkPosition(0.0f);
     }
 
     if (curState == ABKControllerState::ACTIVE)

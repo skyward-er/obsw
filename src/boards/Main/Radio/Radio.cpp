@@ -317,6 +317,39 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 {
     switch (tmId)
     {
+        case MAV_PIN_OBS_ID:
+        {
+            constexpr std::array<PinHandler::PinList, 5> PIN_LIST = {
+                PinHandler::PinList::RAMP_PIN,
+                PinHandler::PinList::DETACH_MAIN_PIN,
+                PinHandler::PinList::DETACH_PAYLOAD_PIN,
+                PinHandler::PinList::EXPULSION_SENSE,
+                PinHandler::PinList::CUTTER_SENSE,
+            };
+
+            PinHandler* pinHandler = getModule<PinHandler>();
+            for (auto pin : PIN_LIST)
+            {
+                mavlink_message_t msg;
+                mavlink_pin_tm_t tm;
+
+                auto pinData = pinHandler->getPinData(pin);
+
+                tm.timestamp             = TimestampTimer::getTimestamp();
+                tm.pin_id                = static_cast<uint8_t>(pin);
+                tm.last_change_timestamp = pinData.lastStateTimestamp;
+                tm.changes_counter       = pinData.changesCount;
+                tm.current_state         = pinData.lastState ? 1 : 0;
+
+                mavlink_msg_pin_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+                enqueuePacket(msg);
+            }
+
+            return true;
+        }
+
         case MAV_SENSORS_STATE_ID:
         {
             auto sensors = getModule<Sensors>()->getSensorInfos();

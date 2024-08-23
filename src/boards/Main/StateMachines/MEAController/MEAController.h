@@ -29,6 +29,7 @@
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/MEA/MEA.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
@@ -40,7 +41,8 @@ namespace Main
 class MEAController
     : public Boardcore::FSM<MEAController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
-                                           NASController, AlgoReference>
+                                           NASController, StatsRecorder,
+                                           AlgoReference>
 {
 public:
     MEAController();

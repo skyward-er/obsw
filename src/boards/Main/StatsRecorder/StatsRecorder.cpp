@@ -50,6 +50,13 @@ void StatsRecorder::liftoffDetected(uint64_t ts)
     stats.liftoffTs = ts;
 }
 
+void StatsRecorder::shutdownDetected(uint64_t ts, float alt)
+{
+    Lock<FastMutex> lock{statsMutex};
+    stats.shutdownTs  = ts;
+    stats.shutdownAlt = alt;
+}
+
 void StatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon, float alt)
 {
     Lock<FastMutex> lock{statsMutex};
