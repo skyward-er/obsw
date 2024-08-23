@@ -35,7 +35,6 @@ namespace FlightModeManager
 
 constexpr auto MISSION_TIMEOUT = 15min;
 constexpr auto APOGEE_TIMEOUT  = 32s;
-constexpr auto LOG_STOP_DELAY  = 30s;
 
 }  // namespace FlightModeManager
 }  // namespace Config
