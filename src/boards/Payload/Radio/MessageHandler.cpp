@@ -334,12 +334,11 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto gps         = sensors->getUBXGPSLastSample();
             auto pressDigi   = sensors->getLPS22DFLastSample();
             auto pressStatic = sensors->getStaticPressure();
-            auto pressPitot  = sensors->getPitotLastSample();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
-            tm.airspeed_pitot  = pressPitot.airspeed;
+            tm.airspeed_pitot  = -1.0f;  // TODO
             tm.altitude_agl    = -1.0f;  // TODO
 
             // Sensors

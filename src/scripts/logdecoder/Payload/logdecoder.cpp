@@ -60,6 +60,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<FlightModeManagerStatus>();
     ds.registerType<NASControllerStatus>();
     ds.registerType<WingControllerStatus>();
+    ds.registerType<StaticPressureData>();
+    ds.registerType<DynamicPressureData>();
     ds.registerType<SensorsCalibrationParameter>();
     ds.registerType<PinChangeData>();
 }
