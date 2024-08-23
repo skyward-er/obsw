@@ -25,7 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
-#include <Main/Configs/HILSimulationConfig.h>
+#include <Main/HIL/HIL.h>
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
@@ -78,17 +78,16 @@ int main()
     MEAController *mea      = new MEAController();
     ABKController *abk      = new ABKController();
     StatsRecorder *recorder = new StatsRecorder();
-    HILConfig::MainHIL *hil = nullptr;
+    MainHIL *hil            = nullptr;
 
     // HIL
     if (persistentVars->getHilMode())
     {
-        printf("MAIN SimulatorData: %d, ActuatorData: %d\n",
-               sizeof(HILConfig::SimulatorData),
-               sizeof(HILConfig::ActuatorData));
-        hil = new HILConfig::MainHIL();
+        std::cout << "MAIN SimulatorData: " << sizeof(SimulatorData)
+                  << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
+        hil = new MainHIL();
 
-        initResult &= manager.insert<HILConfig::MainHIL>(hil);
+        initResult &= manager.insert<MainHIL>(hil);
 
         sensors = new HILSensors(HILConfig::ENABLE_HW);
     }
@@ -235,13 +234,13 @@ int main()
         if (!HILConfig::IS_FULL_HIL)
         {
             hil->registerToFlightPhase(
-                HILConfig::MainFlightPhases::SHUTDOWN, [&]()
+                MainFlightPhases::SHUTDOWN, [&]()
                 { actuators->setCanServoOpen(ServosList::MAIN_VALVE, false); });
         }
 
         // If we are in hil mode, there won't be the rig to send the ignition
         // command. The Main will do it when receives the LIFTOFF command
-        hil->registerToFlightPhase(HILConfig::MainFlightPhases::LIFTOFF,
+        hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
                                    [&]()
                                    {
                                        printf("liftoff\n");
