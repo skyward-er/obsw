@@ -31,38 +31,6 @@ using namespace Boardcore;
 namespace config = Payload::Config::Sensors;
 namespace hwmap  = miosix::sensors;
 
-namespace
-{
-/**
- * @brief Logs the last sample of a sensor.
- */
-template <class Sensor>
-void logSample(Sensor* sensor)
-{
-    auto sample = sensor->getLastSample();
-    Logger::getInstance().log(sample);
-}
-
-/**
- * @brief Specialized log function for the LSM6DSRX sensor that also logs its
- * FIFO.
- */
-template <>
-void logSample(LSM6DSRX* sensor)
-{
-    auto sample       = sensor->getLastSample();
-    auto& fifo        = sensor->getLastFifo();
-    uint16_t fifoSize = sensor->getLastFifoSize();
-
-    Logger::getInstance().log(sample);
-    // Log every entry in the FIFO
-    for (uint16_t i = 0; i < fifoSize; i++)
-    {
-        Logger::getInstance().log(fifo.at(i));
-    }
-}
-}  // namespace
-
 namespace Payload
 {
 
@@ -80,7 +48,6 @@ bool Sensors::start()
     internalAdcCreate();
     staticPressureCreate();
     dynamicPressureCreate();
-    pitotCreate();
     imuCreate();
 
     // Return immediately if the hook fails as we cannot know what the hook does
@@ -102,7 +69,6 @@ bool Sensors::start()
     internalAdcInsert(map);
     staticPressureInsert(map);
     dynamicPressureInsert(map);
-    pitotInsert(map);
     imuInsert(map);
 
     bool magInit = magCalibrationInit(scheduler);
@@ -227,19 +193,17 @@ InternalADCData Sensors::getInternalADCLastSample()
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
-PressureData Sensors::getStaticPressure()
+StaticPressureData Sensors::getStaticPressure()
 {
-    return staticPressure ? staticPressure->getLastSample() : PressureData{};
+    return staticPressure ? StaticPressureData(staticPressure->getLastSample())
+                          : StaticPressureData{};
 }
 
-PressureData Sensors::getDynamicPressure()
+DynamicPressureData Sensors::getDynamicPressure()
 {
-    return dynamicPressure ? dynamicPressure->getLastSample() : PressureData{};
-}
-
-PitotData Sensors::getPitotLastSample()
-{
-    return pitot ? pitot->getLastSample() : PitotData{};
+    return dynamicPressure
+               ? DynamicPressureData(dynamicPressure->getLastSample())
+               : DynamicPressureData{};
 }
 
 IMUData Sensors::getIMULastSample()
@@ -290,26 +254,6 @@ MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
     return result;
 }
 
-void Sensors::pitotSetReferenceAltitude(float altitude)
-{
-    // TODO: reference altitude is unused in the pitot driver
-    miosix::PauseKernelLock pkLock;
-
-    ReferenceValues reference = pitot->getReferenceValues();
-    reference.refAltitude     = altitude;
-    pitot->setReferenceValues(reference);
-}
-
-void Sensors::pitotSetReferenceTemperature(float temperature)
-{
-    // TODO: proper synchronization requires changes in the pitot driver
-    miosix::PauseKernelLock pkLock;
-
-    ReferenceValues reference = pitot->getReferenceValues();
-    reference.refTemperature  = temperature + 273.15f;
-    pitot->setReferenceValues(reference);
-}
-
 std::vector<SensorInfo> Sensors::getSensorInfo()
 {
     if (manager)
@@ -325,7 +269,6 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
             manager->getSensorInfo(internalAdc.get()),
             manager->getSensorInfo(staticPressure.get()),
             manager->getSensorInfo(dynamicPressure.get()),
-            manager->getSensorInfo(pitot.get()),
             manager->getSensorInfo(imu.get()),
         };
     }
@@ -360,7 +303,11 @@ void Sensors::lps22dfInsert(SensorManager::SensorMap_t& map)
     if (lps22df)
     {
         auto info = SensorInfo("LPS22DF", config::LPS22DF::SAMPLING_RATE,
-                               [this] { logSample(lps22df.get()); });
+                               [this]
+                               {
+                                   auto sample = getLPS22DFLastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(lps22df.get(), info);
     }
 }
@@ -389,7 +336,11 @@ void Sensors::lps28dfwInsert(SensorManager::SensorMap_t& map)
     if (lps28dfw)
     {
         auto info = SensorInfo("LPS28DFW", config::LPS28DFW::SAMPLING_RATE,
-                               [this] { logSample(lps28dfw.get()); });
+                               [this]
+                               {
+                                   auto sample = getLPS28DFWLastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(lps28dfw.get(), info);
     }
 }
@@ -415,7 +366,11 @@ void Sensors::h3lis331dlInsert(SensorManager::SensorMap_t& map)
     if (h3lis331dl)
     {
         auto info = SensorInfo("H3LIS331DL", config::H3LIS331DL::SAMPLING_RATE,
-                               [this] { logSample(h3lis331dl.get()); });
+                               [this]
+                               {
+                                   auto sample = getH3LIS331DLLastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(h3lis331dl.get(), info);
     }
 }
@@ -446,7 +401,11 @@ void Sensors::lis2mdlInsert(SensorManager::SensorMap_t& map)
     if (lis2mdl)
     {
         auto info = SensorInfo("LIS2MDL", config::LIS2MDL::SAMPLING_RATE,
-                               [this] { logSample(lis2mdl.get()); });
+                               [this]
+                               {
+                                   auto sample = getLIS2MDLLastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(lis2mdl.get(), info);
     }
 }
@@ -471,7 +430,11 @@ void Sensors::ubxgpsInsert(SensorManager::SensorMap_t& map)
     if (ubxgps)
     {
         auto info = SensorInfo("UBXGPS", config::UBXGPS::SAMPLING_RATE,
-                               [this] { logSample(ubxgps.get()); });
+                               [this]
+                               {
+                                   auto sample = getUBXGPSLastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(ubxgps.get(), info);
     }
 }
@@ -519,7 +482,20 @@ void Sensors::lsm6dsrxInsert(SensorManager::SensorMap_t& map)
     if (lsm6dsrx)
     {
         auto info = SensorInfo("LSM6DSRX", config::LSM6DSRX::SAMPLING_RATE,
-                               [this] { logSample(lsm6dsrx.get()); });
+                               [this]
+                               {
+                                   auto& logger = Logger::getInstance();
+                                   auto sample  = getLSM6DSRXLastSample();
+                                   logger.log(sample);
+
+                                   // Log the FIFO
+                                   auto& fifo    = lsm6dsrx->getLastFifo();
+                                   auto fifoSize = lsm6dsrx->getLastFifoSize();
+                                   for (auto i = 0; i < fifoSize; i++)
+                                   {
+                                       logger.log(fifo.at(i));
+                                   }
+                               });
         map.emplace(lsm6dsrx.get(), info);
     }
 }
@@ -560,7 +536,11 @@ void Sensors::ads131m08Insert(SensorManager::SensorMap_t& map)
     if (ads131m08)
     {
         auto info = SensorInfo("ADS131M08", config::ADS131M08::SAMPLING_RATE,
-                               [this] { logSample(ads131m08.get()); });
+                               [this]
+                               {
+                                   auto sample = getADS131M08LastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(ads131m08.get(), info);
     }
 }
@@ -586,7 +566,11 @@ void Sensors::internalAdcInsert(SensorManager::SensorMap_t& map)
     {
         auto info =
             SensorInfo("InternalADC", config::InternalADC::SAMPLING_RATE,
-                       [this] { logSample(internalAdc.get()); });
+                       [this]
+                       {
+                           auto sample = getInternalADCLastSample();
+                           Logger::getInstance().log(sample);
+                       });
         map.emplace(internalAdc.get(), info);
     }
 }
@@ -616,7 +600,11 @@ void Sensors::staticPressureInsert(SensorManager::SensorMap_t& map)
     {
         auto info =
             SensorInfo("StaticPressure", config::StaticPressure::SAMPLING_RATE,
-                       [this] { logSample(staticPressure.get()); });
+                       [this]
+                       {
+                           auto sample = getStaticPressure();
+                           Logger::getInstance().log(sample);
+                       });
         map.emplace(staticPressure.get(), info);
     }
 }
@@ -646,37 +634,12 @@ void Sensors::dynamicPressureInsert(SensorManager::SensorMap_t& map)
     {
         auto info = SensorInfo("DynamicPressure",
                                config::DynamicPressure::SAMPLING_RATE,
-                               [this] { logSample(dynamicPressure.get()); });
+                               [this]
+                               {
+                                   auto sample = getDynamicPressure();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(dynamicPressure.get(), info);
-    }
-}
-
-void Sensors::pitotCreate()
-{
-    if (!(config::Pitot::ENABLED && config::StaticPressure::ENABLED &&
-          config::DynamicPressure::ENABLED && config::ADS131M08::ENABLED))
-    {
-        return;
-    }
-
-    auto readDynamicPressure = [this]
-    { return dynamicPressure->getLastSample().pressure; };
-
-    auto readStaticPressure = [this]
-    { return staticPressure->getLastSample().pressure; };
-
-    // TODO: pitot requires total pressure instead of dynamic pressure
-    pitot = std::make_unique<Pitot>(readDynamicPressure, readStaticPressure);
-    pitot->setReferenceValues(Common::ReferenceConfig::defaultReferenceValues);
-}
-
-void Sensors::pitotInsert(SensorManager::SensorMap_t& map)
-{
-    if (pitot)
-    {
-        auto info = SensorInfo("Pitot", config::Pitot::SAMPLING_RATE,
-                               [this] { logSample(pitot.get()); });
-        map.emplace(pitot.get(), info);
     }
 }
 
@@ -720,7 +683,11 @@ void Sensors::imuInsert(SensorManager::SensorMap_t& map)
     if (imu)
     {
         auto info = SensorInfo("IMU", config::IMU::SAMPLING_RATE,
-                               [this] { logSample(imu.get()); });
+                               [this]
+                               {
+                                   auto sample = getIMULastSample();
+                                   Logger::getInstance().log(sample);
+                               });
         map.emplace(imu.get(), info);
     }
 }

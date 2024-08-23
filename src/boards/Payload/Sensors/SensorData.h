@@ -23,8 +23,32 @@
 
 #pragma once
 
+#include <sensors/SensorData.h>
+
 namespace Payload
 {
+
+// Wrappers to differentiate static and dynamic pressure for logging
+
+struct StaticPressureData : public Boardcore::PressureData
+{
+    StaticPressureData() = default;
+
+    explicit StaticPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+};
+
+struct DynamicPressureData : public Boardcore::PressureData
+{
+    DynamicPressureData() = default;
+
+    explicit DynamicPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+};
 
 struct SensorsCalibrationParameter
 {

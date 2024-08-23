@@ -34,7 +34,6 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
-#include <sensors/analog/Pitot/Pitot.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -83,18 +82,14 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
-    Boardcore::PressureData getStaticPressure();
-    Boardcore::PressureData getDynamicPressure();
+    StaticPressureData getStaticPressure();
+    DynamicPressureData getDynamicPressure();
 
-    Boardcore::PitotData getPitotLastSample();
     Boardcore::IMUData getIMULastSample();
 
     Boardcore::BatteryVoltageSensorData getBatteryVoltage();
     Boardcore::BatteryVoltageSensorData getCamBatteryVoltage();
     Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
-
-    void pitotSetReferenceAltitude(float altitude);
-    void pitotSetReferenceTemperature(float temperature);
 
     /**
      * @brief Returns information about all sensors managed by this class
@@ -138,9 +133,6 @@ private:
     void dynamicPressureCreate();
     void dynamicPressureInsert(Boardcore::SensorManager::SensorMap_t& map);
 
-    void pitotCreate();
-    void pitotInsert(Boardcore::SensorManager::SensorMap_t& map);
-
     void imuCreate();
     void imuInsert(Boardcore::SensorManager::SensorMap_t& map);
 
@@ -171,7 +163,6 @@ protected:
 
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure;
     std::unique_ptr<Boardcore::MPXH6115A> dynamicPressure;
-    std::unique_ptr<Boardcore::Pitot> pitot;
     std::unique_ptr<Boardcore::RotatedIMU> imu;
 
 private:

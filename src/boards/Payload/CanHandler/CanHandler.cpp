@@ -137,12 +137,23 @@ bool CanHandler::start()
     auto pitotTask = scheduler.addTask(
         [this]()
         {
-            protocol->enqueueData(static_cast<uint8_t>(Priority::MEDIUM),
-                                  static_cast<uint8_t>(PrimaryType::SENSORS),
-                                  static_cast<uint8_t>(Board::PAYLOAD),
-                                  static_cast<uint8_t>(Board::BROADCAST),
-                                  static_cast<uint8_t>(SensorId::PITOT),
-                                  getModule<Sensors>()->getPitotLastSample());
+            auto staticPressure  = getModule<Sensors>()->getStaticPressure();
+            auto dynamicPressure = getModule<Sensors>()->getDynamicPressure();
+
+            protocol->enqueueData(
+                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(PrimaryType::SENSORS),
+                static_cast<uint8_t>(Board::PAYLOAD),
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(SensorId::PITOT_STATIC_PRESSURE),
+                staticPressure);
+            protocol->enqueueData(
+                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(PrimaryType::SENSORS),
+                static_cast<uint8_t>(Board::PAYLOAD),
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(SensorId::PITOT_DYNAMIC_PRESSURE),
+                dynamicPressure);
         },
         config::Pitot::PERIOD);
 

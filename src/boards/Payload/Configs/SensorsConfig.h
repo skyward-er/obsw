@@ -135,12 +135,6 @@ constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
 constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
 }  // namespace DynamicPressure
 
-namespace Pitot
-{
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
-}  // namespace Pitot
-
 namespace IMU
 {
 constexpr auto ENABLED       = true;

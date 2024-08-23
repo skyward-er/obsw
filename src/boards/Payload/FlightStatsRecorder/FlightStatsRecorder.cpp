@@ -73,7 +73,6 @@ void FlightStatsRecorder::update()
     Sensors* sensor           = getModule<Sensors>();
     AccelerometerData accData = sensor->getIMULastSample();
     PressureData baroData     = sensor->getStaticPressure();
-    PitotData pitotData       = sensor->getPitotLastSample();
     GPSData gpsData           = sensor->getUBXGPSLastSample();
     NASState nasData          = getModule<NASController>()->getNasState();
 
@@ -83,7 +82,6 @@ void FlightStatsRecorder::update()
     // Update the data
     updateAcc(flightState, accData);
     updateBaro(flightState, baroData);
-    updatePitot(flightState, pitotData);
     updateNAS(flightState, nasData);
 
     // If the apogee ts is different update the GPS apogee coordinates
@@ -144,15 +142,6 @@ void FlightStatsRecorder::updateBaro(FlightModeManagerState flightState,
 
     // Update the min
     stats.min_pressure = std::min(stats.min_pressure, data.pressure);
-}
-
-void FlightStatsRecorder::updatePitot(FlightModeManagerState flightState,
-                                      PitotData data)
-{
-    Lock<FastMutex> l(mutex);
-
-    stats.max_airspeed_pitot =
-        std::max(stats.max_airspeed_pitot, data.airspeed);
 }
 
 void FlightStatsRecorder::updateNAS(FlightModeManagerState flightState,
