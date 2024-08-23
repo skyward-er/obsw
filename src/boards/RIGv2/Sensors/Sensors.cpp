@@ -293,17 +293,36 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
     {
-        return {
-            manager->getSensorInfo(vesselWeight.get()),
-            manager->getSensorInfo(tankWeight.get()),
-            manager->getSensorInfo(vesselPressure.get()),
-            manager->getSensorInfo(fillingPressure.get()),
-            manager->getSensorInfo(topTankPressure.get()),
-            manager->getSensorInfo(bottomTankPressure.get()),
-            manager->getSensorInfo(internalAdc.get()),
-            manager->getSensorInfo(adc1.get()),
-            manager->getSensorInfo(tc1.get()),
-        };
+        std::vector<SensorInfo> infos{};
+
+        if (vesselWeight)
+            infos.push_back(manager->getSensorInfo(vesselWeight.get()));
+
+        if (tankWeight)
+            infos.push_back(manager->getSensorInfo(tankWeight.get()));
+
+        if (vesselPressure)
+            infos.push_back(manager->getSensorInfo(vesselPressure.get()));
+
+        if (fillingPressure)
+            infos.push_back(manager->getSensorInfo(fillingPressure.get()));
+
+        if (topTankPressure)
+            infos.push_back(manager->getSensorInfo(topTankPressure.get()));
+
+        if (bottomTankPressure)
+            infos.push_back(manager->getSensorInfo(bottomTankPressure.get()));
+
+        if (internalAdc)
+            infos.push_back(manager->getSensorInfo(internalAdc.get()));
+
+        if (adc1)
+            infos.push_back(manager->getSensorInfo(adc1.get()));
+
+        if (tc1)
+            infos.push_back(manager->getSensorInfo(tc1.get()));
+
+        return infos;
     }
     else
     {

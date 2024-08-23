@@ -32,11 +32,10 @@
 #include <common/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/StackLogger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
-// TODO(davide.mor): Remove TimestampTimer
-#include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
 using namespace Common;
@@ -45,7 +44,6 @@ using namespace miosix;
 
 int main()
 {
-    PrintLogger logger = Logging::getLogger("main");
     DependencyManager manager;
 
     Buses *buses              = new Buses();
@@ -86,27 +84,33 @@ int main()
 
     if (!initResult)
     {
-        LOG_ERR(logger, "Failed to inject dependencies");
+        std::cout << "Failed to inject dependencies" << std::endl;
         return 0;
     }
+
+    // Status led indicators
+    // led1: Sensors ok
+    // led2: Radio ok
+    // led3: CanBus ok
+    // led4: Everything ok
 
     // Start modules
     if (!sdLogger.testSDCard())
     {
         initResult = false;
-        LOG_ERR(logger, "SD card test failed");
+        std::cout << "SD card test failed" << std::endl;
     }
 
     if (!broker.start())
     {
         initResult = false;
-        LOG_ERR(logger, "Failed to start EventBroker");
+        std::cout << "Failed to start EventBroker" << std::endl;
     }
 
     if (!registry->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Registry module");
+        std::cout << "Error failed to start Registry module" << std::endl;
     }
 
     // Perform an initial registry load
@@ -115,54 +119,75 @@ int main()
     if (!actuators->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Actuators module");
-    }
-
-    if (!radio->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error failed to start Radio module");
+        std::cout << "Error failed to start Actuators module" << std::endl;
     }
 
     if (!sensors->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start Sensors module");
+        std::cout << "Error failed to start Sensors module" << std::endl;
+    }
+    else
+    {
+        led1On();
+    }
+
+    if (!radio->start())
+    {
+        initResult = false;
+        std::cout << "Error failed to start Radio module" << std::endl;
+    }
+    else
+    {
+        led2On();
     }
 
     if (!canHandler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start CanHandler module");
+        std::cout << "Error failed to start CanHandler module" << std::endl;
+    }
+    else
+    {
+        led3On();
     }
 
     if (!gmm->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start GroundModeManager module");
+        std::cout << "Error failed to start GroundModeManager module"
+                  << std::endl;
     }
 
     if (!tars1->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start TARS1 module");
+        std::cout << "Error failed to start TARS1 module" << std::endl;
     }
 
     if (!scheduler->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error failed to start scheduler");
+        std::cout << "Error failed to start scheduler" << std::endl;
     }
 
     if (!initResult)
     {
         broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
-        LOG_ERR(logger, "Init failure!");
+        std::cout << "Init failure!" << std::endl;
     }
     else
     {
         broker.post(FMM_INIT_OK, TOPIC_MOTOR);
-        LOG_INFO(logger, "All good!");
+        std::cout << "All good!" << std::endl;
+        led4On();
+    }
+
+    std::cout << "Sensor status:" << std::endl;
+    for (auto info : sensors->getSensorInfos())
+    {
+        std::cout << "- " << info.id << " status: " << info.isInitialized
+                  << std::endl;
     }
 
     // Periodic statistics
