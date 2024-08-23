@@ -181,27 +181,7 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
         default:
         {
             // Map the command to an event and post it, if it exists
-            auto event = [command]
-            {
-                switch (command)
-                {  // clang-format off
-                    case MAV_CMD_ARM:              return TMTC_ARM;
-                    case MAV_CMD_DISARM:           return TMTC_DISARM;
-                    case MAV_CMD_CALIBRATE:        return TMTC_CALIBRATE;
-                    case MAV_CMD_FORCE_INIT:       return TMTC_FORCE_INIT;
-                    case MAV_CMD_FORCE_LAUNCH:     return TMTC_FORCE_LAUNCH;
-                    case MAV_CMD_FORCE_LANDING:    return TMTC_FORCE_LANDING;
-                    case MAV_CMD_FORCE_EXPULSION:  return TMTC_FORCE_EXPULSION;
-                    case MAV_CMD_FORCE_DEPLOYMENT: return TMTC_FORCE_DEPLOYMENT;
-                    case MAV_CMD_FORCE_REBOOT:     return TMTC_RESET_BOARD;
-                    case MAV_CMD_ENTER_TEST_MODE:  return TMTC_ENTER_TEST_MODE;
-                    case MAV_CMD_EXIT_TEST_MODE:   return TMTC_EXIT_TEST_MODE;
-                    case MAV_CMD_START_RECORDING:  return TMTC_START_RECORDING;
-                    case MAV_CMD_STOP_RECORDING:   return TMTC_STOP_RECORDING;
-                    default:                       return LAST_EVENT;
-                }  // clang-format on
-            }();
-
+            auto event = mavCmdToEvent(command);
             if (event == LAST_EVENT)
             {
                 return enqueueNack(msg);
