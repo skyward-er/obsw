@@ -431,69 +431,43 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         std::vector<SensorInfo> infos{};
 
         if (lps22df)
-        {
             infos.push_back(manager->getSensorInfo(lps22df.get()));
-        }
 
         if (lps28dfw)
-        {
             infos.push_back(manager->getSensorInfo(lps28dfw.get()));
-        }
 
         if (h3lis331dl)
-        {
             infos.push_back(manager->getSensorInfo(h3lis331dl.get()));
-        }
 
         if (lis2mdl)
-        {
             infos.push_back(manager->getSensorInfo(lis2mdl.get()));
-        }
 
         if (ubxgps)
-        {
             infos.push_back(manager->getSensorInfo(ubxgps.get()));
-        }
 
         if (lsm6dsrx)
-        {
             infos.push_back(manager->getSensorInfo(lsm6dsrx.get()));
-        }
 
         if (vn100)
-        {
             infos.push_back(manager->getSensorInfo(vn100.get()));
-        }
 
         if (ads131m08)
-        {
             infos.push_back(manager->getSensorInfo(ads131m08.get()));
-        }
 
         if (internalAdc)
-        {
             infos.push_back(manager->getSensorInfo(internalAdc.get()));
-        }
 
         if (staticPressure1)
-        {
             infos.push_back(manager->getSensorInfo(staticPressure1.get()));
-        }
 
         if (staticPressure2)
-        {
             infos.push_back(manager->getSensorInfo(staticPressure2.get()));
-        }
 
         if (dplBayPressure)
-        {
             infos.push_back(manager->getSensorInfo(dplBayPressure.get()));
-        }
 
         if (rotatedImu)
-        {
             infos.push_back(manager->getSensorInfo(rotatedImu.get()));
-        }
 
         return infos;
     }
