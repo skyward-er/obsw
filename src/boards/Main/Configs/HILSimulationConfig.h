@@ -57,10 +57,10 @@
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <algorithms/NAS/NASState.h>
 
-// // ABK
-// #include <Main/StateMachines/ABKController/ABKController.h>
-// #include <Main/StateMachines/ABKController/ABKControllerData.h>
-// #include <algorithms/AirBrakes/AirBrakesInterp.h>
+// ABK
+#include <Main/StateMachines/ABKController/ABKController.h>
+#include <Main/StateMachines/ABKController/ABKControllerData.h>
+#include <algorithms/AirBrakes/AirBrakesInterp.h>
 
 // MEA
 #include <Main/StateMachines/MEAController/MEAController.h>
@@ -76,8 +76,8 @@
 namespace HILConfig
 {
 
-constexpr bool IS_FULL_HIL = false;
-constexpr bool ENABLE_HW   = true;
+constexpr bool IS_FULL_HIL = true;
+constexpr bool ENABLE_HW   = false;
 
 /** Period of simulation [ms] */
 constexpr auto SIMULATION_RATE    = 10_hz;
@@ -247,10 +247,10 @@ struct AirBrakesStateHIL
 
     AirBrakesStateHIL() : updating(0) {}
 
-    // AirBrakesStateHIL(Main::ABKControllerStatus abkStatus)
-    //     : updating(abkStatus.state == Main::ABKControllerState::ACTIVE)
-    // {
-    // }
+    AirBrakesStateHIL(Main::ABKControllerState state)
+        : updating(state == Main::ABKControllerState::ACTIVE)
+    {
+    }
 
     void print() { printf("updating: %+.3f\n", updating); }
 };
@@ -632,8 +632,8 @@ class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<
           Main::Buses, Main::Actuators, Main::FlightModeManager,
-          Main::ADAController, Main::NASController,
-          Main::MEAController /*, Main::ABKController */>
+          Main::ADAController, Main::NASController, Main::MEAController,
+          Main::ABKController>
 
 {
 public:
@@ -671,7 +671,7 @@ private:
             getModule<Main::NASController>()->getNASState()};
 
         AirBrakesStateHIL abkStateHIL{
-            /* modules.get<ABKController>()->getStatus() */};
+            getModule<Main::ABKController>()->getState()};
 
         MEAStateHIL meaStateHIL{
             getModule<Main::MEAController>()->getMEAState()};
