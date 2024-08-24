@@ -24,11 +24,13 @@
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/CanHandler/CanHandler.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
+#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -328,18 +330,22 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_payload_flight_tm_t tm;
 
             auto* sensors = parent.getModule<Sensors>();
+            auto* nas     = parent.getModule<NASController>();
+            auto* wes     = parent.getModule<WindEstimation>();
 
             auto imu         = sensors->getLSM6DSRXLastSample();
             auto mag         = sensors->getLIS2MDLLastSample();
             auto gps         = sensors->getUBXGPSLastSample();
             auto pressDigi   = sensors->getLPS28DFWLastSample();
             auto pressStatic = sensors->getStaticPressureLastSample();
+            auto nasState    = nas->getNasState();
+            auto wind        = wes->getWindEstimationScheme();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
             tm.airspeed_pitot  = -1.0f;  // TODO
-            tm.altitude_agl    = -1.0f;  // TODO
+            tm.altitude_agl    = -nasState.d;
 
             // Sensors
             tm.acc_x   = imu.accelerationX;
@@ -363,21 +369,21 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
                 ServosList::PARAFOIL_RIGHT_SERVO);
 
             // Algorithms
-            tm.nas_n      = -1.0f;  // TODO
-            tm.nas_e      = -1.0f;  // TODO
-            tm.nas_d      = -1.0f;  // TODO
-            tm.nas_vn     = -1.0f;  // TODO
-            tm.nas_ve     = -1.0f;  // TODO
-            tm.nas_vd     = -1.0f;  // TODO
-            tm.nas_qx     = -1.0f;  // TODO
-            tm.nas_qy     = -1.0f;  // TODO
-            tm.nas_qz     = -1.0f;  // TODO
-            tm.nas_qw     = -1.0f;  // TODO
-            tm.nas_bias_x = -1.0f;  // TODO
-            tm.nas_bias_y = -1.0f;  // TODO
-            tm.nas_bias_z = -1.0f;  // TODO
-            tm.wes_n      = -1.0;   // TODO
-            tm.wes_e      = -1.0;   // TODO
+            tm.nas_n      = nasState.n;
+            tm.nas_e      = nasState.e;
+            tm.nas_d      = nasState.d;
+            tm.nas_vn     = nasState.vn;
+            tm.nas_ve     = nasState.ve;
+            tm.nas_vd     = nasState.vd;
+            tm.nas_qx     = nasState.qx;
+            tm.nas_qy     = nasState.qy;
+            tm.nas_qz     = nasState.qz;
+            tm.nas_qw     = nasState.qw;
+            tm.nas_bias_x = nasState.bx;
+            tm.nas_bias_y = nasState.by;
+            tm.nas_bias_z = nasState.bz;
+            tm.wes_n      = wind[0];
+            tm.wes_e      = wind[1];
 
             tm.battery_voltage     = sensors->getBatteryVoltage().batVoltage;
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;
@@ -395,26 +401,32 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_message_t msg;
             mavlink_payload_stats_tm_t tm;
 
+            auto* fmm        = parent.getModule<FlightModeManager>();
+            auto* nas        = parent.getModule<NASController>();
             auto* pinHandler = parent.getModule<PinHandler>();
 
+            auto stats = parent.getModule<FlightStatsRecorder>()->getStats();
+            auto ref   = nas->getReferenceValues();
+
             // Liftoff stats
-            tm.liftoff_ts         = 0;      // TODO
-            tm.liftoff_max_acc_ts = 0;      // TODO
-            tm.liftoff_max_acc    = -1.0f;  // TODO
+            tm.liftoff_ts         = stats.liftoffTs;
+            tm.liftoff_max_acc_ts = stats.liftoffMaxAccTs;
+            tm.liftoff_max_acc    = stats.liftoffMaxAcc;
 
             // Max speed stats
-            tm.max_speed_ts       = 0;      // TODO
-            tm.max_mach_ts        = 0;      // TODO
-            tm.max_speed          = -1.0f;  // TODO
-            tm.max_speed_altitude = -1.0f;  // TODO
-            tm.max_mach           = -1.0f;  // TODO
+            tm.max_speed_ts       = stats.maxSpeedTs;
+            tm.max_mach_ts        = stats.maxMachTs;
+            tm.max_speed          = stats.maxSpeed;
+            tm.max_speed_altitude = stats.maxSpeedAlt;
+            tm.max_mach           = stats.maxMach;
 
             // Apogee stats
-            tm.apogee_ts      = 0;      // TODO
-            tm.apogee_lat     = -1.0f;  // TODO
-            tm.apogee_lon     = -1.0f;  // TODO
-            tm.apogee_alt     = -1.0f;  // TODO
-            tm.apogee_max_acc = -1.0f;  // TODO
+            tm.apogee_ts         = stats.apogeeTs;
+            tm.apogee_max_acc_ts = stats.apogeeMaxAccTs;
+            tm.apogee_lat        = stats.apogeeLat;
+            tm.apogee_lon        = stats.apogeeLon;
+            tm.apogee_alt        = stats.apogeeAlt;
+            tm.apogee_max_acc    = stats.apogeeMaxAcc;
 
             // Wing stats
             tm.wing_emc_n = -1.0f;  // TODO
@@ -425,17 +437,17 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.wing_m2_e  = -1.0f;  // TODO
 
             // Deployment stats
-            tm.dpl_ts         = 0;      // TODO
-            tm.dpl_max_acc_ts = 0;      // TODO
-            tm.dpl_alt        = -1.0f;  // TODO
-            tm.dpl_max_acc    = -1.0f;  // TODO
+            tm.dpl_ts         = stats.dplTs;
+            tm.dpl_max_acc_ts = stats.dplMaxAccTs;
+            tm.dpl_alt        = stats.dplAlt;
+            tm.dpl_max_acc    = stats.dplMaxAcc;
 
             // NAS reference values
-            tm.ref_lat = -1.0f;  // TODO
-            tm.ref_lon = -1.0f;  // TODO
-            tm.ref_alt = -1.0f;  // TODO
+            tm.ref_lat = ref.refLatitude;
+            tm.ref_lon = ref.refLongitude;
+            tm.ref_alt = ref.refAltitude;
 
-            tm.min_pressure = -1.0f;  // TODO
+            tm.min_pressure = stats.minPressure;
 
             // CPU stats
             auto cpuStats = CpuMeter::getCpuStats();
@@ -448,9 +460,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.log_number    = loggerStats.logNumber;
 
             // State machines
-            tm.fmm_state = static_cast<uint8_t>(
-                parent.getModule<FlightModeManager>()->getState());
-            tm.nas_state = 255;  // TODO
+            tm.fmm_state = static_cast<uint8_t>(fmm->getState());
+            tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.wes_state = 255;  // TODO
 
             // Pins
