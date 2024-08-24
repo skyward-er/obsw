@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/PersistentVars/PersistentVars.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>

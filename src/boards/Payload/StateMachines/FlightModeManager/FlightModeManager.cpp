@@ -42,6 +42,22 @@ namespace config = Payload::Config::FlightModeManager;
 namespace Payload
 {
 
+void enterHilMode()
+{
+    PersistentVars::setHilMode(true);
+    miosix::reboot();
+}
+
+void exitHilMode()
+{
+    // Reboot only if in HIL mode
+    if (PersistentVars::getHilMode())
+    {
+        PersistentVars::setHilMode(false);
+        miosix::reboot();
+    }
+}
+
 FlightModeManager::FlightModeManager()
     : HSM(&FlightModeManager::OnGround, miosix::STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::flightModeManagerPriority())
@@ -98,6 +114,20 @@ State FlightModeManager::OnGround(const Event& event)
         case TMTC_STOP_LOGGING:
         {
             Logger::getInstance().stop();
+            return HANDLED;
+        }
+
+        case TMTC_EXIT_HIL_MODE:
+        {
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EXIT_HIL_MODE);
+            miosix::Thread::sleep(1000);
+            exitHilMode();
+            return HANDLED;
+        }
+        case CAN_EXIT_HIL_MODE:
+        {
+            exitHilMode();
             return HANDLED;
         }
 
@@ -425,6 +455,20 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
         case TMTC_STOP_RECORDING:
         {
             getModule<Actuators>()->cameraOff();
+            return HANDLED;
+        }
+
+        case TMTC_ENTER_HIL_MODE:
+        {
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENTER_HIL_MODE);
+            miosix::Thread::sleep(1000);
+            enterHilMode();
+            return HANDLED;
+        }
+        case CAN_ENTER_HIL_MODE:
+        {
+            enterHilMode();
             return HANDLED;
         }
 
