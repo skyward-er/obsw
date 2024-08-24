@@ -24,6 +24,7 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <common/ReferenceConfig.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
@@ -435,6 +436,8 @@ void Sensors::h3lis331dlInit()
 void Sensors::h3lis331dlCallback()
 {
     auto sample = getH3LIS331DLLastSample();
+    // Update acceleration stats
+    getModule<FlightStatsRecorder>()->updateAcc(sample);
     Logger::getInstance().log(sample);
 }
 
@@ -621,6 +624,8 @@ void Sensors::staticPressureInit()
 void Sensors::staticPressureCallback()
 {
     auto sample = getStaticPressureLastSample();
+    // Update pressure stats
+    getModule<FlightStatsRecorder>()->updatePressure(sample);
     Logger::getInstance().log(sample);
 }
 

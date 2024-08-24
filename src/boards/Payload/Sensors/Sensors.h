@@ -44,11 +44,13 @@ namespace Payload
 {
 class BoardScheduler;
 class Buses;
+class FlightStatsRecorder;
 
 /**
  * @brief Manages all the sensors of the payload board.
  */
-class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler, Buses>
+class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler, Buses,
+                                                     FlightStatsRecorder>
 {
 public:
     [[nodiscard]] bool start();

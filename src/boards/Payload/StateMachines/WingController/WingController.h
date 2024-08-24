@@ -60,11 +60,13 @@ class BoardScheduler;
 class Actuators;
 class NASController;
 class WindEstimation;
+class FlightStatsRecorder;
 
 class WingController
     : public Boardcore::HSM<WingController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, WindEstimation>
+                                           NASController, WindEstimation,
+                                           FlightStatsRecorder>
 {
 public:
     /**

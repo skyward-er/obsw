@@ -34,6 +34,7 @@ class Sensors;
 class CanHandler;
 class Actuators;
 class AltitudeTrigger;
+class FlightStatsRecorder;
 
 /**
  * @brief State machine that manages the flight modes of the Payload.
@@ -41,7 +42,7 @@ class AltitudeTrigger;
 class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
       public Boardcore::InjectableWithDeps<Sensors, CanHandler, Actuators,
-                                           AltitudeTrigger>
+                                           AltitudeTrigger, FlightStatsRecorder>
 {
 public:
     FlightModeManager();

@@ -25,6 +25,7 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/WESConfig.h>
 #include <Payload/Configs/WingConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/WindEstimationScheme/WindEstimation.h>
@@ -101,7 +102,12 @@ State WingController::state_idle(const Boardcore::Event& event)
         }
         case FLIGHT_WING_DESCENT:
         {
+            float alt = -getModule<NASController>()->getNasState().d;
+
             getModule<Actuators>()->cuttersOn();
+            getModule<FlightStatsRecorder>()->deploymentDetected(
+                TimestampTimer::getTimestamp(), alt);
+
             return transition(&WingController::state_flying);
         }
         case EV_EMPTY:

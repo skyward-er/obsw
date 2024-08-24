@@ -22,6 +22,7 @@
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/NASConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <algorithms/NAS/StateInitializer.h>
@@ -342,6 +343,10 @@ void NASController::update()
         lastBaroTimestamp = baro.pressureTimestamp;
 
         auto state = nas.getState();
+
+        getModule<FlightStatsRecorder>()->updateNas(state);
+        getModule<FlightStatsRecorder>()->updateApogee(
+            state.timestamp, gps.latitude, gps.longitude, -state.d);
         Logger::getInstance().log(state);
     }
 }
