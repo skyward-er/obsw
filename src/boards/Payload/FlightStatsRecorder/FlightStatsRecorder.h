@@ -1,5 +1,5 @@
-/* Copyright (c) 2019-2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,63 +22,80 @@
 
 #pragma once
 
-#include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <algorithms/ADA/ADAData.h>
 #include <algorithms/NAS/NASState.h>
-#include <common/MavlinkGemini.h>
+#include <miosix.h>
 #include <sensors/SensorData.h>
-#include <sensors/analog/Pitot/PitotData.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload
 {
-class BoardScheduler;
-class Sensors;
-class NASController;
+
+class FlightModeManager;
 
 class FlightStatsRecorder
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           NASController, FlightModeManager>
+    : public Boardcore::InjectableWithDeps<FlightModeManager>
 {
 public:
-    /**
-     * @brief Initialises the FlightStatsRecorder to empty values
-     */
-    FlightStatsRecorder();
+    struct Stats
+    {
+        // Liftoff
+        uint64_t liftoffTs = 0;
 
-    /**
-     * @brief Adds a task to the scheduler to update the stats
-     */
-    bool start();
+        // Maximum acceleration during liftoff
+        uint64_t liftoffMaxAccTs = 0;
+        float liftoffMaxAcc      = 0.0f;
 
-    /**
-     * @brief Gets the packet already populated
-     */
-    mavlink_payload_stats_tm_t getStats();
+        // Shutdown
+        uint64_t shutdownTs = 0;
+        float shutdownAlt   = 0.0f;
+
+        // Maximum vertical speed
+        uint64_t maxSpeedTs = 0;
+        float maxSpeed      = 0.0f;
+        float maxSpeedAlt   = 0.0f;
+
+        // Max mach
+        uint64_t maxMachTs = 0;
+        float maxMach      = 0.0f;
+
+        // Apogee
+        uint64_t apogeeTs = 0;
+        float apogeeLat   = 0.0f;
+        float apogeeLon   = 0.0f;
+        float apogeeAlt   = 0.0f;
+
+        // Maximum acceleration after apogee
+        uint64_t apogeeMaxAccTs = 0;
+        float apogeeMaxAcc      = 0.0f;
+
+        // Deployment
+        uint64_t dplTs = 0;
+        float dplAlt   = 0.0f;
+
+        // Maximum acceleration after deployment
+        uint64_t dplMaxAccTs = 0;
+        float dplMaxAcc      = 0.0f;
+
+        // Minimum pressure (apogee pressure)
+        float minPressure = 0.0f;
+    };
+
+    void reset();
+
+    Stats getStats();
+
+    void liftoffDetected(uint64_t ts);
+    void shutdownDetected(uint64_t ts, float alt);
+    void apogeeDetected(uint64_t ts, float lat, float lon, float alt);
+    void deploymentDetected(uint64_t ts, float alt);
+
+    void updateAcc(const Boardcore::AccelerometerData &data);
+    void updateNas(const Boardcore::NASState &data);
+    void updatePressure(const Boardcore::PressureData &data);
 
 private:
-    /**
-     * @brief Update method that gathers all the info to update the data
-     * structure
-     */
-    void update();
-
-    // Update methods
-    void updateAcc(FlightModeManagerState flightState,
-                   Boardcore::AccelerometerData data);
-    void updateBaro(FlightModeManagerState flightState,
-                    Boardcore::PressureData data);
-    void updateDPLPressure(FlightModeManagerState flightState,
-                           Boardcore::PressureData data);
-    void updatePitot(FlightModeManagerState flightState,
-                     Boardcore::PitotData data);
-    void updateNAS(FlightModeManagerState flightState,
-                   Boardcore::NASState data);
-
-    // Data structure
-    mavlink_payload_stats_tm_t stats;
-
-    // Update mutex
-    miosix::FastMutex mutex;
+    miosix::FastMutex statsMutex;
+    Stats stats;
 };
+
 }  // namespace Payload
