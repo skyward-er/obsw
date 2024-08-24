@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <sensors/HILSimulatorData.h>
 #include <units/Frequency.h>
 #include <units/Units.h>
 

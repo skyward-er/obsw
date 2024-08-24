@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Configs/HILSimulationConfig.h>
+#include <sensors/HILSimulatorData.h>
 
 // FMM
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>

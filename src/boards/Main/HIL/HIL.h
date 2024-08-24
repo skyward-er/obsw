@@ -29,24 +29,12 @@
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/HIL/HILData.h>
 #include <common/Events.h>
-#include <drivers/timer/TimestampTimer.h>
-#include <drivers/usart/USART.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
 #include <interfaces-impl/hwmapping.h>
-#include <math.h>
-#include <sensors/HILSimulatorData.h>
-#include <sensors/SensorInfo.h>
-#include <units/Frequency.h>
-#include <units/Units.h>
-#include <utils/Debug.h>
 #include <utils/DependencyManager/DependencyManager.h>
-#include <utils/Stats/Stats.h>
 
-#include <chrono>
-#include <list>
-
-#include "drivers/usart/USART.h"
+#include "HILData.h"
 
 namespace Main
 {
@@ -275,10 +263,9 @@ private:
 
 class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
-      public Boardcore::InjectableWithDeps<
-          Main::Buses, Main::Actuators, Main::FlightModeManager,
-          Main::ADAController, Main::NASController, Main::MEAController,
-          Main::ABKController>
+      public Boardcore::InjectableWithDeps<Buses, Actuators, FlightModeManager,
+                                           ADAController, NASController,
+                                           MEAController, ABKController>
 
 {
 public:
@@ -291,8 +278,8 @@ public:
 
     bool start() override
     {
-        auto* nas      = getModule<Main::NASController>();
-        auto& hilUsart = getModule<Main::Buses>()->getHILUart();
+        auto* nas      = getModule<NASController>();
+        auto& hilUsart = getModule<Buses>()->getHILUart();
 
         hilPhasesManager = new MainHILPhasesManager(
             [nas]()
@@ -307,19 +294,18 @@ public:
 private:
     ActuatorData updateActuatorData()
     {
-        auto actuators = getModule<Main::Actuators>();
+        auto actuators = getModule<Actuators>();
 
-        ADAStateHIL adaStateHIL{getModule<Main::ADAController>()->getADAState(),
-                                getModule<Main::ADAController>()->getState()};
+        ADAStateHIL adaStateHIL{getModule<ADAController>()->getADAState(),
+                                getModule<ADAController>()->getState()};
 
-        NASStateHIL nasStateHIL{getModule<Main::NASController>()->getNASState(),
-                                getModule<Main::NASController>()->getState()};
+        NASStateHIL nasStateHIL{getModule<NASController>()->getNASState(),
+                                getModule<NASController>()->getState()};
 
-        AirBrakesStateHIL abkStateHIL{
-            getModule<Main::ABKController>()->getState()};
+        AirBrakesStateHIL abkStateHIL{getModule<ABKController>()->getState()};
 
-        MEAStateHIL meaStateHIL{getModule<Main::MEAController>()->getMEAState(),
-                                getModule<Main::MEAController>()->getState()};
+        MEAStateHIL meaStateHIL{getModule<MEAController>()->getMEAState(),
+                                getModule<MEAController>()->getState()};
 
         ActuatorsStateHIL actuatorsStateHIL{
             actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
