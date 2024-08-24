@@ -22,6 +22,7 @@
 
 #include "FlightStatsRecorder.h"
 
+#include <Payload/Configs/NASConfig.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/ReferenceConfig.h>
 #include <utils/AeroUtils/AeroUtils.h>
@@ -52,28 +53,56 @@ void FlightStatsRecorder::liftoffDetected(uint64_t ts)
     stats.liftoffTs = ts;
 }
 
-void FlightStatsRecorder::shutdownDetected(uint64_t ts, float alt)
-{
-    Lock<FastMutex> lock{statsMutex};
-    stats.shutdownTs  = ts;
-    stats.shutdownAlt = alt;
-}
-
-void FlightStatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon,
-                                         float alt)
-{
-    Lock<FastMutex> lock{statsMutex};
-    stats.apogeeTs  = ts;
-    stats.apogeeLat = lat;
-    stats.apogeeLon = lon;
-    stats.apogeeAlt = alt;
-}
-
 void FlightStatsRecorder::deploymentDetected(uint64_t ts, float alt)
 {
     Lock<FastMutex> lock{statsMutex};
     stats.dplTs  = ts;
     stats.dplAlt = alt;
+}
+
+void FlightStatsRecorder::updateApogee(uint64_t ts, float lat, float lon,
+                                       float alt)
+{
+    auto state = getModule<FlightModeManager>()->getState();
+
+    if (state != FlightModeManagerState::FLYING_ASCENDING &&
+        state != FlightModeManagerState::FLYING_DROGUE_DESCENT)
+    {
+        // Only record apogee during ascent and drogue descent
+        return;
+    }
+
+    Lock<FastMutex> lock{apogeeMutex};
+
+    // Update the position with the maximum altitude
+    if (alt > maxAltStats.alt)
+    {
+        maxAltStats.timestamp = ts;
+        maxAltStats.lat       = lat;
+        maxAltStats.lon       = lon;
+        maxAltStats.alt       = alt;
+
+        maxAltStats.apogeeConfidence = 0;
+    }
+    else
+    {
+        // No new maximum altitude, increase confidence
+        maxAltStats.apogeeConfidence++;
+    }
+
+    // Update rate * 2 for 2 seconds of confidence
+    constexpr auto CONFIDENCE_THRESHOLD = Config::NAS::UPDATE_RATE.value() * 2;
+
+    // If the confidence is high enough, we can consider this the apogee
+    // Use an equality check to avoid updating the apogee multiple times
+    if (maxAltStats.apogeeConfidence == CONFIDENCE_THRESHOLD)
+    {
+        Lock<FastMutex> sLock{statsMutex};
+        stats.apogeeTs  = ts;
+        stats.apogeeLat = lat;
+        stats.apogeeLon = lon;
+        stats.apogeeAlt = alt;
+    }
 }
 
 void FlightStatsRecorder::updateAcc(const AccelerometerData &data)

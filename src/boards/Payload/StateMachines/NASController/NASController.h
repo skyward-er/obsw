@@ -33,10 +33,12 @@ namespace Payload
 {
 class BoardScheduler;
 class Sensors;
+class FlightStatsRecorder;
 
 class NASController
     : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
+      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                           FlightStatsRecorder>
 {
 public:
     /**

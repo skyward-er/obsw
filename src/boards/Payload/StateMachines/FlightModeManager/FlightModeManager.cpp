@@ -27,6 +27,7 @@
 #include <Payload/BoardScheduler.h>
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/Configs/FlightModeManagerConfig.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -490,6 +491,8 @@ State FlightModeManager::Armed(const Event& event)
         case CAN_LIFTOFF:
         case FLIGHT_LAUNCH_PIN_DETACHED:
         {
+            getModule<FlightStatsRecorder>()->liftoffDetected(
+                TimestampTimer::getTimestamp());
             return transition(&FlightModeManager::Flying);
         }
 
