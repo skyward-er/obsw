@@ -21,12 +21,11 @@
  */
 #pragma once
 
-#include <Main/Configs/HILSimulationConfig.h>
+#include <Main/HIL/HIL.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
 #include <sensors/HILSensor.h>
 #include <sensors/Sensor.h>
-#include <sensors/analog/Pitot/Pitot.h>
 
 #include "Sensors.h"
 
@@ -43,29 +42,28 @@ public:
 private:
     bool postSensorCreationHook() override
     {
-        using namespace HILConfig;
         using namespace Boardcore;
 
         // If full hil, use the can received samples
-        if (!HILConfig::IS_FULL_HIL)
+        if (!Config::HIL::IS_FULL_HIL)
         {
             // Adding to sensorManager's scheduler a task to "sample" the
             // combustion chamber pressure coming from motor
             getSensorsScheduler().addTask([this]()
                                           { setCanCCPress(updateCCData()); },
-                                          HILConfig::BARO_CHAMBER_RATE);
+                                          Config::HIL::BARO_CHAMBER_RATE);
 
             // Adding to sensorManager's scheduler a task to "sample" the
             // pitot static and dynamic pressure coming from payload
             getSensorsScheduler().addTask(
                 [this]()
                 { setCanPitotStaticPress(updateStaticPressurePitot()); },
-                HILConfig::BARO_CHAMBER_RATE);
+                Config::HIL::BARO_PITOT_RATE);
 
             getSensorsScheduler().addTask(
                 [this]()
                 { setCanPitotDynamicPress(updateDynamicPressurePitot()); },
-                HILConfig::BARO_CHAMBER_RATE);
+                Config::HIL::BARO_PITOT_RATE);
         }
 
         hillificator<>(lps28dfw, enableHw,
