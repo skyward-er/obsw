@@ -28,8 +28,11 @@
 #include <Payload/Buses.h>
 #include <Payload/CanHandler/CanHandler.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Payload/HIL/HIL.h>
+#include <Payload/PersistentVars/PersistentVars.h>
 #include <Payload/PinHandler/PinHandler.h>
 #include <Payload/Radio/Radio.h>
+#include <Payload/Sensors/HILSensors.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
@@ -130,7 +133,9 @@ int main()
     initResult &= depman.insert(nasController);
 
     // Sensors
-    auto sensors = new Sensors();
+    auto sensors =
+        (PersistentVars::getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
+                                      : new Sensors());
     initResult &= depman.insert(sensors);
     auto pinHandler = new PinHandler();
     initResult &= depman.insert(pinHandler);
@@ -157,6 +162,17 @@ int main()
     auto statsRecorder = new FlightStatsRecorder();
     initResult &= depman.insert(statsRecorder);
 
+    // HIL
+    PayloadHIL* hil = nullptr;
+    if (PersistentVars::getHilMode())
+    {
+        std::cout << "PAYLOAD SimulatorData: " << sizeof(SimulatorData)
+                  << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
+
+        hil = new PayloadHIL();
+        initResult &= depman.insert(hil);
+    }
+
     std::cout << "Injecting module dependencies" << std::endl;
     initResult &= depman.inject();
 
@@ -176,7 +192,6 @@ int main()
     START_SINGLETON(EventBroker);
 
     // Start module instances
-    START_MODULE(sensors) { miosix::led1On(); }
     START_MODULE(pinHandler);
     START_MODULE(radio) { miosix::led2On(); }
     START_MODULE(canHandler) { miosix::led3On(); }
@@ -198,6 +213,18 @@ int main()
             EventData ev{TimestampTimer::getTimestamp(), event, topic};
             Logger::getInstance().log(ev);
         });
+
+    if (hil)
+    {
+        START_MODULE(hil);
+
+        std::cout << "Waiting start simulation" << std::endl;
+        hil->waitStartSimulation();
+    }
+
+    // Wait for simulation start before starting sensors to avoid initializing
+    // them with invalid data
+    START_MODULE(sensors) { miosix::led1On(); }
 
     if (initResult)
     {

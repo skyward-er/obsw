@@ -115,7 +115,7 @@ bool CanHandler::start()
                   .logNumber = static_cast<int16_t>(logStats.logNumber),
                   .state     = static_cast<uint8_t>(state),
                   .armed     = state == FlightModeManagerState::ARMED,
-                  .hil       = false,  // TODO: hil
+                  .hil       = PersistentVars::getHilMode(),
                   .logGood   = logStats.lastWriteError == 0,
             };
 

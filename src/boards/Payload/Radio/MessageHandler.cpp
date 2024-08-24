@@ -613,7 +613,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.motor_can_status = canStatus.isMotorConnected();
             tm.rig_can_status   = canStatus.isRigConnected();
 
-            tm.hil_state = 0;  // TODO: hil
+            tm.hil_state = PersistentVars::getHilMode();
 
             mavlink_msg_payload_stats_tm_encode(config::Mavlink::SYSTEM_ID,
                                                 config::Mavlink::COMPONENT_ID,

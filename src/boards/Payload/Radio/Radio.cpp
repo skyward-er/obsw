@@ -98,7 +98,9 @@ bool Radio::start()
         return false;
     }
 
-    if (config::MAVLINK_OVER_HIL_SERIAL_ENABLED)
+    // Enable Mavlink over HIL USART only when HIL is not active
+    if (config::MAVLINK_OVER_HIL_SERIAL_ENABLED &&
+        !PersistentVars::getHilMode())
     {
         initMavlinkOverSerial();
     }
@@ -132,8 +134,6 @@ bool Radio::isStarted() { return started; }
 
 void Radio::initMavlinkOverSerial()
 {
-    // Send Mavlink messages over the HIL USART when HIL is not active
-    // TODO: hil - don't use serial if hil is active
     serialTransceiver =
         std::make_unique<SerialTransceiver>(getModule<Buses>()->HILUart());
 
