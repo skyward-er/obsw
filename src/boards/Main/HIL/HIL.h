@@ -285,7 +285,7 @@ public:
     MainHIL()
         : Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>(
               nullptr, nullptr, [this]() { return updateActuatorData(); },
-              1000 / HILConfig::SIMULATION_RATE.value())
+              1000 / Config::HIL::SIMULATION_RATE.value())
     {
     }
 

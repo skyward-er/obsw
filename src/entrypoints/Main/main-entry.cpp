@@ -89,7 +89,7 @@ int main()
 
         initResult &= manager.insert<MainHIL>(hil);
 
-        sensors = new HILSensors(HILConfig::ENABLE_HW);
+        sensors = new HILSensors(Config::HIL::ENABLE_HW);
     }
     else
     {
@@ -228,10 +228,10 @@ int main()
 
     if (persistentVars->getHilMode())
     {
-        printf("starting hil\n");
+        std::cout << "Starting HIL" << std::endl;
         hil->start();
 
-        if (!HILConfig::IS_FULL_HIL)
+        if (!Config::HIL::IS_FULL_HIL)
         {
             hil->registerToFlightPhase(
                 MainFlightPhases::SHUTDOWN, [&]()
@@ -243,8 +243,8 @@ int main()
         hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
                                    [&]()
                                    {
-                                       printf("liftoff\n");
-                                       if (HILConfig::IS_FULL_HIL)
+                                       std::cout << "LIFTOFF!" << std::endl;
+                                       if (Config::HIL::IS_FULL_HIL)
                                        {
                                            canHandler->sendServoOpenCommand(
                                                ServosList::MAIN_VALVE, 7000);
@@ -256,7 +256,7 @@ int main()
                                        }
                                    });
 
-        printf("Waiting start simulation\n");
+        std::cout << "Waiting start simulation" << std::endl;
         hil->waitStartSimulation();
     }
 

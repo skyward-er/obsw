@@ -50,6 +50,24 @@
 namespace Main
 {
 
+// Sensors Data
+using MainAccelerometerSimulatorData =
+    Boardcore::AccelerometerSimulatorData<Config::HIL::N_DATA_ACCEL>;
+using MainGyroscopeSimulatorData =
+    Boardcore::GyroscopeSimulatorData<Config::HIL::N_DATA_GYRO>;
+using MainMagnetometerSimulatorData =
+    Boardcore::MagnetometerSimulatorData<Config::HIL::N_DATA_MAGNETO>;
+using MainGPSSimulatorData =
+    Boardcore::GPSSimulatorData<Config::HIL::N_DATA_GPS>;
+using MainBarometerSimulatorData =
+    Boardcore::BarometerSimulatorData<Config::HIL::N_DATA_BARO_STATIC>;
+using MainChamberPressureSimulatorData =
+    Boardcore::BarometerSimulatorData<Config::HIL::N_DATA_BARO_CHAMBER>;
+using MainPitotSimulatorData =
+    Boardcore::PitotSimulatorData<Config::HIL::N_DATA_PITOT>;
+using MainTemperatureSimulatorData =
+    Boardcore::TemperatureSimulatorData<Config::HIL::N_DATA_TEMP>;
+
 enum class MainFlightPhases
 {
     SIM_FLYING,
@@ -268,14 +286,14 @@ struct ActuatorsStateHIL
  */
 struct SimulatorData
 {
-    HILConfig::MainAccelerometerSimulatorData accelerometer;
-    HILConfig::MainGyroscopeSimulatorData gyro;
-    HILConfig::MainMagnetometerSimulatorData magnetometer;
-    HILConfig::MainGPSSimulatorData gps;
-    HILConfig::MainBarometerSimulatorData barometer1, barometer2, barometer3;
-    HILConfig::MainChamberPressureSimulatorData pressureChamber;
-    HILConfig::MainPitotSimulatorData pitot;
-    HILConfig::MainTemperatureSimulatorData temperature;
+    MainAccelerometerSimulatorData accelerometer;
+    MainGyroscopeSimulatorData gyro;
+    MainMagnetometerSimulatorData magnetometer;
+    MainGPSSimulatorData gps;
+    MainBarometerSimulatorData barometer1, barometer2, barometer3;
+    MainChamberPressureSimulatorData pressureChamber;
+    MainPitotSimulatorData pitot;
+    MainTemperatureSimulatorData temperature;
     float signal;
 };
 
