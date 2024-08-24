@@ -26,6 +26,7 @@
 #include <Payload/Buses.h>
 #include <common/ReferenceConfig.h>
 #include <interfaces-impl/hwmapping.h>
+#include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
 using namespace Boardcore;
 namespace config = Payload::Config::Sensors;
@@ -36,19 +37,55 @@ namespace Payload
 
 bool Sensors::start()
 {
-    auto& scheduler = getModule<BoardScheduler>()->sensors();
+    // Read the magnetometer calibration data from file
+    magCalibration.fromFile(config::MagCalibration::CALIBRATION_PATH);
 
-    lps22dfCreate();
-    lps28dfwCreate();
-    h3lis331dlCreate();
-    lis2mdlCreate();
-    ubxgpsCreate();
-    lsm6dsrxCreate();
-    ads131m08Create();
-    internalAdcCreate();
-    staticPressureCreate();
-    dynamicPressureCreate();
-    imuCreate();
+    if (Config::Sensors::LPS22DF::ENABLED)
+    {
+        lps22dfInit();
+    }
+
+    if (Config::Sensors::LPS28DFW::ENABLED)
+    {
+        lps28dfwInit();
+    }
+
+    if (Config::Sensors::H3LIS331DL::ENABLED)
+    {
+        h3lis331dlInit();
+    }
+
+    if (Config::Sensors::LIS2MDL::ENABLED)
+    {
+        lis2mdlInit();
+    }
+
+    if (Config::Sensors::UBXGPS::ENABLED)
+    {
+        ubxgpsInit();
+    }
+
+    if (Config::Sensors::LSM6DSRX::ENABLED)
+    {
+        lsm6dsrxInit();
+    }
+
+    if (Config::Sensors::ADS131M08::ENABLED)
+    {
+        ads131m08Init();
+        staticPressureInit();
+        dynamicPressureInit();
+    }
+
+    if (Config::Sensors::InternalADC::ENABLED)
+    {
+        internalAdcInit();
+    }
+
+    if (Config::Sensors::IMU::ENABLED)
+    {
+        rotatedImuInit();
+    }
 
     // Return immediately if the hook fails as we cannot know what the hook does
     if (!postSensorCreationHook())
@@ -57,35 +94,32 @@ bool Sensors::start()
         return false;
     }
 
-    // Insert all sensors in the sensor map
-    SensorManager::SensorMap_t map;
-    lps22dfInsert(map);
-    lps28dfwInsert(map);
-    h3lis331dlInsert(map);
-    lis2mdlInsert(map);
-    ubxgpsInsert(map);
-    lsm6dsrxInsert(map);
-    ads131m08Insert(map);
-    internalAdcInsert(map);
-    staticPressureInsert(map);
-    dynamicPressureInsert(map);
-    imuInsert(map);
-
-    bool magInit = magCalibrationInit(scheduler);
-    if (!magInit)
+    if (!sensorManagerInit())
     {
-        LOG_ERR(logger, "Magnetometer calibration initialization failed");
+        LOG_ERR(logger, "Failed to initialize SensorManager");
         return false;
     }
 
-    manager             = std::make_unique<SensorManager>(map, &scheduler);
-    bool managerStarted = manager->start();
+    auto& scheduler = getModule<BoardScheduler>()->sensors();
 
-    if (!managerStarted)
+    magCalibrationTaskId = scheduler.addTask(
+        [this]()
+        {
+            auto mag = getLIS2MDLLastSample();
+
+            miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
+            magCalibrator.feed(mag);
+        },
+        config::MagCalibration::SAMPLING_RATE);
+
+    if (magCalibrationTaskId == 0)
     {
-        LOG_ERR(logger, "Sensor manager failed to start");
+        LOG_ERR(logger, "Failed to add mag calibration task");
         return false;
     }
+
+    // Immediately disable the task
+    scheduler.disableTask(magCalibrationTaskId);
 
     started = true;
     return true;
@@ -95,62 +129,98 @@ bool Sensors::isStarted() { return started; }
 
 void Sensors::calibrate()
 {
-    // Create the stats to calibrate the barometers
-    Stats lps28dfwStats;
-    Stats staticPressureStats;
-    Stats dynamicPressureStats;
+    BiasCalibration gyroCalibrator{};
+    float staticPressureSum  = 0.0f;
+    float dynamicPressureSum = 0.0f;
+    float lps28dfwSum        = 0.0f;
 
     using namespace std::chrono;
     auto start = steady_clock::now();
 
-    // Populate stats with samples
-    for (auto i = 0; i < config::Calibration::SAMPLE_COUNT; i++)
+    // Accumulate samples
+    for (int i = 0; i < config::Calibration::SAMPLE_COUNT; i++)
     {
-        lps28dfwStats.add(getLPS28DFWLastSample().pressure);
-        staticPressureStats.add(getStaticPressure().pressure);
-        dynamicPressureStats.add(getDynamicPressure().pressure);
+        auto lsm6dsrx        = getLSM6DSRXLastSample();
+        auto staticPressure  = getStaticPressureLastSample();
+        auto dynamicPressure = getDynamicPressureLastSample();
+        auto lps28dfw        = getLPS28DFWLastSample();
+
+        gyroCalibrator.feed(static_cast<GyroscopeData>(lsm6dsrx));
+        staticPressureSum += staticPressure.pressure;
+        dynamicPressureSum += dynamicPressure.pressure;
+        lps28dfwSum += lps28dfw.pressure;
 
         auto wakeup = start + config::Calibration::SAMPLE_PERIOD;
         miosix::Thread::nanoSleepUntil(wakeup.time_since_epoch().count());
     }
 
-    // Compute the difference between the mean value from LPS28DFW
-    float reference = lps28dfwStats.getStats().mean;
+    float staticPressureMean =
+        staticPressureSum / config::Calibration::SAMPLE_COUNT;
+    float dynamicPressureMean =
+        dynamicPressureSum / config::Calibration::SAMPLE_COUNT;
+    float lps28dfwAvg = lps28dfwSum / config::Calibration::SAMPLE_COUNT;
 
-    staticPressure->updateOffset(staticPressureStats.getStats().mean -
-                                 reference);
-    dynamicPressure->updateOffset(dynamicPressureStats.getStats().mean -
-                                  reference);
+    // Calibrate all analog pressure sensors against the LPS28DFW
+    float reference = lps28dfwAvg;
+    if (reference > 100.0f)
+    {
+        // Calibrate sensors only if reference is valid
+        // LPS28DFW might be disabled or unresponsive
+        staticPressure->updateOffset(staticPressureMean - reference);
+        dynamicPressure->updateOffset(dynamicPressureMean - reference);
+    }
+
+    miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
+    gyroCalibration = gyroCalibrator.computeResult();
 
     // Log the offsets
     auto cal = SensorsCalibrationParameter{
         .timestamp         = TimestampTimer::getTimestamp(),
         .referencePressure = reference,
-        .offsetStatic      = staticPressureStats.getStats().mean - reference,
-        .offsetDynamic     = dynamicPressureStats.getStats().mean - reference,
+        .offsetStatic      = staticPressureMean - reference,
+        .offsetDynamic     = dynamicPressureMean - reference,
     };
     Logger::getInstance().log(cal);
 }
 
-bool Sensors::writeMagCalibration()
+void Sensors::resetMagCalibrator()
 {
-    miosix::Lock<FastMutex> lock(calibrationMutex);
-    auto cal = magCalibrator.computeResult();
+    miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
+    magCalibrator = SoftAndHardIronCalibration{};
+}
 
-    using std::isnan;
+void Sensors::enableMagCalibrator()
+{
+    getModule<BoardScheduler>()->sensors().enableTask(magCalibrationTaskId);
+}
 
-    // Check result validity
-    if (!isnan(cal.getb()[0]) && !isnan(cal.getb()[1]) &&
-        !isnan(cal.getb()[2]) && !isnan(cal.getA()[0]) &&
-        !isnan(cal.getA()[1]) && !isnan(cal.getA()[2]))
+void Sensors::disableMagCalibrator()
+{
+    getModule<BoardScheduler>()->sensors().disableTask(magCalibrationTaskId);
+}
+
+bool Sensors::saveMagCalibration()
+{
+    miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
+
+    SixParametersCorrector calibration = magCalibrator.computeResult();
+
+    // Check if the calibration is valid
+    if (!std::isnan(calibration.getb()[0]) &&
+        !std::isnan(calibration.getb()[1]) &&
+        !std::isnan(calibration.getb()[2]) &&
+        !std::isnan(calibration.getA()[0]) &&
+        !std::isnan(calibration.getA()[1]) &&
+        !std::isnan(calibration.getA()[2]))
     {
-        magCalibration = cal;
-
-        // Save the calibration to the calibration file
-        return magCalibration.toFile("/sd/magCalibration.csv");
+        // Its valid, save it and apply it
+        magCalibration = calibration;
+        return magCalibration.toFile(config::MagCalibration::CALIBRATION_PATH);
     }
-
-    return false;
+    else
+    {
+        return false;
+    }
 }
 
 LPS22DFData Sensors::getLPS22DFLastSample()
@@ -193,13 +263,13 @@ InternalADCData Sensors::getInternalADCLastSample()
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
 }
 
-StaticPressureData Sensors::getStaticPressure()
+StaticPressureData Sensors::getStaticPressureLastSample()
 {
     return staticPressure ? StaticPressureData(staticPressure->getLastSample())
                           : StaticPressureData{};
 }
 
-DynamicPressureData Sensors::getDynamicPressure()
+DynamicPressureData Sensors::getDynamicPressureLastSample()
 {
     return dynamicPressure
                ? DynamicPressureData(dynamicPressure->getLastSample())
@@ -208,7 +278,7 @@ DynamicPressureData Sensors::getDynamicPressure()
 
 IMUData Sensors::getIMULastSample()
 {
-    return imu ? imu->getLastSample() : IMUData{};
+    return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
 }
 
 BatteryVoltageSensorData Sensors::getBatteryVoltage()
@@ -239,19 +309,36 @@ BatteryVoltageSensorData Sensors::getCamBatteryVoltage()
     return data;
 }
 
-MagnetometerData Sensors::getCalibratedMagnetometerLastSample()
+LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 {
-    MagnetometerData sample = getLIS2MDLLastSample();
+    auto sample = getLIS2MDLLastSample();
 
-    MagnetometerData result;
-    // Correct the result with calibration data
     {
-        miosix::Lock<FastMutex> lock(calibrationMutex);
-        result = static_cast<MagnetometerData>(magCalibration.correct(sample));
+        miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
+        auto corrected =
+            magCalibration.correct(static_cast<MagnetometerData>(sample));
+        sample.magneticFieldX = corrected.x();
+        sample.magneticFieldY = corrected.y();
+        sample.magneticFieldZ = corrected.z();
     }
-    result.magneticFieldTimestamp = sample.magneticFieldTimestamp;
 
-    return result;
+    return sample;
+}
+
+LSM6DSRXData Sensors::getCalibratedLSM6DSRXLastSample()
+{
+    auto sample = getLSM6DSRXLastSample();
+
+    {
+        miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
+        auto corrected =
+            gyroCalibration.correct(static_cast<GyroscopeData>(sample));
+        sample.angularSpeedX = corrected.x();
+        sample.angularSpeedY = corrected.y();
+        sample.angularSpeedZ = corrected.z();
+    }
+
+    return sample;
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfo()
@@ -269,7 +356,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
             manager->getSensorInfo(internalAdc.get()),
             manager->getSensorInfo(staticPressure.get()),
             manager->getSensorInfo(dynamicPressure.get()),
-            manager->getSensorInfo(imu.get()),
+            manager->getSensorInfo(rotatedImu.get()),
         };
     }
     else
@@ -278,7 +365,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
     }
 }
 
-void Sensors::lps22dfCreate()
+void Sensors::lps22dfInit()
 {
     if (!config::LPS22DF::ENABLED)
     {
@@ -298,21 +385,13 @@ void Sensors::lps22dfCreate()
                                         sensorConfig);
 }
 
-void Sensors::lps22dfInsert(SensorManager::SensorMap_t& map)
+void Sensors::lps22dfCallback()
 {
-    if (lps22df)
-    {
-        auto info = SensorInfo("LPS22DF", config::LPS22DF::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getLPS22DFLastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(lps22df.get(), info);
-    }
+    auto sample = getLPS22DFLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::lps28dfwCreate()
+void Sensors::lps28dfwInit()
 {
     if (!config::LPS28DFW::ENABLED)
     {
@@ -331,21 +410,13 @@ void Sensors::lps28dfwCreate()
         std::make_unique<LPS28DFW>(getModule<Buses>()->LPS28DFW(), config);
 }
 
-void Sensors::lps28dfwInsert(SensorManager::SensorMap_t& map)
+void Sensors::lps28dfwCallback()
 {
-    if (lps28dfw)
-    {
-        auto info = SensorInfo("LPS28DFW", config::LPS28DFW::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getLPS28DFWLastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(lps28dfw.get(), info);
-    }
-}
+    auto sample = getLPS28DFWLastSample();
+    Logger::getInstance().log(sample);
+};
 
-void Sensors::h3lis331dlCreate()
+void Sensors::h3lis331dlInit()
 {
     if (!config::H3LIS331DL::ENABLED)
     {
@@ -361,21 +432,13 @@ void Sensors::h3lis331dlCreate()
         config::H3LIS331DL::FSR);
 }
 
-void Sensors::h3lis331dlInsert(SensorManager::SensorMap_t& map)
+void Sensors::h3lis331dlCallback()
 {
-    if (h3lis331dl)
-    {
-        auto info = SensorInfo("H3LIS331DL", config::H3LIS331DL::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getH3LIS331DLLastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(h3lis331dl.get(), info);
-    }
+    auto sample = getH3LIS331DLLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::lis2mdlCreate()
+void Sensors::lis2mdlInit()
 {
     if (!config::LIS2MDL::ENABLED)
     {
@@ -396,21 +459,13 @@ void Sensors::lis2mdlCreate()
                                         sensorConfig);
 }
 
-void Sensors::lis2mdlInsert(SensorManager::SensorMap_t& map)
+void Sensors::lis2mdlCallback()
 {
-    if (lis2mdl)
-    {
-        auto info = SensorInfo("LIS2MDL", config::LIS2MDL::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getLIS2MDLLastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(lis2mdl.get(), info);
-    }
+    auto sample = getLIS2MDLLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::ubxgpsCreate()
+void Sensors::ubxgpsInit()
 {
     if (!config::UBXGPS::ENABLED)
     {
@@ -425,21 +480,13 @@ void Sensors::ubxgpsCreate()
         static_cast<uint8_t>(config::UBXGPS::SAMPLE_RATE));
 }
 
-void Sensors::ubxgpsInsert(SensorManager::SensorMap_t& map)
+void Sensors::ubxgpsCallback()
 {
-    if (ubxgps)
-    {
-        auto info = SensorInfo("UBXGPS", config::UBXGPS::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getUBXGPSLastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(ubxgps.get(), info);
-    }
+    auto sample = getUBXGPSLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::lsm6dsrxCreate()
+void Sensors::lsm6dsrxInit()
 {
     if (!config::LSM6DSRX::ENABLED)
     {
@@ -477,30 +524,24 @@ void Sensors::lsm6dsrxCreate()
                                           spiConfig, sensorConfig);
 }
 
-void Sensors::lsm6dsrxInsert(SensorManager::SensorMap_t& map)
+void Sensors::lsm6dsrxCallback()
 {
-    if (lsm6dsrx)
-    {
-        auto info = SensorInfo("LSM6DSRX", config::LSM6DSRX::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto& logger = Logger::getInstance();
-                                   auto sample  = getLSM6DSRXLastSample();
-                                   logger.log(sample);
+    if (!lsm6dsrx)
+        return;
 
-                                   // Log the FIFO
-                                   auto& fifo    = lsm6dsrx->getLastFifo();
-                                   auto fifoSize = lsm6dsrx->getLastFifoSize();
-                                   for (auto i = 0; i < fifoSize; i++)
-                                   {
-                                       logger.log(fifo.at(i));
-                                   }
-                               });
-        map.emplace(lsm6dsrx.get(), info);
+    // We can skip logging the last sample since we are logging the fifo
+    auto& logger  = Logger::getInstance();
+    auto& fifo    = lsm6dsrx->getLastFifo();
+    auto fifoSize = lsm6dsrx->getLastFifoSize();
+
+    // For every instance inside the fifo log the sample
+    for (auto i = 0; i < fifoSize; i++)
+    {
+        logger.log(fifo.at(i));
     }
 }
 
-void Sensors::ads131m08Create()
+void Sensors::ads131m08Init()
 {
     if (!config::ADS131M08::ENABLED)
     {
@@ -531,21 +572,13 @@ void Sensors::ads131m08Create()
                                             spiConfig, sensorConfig);
 }
 
-void Sensors::ads131m08Insert(SensorManager::SensorMap_t& map)
+void Sensors::ads131m08Callback()
 {
-    if (ads131m08)
-    {
-        auto info = SensorInfo("ADS131M08", config::ADS131M08::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getADS131M08LastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(ads131m08.get(), info);
-    }
+    auto sample = getADS131M08LastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::internalAdcCreate()
+void Sensors::internalAdcInit()
 {
     if (!config::InternalADC::ENABLED)
     {
@@ -560,22 +593,13 @@ void Sensors::internalAdcCreate()
     internalAdc->enableVbat();
 }
 
-void Sensors::internalAdcInsert(SensorManager::SensorMap_t& map)
+void Sensors::internalAdcCallback()
 {
-    if (internalAdc)
-    {
-        auto info =
-            SensorInfo("InternalADC", config::InternalADC::SAMPLING_RATE,
-                       [this]
-                       {
-                           auto sample = getInternalADCLastSample();
-                           Logger::getInstance().log(sample);
-                       });
-        map.emplace(internalAdc.get(), info);
-    }
+    auto sample = getInternalADCLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::staticPressureCreate()
+void Sensors::staticPressureInit()
 {
     if (!(config::StaticPressure::ENABLED && config::ADS131M08::ENABLED))
     {
@@ -594,22 +618,13 @@ void Sensors::staticPressureCreate()
     staticPressure = std::make_unique<MPXH6115A>(readVoltage);
 }
 
-void Sensors::staticPressureInsert(SensorManager::SensorMap_t& map)
+void Sensors::staticPressureCallback()
 {
-    if (staticPressure)
-    {
-        auto info =
-            SensorInfo("StaticPressure", config::StaticPressure::SAMPLING_RATE,
-                       [this]
-                       {
-                           auto sample = getStaticPressure();
-                           Logger::getInstance().log(sample);
-                       });
-        map.emplace(staticPressure.get(), info);
-    }
+    auto sample = getStaticPressureLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::dynamicPressureCreate()
+void Sensors::dynamicPressureInit()
 {
     if (!(config::DynamicPressure::ENABLED && config::ADS131M08::ENABLED))
     {
@@ -628,22 +643,13 @@ void Sensors::dynamicPressureCreate()
     dynamicPressure = std::make_unique<MPXH6115A>(readVoltage);
 }
 
-void Sensors::dynamicPressureInsert(SensorManager::SensorMap_t& map)
+void Sensors::dynamicPressureCallback()
 {
-    if (dynamicPressure)
-    {
-        auto info = SensorInfo("DynamicPressure",
-                               config::DynamicPressure::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getDynamicPressure();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(dynamicPressure.get(), info);
-    }
+    auto sample = getDynamicPressureLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::imuCreate()
+void Sensors::rotatedImuInit()
 {
     if (!(config::IMU::ENABLED && config::LSM6DSRX::ENABLED &&
           config::LIS2MDL::ENABLED))
@@ -651,86 +657,127 @@ void Sensors::imuCreate()
         return;
     }
 
-    imu = std::make_unique<RotatedIMU>(
+    rotatedImu = std::make_unique<RotatedIMU>(
         [this]
         {
-            auto lsm6dsrxSample = getLSM6DSRXLastSample();
-            auto magSample      = getCalibratedMagnetometerLastSample();
+            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                            ? getCalibratedLSM6DSRXLastSample()
+                            : getLSM6DSRXLastSample();
+            auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+                            ? getCalibratedLIS2MDLLastSample()
+                            : getLIS2MDLLastSample();
 
-            return IMUData{
-                lsm6dsrxSample,
-                lsm6dsrxSample,
-                magSample,
-            };
+            return IMUData{imu6, imu6, mag};
         });
 
     // Accelerometer
-    imu->addAccTransformation(RotatedIMU::rotateAroundZ(-90));
-    imu->addAccTransformation(RotatedIMU::rotateAroundX(-90));
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(-90));
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundX(-90));
     // Gyroscope
-    imu->addGyroTransformation(RotatedIMU::rotateAroundZ(-90));
-    imu->addGyroTransformation(RotatedIMU::rotateAroundX(-90));
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(-90));
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(-90));
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    imu->addMagTransformation(m);
+    rotatedImu->addMagTransformation(m);
     // Magnetometer
-    imu->addMagTransformation(RotatedIMU::rotateAroundY(-90));
-    imu->addMagTransformation(RotatedIMU::rotateAroundZ(90));
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(-90));
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(90));
 }
 
-void Sensors::imuInsert(SensorManager::SensorMap_t& map)
+void Sensors::rotatedImuCallback()
 {
-    if (imu)
-    {
-        auto info = SensorInfo("IMU", config::IMU::SAMPLING_RATE,
-                               [this]
-                               {
-                                   auto sample = getIMULastSample();
-                                   Logger::getInstance().log(sample);
-                               });
-        map.emplace(imu.get(), info);
-    }
+    auto sample = getIMULastSample();
+    Logger::getInstance().log(sample);
 }
 
-bool Sensors::magCalibrationInit(TaskScheduler& scheduler)
+bool Sensors::sensorManagerInit()
 {
-    bool initResult = true;
+    SensorManager::SensorMap_t map;
 
-    if (config::MagCalibration::FILE_ENABLED)
+    if (lps22df)
     {
-        // Read the magnetometer calibration data from file
-        bool loaded = magCalibration.fromFile("/sd/magCalibration.csv");
-        // Log the error but don't fail initialization
-        if (!loaded)
-        {
-            LOG_WARN(logger,
-                     "Failed to load magnetometer calibration data from file");
-        }
+        SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::SAMPLING_RATE,
+                        [this]() { lps22dfCallback(); }};
+        map.emplace(lps22df.get(), info);
     }
 
-    if (config::MagCalibration::TASK_ENABLED)
+    if (lps28dfw)
     {
-        // Add the magnetometer calibration task to the scheduler
-        auto taskId = scheduler.addTask(
-            [this]
-            {
-                auto sample = getLIS2MDLLastSample();
-
-                {
-                    miosix::Lock<FastMutex> l(calibrationMutex);
-                    magCalibrator.feed(sample);
-                }
-            },
-            config::MagCalibration::SAMPLING_RATE);
-
-        if (taskId == 0)
-        {
-            LOG_ERR(logger, "Failed to add magnetometer calibration task");
-            initResult &= false;
-        }
+        SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::SAMPLING_RATE,
+                        [this]() { lps28dfwCallback(); }};
+        map.emplace(lps28dfw.get(), info);
     }
 
-    return initResult;
+    if (h3lis331dl)
+    {
+        SensorInfo info{"H3LIS331DL",
+                        Config::Sensors::H3LIS331DL::SAMPLING_RATE,
+                        [this]() { h3lis331dlCallback(); }};
+        map.emplace(h3lis331dl.get(), info);
+    }
+
+    if (lis2mdl)
+    {
+        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::SAMPLING_RATE,
+                        [this]() { lis2mdlCallback(); }};
+        map.emplace(lis2mdl.get(), info);
+    }
+
+    if (ubxgps)
+    {
+        SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::SAMPLING_RATE,
+                        [this]() { ubxgpsCallback(); }};
+        map.emplace(ubxgps.get(), info);
+    }
+
+    if (lsm6dsrx)
+    {
+        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::SAMPLING_RATE,
+                        [this]() { lsm6dsrxCallback(); }};
+        map.emplace(lsm6dsrx.get(), info);
+    }
+
+    if (ads131m08)
+    {
+        SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::SAMPLING_RATE,
+                        [this]() { ads131m08Callback(); }};
+        map.emplace(ads131m08.get(), info);
+    }
+
+    if (staticPressure)
+    {
+        SensorInfo info{"StaticPressure",
+                        Config::Sensors::ADS131M08::SAMPLING_RATE,
+                        [this]() { staticPressureCallback(); }};
+        map.emplace(staticPressure.get(), info);
+    }
+
+    if (dynamicPressure)
+    {
+        SensorInfo info{"DynamicPressure",
+                        Config::Sensors::ADS131M08::SAMPLING_RATE,
+                        [this]() { dynamicPressureCallback(); }};
+        map.emplace(dynamicPressure.get(), info);
+    }
+
+    if (internalAdc)
+    {
+        SensorInfo info{"InternalADC",
+                        Config::Sensors::InternalADC::SAMPLING_RATE,
+                        [this]() { internalAdcCallback(); }};
+        map.emplace(internalAdc.get(), info);
+    }
+
+    if (rotatedImu)
+    {
+        SensorInfo info{"RotatedIMU", Config::Sensors::IMU::SAMPLING_RATE,
+                        [this]() { rotatedImuCallback(); }};
+        map.emplace(rotatedImu.get(), info);
+    }
+
+    auto& scheduler = getModule<BoardScheduler>()->sensors();
+    manager         = std::make_unique<SensorManager>(map, &scheduler);
+    return manager->start();
 }
 
 }  // namespace Payload

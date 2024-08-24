@@ -137,8 +137,10 @@ bool CanHandler::start()
     auto pitotTask = scheduler.addTask(
         [this]()
         {
-            auto staticPressure  = getModule<Sensors>()->getStaticPressure();
-            auto dynamicPressure = getModule<Sensors>()->getDynamicPressure();
+            auto staticPressure =
+                getModule<Sensors>()->getStaticPressureLastSample();
+            auto dynamicPressure =
+                getModule<Sensors>()->getDynamicPressureLastSample();
 
             protocol->enqueueData(
                 static_cast<uint8_t>(Priority::MEDIUM),

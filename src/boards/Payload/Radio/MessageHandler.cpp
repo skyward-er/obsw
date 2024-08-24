@@ -167,7 +167,7 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_SAVE_CALIBRATION:
         {
-            bool magResult = parent.getModule<Sensors>()->writeMagCalibration();
+            bool magResult = parent.getModule<Sensors>()->saveMagCalibration();
             if (magResult)
             {
                 return enqueueAck(msg);
@@ -332,8 +332,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto imu         = sensors->getLSM6DSRXLastSample();
             auto mag         = sensors->getLIS2MDLLastSample();
             auto gps         = sensors->getUBXGPSLastSample();
-            auto pressDigi   = sensors->getLPS22DFLastSample();
-            auto pressStatic = sensors->getStaticPressure();
+            auto pressDigi   = sensors->getLPS28DFWLastSample();
+            auto pressStatic = sensors->getStaticPressureLastSample();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
             tm.pressure_digi   = pressDigi.pressure;
