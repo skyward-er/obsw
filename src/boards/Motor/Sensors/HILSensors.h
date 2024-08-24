@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/HIL/HIL.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
 #include <sensors/HILSensor.h>
@@ -34,7 +34,7 @@ namespace Motor
 
 class HILSensors
     : public Boardcore::InjectableWithDeps<Boardcore::InjectableBase<Sensors>,
-                                           HILConfig::MotorHIL>
+                                           MotorHIL>
 {
 public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
@@ -54,11 +54,9 @@ private:
 
     int getSampleCounter(int nData)
     {
-        auto ts = miosix::getTime();
-        auto tsSensorData =
-            getModule<HILConfig::MotorHIL>()->getTimestampSimulatorData();
-        auto simulationPeriod =
-            getModule<HILConfig::MotorHIL>()->getSimulationPeriod();
+        auto ts           = miosix::getTime();
+        auto tsSensorData = getModule<MotorHIL>()->getTimestampSimulatorData();
+        auto simulationPeriod = getModule<MotorHIL>()->getSimulationPeriod();
 
         assert(ts >= tsSensorData &&
                "Actual timestamp is lesser then the packet timestamp");
@@ -86,7 +84,7 @@ private:
     {
         Boardcore::PressureData data;
 
-        auto* sensorData = getModule<HILConfig::MotorHIL>()->getSensorData();
+        auto* sensorData = getModule<MotorHIL>()->getSensorData();
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 
