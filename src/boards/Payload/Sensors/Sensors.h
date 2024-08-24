@@ -66,12 +66,27 @@ public:
     void calibrate();
 
     /**
-     * @brief Takes the result of the live magnetometer calibration and applies
-     * it to the current calibration + writes it in the csv file
-     *
-     * @return true if the write was successful
+     * @brief Resets the magnetometer calibration.
      */
-    bool writeMagCalibration();
+    void resetMagCalibrator();
+
+    /**
+     * @brief Enables the magnetometer calibration task.
+     */
+    void enableMagCalibrator();
+
+    /**
+     * @brief Disables the magnetometer calibration task.
+     */
+    void disableMagCalibrator();
+
+    /**
+     * @brief Saves the current magnetometer calibration to file, overwriting
+     * the previous one, and sets it as the active calibration.
+     *
+     * @return Whether the calibration was saved successfully.
+     */
+    bool saveMagCalibration();
 
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
@@ -82,61 +97,20 @@ public:
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
-    StaticPressureData getStaticPressure();
-    DynamicPressureData getDynamicPressure();
+    StaticPressureData getStaticPressureLastSample();
+    DynamicPressureData getDynamicPressureLastSample();
 
     Boardcore::IMUData getIMULastSample();
 
     Boardcore::BatteryVoltageSensorData getBatteryVoltage();
     Boardcore::BatteryVoltageSensorData getCamBatteryVoltage();
-    Boardcore::MagnetometerData getCalibratedMagnetometerLastSample();
+    Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRXLastSample();
 
     /**
      * @brief Returns information about all sensors managed by this class
      */
     std::vector<Boardcore::SensorInfo> getSensorInfo();
-
-private:
-    /**
-     * Sensor creation and insertion need to happen separately to allow
-     * integration with the HIL framework, which needs to intercept the sensors
-     * after they are created but before they are inserted into the manager.
-     */
-
-    void lps22dfCreate();
-    void lps22dfInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void lps28dfwCreate();
-    void lps28dfwInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void h3lis331dlCreate();
-    void h3lis331dlInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void lis2mdlCreate();
-    void lis2mdlInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void ubxgpsCreate();
-    void ubxgpsInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void lsm6dsrxCreate();
-    void lsm6dsrxInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void ads131m08Create();
-    void ads131m08Insert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void internalAdcCreate();
-    void internalAdcInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void staticPressureCreate();
-    void staticPressureInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void dynamicPressureCreate();
-    void dynamicPressureInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    void imuCreate();
-    void imuInsert(Boardcore::SensorManager::SensorMap_t& map);
-
-    bool magCalibrationInit(Boardcore::TaskScheduler& scheduler);
 
 protected:
     /**
@@ -163,14 +137,59 @@ protected:
 
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure;
     std::unique_ptr<Boardcore::MPXH6115A> dynamicPressure;
-    std::unique_ptr<Boardcore::RotatedIMU> imu;
+    std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
 
-private:
     std::unique_ptr<Boardcore::SensorManager> manager;
 
-    miosix::FastMutex calibrationMutex;
+private:
+    /**
+     * Sensor creation and insertion need to happen separately to allow
+     * integration with the HIL framework, which needs to intercept the sensors
+     * after they are created but before they are inserted into the manager.
+     */
+
+    void lps22dfInit();
+    void lps22dfCallback();
+
+    void lps28dfwInit();
+    void lps28dfwCallback();
+
+    void h3lis331dlInit();
+    void h3lis331dlCallback();
+
+    void lis2mdlInit();
+    void lis2mdlCallback();
+
+    void ubxgpsInit();
+    void ubxgpsCallback();
+
+    void lsm6dsrxInit();
+    void lsm6dsrxCallback();
+
+    void ads131m08Init();
+    void ads131m08Callback();
+
+    void internalAdcInit();
+    void internalAdcCallback();
+
+    void staticPressureInit();
+    void staticPressureCallback();
+
+    void dynamicPressureInit();
+    void dynamicPressureCallback();
+
+    void rotatedImuInit();
+    void rotatedImuCallback();
+
+    bool sensorManagerInit();
+
+    miosix::FastMutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
+    size_t magCalibrationTaskId = 0;
+
+    miosix::FastMutex gyroCalibrationMutex;
+    Boardcore::BiasCorrector gyroCalibration;
 
     std::atomic<bool> started{false};
 

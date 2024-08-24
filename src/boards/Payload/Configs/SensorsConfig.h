@@ -137,8 +137,10 @@ constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
 
 namespace IMU
 {
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
+constexpr auto USE_CALIBRATED_LIS2MDL  = true;
+constexpr auto USE_CALIBRATED_LSM6DSRX = true;
+constexpr auto ENABLED                 = true;
+constexpr auto SAMPLING_RATE           = ADS131M08::SAMPLING_RATE;
 }  // namespace IMU
 
 namespace Calibration
@@ -149,9 +151,9 @@ constexpr auto SAMPLE_PERIOD = 100ms;
 
 namespace MagCalibration
 {
-constexpr auto FILE_ENABLED  = true;  ///< Load calibration data from SD card
-constexpr auto TASK_ENABLED  = true;  ///< Enable the calibration task
-constexpr auto SAMPLING_RATE = 10_hz;
+constexpr auto FILE_ENABLED     = true;  ///< Load calibration data from SD card
+constexpr auto SAMPLING_RATE    = 50_hz;
+constexpr auto CALIBRATION_PATH = "/sd/magCalibration.csv";
 }  // namespace MagCalibration
 
 }  // namespace Sensors
