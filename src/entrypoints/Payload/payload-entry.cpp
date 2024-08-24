@@ -182,7 +182,6 @@ int main()
     START_MODULE(wingController);
     START_MODULE(windEstimation);
     START_MODULE(actuators);
-    START_MODULE(statsRecorder);
 
     START_MODULE(scheduler);
 
