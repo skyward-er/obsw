@@ -24,7 +24,7 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
-#include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/HIL/HIL.h>
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
@@ -39,7 +39,6 @@
 using namespace Boardcore;
 using namespace Motor;
 using namespace miosix;
-using namespace HILConfig;
 
 int main()
 {
@@ -54,8 +53,9 @@ int main()
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
-    Sensors *sensors = (persistentVars->getHilMode() ? new HILSensors(ENABLE_HW)
-                                                     : new Sensors());
+    Sensors *sensors =
+        (persistentVars->getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
+                                      : new Sensors());
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
 
@@ -65,7 +65,7 @@ int main()
     MotorHIL *hil = nullptr;
     if (persistentVars->getHilMode())
     {
-        hil = new HILConfig::MotorHIL();
+        hil = new MotorHIL();
 
         initResult = initResult && manager.insert(hil);
     }

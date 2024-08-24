@@ -22,24 +22,10 @@
 
 #pragma once
 
-#include <Motor/Buses.h>
-#include <common/Events.h>
-#include <drivers/timer/TimestampTimer.h>
-#include <drivers/usart/USART.h>
-#include <events/EventBroker.h>
-#include <hil/HIL.h>
-#include <math.h>
-#include <sensors/HILSimulatorData.h>
-#include <sensors/SensorInfo.h>
 #include <units/Frequency.h>
-#include <utils/Debug.h>
-#include <utils/DependencyManager/DependencyManager.h>
-#include <utils/KernelTime.h>
-#include <utils/Stats/Stats.h>
+#include <units/Units.h>
 
 #include <chrono>
-#include <list>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "SensorsConfig.h"
 
@@ -49,222 +35,25 @@
   using namespace std::chrono_literals;
 // clang-format on
 
-namespace HILConfig
+namespace Motor
+{
+namespace Config
+{
+namespace HIL
 {
 
 constexpr bool ENABLE_HW = true;
 
 /** Frequency of the simulation */
-constexpr auto SIMULATION_RATE    = 10_hz;
-constexpr int SIMULATION_RATE_INT = static_cast<int>(SIMULATION_RATE.value());
+constexpr auto SIMULATION_RATE = 10_hz;
 
 /** sampling periods of sensors [ms] */
-constexpr auto BARO_CHAMBER_RATE = Motor::Config::Sensors::ADS131M08::PERIOD;
+constexpr int N_DATA_BARO_CHAMBER = 10;
 
-static_assert((static_cast<int>(BARO_CHAMBER_RATE.value()) %
-               SIMULATION_RATE_INT) == 0,
-              "N_DATA_BARO_CHAMBER not an integer");
+static_assert(N_DATA_BARO_CHAMBER * SIMULATION_RATE >=
+                  Sensors::ADS131M08::PERIOD,
+              "N_DATA_BARO_CHAMBER not enough");
 
-/** Number of samples per sensor at each simulator iteration */
-constexpr int N_DATA_BARO_CHAMBER =
-    BARO_CHAMBER_RATE.value() / SIMULATION_RATE_INT;
-
-// Sensors Data
-using MotorHILChamberBarometerData =
-    Boardcore::BarometerSimulatorData<N_DATA_BARO_CHAMBER>;
-
-struct ActuatorsStateHIL
-{
-    float mainValvePercentage    = 0;
-    float ventingValvePercentage = 0;
-
-    ActuatorsStateHIL()
-        : mainValvePercentage(0.0f), ventingValvePercentage(0.0f)
-    {
-    }
-
-    ActuatorsStateHIL(float mainValvePercentage, float ventingValvePercentage)
-        : mainValvePercentage(mainValvePercentage),
-          ventingValvePercentage(ventingValvePercentage)
-    {
-    }
-
-    void print()
-    {
-        printf(
-            "mainValve: %f perc\n"
-            "venting: %f perc\n",
-            mainValvePercentage * 100, ventingValvePercentage * 100);
-    }
-};
-
-/**
- * @brief Data structure used by the simulator in order to directly deserialize
- * the data received
- *
- * This structure then is accessed by sensors and other components in order to
- * get the data they need
- */
-struct SimulatorData
-{
-    MotorHILChamberBarometerData pressureChamber;
-    float signal;
-};
-
-/**
- * @brief Data structure expected by the simulator
- */
-struct ActuatorData
-{
-    ActuatorsStateHIL actuatorsState;
-
-    ActuatorData() : actuatorsState() {}
-
-    ActuatorData(ActuatorsStateHIL actuatorsState)
-        : actuatorsState(actuatorsState)
-    {
-    }
-
-    void print() { actuatorsState.print(); }
-};
-
-enum MotorFlightPhases
-{
-    SIMULATION_STARTED
-};
-
-class MotorHILTransceiver
-    : public Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
-                                       ActuatorData>,
-      public Boardcore::Module
-{
-    using Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
-                                    ActuatorData>::HILTransceiver;
-};
-
-class MotorHILPhasesManager
-    : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                         ActuatorData>
-{
-public:
-    explicit MotorHILPhasesManager(
-        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
-        : Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                      ActuatorData>(getCurrentPosition)
-    {
-        flagsFlightPhases = {{MotorFlightPhases::SIMULATION_STARTED, false}};
-
-        prev_flagsFlightPhases = flagsFlightPhases;
-
-        auto& eventBroker = Boardcore::EventBroker::getInstance();
-        eventBroker.subscribe(this, Common::TOPIC_ABK);
-        eventBroker.subscribe(this, Common::TOPIC_ADA);
-        eventBroker.subscribe(this, Common::TOPIC_MEA);
-        eventBroker.subscribe(this, Common::TOPIC_DPL);
-        eventBroker.subscribe(this, Common::TOPIC_CAN);
-        eventBroker.subscribe(this, Common::TOPIC_FLIGHT);
-        eventBroker.subscribe(this, Common::TOPIC_FMM);
-        eventBroker.subscribe(this, Common::TOPIC_FSR);
-        eventBroker.subscribe(this, Common::TOPIC_NAS);
-        eventBroker.subscribe(this, Common::TOPIC_TMTC);
-        eventBroker.subscribe(this, Common::TOPIC_MOTOR);
-        eventBroker.subscribe(this, Common::TOPIC_TARS);
-        eventBroker.subscribe(this, Common::TOPIC_ALT);
-    }
-
-    void processFlagsImpl(
-        const SimulatorData& simulatorData,
-        std::vector<MotorFlightPhases>& changed_flags) override
-    {
-        if (simulatorData.signal == 1)
-        {
-            miosix::reboot();
-        }
-
-        if (simulatorData.signal == 2)
-        {
-            Boardcore::EventBroker::getInstance().post(
-                Common::TMTC_FORCE_LANDING, Common::TOPIC_TMTC);
-        }
-
-        if (simulatorData.signal == 3)
-        {
-            Boardcore::EventBroker::getInstance().post(
-                Common::TMTC_FORCE_LAUNCH, Common::TOPIC_TMTC);
-        }
-
-        // set true when the first packet from the simulator arrives
-        if (isSetTrue(MotorFlightPhases::SIMULATION_STARTED))
-        {
-            t_start = Boardcore::TimestampTimer::getTimestamp();
-
-            printf("[HIL] ------- SIMULATION STARTED ! ------- \n");
-            changed_flags.push_back(MotorFlightPhases::SIMULATION_STARTED);
-        }
-    }
-
-    void printOutcomes()
-    {
-        printf("OUTCOMES: (times dt from liftoff)\n\n");
-        printf("Simulation time: %.3f [sec]\n\n",
-               (double)(t_stop - t_start) / 1000000.0f);
-    }
-
-private:
-    void handleEventImpl(const Boardcore::Event& e,
-                         std::vector<MotorFlightPhases>& changed_flags) override
-    {
-        switch (e)
-        {
-            default:
-                printf("%s event\n", Common::getEventString(e).c_str());
-        }
-    }
-};
-
-class MotorHIL
-    : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
-      public Boardcore::InjectableWithDeps<Motor::Buses, Motor::Actuators>
-
-{
-public:
-    MotorHIL()
-        : Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>(
-              nullptr, nullptr, [this]() { return updateActuatorData(); },
-              1000 / SIMULATION_RATE_INT)
-    {
-    }
-
-    bool start() override
-    {
-        auto& hilUsart = getModule<Motor::Buses>()->getHILUart();
-
-        hilPhasesManager = new MotorHILPhasesManager(
-            [&]()
-            {
-                Boardcore::TimedTrajectoryPoint timedTrajectoryPoint;
-                timedTrajectoryPoint.timestamp =
-                    Boardcore::Kernel::getOldTick();
-                return timedTrajectoryPoint;
-            });
-
-        hilTransceiver = new MotorHILTransceiver(hilUsart, hilPhasesManager);
-
-        return Boardcore::HIL<MotorFlightPhases, SimulatorData,
-                              ActuatorData>::start();
-    }
-
-private:
-    ActuatorData updateActuatorData()
-    {
-        auto actuators = getModule<Motor::Actuators>();
-
-        ActuatorsStateHIL actuatorsStateHIL{
-            (actuators->getServoPosition(MAIN_VALVE)),
-            (actuators->getServoPosition(VENTING_VALVE))};
-
-        // Returning the feedback for the simulator
-        return ActuatorData{actuatorsStateHIL};
-    };
-};
-}  // namespace HILConfig
+}  // namespace HIL
+}  // namespace Config
+}  // namespace Motor
