@@ -32,6 +32,13 @@ namespace Motor
 using MotorHILChamberBarometerData =
     Boardcore::BarometerSimulatorData<Config::HIL::N_DATA_BARO_CHAMBER>;
 
+enum class HILSignal : int
+{
+    SIMULATION_STARTED      = 1,
+    SIMULATION_STOPPED      = 2,
+    SIMULATION_FORCE_LAUNCH = 3
+};
+
 enum class MotorFlightPhases
 {
     SIMULATION_STARTED
@@ -84,7 +91,7 @@ struct ActuatorData
 
     ActuatorData() : actuatorsState() {}
 
-    ActuatorData(ActuatorsStateHIL actuatorsState)
+    explicit ActuatorData(const ActuatorsStateHIL& actuatorsState)
         : actuatorsState(actuatorsState)
     {
     }

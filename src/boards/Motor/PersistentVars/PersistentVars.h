@@ -22,23 +22,16 @@
 
 #pragma once
 
-#include <arch/common/drivers/stm32_bsram.h>
-#include <utils/DependencyManager/DependencyManager.h>
-
 namespace Motor
 {
 
-class PersistentVars : public Boardcore::Injectable
+namespace PersistentVars
 {
-public:
-    PersistentVars();
 
-    void setHilMode(bool _hilMode);
+void setHilMode(bool _hilMode);
 
-    bool getHilMode();
+bool getHilMode();
 
-private:
-    static bool PRESERVE hilMode;
-};
+}  // namespace PersistentVars
 
 }  // namespace Motor

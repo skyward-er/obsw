@@ -48,78 +48,18 @@ class MotorHILPhasesManager
 {
 public:
     explicit MotorHILPhasesManager(
-        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
-        : Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                      ActuatorData>(getCurrentPosition)
-    {
-        flagsFlightPhases = {{MotorFlightPhases::SIMULATION_STARTED, false}};
-
-        prev_flagsFlightPhases = flagsFlightPhases;
-
-        auto& eventBroker = Boardcore::EventBroker::getInstance();
-        eventBroker.subscribe(this, Common::TOPIC_ABK);
-        eventBroker.subscribe(this, Common::TOPIC_ADA);
-        eventBroker.subscribe(this, Common::TOPIC_MEA);
-        eventBroker.subscribe(this, Common::TOPIC_DPL);
-        eventBroker.subscribe(this, Common::TOPIC_CAN);
-        eventBroker.subscribe(this, Common::TOPIC_FLIGHT);
-        eventBroker.subscribe(this, Common::TOPIC_FMM);
-        eventBroker.subscribe(this, Common::TOPIC_FSR);
-        eventBroker.subscribe(this, Common::TOPIC_NAS);
-        eventBroker.subscribe(this, Common::TOPIC_TMTC);
-        eventBroker.subscribe(this, Common::TOPIC_MOTOR);
-        eventBroker.subscribe(this, Common::TOPIC_TARS);
-        eventBroker.subscribe(this, Common::TOPIC_ALT);
-    }
+        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition);
 
     void processFlagsImpl(
         const SimulatorData& simulatorData,
-        std::vector<MotorFlightPhases>& changed_flags) override
-    {
-        if (simulatorData.signal == 1)
-        {
-            miosix::reboot();
-        }
+        std::vector<MotorFlightPhases>& changed_flags) override;
 
-        if (simulatorData.signal == 2)
-        {
-            Boardcore::EventBroker::getInstance().post(
-                Common::TMTC_FORCE_LANDING, Common::TOPIC_TMTC);
-        }
-
-        if (simulatorData.signal == 3)
-        {
-            Boardcore::EventBroker::getInstance().post(
-                Common::TMTC_FORCE_LAUNCH, Common::TOPIC_TMTC);
-        }
-
-        // set true when the first packet from the simulator arrives
-        if (isSetTrue(MotorFlightPhases::SIMULATION_STARTED))
-        {
-            t_start = Boardcore::TimestampTimer::getTimestamp();
-
-            printf("[HIL] ------- SIMULATION STARTED ! ------- \n");
-            changed_flags.push_back(MotorFlightPhases::SIMULATION_STARTED);
-        }
-    }
-
-    void printOutcomes()
-    {
-        printf("OUTCOMES: (times dt from liftoff)\n\n");
-        printf("Simulation time: %.3f [sec]\n\n",
-               (double)(t_stop - t_start) / 1000000.0f);
-    }
+    void printOutcomes();
 
 private:
-    void handleEventImpl(const Boardcore::Event& e,
-                         std::vector<MotorFlightPhases>& changed_flags) override
-    {
-        switch (e)
-        {
-            default:
-                printf("%s event\n", Common::getEventString(e).c_str());
-        }
-    }
+    void handleEventImpl(
+        const Boardcore::Event& e,
+        std::vector<MotorFlightPhases>& changed_flags) override;
 };
 
 class MotorHIL
@@ -128,43 +68,11 @@ class MotorHIL
 
 {
 public:
-    MotorHIL()
-        : Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>(
-              nullptr, nullptr, [this]() { return updateActuatorData(); },
-              1000 / Config::HIL::SIMULATION_RATE.value())
-    {
-    }
+    MotorHIL();
 
-    bool start() override
-    {
-        auto& hilUsart = getModule<Buses>()->getHILUart();
-
-        hilPhasesManager = new MotorHILPhasesManager(
-            [&]()
-            {
-                Boardcore::TimedTrajectoryPoint timedTrajectoryPoint;
-                timedTrajectoryPoint.timestamp =
-                    Boardcore::Kernel::getOldTick();
-                return timedTrajectoryPoint;
-            });
-
-        hilTransceiver = new MotorHILTransceiver(hilUsart, hilPhasesManager);
-
-        return Boardcore::HIL<MotorFlightPhases, SimulatorData,
-                              ActuatorData>::start();
-    }
+    bool start() override;
 
 private:
-    ActuatorData updateActuatorData()
-    {
-        auto actuators = getModule<Actuators>();
-
-        ActuatorsStateHIL actuatorsStateHIL{
-            (actuators->getServoPosition(MAIN_VALVE)),
-            (actuators->getServoPosition(VENTING_VALVE))};
-
-        // Returning the feedback for the simulator
-        return ActuatorData{actuatorsStateHIL};
-    };
+    ActuatorData updateActuatorData();
 };
 }  // namespace Motor
