@@ -39,8 +39,7 @@ namespace Main
 
 class FlightModeManager
     : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler,
-                                           StatsRecorder, AlgoReference,
-                                           PersistentVars>,
+                                           StatsRecorder, AlgoReference>,
       public Boardcore::HSM<FlightModeManager>
 {
 public:

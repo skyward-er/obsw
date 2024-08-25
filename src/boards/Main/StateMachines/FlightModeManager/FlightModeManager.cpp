@@ -32,6 +32,22 @@ using namespace Common;
 using namespace Boardcore;
 using namespace miosix;
 
+void enterHilMode()
+{
+    PersistentVars::setHilMode(true);
+    reboot();
+}
+
+void exitHilMode()
+{
+    // Reboot only if in HIL mode
+    if (PersistentVars::getHilMode())
+    {
+        PersistentVars::setHilMode(false);
+        reboot();
+    }
+}
+
 FlightModeManager::FlightModeManager()
     : HSM{&FlightModeManager::state_on_ground, STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::FMM_PRIORITY}
@@ -78,16 +94,12 @@ State FlightModeManager::state_on_ground(const Event& event)
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::EXIT_HIL_MODE);
             miosix::Thread::sleep(1000);
-            // Fallthrough
+            exitHilMode();
+            return HANDLED;
         }
         case CAN_EXIT_HIL_MODE:
         {
-            // Reboot only if in HIL mode
-            if (getModule<PersistentVars>()->getHilMode())
-            {
-                getModule<PersistentVars>()->setHilMode(false);
-                miosix::reboot();
-            }
+            exitHilMode();
             return HANDLED;
         }
         default:
@@ -433,13 +445,13 @@ State FlightModeManager::state_test_mode(const Event& event)
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::ENTER_HIL_MODE);
             Thread::sleep(1000);
-            // Fallthrough
+            enterHilMode();
+            return HANDLED;
         }
         case CAN_ENTER_HIL_MODE:
         {
-            getModule<PersistentVars>()->setHilMode(true);
-            reboot();
-            __builtin_unreachable();
+            enterHilMode();
+            return HANDLED;
         }
         default:
         {

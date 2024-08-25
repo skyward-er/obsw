@@ -36,11 +36,7 @@ namespace Config
 namespace HIL
 {
 
-// clang-format off
-// Indent to avoid the linter complaining about using namespace
-  using namespace Boardcore::Units::Frequency;
-  using namespace std::chrono_literals;
-// clang-format on
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr bool IS_FULL_HIL = false;
 constexpr bool ENABLE_HW   = false;

@@ -39,7 +39,7 @@ class Actuators;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
-                                           FlightModeManager, PersistentVars>
+                                           FlightModeManager>
 {
 public:
     struct CanStatus
