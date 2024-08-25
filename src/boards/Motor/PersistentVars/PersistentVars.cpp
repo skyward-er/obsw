@@ -22,21 +22,27 @@
 
 #include "PersistentVars.h"
 
+#include <arch/common/drivers/stm32_bsram.h>
+#include <miosix.h>
+
 using namespace miosix;
+
+static bool PRESERVE hilMode = false;
 
 namespace Motor
 {
 
-bool PRESERVE PersistentVars::hilMode = false;
+namespace PersistentVars
+{
 
-PersistentVars::PersistentVars() {}
-
-void PersistentVars::setHilMode(bool _hilMode)
+void setHilMode(bool _hilMode)
 {
     BSRAM::EnableWriteLock l;
     hilMode = _hilMode;
 }
 
-bool PersistentVars::getHilMode() { return hilMode; }
+bool getHilMode() { return hilMode; }
+
+}  // namespace PersistentVars
 
 }  // namespace Motor

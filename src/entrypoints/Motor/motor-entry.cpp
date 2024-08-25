@@ -46,15 +46,13 @@ int main()
 
     bool initResult = true;
 
-    PersistentVars *persistentVars = new PersistentVars();
-
     DependencyManager manager;
 
     Buses *buses              = new Buses();
     BoardScheduler *scheduler = new BoardScheduler();
 
     Sensors *sensors =
-        (persistentVars->getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
+        (PersistentVars::getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
                                       : new Sensors());
     Actuators *actuators   = new Actuators();
     CanHandler *canHandler = new CanHandler();
@@ -63,15 +61,14 @@ int main()
 
     // HIL
     MotorHIL *hil = nullptr;
-    if (persistentVars->getHilMode())
+    if (PersistentVars::getHilMode())
     {
         hil = new MotorHIL();
 
         initResult = initResult && manager.insert(hil);
     }
 
-    initResult = initResult && manager.insert<PersistentVars>(persistentVars) &&
-                 manager.insert<Buses>(buses) &&
+    initResult = initResult && manager.insert<Buses>(buses) &&
                  manager.insert<BoardScheduler>(scheduler) &&
                  manager.insert<Sensors>(sensors) &&
                  manager.insert<Actuators>(actuators) &&
@@ -131,7 +128,7 @@ int main()
         std::cout << "Error failed to start SD" << std::endl;
     }
 
-    if (persistentVars->getHilMode())
+    if (PersistentVars::getHilMode())
     {
         if (!hil->start())
         {

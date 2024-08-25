@@ -70,7 +70,7 @@ bool CanHandler::start()
                     static_cast<int16_t>(stats.logNumber),
                     static_cast<uint8_t>(initStatus.load()),
                     false,
-                    getModule<PersistentVars>()->getHilMode(),
+                    PersistentVars::getHilMode(),
                     stats.lastWriteError == 0,
                 });
         },
@@ -231,14 +231,14 @@ void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 
     if (event == Common::CanConfig::EventId::ENTER_HIL_MODE)
     {
-        getModule<PersistentVars>()->setHilMode(true);
+        PersistentVars::setHilMode(true);
         miosix::reboot();
     }
     else if (event == Common::CanConfig::EventId::EXIT_HIL_MODE)
     {
-        if (getModule<PersistentVars>()->getHilMode())
+        if (PersistentVars::getHilMode())
         {
-            getModule<PersistentVars>()->setHilMode(false);
+            PersistentVars::setHilMode(false);
             miosix::reboot();
         }
     }

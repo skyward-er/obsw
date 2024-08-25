@@ -44,8 +44,7 @@ enum class InitStatus : uint8_t
 };
 
 class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
-                                           PersistentVars>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>
 {
 public:
     CanHandler();
