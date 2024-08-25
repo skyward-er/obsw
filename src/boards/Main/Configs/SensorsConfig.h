@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -117,7 +118,7 @@ constexpr bool ENABLED = true;
 namespace VN100
 {
 constexpr Hertz RATE   = 100_hz;
-constexpr bool ENABLED = true;
+constexpr bool ENABLED = false;
 }  // namespace VN100
 
 namespace ADS131M08
