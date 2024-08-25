@@ -104,13 +104,9 @@ bool Radio::start()
     }
 
     // Add the high rate telemetry task
-    auto highRateTask = scheduler.addTask(
-        [this]()
-        {
-            enqueueHighRateTelemetry();
-            radioMavlink.flushQueue();
-        },
-        Config::Radio::HIGH_RATE_TELEMETRY);
+    auto highRateTask =
+        scheduler.addTask([this]() { enqueueHighRateTelemetry(); },
+                          Config::Radio::HIGH_RATE_TELEMETRY);
 
     if (highRateTask == 0)
     {
@@ -118,13 +114,9 @@ bool Radio::start()
         return false;
     }
 
-    auto lowRateTask = scheduler.addTask(
-        [this]()
-        {
-            enqueueLowRateTelemetry();
-            radioMavlink.flushQueue();
-        },
-        Config::Radio::LOW_RATE_TELEMETRY);
+    auto lowRateTask =
+        scheduler.addTask([this]() { enqueueLowRateTelemetry(); },
+                          Config::Radio::LOW_RATE_TELEMETRY);
 
     if (lowRateTask == 0)
     {
@@ -177,6 +169,7 @@ void Radio::handleSerialMessage(const mavlink_message_t& msg)
 void Radio::enqueueHighRateTelemetry()
 {
     radioMavlink.enqueueSystemTm(MAV_FLIGHT_ID);
+    radioMavlink.flushQueue();
 }
 
 void Radio::enqueueLowRateTelemetry()
