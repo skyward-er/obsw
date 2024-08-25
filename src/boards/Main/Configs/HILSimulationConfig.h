@@ -38,7 +38,7 @@ namespace HIL
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr bool IS_FULL_HIL = false;
+constexpr bool IS_FULL_HIL = true;
 constexpr bool ENABLE_HW   = false;
 
 // Period of simulation [ms]
@@ -54,7 +54,7 @@ constexpr int N_DATA_GYRO         = 10;  // #samples
 constexpr int N_DATA_MAGNETO      = 10;  // #samples
 constexpr int N_DATA_GPS          = 1;   // #samples
 constexpr int N_DATA_BARO_STATIC  = 10;  // #samples
-constexpr int N_DATA_BARO_CHAMBER = 5;   // #samples
+constexpr int N_DATA_BARO_CHAMBER = 10;  // #samples
 constexpr int N_DATA_PITOT        = 10;  // #samples
 constexpr int N_DATA_TEMP         = 1;   // #samples
 
