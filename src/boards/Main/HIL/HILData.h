@@ -25,26 +25,19 @@
 #include <Main/Configs/HILSimulationConfig.h>
 #include <sensors/HILSimulatorData.h>
 
-// FMM
-#include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
-
 // ADA
-#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
 #include <algorithms/ADA/ADAData.h>
 
 // NAS
-#include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <algorithms/NAS/NASState.h>
 
 // ABK
-#include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <algorithms/AirBrakes/AirBrakesInterp.h>
 
 // MEA
-#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <algorithms/MEA/MEAData.h>
 
@@ -68,6 +61,13 @@ using MainPitotSimulatorData =
     Boardcore::PitotSimulatorData<Config::HIL::N_DATA_PITOT>;
 using MainTemperatureSimulatorData =
     Boardcore::TemperatureSimulatorData<Config::HIL::N_DATA_TEMP>;
+
+enum class HILSignal : int
+{
+    SIMULATION_STARTED      = 1,
+    SIMULATION_STOPPED      = 2,
+    SIMULATION_FORCE_LAUNCH = 3
+};
 
 enum class MainFlightPhases
 {
@@ -108,7 +108,8 @@ struct ADAStateHIL
     {
     }
 
-    ADAStateHIL(Boardcore::ADAState adaState, Main::ADAControllerState state)
+    ADAStateHIL(const Boardcore::ADAState& adaState,
+                const Main::ADAControllerState& state)
         : mslAltitude(adaState.mslAltitude), aglAltitude(adaState.aglAltitude),
           verticalSpeed(adaState.verticalSpeed),
           apogeeDetected(state >= ADAControllerState::ACTIVE_DROGUE_DESCENT),
@@ -156,7 +157,8 @@ struct NASStateHIL
     {
     }
 
-    NASStateHIL(Boardcore::NASState nasState, Main::NASControllerState state)
+    NASStateHIL(const Boardcore::NASState& nasState,
+                const Main::NASControllerState& state)
         : n(nasState.n), e(nasState.e), d(nasState.d), vn(nasState.vn),
           ve(nasState.ve), vd(nasState.vd), qx(nasState.qx), qy(nasState.qy),
           qz(nasState.qz), qw(nasState.qw),
@@ -191,7 +193,7 @@ struct AirBrakesStateHIL
 
     AirBrakesStateHIL() : updating(0) {}
 
-    AirBrakesStateHIL(Main::ABKControllerState state)
+    explicit AirBrakesStateHIL(const Main::ABKControllerState& state)
         : updating(state >= Main::ABKControllerState::ACTIVE)
     {
     }
@@ -217,7 +219,8 @@ struct MEAStateHIL
     {
     }
 
-    MEAStateHIL(Boardcore::MEAState meaState, Main::MEAControllerState state)
+    MEAStateHIL(const Boardcore::MEAState& meaState,
+                const Main::MEAControllerState& state)
         : correctedPressure(meaState.estimatedPressure),
           estimatedMass(meaState.estimatedMass),
           estimatedApogee(meaState.estimatedApogee),
@@ -314,9 +317,10 @@ struct ActuatorData
     {
     }
 
-    ActuatorData(ADAStateHIL adaState, NASStateHIL nasState,
-                 AirBrakesStateHIL airBrakesState, MEAStateHIL meaState,
-                 ActuatorsStateHIL actuatorsState)
+    ActuatorData(const ADAStateHIL& adaState, const NASStateHIL& nasState,
+                 const AirBrakesStateHIL& airBrakesState,
+                 const MEAStateHIL& meaState,
+                 const ActuatorsStateHIL& actuatorsState)
         : adaState(adaState), nasState(nasState),
           airBrakesState(airBrakesState), meaState(meaState),
           actuatorsState(actuatorsState)

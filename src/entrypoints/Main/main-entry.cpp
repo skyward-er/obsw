@@ -62,9 +62,8 @@ int main()
 
     bool initResult = true;
 
-    PersistentVars *persistentVars = new PersistentVars();
-    Buses *buses                   = new Buses();
-    BoardScheduler *scheduler      = new BoardScheduler();
+    Buses *buses              = new Buses();
+    BoardScheduler *scheduler = new BoardScheduler();
 
     Sensors *sensors;
     Actuators *actuators    = new Actuators();
@@ -81,7 +80,7 @@ int main()
     MainHIL *hil            = nullptr;
 
     // HIL
-    if (persistentVars->getHilMode())
+    if (PersistentVars::getHilMode())
     {
         std::cout << "MAIN SimulatorData: " << sizeof(SimulatorData)
                   << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
@@ -109,8 +108,7 @@ int main()
         });
 
     // Insert modules
-    initResult = initResult && manager.insert<PersistentVars>(persistentVars) &&
-                 manager.insert<Buses>(buses) &&
+    initResult = initResult && manager.insert<Buses>(buses) &&
                  manager.insert<BoardScheduler>(scheduler) &&
                  manager.insert<Sensors>(sensors) &&
                  manager.insert<Radio>(radio) &&
@@ -226,7 +224,7 @@ int main()
         std::cout << "Error failed to start SD" << std::endl;
     }
 
-    if (persistentVars->getHilMode())
+    if (PersistentVars::getHilMode())
     {
         std::cout << "Starting HIL" << std::endl;
         hil->start();

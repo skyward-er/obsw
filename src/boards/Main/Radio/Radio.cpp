@@ -740,7 +740,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.motor_can_status   = canStatus.isMotorConnected() ? 1 : 0;
             tm.rig_can_status     = canStatus.isRigConnected() ? 1 : 0;
 
-            tm.hil_state = getModule<PersistentVars>()->getHilMode() ? 1 : 0;
+            tm.hil_state = PersistentVars::getHilMode() ? 1 : 0;
 
             mavlink_msg_rocket_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                Config::Radio::MAV_COMPONENT_ID,
