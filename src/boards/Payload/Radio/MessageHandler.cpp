@@ -85,6 +85,31 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             return enqueueAck(msg);
         }
 
+        case MAVLINK_MSG_ID_SERVO_TM_REQUEST_TC:
+        {
+            auto servo = static_cast<ServosList>(
+                mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
+
+            float position =
+                parent.getModule<Actuators>()->getServoPosition(servo);
+            if (position < 0)
+            {
+                return enqueueNack(msg);
+            }
+
+            mavlink_message_t tmMsg;
+            mavlink_servo_tm_t tm;
+
+            tm.servo_id       = static_cast<uint8_t>(servo);
+            tm.servo_position = position;
+
+            mavlink_msg_servo_tm_encode(config::Mavlink::SYSTEM_ID,
+                                        config::Mavlink::COMPONENT_ID, &tmMsg,
+                                        &tm);
+            enqueueMessage(tmMsg);
+            return enqueueAck(msg);
+        }
+
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
             bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
@@ -99,6 +124,28 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             if (parent.getModule<Actuators>()->setServoAngle(servo, angle))
+            {
+                return enqueueAck(msg);
+            }
+            else
+            {
+                return enqueueNack(msg);
+            }
+        }
+
+        case MAVLINK_MSG_ID_RESET_SERVO_TC:
+        {
+            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
+            // Reset servos in test mode only
+            if (!testMode)
+            {
+                return enqueueNack(msg);
+            }
+
+            auto servo = static_cast<ServosList>(
+                mavlink_msg_reset_servo_tc_get_servo_id(&msg));
+
+            if (parent.getModule<Actuators>()->setServoPosition(servo, 0.0f))
             {
                 return enqueueAck(msg);
             }
