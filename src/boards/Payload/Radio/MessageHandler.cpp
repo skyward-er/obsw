@@ -411,9 +411,16 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto* fmm        = parent.getModule<FlightModeManager>();
             auto* nas        = parent.getModule<NASController>();
             auto* pinHandler = parent.getModule<PinHandler>();
+            auto& logger     = Logger::getInstance();
 
-            auto stats = parent.getModule<FlightStatsRecorder>()->getStats();
-            auto ref   = nas->getReferenceValues();
+            auto stats    = parent.getModule<FlightStatsRecorder>()->getStats();
+            auto ref      = nas->getReferenceValues();
+            auto cpuStats = CpuMeter::getCpuStats();
+            auto loggerStats = logger.getStats();
+
+            // Log CPU stats and reset them
+            CpuMeter::resetCpuStats();
+            logger.log(cpuStats);
 
             // Liftoff stats
             tm.liftoff_ts         = stats.liftoffTs;
@@ -457,14 +464,12 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.min_pressure = stats.minPressure;
 
             // CPU stats
-            auto cpuStats = CpuMeter::getCpuStats();
-            tm.cpu_load   = cpuStats.mean;
-            tm.free_heap  = cpuStats.freeHeap;
+            tm.cpu_load  = cpuStats.mean;
+            tm.free_heap = cpuStats.freeHeap;
 
             // Logger stats
-            auto loggerStats = Logger::getInstance().getStats();
-            tm.log_good      = (loggerStats.lastWriteError == 0);
-            tm.log_number    = loggerStats.logNumber;
+            tm.log_good   = (loggerStats.lastWriteError == 0);
+            tm.log_number = loggerStats.logNumber;
 
             // State machines
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());

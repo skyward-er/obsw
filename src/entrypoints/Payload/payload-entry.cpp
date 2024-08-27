@@ -214,8 +214,6 @@ int main()
     // Collect CPU and stack usage statistics
     while (true)
     {
-        Logger::getInstance().log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
         StackLogger::getInstance().log();
         toggleBoardLed();
         Thread::sleep(1000);
