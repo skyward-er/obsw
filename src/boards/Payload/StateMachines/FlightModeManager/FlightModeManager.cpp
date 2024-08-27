@@ -387,7 +387,6 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
     {
         case EV_ENTRY:
         {
-            Logger::getInstance().start();
             updateState(FlightModeManagerState::ON_GROUND_TEST_MODE);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             return HANDLED;
@@ -397,7 +396,6 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
         {
             getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
-            Logger::getInstance().stop();
             return HANDLED;
         }
 
@@ -447,7 +445,13 @@ State FlightModeManager::Armed(const Event& event)
     {
         case EV_ENTRY:
         {
-            Logger::getInstance().start();
+            // Start a new log file for the flight
+            auto& logger = Logger::getInstance();
+            logger.stop();
+            logger.start();
+            // Ignore errors that occurred while logger was being restarted
+            logger.resetStats();
+
             updateState(FlightModeManagerState::ARMED);
 
             getModule<Actuators>()->setBuzzerArmed();
