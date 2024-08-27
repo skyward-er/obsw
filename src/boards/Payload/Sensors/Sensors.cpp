@@ -83,7 +83,7 @@ bool Sensors::start()
         internalAdcInit();
     }
 
-    if (Config::Sensors::IMU::ENABLED)
+    if (Config::Sensors::RotatedIMU::ENABLED)
     {
         rotatedImuInit();
     }
@@ -346,33 +346,39 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
 {
     if (manager)
     {
-        return {
-            manager->getSensorInfo(lps22df.get()),
-            manager->getSensorInfo(lps28dfw.get()),
-            manager->getSensorInfo(h3lis331dl.get()),
-            manager->getSensorInfo(lis2mdl.get()),
-            manager->getSensorInfo(ubxgps.get()),
-            manager->getSensorInfo(lsm6dsrx.get()),
-            manager->getSensorInfo(ads131m08.get()),
-            manager->getSensorInfo(internalAdc.get()),
-            manager->getSensorInfo(staticPressure.get()),
-            manager->getSensorInfo(dynamicPressure.get()),
-            manager->getSensorInfo(rotatedImu.get()),
-        };
+        std::vector<SensorInfo> infos{};
+
+#define PUSH_SENSOR_INFO(instance, name)                         \
+    if (instance)                                                \
+        infos.push_back(manager->getSensorInfo(instance.get())); \
+    else                                                         \
+        infos.push_back(                                         \
+            SensorInfo{#name, config::name::SAMPLING_RATE, nullptr, false})
+
+        PUSH_SENSOR_INFO(lps22df, LPS22DF);
+        PUSH_SENSOR_INFO(lps28dfw, LPS28DFW);
+        PUSH_SENSOR_INFO(h3lis331dl, H3LIS331DL);
+        PUSH_SENSOR_INFO(lis2mdl, LIS2MDL);
+        PUSH_SENSOR_INFO(ubxgps, UBXGPS);
+        PUSH_SENSOR_INFO(lsm6dsrx, LSM6DSRX);
+        PUSH_SENSOR_INFO(ads131m08, ADS131M08);
+        PUSH_SENSOR_INFO(internalAdc, InternalADC);
+        PUSH_SENSOR_INFO(staticPressure, StaticPressure);
+        PUSH_SENSOR_INFO(dynamicPressure, DynamicPressure);
+        PUSH_SENSOR_INFO(rotatedImu, RotatedIMU);
+
+#undef PUSH_SENSOR_INFO
+
+        return infos;
     }
     else
     {
         return {};
     }
-}
+}  // namespace Payload
 
 void Sensors::lps22dfInit()
 {
-    if (!config::LPS22DF::ENABLED)
-    {
-        return;
-    }
-
     auto spiConfig         = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -394,11 +400,6 @@ void Sensors::lps22dfCallback()
 
 void Sensors::lps28dfwInit()
 {
-    if (!config::LPS28DFW::ENABLED)
-    {
-        return;
-    }
-
     auto config = LPS28DFW::SensorConfig{
         .sa0  = true,
         .fsr  = config::LPS28DFW::FSR,
@@ -419,11 +420,6 @@ void Sensors::lps28dfwCallback()
 
 void Sensors::h3lis331dlInit()
 {
-    if (!config::H3LIS331DL::ENABLED)
-    {
-        return;
-    }
-
     auto spiConfig         = H3LIS331DL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -443,11 +439,6 @@ void Sensors::h3lis331dlCallback()
 
 void Sensors::lis2mdlInit()
 {
-    if (!config::LIS2MDL::ENABLED)
-    {
-        return;
-    }
-
     auto spiConfig         = LIS2MDL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
@@ -470,11 +461,6 @@ void Sensors::lis2mdlCallback()
 
 void Sensors::ubxgpsInit()
 {
-    if (!config::UBXGPS::ENABLED)
-    {
-        return;
-    }
-
     auto spiConfig         = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
@@ -491,11 +477,6 @@ void Sensors::ubxgpsCallback()
 
 void Sensors::lsm6dsrxInit()
 {
-    if (!config::LSM6DSRX::ENABLED)
-    {
-        return;
-    }
-
     auto spiConfig         = SPIBusConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
     spiConfig.mode         = SPI::Mode::MODE_0;
@@ -546,11 +527,6 @@ void Sensors::lsm6dsrxCallback()
 
 void Sensors::ads131m08Init()
 {
-    if (!config::ADS131M08::ENABLED)
-    {
-        return;
-    }
-
     auto spiConfig         = SPIBusConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
@@ -583,11 +559,6 @@ void Sensors::ads131m08Callback()
 
 void Sensors::internalAdcInit()
 {
-    if (!config::InternalADC::ENABLED)
-    {
-        return;
-    }
-
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(config::InternalADC::VBAT_CH);
     internalAdc->enableChannel(config::InternalADC::CAM_VBAT_CH);
@@ -604,11 +575,6 @@ void Sensors::internalAdcCallback()
 
 void Sensors::staticPressureInit()
 {
-    if (!(config::StaticPressure::ENABLED && config::ADS131M08::ENABLED))
-    {
-        return;
-    }
-
     auto readVoltage = [this]
     {
         auto sample  = getADS131M08LastSample();
@@ -631,11 +597,6 @@ void Sensors::staticPressureCallback()
 
 void Sensors::dynamicPressureInit()
 {
-    if (!(config::DynamicPressure::ENABLED && config::ADS131M08::ENABLED))
-    {
-        return;
-    }
-
     auto readVoltage = [this]
     {
         auto sample  = getADS131M08LastSample();
@@ -656,19 +617,13 @@ void Sensors::dynamicPressureCallback()
 
 void Sensors::rotatedImuInit()
 {
-    if (!(config::IMU::ENABLED && config::LSM6DSRX::ENABLED &&
-          config::LIS2MDL::ENABLED))
-    {
-        return;
-    }
-
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]
         {
-            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+            auto imu6 = Config::Sensors::RotatedIMU::USE_CALIBRATED_LSM6DSRX
                             ? getCalibratedLSM6DSRXLastSample()
                             : getLSM6DSRXLastSample();
-            auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+            auto mag  = Config::Sensors::RotatedIMU::USE_CALIBRATED_LIS2MDL
                             ? getCalibratedLIS2MDLLastSample()
                             : getLIS2MDLLastSample();
 
@@ -775,7 +730,8 @@ bool Sensors::sensorManagerInit()
 
     if (rotatedImu)
     {
-        SensorInfo info{"RotatedIMU", Config::Sensors::IMU::SAMPLING_RATE,
+        SensorInfo info{"RotatedIMU",
+                        Config::Sensors::RotatedIMU::SAMPLING_RATE,
                         [this]() { rotatedImuCallback(); }};
         map.emplace(rotatedImu.get(), info);
     }
