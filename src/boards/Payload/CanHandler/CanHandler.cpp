@@ -187,6 +187,20 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(event));
 }
 
+void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
+{
+    auto command = ServoCommand{
+        .timestamp   = TimestampTimer::getTimestamp(),
+        .openingTime = openingTime,
+    };
+
+    protocol->enqueueData(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+                          static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+                          static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(servo), command);
+}
+
 CanStatus CanHandler::getCanStatus()
 {
     miosix::Lock<miosix::FastMutex> lock(statusMutex);

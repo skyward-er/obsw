@@ -120,14 +120,16 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             auto servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            if (parent.getModule<Actuators>()->wiggleServo(servo))
+            bool wiggled = parent.getModule<Actuators>()->wiggleServo(servo);
+            if (wiggled)
             {
+                // One of our servos was wiggled
                 return enqueueAck(msg);
             }
-            else
-            {
-                return enqueueNack(msg);
-            }
+
+            // Forward the wiggle command over CAN
+            parent.getModule<CanHandler>()->sendServoOpenCommand(servo, 1000);
+            return enqueueWack(msg);
         }
 
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
