@@ -38,17 +38,27 @@ namespace MEA
 
 constexpr Hertz UPDATE_RATE = 50_hz;
 
-constexpr unsigned int SHADOW_MODE_TIMEOUT = 4500;  // [ms]
+#ifdef ROCCARASO
+// TODO: update for roccaraso flight
+constexpr unsigned int SHADOW_MODE_TIMEOUT  = 2500;    // [ms]
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 31.69f;  // [kg]
+constexpr float SHUTDOWN_APOGEE_TARGET      = 1000;    // agl [m]
+#else
+#ifndef EUROC
+#warning "MISSION NOT DEFINED: Using EUROC"
+#endif
+constexpr unsigned int SHADOW_MODE_TIMEOUT  = 4500;    // [ms]
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.69f;  // [kg]
+constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
+#endif
 
-constexpr float SHUTDOWN_APOGEE_TARGET    = 3200;  // [m]
 constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
 
-constexpr float SENSOR_NOISE_VARIANCE       = 0.36f;
-constexpr float MODEL_NOISE_VARIANCE        = 0.1f;
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5920f;
+constexpr float SENSOR_NOISE_VARIANCE = 0.36f;
+constexpr float MODEL_NOISE_VARIANCE  = 1.0f;
 
 // Pressure threshold after which the kalman is updated
-constexpr float CC_PRESSURE_THRESHOLD = 1.f;
+constexpr float CC_PRESSURE_THRESHOLD = 1.f;  // [bar]
 
 constexpr Boardcore::Aeroutils::AerodynamicCoeff AERO_COEFF = {
     .n000 = 0.596535425207973f,

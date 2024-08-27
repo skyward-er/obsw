@@ -40,37 +40,43 @@ MEA::Config computeMEAConfig()
 
     // clang-format off
     config.F = Matrix<float, 3, 3>({
-        {1.435871191228868, -0.469001276508780,  0.f}, 
+        {1.62583090191848f, -0.680722129751093f,	0.0f}, 
         {1.f,                0.f,                0.f},
-        {-0.002045309260755, 0.001867496708935,  1.f}});
+        {-0.00102053146869855f, 0.000494919888520664f, 1.f}});
     config.Q = Matrix<float, 3, 3>::Identity() * Config::MEA::MODEL_NOISE_VARIANCE;
-    config.G = Matrix<float, 3, 1>{{4}, {0}, {0}};
+    config.G = Matrix<float, 3, 1>{{2}, {0}, {0}};
     
-    config.baroH = {1.780138883879285,-1.625379384370081,0.f};
+    config.baroH = {1.00196621875211f, -0.485916431287183f, 0.0f};
     config.baroR = Config::MEA::SENSOR_NOISE_VARIANCE;
 
-    config.P           = Matrix<float, 3, 3>::Zero();
+    config.P           = Matrix<float, 3, 3>({
+        {0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 0.1296f}});
     config.initialMass = Config::MEA::DEFAULT_INITIAL_ROCKET_MASS;
     
-    // For now, never trigger accel correction
-    config.accelThresh = 999999.0f; 
-    config.speedThresh = 999999.0f; 
+    // Trigger acceleration correction at accelerations and speeds 
+    // higher then these thresholds
+    config.accelThresh = 40.0f; 
+    config.speedThresh = 40.0f; 
 
-    // TODO: Update these
-    config.Kt    = -1.0f;
-    config.alpha = -1.0f;
-    config.c     = -1.0f;
+    // Limits to clamp mass
+    config.minMass = 25.0f;
+    config.maxMass = 35.0f;
+
+    config.Kt    = 105.2f;
+    config.alpha = 0.1057f;
+    config.c     = 381.9571f;
 
     config.coeffs = Config::MEA::AERO_COEFF;
     
     // Rockets diameter
     // TODO: De-hardcode this
-    float d = 0.15f; 
+    float d = 0.15f;
     config.crossSection = Constants::PI * (d / 2) * (d / 2);
     
-    // TODO: Update these
-    config.ae = -1.0f;
-    config.p0 = -1.0f;
+    config.ae = 0.0028594f;
+    config.p0 = 100093.7492f;
     // clang-format on
 
     return config;
@@ -170,7 +176,10 @@ void MEAController::update()
                 curState == MEAControllerState::ACTIVE ||
                 curState == MEAControllerState::ACTIVE_UNPOWERED)
             {
-                if (state.estimatedApogee > Config::MEA::SHUTDOWN_APOGEE_TARGET)
+                // estimated apogee is msl, so account for that since
+                // SHUTDOWN_APOGEE_TARGET is agl
+                if (state.estimatedApogee >
+                    Config::MEA::SHUTDOWN_APOGEE_TARGET + ref.refAltitude)
                 {
                     detectedShutdowns++;
                 }
@@ -182,7 +191,7 @@ void MEAController::update()
                 if (curState == MEAControllerState::ACTIVE)
                 {
                     // Throw events only in ACTIVE
-                    if (detectedShutdowns > Config::MEA::SHUTDOWN_N_SAMPLES)
+                    if (detectedShutdowns >= Config::MEA::SHUTDOWN_N_SAMPLES)
                     {
                         getModule<StatsRecorder>()->shutdownDetected(
                             TimestampTimer::getTimestamp(), mslAltitude);
