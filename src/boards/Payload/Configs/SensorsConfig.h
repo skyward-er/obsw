@@ -46,7 +46,7 @@ namespace Sensors
 
 namespace LPS22DF
 {
-constexpr auto ENABLED       = false;
+constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = 50_hz;
 constexpr auto AVG           = Boardcore::LPS22DF::AVG_4;
 constexpr auto ODR           = Boardcore::LPS22DF::ODR_100;
@@ -135,13 +135,13 @@ constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
 constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
 }  // namespace DynamicPressure
 
-namespace IMU
+namespace RotatedIMU
 {
 constexpr auto USE_CALIBRATED_LIS2MDL  = true;
 constexpr auto USE_CALIBRATED_LSM6DSRX = true;
 constexpr auto ENABLED                 = true;
 constexpr auto SAMPLING_RATE           = ADS131M08::SAMPLING_RATE;
-}  // namespace IMU
+}  // namespace RotatedIMU
 
 namespace Calibration
 {
