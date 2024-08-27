@@ -169,6 +169,13 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_SAVE_CALIBRATION:
         {
+            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
+            // Save calibration data in test mode only
+            if (!testMode)
+            {
+                return enqueueNack(msg);
+            }
+
             bool magResult = parent.getModule<Sensors>()->saveMagCalibration();
             if (magResult)
             {
