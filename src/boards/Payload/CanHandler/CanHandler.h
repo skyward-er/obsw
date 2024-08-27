@@ -23,6 +23,7 @@
 #pragma once
 
 #include <common/CanConfig.h>
+#include <common/Mavlink.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -65,6 +66,13 @@ public:
     bool isStarted();
 
     void sendEvent(Common::CanConfig::EventId event);
+
+    /**
+     * @brief Send a servo open command over CAN.
+     * @param servo Servo to open
+     * @param openingTime Time to open the servo [ms]
+     */
+    void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
 
     CanStatus getCanStatus();
 

@@ -52,14 +52,14 @@ public:
     /**
      * @brief Moves the specified servo to the specified position.
      * @param percentage Position to set in the range [0-1]
-     * @return Whether the position was set
+     * @return `false` if the servo is invalid, `true` otherwise.
      */
     bool setServoPosition(ServosList servoId, float position);
 
     /**
      * @brief Moves the specified servo to the specified angle.
      * @param angle Angle to set in the range [0-180] [degrees]
-     * @return Whether the angle was set
+     * @return `false` if the servo is invalid, `true` otherwise.
      */
     bool setServoAngle(ServosList servoId, float angle);
 
@@ -78,13 +78,13 @@ public:
     /**
      * @brief Wiggles the specified servo. This function is blocking, it
      * sleeps the caller thread between the two movements.
-     * @return Whether the servo was wiggled
+     * @return `false` if the servo is invalid, `true` otherwise.
      */
     bool wiggleServo(ServosList servoId);
 
     /**
      * @brief Disables the specified servo.
-     * @return Whether the servo was disabled
+     * @return `false` if the servo is invalid, `true` otherwise.
      */
     bool disableServo(ServosList servoId);
 
