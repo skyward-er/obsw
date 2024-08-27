@@ -38,6 +38,7 @@ FlightModeManager::FlightModeManager()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_CAN);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
