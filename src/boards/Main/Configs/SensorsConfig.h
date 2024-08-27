@@ -118,7 +118,7 @@ constexpr bool ENABLED = true;
 namespace VN100
 {
 constexpr Hertz RATE   = 100_hz;
-constexpr bool ENABLED = false;
+constexpr bool ENABLED = true;
 }  // namespace VN100
 
 namespace ADS131M08
