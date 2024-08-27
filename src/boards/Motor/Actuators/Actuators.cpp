@@ -94,10 +94,12 @@ Actuators::Actuators()
     info          = getServo(ServosList::MAIN_VALVE);
     info->limit   = Config::Servos::MAIN_LIMIT;
     info->flipped = Config::Servos::MAIN_FLIPPED;
+    info->unsafeSetServoPosition(0.0f);
 
     info          = getServo(ServosList::VENTING_VALVE);
     info->limit   = Config::Servos::VENTING_LIMIT;
     info->flipped = Config::Servos::VENTING_FLIPPED;
+    info->unsafeSetServoPosition(0.0f);
 }
 
 bool Actuators::start()
