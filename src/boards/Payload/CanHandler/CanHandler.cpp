@@ -219,15 +219,13 @@ void CanHandler::handleMessage(const CanMessage& msg)
 
 void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage& msg)
 {
-    auto canEvent = static_cast<EventId>(msg.getSecondaryType());
-    auto event    = eventToEvent.find(canEvent);
-
-    if (event == eventToEvent.end())
+    auto event = canEventToEvent(msg.getSecondaryType());
+    if (event == LAST_EVENT)
     {
         return;
     }
 
-    EventBroker::getInstance().post(event->second, TOPIC_CAN);
+    EventBroker::getInstance().post(event, TOPIC_CAN);
 }
 
 void CanHandler::handleStatus(const CanMessage& msg)
