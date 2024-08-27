@@ -85,6 +85,29 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             return enqueueAck(msg);
         }
 
+        case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
+        {
+            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
+            // Allow arbitrary servo movements in test mode only
+            if (!testMode)
+            {
+                return enqueueNack(msg);
+            }
+
+            auto servo = static_cast<ServosList>(
+                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
+            float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+
+            if (parent.getModule<Actuators>()->setServoAngle(servo, angle))
+            {
+                return enqueueAck(msg);
+            }
+            else
+            {
+                return enqueueNack(msg);
+            }
+        }
+
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
             bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
@@ -97,8 +120,14 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             auto servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
-            parent.getModule<Actuators>()->wiggleServo(servo);
-            return enqueueAck(msg);
+            if (parent.getModule<Actuators>()->wiggleServo(servo))
+            {
+                return enqueueAck(msg);
+            }
+            else
+            {
+                return enqueueNack(msg);
+            }
         }
 
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
