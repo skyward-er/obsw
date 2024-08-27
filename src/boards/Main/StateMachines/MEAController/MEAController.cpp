@@ -179,10 +179,9 @@ void MEAController::update()
                     detectedShutdowns = 0;
                 }
 
-                if (curState != MEAControllerState::SHADOW_MODE &&
-                    curState == MEAControllerState::ACTIVE_UNPOWERED)
+                if (curState == MEAControllerState::ACTIVE)
                 {
-                    // DO NOT THROW EVENTS IN SHADOW_MODE!
+                    // Throw events only in ACTIVE
                     if (detectedShutdowns > Config::MEA::SHUTDOWN_N_SAMPLES)
                     {
                         getModule<StatsRecorder>()->shutdownDetected(

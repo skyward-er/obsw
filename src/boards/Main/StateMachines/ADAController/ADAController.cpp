@@ -167,9 +167,9 @@ void ADAController::update()
             detectedApogees = 0;
         }
 
-        if (curState != ADAControllerState::SHADOW_MODE)
+        if (curState == ADAControllerState::ACTIVE_ASCENT)
         {
-            // DO NOT THROW EVENTS IN SHADOW_MODE!
+            // Throw events only in ACTIVE_ASCENT
             if (detectedApogees > Config::ADA::APOGEE_N_SAMPLES)
             {
                 auto gps = getModule<Sensors>()->getUBXGPSLastSample();
