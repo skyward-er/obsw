@@ -389,6 +389,8 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
         {
             updateState(FlightModeManagerState::ON_GROUND_TEST_MODE);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
+            getModule<Sensors>()->resetMagCalibrator();
+            getModule<Sensors>()->enableMagCalibrator();
             return HANDLED;
         }
 
@@ -396,6 +398,7 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
         {
             getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
+            getModule<Sensors>()->disableMagCalibrator();
             return HANDLED;
         }
 
