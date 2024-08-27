@@ -44,8 +44,8 @@ constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 constexpr unsigned int CIRCULAR_BUFFER_SIZE  = 30;
 constexpr unsigned int MAX_PACKETS_PER_FLUSH = 6;
 
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
+constexpr uint8_t MAV_SYSTEM_ID    = MAV_SYSID_MAIN;
+constexpr uint8_t MAV_COMPONENT_ID = 0;
 
 constexpr Hertz LOW_RATE_TELEMETRY  = 2_hz;
 constexpr Hertz HIGH_RATE_TELEMETRY = 4_hz;
