@@ -35,16 +35,16 @@ namespace Actuators
 
 namespace LeftServo
 {
-constexpr auto ROTATION  = 120.f;  // [deg]
-constexpr auto MIN_PULSE = 900us;
-constexpr auto MAX_PULSE = MIN_PULSE + 10us * static_cast<int>(ROTATION);
+constexpr auto ROTATION  = 180.f;  // [deg]
+constexpr auto MIN_PULSE = 500us;
+constexpr auto MAX_PULSE = 2460us;
 }  // namespace LeftServo
 
 namespace RightServo
 {
-constexpr auto ROTATION  = 120.f;  // [deg]
-constexpr auto MIN_PULSE = 2100us;
-constexpr auto MAX_PULSE = MIN_PULSE - 10us * static_cast<int>(ROTATION);
+constexpr auto ROTATION  = 180.f;  // [deg]
+constexpr auto MIN_PULSE = 2460us;
+constexpr auto MAX_PULSE = 500us;
 }  // namespace RightServo
 
 namespace StatusLed
