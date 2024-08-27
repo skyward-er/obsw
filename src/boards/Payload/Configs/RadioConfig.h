@@ -45,8 +45,8 @@ constexpr bool MAVLINK_OVER_HIL_SERIAL_ENABLED = true;
 
 namespace Mavlink
 {
-constexpr uint8_t SYSTEM_ID    = 171;
-constexpr uint8_t COMPONENT_ID = 96;
+constexpr uint8_t SYSTEM_ID    = SysIDs::MAV_SYSID_PAYLOAD;
+constexpr uint8_t COMPONENT_ID = 0;
 }  // namespace Mavlink
 
 namespace MavlinkDriver
