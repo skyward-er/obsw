@@ -29,6 +29,7 @@
 #include <Payload/Configs/FlightModeManagerConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -584,6 +585,14 @@ State FlightModeManager::FlyingAscending(const Event& event)
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_EXPULSION:
         {
+            auto gps       = getModule<Sensors>()->getUBXGPSLastSample();
+            auto nasState  = getModule<NASController>()->getNasState();
+            float altitude = -nasState.d;
+
+            getModule<FlightStatsRecorder>()->apogeeDetected(
+                TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
+                altitude);
+
             return transition(&FlightModeManager::FlyingDrogueDescent);
         }
 
