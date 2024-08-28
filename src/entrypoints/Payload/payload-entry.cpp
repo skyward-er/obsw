@@ -162,7 +162,12 @@ int main()
     led4: Everything ok */
 
     // Start global modules
-    START_SINGLETON(Logger);
+    START_SINGLETON(Logger)
+    {
+        std::cout << "Logger started successfully with log number "
+                  << Logger::getInstance().getCurrentLogNumber() << std::endl;
+    }
+
     START_SINGLETON(EventBroker);
     // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
