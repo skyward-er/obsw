@@ -345,8 +345,6 @@ void NASController::update()
         auto state = nas.getState();
 
         getModule<FlightStatsRecorder>()->updateNas(state);
-        getModule<FlightStatsRecorder>()->updateApogee(
-            state.timestamp, gps.latitude, gps.longitude, -state.d);
         Logger::getInstance().log(state);
     }
 }

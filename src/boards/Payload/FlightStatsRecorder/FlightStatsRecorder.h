@@ -81,8 +81,8 @@ public:
     Stats getStats();
 
     void liftoffDetected(uint64_t ts);
+    void apogeeDetected(uint64_t ts, float lat, float lon, float alt);
     void deploymentDetected(uint64_t ts, float alt);
-    void updateApogee(uint64_t ts, float lat, float lon, float alt);
 
     void updateAcc(const Boardcore::AccelerometerData &data);
     void updateNas(const Boardcore::NASState &data);
@@ -91,18 +91,6 @@ public:
 private:
     miosix::FastMutex statsMutex;
     Stats stats;
-
-    miosix::FastMutex apogeeMutex;
-    struct
-    {
-        uint64_t timestamp = 0;
-        float lat          = 0.0f;
-        float lon          = 0.0f;
-        float alt          = 0.0f;
-
-        uint32_t apogeeConfidence =
-            0;  //!< Confidence level of the above coordinates being the apogee
-    } maxAltStats;  //!< Stats for the maximum recorded altitude
 };
 
 }  // namespace Payload
