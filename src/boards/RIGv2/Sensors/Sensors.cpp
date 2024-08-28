@@ -240,36 +240,33 @@ void Sensors::setCanTopTankPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canTopTankPressure = data;
-    useCanData         = true;
 }
 
 void Sensors::setCanBottomTankPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canBottomTankPressure = data;
-    useCanData            = true;
 }
 
 void Sensors::setCanCCPress(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canCCPressure = data;
-    useCanData    = true;
 }
 
 void Sensors::setCanTankTemp(TemperatureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canTankTemperature = data;
-    useCanData         = true;
 }
 
 void Sensors::setCanMotorBatteryVoltage(VoltageData data)
 {
     Lock<FastMutex> lock{canMutex};
     canMotorBatteryVoltage = data;
-    useCanData             = true;
 }
+
+void Sensors::switchToCanSensors() { useCanData = true; }
 
 void Sensors::calibrate()
 {

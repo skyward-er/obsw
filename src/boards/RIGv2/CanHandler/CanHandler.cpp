@@ -271,6 +271,9 @@ void CanHandler::handleStatus(const Canbus::CanMessage &msg)
             status.motorLogNumber = deviceStatus.logNumber;
             status.motorLogGood   = deviceStatus.logGood;
             status.motorHil       = deviceStatus.hil;
+
+            // Tell sensors module to switch to can sensors
+            getModule<Sensors>()->switchToCanSensors();
             break;
         }
 

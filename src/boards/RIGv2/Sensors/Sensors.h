@@ -84,6 +84,7 @@ public:
     void setCanCCPress(Boardcore::PressureData data);
     void setCanTankTemp(Boardcore::TemperatureData data);
     void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
+    void switchToCanSensors();
 
 private:
     void vesselPressureInit();
