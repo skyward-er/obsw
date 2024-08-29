@@ -43,6 +43,8 @@ CanHandler::CanHandler()
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::MAIN),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
+    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
+                       static_cast<uint8_t>(CanConfig::Board::BROADCAST));
 }
 
 bool CanHandler::start()
