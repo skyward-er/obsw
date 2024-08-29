@@ -113,6 +113,25 @@ public:
      */
     void inject(Boardcore::DependencyInjector& injector) override;
 
+    /**
+     * @brief This method is a forward method from early maneuvers guidance
+     * algorithm to calculate the yaw angle of the parafoil knowing the current
+     * position and the target position.
+     *
+     * @param[in] currentPositionNED the current NED position of the parafoil in
+     * m
+     * @param[in] targetPositionNED NED position of the target in m
+     * @param[out] heading Saves the heading vector for logging purposes
+     *
+     * @returns the yaw angle of the parafoil in rad
+     *
+     */
+    float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
+                               Eigen::Vector2f& heading)
+    {
+        return emGuidance.calculateTargetAngle(currentPositionNED, heading);
+    }
+
 private:
     /**
      * @brief Instantiates the algorithms and adds them to the algorithms
