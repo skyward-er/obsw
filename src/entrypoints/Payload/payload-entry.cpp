@@ -112,47 +112,51 @@ int main()
     DependencyManager depman{};
 
     std::cout << "Instantiating modules" << std::endl;
+    bool initResult = true;
+
     // Core components
-    auto buses     = new Buses();
+    auto buses = new Buses();
+    initResult &= depman.insert(buses);
     auto scheduler = new BoardScheduler();
+    initResult &= depman.insert(scheduler);
 
     // Global state machine
     auto flightModeManager = new FlightModeManager();
+    initResult &= depman.insert(flightModeManager);
 
     // Attitude estimation
     auto nas = new NASController();
+    initResult &= depman.insert(nas);
 
     // Sensors
-    auto sensors    = new Sensors();
+    auto sensors = new Sensors();
+    initResult &= depman.insert(sensors);
     auto pinHandler = new PinHandler();
+    initResult &= depman.insert(pinHandler);
 
     // Radio and CAN
-    auto radio      = new Radio();
+    auto radio = new Radio();
+    initResult &= depman.insert(radio);
     auto canHandler = new CanHandler();
+    initResult &= depman.insert(canHandler);
 
     // Flight algorithms
     auto altitudeTrigger = new AltitudeTrigger();
-    auto wingController  = new WingController();
-    auto windEstimation  = new WindEstimation();
+    initResult &= depman.insert(altitudeTrigger);
+    auto wingController = new WingController();
+    initResult &= depman.insert(wingController);
+    auto windEstimation = new WindEstimation();
+    initResult &= depman.insert(windEstimation);
 
     // Actuators
     auto actuators = new Actuators();
+    initResult &= depman.insert(actuators);
 
     // Statistics
     auto statsRecorder = new FlightStatsRecorder();
+    initResult &= depman.insert(statsRecorder);
 
     std::cout << "Injecting module dependencies" << std::endl;
-    // Insert modules
-    bool initResult = depman.insert(buses) && depman.insert(scheduler) &&
-                      depman.insert(flightModeManager) && depman.insert(nas) &&
-                      depman.insert(sensors) && depman.insert(pinHandler) &&
-                      depman.insert(radio) && depman.insert(canHandler) &&
-                      depman.insert(altitudeTrigger) &&
-                      depman.insert(wingController) &&
-                      depman.insert(windEstimation) &&
-                      depman.insert(actuators) && depman.insert(statsRecorder);
-
-    // Populate module dependencies
     initResult &= depman.inject();
 
     /* Status led indicators
@@ -167,8 +171,8 @@ int main()
         std::cout << "Logger started successfully with log number "
                   << Logger::getInstance().getCurrentLogNumber() << std::endl;
     }
-
     START_SINGLETON(EventBroker);
+
     // Start module instances
     START_MODULE(sensors) { miosix::led1On(); }
     START_MODULE(pinHandler);
