@@ -145,14 +145,17 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             auto servo = static_cast<ServosList>(
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
-            if (parent.getModule<Actuators>()->setServoPosition(servo, 0.0f))
+            bool reset =
+                parent.getModule<Actuators>()->setServoPosition(servo, 0.0f);
+            if (reset)
             {
+                // One of our servos was reset
                 return enqueueAck(msg);
             }
-            else
-            {
-                return enqueueNack(msg);
-            }
+
+            // Forward the reset command over CAN
+            parent.getModule<CanHandler>()->sendServoOpenCommand(servo, 0);
+            return enqueueWack(msg);
         }
 
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
