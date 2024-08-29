@@ -171,16 +171,16 @@ int main()
         std::cout << "Error failed to start scheduler" << std::endl;
     }
 
-    if (!initResult)
-    {
-        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
-        std::cout << "Init failure!" << std::endl;
-    }
-    else
+    if (initResult)
     {
         broker.post(FMM_INIT_OK, TOPIC_MOTOR);
         std::cout << "All good!" << std::endl;
         led4On();
+    }
+    else
+    {
+        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
+        std::cout << "Init failure!" << std::endl;
     }
 
     std::cout << "Sensor status:" << std::endl;
