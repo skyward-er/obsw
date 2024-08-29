@@ -42,20 +42,6 @@ constexpr Hertz UPDATE_RATE = 10_hz;
 
 constexpr unsigned int SHADOW_MODE_TIMEOUT = 500;  // [ms]
 
-// TODO remove this useless config from interpolation algorithm
-static const Boardcore::AirBrakesConfig BULLSHIT_RANDOM_CONFIG_REMOVE_ME_PLEASE{
-    0.4884,      -1.4391,    6.6940,
-    -18.4272,    29.1044,    -24.5585,
-    8.6058,      9.0426,     159.5995,
-    4.8188,      -208.4471,  47.0771,
-    1.9433e+03,  -205.6689,  -6.4634e+03,
-    331.0332,    8.8763e+03, -161.8111,
-    -3.9917e+03, 2.8025e-06, 0.0373,
-    20,          -0.009216,  0.02492,
-    -0.01627,    0.03191,    0.017671458676443,
-    0,
-};
-
 static const Boardcore::AirBrakesInterpConfig CONFIG = {
     .FILTER_MINIMUM_ALTITUDE = 1000,
     .FILTER_MAXIMUM_ALTITUDE = 3000,

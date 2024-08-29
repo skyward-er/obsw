@@ -41,9 +41,7 @@ ABKController::ABKController()
               return TimedTrajectoryPoint{
                   getModule<NASController>()->getNASState()};
           },
-          Data::ABK::OPEN_TRAJECTORY_SET,
-          Data::ABK::CLOSED_TRAJECTORY_SET,
-          Config::ABK::BULLSHIT_RANDOM_CONFIG_REMOVE_ME_PLEASE,
+          Data::ABK::OPEN_TRAJECTORY_SET, Data::ABK::CLOSED_TRAJECTORY_SET,
           Config::ABK::CONFIG,
           [this](float position)
           { getModule<Actuators>()->setAbkPosition(position); }}
