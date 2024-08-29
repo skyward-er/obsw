@@ -102,11 +102,12 @@ State WingController::state_idle(const Boardcore::Event& event)
         }
         case FLIGHT_WING_DESCENT:
         {
-            float alt = -getModule<NASController>()->getNasState().d;
+            auto nasState  = getModule<NASController>()->getNasState();
+            float altitude = -nasState.d;
 
             getModule<Actuators>()->cuttersOn();
             getModule<FlightStatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), alt);
+                TimestampTimer::getTimestamp(), altitude);
 
             return transition(&WingController::state_flying);
         }
