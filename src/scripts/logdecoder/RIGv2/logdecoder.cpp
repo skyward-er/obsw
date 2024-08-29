@@ -53,10 +53,14 @@ void registerTypes(Deserializer& ds)
     LogTypes::registerTypes(ds);
 
     // Custom types
-    ds.registerType<ADCsData>();
-    ds.registerType<TCsData>();
-    ds.registerType<LCsData>();
-    ds.registerType<PTsData>();
+    ds.registerType<ADC1Data>();
+    ds.registerType<TC1Data>();
+    ds.registerType<VesselWeightData>();
+    ds.registerType<TankWeightData>();
+    ds.registerType<VesselPressureData>();
+    ds.registerType<FillingPressureData>();
+    ds.registerType<TopTankPressureData>();
+    ds.registerType<BottomTankPressureData>();
     ds.registerType<ActuatorsData>();
     ds.registerType<GroundModeManagerData>();
     ds.registerType<TarsActionData>();
