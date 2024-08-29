@@ -47,8 +47,7 @@ ABKController::ABKController(TaskScheduler* sched)
                                               .get<NASController>()
                                               ->getNasState());
           },
-          OPEN_TRAJECTORY_SET, CLOSED_TRAJECTORY_SET, ABKConfig::ABK_CONFIG,
-          getConfig(),
+          OPEN_TRAJECTORY_SET, CLOSED_TRAJECTORY_SET, getConfig(),
           [](float position)
           {
               ModuleManager::getInstance().get<Actuators>()->setServoPosition(
