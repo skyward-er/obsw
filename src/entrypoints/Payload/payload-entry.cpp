@@ -212,19 +212,10 @@ int main()
         std::cerr << "Failed to initialize Payload" << std::endl;
     }
 
-    auto toggleBoardLed = [on = false]() mutable
-    {
-        if ((on = !on))
-            miosix::gpios::boardLed::low();
-        else
-            miosix::gpios::boardLed::high();
-    };
-
-    // Collect CPU and stack usage statistics
+    // Collect stack usage statistics
     while (true)
     {
         StackLogger::getInstance().log();
-        toggleBoardLed();
         Thread::sleep(1000);
     }
 

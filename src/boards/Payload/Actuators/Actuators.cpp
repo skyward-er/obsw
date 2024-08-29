@@ -61,6 +61,8 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
+    using namespace std::chrono;
+
     auto& scheduler = getModule<BoardScheduler>()->actuators();
 
     leftServo.servo->enable();
@@ -73,6 +75,25 @@ bool Actuators::start()
     cuttersOff();
     buzzerOff();
     statusOff();
+
+    // Use SKIP policy to highlight missed executions (the LED will stay on or
+    // off for longer)
+    auto boardLedTaskId = scheduler.addTask(
+        [on = true]() mutable
+        {
+            if (on)
+                miosix::gpios::boardLed::high();
+            else
+                miosix::gpios::boardLed::low();
+            on = !on;
+        },
+        1s, TaskScheduler::Policy::SKIP);
+
+    if (boardLedTaskId == 0)
+    {
+        LOG_ERR(logger, "Failed to start board LED task");
+        return false;
+    }
 
     auto buzzerTaskId = scheduler.addTask([this]() { updateBuzzer(); },
                                           config::Buzzer::UPDATE_PERIOD,
