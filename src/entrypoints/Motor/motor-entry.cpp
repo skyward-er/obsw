@@ -110,24 +110,29 @@ int main()
         std::cout << "Error failed to start scheduler" << std::endl;
     }
 
-    if (!sdLogger.start())
+    if (sdLogger.start())
+    {
+        sdLogger.resetStats();
+        std::cout << "SD good!" << std::endl
+                  << "Log number: " << sdLogger.getStats().logNumber
+                  << std::endl;
+    }
+    else
     {
         initResult = false;
         std::cout << "Error failed to start SD" << std::endl;
     }
 
-    sdLogger.resetStats();
-
-    if (!initResult)
-    {
-        std::cout << "Init failure" << std::endl;
-        canHandler->setInitStatus(InitStatus::INIT_ERR);
-    }
-    else
+    if (initResult)
     {
         std::cout << "All good!" << std::endl;
         canHandler->setInitStatus(InitStatus::INIT_OK);
         led4On();
+    }
+    else
+    {
+        std::cout << "Init failure" << std::endl;
+        canHandler->setInitStatus(InitStatus::INIT_ERR);
     }
 
     std::cout << "Sensor status:" << std::endl;
