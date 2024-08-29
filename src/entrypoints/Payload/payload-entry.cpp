@@ -46,6 +46,7 @@
 #include <events/utils/EventSniffer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <iomanip>
 #include <iostream>
 
 /**
@@ -55,13 +56,13 @@
  *
  * @example START_MODULE(sensors) { miosix::ledOn(); }
  */
-#define START_MODULE(module)                                  \
-    std::cout << "Starting " #module << std::endl;            \
-    if (!module->start())                                     \
-    {                                                         \
-        initResult = false;                                   \
-        std::cerr << "Failed to start " #module << std::endl; \
-    }                                                         \
+#define START_MODULE(module)                                             \
+    std::cout << "Starting " #module << std::endl;                       \
+    if (!module->start())                                                \
+    {                                                                    \
+        initResult = false;                                              \
+        std::cerr << "*** Failed to start " #module " ***" << std::endl; \
+    }                                                                    \
     else
 
 /**
@@ -71,13 +72,13 @@
  *
  * @example `START_SINGLETON(Logger) { miosix::ledOn(); }`
  */
-#define START_SINGLETON(singleton)                               \
-    std::cout << "Starting " #singleton << std::endl;            \
-    if (!singleton::getInstance().start())                       \
-    {                                                            \
-        initResult = false;                                      \
-        std::cerr << "Failed to start " #singleton << std::endl; \
-    }                                                            \
+#define START_SINGLETON(singleton)                                          \
+    std::cout << "Starting " #singleton << std::endl;                       \
+    if (!singleton::getInstance().start())                                  \
+    {                                                                       \
+        initResult = false;                                                 \
+        std::cerr << "*** Failed to start " #singleton " ***" << std::endl; \
+    }                                                                       \
     else
 
 // Build type string for printing during startup
@@ -125,8 +126,8 @@ int main()
     initResult &= depman.insert(flightModeManager);
 
     // Attitude estimation
-    auto nas = new NASController();
-    initResult &= depman.insert(nas);
+    auto nasController = new NASController();
+    initResult &= depman.insert(nasController);
 
     // Sensors
     auto sensors = new Sensors();
@@ -168,7 +169,8 @@ int main()
     // Start global modules
     START_SINGLETON(Logger)
     {
-        std::cout << "Logger started successfully with log number "
+        std::cout << "Logger Ok!\n"
+                  << "\tLog number: "
                   << Logger::getInstance().getCurrentLogNumber() << std::endl;
     }
     START_SINGLETON(EventBroker);
@@ -179,7 +181,7 @@ int main()
     START_MODULE(radio) { miosix::led2On(); }
     START_MODULE(canHandler) { miosix::led3On(); }
     START_MODULE(flightModeManager);
-    START_MODULE(nas);
+    START_MODULE(nasController);
     START_MODULE(altitudeTrigger);
     START_MODULE(wingController);
     START_MODULE(windEstimation);
@@ -203,14 +205,23 @@ int main()
         // Turn on the initialization led on the CU
         miosix::led4On();
         actuators->setStatusOk();
-        std::cout << "Successfully initialized Payload" << std::endl;
+        std::cout << "Payload initialization Ok!" << std::endl;
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
         actuators->setStatusError();
-        std::cerr << "Failed to initialize Payload" << std::endl;
+        std::cerr << "*** Payload initialization error ***" << std::endl;
     }
+
+    std::cout << "Sensors status:" << std::endl;
+    auto sensorInfo = sensors->getSensorInfo();
+    for (const auto& info : sensorInfo)
+    {
+        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
+                  << (info.isInitialized ? "Ok" : "Error") << "\n";
+    }
+    std::cout.flush();
 
     // Collect stack usage statistics
     while (true)
