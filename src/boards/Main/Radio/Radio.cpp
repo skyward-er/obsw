@@ -556,19 +556,27 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             NASController* nas   = getModule<NASController>();
             MEAController* mea   = getModule<MEAController>();
 
-            auto pressDigi   = sensors->getLPS28DFWLastSample();
-            auto imu         = sensors->getIMULastSample();
-            auto gps         = sensors->getUBXGPSLastSample();
-            auto vn100       = sensors->getVN100LastSample();
-            auto pressStatic = sensors->getStaticPressure1LastSample();
-            auto pressDpl    = sensors->getDplBayPressureLastSample();
-            auto adaState    = ada->getADAState();
-            auto nasState    = nas->getNASState();
-            auto meaState    = mea->getMEAState();
+            auto pressDigi    = sensors->getLPS28DFWLastSample();
+            auto imu          = sensors->getIMULastSample();
+            auto gps          = sensors->getUBXGPSLastSample();
+            auto vn100        = sensors->getVN100LastSample();
+            auto pressStatic  = sensors->getStaticPressure1LastSample();
+            auto pressDpl     = sensors->getDplBayPressureLastSample();
+            auto pitotStatic  = sensors->getCanPitotStaticPressLastSample();
+            auto pitotDynamic = sensors->getCanPitotStaticPressLastSample();
+            auto adaState     = ada->getADAState();
+            auto nasState     = nas->getNASState();
+            auto meaState     = mea->getMEAState();
+            auto ref = getModule<AlgoReference>()->getReferenceValues();
+
+            // Compute airspeed
+            float airspeedPitot = Aeroutils::computePitotAirspeed(
+                pitotStatic.pressure + pitotDynamic.pressure,
+                pitotStatic.pressure, nasState.d, ref.refTemperature);
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
-            tm.airspeed_pitot = -1.0f;  // TODO
+            tm.airspeed_pitot = airspeedPitot;
             tm.mea_mass       = meaState.estimatedMass;
             tm.mea_apogee     = meaState.estimatedApogee;
 
