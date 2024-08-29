@@ -198,24 +198,29 @@ int main()
         std::cout << "Error failed to start FlightModeManager" << std::endl;
     }
 
-    if (!sdLogger.start())
+    if (sdLogger.start())
+    {
+        sdLogger.resetStats();
+        std::cout << "SD good!" << std::endl
+                  << "Log number: " << sdLogger.getStats().logNumber
+                  << std::endl;
+    }
+    else
     {
         initResult = false;
         std::cout << "Error failed to start SD" << std::endl;
     }
 
-    sdLogger.resetStats();
-
-    if (!initResult)
+    if (initResult)
     {
-        std::cout << "Init failure" << std::endl;
-        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        std::cout << "All good!" << std::endl;
+        led4On();
     }
     else
     {
-        std::cout << "All good!" << std::endl;
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-        led4On();
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        std::cout << "Init failure" << std::endl;
     }
 
     std::cout << "Sensor status:" << std::endl;
