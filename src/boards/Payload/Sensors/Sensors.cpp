@@ -631,17 +631,17 @@ void Sensors::rotatedImuInit()
         });
 
     // Accelerometer
-    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(-90));
-    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundX(-90));
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundX(+90));
     // Gyroscope
-    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(-90));
-    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(-90));
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
     // Invert the Y axis on the magnetometer
     Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
     rotatedImu->addMagTransformation(m);
     // Magnetometer
-    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(-90));
-    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(90));
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(+90));
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
 }
 
 void Sensors::rotatedImuCallback()
