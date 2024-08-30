@@ -244,7 +244,12 @@ State FlightModeManager::OnGroundSensorCalibration(const Event& event)
         case EV_ENTRY:
         {
             updateState(FlightModeManagerState::ON_GROUND_SENSOR_CALIBRATION);
+
+            // Wait for sensors to stabilize before calibration
+            // The first few LPS28DFW samples contain garbage data
+            miosix::Thread::sleep(100);
             getModule<Sensors>()->calibrate();
+
             EventBroker::getInstance().post(FMM_ALGOS_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }
@@ -284,7 +289,9 @@ State FlightModeManager::OnGroundAlgorithmCalibration(const Event& event)
         {
             updateState(
                 FlightModeManagerState::ON_GROUND_ALGORITHM_CALIBRATION);
-            EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
+            // Calibrate after a delay to allow calibrated sensors to stabilize
+            EventBroker::getInstance().postDelayed(NAS_CALIBRATE, TOPIC_NAS,
+                                                   100);
             return HANDLED;
         }
 
