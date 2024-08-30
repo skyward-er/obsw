@@ -314,27 +314,6 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 {
     switch (tmId)
     {
-        case MAV_SENSORS_STATE_ID:
-        {
-            auto sensors = parent.getModule<Sensors>()->getSensorInfo();
-            for (auto sensor : sensors)
-            {
-                mavlink_message_t msg;
-                mavlink_sensor_state_tm_t tm;
-
-                strcpy(tm.sensor_name, sensor.id.c_str());
-                tm.initialized = sensor.isInitialized;
-                tm.enabled     = sensor.isEnabled;
-
-                mavlink_msg_sensor_state_tm_encode(
-                    config::Mavlink::SYSTEM_ID, config::Mavlink::COMPONENT_ID,
-                    &msg, &tm);
-                enqueueMessage(msg);
-            }
-
-            return true;
-        }
-
         case MAV_SYS_ID:
         {
             mavlink_message_t msg;
@@ -353,6 +332,32 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_msg_sys_tm_encode(config::Mavlink::SYSTEM_ID,
                                       config::Mavlink::COMPONENT_ID, &msg, &tm);
             enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_PIN_OBS_ID:
+        {
+            auto pinHandler = parent.getModule<PinHandler>();
+
+            for (auto pin : PinHandler::PIN_LIST)
+            {
+                mavlink_message_t msg;
+                mavlink_pin_tm_t tm;
+
+                auto pinData = pinHandler->getPinData(pin);
+
+                tm.timestamp             = TimestampTimer::getTimestamp();
+                tm.pin_id                = static_cast<uint8_t>(pin);
+                tm.last_change_timestamp = pinData.lastStateTimestamp;
+                tm.changes_counter       = pinData.changesCount;
+                tm.current_state         = pinData.lastState;
+
+                mavlink_msg_pin_tm_encode(config::Mavlink::SYSTEM_ID,
+                                          config::Mavlink::COMPONENT_ID, &msg,
+                                          &tm);
+                enqueueMessage(msg);
+            }
+
             return true;
         }
 
@@ -408,6 +413,41 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_msg_mavlink_stats_tm_encode(config::Mavlink::SYSTEM_ID,
                                                 config::Mavlink::COMPONENT_ID,
                                                 &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_NAS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_nas_tm_t tm;
+
+            auto state    = parent.getModule<NASController>()->getState();
+            auto nasState = parent.getModule<NASController>()->getNasState();
+            auto ref = parent.getModule<NASController>()->getReferenceValues();
+
+            tm.timestamp       = nasState.timestamp;
+            tm.nas_n           = nasState.n;
+            tm.nas_e           = nasState.e;
+            tm.nas_d           = nasState.d;
+            tm.nas_vn          = nasState.vn;
+            tm.nas_ve          = nasState.ve;
+            tm.nas_vd          = nasState.vd;
+            tm.nas_qx          = nasState.qx;
+            tm.nas_qy          = nasState.qy;
+            tm.nas_qz          = nasState.qz;
+            tm.nas_qw          = nasState.qw;
+            tm.nas_bias_x      = nasState.bx;
+            tm.nas_bias_y      = nasState.by;
+            tm.nas_bias_z      = nasState.bz;
+            tm.ref_pressure    = ref.refPressure;
+            tm.ref_temperature = ref.refTemperature;
+            tm.ref_latitude    = ref.refLatitude;
+            tm.ref_longitude   = ref.refLongitude;
+            tm.state           = static_cast<uint8_t>(state);
+
+            mavlink_msg_nas_tm_encode(config::Mavlink::SYSTEM_ID,
+                                      config::Mavlink::COMPONENT_ID, &msg, &tm);
             enqueueMessage(msg);
             return true;
         }
@@ -577,6 +617,78 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_msg_payload_stats_tm_encode(config::Mavlink::SYSTEM_ID,
                                                 config::Mavlink::COMPONENT_ID,
                                                 &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_SENSORS_STATE_ID:
+        {
+            auto sensors = parent.getModule<Sensors>()->getSensorInfo();
+            for (auto sensor : sensors)
+            {
+                mavlink_message_t msg;
+                mavlink_sensor_state_tm_t tm;
+
+                constexpr size_t maxNameLen =
+                    sizeof(tm.sensor_name) / sizeof(tm.sensor_name[0]) - 1;
+
+                std::strncpy(tm.sensor_name, sensor.id.c_str(), maxNameLen);
+                tm.sensor_name[maxNameLen] = '\0';  // Ensure null-termination
+                tm.initialized             = sensor.isInitialized;
+                tm.enabled                 = sensor.isEnabled;
+
+                mavlink_msg_sensor_state_tm_encode(
+                    config::Mavlink::SYSTEM_ID, config::Mavlink::COMPONENT_ID,
+                    &msg, &tm);
+                enqueueMessage(msg);
+            }
+
+            return true;
+        }
+
+        case MAV_MOTOR_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_motor_tm_t tm;
+
+            auto canStatus = parent.getModule<CanHandler>()->getCanStatus();
+
+            // Some values are not available to the payload board
+            tm.timestamp                   = TimestampTimer::getTimestamp();
+            tm.top_tank_pressure           = -1.0f;
+            tm.bottom_tank_pressure        = -1.0f;
+            tm.combustion_chamber_pressure = -1.0f;
+            tm.tank_temperature            = -1.0f;
+            tm.battery_voltage             = -1.0f;
+            tm.log_good                    = canStatus.motorLogGood;
+            tm.log_number                  = canStatus.motorLogNumber;
+            tm.main_valve_state            = 255;
+            tm.venting_valve_state         = 255;
+            tm.hil_state                   = canStatus.motorHil;
+
+            mavlink_msg_motor_tm_encode(config::Mavlink::SYSTEM_ID,
+                                        config::Mavlink::COMPONENT_ID, &msg,
+                                        &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_REFERENCE_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_reference_tm_t tm;
+
+            auto ref = parent.getModule<NASController>()->getReferenceValues();
+
+            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.ref_pressure    = ref.refPressure;
+            tm.ref_temperature = ref.refTemperature;
+            tm.ref_latitude    = ref.refLatitude;
+            tm.ref_longitude   = ref.refLongitude;
+
+            mavlink_msg_reference_tm_encode(config::Mavlink::SYSTEM_ID,
+                                            config::Mavlink::COMPONENT_ID, &msg,
+                                            &tm);
             enqueueMessage(msg);
             return true;
         }
