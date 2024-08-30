@@ -47,8 +47,8 @@ struct CanStatus
     bool mainArmed = false;
     bool rigArmed  = false;
 
-    int16_t motorLogNumber = 0;
-    bool motorLogGood      = true;
+    int16_t motorLogNumber = -1;
+    bool motorLogGood      = false;
     bool motorHil          = false;
 
     bool isMainConnected();

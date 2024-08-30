@@ -39,6 +39,11 @@ namespace hwmap  = miosix::sense;
 namespace Payload
 {
 
+const decltype(PinHandler::PIN_LIST) PinHandler::PIN_LIST = {
+    PinList::RAMP_DETACH_PIN,
+    PinList::NOSECONE_DETACH_PIN,
+};
+
 bool PinHandler::start()
 {
     using namespace std::chrono;

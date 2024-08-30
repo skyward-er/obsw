@@ -46,6 +46,8 @@ enum class PinList : uint8_t
 class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
+    static const std::array<PinList, 2> PIN_LIST;
+
     [[nodiscard]] bool start();
 
     bool isStarted();
