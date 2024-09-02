@@ -1,6 +1,5 @@
 BOARDCORE := ../../../../skyward-boardcore/
 OBSW := ../../../../src/boards/
-HIL := ../../../../src/
 
 all:
 	g++ -std=c++20 -O2 -o logdecoder logdecoder.cpp \
@@ -12,7 +11,6 @@ all:
 	 				-I$(BOARDCORE)libs/eigen \
 	 				-I$(BOARDCORE)libs/tscpp \
 	 				-I$(BOARDCORE)src/shared \
-					-I$(OBSW) \
-					-I$(HIL)
+					-I$(OBSW)
 clean:
 	rm logdecoder
