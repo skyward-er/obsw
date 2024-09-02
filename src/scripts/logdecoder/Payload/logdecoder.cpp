@@ -25,6 +25,9 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Payload/StateMachines/NASController/NASControllerData.h>
 #include <Payload/StateMachines/WingController/WingControllerData.h>
+#include <Payload/WindEstimationScheme/WindEstimationData.h>
+#include <Payload/Wing/WingAlgorithmData.h>
+#include <Payload/Wing/WingTargetPositionData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <logger/Logger.h>
@@ -64,6 +67,9 @@ void registerTypes(Deserializer& ds)
     ds.registerType<DynamicPressureData>();
     ds.registerType<SensorsCalibrationParameter>();
     ds.registerType<PinChangeData>();
+    ds.registerType<WingAlgorithmData>();
+    ds.registerType<WingTargetPositionData>();
+    ds.registerType<WindLogging>();
 }
 
 // cppcheck-suppress passedByValue
