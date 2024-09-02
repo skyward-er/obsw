@@ -49,6 +49,12 @@ public:
 
     NASControllerState getState();
 
+    /**
+     * @brief Method to set the orientation of the system with the quaternions
+     * (scalar first).
+     */
+    void setOrientation(Eigen::Vector4f quat);
+
 private:
     void update();
     void calibrate();

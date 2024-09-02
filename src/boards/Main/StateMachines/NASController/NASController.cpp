@@ -94,6 +94,20 @@ NASState NASController::getNASState()
     return nas.getState();
 }
 
+void NASController::setOrientation(Eigen::Vector4f quat)
+{
+    // Need to lock mutex because the only invocation comes from the radio
+    // which is a separate thread
+    Lock<FastMutex> lock{nasMutex};
+
+    Matrix<float, 13, 1> x = nas.getX();
+    x(6)                   = quat(1);
+    x(7)                   = quat(2);
+    x(8)                   = quat(3);
+    x(9)                   = quat(0);
+    nas.setX(x);
+}
+
 void NASController::update()
 {
     NASControllerState curState = state;
