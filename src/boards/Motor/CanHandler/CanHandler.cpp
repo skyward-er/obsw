@@ -27,6 +27,7 @@
 #include <Motor/Configs/SchedulerConfig.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventData.h>
 
 using namespace Motor;
 using namespace Boardcore;
@@ -225,10 +226,13 @@ void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 
 void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
-    // TODO: Log event
     CanConfig::EventId event =
         static_cast<CanConfig::EventId>(msg.getSecondaryType());
     LOG_WARN(logger, "Received unrecognized event: {}", event);
+
+    EventData ev{TimestampTimer::getTimestamp(), msg.getSecondaryType(),
+                 TOPIC_CAN};
+    sdLogger.log(ev);
 }
 
 void CanHandler::handleCommand(const Canbus::CanMessage &msg)
