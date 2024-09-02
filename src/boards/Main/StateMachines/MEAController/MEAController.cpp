@@ -77,6 +77,8 @@ MEA::Config computeMEAConfig()
     
     config.ae = 0.0028594f;
     config.p0 = 100093.7492f;
+
+    config.cdCorrectionFactor = Config::MEA::CD_CORRECTION_FACTOR;
     // clang-format on
 
     return config;
