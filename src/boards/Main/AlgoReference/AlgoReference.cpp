@@ -58,6 +58,8 @@ void AlgoReference::calibrate()
     reference.refPressure = baroAcc;
     reference.refAltitude = Aeroutils::relAltitude(
         reference.refPressure, reference.mslPressure, reference.mslTemperature);
+    reference.refTemperature = Aeroutils::relTemperature(
+        reference.refAltitude, reference.mslTemperature);
 
     // Also updated the reference with the GPS if we have fix
     UBXGPSData gps = sensors->getUBXGPSLastSample();
