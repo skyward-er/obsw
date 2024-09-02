@@ -175,6 +175,15 @@ void Radio::enqueueNack(const mavlink_message_t& msg)
     enqueuePacket(nackMsg);
 }
 
+void Radio::enqueueWack(const mavlink_message_t& msg, const uint8_t error_id)
+{
+    mavlink_message_t wackMsg;
+    mavlink_msg_wack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
+                             Config::Radio::MAV_COMPONENT_ID, &wackMsg,
+                             msg.msgid, msg.seq, error_id);
+    enqueuePacket(wackMsg);
+}
+
 void Radio::handleMessage(const mavlink_message_t& msg)
 {
     switch (msg.msgid)
