@@ -47,6 +47,10 @@ namespace Sensors
 constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
 constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
 
+// Minimum lps28dfw in order for the measure to be considered valid and
+// compensate other sensors
+constexpr float ATMOS_CALIBRATION_THRESH = 50000.0;  // [Pa]
+
 constexpr Hertz MAG_CALIBRATION_RATE = 50_hz;
 static const std::string MAG_CALIBRATION_FILENAME{"/sd/magCalibration.csv"};
 
@@ -85,13 +89,13 @@ namespace LIS2MDL
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr unsigned int TEMP_DIVIDER   = 5;
 
-constexpr Hertz RATE   = 100_hz;
+constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LIS2MDL
 
 namespace UBXGPS
 {
-constexpr Hertz RATE   = 5_hz;
+constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace UBXGPS
 
@@ -105,7 +109,7 @@ constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
-    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
+    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
 constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
     Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
 constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =

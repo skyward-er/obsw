@@ -160,7 +160,7 @@ void Sensors::calibrate()
 
     // Calibrate all analog pressure sensors against the LPS28DFW
     float reference = lps28dfwAcc;
-    if (reference > 100.0f)
+    if (reference > Config::Sensors::ATMOS_CALIBRATION_THRESH)
     {
         // Calibrate sensors only if reference is valid
         // LPS28DFW might be disabled or unresponsive
