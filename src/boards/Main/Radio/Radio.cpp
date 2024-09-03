@@ -607,16 +607,19 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressStatic  = sensors->getStaticPressure1LastSample();
             auto pressDpl     = sensors->getDplBayPressureLastSample();
             auto pitotStatic  = sensors->getCanPitotStaticPressLastSample();
-            auto pitotDynamic = sensors->getCanPitotStaticPressLastSample();
+            auto pitotDynamic = sensors->getCanPitotDynamicPressLastSample();
             auto adaState     = ada->getADAState();
             auto nasState     = nas->getNASState();
             auto meaState     = mea->getMEAState();
             auto ref = getModule<AlgoReference>()->getReferenceValues();
 
             // Compute airspeed
-            float airspeedPitot = Aeroutils::computePitotAirspeed(
-                pitotStatic.pressure + pitotDynamic.pressure,
-                pitotStatic.pressure, nasState.d, ref.refTemperature);
+            float airspeedPitot =
+                (pitotDynamic.pressure > 0
+                     ? Aeroutils::computePitotAirspeed(
+                           pitotStatic.pressure + pitotDynamic.pressure,
+                           pitotStatic.pressure, nasState.d, ref.refTemperature)
+                     : 0);
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
