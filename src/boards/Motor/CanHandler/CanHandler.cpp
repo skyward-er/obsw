@@ -250,8 +250,8 @@ void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 
 void CanHandler::handleCommand(const Canbus::CanMessage &msg)
 {
-    ServosList servo     = static_cast<ServosList>(msg.getSecondaryType());
-    ServoCommand command = servoCommandFromCanMessage(msg);
+    ServosList servo        = static_cast<ServosList>(msg.getSecondaryType());
+    CanServoCommand command = servoCommandFromCanMessage(msg);
     sdLogger.log(command);
 
     if (command.openingTime == 0)
