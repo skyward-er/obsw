@@ -193,11 +193,11 @@ CalibrationData Sensors::getCalibration()
     data.magScaleX         = magCalibration.getA().x();
     data.magScaleY         = magCalibration.getA().y();
     data.magScaleZ         = magCalibration.getA().z();
-    data.staticPress1Bias  = -69.0f;
+    data.staticPress1Bias  = staticPressure1->getOffset();
     data.staticPress1Scale = 1.0f;
-    data.staticPress2Bias  = -69.0f;
+    data.staticPress2Bias  = staticPressure2->getOffset();
     data.staticPress2Scale = 1.0f;
-    data.dplBayPressBias   = -69.0f;
+    data.dplBayPressBias   = dplBayPressure->getOffset();
     data.dplBayPressScale  = 1.0f;
 
     return data;
