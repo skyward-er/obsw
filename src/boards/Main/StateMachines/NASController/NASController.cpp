@@ -118,9 +118,12 @@ void NASController::update()
     {
         Sensors* sensors = getModule<Sensors>();
 
-        IMUData imu       = sensors->getIMULastSample();
-        UBXGPSData gps    = sensors->getUBXGPSLastSample();
-        PressureData baro = sensors->getAtmosPressureLastSample();
+        IMUData imu              = sensors->getIMULastSample();
+        UBXGPSData gps           = sensors->getUBXGPSLastSample();
+        PressureData baro        = sensors->getAtmosPressureLastSample();
+        PressureData staticPitot = sensors->getCanPitotStaticPressLastSample();
+        PressureData dynamicPitot =
+            sensors->getCanPitotDynamicPressLastSample();
 
         // Calculate acceleration
         Vector3f acc    = static_cast<AccelerometerData>(imu);
@@ -154,7 +157,13 @@ void NASController::update()
             nas.correctBaro(baro.pressure);
         }
 
-        // TODO: Correct with pitot
+        // Correct with pitot if one pressure sample is new
+        if (dynamicPitot.pressure > 0 &&
+            (staticPitotTimestamp < staticPitot.pressureTimestamp ||
+             dynamicPitotTimestamp < dynamicPitot.pressureTimestamp))
+        {
+            nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
+        }
 
         // Correct with accelerometer if the acceleration is in specs
         if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
@@ -183,11 +192,13 @@ void NASController::update()
             acc1g             = false;
         }
 
-        lastGyroTimestamp = imu.angularSpeedTimestamp;
-        lastAccTimestamp  = imu.accelerationTimestamp;
-        lastMagTimestamp  = imu.magneticFieldTimestamp;
-        lastGpsTimestamp  = gps.gpsTimestamp;
-        lastBaroTimestamp = baro.pressureTimestamp;
+        lastGyroTimestamp     = imu.angularSpeedTimestamp;
+        lastAccTimestamp      = imu.accelerationTimestamp;
+        lastMagTimestamp      = imu.magneticFieldTimestamp;
+        lastGpsTimestamp      = gps.gpsTimestamp;
+        lastBaroTimestamp     = baro.pressureTimestamp;
+        staticPitotTimestamp  = staticPitot.pressureTimestamp;
+        dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
 
         auto state = nas.getState();
 
