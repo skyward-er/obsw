@@ -24,6 +24,7 @@
 #include <Main/HIL/HIL.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <sensors/HILSensor.h>
 #include <sensors/Sensor.h>
 
@@ -125,7 +126,8 @@ private:
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
         int iTemp = getSampleCounter(sensorData->temperature.NDATA);
 
-        data.pressureTimestamp = data.temperatureTimestamp = miosix::getTime();
+        data.pressureTimestamp = data.temperatureTimestamp =
+            Boardcore::TimestampTimer::getTimestamp();
         data.pressure    = sensorData->barometer1.measures[iBaro];
         data.temperature = sensorData->temperature.measures[iTemp];
 
@@ -141,7 +143,8 @@ private:
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
         int iTemp = getSampleCounter(sensorData->temperature.NDATA);
 
-        data.pressureTimestamp = data.temperatureTimestamp = miosix::getTime();
+        data.pressureTimestamp = data.temperatureTimestamp =
+            Boardcore::TimestampTimer::getTimestamp();
         data.pressure    = sensorData->barometer1.measures[iBaro];
         data.temperature = sensorData->temperature.measures[iTemp];
 
@@ -156,7 +159,7 @@ private:
 
         int iAcc = getSampleCounter(sensorData->accelerometer.NDATA);
 
-        data.accelerationTimestamp = miosix::getTime();
+        data.accelerationTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.accelerationX = sensorData->accelerometer.measures[iAcc][0];
         data.accelerationY = sensorData->accelerometer.measures[iAcc][1];
         data.accelerationZ = sensorData->accelerometer.measures[iAcc][2];
@@ -172,7 +175,7 @@ private:
 
         int iMag = getSampleCounter(sensorData->magnetometer.NDATA);
 
-        data.magneticFieldTimestamp = miosix::getTime();
+        data.magneticFieldTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.magneticFieldX = sensorData->magnetometer.measures[iMag][0];
         data.magneticFieldY = sensorData->magnetometer.measures[iMag][1];
         data.magneticFieldZ = sensorData->magnetometer.measures[iMag][2];
@@ -188,7 +191,7 @@ private:
 
         int iGps = getSampleCounter(sensorData->gps.NDATA);
 
-        data.gpsTimestamp = miosix::getTime();
+        data.gpsTimestamp = Boardcore::TimestampTimer::getTimestamp();
 
         data.latitude  = sensorData->gps.positionMeasures[iGps][0];
         data.longitude = sensorData->gps.positionMeasures[iGps][1];
@@ -218,7 +221,7 @@ private:
         int iGyro = getSampleCounter(sensorData->gyro.NDATA);
 
         data.accelerationTimestamp = data.angularSpeedTimestamp =
-            miosix::getTime();
+            Boardcore::TimestampTimer::getTimestamp();
 
         data.accelerationX = sensorData->accelerometer.measures[iAcc][0];
         data.accelerationY = sensorData->accelerometer.measures[iAcc][1];
@@ -239,7 +242,7 @@ private:
 
         int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
 
-        data.pressureTimestamp = miosix::getTime();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.pressure          = sensorData->barometer1.measures[iBaro];
 
         return data;
@@ -260,7 +263,7 @@ private:
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 
-        data.pressureTimestamp = miosix::getTime();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.pressure          = sensorData->pressureChamber.measures[iCC];
 
         return data;
@@ -274,7 +277,7 @@ private:
 
         int iPitot = getSampleCounter(sensorData->pitot.NDATA);
 
-        data.pressureTimestamp = miosix::getTime();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.pressure          = sensorData->pitot.deltaP[iPitot];
 
         return data;
@@ -288,7 +291,7 @@ private:
 
         int iPitot = getSampleCounter(sensorData->pitot.NDATA);
 
-        data.pressureTimestamp = miosix::getTime();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.pressure          = sensorData->pitot.staticPressure[iPitot];
 
         return data;
