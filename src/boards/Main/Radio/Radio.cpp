@@ -594,11 +594,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors     = getModule<Sensors>();
-            Actuators* actuators = getModule<Actuators>();
-            ADAController* ada   = getModule<ADAController>();
-            NASController* nas   = getModule<NASController>();
-            MEAController* mea   = getModule<MEAController>();
+            Sensors* sensors       = getModule<Sensors>();
+            Actuators* actuators   = getModule<Actuators>();
+            ADAController* ada     = getModule<ADAController>();
+            NASController* nas     = getModule<NASController>();
+            MEAController* mea     = getModule<MEAController>();
+            FlightModeManager* fmm = getModule<FlightModeManager>();
 
             auto pressDigi    = sensors->getLPS28DFWLastSample();
             auto imu          = sensors->getIMULastSample();
@@ -674,6 +675,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.nas_bias_z   = nasState.bz;
             tm.altitude_agl = -nasState.d;
 
+            tm.fmm_state = static_cast<uint8_t>(fmm->getState());
+
             tm.pressure_ada   = adaState.x0;
             tm.ada_vert_speed = adaState.verticalSpeed;
 
@@ -695,7 +698,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_rocket_stats_tm_t tm;
 
             PinHandler* pinHandler  = getModule<PinHandler>();
-            FlightModeManager* fmm  = getModule<FlightModeManager>();
             ADAController* ada      = getModule<ADAController>();
             NASController* nas      = getModule<NASController>();
             MEAController* mea      = getModule<MEAController>();
@@ -743,7 +745,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             // FMM states
             tm.ada_state = static_cast<uint8_t>(ada->getState());
-            tm.fmm_state = static_cast<uint8_t>(fmm->getState());
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.mea_state = static_cast<uint8_t>(mea->getState());
