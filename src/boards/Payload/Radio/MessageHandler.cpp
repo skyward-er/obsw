@@ -460,6 +460,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto* sensors = parent.getModule<Sensors>();
             auto* nas     = parent.getModule<NASController>();
             auto* wes     = parent.getModule<WindEstimation>();
+            auto* fmm     = parent.getModule<FlightModeManager>();
 
             auto imu         = sensors->getLSM6DSRXLastSample();
             auto mag         = sensors->getLIS2MDLLastSample();
@@ -517,6 +518,9 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;
             tm.temperature         = pressDigi.temperature;
 
+            // State machines
+            tm.fmm_state = static_cast<uint8_t>(fmm->getState());
+
             mavlink_msg_payload_flight_tm_encode(config::Mavlink::SYSTEM_ID,
                                                  config::Mavlink::COMPONENT_ID,
                                                  &msg, &tm);
@@ -529,7 +533,6 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_message_t msg;
             mavlink_payload_stats_tm_t tm;
 
-            auto* fmm        = parent.getModule<FlightModeManager>();
             auto* nas        = parent.getModule<NASController>();
             auto* pinHandler = parent.getModule<PinHandler>();
             auto& logger     = Logger::getInstance();
@@ -592,8 +595,6 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.log_good   = (loggerStats.lastWriteError == 0);
             tm.log_number = loggerStats.logNumber;
 
-            // State machines
-            tm.fmm_state = static_cast<uint8_t>(fmm->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.wes_state = 255;  // TODO
 
