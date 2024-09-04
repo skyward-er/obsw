@@ -24,6 +24,7 @@
 #include <Motor/HIL/HIL.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <sensors/HILSensor.h>
 #include <sensors/Sensor.h>
 
@@ -88,7 +89,7 @@ private:
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 
-        data.pressureTimestamp = miosix::getTime();
+        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
         data.pressure          = sensorData->pressureChamber.measures[iCC];
 
         return data;
