@@ -84,7 +84,10 @@ void MEAController::update()
             if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
                 ccPressure.pressureTimestamp > lastUpdateTimestamp)
             {
-                mea.update(valvePosition, ccPressure.pressure);
+                MEA::Step step{valvePosition};
+                step.withCCPressure(ccPressure);
+
+                mea.update(step);
                 lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
             break;
@@ -94,7 +97,10 @@ void MEAController::update()
             if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
                 ccPressure.pressureTimestamp > lastUpdateTimestamp)
             {
-                mea.update(valvePosition, ccPressure.pressure);
+                MEA::Step step{valvePosition};
+                step.withCCPressure(ccPressure);
+
+                mea.update(step);
                 lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
 
@@ -121,7 +127,10 @@ void MEAController::update()
             if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
                 ccPressure.pressureTimestamp > lastUpdateTimestamp)
             {
-                mea.update(valvePosition, ccPressure.pressure);
+                MEA::Step step{valvePosition};
+                step.withCCPressure(ccPressure);
+
+                mea.update(step);
                 lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
 
@@ -154,7 +163,10 @@ void MEAController::update()
             if (ccPressure.pressure >= MEAConfig::CC_PRESSURE_THRESHOLD &&
                 ccPressure.pressureTimestamp > lastUpdateTimestamp)
             {
-                mea.update(valvePosition, ccPressure.pressure);
+                MEA::Step step{valvePosition};
+                step.withCCPressure(ccPressure);
+
+                mea.update(step);
                 lastUpdateTimestamp = TimestampTimer::getTimestamp();
             }
 
@@ -367,37 +379,30 @@ float MEAController::computeRho(NASState state)
            exp(state.d / 11000.f);  // 11000 is the troposphere height
 }
 
-MEA::KalmanFilter::KalmanConfig MEAController::getMEAKalmanConfig()
+MEA::Config MEAController::getMEAKalmanConfig()
 {
-    MEA::KalmanFilter::MatrixNN F_INIT;
-    MEA::KalmanFilter::MatrixPN H_INIT;
-    MEA::KalmanFilter::MatrixNN P_INIT;
-    MEA::KalmanFilter::MatrixNN Q_INIT;
-    MEA::KalmanFilter::MatrixPP R_INIT;
-    MEA::KalmanFilter::MatrixNM G_INIT;
+    MEA::Config config;
 
     // clang-format off
-    F_INIT = MEA::KalmanFilter::MatrixNN({
-            {1.435871191228868, -0.469001276508780,  0.f}, 
-            {1.f,                0.f,                0.f},
-            {-0.002045309260755, 0.001867496708935,  1.f}});
-    
-    H_INIT = {1.780138883879285,-1.625379384370081,0.f};
-
-    P_INIT    = MEA::KalmanFilter::MatrixNN::Zero();
-    Q_INIT    = MEAConfig::MODEL_NOISE_VARIANCE * MEA::KalmanFilter::CVectorN({1, 1, 1}).asDiagonal();
-    R_INIT[0] = MEAConfig::SENSOR_NOISE_VARIANCE;
-    G_INIT    = MEA::KalmanFilter::MatrixNM{{4}, {0}, {0}};
+    config.F = Eigen::Matrix<float, 3, 3>{
+        {1.435871191228868, -0.469001276508780,  0.f}, 
+        {1.f,                0.f,                0.f},
+        {-0.002045309260755, 0.001867496708935,  1.f}};
     // clang-format on
 
-    return {F_INIT,
-            H_INIT,
-            Q_INIT,
-            R_INIT,
-            P_INIT,
-            G_INIT,
-            MEA::KalmanFilter::CVectorN{
-                0, 0, MEAConfig::DEFAULT_INITIAL_ROCKET_MASS}};
+    config.Q = Eigen::Matrix<float, 3, 3>::Identity() *
+               MEAConfig::MODEL_NOISE_VARIANCE;
+    config.G           = Eigen::Matrix<float, 3, 1>{{4}, {0}, {0}};
+    config.baroH       = {1.780138883879285, -1.625379384370081, 0.f};
+    config.baroR       = MEAConfig::SENSOR_NOISE_VARIANCE;
+    config.P           = Eigen::Matrix<float, 3, 3>::Zero();
+    config.initialMass = MEAConfig::DEFAULT_INITIAL_ROCKET_MASS;
+    config.accelThresh = 99999.0f;
+    config.speedThresh = 99999.0f;
+    config.minMass     = 0.0f;
+    config.maxMass     = 100.0f;
+
+    return config;
 }
 
 }  // namespace Main
