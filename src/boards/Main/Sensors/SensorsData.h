@@ -57,4 +57,42 @@ struct DplBayPressureData : Boardcore::PressureData
     DplBayPressureData() {}
 };
 
+struct CalibrationData
+{
+    uint64_t timestamp      = 0;
+    float gyroBiasX         = 0.0f;
+    float gyroBiasY         = 0.0f;
+    float gyroBiasZ         = 0.0f;
+    float magBiasX          = 0.0f;
+    float magBiasY          = 0.0f;
+    float magBiasZ          = 0.0f;
+    float magScaleX         = 0.0f;
+    float magScaleY         = 0.0f;
+    float magScaleZ         = 0.0f;
+    float staticPress1Bias  = 0.0f;
+    float staticPress1Scale = 0.0f;
+    float staticPress2Bias  = 0.0f;
+    float staticPress2Scale = 0.0f;
+    float dplBayPressBias   = 0.0f;
+    float dplBayPressScale  = 0.0f;
+
+    static std::string header()
+    {
+        return "timestamp,gyroBiasX,gyroBiasY,gyroBiasZ,magBiasX,magBiasY,"
+               "magBiasZ,magScaleX,magScaleY,magScaleZ,staticPress1Bias,"
+               "staticPress1Scale,staticPress2Bias,staticPress2Scale,"
+               "dplBayPressBias,dplBayPressScale\n";
+    }
+
+    void print(std::ostream &os) const
+    {
+        os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
+           << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ
+           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << ","
+           << staticPress1Bias << "," << staticPress1Scale << ","
+           << staticPress2Bias << "," << staticPress2Scale << ","
+           << dplBayPressBias << "," << dplBayPressScale << "\n";
+    }
+};
+
 }  // namespace Main

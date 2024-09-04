@@ -24,6 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/Sensors/SensorsData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
@@ -59,6 +60,8 @@ public:
     [[nodiscard]] bool start();
 
     void calibrate();
+
+    CalibrationData getCalibration();
 
     void resetMagCalibrator();
     void enableMagCalibrator();
