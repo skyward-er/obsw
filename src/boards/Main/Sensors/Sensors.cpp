@@ -156,8 +156,15 @@ void Sensors::calibrate()
     dplBayPressureAcc /= Config::Sensors::CALIBRATION_SAMPLES_COUNT;
     lps28dfwAcc /= Config::Sensors::CALIBRATION_SAMPLES_COUNT;
 
-    // Calibrate all analog pressure sensors against the LPS28DFW
-    float reference = lps28dfwAcc;
+    // Calibrate all analog pressure sensors against the LPS28DFW or the
+    // telemetry reference
+    float reference;
+    {
+        Lock<FastMutex> lock{baroCalibrationMutex};
+        reference = useBaroCalibrationReference ? baroCalibrationReference
+                                                : lps28dfwAcc;
+    }
+
     if (reference > Config::Sensors::ATMOS_CALIBRATION_THRESH)
     {
         // Calibrate sensors only if reference is valid
@@ -201,6 +208,20 @@ CalibrationData Sensors::getCalibration()
     data.dplBayPressScale  = 1.0f;
 
     return data;
+}
+
+void Sensors::setBaroCalibrationReference(float reference)
+{
+    Lock<FastMutex> lock{baroCalibrationMutex};
+    baroCalibrationReference    = reference;
+    useBaroCalibrationReference = true;
+}
+
+void Sensors::resetBaroCalibrationReference()
+{
+    Lock<FastMutex> lock{baroCalibrationMutex};
+    baroCalibrationReference    = 0.0f;
+    useBaroCalibrationReference = false;
 }
 
 void Sensors::resetMagCalibrator()

@@ -53,7 +53,7 @@ public:
      * @brief Method to set the orientation of the system with the quaternions
      * (scalar first).
      */
-    void setOrientation(Eigen::Vector4f quat);
+    void setOrientation(Eigen::Quaternion<float> quat);
 
 private:
     void update();

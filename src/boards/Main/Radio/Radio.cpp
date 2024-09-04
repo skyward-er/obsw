@@ -166,21 +166,21 @@ void Radio::enqueueAck(const mavlink_message_t& msg)
     enqueuePacket(ackMsg);
 }
 
-void Radio::enqueueNack(const mavlink_message_t& msg)
+void Radio::enqueueNack(const mavlink_message_t& msg, uint8_t errorId)
 {
     mavlink_message_t nackMsg;
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq, 0);
+                             msg.msgid, msg.seq, errorId);
     enqueuePacket(nackMsg);
 }
 
-void Radio::enqueueWack(const mavlink_message_t& msg, const uint8_t error_id)
+void Radio::enqueueWack(const mavlink_message_t& msg, uint8_t errorId)
 {
     mavlink_message_t wackMsg;
     mavlink_msg_wack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &wackMsg,
-                             msg.msgid, msg.seq, error_id);
+                             msg.msgid, msg.seq, errorId);
     enqueuePacket(wackMsg);
 }
 
@@ -210,7 +210,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -226,7 +226,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -246,7 +246,49 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
+            }
+
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
+
+            if (getModule<FlightModeManager>()->getState() ==
+                    FlightModeManagerState::TEST_MODE &&
+                servoId == ServosList::AIR_BRAKES_SERVO)
+            {
+                float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+
+                getModule<Actuators>()->setAbkPosition(angle);
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
+
+            break;
+        }
+
+        case MAVLINK_MSG_ID_RESET_SERVO_TC:
+        {
+            ServosList servoId = static_cast<ServosList>(
+                mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
+
+            if (getModule<FlightModeManager>()->getState() ==
+                    FlightModeManagerState::TEST_MODE &&
+                servoId == ServosList::AIR_BRAKES_SERVO)
+            {
+                getModule<Actuators>()->setAbkPosition(0.0f);
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -254,12 +296,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:
         {
-
             if (getModule<NASController>()->getState() ==
                 NASControllerState::READY)
             {
                 // Quaternions scalar first
-                Eigen::Vector4f quat = {
+                Eigen::Quaternion<float> quat{
                     mavlink_msg_set_orientation_quat_tc_get_quat_w(&msg),
                     mavlink_msg_set_orientation_quat_tc_get_quat_x(&msg),
                     mavlink_msg_set_orientation_quat_tc_get_quat_y(&msg),
@@ -280,7 +321,44 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
+            }
+
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_CALIBRATION_PRESSURE_TC:
+        {
+            if (getModule<FlightModeManager>()->getState() ==
+                FlightModeManagerState::DISARMED)
+            {
+                float press =
+                    mavlink_msg_set_calibration_pressure_tc_get_pressure(&msg);
+
+                if (press == 0)
+                {
+                    getModule<Sensors>()->resetBaroCalibrationReference();
+                    EventBroker::getInstance().post(TMTC_CALIBRATE, TOPIC_TMTC);
+                    enqueueAck(msg);
+                }
+                else
+                {
+                    getModule<Sensors>()->setBaroCalibrationReference(press);
+                    EventBroker::getInstance().post(TMTC_CALIBRATE, TOPIC_TMTC);
+
+                    if (press < 50000)
+                    {
+                        enqueueWack(msg, 0);
+                    }
+                    else
+                    {
+                        enqueueAck(msg);
+                    }
+                }
+            }
+            else
+            {
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -288,7 +366,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         default:
         {
-            enqueueNack(msg);
+            enqueueNack(msg, 0);
         }
     }
 }
@@ -307,7 +385,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -329,12 +407,12 @@ void Radio::handleCommand(const mavlink_message_t& msg)
                 }
                 else
                 {
-                    enqueueNack(msg);
+                    enqueueNack(msg, 0);
                 }
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -351,7 +429,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
         }
     }

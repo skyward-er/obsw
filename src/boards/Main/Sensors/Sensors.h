@@ -63,6 +63,9 @@ public:
 
     CalibrationData getCalibration();
 
+    void setBaroCalibrationReference(float reference);
+    void resetBaroCalibrationReference();
+
     void resetMagCalibrator();
     void enableMagCalibrator();
     void disableMagCalibrator();
@@ -186,6 +189,10 @@ private:
     void rotatedImuCallback();
 
     bool sensorManagerInit();
+
+    miosix::FastMutex baroCalibrationMutex;
+    float baroCalibrationReference   = 0;
+    bool useBaroCalibrationReference = false;
 
     miosix::FastMutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
