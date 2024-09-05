@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli, Radu Raul
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
+#include <Payload/Configs/ActuatorsConfig.h>
 #include <Payload/Configs/WESConfig.h>
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
@@ -39,10 +40,12 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 
+using namespace std::chrono;
 using namespace Boardcore;
-using namespace Payload::Config::Wing;
-using namespace Payload::WESConfig;
 using namespace Common;
+using namespace Payload::Config::Wing;
+using namespace Payload::Config::WES;
+using namespace Payload::Config::Actuators;
 
 namespace Payload
 {
@@ -52,6 +55,7 @@ WingController::WingController()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
+    EventBroker::getInstance().subscribe(this, TOPIC_WING);
     this->targetPositionGEO = {DEFAULT_TARGET_LAT, DEFAULT_TARGET_LON};
 
     // Instantiate the algorithms
@@ -156,33 +160,61 @@ State WingController::state_flying(const Event& event)
 
 State WingController::state_calibration(const Boardcore::Event& event)
 {
+    static uint16_t calibrationTimeoutEventId;
+
     switch (event)
     {
         case EV_ENTRY:  // starts twirling and calibration wes
         {
             logStatus(WingControllerState::CALIBRATION);
-            getModule<Actuators>()->setServoPosition(
-                ServosList::PARAFOIL_LEFT_SERVO, 1);
-            getModule<Actuators>()->setServoPosition(
-                ServosList::PARAFOIL_RIGHT_SERVO, 0);
-            EventBroker::getInstance().postDelayed(DPL_WES_CAL_DONE, TOPIC_DPL,
-                                                   WES_CALIBRATION_TIMEOUT);
-            getModule<WindEstimation>()->startWindEstimationSchemeCalibration();
+
+            flare();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_SERVO_ACTUATION_DETECTED, TOPIC_DPL, 2000);
+
             return HANDLED;
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(calibrationTimeoutEventId);
             return HANDLED;
         }
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
         }
+        case DPL_SERVO_ACTUATION_DETECTED:
+        {
+            reset();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_WIGGLE, TOPIC_DPL, 1000);
+
+            return HANDLED;
+        }
+        case DPL_WIGGLE:
+        {
+            flare();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_NC_OPEN, TOPIC_DPL, 2000);
+
+            return HANDLED;
+        }
+        case DPL_NC_OPEN:
+        {
+            reset();
+            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_WES_CAL_DONE, TOPIC_DPL,
+                milliseconds{Config::WES::ROTATION_PERIOD}.count());
+            getModule<WindEstimation>()->startWindEstimationSchemeCalibration();
+
+            twirl();
+
+            return HANDLED;
+        }
         case DPL_WES_CAL_DONE:
         {
             reset();
-            // Turn off the cutters
-            getModule<Actuators>()->cuttersOff();
+
             return transition(&WingController::state_controlled_descent);
         }
         default:
@@ -198,7 +230,6 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         case EV_ENTRY:  // start automatic algorithm
         {
             logStatus(WingControllerState::ALGORITHM_CONTROLLED);
-            selectAlgorithm(0);
             setEarlyManeuverPoints(
                 convertTargetPositionToNED(targetPositionGEO),
                 {getModule<NASController>()->getNasState().n,
@@ -209,6 +240,10 @@ State WingController::state_controlled_descent(const Boardcore::Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&WingController::state_flying);
+        }
+        case WING_ALGORITHM_ENDED:
+        {
+            return transition(&WingController::state_on_ground);
         }
         case EV_EXIT:
         {
@@ -232,6 +267,11 @@ State WingController::state_on_ground(const Boardcore::Event& event)
             getModule<WindEstimation>()->stopWindEstimationScheme();
             getModule<WindEstimation>()->stopWindEstimationSchemeCalibration();
             stopAlgorithm();
+
+            // disable servos
+            getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
+            getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
+
             return HANDLED;
         }
         case EV_EXIT:
@@ -249,48 +289,79 @@ State WingController::state_on_ground(const Boardcore::Event& event)
     }
 }
 
-void WingController::addAlgorithms()
+bool WingController::addAlgorithms()
 {
     WingAlgorithm* algorithm;
     WingAlgorithmData step;
 
+    bool result = false;
+
+    // Algorithm 0
+    algorithm = new AutomaticWingAlgorithm(KP, KI, PARAFOIL_LEFT_SERVO,
+                                           PARAFOIL_RIGHT_SERVO, clGuidance);
+    result    = algorithm->init();
+    algorithms.push_back(algorithm);
+    // Algorithm 1
     algorithm = new AutomaticWingAlgorithm(KP, KI, PARAFOIL_LEFT_SERVO,
                                            PARAFOIL_RIGHT_SERVO, emGuidance);
-    // Ensure that the servos are correct
-    algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
-    // Add the algorithm to the vector
+    result &= algorithm->init();
     algorithms.push_back(algorithm);
 
+    // Algorithm 2
     algorithm = new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
-    for (int i = 0; i < 3; i++)
-    {
-        step.servo1Angle = 120;
-        step.servo2Angle = 0;
-        step.timestamp   = 0 + i * 40000000;
-        algorithm->addStep(step);
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        step.timestamp += 10000000 + i * 40000000;
-        algorithm->addStep(step);
-        step.servo1Angle = 0;
-        step.servo2Angle = 120;
-        step.timestamp += 10000000 + i * 40000000;
-        algorithm->addStep(step);
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        step.timestamp += 10000000 + i * 40000000;
-        algorithm->addStep(step);
-    }
-
-    // Ensure that the servos are correct
-    algorithm->setServo(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
-
+    step.servo1Angle = 0;
+    step.servo2Angle = 120;
+    step.timestamp   = 0;
+    algorithm->addStep(step);
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    step.timestamp += 1000 * WING_STRAIGHT_FLIGHT_TIMEOUT;
+    algorithm->addStep(step);
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    step.timestamp += WING_STRAIGHT_FLIGHT_TIMEOUT;
+    algorithm->addStep(step);
+    result &= algorithm->init();
     // Add the algorithm to the vector
     algorithms.push_back(algorithm);
 
-    selectAlgorithm(0);
+    // Algorithm 3 (rotation)
+    algorithm = new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+    step.timestamp   = 0;
+    step.servo1Angle = LeftServo::ROTATION / 2;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    step.timestamp += microseconds{ROTATION_PERIOD}.count();
+    step.servo1Angle = 0;
+    step.servo2Angle = RightServo::ROTATION / 2;
+    algorithm->addStep(step);
+    step.timestamp += microseconds{ROTATION_PERIOD}.count();
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    step.timestamp += microseconds{ROTATION_PERIOD}.count();
+    step.servo1Angle = LeftServo::ROTATION;
+    step.servo2Angle = RightServo::ROTATION;
+    algorithm->addStep(step);
+    step.timestamp += microseconds{ROTATION_PERIOD}.count();
+    step.servo1Angle = 0;
+    step.servo2Angle = RightServo::ROTATION;
+    algorithm->addStep(step);
+    step.timestamp += microseconds{ROTATION_PERIOD}.count();
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+    step.timestamp += microseconds{ROTATION_PERIOD}.count();
+    step.servo1Angle = 0;
+    step.servo2Angle = 0;
+    algorithm->addStep(step);
+
+    result &= algorithm->init();
+    algorithms.push_back(algorithm);
+
+    selectAlgorithm(SELECTED_ALGORITHM);
+
+    return result;
 }
 
 bool WingController::selectAlgorithm(unsigned int index)
@@ -358,20 +429,27 @@ void WingController::flare()
 {
     // Set the servo position to flare (pull the two ropes as skydiving people
     // do)
-    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 1);
-    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 1);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 1.0f);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 1.0f);
+}
+
+void WingController::twirl()
+{
+    // Set the servo position to twirl
+    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, TWIRL_RADIUS);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 0.0f);
 }
 
 void WingController::reset()
 {
     // Set the servo position to reset
-    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 0);
-    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 0);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 0.0f);
+    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 0.0f);
 }
 
 void WingController::setTargetPosition(Eigen::Vector2f targetGEO)
 {
-    if (getModule<NASController>()->getState() != NASControllerState::READY)
+    if (getModule<NASController>()->getState() == NASControllerState::ACTIVE)
     {
         this->targetPositionGEO = targetGEO;
         setEarlyManeuverPoints(convertTargetPositionToNED(targetPositionGEO),
@@ -415,6 +493,9 @@ void WingController::setEarlyManeuverPoints(Eigen::Vector2f targetNED,
         currentPosNED;
 
     emGuidance.setPoints(targetNED, emcPosition, m1Position, m2Position);
+
+    clGuidance.setPoints(targetNED);
+
     WingTargetPositionData data;
 
     data.receivedLat = targetPositionGEO[0];

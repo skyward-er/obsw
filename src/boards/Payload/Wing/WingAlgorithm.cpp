@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #include <Payload/Wing/WingAlgorithm.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 
 using namespace Boardcore;
 using namespace Payload::Config::Wing;
@@ -89,7 +90,7 @@ void WingAlgorithm::step()
         // Set the index to 0 in case of another future execution
         stepIndex = 0;
         // Terminate here
-        // EventBroker::getInstance().post(ALGORITHM_ENDED, TOPIC_ALGOS);
+        EventBroker::getInstance().post(WING_ALGORITHM_ENDED, TOPIC_WING);
         return;
     }
 

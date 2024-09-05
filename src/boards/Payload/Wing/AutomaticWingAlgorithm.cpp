@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro, Radu Raul
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,17 +61,25 @@ void AutomaticWingAlgorithm::step()
             getModule<WindEstimation>()->getWindEstimationScheme());
 
         // Actuate the result
+        // To see how to interpret the PI output
+        // https://www.geogebra.org/calculator/xrhwarpz
+        // to system is
+        /*    N ^
+                |
+                |
+                ----> E
+        */
         if (result > 0)
-        {
-            // Activate the servo1 and reset servo2
-            getModule<Actuators>()->setServoAngle(servo1, result);
-            getModule<Actuators>()->setServoAngle(servo2, 0);
-        }
-        else
         {
             // Activate the servo2 and reset servo1
             getModule<Actuators>()->setServoAngle(servo1, 0);
-            getModule<Actuators>()->setServoAngle(servo2, result * -1);
+            getModule<Actuators>()->setServoAngle(servo2, result);
+        }
+        else
+        {
+            // Activate the servo1 and reset servo2
+            getModule<Actuators>()->setServoAngle(servo1, result * -1);
+            getModule<Actuators>()->setServoAngle(servo2, 0);
         }
 
         // Log the servo positions
@@ -102,24 +110,15 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
 
     float targetAngle = guidance.calculateTargetAngle(currentPosition, heading);
 
-    Vector2f relativeVelocity(state.vn - windNED[0], state.ve - windNED[1]);
+    // WES is currently unused
+    Vector2f relativeVelocity(state.vn, state.ve);
 
     // Compute the angle of the current velocity
     float velocityAngle;
 
-    // In case of a 0 north velocity i force the angle to 90
-    if (relativeVelocity[0] == 0 && relativeVelocity[1] == 0)
-    {
-        velocityAngle = 0;
-    }
-    else if (relativeVelocity[1] == 0)
-    {
-        velocityAngle = (relativeVelocity[0] > 0 ? 1 : -1) * Constants::PI / 2;
-    }
-    else
-    {
-        velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
-    }
+    // All angle are computed as angle from the north direction
+
+    velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
 
     // Compute the angle difference
     float error = angleDiff(targetAngle, velocityAngle);
@@ -132,7 +131,8 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
     result = result * (180.f / Constants::PI);
 
     // Flip the servo orientation
-    result *= -1;
+    // result *= -1;
+    //  TODO check if this is needed
 
     // Logs the outputs
     {

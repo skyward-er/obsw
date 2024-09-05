@@ -1,4 +1,4 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
+/* Copyright (c) 2024 Skyward Experimental Rocketry
  * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,24 +22,33 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <units/Frequency.h>
+
+#include <chrono>
+#include <cstdint>
 
 namespace Payload
 {
-
-namespace WESConfig
+namespace Config
 {
+namespace WES
+{
+/* linter off */ using namespace std::chrono_literals;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr uint32_t WES_CALIBRATION_TIMEOUT =
-    5 * 1000;  // time needed for the first loop [ms]
+constexpr auto ROTATION_PERIOD = 10s;
 
-constexpr int WES_CALIBRATION_SAMPLE_NUMBER =
-    20;  // number to sample to take in the first loop
-constexpr uint32_t WES_CALIBRATION_UPDATE_PERIOD =
-    WES_CALIBRATION_TIMEOUT / WES_CALIBRATION_SAMPLE_NUMBER;
-constexpr uint32_t WES_PREDICTION_UPDATE_PERIOD =
-    100;  // update period of WES[ms]
+namespace Calibration
+{
+constexpr auto SAMPLE_RATE  = 4_hz;
+constexpr auto SAMPLE_COUNT = 20;  ///< Samples to collect during calibration
+}  // namespace Calibration
 
-}  // namespace WESConfig
+namespace Prediction
+{
+constexpr auto UPDATE_RATE = 10_hz;
+}
 
+}  // namespace WES
+}  // namespace Config
 }  // namespace Payload

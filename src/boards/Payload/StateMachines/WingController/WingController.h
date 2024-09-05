@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Authors: Matteo Pignataro, Federico Mandelli
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Angelo Prete
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Payload/Wing/WingAlgorithm.h>
 #include <diagnostic/PrintLogger.h>
@@ -121,7 +122,7 @@ private:
      * that they can be injected with dependencies when the WingController is
      * injected.
      */
-    void addAlgorithms();
+    bool addAlgorithms();
 
     /**
      * @brief target position getter
@@ -154,7 +155,7 @@ private:
      * @brief PrintLogger
      */
     Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("PayloadTest");
+        Boardcore::Logging::getLogger("WingController");
 
     /**
      * @brief Internal running state
@@ -174,6 +175,12 @@ private:
     EarlyManeuversGuidanceAlgorithm emGuidance;
 
     /**
+     * @brief Instance of the Closed Loop Guidance Algorithm used by
+     * AutomaticWingAlgorithm
+     */
+    ClosedLoopGuidanceAlgorithm clGuidance;
+
+    /**
      * @brief  starts the selected algorithm
      */
     void startAlgorithm();
@@ -188,6 +195,8 @@ private:
      * @brief Stops any on going algorithm and flares the wing
      */
     void flare();
+
+    void twirl();
 
     /**
      * @brief Resets the servos in their initial position

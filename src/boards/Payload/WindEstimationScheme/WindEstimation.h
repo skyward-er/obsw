@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
+/* Copyright (c) 2024 Skyward Experimental Rocketry
  * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -90,12 +90,11 @@ private:
      */
     Eigen::Vector2f windCalibration{0.0f, 0.0f};
     uint8_t nSampleCal = 0;
-    Eigen::Matrix<float, WESConfig::WES_CALIBRATION_SAMPLE_NUMBER, 2>
+    Eigen::Matrix<float, Config::WES::Calibration::SAMPLE_COUNT, 2>
         calibrationMatrix;
-    Eigen::Vector<float, WESConfig::WES_CALIBRATION_SAMPLE_NUMBER>
-        calibrationV2;
-    float vx = 0;
-    float vy = 0;
+    Eigen::Vector<float, Config::WES::Calibration::SAMPLE_COUNT> calibrationV2;
+    float vn = 0;
+    float ve = 0;
     float v2 = 0;
 
     /**
@@ -114,7 +113,7 @@ private:
      * @brief PrintLogger
      */
     Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("PayloadTest");
+        Boardcore::Logging::getLogger("WindEstimation");
 
     /**
      * @brief Logging struct
