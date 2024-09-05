@@ -1,5 +1,5 @@
-/* Copyright (c) 2022-2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Nicclò Betto
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include <units/Frequency.h>
+#include <utils/Constants.h>
 
 namespace Payload
 {
@@ -30,24 +31,37 @@ namespace Config
 {
 namespace Wing
 {
+
+// Algorithm configuration
+#if defined(CLOSED_LOOP)
+constexpr int SELECTED_ALGORITHM = 0;
+#elif EARLY_MANEUVER
+constexpr int SELECTED_ALGORITHM   = 1;
+#elif SEQUENCE
+constexpr int SELECTED_ALGORITHM   = 2;
+#elif ROTATION
+constexpr int SELECTED_ALGORITHM = 3;
+#else
+constexpr int SELECTED_ALGORITHM = 0;
+#endif
+
 #if defined(EUROC)
 constexpr float DEFAULT_TARGET_LAT = 39.389733;
 constexpr float DEFAULT_TARGET_LON = -8.288992;
 #elif defined(ROCCARASO)
-constexpr float DEFAULT_TARGET_LAT = 41.809216;
-constexpr float DEFAULT_TARGET_LON = 14.055310;
-#elif defined(EUROC)
-constexpr float DEFAULT_TARGET_LAT = 39.383;
-constexpr float DEFAULT_TARGET_LON = -8.27963;
+constexpr float DEFAULT_TARGET_LAT = 41.8089005;
+constexpr float DEFAULT_TARGET_LON = 14.0546716;
 #else  // Milan
-constexpr float DEFAULT_TARGET_LAT = 39.383;
-constexpr float DEFAULT_TARGET_LON = -8.27963;
+constexpr float DEFAULT_TARGET_LAT = 45.5010679;
+constexpr float DEFAULT_TARGET_LON = 9.1563769;
 #endif
+
+constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
 
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 
-constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = 2.09439;
-constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -2.09439;
+constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = Boardcore::Constants::PI;
+constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
 
 constexpr int GUIDANCE_CONFIDENCE                = 15;
 constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
@@ -55,15 +69,18 @@ constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
 constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
 
 // TODO check this parameter preflight
-constexpr float KP = 0.4;   //[m]
-constexpr float KI = 0.08;  //[m]
+constexpr float KP = 0.9;
+constexpr float KI = 0.05;
+
+constexpr float TWIRL_RADIUS = 0.5;  // [%]
+
 }  // namespace Wing
 
 namespace AltitudeTrigger
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 400;  // [meters]
+constexpr auto DEPLOYMENT_ALTITUDE = 300;  // [meters]
 constexpr auto CONFIDENCE          = 10;   // [samples]
 constexpr auto UPDATE_RATE         = 10_hz;
 }  // namespace AltitudeTrigger

@@ -82,6 +82,7 @@ set(PAYLOAD_COMPUTER
     src/boards/Payload/AltitudeTrigger/AltitudeTrigger.cpp
     src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
     src/boards/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
+    src/boards/Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
     src/boards/Payload/Wing/FileWingAlgorithm.cpp
     src/boards/Payload/Wing/WingAlgorithm.cpp
     src/boards/Payload/WindEstimationScheme/WindEstimation.cpp

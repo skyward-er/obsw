@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Federico Mandelli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,12 +34,13 @@ struct WindLogging
 {
     long long timestamp = 0;
     float vn = 0, ve = 0;
+    bool cal = 0;
 
-    static std::string header() { return "timestamp,vn,ve\n"; }
+    static std::string header() { return "timestamp,vn,ve,cal\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << vn << "," << ve << "\n ";
+        os << timestamp << "," << vn << "," << ve << "," << cal << "\n ";
     }
 };
 
