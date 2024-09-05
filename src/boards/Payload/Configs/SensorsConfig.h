@@ -147,6 +147,9 @@ namespace Calibration
 {
 constexpr auto SAMPLE_COUNT  = 20;
 constexpr auto SAMPLE_PERIOD = 100ms;
+// Threshold value of the LP28DFW in order to consider the measure valid to use
+// as reference for the calibration of the analog sensors
+constexpr auto ATMOS_THRESHOLD = 50'000.0f;  // [Pa]
 }  // namespace Calibration
 
 namespace MagCalibration

@@ -161,15 +161,15 @@ void Sensors::calibrate()
         dynamicPressureSum / config::Calibration::SAMPLE_COUNT;
     float lps28dfwAvg = lps28dfwSum / config::Calibration::SAMPLE_COUNT;
 
-    // Calibrate all analog pressure sensors against the LPS28DFW
+    // Calibrate the analog static pressure sensor against the LPS28DFW
     float reference = lps28dfwAvg;
-    if (reference > 100.0f)
+    if (reference > config::Calibration::ATMOS_THRESHOLD)
     {
-        // Calibrate sensors only if reference is valid
+        // Apply the offset only if reference is valid
         // LPS28DFW might be disabled or unresponsive
         staticPressure->updateOffset(staticPressureMean - reference);
-        dynamicPressure->updateOffset(dynamicPressureMean - reference);
     }
+    dynamicPressure->updateOffset(dynamicPressureMean);
 
     miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
     gyroCalibration = gyroCalibrator.computeResult();
@@ -178,8 +178,8 @@ void Sensors::calibrate()
     auto cal = SensorsCalibrationParameter{
         .timestamp         = TimestampTimer::getTimestamp(),
         .referencePressure = reference,
-        .offsetStatic      = staticPressureMean - reference,
-        .offsetDynamic     = dynamicPressureMean - reference,
+        .offsetStatic      = staticPressure->getOffset(),
+        .offsetDynamic     = dynamicPressure->getOffset(),
     };
     Logger::getInstance().log(cal);
 }
