@@ -444,7 +444,7 @@ void Sensors::lis2mdlInit()
 
     auto sensorConfig = LIS2MDL::Config{
         .odr                = config::LIS2MDL::ODR,
-        .deviceMode         = config::LIS2MDL::OP_MODE,
+        .deviceMode         = LIS2MDL::MD_CONTINUOUS,
         .temperatureDivider = config::LIS2MDL::TEMPERATURE_DIVIDER,
     };
 
@@ -464,9 +464,9 @@ void Sensors::ubxgpsInit()
     auto spiConfig         = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ubxgps = std::make_unique<UBXGPSSpi>(
-        getModule<Buses>()->UBXGPS(), hwmap::UBXGps::cs::getPin(), spiConfig,
-        static_cast<uint8_t>(config::UBXGPS::SAMPLE_RATE));
+    ubxgps =
+        std::make_unique<UBXGPSSpi>(getModule<Buses>()->UBXGPS(),
+                                    hwmap::UBXGps::cs::getPin(), spiConfig, 5);
 }
 
 void Sensors::ubxgpsCallback()
@@ -543,8 +543,17 @@ void Sensors::ads131m08Init()
         channel.enabled = false;
     }
     // Enable required channels
-    channels[(uint8_t)config::StaticPressure::ADC_CH].enabled  = true;
-    channels[(uint8_t)config::DynamicPressure::ADC_CH].enabled = true;
+    channels[(int)config::StaticPressure::ADC_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    channels[(int)config::DynamicPressure::ADC_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
 
     ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->ADS131M08(),
                                             hwmap::ADS131M08::cs::getPin(),

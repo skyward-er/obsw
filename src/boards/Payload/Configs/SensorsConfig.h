@@ -74,8 +74,7 @@ constexpr auto FSR = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 namespace LIS2MDL
 {
 constexpr auto ENABLED             = true;
-constexpr auto SAMPLING_RATE       = 100_hz;
-constexpr auto OP_MODE             = Boardcore::LIS2MDL::MD_CONTINUOUS;
+constexpr auto SAMPLING_RATE       = 50_hz;
 constexpr auto ODR                 = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr auto TEMPERATURE_DIVIDER = 5U;
 }  // namespace LIS2MDL
@@ -83,14 +82,13 @@ constexpr auto TEMPERATURE_DIVIDER = 5U;
 namespace UBXGPS
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLE_RATE   = 5;  // KHz
-constexpr auto SAMPLING_RATE = 5_hz;
+constexpr auto SAMPLING_RATE = 10_hz;
 }  // namespace UBXGPS
 
 namespace LSM6DSRX
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 50_hz;
+constexpr auto SAMPLING_RATE = 100_hz;
 constexpr auto OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
@@ -140,7 +138,7 @@ namespace RotatedIMU
 constexpr auto USE_CALIBRATED_LIS2MDL  = true;
 constexpr auto USE_CALIBRATED_LSM6DSRX = true;
 constexpr auto ENABLED                 = true;
-constexpr auto SAMPLING_RATE           = ADS131M08::SAMPLING_RATE;
+constexpr auto SAMPLING_RATE           = 100_hz;
 }  // namespace RotatedIMU
 
 namespace Calibration
