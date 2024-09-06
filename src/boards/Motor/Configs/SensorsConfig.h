@@ -92,10 +92,27 @@ constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
-// TODO: These need tweaking
-constexpr float CH4_SHUNT_RESISTANCE = 29.7;
+/*
+Calibration values for tank sensors board
+
+Channel 6 - 29.79ohm
+0.1185V 3.97mA  29.84ohm
+0.3575V 12mA    29.79ohm
+0.5952V 20.01mA 29.76ohm
+
+Channel 5 - 29.73ohm
+0.1192V 4.03mA  29.57ohm
+0.3600V 12.01mA 29.97ohm
+0.5930V 20mA    29.65ohm
+
+Channel 4 - 29.65ohm
+0.1194V 4.02mA  29.70ohm
+0.3584V 12.06mA 29.72ohm
+0.5911V 20mA    29.55ohm
+*/
+constexpr float CH4_SHUNT_RESISTANCE = 29.79;
 constexpr float CH5_SHUNT_RESISTANCE = 29.7;
-constexpr float CH6_SHUNT_RESISTANCE = 29.7;
+constexpr float CH6_SHUNT_RESISTANCE = 29.65;
 
 constexpr Boardcore::ADS131M08Defs::Channel TANK_TC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
