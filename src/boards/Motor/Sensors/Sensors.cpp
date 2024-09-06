@@ -294,6 +294,12 @@ void Sensors::ads131m08Init()
          .offset  = 0,
          .gain    = 1.0};
 
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::TANK_TC_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
     ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
                                             sensors::ADS131M08::cs::getPin(),
                                             spiConfig, config);

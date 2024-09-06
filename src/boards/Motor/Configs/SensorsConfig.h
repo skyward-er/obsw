@@ -138,7 +138,8 @@ constexpr float MAX_CURRENT = 20;
 
 constexpr float TANK_TOP_MAX_PRESSURE    = 100;  // bar
 constexpr float TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
-constexpr float ENGINE_MAX_PRESSURE      = 40;   // bar
+// TODO: THIS NEEDS TO CHANGE FOR A FLIGHT CONFIGURATION!
+constexpr float ENGINE_MAX_PRESSURE = 100;  // bar
 }  // namespace Trafag
 
 namespace InternalADC
