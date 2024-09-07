@@ -119,6 +119,7 @@ constexpr float TANK_P0_MASS    = 1.866;
 constexpr float TANK_P1_VOLTAGE = 0.003559;
 constexpr float TANK_P1_MASS    = 6.916;
 
+/* OLD CALIBRATION DATA (before 07/09/2024, before new flipping)
 // LC Vessel sensor calibration data
 // - 1.866kg V: 0.00027
 // - 5.050kg V: 0.00073
@@ -127,6 +128,17 @@ constexpr float VESSEL_P0_VOLTAGE = 0.00027;
 constexpr float VESSEL_P0_MASS    = 1.866;
 constexpr float VESSEL_P1_VOLTAGE = 0.0010;
 constexpr float VESSEL_P1_MASS    = 6.916;
+*/
+
+// LC Vessel sensor calibration data (post 07/09/2024)
+// - 0kg      V: 0.000630177
+// - 4.985kg  V: 0.000470017 (−31125.124875125 kg/v)
+// - 10.177kg V: 0.00030895  (−31681,645689808 kg/v)
+constexpr float VESSEL_P0_VOLTAGE = 0.000470017;
+constexpr float VESSEL_P0_MASS    = 4.985;
+constexpr float VESSEL_P1_VOLTAGE = 0.00030895;
+constexpr float VESSEL_P1_MASS    = 10.177;
+
 }  // namespace LoadCell
 
 namespace InternalADC
