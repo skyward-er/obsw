@@ -56,17 +56,12 @@ public:
     AutomaticWingAlgorithm(float Kp, float Ki, ServosList servo1,
                            ServosList servo2, GuidanceAlgorithm& guidance);
 
-    /**
-     * @brief Destroy the Automatic Wing Algorithm object and the PI
-     */
-    ~AutomaticWingAlgorithm();
-
 protected:
     // Guidance algorithm that sets the yaw.
     GuidanceAlgorithm& guidance;
 
     // PI controller tuned on the Kp and Ki passed through constructor
-    Boardcore::PIController* controller;
+    std::unique_ptr<Boardcore::PIController> controller;
 
     /**
      * @brief Actual algorithm implementation, all parameters should be in NED

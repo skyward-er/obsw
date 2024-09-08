@@ -25,6 +25,8 @@
 #include <units/Frequency.h>
 #include <utils/Constants.h>
 
+#include <chrono>
+
 namespace Payload
 {
 namespace Config
@@ -32,45 +34,57 @@ namespace Config
 namespace Wing
 {
 
-// Algorithm configuration
-#if defined(CLOSED_LOOP)
-constexpr int SELECTED_ALGORITHM = 0;
-#elif EARLY_MANEUVER
-constexpr int SELECTED_ALGORITHM   = 1;
-#elif SEQUENCE
-constexpr int SELECTED_ALGORITHM   = 2;
-#elif ROTATION
-constexpr int SELECTED_ALGORITHM = 3;
-#else
-constexpr int SELECTED_ALGORITHM = 0;
-#endif
+/* linter off */ using namespace std::chrono_literals;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
+/**
+ * @brief The available algorithms for the wing controller.
+ */
+enum class AlgorithmId : size_t
+{
+    EARLY_MANEUVER = 0,
+    CLOSED_LOOP,
+    SEQUENCE,  ///< A predefined sequence of maneuvers
+    ROTATION,  ///< A sequence of maneuvers to rotate the wing
+    LAST,      ///< Used to count the number of algorithms
+};
+
+namespace Default
+{
+// TODO: Verify the default target coordinates for all sites
 #if defined(EUROC)
-constexpr float DEFAULT_TARGET_LAT = 39.389733;
-constexpr float DEFAULT_TARGET_LON = -8.288992;
+constexpr auto TARGET_LAT = 39.389733f;
+constexpr auto TARGET_LON = -8.288992f;
 #elif defined(ROCCARASO)
-constexpr float DEFAULT_TARGET_LAT = 41.8089005;
-constexpr float DEFAULT_TARGET_LON = 14.0546716;
+constexpr auto TARGET_LAT = 41.809216;
+constexpr auto TARGET_LON = 14.055310;
 #else  // Milan
-constexpr float DEFAULT_TARGET_LAT = 45.5010679;
-constexpr float DEFAULT_TARGET_LON = 9.1563769;
+constexpr auto TARGET_LAT = 45.5010679f;
+constexpr auto TARGET_LON = 9.1563769f;
 #endif
 
-constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
+constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
+}  // namespace Default
 
-constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
+constexpr auto STRAIGHT_FLIGHT_TIMEOUT = 15s;
+constexpr auto UPDATE_RATE             = 1_hz;
 
-constexpr float PI_CONTROLLER_SATURATION_MAX_LIMIT = Boardcore::Constants::PI;
-constexpr float PI_CONTROLLER_SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
+namespace PI
+{
+constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
+constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI;
 
-constexpr int GUIDANCE_CONFIDENCE                = 15;
-constexpr int GUIDANCE_M1_ALTITUDE_THRESHOLD     = 250;  //[m]
-constexpr int GUIDANCE_M2_ALTITUDE_THRESHOLD     = 150;  //[m]
-constexpr int GUIDANCE_TARGET_ALTITUDE_THRESHOLD = 50;   //[m]
+constexpr auto KP = 0.9f;
+constexpr auto KI = 0.05f;
+}  // namespace PI
 
-// TODO check this parameter preflight
-constexpr float KP = 0.9;
-constexpr float KI = 0.05;
+namespace Guidance
+{
+constexpr auto CONFIDENCE                = 15;   // [samples]
+constexpr auto M1_ALTITUDE_THRESHOLD     = 250;  // [m]
+constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
+constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
+}  // namespace Guidance
 
 constexpr float TWIRL_RADIUS = 0.5;  // [%]
 

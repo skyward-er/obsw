@@ -30,28 +30,28 @@ namespace Payload
 
 struct WingTargetPositionData
 {
-    float receivedLat;
-    float receivedLon;
-    float targetN;
-    float targetE;
-    float emcN;
-    float emcE;
-    float m1N;
-    float m1E;
-    float m2N;
-    float m2E;
+    float targetLat = 0;
+    float targetLon = 0;
+    float targetN   = 0;
+    float targetE   = 0;
+    float emcN      = 0;
+    float emcE      = 0;
+    float m1N       = 0;
+    float m1E       = 0;
+    float m2N       = 0;
+    float m2E       = 0;
 
     static std::string header()
     {
-        return "receivedLat, receivedLon, "
-               "targetN,targetE,EMCN,EMCE,M1N,M1E,M2N,M2E\n";
+        return "targetLat, "
+               "targetLon,targetN,targetE,EMCN,EMCE,M1N,M1E,M2N,M2E\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << receivedLat << "," << receivedLon << "," << targetN << ","
-           << targetE << "," << emcN << "," << emcE << "," << m1N << "," << m1E
-           << "," << m2N << "," << m2E << "\n";
+        os << targetLat << "," << targetLon << "," << targetN << "," << targetE
+           << "," << emcN << "," << emcE << "," << m1N << "," << m1E << ","
+           << m2N << "," << m2E << "\n";
     }
 };
 

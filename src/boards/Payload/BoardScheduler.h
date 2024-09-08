@@ -74,6 +74,11 @@ public:
         return Priority::MEDIUM;
     }
 
+    static Priority::PriorityLevel wingControllerPriority()
+    {
+        return Priority::MEDIUM;
+    }
+
     /**
      * @brief Starts all the schedulers
      */

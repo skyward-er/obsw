@@ -44,12 +44,13 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
                                                GuidanceAlgorithm& guidance)
     : Super(servo1, servo2), guidance(guidance)
 {
-    controller = new PIController(Kp, Ki, WING_UPDATE_PERIOD / 1000.0f,
-                                  PI_CONTROLLER_SATURATION_MIN_LIMIT,
-                                  PI_CONTROLLER_SATURATION_MAX_LIMIT);
-}
+    // PIController needs the sample period in floating point seconds
+    auto samplePeriod = 1.0f / Hertz{UPDATE_RATE}.value();
 
-AutomaticWingAlgorithm::~AutomaticWingAlgorithm() { delete (controller); }
+    controller = std::make_unique<PIController>(Kp, Ki, samplePeriod,
+                                                PI::SATURATION_MIN_LIMIT,
+                                                PI::SATURATION_MAX_LIMIT);
+}
 
 void AutomaticWingAlgorithm::step()
 {
@@ -72,14 +73,14 @@ void AutomaticWingAlgorithm::step()
         if (result > 0)
         {
             // Activate the servo2 and reset servo1
-            getModule<Actuators>()->setServoAngle(servo1, 0);
+            getModule<Actuators>()->setServoAngle(servo1, 0.0f);
             getModule<Actuators>()->setServoAngle(servo2, result);
         }
         else
         {
             // Activate the servo1 and reset servo2
-            getModule<Actuators>()->setServoAngle(servo1, result * -1);
-            getModule<Actuators>()->setServoAngle(servo2, 0);
+            getModule<Actuators>()->setServoAngle(servo1, result * -1.0f);
+            getModule<Actuators>()->setServoAngle(servo2, 0.0f);
         }
 
         // Log the servo positions
@@ -95,8 +96,8 @@ void AutomaticWingAlgorithm::step()
     else
     {
         // If we loose fix we set both servo at 0
-        getModule<Actuators>()->setServoAngle(servo1, 0);
-        getModule<Actuators>()->setServoAngle(servo2, 0);
+        getModule<Actuators>()->setServoAngle(servo1, 0.0f);
+        getModule<Actuators>()->setServoAngle(servo2, 0.0f);
     }
 }
 

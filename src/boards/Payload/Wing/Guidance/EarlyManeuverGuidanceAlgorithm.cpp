@@ -70,18 +70,18 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
 void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
 {
     if (altitude <=
-        GUIDANCE_TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head directly
-                                             // to target
+        Guidance::TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head directly
+                                              // to target
     {
         targetAltitudeConfidence++;
     }
-    else if (altitude <= GUIDANCE_M2_ALTITUDE_THRESHOLD)  // Altitude is almost
-                                                          // okay, go to M2
+    else if (altitude <= Guidance::M2_ALTITUDE_THRESHOLD)  // Altitude is almost
+                                                           // okay, go to M2
     {
         m2AltitudeConfidence++;
     }
     else if (altitude <=
-             GUIDANCE_M1_ALTITUDE_THRESHOLD)  // Altitude is high, go to M1
+             Guidance::M1_ALTITUDE_THRESHOLD)  // Altitude is high, go to M1
     {
         m1AltitudeConfidence++;
     }
@@ -93,41 +93,44 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
     switch (activeTarget)
     {
         case Target::EMC:
-            if (targetAltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            if (targetAltitudeConfidence >= Guidance::CONFIDENCE)
             {
                 activeTarget          = Target::FINAL;
                 emcAltitudeConfidence = 0;
             }
-            else if (m2AltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            else if (m2AltitudeConfidence >= Guidance::CONFIDENCE)
             {
                 activeTarget          = Target::M2;
                 emcAltitudeConfidence = 0;
             }
-            else if (m1AltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            else if (m1AltitudeConfidence >= Guidance::CONFIDENCE)
             {
                 activeTarget          = Target::M1;
                 emcAltitudeConfidence = 0;
             }
             break;
+
         case Target::M1:
-            if (targetAltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            if (targetAltitudeConfidence >= Guidance::CONFIDENCE)
             {
                 activeTarget         = Target::FINAL;
                 m1AltitudeConfidence = 0;
             }
-            else if (m2AltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            else if (m2AltitudeConfidence >= Guidance::CONFIDENCE)
             {
                 activeTarget         = Target::M2;
                 m1AltitudeConfidence = 0;
             }
             break;
+
         case Target::M2:
-            if (targetAltitudeConfidence >= GUIDANCE_CONFIDENCE)
+            if (targetAltitudeConfidence >= Guidance::CONFIDENCE)
             {
                 activeTarget         = Target::FINAL;
                 m2AltitudeConfidence = 0;
             }
             break;
+
         case Target::FINAL:
             break;
     }

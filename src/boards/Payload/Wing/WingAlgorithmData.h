@@ -31,15 +31,15 @@ namespace Payload
  */
 struct WingAlgorithmData
 {
-    uint64_t timestamp;   // First timestamp is 0 (in microseconds)
-    float servo1Angle;    // degrees
-    float servo2Angle;    // degrees
-    float targetAngle;    // radians (automatic only)
-    float velocityAngle;  // radians
-    float targetX;        // NED (only automatic algorithm)
-    float targetY;        // NED (only automatic algorithm)
-    float error;
-    float pidOutput;
+    uint64_t timestamp  = 0;  // First timestamp is 0 (in microseconds)
+    float servo1Angle   = 0;  // degrees
+    float servo2Angle   = 0;  // degrees
+    float targetAngle   = 0;  // radians (automatic only)
+    float velocityAngle = 0;  // radians
+    float targetX       = 0;  // NED (only automatic algorithm)
+    float targetY       = 0;  // NED (only automatic algorithm)
+    float error         = 0;
+    float pidOutput     = 0;
 
     static std::string header()
     {

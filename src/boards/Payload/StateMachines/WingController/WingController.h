@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Angelo Prete
+ * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/Configs/WingConfig.h>
 #include <Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Payload/Wing/WingAlgorithm.h>
@@ -83,29 +84,12 @@ public:
      */
     ~WingController();
 
-    Boardcore::State state_idle(const Boardcore::Event& event);
-    Boardcore::State state_flying(const Boardcore::Event& event);
-    Boardcore::State state_calibration(const Boardcore::Event& event);
-    Boardcore::State state_controlled_descent(const Boardcore::Event& event);
-    Boardcore::State state_on_ground(const Boardcore::Event& event);
-
-    /**
-     * @brief Method to set the target position.
-     */
-    void setTargetPosition(Eigen::Vector2f target);
-
-    /**
-     * @brief Selects the algorithm if present.
-     *
-     * @param index The algorithms vector index
-     *
-     * @return true if the selection was successful
-     */
-    bool selectAlgorithm(unsigned int index);
-
-    WingControllerStatus getStatus();
-
-    bool start() override;
+    // HSM states
+    Boardcore::State Idle(const Boardcore::Event& event);
+    Boardcore::State Flying(const Boardcore::Event& event);
+    Boardcore::State FlyingCalibration(const Boardcore::Event& event);
+    Boardcore::State FlyingControlledDescent(const Boardcore::Event& event);
+    Boardcore::State OnGround(const Boardcore::Event& event);
 
     /**
      * @brief Override the inject method to inject dependencies into the
@@ -113,10 +97,28 @@ public:
      */
     void inject(Boardcore::DependencyInjector& injector) override;
 
+    bool start() override;
+
+    bool isStarted();
+
+    WingControllerState getState();
+
     /**
-     * @brief This method is a forward method from early maneuvers guidance
-     * algorithm to calculate the yaw angle of the parafoil knowing the current
-     * position and the target position.
+     * @brief Sets the target position.
+     * @note The provided position must be using geodetic coordinates.
+     */
+    bool setTargetPosition(Eigen::Vector2f targetPositionGEO);
+
+    /**
+     * @brief Changes the selected algorithm.
+     * @return Whether the provided index selected a valid algorithm.
+     */
+    bool selectAlgorithm(uint8_t index);
+
+    /**
+     * @brief This is a forward method to the early maneuvers guidance algorithm
+     * to calculate the yaw angle of the parafoil knowing the current position
+     * and the target position.
      *
      * @param[in] currentPositionNED the current NED position of the parafoil in
      * m
@@ -124,7 +126,6 @@ public:
      * @param[out] heading Saves the heading vector for logging purposes
      *
      * @returns the yaw angle of the parafoil in rad
-     *
      */
     float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
                                Eigen::Vector2f& heading)
@@ -134,58 +135,75 @@ public:
 
 private:
     /**
-     * @brief Instantiates the algorithms and adds them to the algorithms
-     * vector.
+     * @brief Loads all algorithms.
      *
      * @note Algorithms should be instantiated before dependency injection so
      * that they can be injected with dependencies when the WingController is
      * injected.
      */
-    bool addAlgorithms();
+    void loadAlgorithms();
 
     /**
-     * @brief target position getter
+     * @brief Returns the currently selected algorithm.
      */
-    Eigen::Vector2f convertTargetPositionToNED(Eigen::Vector2f targetGEO);
+    WingAlgorithm& getCurrentAlgorithm();
 
     /**
-     * @brief set points needed by the Guidance
+     * @brief Starts the currently selected algorithm. If the algorithm is
+     * already running, it resets the algorithm.
      */
-    void setEarlyManeuverPoints(Eigen::Vector2f targetNED,
-                                Eigen::Vector2f currentPosNED);
-
-    void logStatus(WingControllerState state);
-
-    WingControllerStatus status;
-
-    miosix::FastMutex statusMutex;
+    void startAlgorithm();
 
     /**
-     * @brief Target position
+     * @brief Stops the currently selected algorithm.
      */
-    Eigen::Vector2f targetPositionGEO;
+    void stopAlgorithm();
 
     /**
-     * @brief List of loaded algorithms (from SD or not)
+     * @brief Update early maneuver guidance points (EMC, M1, M2) based on the
+     * current position and the target position.
      */
-    std::vector<WingAlgorithm*> algorithms;
+    void updateEarlyManeuverPoints();
 
     /**
-     * @brief PrintLogger
+     * @brief Periodic update method that steps the currently selected
+     * algorithm.
      */
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("WingController");
+    void update();
 
     /**
-     * @brief Internal running state
+     * @brief Flare the wing.
+     * Pulls the two ropes as skydiving people do.
      */
-    std::atomic<bool> running;
+    void flareWing();
+
     /**
-     * @brief This attribute is modified by the mavlink radio section.
-     * The user using the Ground Station can select the pre-enumerated algorithm
-     * to execute
+     * @brief Twirl the wing to the left.
      */
-    std::atomic<size_t> selectedAlgorithm;
+    void twirlWing();
+
+    /**
+     * @brief Reset the wing to the initial position.
+     */
+    void resetWing();
+
+    void updateState(WingControllerState newState);
+
+    Eigen::Vector2f targetPositionGEO{Config::Wing::Default::TARGET_LAT,
+                                      Config::Wing::Default::TARGET_LON};
+
+    std::atomic<bool> targetPositionDirty{
+        false};  ///< Whether the target position was changed and EM points need
+                 ///< to be updated
+
+    std::atomic<Config::Wing::AlgorithmId> selectedAlgorithm{
+        Config::Wing::Default::ALGORITHM};
+
+    std::atomic<WingControllerState> state{WingControllerState::UNINIT};
+
+    std::array<std::unique_ptr<WingAlgorithm>,
+               static_cast<size_t>(Config::Wing::AlgorithmId::LAST)>
+        algorithms;  ///< The available algorithms
 
     /**
      * @brief Instance of the Early Maneuver Guidance Algorithm used by
@@ -199,30 +217,11 @@ private:
      */
     ClosedLoopGuidanceAlgorithm clGuidance;
 
-    /**
-     * @brief  starts the selected algorithm
-     */
-    void startAlgorithm();
+    std::atomic<bool> started{false};
+    std::atomic<bool> running{false};  ///< Whether the algorithm is running
 
-    /**
-     * @brief Sets the internal state to stop and
-     * stops the selected algorithm
-     */
-    void stopAlgorithm();
-
-    /**
-     * @brief Stops any on going algorithm and flares the wing
-     */
-    void flare();
-
-    void twirl();
-
-    /**
-     * @brief Resets the servos in their initial position
-     */
-    void reset();
-
-    void update();
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("WingController");
 };
 
 }  // namespace Payload
