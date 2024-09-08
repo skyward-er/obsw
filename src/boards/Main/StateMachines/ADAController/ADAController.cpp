@@ -211,6 +211,7 @@ void ADAController::update()
                                     detectedApogees, detectedDeployments,
                                     curState};
     sdLogger.log(data);
+    sdLogger.log(ada.getState());
 }
 
 void ADAController::calibrate()
