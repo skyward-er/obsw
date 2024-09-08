@@ -250,9 +250,12 @@ private:
 
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
-        return Boardcore::IMUData{sensors.getLSM6DSRXLastSample(),
-                                  sensors.getLSM6DSRXLastSample(),
-                                  sensors.getCalibratedLIS2MDLLastSample()};
+        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                        ? getCalibratedLSM6DSRXLastSample()
+                        : getLSM6DSRXLastSample();
+        auto mag  = getLIS2MDLLastSample();
+
+        return Boardcore::IMUData{imu6, imu6, mag};
     };
 
     Boardcore::PressureData updateCCData()
