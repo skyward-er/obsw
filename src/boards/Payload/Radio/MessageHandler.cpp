@@ -682,10 +682,13 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto ref = parent.getModule<NASController>()->getReferenceValues();
 
             tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.ref_altitude    = ref.refAltitude;
             tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
+            tm.msl_pressure    = ref.mslPressure;
+            tm.msl_temperature = ref.mslTemperature;
 
             mavlink_msg_reference_tm_encode(config::Mavlink::SYSTEM_ID,
                                             config::Mavlink::COMPONENT_ID, &msg,
