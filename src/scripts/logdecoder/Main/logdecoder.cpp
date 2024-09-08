@@ -68,6 +68,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<StaticPressureData1>();
     ds.registerType<StaticPressureData2>();
     ds.registerType<DplBayPressureData>();
+    ds.registerType<CalibrationData>();
 }
 
 void showUsage(const string& cmdName)
