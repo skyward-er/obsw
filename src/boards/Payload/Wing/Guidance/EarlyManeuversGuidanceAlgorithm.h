@@ -29,6 +29,18 @@
 namespace Payload
 {
 
+struct EarlyManeuversPoints
+{
+    float targetN;
+    float targetE;
+    float emcN;
+    float emcE;
+    float m1N;
+    float m1E;
+    float m2N;
+    float m2E;
+};
+
 /**
  * This class is the implementation of the Simple Closed Loop guidance.
  * It calculates the yaw between the current position and the target position by
@@ -74,6 +86,11 @@ public:
      */
     void setPoints(Eigen::Vector2f targetNED, Eigen::Vector2f EMC,
                    Eigen::Vector2f M1, Eigen::Vector2f M2);
+
+    /**
+     * @brief Get Early Maneuvers points.
+     */
+    EarlyManeuversPoints getPoints();
 
 private:
     /** @brief Updates the class target

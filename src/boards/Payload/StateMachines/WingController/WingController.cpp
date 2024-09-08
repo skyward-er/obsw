@@ -324,7 +324,7 @@ bool WingController::isStarted() { return started; }
 
 WingControllerState WingController::getState() { return state; }
 
-bool WingController::setTargetPosition(Eigen::Vector2f targetPositionGEO)
+bool WingController::setTargetCoordinates(float latitude, float longitude)
 {
     // Allow changing the target position in the IDLE state only
     if (state != WingControllerState::IDLE)
@@ -332,11 +332,22 @@ bool WingController::setTargetPosition(Eigen::Vector2f targetPositionGEO)
         return false;
     }
 
-    this->targetPositionGEO = targetPositionGEO;
+    this->targetPositionGEO = Eigen::Vector2f{latitude, longitude};
+
+    // Log early maneuver points to highlight any discrepancies if any
+    auto earlyManeuverPoints = getEarlyManeuverPoints();
 
     auto data = WingTargetPositionData{
-        .targetLat = targetPositionGEO[0], .targetLon = targetPositionGEO[1],
-        // TODO: populate early maneuver points
+        .targetLat = targetPositionGEO[0],
+        .targetLon = targetPositionGEO[1],
+        .targetN   = earlyManeuverPoints.targetN,
+        .targetE   = earlyManeuverPoints.targetE,
+        .emcN      = earlyManeuverPoints.emcN,
+        .emcE      = earlyManeuverPoints.emcE,
+        .m1N       = earlyManeuverPoints.m1N,
+        .m1E       = earlyManeuverPoints.m1E,
+        .m2N       = earlyManeuverPoints.m2N,
+        .m2E       = earlyManeuverPoints.m2E,
     };
     Logger::getInstance().log(data);
 
@@ -373,6 +384,11 @@ bool WingController::selectAlgorithm(uint8_t index)
             return false;
         }
     }
+}
+
+EarlyManeuversPoints WingController::getEarlyManeuverPoints()
+{
+    return emGuidance.getPoints();
 }
 
 void WingController::loadAlgorithms()

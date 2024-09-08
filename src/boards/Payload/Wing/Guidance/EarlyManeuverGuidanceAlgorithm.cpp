@@ -147,4 +147,18 @@ void EarlyManeuversGuidanceAlgorithm::setPoints(Eigen::Vector2f targetNED,
     this->M2        = M2;
 }
 
+EarlyManeuversPoints EarlyManeuversGuidanceAlgorithm::getPoints()
+{
+    return EarlyManeuversPoints{
+        .targetN = targetNED[0],
+        .targetE = targetNED[1],
+        .emcN    = EMC[0],
+        .emcE    = EMC[1],
+        .m1N     = M1[0],
+        .m1E     = M1[1],
+        .m2N     = M2[0],
+        .m2E     = M2[1],
+    };
+}
+
 }  // namespace Payload

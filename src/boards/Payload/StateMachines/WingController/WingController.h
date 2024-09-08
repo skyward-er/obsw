@@ -104,16 +104,20 @@ public:
     WingControllerState getState();
 
     /**
-     * @brief Sets the target position.
-     * @note The provided position must be using geodetic coordinates.
+     * @brief Sets the target coordinates.
      */
-    bool setTargetPosition(Eigen::Vector2f targetPositionGEO);
+    bool setTargetCoordinates(float latitude, float longitude);
 
     /**
      * @brief Changes the selected algorithm.
      * @return Whether the provided index selected a valid algorithm.
      */
     bool selectAlgorithm(uint8_t index);
+
+    /**
+     * @brief Returns the currently set early maneuver points.
+     */
+    EarlyManeuversPoints getEarlyManeuverPoints();
 
     /**
      * @brief This is a forward method to the early maneuvers guidance algorithm

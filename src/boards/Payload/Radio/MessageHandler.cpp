@@ -35,6 +35,7 @@
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 
 #include "Radio.h"
 
@@ -190,13 +191,52 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             parent.getModule<AltitudeTrigger>()->setDeploymentAltitude(
                 altitude);
 
-            if (altitude < 0 || altitude > 3000)
+            if (altitude < 100 || altitude > 3000)
             {
                 return enqueueWack(msg);
             }
             else
             {
                 return enqueueAck(msg);
+            }
+        }
+
+        case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
+        {
+            float latitude =
+                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
+
+            bool targetSet =
+                parent.getModule<WingController>()->setTargetCoordinates(
+                    latitude, longitude);
+
+            if (targetSet)
+            {
+                return enqueueAck(msg);
+            }
+            else
+            {
+                return enqueueNack(msg);
+            }
+        }
+
+        case MAVLINK_MSG_ID_SET_ALGORITHM_TC:
+        {
+            uint8_t index =
+                mavlink_msg_set_algorithm_tc_get_algorithm_number(&msg);
+
+            bool algorithmSet =
+                parent.getModule<WingController>()->selectAlgorithm(index);
+
+            if (algorithmSet)
+            {
+                return enqueueAck(msg);
+            }
+            else
+            {
+                return enqueueNack(msg);
             }
         }
 
@@ -534,11 +574,13 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_payload_stats_tm_t tm;
 
             auto* nas        = parent.getModule<NASController>();
+            auto* wnc        = parent.getModule<WingController>();
             auto* pinHandler = parent.getModule<PinHandler>();
             auto& logger     = Logger::getInstance();
 
             auto stats    = parent.getModule<FlightStatsRecorder>()->getStats();
             auto ref      = nas->getReferenceValues();
+            auto emPoints = wnc->getEarlyManeuverPoints();
             auto cpuStats = CpuMeter::getCpuStats();
             auto loggerStats = logger.getStats();
 
@@ -567,12 +609,12 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.apogee_max_acc    = stats.apogeeMaxAcc;
 
             // Wing stats
-            tm.wing_emc_n = -1.0f;  // TODO
-            tm.wing_emc_e = -1.0f;  // TODO
-            tm.wing_m1_n  = -1.0f;  // TODO
-            tm.wing_m1_e  = -1.0f;  // TODO
-            tm.wing_m2_n  = -1.0f;  // TODO
-            tm.wing_m2_e  = -1.0f;  // TODO
+            tm.wing_emc_n = emPoints.emcN;
+            tm.wing_emc_e = emPoints.emcE;
+            tm.wing_m1_n  = emPoints.m1N;
+            tm.wing_m1_e  = emPoints.m1E;
+            tm.wing_m2_n  = emPoints.m2N;
+            tm.wing_m2_e  = emPoints.m2E;
 
             // Deployment stats
             tm.dpl_ts         = stats.dplTs;
@@ -596,14 +638,14 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.log_number = loggerStats.logNumber;
 
             tm.nas_state = static_cast<uint8_t>(nas->getState());
-            tm.wes_state = 255;  // TODO
+            tm.wes_state = static_cast<uint8_t>(wnc->getState());
 
             // Pins
             tm.pin_launch =
                 pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState;
             tm.pin_nosecone =
                 pinHandler->getPinData(PinList::NOSECONE_DETACH_PIN).lastState;
-            tm.cutter_presence = 255;  // TODO
+            tm.cutter_presence = miosix::sense::cutterSense::value();
 
             auto canStatus = parent.getModule<CanHandler>()->getCanStatus();
             tm.main_board_state  = canStatus.mainState;
