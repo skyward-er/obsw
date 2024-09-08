@@ -28,13 +28,14 @@
 #include <Payload/WindEstimationScheme/WindEstimationData.h>
 #include <Payload/Wing/WingAlgorithmData.h>
 #include <Payload/Wing/WingTargetPositionData.h>
+#include <fmt/format.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <logger/Logger.h>
 #include <tscpp/stream.h>
 
+#include <chrono>
 #include <filesystem>
-#include <format>
 #include <iomanip>
 #include <iostream>
 #include <string_view>
@@ -97,7 +98,7 @@ bool deserialize(const std::filesystem::path& file)
     if (result)
     {
         std::cout << "Successfully deserialized " << file << " in "
-                  << duration_cast<milliseconds>(end - start) << "\n";
+                  << duration_cast<milliseconds>(end - start).count() << "ms\n";
     }
     else
     {
@@ -117,7 +118,7 @@ bool deserializeDirectory(const std::filesystem::path& directory)
     bool success = true;
     for (int i = 0; i < Logger::getMaxFilenameNumber(); i++)
     {
-        auto file = std::format("log{:02d}.dat", i);
+        auto file = fmt::format("log{:02d}.dat", i);
         if (!std::filesystem::is_regular_file(file))
         {
             continue;
