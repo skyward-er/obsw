@@ -243,8 +243,8 @@ void CanHandler::handleEvent(const Canbus::CanMessage &msg)
         }
     }
 
-    EventData ev{TimestampTimer::getTimestamp(), msg.getSecondaryType(),
-                 TOPIC_CAN};
+    EventData ev{TimestampTimer::getTimestamp(),
+                 canEventToEvent(msg.getSecondaryType()), TOPIC_CAN};
     sdLogger.log(ev);
 }
 
