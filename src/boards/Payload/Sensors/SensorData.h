@@ -50,22 +50,37 @@ struct DynamicPressureData : public Boardcore::PressureData
     }
 };
 
-struct SensorsCalibrationParameter
+struct SensorCalibrationData
 {
     uint64_t timestamp      = 0;
-    float referencePressure = 0;
-    float offsetStatic      = 0;
-    float offsetDynamic     = 0;
+    float gyroBiasX         = 0.0f;
+    float gyroBiasY         = 0.0f;
+    float gyroBiasZ         = 0.0f;
+    float magBiasX          = 0.0f;
+    float magBiasY          = 0.0f;
+    float magBiasZ          = 0.0f;
+    float magScaleX         = 0.0f;
+    float magScaleY         = 0.0f;
+    float magScaleZ         = 0.0f;
+    float staticPressBias   = 0.0f;
+    float staticPressScale  = 0.0f;
+    float dynamicPressBias  = 0.0f;
+    float dynamicPressScale = 0.0f;
 
     static std::string header()
     {
-        return "timestamp,referencePressure,offsetStatic,offsetDynamic\n";
+        return "timestamp,gyroBiasX,gyroBiasY,gyroBiasZ,magBiasX,magBiasY,"
+               "magBiasZ,magScaleX,magScaleY,magScaleZ,staticPressBias,"
+               "staticPressScale,dynamicPressBias,dynamicPressScale\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << referencePressure << "," << offsetStatic
-           << "," << offsetDynamic << "\n";
+        os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
+           << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ
+           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << ","
+           << staticPressBias << "," << staticPressScale << ","
+           << dynamicPressBias << "," << dynamicPressScale << "\n";
     }
 };
 

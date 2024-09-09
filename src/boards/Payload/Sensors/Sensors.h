@@ -68,6 +68,13 @@ public:
     void calibrate();
 
     /**
+     * @brief Returns the current sensors calibration parameters.
+     *
+     * @internal Ensure mutexes are unlocked before calling this function.
+     */
+    SensorCalibrationData getCalibrationData();
+
+    /**
      * @brief Resets the magnetometer calibration.
      */
     void resetMagCalibrator();

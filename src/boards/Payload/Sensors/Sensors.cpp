@@ -178,17 +178,37 @@ void Sensors::calibrate()
     }
     dynamicPressure->updateOffset(dynamicPressureMean);
 
-    miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
-    gyroCalibration = gyroCalibrator.computeResult();
+    {
+        miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
+        gyroCalibration = gyroCalibrator.computeResult();
+    }
 
     // Log the offsets
-    auto cal = SensorsCalibrationParameter{
+    auto data = getCalibrationData();
+    Logger::getInstance().log(data);
+}
+
+SensorCalibrationData Sensors::getCalibrationData()
+{
+    miosix::Lock<miosix::FastMutex> magLock{magCalibrationMutex};
+    miosix::Lock<miosix::FastMutex> gyroLock{gyroCalibrationMutex};
+
+    return SensorCalibrationData{
         .timestamp         = TimestampTimer::getTimestamp(),
-        .referencePressure = reference,
-        .offsetStatic      = staticPressure->getOffset(),
-        .offsetDynamic     = dynamicPressure->getOffset(),
+        .gyroBiasX         = gyroCalibration.getb().x(),
+        .gyroBiasY         = gyroCalibration.getb().y(),
+        .gyroBiasZ         = gyroCalibration.getb().z(),
+        .magBiasX          = magCalibration.getb().x(),
+        .magBiasY          = magCalibration.getb().y(),
+        .magBiasZ          = magCalibration.getb().z(),
+        .magScaleX         = magCalibration.getA().x(),
+        .magScaleY         = magCalibration.getA().y(),
+        .magScaleZ         = magCalibration.getA().z(),
+        .staticPressBias   = staticPressure->getOffset(),
+        .staticPressScale  = 1.0f,
+        .dynamicPressBias  = dynamicPressure->getOffset(),
+        .dynamicPressScale = 1.0f,
     };
-    Logger::getInstance().log(cal);
 }
 
 void Sensors::resetMagCalibrator()

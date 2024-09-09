@@ -66,7 +66,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<WingControllerStatus>();
     ds.registerType<StaticPressureData>();
     ds.registerType<DynamicPressureData>();
-    ds.registerType<SensorsCalibrationParameter>();
+    ds.registerType<SensorCalibrationData>();
     ds.registerType<PinChangeData>();
     ds.registerType<WingControllerAlgorithmData>();
     ds.registerType<WingAlgorithmData>();

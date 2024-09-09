@@ -815,6 +815,39 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             return true;
         }
 
+        case MAV_CALIBRATION_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_calibration_tm_t tm;
+
+            auto cal = parent.getModule<Sensors>()->getCalibrationData();
+
+            tm.timestamp            = TimestampTimer::getTimestamp();
+            tm.gyro_bias_x          = cal.gyroBiasX;
+            tm.gyro_bias_y          = cal.gyroBiasY;
+            tm.gyro_bias_z          = cal.gyroBiasZ;
+            tm.mag_bias_x           = cal.magBiasX;
+            tm.mag_bias_y           = cal.magBiasY;
+            tm.mag_bias_z           = cal.magBiasZ;
+            tm.mag_scale_x          = cal.magScaleX;
+            tm.mag_scale_y          = cal.magScaleY;
+            tm.mag_scale_z          = cal.magScaleZ;
+            tm.static_press_1_bias  = cal.staticPressBias;
+            tm.static_press_1_scale = cal.staticPressScale;
+            tm.static_press_2_bias  = 0.0f;
+            tm.static_press_2_scale = 0.0f;
+            tm.dpl_bay_press_bias   = 0.0f;
+            tm.dpl_bay_press_scale  = 0.0f;
+            tm.dynamic_press_bias   = cal.dynamicPressBias;
+            tm.dynamic_press_scale  = cal.dynamicPressScale;
+
+            mavlink_msg_calibration_tm_encode(config::Mavlink::SYSTEM_ID,
+                                              config::Mavlink::COMPONENT_ID,
+                                              &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
         default:
             return false;
     }
