@@ -243,6 +243,7 @@ void CanHandler::handleEvent(const Canbus::CanMessage &msg)
         }
     }
 
+    // Log the event as if it was a real event
     EventData ev{TimestampTimer::getTimestamp(),
                  canEventToEvent(msg.getSecondaryType()), TOPIC_CAN};
     sdLogger.log(ev);

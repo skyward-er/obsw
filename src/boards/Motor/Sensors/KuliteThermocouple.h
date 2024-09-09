@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,53 +22,43 @@
 
 #pragma once
 
-#include <sensors/SensorData.h>
+#include <Motor/Sensors/SensorsData.h>
+#include <sensors/Sensor.h>
+
+#include <functional>
+
 namespace Motor
 {
 
-struct TopTankPressureData : Boardcore::PressureData
+class KuliteThermocouple : public Boardcore::Sensor<KuliteTemperatureData>
 {
-    explicit TopTankPressureData(const Boardcore::PressureData &data)
-        : Boardcore::PressureData{data}
+public:
+    KuliteThermocouple(std::function<Boardcore::ADCData()> getVoltage,
+                       float p0Voltage, float p0Temp, float p1Voltage,
+                       float p1Temp)
+        : getVoltage{getVoltage}, scale{(p1Temp - p0Temp) /
+                                        (p1Voltage - p0Voltage)},
+          offset{p0Temp - scale * p0Voltage}
     {
     }
 
-    TopTankPressureData() {}
-};
+    bool init() override { return true; }
 
-struct BottomTankPressureData : Boardcore::PressureData
-{
-    explicit BottomTankPressureData(const Boardcore::PressureData &data)
-        : Boardcore::PressureData{data}
+    bool selfTest() override { return true; }
+
+protected:
+    KuliteTemperatureData sampleImpl() override
     {
+        auto voltage = getVoltage();
+        auto temp    = voltage.voltage * scale - offset;
+
+        return {voltage.voltageTimestamp, temp};
     }
 
-    BottomTankPressureData() {}
-};
-
-struct CCPressureData : Boardcore::PressureData
-{
-    explicit CCPressureData(const Boardcore::PressureData &data)
-        : Boardcore::PressureData{data}
-    {
-    }
-
-    CCPressureData() {}
-};
-
-struct KuliteTemperatureData : Boardcore::TemperatureData
-{
-    explicit KuliteTemperatureData(const Boardcore::TemperatureData &data)
-        : Boardcore::TemperatureData{data}
-    {
-    }
-
-    KuliteTemperatureData(uint64_t temperatureTimestamp, float temperature)
-        : Boardcore::TemperatureData{temperatureTimestamp, temperature}
-    {
-    }
-
-    KuliteTemperatureData() {}
+private:
+    std::function<Boardcore::ADCData()> getVoltage;
+    const float scale;
+    const float offset;
 };
 
 }  // namespace Motor

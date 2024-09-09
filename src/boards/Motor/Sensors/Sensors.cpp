@@ -59,6 +59,7 @@ bool Sensors::start()
         topTankPressureInit();
         bottomTankPressureInit();
         ccPressureInit();
+        tankTempInit();
     }
 
     if (Config::Sensors::InternalADC::ENABLED)
@@ -129,8 +130,7 @@ PressureData Sensors::getCCPressLastSample()
 
 TemperatureData Sensors::getTankTempLastSample()
 {
-    // TODO: This sensor needs to be properly calibrated and implemented
-    return {};
+    return tankTemp ? tankTemp->getLastSample() : TemperatureData{};
 }
 
 VoltageData Sensors::getBatteryVoltageLastSample()
@@ -145,15 +145,39 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 {
     if (manager)
     {
-        return {manager->getSensorInfo(lps22df.get()),
-                manager->getSensorInfo(h3lis331dl.get()),
-                manager->getSensorInfo(lis2mdl.get()),
-                manager->getSensorInfo(lsm6dsrx.get()),
-                manager->getSensorInfo(ads131m08.get()),
-                manager->getSensorInfo(internalAdc.get()),
-                manager->getSensorInfo(topTankPressure.get()),
-                manager->getSensorInfo(bottomTankPressure.get()),
-                manager->getSensorInfo(ccPressure.get())};
+        std::vector<SensorInfo> infos{};
+
+        if (lps22df)
+            infos.push_back(manager->getSensorInfo(lps22df.get()));
+
+        if (h3lis331dl)
+            infos.push_back(manager->getSensorInfo(h3lis331dl.get()));
+
+        if (lis2mdl)
+            infos.push_back(manager->getSensorInfo(lis2mdl.get()));
+
+        if (lsm6dsrx)
+            infos.push_back(manager->getSensorInfo(lsm6dsrx.get()));
+
+        if (ads131m08)
+            infos.push_back(manager->getSensorInfo(ads131m08.get()));
+
+        if (internalAdc)
+            infos.push_back(manager->getSensorInfo(internalAdc.get()));
+
+        if (topTankPressure)
+            infos.push_back(manager->getSensorInfo(topTankPressure.get()));
+
+        if (bottomTankPressure)
+            infos.push_back(manager->getSensorInfo(bottomTankPressure.get()));
+
+        if (ccPressure)
+            infos.push_back(manager->getSensorInfo(ccPressure.get()));
+
+        if (tankTemp)
+            infos.push_back(manager->getSensorInfo(tankTemp.get()));
+
+        return infos;
     }
     else
     {
@@ -380,6 +404,23 @@ void Sensors::ccPressureCallback()
     sdLogger.log(CCPressureData{getCCPressLastSample()});
 }
 
+void Sensors::tankTempInit()
+{
+    tankTemp = std::make_unique<KuliteThermocouple>(
+        [this]()
+        {
+            auto sample = getADS131M08LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TANK_TC_CHANNEL);
+        },
+        Config::Sensors::Kulite::TANK_P0_VOLTAGE,
+        Config::Sensors::Kulite::TANK_P0_TEMP,
+        Config::Sensors::Kulite::TANK_P1_VOLTAGE,
+        Config::Sensors::Kulite::TANK_P1_TEMP);
+}
+
+void Sensors::tankTempCallback() { sdLogger.log(getTankTempLastSample()); }
+
 bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
@@ -431,24 +472,31 @@ bool Sensors::sensorManagerInit()
 
     if (topTankPressure)
     {
-        SensorInfo info("TopTankPressure", Config::Sensors::ADS131M08::PERIOD,
-                        [this]() { topTankPressureCallback(); });
+        SensorInfo info{"TopTankPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { topTankPressureCallback(); }};
         map.emplace(std::make_pair(topTankPressure.get(), info));
     }
 
     if (bottomTankPressure)
     {
-        SensorInfo info("BottomTankPressure",
+        SensorInfo info{"BottomTankPressure",
                         Config::Sensors::ADS131M08::PERIOD,
-                        [this]() { bottomTankPressureCallback(); });
+                        [this]() { bottomTankPressureCallback(); }};
         map.emplace(std::make_pair(bottomTankPressure.get(), info));
     }
 
     if (ccPressure)
     {
-        SensorInfo info("CCPressure", Config::Sensors::ADS131M08::PERIOD,
-                        [this]() { ccPressureCallback(); });
+        SensorInfo info{"CCPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { ccPressureCallback(); }};
         map.emplace(std::make_pair(ccPressure.get(), info));
+    }
+
+    if (tankTemp)
+    {
+        SensorInfo info{"TankTemp", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { tankTempCallback(); }};
+        map.emplace(std::make_pair(tankTemp.get(), info));
     }
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());

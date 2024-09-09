@@ -24,6 +24,7 @@
 
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
+#include <Motor/Sensors/KuliteThermocouple.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -80,6 +81,7 @@ protected:
     std::unique_ptr<Boardcore::TrafagPressureSensor> topTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> bottomTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
+    std::unique_ptr<KuliteThermocouple> tankTemp;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 
@@ -110,6 +112,9 @@ private:
 
     void ccPressureInit();
     void ccPressureCallback();
+
+    void tankTempInit();
+    void tankTempCallback();
 
     bool sensorManagerInit();
 
