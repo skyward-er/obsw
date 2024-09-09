@@ -61,9 +61,10 @@ constexpr bool ENABLED = true;
 namespace LIS2MDL
 {
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr unsigned int TEMP_DIVIDER   = 5;
-constexpr Hertz PERIOD                = 100_hz;
-constexpr bool ENABLED                = true;
+constexpr unsigned int TEMP_DIVIDER   = 10;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
 }  // namespace LIS2MDL
 
 namespace LSM6DSRX
@@ -76,13 +77,13 @@ constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
-    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_4000;
+    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
 constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
     Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
 constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr Hertz PERIOD = 50_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
@@ -144,8 +145,8 @@ constexpr float ENGINE_MAX_PRESSURE      = 40;   // bar
 namespace Kulite
 {
 // TODO: This needs to be properly calibrated
-constexpr float TANK_P0_VOLTAGE = 1.0f;
-constexpr float TANK_P0_TEMP    = 1.0f;
+constexpr float TANK_P0_VOLTAGE = 0.0f;
+constexpr float TANK_P0_TEMP    = 0.0f;
 constexpr float TANK_P1_VOLTAGE = 1.0f;
 constexpr float TANK_P1_TEMP    = 1.0f;
 }  // namespace Kulite
