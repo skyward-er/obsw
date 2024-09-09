@@ -44,33 +44,29 @@ NASController::NASController()
           BoardScheduler::nasControllerPriority()),
       nas(config::CONFIG)
 {
-    // Subscribe the class to the topics
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
-
-    // Setup the NAS
-    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
-
-    // Create the initial quaternion
-    Vector4f q = SkyQuaternion::eul2quat({0, 0, 0});
-
-    // Set the initial quaternion inside the matrix
-    x(6) = q(0);
-    x(7) = q(1);
-    x(8) = q(2);
-    x(9) = q(3);
-
-    // Set the NAS x matrix
-    nas.setX(x);
-
-    // Set the referenced values for the correct place on earth
-    nas.setReferenceValues(ReferenceConfig::defaultReferenceValues);
 }
 
 bool NASController::start()
 {
-    auto& scheduler = getModule<BoardScheduler>()->nasController();
+    // Setup the NAS
+    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
+    // Create the initial quaternion
+    Vector4f q = SkyQuaternion::eul2quat({0, 0, 0});
 
+    // Set the initial quaternion inside the matrix
+    x(NAS::IDX_QUAT + 0) = q(0);
+    x(NAS::IDX_QUAT + 1) = q(1);
+    x(NAS::IDX_QUAT + 2) = q(2);
+    x(NAS::IDX_QUAT + 3) = q(3);
+
+    // Set the NAS x matrix
+    nas.setX(x);
+    // Set the initial reference values from the default ones
+    nas.setReferenceValues(ReferenceConfig::defaultReferenceValues);
+
+    auto& scheduler = getModule<BoardScheduler>()->nasController();
     // Add the task to the scheduler
     auto task = scheduler.addTask([this] { update(); }, config::UPDATE_RATE,
                                   TaskScheduler::Policy::RECOVER);
@@ -265,88 +261,101 @@ void NASController::calibrate()
 void NASController::update()
 {
     // Update the NAS state only if the FSM is active
-    if (state == NASControllerState::ACTIVE)
+    if (state != NASControllerState::ACTIVE)
     {
-        Sensors* sensors = getModule<Sensors>();
-
-        IMUData imu       = sensors->getIMULastSample();
-        UBXGPSData gps    = sensors->getUBXGPSLastSample();
-        PressureData baro = sensors->getLPS28DFWLastSample();
-
-        // Calculate acceleration
-        Vector3f acc    = static_cast<AccelerometerData>(imu);
-        float accLength = acc.norm();
-
-        miosix::Lock<miosix::FastMutex> l(nasMutex);
-
-        // Perform initial NAS prediction
-        // TODO: What about stale data?
-        nas.predictGyro(imu);
-        nas.predictAcc(imu);
-
-        // Then perform necessary corrections
-        if (lastMagTimestamp < imu.magneticFieldTimestamp &&
-            magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
-        {
-            nas.correctMag(imu);
-            magDecimateCount = 0;
-        }
-        else
-        {
-            magDecimateCount++;
-        }
-
-        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
-            accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
-        {
-            nas.correctGPS(gps);
-        }
-
-        if (lastBaroTimestamp < baro.pressureTimestamp)
-        {
-            nas.correctBaro(baro.pressure);
-        }
-
-        // TODO: Correct with pitot
-
-        // Correct with accelerometer if the acceleration is in specs
-        if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-        {
-            nas.correctAcc(imu);
-        }
-
-        // Check if the accelerometer is measuring 1g
-        if (accLength <
-                (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
-            accLength >
-                (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
-        {
-            if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-            {
-                acc1gSamplesCount++;
-            }
-            else
-            {
-                acc1g = true;
-            }
-        }
-        else
-        {
-            acc1gSamplesCount = 0;
-            acc1g             = false;
-        }
-
-        lastGyroTimestamp = imu.angularSpeedTimestamp;
-        lastAccTimestamp  = imu.accelerationTimestamp;
-        lastMagTimestamp  = imu.magneticFieldTimestamp;
-        lastGpsTimestamp  = gps.gpsTimestamp;
-        lastBaroTimestamp = baro.pressureTimestamp;
-
-        auto state = nas.getState();
-
-        getModule<FlightStatsRecorder>()->updateNas(state);
-        Logger::getInstance().log(state);
+        return;
     }
+
+    auto* sensors = getModule<Sensors>();
+
+    auto imu          = sensors->getIMULastSample();
+    auto gps          = sensors->getUBXGPSLastSample();
+    auto baro         = sensors->getLPS28DFWLastSample();
+    auto staticPitot  = sensors->getStaticPressureLastSample();
+    auto dynamicPitot = sensors->getDynamicPressureLastSample();
+
+    // Calculate acceleration
+    Vector3f acc    = static_cast<AccelerometerData>(imu);
+    float accLength = acc.norm();
+
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    // Perform initial NAS prediction
+    nas.predictGyro(imu);
+    nas.predictAcc(imu);
+
+    // Then perform necessary corrections
+    if (lastMagTimestamp < imu.magneticFieldTimestamp &&
+        magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
+    {
+        nas.correctMag(imu);
+        magDecimateCount = 0;
+    }
+    else
+    {
+        magDecimateCount++;
+    }
+
+    if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
+        accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
+    {
+        nas.correctGPS(gps);
+    }
+
+    if (lastBaroTimestamp < baro.pressureTimestamp)
+    {
+        nas.correctBaro(baro.pressure);
+    }
+
+    // Correct with pitot if one pressure sample is new
+    if (dynamicPitot.pressure > 0 &&
+        (staticPitotTimestamp < staticPitot.pressureTimestamp ||
+         dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
+        (-nas.getState().d < Config::NAS::PITOT_ALTITUDE_THRESHOLD) &&
+        (-nas.getState().vd > Config::NAS::PITOT_SPEED_THRESHOLD))
+    {
+        nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
+    }
+
+    // Correct with accelerometer if the acceleration is in specs
+    if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
+    {
+        nas.correctAcc(imu);
+    }
+
+    // Check if the accelerometer is measuring 1g
+    if (accLength <
+            (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
+        accLength >
+            (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
+    {
+        if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
+        {
+            acc1gSamplesCount++;
+        }
+        else
+        {
+            acc1g = true;
+        }
+    }
+    else
+    {
+        acc1gSamplesCount = 0;
+        acc1g             = false;
+    }
+
+    lastGyroTimestamp     = imu.angularSpeedTimestamp;
+    lastAccTimestamp      = imu.accelerationTimestamp;
+    lastMagTimestamp      = imu.magneticFieldTimestamp;
+    lastGpsTimestamp      = gps.gpsTimestamp;
+    lastBaroTimestamp     = baro.pressureTimestamp;
+    staticPitotTimestamp  = staticPitot.pressureTimestamp;
+    dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
+
+    auto state = nas.getState();
+
+    getModule<FlightStatsRecorder>()->updateNas(state);
+    Logger::getInstance().log(state);
 }
 
 void NASController::updateState(NASControllerState newState)
