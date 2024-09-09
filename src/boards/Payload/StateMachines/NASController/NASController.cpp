@@ -353,8 +353,9 @@ void NASController::update()
     dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
 
     auto state = nas.getState();
+    auto ref   = nas.getReferenceValues();
 
-    getModule<FlightStatsRecorder>()->updateNas(state);
+    getModule<FlightStatsRecorder>()->updateNas(state, ref.refTemperature);
     Logger::getInstance().log(state);
 }
 

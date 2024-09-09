@@ -106,7 +106,7 @@ void FlightStatsRecorder::updateAcc(const AccelerometerData &data)
     }
 }
 
-void FlightStatsRecorder::updateNas(const NASState &data)
+void FlightStatsRecorder::updateNas(const NASState &data, float refTemperature)
 {
     auto state = getModule<FlightModeManager>()->getState();
     Lock<FastMutex> lock{statsMutex};
@@ -126,10 +126,7 @@ void FlightStatsRecorder::updateNas(const NASState &data)
             stats.maxSpeedTs  = data.timestamp;
         }
 
-        // TODO: Grab ref temperature from global ReferenceValues
-        float mach = Aeroutils::computeMach(
-            data.d, speed,
-            ReferenceConfig::defaultReferenceValues.refTemperature);
+        float mach = Aeroutils::computeMach(data.d, speed, refTemperature);
 
         if (mach > stats.maxMach)
         {
