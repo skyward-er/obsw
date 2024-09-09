@@ -42,24 +42,24 @@ constexpr int ACCELERATION_THRESHOLD_SAMPLE = 50;
 constexpr float ACCELERATION_THRESHOLD = 2;  // [m/s^2]
 
 static const Boardcore::NASConfig config = {
-    UPDATE_PERIOD / 1000.0,          // T
-    0.0001f,                         // SIGMA_BETA
-    0.3f,                            // SIGMA_W
-    0.1f,                            // SIGMA_ACC
-    0.1f,                            // SIGMA_MAG
-    10.0f,                           // SIGMA_GPS
-    4.3f,                            // SIGMA_BAR
-    10.0f,                           // SIGMA_POS
-    10.0f,                           // SIGMA_VEL
-    10.0f,                           // SIGMA_PITOT
-    1.0f,                            // P_POS
-    10.0f,                           // P_POS_VERTICAL
-    1.0f,                            // P_VEL
-    10.0f,                           // P_VEL_VERTICAL
-    0.01f,                           // P_ATT
-    0.01f,                           // P_BIAS
-    6.0f,                            // SATS_NUM
-    Common::ReferenceConfig::nedMag  // NED_MAG
+    UPDATE_PERIOD / 1000.0,                          // T
+    0.0001f,                                         // SIGMA_BETA
+    0.3f,                                            // SIGMA_W
+    0.1f,                                            // SIGMA_ACC
+    0.1f,                                            // SIGMA_MAG
+    {0.0447f, 0.0447f, 0.1f / 30.0f, 0.1f / 30.0f},  // SIGMA_GPS
+    4.3f,                                            // SIGMA_BAR
+    10.0f,                                           // SIGMA_POS
+    10.0f,                                           // SIGMA_VEL
+    10.0f,                                           // SIGMA_PITOT
+    1.0f,                                            // P_POS
+    10.0f,                                           // P_POS_VERTICAL
+    1.0f,                                            // P_VEL
+    10.0f,                                           // P_VEL_VERTICAL
+    0.01f,                                           // P_ATT
+    0.01f,                                           // P_BIAS
+    6.0f,                                            // SATS_NUM
+    Common::ReferenceConfig::nedMag                  // NED_MAG
 };
 
 }  // namespace NASConfig

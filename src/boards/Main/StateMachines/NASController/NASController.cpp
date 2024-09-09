@@ -104,16 +104,17 @@ void NASController::update()
         nas.correctBaro(staticPressure.pressure);
 
         // Correct with pitot
-        if (!isnan(pitot.airspeed) &&
-            pitot.airspeed > NASConfig::NAS_PITOT_MIN_AIRSPEED &&
-            (-state.d) < NASConfig::NAS_PITOT_MAX_ALTITUDE &&
-            pitot.timestamp > lastPitotTimestamp)
-        {
-            nas.correctPitot(pitot.airspeed);
+        // TODO: Update this in the new OBSW
+        // if (!isnan(pitot.airspeed) &&
+        //     pitot.airspeed > NASConfig::NAS_PITOT_MIN_AIRSPEED &&
+        //     (-state.d) < NASConfig::NAS_PITOT_MAX_ALTITUDE &&
+        //     pitot.timestamp > lastPitotTimestamp)
+        // {
+        //     nas.correctPitot(pitot.airspeed);
 
-            // Update the timestamp
-            lastPitotTimestamp = TimestampTimer::getTimestamp();
-        }
+        //     // Update the timestamp
+        //     lastPitotTimestamp = TimestampTimer::getTimestamp();
+        // }
 
         // Correct with accelerometer if the acceleration is in specs
         if (accelerationValid)
