@@ -539,13 +539,21 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto pressStatic  = sensors->getStaticPressureLastSample();
             auto pressDynamic = sensors->getDynamicPressureLastSample();
             auto nasState     = nas->getNasState();
+            auto ref          = nas->getReferenceValues();
             auto wind         = wes->getWindEstimationScheme();
+
+            float airspeedPitot =
+                (pressDynamic.pressure > 0
+                     ? Aeroutils::computePitotAirspeed(
+                           pressStatic.pressure + pressDynamic.pressure,
+                           pressStatic.pressure, nasState.d, ref.refTemperature)
+                     : 0);
 
             tm.timestamp        = TimestampTimer::getTimestamp();
             tm.pressure_digi    = pressDigi.pressure;
             tm.pressure_static  = pressStatic.pressure;
             tm.pressure_dynamic = pressDynamic.pressure;
-            tm.airspeed_pitot   = -1.0f;  // TODO
+            tm.airspeed_pitot   = airspeedPitot;
             tm.altitude_agl     = -nasState.d;
 
             // Sensors
