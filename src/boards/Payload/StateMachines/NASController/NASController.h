@@ -60,6 +60,8 @@ public:
 
     NASControllerState getState();
 
+    void setOrientation(const Eigen::Quaternionf& orientation);
+
 private:
     void calibrate();
 

@@ -101,6 +101,18 @@ ReferenceValues NASController::getReferenceValues()
 
 NASControllerState NASController::getState() { return state; }
 
+void NASController::setOrientation(const Eigen::Quaternionf& quat)
+{
+    Lock<FastMutex> lock{nasMutex};
+
+    auto x               = nas.getX();
+    x(NAS::IDX_QUAT + 0) = quat.x();
+    x(NAS::IDX_QUAT + 1) = quat.y();
+    x(NAS::IDX_QUAT + 2) = quat.z();
+    x(NAS::IDX_QUAT + 3) = quat.w();
+    nas.setX(x);
+}
+
 void NASController::Init(const Event& event)
 {
     switch (event)

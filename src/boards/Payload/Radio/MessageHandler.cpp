@@ -183,6 +183,36 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             return enqueueWack(msg);
         }
 
+        case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:
+        {
+            if (parent.getModule<NASController>()->getState() !=
+                NASControllerState::READY)
+            {
+                return enqueueNack(msg);
+            }
+
+            // Scalar first quaternion, W is the first element
+            auto quat = Eigen::Quaternionf{
+                mavlink_msg_set_orientation_quat_tc_get_quat_w(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_x(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_y(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_z(&msg),
+            };
+
+            parent.getModule<NASController>()->setOrientation(
+                quat.normalized());
+
+            float qNorm = quat.norm();
+            if (std::abs(qNorm - 1) > 0.001)
+            {
+                return enqueueWack(msg);
+            }
+            else
+            {
+                return enqueueAck(msg);
+            }
+        }
+
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
         {
             float altitude =
