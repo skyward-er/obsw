@@ -57,7 +57,7 @@ constexpr float CD_CORRECTION_FACTOR =
 
 constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
 
-constexpr float SENSOR_NOISE_VARIANCE = 0.36f;
+constexpr float SENSOR_NOISE_VARIANCE = 3.9681e-06f;
 constexpr float MODEL_NOISE_VARIANCE  = 1.0f;
 
 // Pressure threshold after which the kalman is updated
