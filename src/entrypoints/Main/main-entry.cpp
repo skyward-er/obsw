@@ -47,6 +47,7 @@
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
+#include <iomanip>
 #include <iostream>
 
 using namespace miosix;
@@ -137,91 +138,105 @@ int main()
     // led3: CanBus ok
     // led4: Everything ok
 
+    // Start modules
+    std::cout << "Starting EventBroker" << std::endl;
     if (!broker.start())
     {
         initResult = false;
-        std::cout << "Error failed to start EventBroker" << std::endl;
+        std::cout << "*** Failed to start EventBroker ***" << std::endl;
     }
 
+    std::cout << "Starting Actuators" << std::endl;
     if (!actuators->start())
     {
         initResult = false;
-        std::cout << "Error failed to start Actuators module" << std::endl;
+        std::cout << "*** Failed to start Actuators ***" << std::endl;
     }
 
+    std::cout << "Starting Radio" << std::endl;
     if (!radio->start())
     {
         initResult = false;
-        std::cout << "Error failed to start Radio module" << std::endl;
+        std::cout << "*** Failed to start Radio ***" << std::endl;
     }
     else
     {
         led2On();
     }
 
+    std::cout << "Starting CanHandler" << std::endl;
     if (!canHandler->start())
     {
         initResult = false;
-        std::cout << "Error failed to start CanHandler module" << std::endl;
+        std::cout << "*** Failed to start CanHandler ***" << std::endl;
     }
     else
     {
         led3On();
     }
 
+    std::cout << "Starting PinHandler" << std::endl;
     if (!pinHandler->start())
     {
         initResult = false;
-        std::cout << "Error failed to start PinHandler module" << std::endl;
+        std::cout << "*** Failed to start PinHandler ***" << std::endl;
     }
 
+    std::cout << "Starting BoardScheduler" << std::endl;
     if (!scheduler->start())
     {
         initResult = false;
-        std::cout << "Error failed to start scheduler" << std::endl;
+        std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
     }
 
+    std::cout << "Starting ADAController" << std::endl;
     if (!ada->start())
     {
         initResult = false;
-        std::cout << "Error failed to start ADAController" << std::endl;
+        std::cout << "*** Failed to start ADAController ***" << std::endl;
     }
 
+    std::cout << "Starting NASController" << std::endl;
     if (!nas->start())
     {
         initResult = false;
-        std::cout << "Error failed to start NASController" << std::endl;
+        std::cout << "*** Failed to start NASController ***" << std::endl;
     }
 
+    std::cout << "Starting MEAController" << std::endl;
     if (!mea->start())
     {
         initResult = false;
-        std::cout << "Error failed to start MEAController" << std::endl;
+        std::cout << "*** Failed to start MEAController ***" << std::endl;
     }
 
+    std::cout << "Starting ABKController" << std::endl;
     if (!abk->start())
     {
         initResult = false;
-        std::cout << "Error failed to start ABKController" << std::endl;
+        std::cout << "*** Failed to start ABKController ***" << std::endl;
     }
 
+    std::cout << "Starting FlightModeManager" << std::endl;
     if (!fmm->start())
     {
         initResult = false;
-        std::cout << "Error failed to start FlightModeManager" << std::endl;
+        std::cout << "*** Failed to start FlightModeManager ***" << std::endl;
     }
 
-    if (sdLogger.start())
+    // Start logging when system boots
+    std::cout << "Starting Logger" << std::endl;
+    if (!sdLogger.start())
     {
-        sdLogger.resetStats();
-        std::cout << "SD good!" << std::endl
-                  << "Log number: " << sdLogger.getStats().logNumber
-                  << std::endl;
+        initResult = false;
+        std::cout << "*** Failed to start Logger ***" << std::endl;
     }
     else
     {
-        initResult = false;
-        std::cout << "Error failed to start SD" << std::endl;
+        sdLogger.resetStats();
+        std::cout << "Logger Ok!\n"
+                  << "\tLog number: " << sdLogger.getStats().logNumber
+                  << std::endl;
     }
 
     if (PersistentVars::getHilMode())
@@ -258,10 +273,11 @@ int main()
         hil->waitStartSimulation();
     }
 
+    std::cout << "Starting Sensors" << std::endl;
     if (!sensors->start())
     {
         initResult = false;
-        std::cout << "Error failed to start Sensors module" << std::endl;
+        std::cout << "*** Failed to start Sensors ***" << std::endl;
     }
     else
     {
@@ -277,20 +293,25 @@ int main()
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        std::cout << "Init failure" << std::endl;
+        std::cout << "*** Init failure ***" << std::endl;
     }
 
     std::cout << "Sensor status:" << std::endl;
     for (auto info : sensors->getSensorInfos())
     {
-        std::cout << "- " << info.id << " status: " << info.isInitialized
-                  << std::endl;
+        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
+                  << (info.isInitialized ? "Ok" : "Error") << std::endl;
     }
 
     while (true)
     {
+        sdLogger.log(sdLogger.getStats());
+
         gpios::boardLed::low();
         Thread::sleep(1000);
+
+        sdLogger.log(sdLogger.getStats());
+
         gpios::boardLed::high();
         Thread::sleep(1000);
     }
