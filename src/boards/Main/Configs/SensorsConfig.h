@@ -87,9 +87,9 @@ constexpr bool ENABLED = true;
 namespace LIS2MDL
 {
 constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr unsigned int TEMP_DIVIDER   = 5;
+constexpr unsigned int TEMP_DIVIDER   = 10;
 
-constexpr Hertz RATE   = 50_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LIS2MDL
 
@@ -115,7 +115,7 @@ constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
 constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr Hertz RATE   = 50_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
@@ -157,8 +157,6 @@ constexpr Boardcore::InternalADC::Channel VBAT_CH =
     Boardcore::InternalADC::Channel::CH8;
 constexpr Boardcore::InternalADC::Channel CAM_VBAT_CH =
     Boardcore::InternalADC::Channel::CH9;
-constexpr Boardcore::InternalADC::Channel CUTTER_SENSE_CH =
-    Boardcore::InternalADC::Channel::CH11;
 
 constexpr float VBAT_SCALE     = 7500.0f / 2400.0f;
 constexpr float CAM_VBAT_SCALE = 7500.0f / 2400.0f;
@@ -172,7 +170,7 @@ namespace IMU
 constexpr bool USE_CALIBRATED_LIS2MDL  = true;
 constexpr bool USE_CALIBRATED_LSM6DSRX = true;
 
-constexpr Hertz RATE   = 50_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace IMU
 
