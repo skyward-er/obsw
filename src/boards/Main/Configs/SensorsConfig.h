@@ -139,9 +139,11 @@ constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_2_CHANNEL =
 constexpr Boardcore::ADS131M08Defs::Channel DPL_BAY_PRESSURE_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
 
-constexpr float CHANNEL_0_SCALE = (38300.0f + 13000.0f) / 13000.0f;
-constexpr float CHANNEL_1_SCALE = (38300.0f + 13000.0f) / 13000.0f;
-constexpr float CHANNEL_2_SCALE = (38300.0f + 13000.0f) / 13000.0f;
+// These values have been calibrated via vacuum chamber, by looking at LPS28DFW
+// output and analog sensor output.
+constexpr float CHANNEL_0_SCALE = 4.21662235677003f;
+constexpr float CHANNEL_1_SCALE = 4.21662235677003f;
+constexpr float CHANNEL_2_SCALE = 4.21662235677003f;
 
 constexpr float STATIC_PRESSURE_1_SCALE = CHANNEL_0_SCALE;
 constexpr float STATIC_PRESSURE_2_SCALE = CHANNEL_1_SCALE;
