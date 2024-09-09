@@ -27,6 +27,8 @@
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
+#include <events/EventData.h>
 
 using namespace miosix;
 using namespace RIGv2;
@@ -108,7 +110,6 @@ void CanHandler::sendEvent(CanConfig::EventId event)
 
 void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
 {
-
     protocol.enqueueData(
         static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
@@ -171,7 +172,17 @@ void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 
 void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
-    // The RIG doesn't actually listen to any of the rockets internal events
+    // Dispatch the event, so that the logger can log it
+    Events event = canEventToEvent(msg.getSecondaryType());
+    if (event != LAST_EVENT)
+    {
+        EventBroker::getInstance().post(event, TOPIC_CAN);
+    }
+    else
+    {
+        LOG_WARN(logger, "Received unsupported event: {}",
+                 msg.getSecondaryType());
+    }
 }
 
 void CanHandler::handleSensor(const Canbus::CanMessage &msg)
