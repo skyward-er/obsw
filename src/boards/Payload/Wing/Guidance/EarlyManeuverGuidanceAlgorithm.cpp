@@ -161,4 +161,21 @@ EarlyManeuversPoints EarlyManeuversGuidanceAlgorithm::getPoints()
     };
 }
 
+Eigen::Vector2f EarlyManeuversGuidanceAlgorithm::getActiveTarget()
+{
+    switch (activeTarget)
+    {
+        case Target::EMC:
+            return EMC;
+        case Target::M1:
+            return M1;
+        case Target::M2:
+            return M2;
+        case Target::FINAL:
+            return targetNED;
+        default:
+            return {0, 0};
+    }
+}
+
 }  // namespace Payload

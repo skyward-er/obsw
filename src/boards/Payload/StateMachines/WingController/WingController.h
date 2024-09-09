@@ -104,9 +104,20 @@ public:
     WingControllerState getState();
 
     /**
+     * @brief Returns the target coordinates.
+     * @return The GEO coordinates of the active target.
+     */
+    Eigen::Vector2f getTargetCoordinates();
+
+    /**
      * @brief Sets the target coordinates.
      */
     bool setTargetCoordinates(float latitude, float longitude);
+
+    /**
+     * @brief Returns the selected algorithm.
+     */
+    uint8_t getSelectedAlgorithm();
 
     /**
      * @brief Changes the selected algorithm.
@@ -118,6 +129,11 @@ public:
      * @brief Returns the currently set early maneuver points.
      */
     EarlyManeuversPoints getEarlyManeuverPoints();
+
+    /**
+     * @brief Returns the early maneuver active target.
+     */
+    Eigen::Vector2f getActiveTarget();
 
     /**
      * @brief This is a forward method to the early maneuvers guidance algorithm
@@ -193,12 +209,18 @@ private:
 
     void updateState(WingControllerState newState);
 
-    Eigen::Vector2f targetPositionGEO{Config::Wing::Default::TARGET_LAT,
-                                      Config::Wing::Default::TARGET_LON};
+    struct Coordinates
+    {
+        float latitude;
+        float longitude;
 
-    std::atomic<bool> targetPositionDirty{
-        false};  ///< Whether the target position was changed and EM points need
-                 ///< to be updated
+        operator Eigen::Vector2f() const { return {latitude, longitude}; }
+    };
+
+    std::atomic<Coordinates> targetPositionGEO{Coordinates{
+        .latitude  = Config::Wing::Default::TARGET_LAT,
+        .longitude = Config::Wing::Default::TARGET_LON,
+    }};
 
     std::atomic<Config::Wing::AlgorithmId> selectedAlgorithm{
         Config::Wing::Default::ALGORITHM};

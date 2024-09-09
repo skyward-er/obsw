@@ -502,19 +502,21 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto* wes     = parent.getModule<WindEstimation>();
             auto* fmm     = parent.getModule<FlightModeManager>();
 
-            auto imu         = sensors->getLSM6DSRXLastSample();
-            auto mag         = sensors->getLIS2MDLLastSample();
-            auto gps         = sensors->getUBXGPSLastSample();
-            auto pressDigi   = sensors->getLPS28DFWLastSample();
-            auto pressStatic = sensors->getStaticPressureLastSample();
-            auto nasState    = nas->getNasState();
-            auto wind        = wes->getWindEstimationScheme();
+            auto imu          = sensors->getLSM6DSRXLastSample();
+            auto mag          = sensors->getLIS2MDLLastSample();
+            auto gps          = sensors->getUBXGPSLastSample();
+            auto pressDigi    = sensors->getLPS28DFWLastSample();
+            auto pressStatic  = sensors->getStaticPressureLastSample();
+            auto pressDynamic = sensors->getDynamicPressureLastSample();
+            auto nasState     = nas->getNasState();
+            auto wind         = wes->getWindEstimationScheme();
 
-            tm.timestamp       = TimestampTimer::getTimestamp();
-            tm.pressure_digi   = pressDigi.pressure;
-            tm.pressure_static = pressStatic.pressure;
-            tm.airspeed_pitot  = -1.0f;  // TODO
-            tm.altitude_agl    = -nasState.d;
+            tm.timestamp        = TimestampTimer::getTimestamp();
+            tm.pressure_digi    = pressDigi.pressure;
+            tm.pressure_static  = pressStatic.pressure;
+            tm.pressure_dynamic = pressDynamic.pressure;
+            tm.airspeed_pitot   = -1.0f;  // TODO
+            tm.altitude_agl     = -nasState.d;
 
             // Sensors
             tm.acc_x   = imu.accelerationX;
@@ -551,8 +553,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_bias_x = nasState.bx;
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
-            tm.wes_n      = wind[0];
-            tm.wes_e      = wind[1];
+            tm.wes_n      = wind.x();
+            tm.wes_e      = wind.y();
 
             tm.battery_voltage     = sensors->getBatteryVoltage().batVoltage;
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;
@@ -578,15 +580,19 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto* pinHandler = parent.getModule<PinHandler>();
             auto& logger     = Logger::getInstance();
 
-            auto stats    = parent.getModule<FlightStatsRecorder>()->getStats();
-            auto ref      = nas->getReferenceValues();
-            auto emPoints = wnc->getEarlyManeuverPoints();
-            auto cpuStats = CpuMeter::getCpuStats();
-            auto loggerStats = logger.getStats();
+            auto stats = parent.getModule<FlightStatsRecorder>()->getStats();
+            auto ref   = nas->getReferenceValues();
+            auto wingTarget       = wnc->getTargetCoordinates();
+            auto wingActiveTarget = wnc->getActiveTarget();
+            auto wingAlgorithm    = wnc->getSelectedAlgorithm();
+            auto cpuStats         = CpuMeter::getCpuStats();
+            auto loggerStats      = logger.getStats();
 
             // Log CPU stats and reset them
             CpuMeter::resetCpuStats();
             logger.log(cpuStats);
+
+            tm.timestamp = TimestampTimer::getTimestamp();
 
             // Liftoff stats
             tm.liftoff_ts         = stats.liftoffTs;
@@ -609,12 +615,11 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.apogee_max_acc    = stats.apogeeMaxAcc;
 
             // Wing stats
-            tm.wing_emc_n = emPoints.emcN;
-            tm.wing_emc_e = emPoints.emcE;
-            tm.wing_m1_n  = emPoints.m1N;
-            tm.wing_m1_e  = emPoints.m1E;
-            tm.wing_m2_n  = emPoints.m2N;
-            tm.wing_m2_e  = emPoints.m2E;
+            tm.wing_target_lat      = wingTarget.x();
+            tm.wing_target_lon      = wingTarget.y();
+            tm.wing_active_target_n = wingActiveTarget.x();
+            tm.wing_active_target_e = wingActiveTarget.y();
+            tm.wing_algorithm       = wingAlgorithm;
 
             // Deployment stats
             tm.dpl_ts         = stats.dplTs;
@@ -638,7 +643,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.log_number = loggerStats.logNumber;
 
             tm.nas_state = static_cast<uint8_t>(nas->getState());
-            tm.wes_state = static_cast<uint8_t>(wnc->getState());
+            tm.wnc_state = static_cast<uint8_t>(wnc->getState());
 
             // Pins
             tm.pin_launch =

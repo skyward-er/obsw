@@ -92,6 +92,12 @@ public:
      */
     EarlyManeuversPoints getPoints();
 
+    /**
+     * @brief Get the active target.
+     * @return The NED coordinates of the active target.
+     */
+    Eigen::Vector2f getActiveTarget();
+
 private:
     /** @brief Updates the class target
      *
@@ -110,7 +116,7 @@ private:
     };
 
     // Point we are currently poinying to
-    Target activeTarget;
+    std::atomic<Target> activeTarget;
 
     // Eigen::Vector2f targetNED;  // NED
 

@@ -324,6 +324,11 @@ bool WingController::isStarted() { return started; }
 
 WingControllerState WingController::getState() { return state; }
 
+Eigen::Vector2f WingController::getTargetCoordinates()
+{
+    return targetPositionGEO.load();
+}
+
 bool WingController::setTargetCoordinates(float latitude, float longitude)
 {
     // Allow changing the target position in the IDLE state only
@@ -332,14 +337,14 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
         return false;
     }
 
-    this->targetPositionGEO = Eigen::Vector2f{latitude, longitude};
+    targetPositionGEO = Coordinates{latitude, longitude};
 
     // Log early maneuver points to highlight any discrepancies if any
     auto earlyManeuverPoints = getEarlyManeuverPoints();
 
     auto data = WingTargetPositionData{
-        .targetLat = targetPositionGEO[0],
-        .targetLon = targetPositionGEO[1],
+        .targetLat = latitude,
+        .targetLon = longitude,
         .targetN   = earlyManeuverPoints.targetN,
         .targetE   = earlyManeuverPoints.targetE,
         .emcN      = earlyManeuverPoints.emcN,
@@ -352,6 +357,11 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
     Logger::getInstance().log(data);
 
     return true;
+}
+
+uint8_t WingController::getSelectedAlgorithm()
+{
+    return static_cast<uint8_t>(selectedAlgorithm.load());
 }
 
 bool WingController::selectAlgorithm(uint8_t index)
@@ -389,6 +399,11 @@ bool WingController::selectAlgorithm(uint8_t index)
 EarlyManeuversPoints WingController::getEarlyManeuverPoints()
 {
     return emGuidance.getPoints();
+}
+
+Eigen::Vector2f WingController::getActiveTarget()
+{
+    return emGuidance.getActiveTarget();
 }
 
 void WingController::loadAlgorithms()
@@ -505,17 +520,18 @@ void WingController::updateEarlyManeuverPoints()
 {
     using namespace Eigen;
 
-    auto nas      = getModule<NASController>();
-    auto nasState = nas->getNasState();
-    auto nasRef   = nas->getReferenceValues();
+    auto nas       = getModule<NASController>();
+    auto nasState  = nas->getNasState();
+    auto nasRef    = nas->getReferenceValues();
+    auto targetGEO = targetPositionGEO.load();
 
     Vector2f currentPositionNED = {nasState.n, nasState.e};
     Vector2f targetNED          = Aeroutils::geodetic2NED(
-                 targetPositionGEO, {nasRef.refLatitude, nasRef.refLongitude});
+                 targetGEO, {nasRef.refLatitude, nasRef.refLongitude});
 
     Vector2f targetOffsetNED = targetNED - currentPositionNED;
     Vector2f normPoint       = targetOffsetNED / targetOffsetNED.norm();
-    float psi0               = atan2(normPoint[1], normPoint[0]);
+    float psi0               = atan2(normPoint.y(), normPoint.x());
 
     float distFromCenterline = 20;  // the distance that the M1 and M2 points
                                     // must have from the center line
@@ -545,16 +561,16 @@ void WingController::updateEarlyManeuverPoints()
 
     // Log the updated points
     auto data = WingTargetPositionData{
-        .targetLat = targetPositionGEO[0],
-        .targetLon = targetPositionGEO[1],
-        .targetN   = targetNED[0],
-        .targetE   = targetNED[1],
-        .emcN      = emcPosition[0],
-        .emcE      = emcPosition[1],
-        .m1N       = m1Position[0],
-        .m1E       = m1Position[1],
-        .m2N       = m2Position[0],
-        .m2E       = m2Position[1],
+        .targetLat = targetGEO.latitude,
+        .targetLon = targetGEO.longitude,
+        .targetN   = targetNED.x(),
+        .targetE   = targetNED.y(),
+        .emcN      = emcPosition.x(),
+        .emcE      = emcPosition.y(),
+        .m1N       = m1Position.x(),
+        .m1E       = m1Position.y(),
+        .m2N       = m2Position.x(),
+        .m2E       = m2Position.y(),
     };
     Logger::getInstance().log(data);
 }
