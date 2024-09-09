@@ -456,6 +456,8 @@ void Sensors::lps28dfwInit()
 void Sensors::lps28dfwCallback()
 {
     auto sample = getLPS28DFWLastSample();
+    // Update pressure stats
+    getModule<FlightStatsRecorder>()->updatePressure(sample);
     Logger::getInstance().log(sample);
 };
 
@@ -640,8 +642,6 @@ void Sensors::staticPressureInit()
 void Sensors::staticPressureCallback()
 {
     auto sample = getStaticPressureLastSample();
-    // Update pressure stats
-    getModule<FlightStatsRecorder>()->updatePressure(sample);
     Logger::getInstance().log(sample);
 }
 
