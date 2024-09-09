@@ -90,6 +90,9 @@ public:
      */
     bool saveMagCalibration();
 
+    void setBaroCalibrationReference(float reference);
+    void resetBaroCalibrationReference();
+
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
@@ -184,6 +187,10 @@ private:
     void rotatedImuCallback();
 
     bool sensorManagerInit();
+
+    miosix::FastMutex baroCalibrationMutex;
+    float baroCalibrationReference   = 0;
+    bool useBaroCalibrationReference = false;
 
     miosix::FastMutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;

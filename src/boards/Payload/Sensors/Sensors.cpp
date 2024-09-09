@@ -161,8 +161,15 @@ void Sensors::calibrate()
         dynamicPressureSum / config::Calibration::SAMPLE_COUNT;
     float lps28dfwAvg = lps28dfwSum / config::Calibration::SAMPLE_COUNT;
 
-    // Calibrate the analog static pressure sensor against the LPS28DFW
-    float reference = lps28dfwAvg;
+    // Calibrate all analog pressure sensors against the LPS28DFW or the
+    // telemetry reference
+    float reference = 0;
+    {
+        miosix::Lock<miosix::FastMutex> lock{baroCalibrationMutex};
+        reference = useBaroCalibrationReference ? baroCalibrationReference
+                                                : lps28dfwAvg;
+    }
+
     if (reference > config::Calibration::ATMOS_THRESHOLD)
     {
         // Apply the offset only if reference is valid
@@ -222,6 +229,20 @@ bool Sensors::saveMagCalibration()
     {
         return false;
     }
+}
+
+void Sensors::setBaroCalibrationReference(float reference)
+{
+    miosix::Lock<miosix::FastMutex> lock{baroCalibrationMutex};
+    baroCalibrationReference    = reference;
+    useBaroCalibrationReference = true;
+}
+
+void Sensors::resetBaroCalibrationReference()
+{
+    miosix::Lock<miosix::FastMutex> lock{baroCalibrationMutex};
+    baroCalibrationReference    = 0.0f;
+    useBaroCalibrationReference = false;
 }
 
 LPS22DFData Sensors::getLPS22DFLastSample()
