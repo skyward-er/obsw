@@ -33,17 +33,19 @@ namespace Actuators
 
 /* linter off */ using namespace std::chrono_literals;
 
+// On Lyra 6-gear planetary multiplier: 100us ~= 1cm
+
 namespace LeftServo
 {
 constexpr auto ROTATION  = 180.f;  // [deg]
 constexpr auto MIN_PULSE = 500us;
-constexpr auto MAX_PULSE = 2460us;
+constexpr auto MAX_PULSE = 2200us;
 }  // namespace LeftServo
 
 namespace RightServo
 {
 constexpr auto ROTATION  = 180.f;  // [deg]
-constexpr auto MIN_PULSE = 2460us;
+constexpr auto MIN_PULSE = 2200us;
 constexpr auto MAX_PULSE = 500us;
 }  // namespace RightServo
 
