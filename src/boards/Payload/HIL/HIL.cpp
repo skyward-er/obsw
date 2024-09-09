@@ -271,6 +271,7 @@ ActuatorData PayloadHIL::updateActuatorData()
 
     auto deltaA = actuators->getServoPosition(ServosList::PARAFOIL_LEFT_SERVO) -
                   actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO);
+    deltaA /= 10;  // Mapping to interval [-0.1, 0.1]
 
     Eigen::Vector2f heading;
 
