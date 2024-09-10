@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/Follower/Follower.h>
+#include <algorithms/Follower/Follower.h>
 #include <algorithms/NAS/NASState.h>
 #include <algorithms/Propagator/Propagator.h>
 #include <events/EventBroker.h>
@@ -101,7 +101,10 @@ public:
     /**
      * @brief Getter for follower target angles
      */
-    AntennaAngles getTargetAngles() { return follower.getTargetAngles(); }
+    Boardcore::AntennaAngles getTargetAngles()
+    {
+        return follower.getTargetAngles();
+    }
 
 private:
     /**
@@ -115,7 +118,7 @@ private:
 
     SMControllerStatus status;
     Boardcore::Propagator propagator;
-    Antennas::Follower follower;
+    Boardcore::Follower follower;
 
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("SMController");
