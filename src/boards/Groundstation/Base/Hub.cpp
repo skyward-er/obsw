@@ -22,54 +22,45 @@
 
 #include "Hub.h"
 
-#include <Groundstation/Base/BoardStatus.h>
-#include <Groundstation/Base/Ports/Ethernet.h>
-#include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/Base/Radio/Radio.h>
+#include <Groundstation/Base/Radio/RadioStatus.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
 using namespace Boardcore;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    BoardStatus* status = ModuleManager::getInstance().get<BoardStatus>();
+    RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
+
+    // TODO: Dispatch to correct radio using mavlink ids
 
     bool send_ok = false;
 
-    if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
+    if (status->isMainRadioPresent())
     {
         RadioMain* radio = ModuleManager::getInstance().get<RadioMain>();
         send_ok |= radio->sendMsg(msg);
     }
 
-    if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
+    if (status->isPayloadRadioPresent())
     {
         RadioPayload* radio = ModuleManager::getInstance().get<RadioPayload>();
         send_ok |= radio->sendMsg(msg);
     }
 
-    (void)send_ok;
-
     // If both of the sends went wrong, just send a nack
-    // This doesn't work well with multiple GS on the same ethernet network
-    // if (!send_ok)
-    // {
-    //     sendNack(msg);
-    // }
+    if (!send_ok)
+    {
+        sendNack(msg);
+    }
 }
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    BoardStatus* status = ModuleManager::getInstance().get<BoardStatus>();
-
     Serial* serial = ModuleManager::getInstance().get<Serial>();
     serial->sendMsg(msg);
 
-    if (status->isEthernetPresent())
-    {
-        Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
-        ethernet->sendMsg(msg);
-    }
+    // TODO: Add UDP dispatch
 }

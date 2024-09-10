@@ -70,13 +70,6 @@ add_executable(con_rig-entry src/entrypoints/con_RIG/con_rig-entry.cpp ${CON_RIG
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(con_rig-entry stm32f429zi_stm32f4discovery)
 
-add_executable(base-groundstation-entry 
-    src/entrypoints/Groundstation/base-groundstation-entry.cpp 
-    ${GROUNDSTATION_COMMON} ${GROUNDSTATION_BASE}
-)
-target_include_directories(base-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(base-groundstation-entry stm32f767zi_gemini_gs)
-
 add_executable(nokia-groundstation-entry 
     src/entrypoints/Groundstation/nokia-groundstation-entry.cpp 
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_NOKIA}
@@ -88,3 +81,10 @@ sbs_target(nokia-groundstation-entry stm32f429zi_nokia)
 add_executable(gs-entry src/entrypoints/Gs/gs-entry.cpp ${GS_COMPUTER})
 target_include_directories(gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(gs-entry stm32f767zi_gemini_gs)
+
+add_executable(base-groundstation-entry 
+    src/entrypoints/Groundstation/base-groundstation-entry.cpp 
+    ${GROUNDSTATION_COMMON} ${GROUNDSTATION_BASE}
+)
+target_include_directories(base-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(base-groundstation-entry stm32f767zi_gemini_gs)

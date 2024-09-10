@@ -22,13 +22,14 @@
 
 #include "RadioStatus.h"
 
-#include <Gs/Config/GeneralConfig.h>
-#include <Gs/Hub.h>
+#include <Groundstation/Base/Radio/Radio.h>
+#include <Groundstation/Common/Config/GeneralConfig.h>
+#include <Groundstation/Common/HubBase.h>
 #include <common/Mavlink.h>
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace Boardcore;
-using namespace Gs;
+using namespace Groundstation;
 
 bool RadioStatus::isMainRadioPresent() { return main_radio_present; }
 bool RadioStatus::isPayloadRadioPresent() { return payload_radio_present; }
@@ -102,6 +103,6 @@ void RadioStatus::run()
         mavlink_msg_receiver_tm_encode(GS_SYSTEM_ID, GS_COMPONENT_ID, &msg,
                                        &tm);
 
-        ModuleManager::getInstance().get<Hub>()->dispatchIncomingMsg(msg);
+        ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
     }
 }
