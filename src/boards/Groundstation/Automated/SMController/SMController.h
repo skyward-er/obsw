@@ -106,6 +106,11 @@ public:
         return follower.getTargetAngles();
     }
 
+    /**
+     * @brief Getter for the current state of the FSM
+     */
+    SMControllerStatus getStatus() { return status; }
+
 private:
     /**
      * @brief Logs the current state of the FSM
