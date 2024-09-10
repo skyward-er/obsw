@@ -28,13 +28,14 @@
 using namespace Gs;
 using namespace Boardcore;
 
-int main() {
+int main()
+{
 
-    Buses *buses = new Buses();
-    Serial *serial = new Serial();
-    RadioMain *radio_main = new RadioMain();
-    RadioPayload *radio_payload = new RadioPayload();
-    RadioStatus *radio_status = new RadioStatus();
+    Buses *buses                = new Buses();
+    Serial *serial              = new Serial();
+    RadioMain *radio_main       = new RadioMain();
+    // RadioPayload *radio_payload = new RadioPayload();
+    RadioStatus *radio_status   = new RadioStatus();
 
     ModuleManager &modules = ModuleManager::getInstance();
 
@@ -43,25 +44,26 @@ int main() {
     ok &= modules.insert(buses);
     ok &= modules.insert(serial);
     ok &= modules.insert(radio_main);
-    ok &= modules.insert(radio_payload);
+    // ok &= modules.insert(radio_payload);
     ok &= modules.insert(radio_status);
 
     // Ok now start them
 
     ok &= serial->start();
     ok &= radio_main->start();
-    ok &= radio_payload->start();
+    // ok &= radio_payload->start();
 
     /*if(!ok) {
         printf("[GS] Init failed!\n");
     } else {
         printf("[GS] Init succesfull!\n");
         printf("[GS] radio main: %d\n", radio_status->isMainRadioPresent());
-        printf("[GS] radio payload: %d\n", radio_status->isPayloadRadioPresent());
+        printf("[GS] radio payload: %d\n",
+    radio_status->isPayloadRadioPresent());
     }*/
 
-    
-    while(1) {
+    while (1)
+    {
         miosix::Thread::sleep(1000);
     }
 
