@@ -22,9 +22,9 @@
 
 #include "Hub.h"
 
+#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 
@@ -50,6 +50,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
         send_ok |= radio->sendMsg(msg);
     }
 
+    (void)send_ok;
     // If both of the sends went wrong, just send a nack
     // This doesn't work well with multiple GS on the same ethernet network
     // if (!send_ok)
@@ -65,7 +66,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     Serial* serial = ModuleManager::getInstance().get<Serial>();
     serial->sendMsg(msg);
 
-    if (status->isEthernetPresent()) {
+    if (status->isEthernetPresent())
+    {
         Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
         ethernet->sendMsg(msg);
     }
