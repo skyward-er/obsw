@@ -97,6 +97,11 @@ bool CanHandler::start()
 
 void CanHandler::sendEvent(Common::CanConfig::EventId event)
 {
+    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(),
+                          static_cast<uint8_t>(CanConfig::Board::MAIN),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(event)});
+
     protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
                           static_cast<uint8_t>(CanConfig::Board::MAIN),
@@ -106,7 +111,6 @@ void CanHandler::sendEvent(Common::CanConfig::EventId event)
 
 void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
 {
-
     protocol.enqueueData(
         static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
@@ -169,6 +173,9 @@ void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 
 void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
+    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(), msg.getSource(),
+                          msg.getDestination(), msg.getSecondaryType()});
+
     Events event = canEventToEvent(msg.getSecondaryType());
     if (event != LAST_EVENT)
     {
