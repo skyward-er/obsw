@@ -53,6 +53,12 @@ public:
     void dispatchIncomingMsg(const mavlink_message_t& msg) override;
 
     /**
+     * @brief Sends via radio an acknowledge message about the parameter passed
+     * message
+     */
+    void sendAck(const mavlink_message_t& msg);
+
+    /**
      * @param get rocket NAS state.
      */
     Boardcore::NASState getLastRocketNasState();
