@@ -24,6 +24,7 @@
 
 #include <common/Events.h>
 #include <common/Radio.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
@@ -578,6 +579,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             LoggerStats stats = sdLogger.getStats();
             tm.log_number     = stats.logNumber;
             tm.log_good       = stats.lastWriteError == 0;
+
+            // Cpu stuff
+            CpuMeterData cpuStats = CpuMeter::getCpuStats();
+            CpuMeter::resetCpuStats();
+            tm.cpu_load  = cpuStats.mean;
+            tm.free_heap = cpuStats.freeHeap;
+
+            // Also log this to the SD
+            sdLogger.log(cpuStats);
 
             // Valve states
             tm.filling_valve_state =

@@ -220,8 +220,6 @@ int main()
         Thread::sleep(1000);
         sdLogger.log(sdLogger.getStats());
         sdLogger.log(radio->getMavStatus());
-        sdLogger.log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
     }
 
     return 0;
