@@ -53,7 +53,7 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
 
 void AutomaticWingAlgorithm::step()
 {
-    if (getModule<Sensors>()->getUBXGPSLastSample().fix != 0)
+    if (getModule<Sensors>()->getUBXGPSLastSample().fix == 3)
     {
         // The PI calculated result
         float result = algorithmStep(getModule<NASController>()->getNasState());
@@ -126,10 +126,6 @@ float AutomaticWingAlgorithm::algorithmStep(const NASState& state)
 
     // Convert the result from radians back to degrees
     result = result * (180.f / Constants::PI);
-
-    // Flip the servo orientation
-    // result *= -1;
-    //  TODO check if this is needed
 
     // Logs the outputs
     {
