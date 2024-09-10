@@ -23,7 +23,7 @@
 #include "Follower.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/Hub.h>
+#include <Groundstation/Automated/SMController/SMController.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <common/ReferenceConfig.h>
 #include <utils/AeroUtils/AeroUtils.h>
@@ -46,10 +46,46 @@ Follower::Follower()
 {
 }
 
+void Follower::setAntennaCoordinates(const Boardcore::GPSData& gpsData)
+{
+    antennaCoordinates = {gpsData.latitude, gpsData.longitude, gpsData.height};
+    Boardcore::Logger::getInstance().log(
+        static_cast<LogAntennasCoordinates>(gpsData));
+    antennaCoordinatesSet = true;
+}
+
+void Follower::setInitialRocketCoordinates(const Boardcore::GPSData& gpsData)
+{
+    if (rocketCoordinatesSet)
+    {
+        LOG_ERR(logger, "Rocket coordinates already set");
+        return;
+    }
+
+    initialRocketCoordinates = {gpsData.latitude, gpsData.longitude,
+                                gpsData.height};
+    Boardcore::Logger::getInstance().log(
+        static_cast<LogRocketCoordinates>(gpsData));
+    rocketCoordinatesSet = true;
+}
+
+void Follower::setLastRocketNasState(const NASState nasState)
+{
+    Lock<FastMutex> lock(lastRocketNasStateMutex);
+    lastRocketNasState = nasState;
+}
+
+NASState Follower::getLastRocketNasState()
+{
+    Lock<FastMutex> lock(lastRocketNasStateMutex);
+    return lastRocketNasState;
+}
+
 bool Follower::init()
 {
     if (!antennaCoordinatesSet || !rocketCoordinatesSet)
     {
+        LOG_ERR(logger, "Antenna or rocket coordinates not set");
         return false;
     }
 
@@ -58,18 +94,18 @@ bool Follower::init()
     // Rocket coordinates
     Eigen::Vector2f rocketCoord{initialRocketCoordinates.head<2>()};
 
-    // Calculate the distance between the antenna and the rocket while in ramp
     initialAntennaRocketDistance =
         Aeroutils::geodetic2NED(rocketCoord, antennaCoord);
+
+    LOG_INFO(logger, "Initial antenna - rocket distance: [{}, {}] [m]\n",
+             initialAntennaRocketDistance[0], initialAntennaRocketDistance[1]);
 
     return true;
 }
 
 void Follower::step()
 {
-    Hub* hub = static_cast<Hub*>(
-        ModuleManager::getInstance().get<Groundstation::HubBase>());
-    NASState lastRocketNasState = hub->getLastRocketNasState();
+    NASState lastRocketNasState = getLastRocketNasState();
 
     // Getting the position of the rocket wrt the antennas in NED frame
     NEDCoords rocketPosition = {lastRocketNasState.n, lastRocketNasState.e,
