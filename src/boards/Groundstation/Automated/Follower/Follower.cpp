@@ -56,11 +56,6 @@ bool Follower::init()
     initialAntennaRocketDistance =
         Aeroutils::geodetic2NED(rocketCoord, antennaCoord);
 
-    // Store the initial orientation of the antenna
-    VN300Data vn300 =
-        ModuleManager::getInstance().get<Sensors>()->getVN300LastSample();
-    initialOrientation = {vn300.yaw, vn300.pitch};
-
     return true;
 }
 
@@ -74,35 +69,29 @@ void Follower::step()
     NEDCoords rocketPosition = {lastRocketNasState.n, lastRocketNasState.e,
                                 lastRocketNasState.d};
 
-    // Calculating absolute angles from the NED frame
-    AntennaAngles absoluteAngles =
-        rocketPositionToAntennaAngles(rocketPosition);
+    // Calculate the antenna target angles from the NED rocket coordinates
+    AntennaAngles targetAngles = rocketPositionToAntennaAngles(rocketPosition);
 
-    // Calculation actuation angles wrt the current position
     VN300Data vn300 =
         ModuleManager::getInstance().get<Sensors>()->getVN300LastSample();
-    Eigen::Vector2f relativeOrientation = {
-        vn300.yaw - initialOrientation.x(),
-        vn300.pitch - initialOrientation.y()};
-    AntennaAngles stepperAngles{
-        absoluteAngles.theta1 - relativeOrientation.x(),
-        absoluteAngles.theta2 - relativeOrientation.y()};
 
-    // Propagator step
+    // Calculate the amount to move from the current position
+    AntennaAngles stepperAngles{vn300.yaw - targetAngles.yaw,
+                                vn300.pitch - targetAngles.pitch};
 
     // Calculate angular velocity for moving the antennas toward position
-    float horizontalSpeed = std::abs((stepperAngles.theta1 * 1000) /
+    float horizontalSpeed = std::abs((stepperAngles.yaw * 1000) /
                                      (360 * FollowerConfig::FOLLOWER_PERIOD));
-    float verticalSpeed   = std::abs((stepperAngles.theta2 * 1000) /
+    float verticalSpeed   = std::abs((stepperAngles.pitch * 1000) /
                                      (360 * FollowerConfig::FOLLOWER_PERIOD));
 
 #ifndef NDEBUG
     std::cout << "[FOLLOWER] STEPPER "
-              << "Angles: [" << stepperAngles.theta1 << ", "
-              << stepperAngles.theta2 << "] "
+              << "Angles: [" << stepperAngles.yaw << ", "
+              << stepperAngles.pitch << "] "
               << "Speed: [" << horizontalSpeed << ", " << verticalSpeed
-              << "]   VN300 Relative: [" << relativeOrientation.x() << ", "
-              << relativeOrientation.y() << "]\n";
+              << "]   VN300 measure: [" << vn300.yaw << ", "
+              << vn300.pitch << "]\n";
 #endif
 
     ModuleManager::getInstance().get<Actuators>()->setSpeed(
@@ -112,28 +101,47 @@ void Follower::step()
 
     // Actuating steppers
     ModuleManager::getInstance().get<Actuators>()->moveDeg(
-        Actuators::StepperList::HORIZONTAL, stepperAngles.theta1);
+        Actuators::StepperList::HORIZONTAL, stepperAngles.yaw);
     ModuleManager::getInstance().get<Actuators>()->moveDeg(
-        Actuators::StepperList::VERTICAL, stepperAngles.theta2);
+        Actuators::StepperList::VERTICAL, stepperAngles.pitch);
 }
+
+/**
+ * @brief A structure for storing angles relative to the NED frame
+ */
+struct NEDAngles
+{
+    float yaw;    //!< Angle from the N axis on the NE plane, positive clockwise
+                  //!< [deg]
+    float pitch;  //!< Angle between the NE plane and the target position on the
+                  //!< NED coordinate space [deg]
+};
 
 AntennaAngles Follower::rocketPositionToAntennaAngles(
     const NEDCoords& rocketNed)
 {
-    // NED of the antenna wrt current rocket position
+    // NED coordinates of the antenna
     NEDCoords antennaNed = {rocketNed.n + initialAntennaRocketDistance.x(),
                             rocketNed.e + initialAntennaRocketDistance.y(),
                             rocketNed.d};
-    AntennaAngles angles;
-    // Calculating the horizontal angle in absolute ned frame
-    // std::atan2 outputs angles in radians, we need to convert it to degrees
-    angles.theta1 = std::atan2(antennaNed.n, antennaNed.e) / EIGEN_PI * 180;
-    // Calculating the horizontal distance of the rocket
-    float ground_dist =
+    NEDAngles angles;
+    // Calculate the horizontal angle relative to the NED frame
+    // std::atan2 outputs angles in radians, convert to degrees
+    angles.yaw = std::atan2(antennaNed.n, antennaNed.e) / EIGEN_PI * 180;
+
+    float distance =
         std::sqrt(antennaNed.n * antennaNed.n + antennaNed.e * antennaNed.e);
-    // Calculating the vertical angle in absolute ned frame
-    angles.theta2 = std::atan2(-antennaNed.d, ground_dist) / EIGEN_PI * 180;
-    return angles;
+    // Calculate the vertical angle relative to the NED frame
+    angles.pitch = std::atan2(antennaNed.d, distance) / EIGEN_PI * 180;
+
+    // Convert the angles to the antenna frame
+    AntennaAngles antennaAngles;
+    // NED yaw is 90 degrees clockwise from the antenna yaw
+    antennaAngles.yaw = 90 - angles.yaw;
+    // NED pitch is positive downwards, antenna pitch is positive upwards
+    antennaAngles.pitch = -angles.pitch;
+
+    return antennaAngles;
 }
 
 }  // namespace Antennas
