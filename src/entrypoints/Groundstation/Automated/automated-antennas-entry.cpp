@@ -21,13 +21,13 @@
  */
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
-#include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
@@ -73,23 +73,6 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
 }
 
 /**
- * @brief Waits for a given amount of time, blinking the supplied LED.
- * @note Minimum wait granularity is 100ms.
- */
-void ledBlinkWait(GpioPin led, int ms)
-{
-    int waited = 0;
-    while (waited < ms)
-    {
-        led.high();
-        Thread::sleep(50);
-        led.low();
-        Thread::sleep(50);
-        waited += 100;
-    }
-}
-
-/**
  * @brief Infinite error loop, used to blink an LED when an error occurs.
  */
 void errorLoop()
@@ -114,7 +97,10 @@ GPSData acquireRocketGpsState(Hub *hub)
     do
     {
         rocketGpsState = hub->getLastRocketGpsState();
-        ledBlinkWait(userLed2::getPin(), 100);
+        led2On();
+        Thread::sleep(50);
+        led2Off();
+        Thread::sleep(50);
     } while (rocketGpsState.fix == 0);
     return rocketGpsState;
 }
@@ -128,7 +114,10 @@ GPSData acquireAntennaGpsState(Sensors *sensors)
     do
     {
         vn300Data = sensors->getVN300LastSample();
-        ledBlinkWait(userLed3_2::getPin(), 100);
+        led3On();
+        Thread::sleep(50);
+        led3Off();
+        Thread::sleep(50);
     } while (vn300Data.fix_gps == 0);
 
     GPSData antennaPosition;
