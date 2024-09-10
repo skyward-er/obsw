@@ -149,6 +149,7 @@
         "GPIOF",
         "KALM",
         "kalman",
+        "Lolli",
         "magcal",
         "mavlink",
         "miosix",
