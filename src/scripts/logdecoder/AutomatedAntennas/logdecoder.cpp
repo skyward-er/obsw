@@ -25,7 +25,8 @@
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <sensors/SensorData.h>
-#include <sensors/VN300/VN300Data.h>
+#include <sensors/Vectornav/VN300/VN300Data.h>
+#include <Groundstation/Automated/Follower/FollowerData.h>
 #include <tscpp/stream.h>
 
 #include <fstream>
@@ -58,6 +59,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<VN300Data>();
     ds.registerType<NASState>();
     ds.registerType<GPSData>();
+    ds.registerType<LogAntennasCoordinates>();
+    ds.registerType<LogRocketCoordinates>();
 }
 
 void showUsage(const string& cmdName)
