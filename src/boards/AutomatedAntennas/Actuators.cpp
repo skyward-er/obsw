@@ -64,7 +64,7 @@ Actuators::Actuators()
                Stepper::PinConfiguration::COMMON_CATHODE,
                stepper1::enable::getPin()),
       stepperY(countedPwmY, stepper2::pulseTimer::getPin(),
-               stepper2::direction::getPin(), 1, 1.8, false, 4,
+               stepper2::direction::getPin(), 1, 1.8, true, 4,
                Stepper::PinConfiguration::COMMON_CATHODE,
                stepper2::enable::getPin())
 {
@@ -150,7 +150,18 @@ void Actuators::moveDeg(StepperList axis, float degrees)
 {
     if (emergencyStop)
     {
-        Logger::getInstance().log(stepperY.getState(0));
+        switch (axis)
+        {
+            case StepperList::HORIZONTAL:
+                Logger::getInstance().log(
+                    static_cast<StepperXData>(stepperX.getState(0)));
+                break;
+            case StepperList::VERTICAL:
+                Logger::getInstance().log(
+                    static_cast<StepperYData>(stepperY.getState(0)));
+                break;
+        }
+
         return;
     }
 
@@ -169,7 +180,8 @@ void Actuators::moveDeg(StepperList axis, float degrees)
             }
 
             stepperX.moveDeg(degrees * Config::HORIZONTAL_MULTIPLIER);
-            Logger::getInstance().log(stepperX.getState(degrees));
+            Logger::getInstance().log(
+                static_cast<StepperXData>(stepperX.getState(degrees)));
             break;
         case StepperList::VERTICAL:
             // LIMIT POSITION IN ACCEPTABLE RANGE
@@ -183,7 +195,8 @@ void Actuators::moveDeg(StepperList axis, float degrees)
             }
 
             stepperY.moveDeg(degrees * Config::VERTICAL_MULTIPLIER);
-            Logger::getInstance().log(stepperY.getState(degrees));
+            Logger::getInstance().log(
+                static_cast<StepperYData>(stepperY.getState(degrees)));
             break;
         default:
             assert(false && "Non existent stepper");
