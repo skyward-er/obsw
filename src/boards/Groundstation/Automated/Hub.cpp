@@ -83,10 +83,16 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         gpsState.height    = mavlink_msg_rocket_flight_tm_get_gps_alt(&msg);
         gpsState.fix       = mavlink_msg_rocket_flight_tm_get_gps_fix(&msg);
 
-        ModuleManager::getInstance()
-            .get<Antennas::Follower>()
-            ->setLastRocketState(nasState, gpsState);
+        lastRocketNasState = nasState;
+        lastRocketGpsState = gpsState;
     }
 
     // TODO: Add UDP dispatch
 }
+
+/**
+ * @param get rocket NAS state.
+ */
+NASState Hub::getLastRocketNasState() { return lastRocketNasState; }
+
+GPSData Hub::getLastRocketGpsState() { return lastRocketGpsState; }
