@@ -250,14 +250,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (getModule<Actuators>()->setOpeningTime(servo, time))
             {
-                if (time <= 600000)
-                {
-                    enqueueAck(msg);
-                }
-                else
-                {
-                    enqueueWack(msg, 0);
-                }
+                enqueueAck(msg);
             }
             else
             {
@@ -276,14 +269,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (getModule<Actuators>()->setMaxAperture(servo, aperture))
             {
-                if (aperture >= 0.0f && aperture <= 1.0f)
-                {
-                    enqueueAck(msg);
-                }
-                else
-                {
-                    enqueueWack(msg, 0);
-                }
+                enqueueAck(msg);
             }
             else
             {
