@@ -64,7 +64,7 @@ void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
 
 bool RadioBase::sendMsg(const mavlink_message_t& msg)
 {
-    Lock<FastMutex> l(mutex);
+    Lock<FastMutex> l(pending_msgs_mutex);
     if (pending_msgs_count >= MAV_PENDING_OUT_QUEUE_SIZE)
     {
         return false;
@@ -80,9 +80,30 @@ bool RadioBase::sendMsg(const mavlink_message_t& msg)
 
 void RadioBase::handleDioIRQ()
 {
-    if (sx1278)
+    if (started)
     {
         sx1278->handleDioIRQ();
+    }
+}
+
+RadioStats RadioBase::getStats()
+{
+    if (started)
+    {
+        auto mav_stats = mav_driver->getStatus();
+
+        return {.send_errors = mav_stats.nSendErrors,
+                .packet_rx_success_count =
+                    mav_stats.mavStats.packet_rx_success_count,
+                .packet_rx_drop_count = mav_stats.mavStats.packet_rx_drop_count,
+                .bits_rx_count        = bits_rx_count,
+                .bits_tx_count        = bits_tx_count,
+                .rx_rssi              = sx1278->getLastRxRssi(),
+                .rx_fei               = sx1278->getLastRxFei()};
+    }
+    else
+    {
+        return {0};
     }
 }
 
@@ -100,9 +121,9 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
     auto mav_handler = [this](MavDriver* channel, const mavlink_message_t& msg)
     { handleMsg(msg); };
 
-    mav_driver = std::make_unique<MavDriver>(this->sx1278.get(), mav_handler,
-                                             Gs::MAV_SLEEP_AFTER_SEND,
-                                             Gs::MAV_OUT_BUFFER_MAX_AGE);
+    mav_driver =
+        std::make_unique<MavDriver>(this, mav_handler, Gs::MAV_SLEEP_AFTER_SEND,
+                                    Gs::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mav_driver->start())
     {
@@ -114,22 +135,8 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
         return false;
     }
 
+    started = true;
     return true;
-}
-
-void RadioBase::run()
-{
-
-    while (!shouldStop())
-    {
-        miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
-
-        // If enough time has passed, automatically flush.
-        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
-        {
-            // flush();
-        }
-    }
 }
 
 bool RadioMain::start()
@@ -202,6 +209,43 @@ bool RadioPayload::start()
     return true;
 }
 
+void RadioBase::run()
+{
+
+    while (!shouldStop())
+    {
+        miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
+
+        // If enough time has passed, automatically flush.
+        if (miosix::getTick() > last_eot_packet_ts + AUTOMATIC_FLUSH_DELAY)
+        {
+            flush();
+        }
+    }
+}
+
+ssize_t RadioBase::receive(uint8_t* pkt, size_t max_len)
+{
+    ssize_t ret = sx1278->receive(pkt, max_len);
+    if (ret > 0)
+    {
+        bits_rx_count += ret * 8;
+    }
+
+    return ret;
+}
+
+bool RadioBase::send(uint8_t* pkt, size_t len)
+{
+    bool ret = sx1278->send(pkt, len);
+    if (ret)
+    {
+        bits_tx_count += len * 8;
+    }
+
+    return ret;
+}
+
 void RadioBase::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
@@ -216,8 +260,8 @@ void RadioBase::handleMsg(const mavlink_message_t& msg)
 
 void RadioBase::flush()
 {
-    Lock<FastMutex> l(mutex);
-    for (int i = 0; i < pending_msgs_count; i++)
+    Lock<FastMutex> l(pending_msgs_mutex);
+    for (size_t i = 0; i < pending_msgs_count; i++)
     {
         mav_driver->enqueueMsg(pending_msgs[i]);
     }
