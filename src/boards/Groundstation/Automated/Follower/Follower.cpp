@@ -111,42 +111,24 @@ void Follower::step()
         Actuators::StepperList::VERTICAL, stepperAngles.pitch);
 }
 
-/**
- * @brief A structure for storing angles relative to the NED frame
- */
-struct NEDAngles
-{
-    float yaw;    //!< Angle from the N axis on the NE plane, positive clockwise
-                  //!< [deg]
-    float pitch;  //!< Angle between the NE plane and the target position on the
-                  //!< NED coordinate space [deg]
-};
-
 AntennaAngles Follower::rocketPositionToAntennaAngles(
     const NEDCoords& rocketNed)
 {
-    // NED coordinates of the antenna
-    NEDCoords antennaNed = {rocketNed.n + initialAntennaRocketDistance.x(),
-                            rocketNed.e + initialAntennaRocketDistance.y(),
-                            rocketNed.d};
-    NEDAngles angles;
+    // NED coordinates of the rocket in the NED antenna frame
+    NEDCoords ned = {rocketNed.n + initialAntennaRocketDistance.x(),
+                     rocketNed.e + initialAntennaRocketDistance.y(),
+                     rocketNed.d};
+
+    AntennaAngles angles;
     // Calculate the horizontal angle relative to the NED frame
     // std::atan2 outputs angles in radians, convert to degrees
-    angles.yaw = std::atan2(antennaNed.n, antennaNed.e) / EIGEN_PI * 180;
+    angles.yaw = std::atan2(ned.e, ned.n) / EIGEN_PI * 180;
 
-    float distance =
-        std::sqrt(antennaNed.n * antennaNed.n + antennaNed.e * antennaNed.e);
+    float distance = std::sqrt(ned.n * ned.n + ned.e * ned.e);
     // Calculate the vertical angle relative to the NED frame
-    angles.pitch = std::atan2(antennaNed.d, distance) / EIGEN_PI * 180;
+    angles.pitch = std::atan2(-ned.d, distance) / EIGEN_PI * 180;
 
-    // Convert the angles to the antenna frame
-    AntennaAngles antennaAngles;
-    // NED yaw is 90 degrees clockwise from the antenna yaw
-    antennaAngles.yaw = 90 - angles.yaw;
-    // NED pitch is positive downwards, antenna pitch is positive upwards
-    antennaAngles.pitch = -angles.pitch;
-
-    return antennaAngles;
+    return angles;
 }
 
 }  // namespace Antennas
