@@ -26,7 +26,7 @@
 #include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
-#include <Groundstation/Automated/SMController/SMController.h>
+#include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <algorithms/NAS/NASState.h>
@@ -96,7 +96,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
             // The stepper is moved of 'angle' degrees
             ErrorMovement moved =
-                modules.get<SMController>()->moveStepperDeg(stepperId, angle);
+                modules.get<SMA>()->moveStepperDeg(stepperId, angle);
             if (moved == ErrorMovement::OK)
                 sendAck(msg);
             else
@@ -112,7 +112,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
             // The stepper is moved of 'steps' steps
             ErrorMovement moved =
-                modules.get<SMController>()->moveStepperSteps(stepperId, steps);
+                modules.get<SMA>()->moveStepperSteps(stepperId, steps);
             if (moved == ErrorMovement::OK)
                 sendAck(msg);
             else
@@ -135,7 +135,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             gpsData.fix        = 3;
             gpsData.satellites = 42;
 
-            modules.get<SMController>()->setInitialRocketCoordinates(gpsData);
+            modules.get<SMA>()->setInitialRocketCoordinates(gpsData);
             sendAck(msg);
             break;
         }
@@ -155,7 +155,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             gpsData.fix        = 3;
             gpsData.satellites = 42;
 
-            modules.get<SMController>()->setAntennaCoordinates(gpsData);
+            modules.get<SMA>()->setAntennaCoordinates(gpsData);
             sendAck(msg);
             break;
         }

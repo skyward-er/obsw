@@ -136,7 +136,7 @@ set(GROUNDSTATION_AUTOMATED
     src/boards/Groundstation/Automated/Ports/Ethernet.cpp
     src/boards/Groundstation/Automated/Hub.cpp
     src/boards/Groundstation/Automated/Leds/Leds.cpp
-    src/boards/Groundstation/Automated/SMController/SMController.cpp
+    src/boards/Groundstation/Automated/SMA/SMA.cpp
 )
 
 set(ANTENNAS
