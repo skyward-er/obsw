@@ -29,7 +29,6 @@
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
-#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
 #include <Payload/Wing/FileWingAlgorithm.h>
 #include <Payload/Wing/WingAlgorithm.h>
@@ -265,8 +264,6 @@ State WingController::OnGround(const Boardcore::Event& event)
         {
             updateState(WingControllerState::ON_GROUND);
 
-            getModule<WindEstimation>()->stopWindEstimationScheme();
-            getModule<WindEstimation>()->stopWindEstimationSchemeCalibration();
             stopAlgorithm();
             resetWing();
 

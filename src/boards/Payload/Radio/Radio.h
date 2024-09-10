@@ -47,13 +47,12 @@ class WingController;
 class AltitudeTrigger;
 class PinHandler;
 class CanHandler;
-class WindEstimation;
 class FlightStatsRecorder;
 
 class Radio : public Boardcore::InjectableWithDeps<
                   BoardScheduler, Sensors, Buses, FlightModeManager, Actuators,
                   NASController, WingController, AltitudeTrigger, PinHandler,
-                  CanHandler, WindEstimation, FlightStatsRecorder>
+                  CanHandler, FlightStatsRecorder>
 {
 public:
     /**

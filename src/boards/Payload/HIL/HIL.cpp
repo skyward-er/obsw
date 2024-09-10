@@ -30,7 +30,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
@@ -255,7 +254,6 @@ bool PayloadHIL::start()
 ActuatorData PayloadHIL::updateActuatorData()
 {
     auto nas       = getModule<Payload::NASController>();
-    auto wes       = getModule<Payload::WindEstimation>();
     auto fmm       = getModule<Payload::FlightModeManager>();
     auto wing      = getModule<Payload::WingController>();
     auto actuators = getModule<Payload::Actuators>();
@@ -266,8 +264,6 @@ ActuatorData PayloadHIL::updateActuatorData()
         actuators->getServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
         actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO),
         static_cast<float>(miosix::gpios::mainDeploy::value()));
-
-    WESDataHIL wesDataHIL(wes->getWindEstimationScheme());
 
     auto deltaA = actuators->getServoPosition(ServosList::PARAFOIL_LEFT_SERVO) -
                   actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO);
@@ -282,7 +278,7 @@ ActuatorData PayloadHIL::updateActuatorData()
 
     // Returning the feedback for the simulator
     return ActuatorData(
-        nasStateHIL, actuatorsStateHIL, wesDataHIL, guidanceData,
+        nasStateHIL, actuatorsStateHIL, guidanceData,
         (fmm->testState(&Payload::FlightModeManager::FlyingAscending) ? 3 : 0));
 };
 }  // namespace Payload

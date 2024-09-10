@@ -25,7 +25,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Payload/StateMachines/NASController/NASControllerData.h>
 #include <Payload/StateMachines/WingController/WingControllerData.h>
-#include <Payload/WindEstimationScheme/WindEstimationData.h>
 #include <Payload/Wing/WingAlgorithmData.h>
 #include <Payload/Wing/WingTargetPositionData.h>
 #include <fmt/format.h>

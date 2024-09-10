@@ -30,7 +30,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -562,7 +561,6 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
             auto* sensors = parent.getModule<Sensors>();
             auto* nas     = parent.getModule<NASController>();
-            auto* wes     = parent.getModule<WindEstimation>();
             auto* fmm     = parent.getModule<FlightModeManager>();
 
             auto imu          = sensors->getIMULastSample();
@@ -572,7 +570,6 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto pressDynamic = sensors->getDynamicPressureLastSample();
             auto nasState     = nas->getNasState();
             auto ref          = nas->getReferenceValues();
-            auto wind         = wes->getWindEstimationScheme();
 
             float airspeedPitot =
                 (pressDynamic.pressure > 0
@@ -623,8 +620,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_bias_x = nasState.bx;
             tm.nas_bias_y = nasState.by;
             tm.nas_bias_z = nasState.bz;
-            tm.wes_n      = wind.x();
-            tm.wes_e      = wind.y();
+            tm.wes_n      = -1.0f;
+            tm.wes_e      = -1.0f;
 
             tm.battery_voltage     = sensors->getBatteryVoltage().batVoltage;
             tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;

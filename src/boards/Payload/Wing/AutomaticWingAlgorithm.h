@@ -34,13 +34,11 @@ namespace Payload
 {
 class Sensors;
 class NASController;
-class WindEstimation;
 class Actuators;
 
-class AutomaticWingAlgorithm
-    : public Boardcore::InjectableWithDeps<
-          Boardcore::InjectableBase<WingAlgorithm>, Sensors, NASController,
-          WindEstimation, Actuators>
+class AutomaticWingAlgorithm : public Boardcore::InjectableWithDeps<
+                                   Boardcore::InjectableBase<WingAlgorithm>,
+                                   Sensors, NASController, Actuators>
 {
 public:
     /**
@@ -66,11 +64,10 @@ protected:
     /**
      * @brief Actual algorithm implementation, all parameters should be in NED
      *
-     *  @param state NAS current state
-     * @param targetNED Target North & East
-     * @param windNED Wind velocity North & East
+     * @return The angle to set to the servo, positive is right and negative is
+     * left
      */
-    float algorithmStep(Boardcore::NASState state, Eigen::Vector2f windNED);
+    float algorithmStep(const Boardcore::NASState& state);
 
     /**
      * @brief This method implements the automatic algorithm that will steer the

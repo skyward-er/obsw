@@ -37,7 +37,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -151,8 +150,6 @@ int main()
     initResult &= depman.insert(altitudeTrigger);
     auto wingController = new WingController();
     initResult &= depman.insert(wingController);
-    auto windEstimation = new WindEstimation();
-    initResult &= depman.insert(windEstimation);
 
     // Actuators
     auto actuators = new Actuators();
@@ -199,7 +196,6 @@ int main()
     START_MODULE(nasController);
     START_MODULE(altitudeTrigger);
     START_MODULE(wingController);
-    START_MODULE(windEstimation);
     START_MODULE(actuators);
 
     START_MODULE(scheduler);

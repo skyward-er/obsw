@@ -60,7 +60,6 @@ public:
     Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
     Boardcore::TaskScheduler& wingController() { return medium; }
     Boardcore::TaskScheduler& verticalVelocityTrigger() { return medium; }
-    Boardcore::TaskScheduler& windEstimation() { return medium; }
     Boardcore::TaskScheduler& actuators() { return low; }
     Boardcore::TaskScheduler& flightStatsRecorder() { return low; }
 

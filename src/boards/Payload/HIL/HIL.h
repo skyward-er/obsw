@@ -29,7 +29,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <common/Events.h>
 #include <hil/HIL.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -69,8 +68,7 @@ class PayloadHIL
     : public Boardcore::HIL<PayloadFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<
           Payload::Buses, Payload::Actuators, Payload::FlightModeManager,
-          Payload::WindEstimation, Payload::WingController,
-          Payload::NASController>
+          Payload::WingController, Payload::NASController>
 {
 
 public:

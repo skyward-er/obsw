@@ -159,21 +159,6 @@ struct ActuatorsStateHIL
     }
 };
 
-struct WESDataHIL
-{
-    float windX;
-    float windY;
-
-    explicit WESDataHIL(const Eigen::Vector2f& wind)
-        : windX(wind[0]), windY(wind[1])
-    {
-    }
-
-    WESDataHIL() : windX(0.0f), windY(0.0f) {}
-
-    void print() { printf("wind: [%f,%f]\n", windX, windY); }
-};
-
 struct GuidanceDataHIL
 {
     float psiRef;
@@ -230,20 +215,15 @@ struct ActuatorData
 {
     NASStateHIL nasState;
     ActuatorsStateHIL actuatorsState;
-    WESDataHIL wesData;
     GuidanceDataHIL guidanceData;
     float signal;
 
-    ActuatorData()
-        : nasState(), actuatorsState(), wesData(), guidanceData(), signal(0)
-    {
-    }
+    ActuatorData() : nasState(), actuatorsState(), guidanceData(), signal(0) {}
 
     ActuatorData(const NASStateHIL& nasState,
                  const ActuatorsStateHIL& actuatorsState,
-                 const WESDataHIL& wesData, const GuidanceDataHIL& guidanceData,
-                 float signal)
-        : nasState(nasState), actuatorsState(actuatorsState), wesData(wesData),
+                 const GuidanceDataHIL& guidanceData, float signal)
+        : nasState(nasState), actuatorsState(actuatorsState),
           guidanceData(guidanceData), signal(signal)
     {
     }
@@ -252,7 +232,6 @@ struct ActuatorData
     {
         nasState.print();
         actuatorsState.print();
-        wesData.print();
         guidanceData.print();
     }
 };

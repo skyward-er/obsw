@@ -26,7 +26,6 @@
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <Payload/WindEstimationScheme/WindEstimation.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <math.h>
 #include <utils/AeroUtils/AeroUtils.h>
@@ -57,9 +56,7 @@ void AutomaticWingAlgorithm::step()
     if (getModule<Sensors>()->getUBXGPSLastSample().fix != 0)
     {
         // The PI calculated result
-        float result = algorithmStep(
-            getModule<NASController>()->getNasState(),
-            getModule<WindEstimation>()->getWindEstimationScheme());
+        float result = algorithmStep(getModule<NASController>()->getNasState());
 
         // Actuate the result
         // To see how to interpret the PI output
@@ -101,7 +98,7 @@ void AutomaticWingAlgorithm::step()
     }
 }
 
-float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
+float AutomaticWingAlgorithm::algorithmStep(const NASState& state)
 {
     float result;
     // For some algorithms the third component is needed!
@@ -111,7 +108,6 @@ float AutomaticWingAlgorithm::algorithmStep(NASState state, Vector2f windNED)
 
     float targetAngle = guidance.calculateTargetAngle(currentPosition, heading);
 
-    // WES is currently unused
     Vector2f relativeVelocity(state.vn, state.ve);
 
     // Compute the angle of the current velocity
