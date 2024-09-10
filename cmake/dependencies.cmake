@@ -133,6 +133,7 @@ set(GROUNDSTATION_BASE
 set(GROUNDSTATION_AUTOMATED
     src/boards/Groundstation/Automated/Radio/Radio.cpp
     src/boards/Groundstation/Automated/Radio/RadioStatus.cpp
+    src/boards/Groundstation/Automated/Follower/Follower.cpp
     src/boards/Groundstation/Automated/Hub.cpp
 )
 
