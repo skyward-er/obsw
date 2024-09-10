@@ -30,6 +30,7 @@
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <algorithms/NAS/NASState.h>
+#include <common/Events.h>
 #include <common/Mavlink.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
@@ -37,6 +38,7 @@
 #include <iostream>
 
 using namespace Antennas;
+using namespace Common;
 using namespace Boardcore;
 using namespace Groundstation;
 using namespace miosix;
@@ -52,6 +54,39 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
     switch (msg.msgid)
     {
+        case MAVLINK_MSG_ID_ARP_COMMAND_TC:
+        {
+            // Create the map between the commands and the corresponding events
+            static const std::map<MavArpCommandList, Events> commandToEvent{
+                {MAV_ARP_CMD_FORCE_INIT, TMTC_ARP_FORCE_INIT},
+                {MAV_ARP_CMD_RESET_ALGORITHM, TMTC_ARP_RESET_ALGORITHM},
+                {MAV_ARP_CMD_RESET_BOARD, TMTC_ARP_RESET_BOARD},
+                {MAV_ARP_CMD_FORCE_NO_FEEDBACK, TMTC_ARP_FORCE_NO_FEEDBACK},
+                {MAV_ARP_CMD_ARM, TMTC_ARP_ARM},
+                {MAV_ARP_CMD_DISARM, TMTC_ARP_DISARM},
+                {MAV_ARP_CMD_CALIBRATE, TMTC_ARP_CALIBRATE},
+                {MAV_ARP_CMD_ENTER_TEST_MODE, TMTC_ARP_ENTER_TEST_MODE},
+                {MAV_ARP_CMD_EXIT_TEST_MODE, TMTC_ARP_EXIT_TEST_MODE},
+            };
+
+            MavArpCommandList commandId = static_cast<MavArpCommandList>(
+                mavlink_msg_arp_command_tc_get_command_id(&msg));
+
+            auto it = commandToEvent.find(commandId);
+
+            if (it != commandToEvent.end())
+            {
+                EventBroker::getInstance().post(it->second, TOPIC_TMTC);
+            }
+            else
+            {
+                return sendNack(msg);
+            }
+
+            // Acknowledge the message
+            sendAck(msg);
+            break;
+        }
         case MAVLINK_MSG_ID_SET_STEPPER_ANGLE_TC:
         {
             StepperList stepperId = static_cast<StepperList>(
