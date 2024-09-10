@@ -157,7 +157,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(SensorId::PITOT_DYNAMIC_PRESSURE),
                 dynamicPressure);
         },
-        config::Pitot::PERIOD);
+        config::Pitot::SEND_RATE);
 
     if (pitotTask == 0)
     {
@@ -185,6 +185,14 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(Board::PAYLOAD),
                            static_cast<uint8_t>(Board::BROADCAST),
                            static_cast<uint8_t>(event));
+
+    auto data = CanEvent{
+        .timestamp = TimestampTimer::getTimestamp(),
+        .source    = static_cast<uint8_t>(Board::PAYLOAD),
+        .target    = static_cast<uint8_t>(Board::BROADCAST),
+        .event     = static_cast<uint8_t>(event),
+    };
+    Logger::getInstance().log(data);
 }
 
 void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
@@ -233,7 +241,15 @@ void CanHandler::handleMessage(const CanMessage& msg)
 
 void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage& msg)
 {
-    auto event = canEventToEvent(msg.getSecondaryType());
+    auto canEvent = CanEvent{
+        .timestamp = TimestampTimer::getTimestamp(),
+        .source    = msg.getSource(),
+        .target    = msg.getDestination(),
+        .event     = msg.getSecondaryType(),
+    };
+    Logger::getInstance().log(canEvent);
+
+    auto event = canEventToEvent(canEvent.event);
     if (event == LAST_EVENT)
     {
         return;

@@ -22,6 +22,10 @@
 
 #pragma once
 
+#include <units/Frequency.h>
+
+#include <chrono>
+
 namespace Payload
 {
 namespace Config
@@ -30,6 +34,7 @@ namespace CanHandler
 {
 
 /* linter-off */ using namespace std::chrono_literals;
+/* linter-off */ using namespace Boardcore::Units::Frequency;
 
 namespace Status
 {
@@ -40,7 +45,7 @@ constexpr auto TIMEOUT = 1500ms;
 
 namespace Pitot
 {
-constexpr auto PERIOD = 50ms;
+constexpr auto SEND_RATE = 20_hz;
 }
 
 }  // namespace CanHandler
