@@ -101,6 +101,11 @@ bool CanHandler::start()
 
 void CanHandler::sendEvent(CanConfig::EventId event)
 {
+    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(),
+                          static_cast<uint8_t>(CanConfig::Board::RIG),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(event)});
+
     protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
                           static_cast<uint8_t>(CanConfig::Board::RIG),
@@ -172,6 +177,9 @@ void CanHandler::handleMessage(const Canbus::CanMessage &msg)
 
 void CanHandler::handleEvent(const Canbus::CanMessage &msg)
 {
+    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(), msg.getSource(),
+                          msg.getDestination(), msg.getSecondaryType()});
+
     // Dispatch the event, so that the logger can log it
     Events event = canEventToEvent(msg.getSecondaryType());
     if (event != LAST_EVENT)
