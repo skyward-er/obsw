@@ -44,6 +44,7 @@ enum class SMAState : uint8_t
     FIX_ANTENNAS,
     FIX_ROCKET,
     FIX_ROCKET_NF,
+    ARM_READY,
     ACTIVE,
     ACTIVE_NF,
     /**
