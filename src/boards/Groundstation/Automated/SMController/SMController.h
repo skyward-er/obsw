@@ -42,7 +42,7 @@ class SMController : public Boardcore::Module,
                      public Boardcore::HSM<SMController>
 {
 public:
-    SMController(Boardcore::TaskScheduler* scheduler);
+    explicit SMController(Boardcore::TaskScheduler* scheduler);
 
     // FSM States
 
