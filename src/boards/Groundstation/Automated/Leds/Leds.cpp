@@ -120,7 +120,6 @@ void Leds::ledToggle(LedColor color)
 
 void Leds::ledOn(LedColor color)
 {
-#ifdef _BOARD_STM32F767ZI_AUTOMATED_ANTENNAS
     switch (color)
     {
         case LedColor::RED:
@@ -138,28 +137,10 @@ void Leds::ledOn(LedColor color)
         case LedColor::BLUE:
             break;
     }
-#else
-    switch (color)
-    {
-        case LedColor::RED:
-            miosix::led3On();
-            break;
-        case LedColor::BLUE:
-            miosix::led2On();
-            break;
-        case LedColor::GREEN:
-            miosix::led1On();
-            break;
-        case LedColor::ORANGE:
-        case LedColor::YELLOW:
-            break;
-    }
-#endif
 }
 
 void Leds::ledOff(LedColor color)
 {
-#ifdef _BOARD_STM32F767ZI_AUTOMATED_ANTENNAS
     switch (color)
     {
         case LedColor::RED:
@@ -177,23 +158,6 @@ void Leds::ledOff(LedColor color)
         case LedColor::BLUE:
             break;
     }
-#else
-    switch (color)
-    {
-        case LedColor::RED:
-            miosix::led3Off();
-            break;
-        case LedColor::BLUE:
-            miosix::led2Off();
-            break;
-        case LedColor::GREEN:
-            miosix::led1Off();
-            break;
-        case LedColor::ORANGE:
-        case LedColor::YELLOW:
-            break;
-    }
-#endif
 }
 
 }  // namespace Antennas
