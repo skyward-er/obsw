@@ -614,7 +614,6 @@ void Sensors::internalAdcInit()
     internalAdc = std::make_unique<InternalADC>(ADC2);
     internalAdc->enableChannel(config::InternalADC::VBAT_CH);
     internalAdc->enableChannel(config::InternalADC::CAM_VBAT_CH);
-    internalAdc->enableChannel(config::InternalADC::CUTTER_SENSE_CH);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
 }

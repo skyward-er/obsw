@@ -55,9 +55,9 @@ constexpr auto ODR           = Boardcore::LPS22DF::ODR_100;
 namespace LPS28DFW
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 50_hz;
+constexpr auto SAMPLING_RATE = 100_hz;
 constexpr auto AVG           = Boardcore::LPS28DFW::AVG_4;
-constexpr auto ODR           = Boardcore::LPS28DFW::ODR_100;
+constexpr auto ODR           = Boardcore::LPS28DFW::ODR_200;
 constexpr auto FSR           = Boardcore::LPS28DFW::FS_1260;
 }  // namespace LPS28DFW
 
@@ -74,9 +74,9 @@ constexpr auto FSR = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 namespace LIS2MDL
 {
 constexpr auto ENABLED             = true;
-constexpr auto SAMPLING_RATE       = 50_hz;
+constexpr auto SAMPLING_RATE       = 100_hz;
 constexpr auto ODR                 = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr auto TEMPERATURE_DIVIDER = 5U;
+constexpr auto TEMPERATURE_DIVIDER = 10U;
 }  // namespace LIS2MDL
 
 namespace UBXGPS
@@ -108,21 +108,23 @@ constexpr bool GLOBAL_CHOP_MODE = true;
 
 namespace InternalADC
 {
-constexpr auto ENABLED         = true;
-constexpr auto SAMPLING_RATE   = 10_hz;
-constexpr auto VBAT_CH         = Boardcore::InternalADC::Channel::CH8;
-constexpr auto CAM_VBAT_CH     = Boardcore::InternalADC::Channel::CH9;
-constexpr auto CUTTER_SENSE_CH = Boardcore::InternalADC::Channel::CH11;
-constexpr auto VBAT_SCALE      = 7500.0f / 2400.0f;
-constexpr auto CAM_VBAT_SCALE  = 7500.0f / 2400.0f;
+constexpr auto ENABLED        = true;
+constexpr auto SAMPLING_RATE  = 10_hz;
+constexpr auto VBAT_CH        = Boardcore::InternalADC::Channel::CH8;
+constexpr auto CAM_VBAT_CH    = Boardcore::InternalADC::Channel::CH9;
+constexpr auto VBAT_SCALE     = 7500.0f / 2400.0f;
+constexpr auto CAM_VBAT_SCALE = 7500.0f / 2400.0f;
 }  // namespace InternalADC
+
+// Scale values for analog pressure sensors have been calibrated via vacuum
+// chamber, by looking at LPS28DFW output and analog sensor output
 
 namespace StaticPressure
 {
 constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
 constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
-constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
+constexpr auto SCALE         = 4.21662235677003f;
 }  // namespace StaticPressure
 
 namespace DynamicPressure
@@ -130,7 +132,7 @@ namespace DynamicPressure
 constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
 constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
-constexpr auto SCALE         = (38300.0f + 13000.0f) / 13000.0f;
+constexpr auto SCALE         = 4.21662235677003f;
 }  // namespace DynamicPressure
 
 namespace RotatedIMU
