@@ -44,8 +44,7 @@ enum class AlgorithmId : size_t
 {
     EARLY_MANEUVER = 0,
     CLOSED_LOOP,
-    SEQUENCE,  ///< A predefined sequence of maneuvers
-    ROTATION,  ///< A sequence of maneuvers to rotate the wing
+    ROTATION,  ///< A predefined sequence of rotation maneuvers
     LAST,      ///< Used to count the number of algorithms
 };
 

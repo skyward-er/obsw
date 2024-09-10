@@ -390,7 +390,6 @@ bool WingController::selectAlgorithm(uint8_t index)
     {
         case static_cast<uint8_t>(AlgorithmId::EARLY_MANEUVER):
         case static_cast<uint8_t>(AlgorithmId::CLOSED_LOOP):
-        case static_cast<uint8_t>(AlgorithmId::SEQUENCE):
         case static_cast<uint8_t>(AlgorithmId::ROTATION):
         {
             selectedAlgorithm = static_cast<AlgorithmId>(index);
@@ -434,32 +433,7 @@ void WingController::loadAlgorithms()
             PI::KP, PI::KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO,
             clGuidance);
 
-    // Sequence
-    {
-        auto algorithm = std::make_unique<WingAlgorithm>(PARAFOIL_LEFT_SERVO,
-                                                         PARAFOIL_RIGHT_SERVO);
-        WingAlgorithmData step;
-
-        step.timestamp   = 0;
-        step.servo1Angle = 0;
-        step.servo2Angle = 120;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{STRAIGHT_FLIGHT_TIMEOUT}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{STRAIGHT_FLIGHT_TIMEOUT}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        algorithm->addStep(step);
-
-        algorithms[static_cast<size_t>(AlgorithmId::SEQUENCE)] =
-            std::move(algorithm);
-    }
-
-    // Rotation
+    // Rotation Sequence
     {
         auto algorithm = std::make_unique<WingAlgorithm>(PARAFOIL_LEFT_SERVO,
                                                          PARAFOIL_RIGHT_SERVO);
@@ -481,21 +455,16 @@ void WingController::loadAlgorithms()
         algorithm->addStep(step);
 
         step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = LeftServo::ROTATION;
-        step.servo2Angle = RightServo::ROTATION;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = RightServo::ROTATION;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = 0;
+        step.servo1Angle = LeftServo::ROTATION / 2;
         step.servo2Angle = 0;
         algorithm->addStep(step);
 
         step.timestamp += microseconds{ROTATION_PERIOD}.count();
+        step.servo1Angle = 0;
+        step.servo2Angle = RightServo::ROTATION / 2;
+        algorithm->addStep(step);
+
+        step.timestamp += microseconds{2min}.count();
         step.servo1Angle = 0;
         step.servo2Angle = 0;
         algorithm->addStep(step);
