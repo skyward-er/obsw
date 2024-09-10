@@ -47,6 +47,11 @@ Follower::Follower()
 
 bool Follower::init()
 {
+    if (!antennaCoordinatesSet || !rocketCoordinatesSet)
+    {
+        return false;
+    }
+
     // Antenna Coordinates
     Eigen::Vector2f antennaCoord{antennaCoordinates.head<2>()};
     // Rocket coordinates
@@ -87,11 +92,11 @@ void Follower::step()
 
 #ifndef NDEBUG
     std::cout << "[FOLLOWER] STEPPER "
-              << "Angles: [" << stepperAngles.yaw << ", "
-              << stepperAngles.pitch << "] "
+              << "Angles: [" << stepperAngles.yaw << ", " << stepperAngles.pitch
+              << "] "
               << "Speed: [" << horizontalSpeed << ", " << verticalSpeed
-              << "]   VN300 measure: [" << vn300.yaw << ", "
-              << vn300.pitch << "]\n";
+              << "]   VN300 measure: [" << vn300.yaw << ", " << vn300.pitch
+              << "]\n";
 #endif
 
     ModuleManager::getInstance().get<Actuators>()->setSpeed(
