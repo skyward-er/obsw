@@ -95,3 +95,6 @@ add_executable(nokia-groundstation-entry
 )
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(nokia-groundstation-entry stm32f429zi_skyward_groundstation_v2)
+
+add_executable(automated-antennas-entry src/entrypoints/Groundstation/automated-antennas-entry.cpp)
+sbs_target(automated-antennas-entry stm32f407vg_stm32f4discovery)
