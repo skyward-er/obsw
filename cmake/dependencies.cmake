@@ -130,6 +130,12 @@ set(GROUNDSTATION_BASE
     src/boards/Groundstation/Common/HubBase.cpp
 )
 
+set(GROUNDSTATION_AUTOMATED
+    src/boards/Groundstation/Automated/Radio/Radio.cpp
+    src/boards/Groundstation/Automated/Radio/RadioStatus.cpp
+    src/boards/Groundstation/Automated/Hub.cpp
+)
+
 set(ANTENNAS
     src/boards/Groundstation/Automated/Actuators/Actuators.cpp
     src/boards/Groundstation/Automated/Sensors/Sensors.cpp
