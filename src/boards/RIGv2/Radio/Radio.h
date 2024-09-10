@@ -60,7 +60,8 @@ public:
 
 private:
     void enqueueAck(const mavlink_message_t& msg);
-    void enqueueNack(const mavlink_message_t& msg);
+    void enqueueWack(const mavlink_message_t& msg, uint8_t errorId);
+    void enqueueNack(const mavlink_message_t& msg, uint8_t errorId);
 
     void enqueuePacket(const mavlink_message_t& msg);
     void flushPackets();

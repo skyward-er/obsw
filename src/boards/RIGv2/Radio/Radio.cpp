@@ -133,13 +133,22 @@ void Radio::enqueueAck(const mavlink_message_t& msg)
     enqueuePacket(ackMsg);
 }
 
-void Radio::enqueueNack(const mavlink_message_t& msg)
+void Radio::enqueueNack(const mavlink_message_t& msg, uint8_t errorId)
 {
     mavlink_message_t nackMsg;
     mavlink_msg_nack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
                              Config::Radio::MAV_COMPONENT_ID, &nackMsg,
-                             msg.msgid, msg.seq, 0);
+                             msg.msgid, msg.seq, errorId);
     enqueuePacket(nackMsg);
+}
+
+void Radio::enqueueWack(const mavlink_message_t& msg, uint8_t errorId)
+{
+    mavlink_message_t wackMsg;
+    mavlink_msg_wack_tm_pack(Config::Radio::MAV_SYSTEM_ID,
+                             Config::Radio::MAV_COMPONENT_ID, &wackMsg,
+                             msg.msgid, msg.seq, errorId);
+    enqueuePacket(wackMsg);
 }
 
 MavlinkStatus Radio::getMavStatus()
@@ -185,7 +194,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -201,7 +210,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
 
             break;
@@ -221,12 +230,12 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 }
                 else
                 {
-                    enqueueNack(msg);
+                    enqueueNack(msg, 0);
                 }
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -240,11 +249,18 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (getModule<Actuators>()->setOpeningTime(servo, time))
             {
-                enqueueAck(msg);
+                if (time <= 600000)
+                {
+                    enqueueAck(msg);
+                }
+                else
+                {
+                    enqueueWack(msg, 0);
+                }
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -259,11 +275,18 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (getModule<Actuators>()->setMaxAperture(servo, aperture))
             {
-                enqueueAck(msg);
+                if (aperture >= 0.0f && aperture <= 1.0f)
+                {
+                    enqueueAck(msg);
+                }
+                else
+                {
+                    enqueueWack(msg, 0);
+                }
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -280,7 +303,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         default:
         {
             // Unrecognized packet
-            enqueueNack(msg);
+            enqueueNack(msg, 0);
             break;
         }
     }
@@ -300,7 +323,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -320,7 +343,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -333,7 +356,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
             break;
         }
@@ -356,7 +379,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             }
             else
             {
-                enqueueNack(msg);
+                enqueueNack(msg, 0);
             }
         }
     }
