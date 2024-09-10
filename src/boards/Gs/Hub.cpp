@@ -20,56 +20,36 @@
  * THE SOFTWARE.
  */
 
-#include "Serial.h"
+#include "Hub.h"
 
-#include <Gs/Hub.h>
 #include <Gs/Radio/Radio.h>
 #include <Gs/Radio/RadioStatus.h>
+#include <Gs/Ports/Serial.h>
 
-using namespace miosix;
 using namespace Gs;
 using namespace Boardcore;
 
-bool Serial::start()
-{
-    ActiveObject::start();
+void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg) {
+    RadioStatus *status = ModuleManager::getInstance().get<RadioStatus>();
 
-    return true;
-}
+    // TODO: Dispatch to correct radio using mavlink ids
 
-void Serial::sendMsg(const mavlink_message_t &msg)
-{
-    Lock<FastMutex> l(mutex);
-    uint8_t msg_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
-                    MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
-    int msg_len = mavlink_msg_to_send_buffer(msg_buf, &msg);
-
-    auto serial = miosix::DefaultConsole::instance().get();
-    serial->writeBlock(msg_buf, msg_len, 0);
-}
-
-void Serial::run()
-{
-    mavlink_message_t msg;
-    mavlink_status_t status;
-    uint8_t msg_buf[256];
-
-    while (!shouldStop())
+    if (status->isMainRadioPresent())
     {
-        auto serial = miosix::DefaultConsole::instance().get();
-        int rcv_len = serial->readBlock(msg_buf, sizeof(msg_buf), 0);
-
-        for (int i = 0; i < rcv_len; i++)
-        {
-            uint8_t parse_result =
-                mavlink_parse_char(MAVLINK_COMM_0, msg_buf[i], &msg, &status);
-
-            if (parse_result == 1)
-            {
-                // Dispatch the message through the hub.
-                ModuleManager::getInstance().get<Hub>()->dispatchOutgoingMsg(
-                    msg);
-            }
-        }
+        RadioMain *radio = ModuleManager::getInstance().get<RadioMain>();
+        radio->sendMsg(msg);
     }
+
+    if (status->isPayloadRadioPresent())
+    {
+        RadioPayload *radio = ModuleManager::getInstance().get<RadioPayload>();
+        radio->sendMsg(msg);
+    }
+}
+
+void Hub::dispatchIncomingMsg(const mavlink_message_t& msg) {
+    Serial* serial = ModuleManager::getInstance().get<Serial>();
+    serial->sendMsg(msg);
+
+    // TODO: Add UDP dispatch
 }
