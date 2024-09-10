@@ -28,13 +28,15 @@ namespace Antennas
 {
 namespace Config
 {
-constexpr float MIN_ANGLE_HORIZONTAL = -45.0;
-constexpr float MAX_ANGLE_HORIZONTAL = 1000000.0;
-constexpr float MAX_SPEED_HORIZONTAL = 1.3;
+constexpr float HORIZONTAL_MULTIPLIER = 2;
+constexpr float MIN_ANGLE_HORIZONTAL  = -90.0;
+constexpr float MAX_ANGLE_HORIZONTAL  = 90.0;
+constexpr float MAX_SPEED_HORIZONTAL  = 1.3;
 
-constexpr float MIN_ANGLE_VERTICAL = 0;
-constexpr float MAX_ANGLE_VERTICAL = 45.0;
-constexpr float MAX_SPEED_VERTICAL = 1.3;
+constexpr float VERTICAL_MULTIPLIER = 2;
+constexpr float MIN_ANGLE_VERTICAL  = 0;
+constexpr float MAX_ANGLE_VERTICAL  = 90.0;
+constexpr float MAX_SPEED_VERTICAL  = 1.3;
 
 namespace StepperConfig
 {
@@ -45,24 +47,24 @@ namespace StepperConfig
 // TIM4_CH1 PD12 AF2
 //      |
 // TIM8_CH4 PC9  AF3
-static TIM_TypeDef* const SERVO1_PULSE_TIM = TIM1;
-static TIM_TypeDef* const SERVO1_COUNT_TIM = TIM3;
+static TIM_TypeDef* const SERVO1_PULSE_TIM = TIM3;
+static TIM_TypeDef* const SERVO1_COUNT_TIM = TIM1;
 static TIM_TypeDef* const SERVO2_PULSE_TIM = TIM4;
 static TIM_TypeDef* const SERVO2_COUNT_TIM = TIM8;
 
 constexpr Boardcore::TimerUtils::Channel SERVO1_PULSE_CH =
-    Boardcore::TimerUtils::Channel::CHANNEL_4;
-constexpr Boardcore::TimerUtils::Channel SERVO1_COUNT_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
+constexpr Boardcore::TimerUtils::Channel SERVO1_COUNT_CH =
+    Boardcore::TimerUtils::Channel::CHANNEL_4;
 constexpr Boardcore::TimerUtils::Channel SERVO2_PULSE_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 constexpr Boardcore::TimerUtils::Channel SERVO2_COUNT_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_4;
 
 constexpr Boardcore::TimerUtils::TriggerSource SERVO1_PULSE_ITR =
-    Boardcore::TimerUtils::TriggerSource::ITR2;
-constexpr Boardcore::TimerUtils::TriggerSource SERVO1_COUNT_ITR =
     Boardcore::TimerUtils::TriggerSource::ITR0;
+constexpr Boardcore::TimerUtils::TriggerSource SERVO1_COUNT_ITR =
+    Boardcore::TimerUtils::TriggerSource::ITR2;
 constexpr Boardcore::TimerUtils::TriggerSource SERVO2_PULSE_ITR =
     Boardcore::TimerUtils::TriggerSource::ITR3;
 constexpr Boardcore::TimerUtils::TriggerSource SERVO2_COUNT_ITR =

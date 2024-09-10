@@ -22,6 +22,8 @@
 
 #include "Actuators.h"
 
+#include <interfaces-impl/hwmapping.h>
+
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 #include "ActuatorsConfig.h"
@@ -40,58 +42,32 @@ namespace Antennas
 //      |
 // TIM8_CH4 PC9  AF3
 
-GpioPin stepPinX      = GpioPin(GPIOD_BASE, 12);  // tim4_ch1
-GpioPin countPinX     = GpioPin(GPIOC_BASE, 9);   // tim8_ch4
-GpioPin directionPinX = GpioPin(GPIOD_BASE, 13);
-GpioPin enablePinX    = GpioPin(GPIOD_BASE, 3);
-
-GpioPin stepPinY      = GpioPin(GPIOA_BASE, 11);  // tim1_ch4
-GpioPin countPinY     = GpioPin(GPIOC_BASE, 7);   // tim3_ch2
-GpioPin directionPinY = GpioPin(GPIOA_BASE, 12);
-GpioPin enablePinY    = GpioPin(GPIOA_BASE, 8);
-
 GpioPin ledRGB = GpioPin(GPIOG_BASE, 14);
 
-CountedPWM countedPwmX(Config::StepperConfig::SERVO2_PULSE_TIM,
-                       Config::StepperConfig::SERVO2_PULSE_CH,
-                       Config::StepperConfig::SERVO2_PULSE_ITR,
-                       Config::StepperConfig::SERVO2_COUNT_TIM,
-                       Config::StepperConfig::SERVO2_COUNT_CH,
-                       Config::StepperConfig::SERVO2_COUNT_ITR);
-
-CountedPWM countedPwmY(Config::StepperConfig::SERVO1_PULSE_TIM,
+CountedPWM countedPwmX(Config::StepperConfig::SERVO1_PULSE_TIM,
                        Config::StepperConfig::SERVO1_PULSE_CH,
                        Config::StepperConfig::SERVO1_PULSE_ITR,
                        Config::StepperConfig::SERVO1_COUNT_TIM,
                        Config::StepperConfig::SERVO1_COUNT_CH,
                        Config::StepperConfig::SERVO1_COUNT_ITR);
 
+CountedPWM countedPwmY(Config::StepperConfig::SERVO2_PULSE_TIM,
+                       Config::StepperConfig::SERVO2_PULSE_CH,
+                       Config::StepperConfig::SERVO2_PULSE_ITR,
+                       Config::StepperConfig::SERVO2_COUNT_TIM,
+                       Config::StepperConfig::SERVO2_COUNT_CH,
+                       Config::StepperConfig::SERVO2_COUNT_ITR);
+
 Actuators::Actuators()
-    : stepperX(countedPwmX, stepPinX, directionPinX, 1, 1.8, false, 4,
-               Stepper::PinConfiguration::COMMON_CATHODE, enablePinX),
-      stepperY(countedPwmY, stepPinY, directionPinY, 1, 1.8, false, 4,
-               Stepper::PinConfiguration::COMMON_CATHODE, enablePinY)
+    : stepperX(countedPwmX, stepper1::pulseTimer::getPin(),
+               stepper1::direction::getPin(), 1, 1.8, false, 4,
+               Stepper::PinConfiguration::COMMON_CATHODE,
+               stepper1::enable::getPin()),
+      stepperY(countedPwmY, stepper2::pulseTimer::getPin(),
+               stepper2::direction::getPin(), 1, 1.8, false, 4,
+               Stepper::PinConfiguration::COMMON_CATHODE,
+               stepper2::enable::getPin())
 {
-    // set LED to Yellow
-
-    stepPinX.mode(Mode::ALTERNATE);
-    stepPinX.alternateFunction(2);
-    stepPinY.mode(Mode::ALTERNATE);
-    stepPinY.alternateFunction(1);
-
-    directionPinX.mode(Mode::OUTPUT);
-    enablePinX.mode(Mode::OUTPUT);
-    directionPinY.mode(Mode::OUTPUT);
-    enablePinY.mode(Mode::OUTPUT);
-
-#ifdef NO_SD_LOGGING
-    countPinX.mode(Mode::ALTERNATE);
-    countPinX.alternateFunction(3);
-    countPinY.mode(Mode::ALTERNATE);
-    countPinY.alternateFunction(2);
-#endif
-
-    // Set LED to GREEN
 }
 
 /**
@@ -187,7 +163,7 @@ void Actuators::moveDeg(StepperList axis, float degrees)
                           stepperX.getCurrentDegPosition();
             }
 
-            stepperX.moveDeg(degrees);
+            stepperX.moveDeg(degrees / Config::HORIZONTAL_MULTIPLIER);
             Logger::getInstance().log(stepperX.getState(degrees));
             break;
         case StepperList::VERTICAL:
@@ -204,7 +180,7 @@ void Actuators::moveDeg(StepperList axis, float degrees)
                           stepperY.getCurrentDegPosition();
             }
 
-            stepperY.moveDeg(degrees);
+            stepperY.moveDeg(degrees / Config::VERTICAL_MULTIPLIER);
             Logger::getInstance().log(stepperY.getState(degrees));
             break;
         default:
