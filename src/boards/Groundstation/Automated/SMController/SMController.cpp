@@ -502,7 +502,6 @@ State SMController::state_armed(const Event& event)
         {
             logStatus(SMControllerState::ARMED);
             ModuleManager::getInstance().get<Actuators>()->arm();
-            EventBroker::getInstance().post(ARP_ARMED, TOPIC_ARP);
             return HANDLED;
         }
         case EV_EXIT:
@@ -517,7 +516,7 @@ State SMController::state_armed(const Event& event)
         {
             return HANDLED;
         }
-        case ARP_ARMED:
+        case TMTC_ARP_FOLLOW:
         {
             return transition(&SMController::state_fix_antennas);
         }
@@ -733,7 +732,6 @@ State SMController::state_armed_nf(const Event& event)
         {
             logStatus(SMControllerState::ARMED_NF);
             ModuleManager::getInstance().get<Actuators>()->arm();
-            EventBroker::getInstance().post(ARP_ARMED, TOPIC_ARP);
             return HANDLED;
         }
         case EV_EXIT:
@@ -748,7 +746,7 @@ State SMController::state_armed_nf(const Event& event)
         {
             return HANDLED;
         }
-        case ARP_ARMED:
+        case TMTC_ARP_FOLLOW:
         {
             return transition(&SMController::state_fix_rocket_nf);
         }
