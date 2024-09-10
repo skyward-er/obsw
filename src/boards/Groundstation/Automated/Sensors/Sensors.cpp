@@ -54,7 +54,10 @@ bool Sensors::start()
 bool Sensors::vn300Init()
 {
     vn300 = new Boardcore::VN300(
-        ModuleManager::getInstance().get<Buses>()->usart2, 115200);
+        ModuleManager::getInstance().get<Buses>()->usart2, 115200,
+        VN300Defs::SampleOptions::ARP,
+        VNCommonSerial::CRCOptions::CRC_ENABLE_16);  ///< TODO: see that CRC
+                                                     ///< behaves correctly
 
     SensorInfo info("VN300", SAMPLE_PERIOD_VN300,
                     bind(&Sensors::vn300Callback, this));

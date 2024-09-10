@@ -36,7 +36,6 @@ namespace GroundstationBase
 class Hub : public Groundstation::HubBase
 {
 public:
-    Hub() {}
 
     /**
      * @brief Dispatch to the correct interface and outgoing packet (gs ->
