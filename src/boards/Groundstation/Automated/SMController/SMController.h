@@ -105,12 +105,12 @@ private:
      */
     void logStatus(SMControllerState state);
 
+    // Scheduler to be used for update function
+    Boardcore::TaskScheduler* scheduler;
+
     SMControllerStatus status;
     Boardcore::Propagator propagator;
     Antennas::Follower follower;
-
-    // Scheduler to be used for update function
-    Boardcore::TaskScheduler* scheduler = nullptr;
 
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("SMController");
