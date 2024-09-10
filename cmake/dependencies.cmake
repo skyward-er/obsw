@@ -45,8 +45,8 @@ set(MAIN_COMPUTER
 
 set(GROUNDSTATION_COMMON
     src/boards/Groundstation/Base/Radio/Radio.cpp
-    src/boards/Groundstation/Base/Radio/RadioStatus.cpp
     src/boards/Groundstation/Base/Ports/Ethernet.cpp
+    src/boards/Groundstation/Base/BoardStatus.cpp
     src/boards/Groundstation/Base/Hub.cpp
 )
 
