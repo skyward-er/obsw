@@ -47,7 +47,7 @@
         if (!_fun())                                                \
         {                                                           \
             LOG_ERR(logger, "Failed to start module " name);        \
-            leds->endlessBlink(LedColor::RED);                     \
+            leds->endlessBlink(LedColor::RED);                      \
         }                                                           \
         else                                                        \
         {                                                           \
