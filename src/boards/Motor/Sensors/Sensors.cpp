@@ -427,7 +427,7 @@ bool Sensors::sensorManagerInit()
 
     if (lps22df)
     {
-        SensorInfo lps22dfInfo{"LPS22DF", Config::Sensors::LPS22DF::PERIOD,
+        SensorInfo lps22dfInfo{"LPS22DF", Config::Sensors::LPS22DF::RATE,
                                [this]() { lps22dfCallback(); }};
         map.emplace(lps22df.get(), lps22dfInfo);
     }
@@ -435,29 +435,28 @@ bool Sensors::sensorManagerInit()
     if (h3lis331dl)
     {
         SensorInfo h3lis331dlInfo{"H3LIS331DL",
-                                  Config::Sensors::H3LIS331DL::PERIOD,
+                                  Config::Sensors::H3LIS331DL::RATE,
                                   [this]() { h3lis331dlCallback(); }};
         map.emplace(h3lis331dl.get(), h3lis331dlInfo);
     }
 
     if (lis2mdl)
     {
-        SensorInfo lis2mdlInfo{"LIS2MDL", Config::Sensors::LIS2MDL::PERIOD,
+        SensorInfo lis2mdlInfo{"LIS2MDL", Config::Sensors::LIS2MDL::RATE,
                                [this]() { lis2mdlCallback(); }};
         map.emplace(lis2mdl.get(), lis2mdlInfo);
     }
 
     if (lsm6dsrx)
     {
-        SensorInfo lsm6dsrxInfo{"LSM6DSRX", Config::Sensors::LSM6DSRX::PERIOD,
+        SensorInfo lsm6dsrxInfo{"LSM6DSRX", Config::Sensors::LSM6DSRX::RATE,
                                 [this]() { lsm6dsrxCallback(); }};
         map.emplace(lsm6dsrx.get(), lsm6dsrxInfo);
     }
 
     if (ads131m08)
     {
-        SensorInfo ads131m08Info{"ADS131M08",
-                                 Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo ads131m08Info{"ADS131M08", Config::Sensors::ADS131M08::RATE,
                                  [this]() { ads131m08Callback(); }};
         map.emplace(ads131m08.get(), ads131m08Info);
     }
@@ -465,36 +464,35 @@ bool Sensors::sensorManagerInit()
     if (internalAdc)
     {
         SensorInfo internalAdcInfo{"InternalADC",
-                                   Config::Sensors::InternalADC::PERIOD,
+                                   Config::Sensors::InternalADC::RATE,
                                    [this]() { internalAdcCallback(); }};
         map.emplace(internalAdc.get(), internalAdcInfo);
     }
 
     if (topTankPressure)
     {
-        SensorInfo info{"TopTankPressure", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"TopTankPressure", Config::Sensors::ADS131M08::RATE,
                         [this]() { topTankPressureCallback(); }};
         map.emplace(std::make_pair(topTankPressure.get(), info));
     }
 
     if (bottomTankPressure)
     {
-        SensorInfo info{"BottomTankPressure",
-                        Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"BottomTankPressure", Config::Sensors::ADS131M08::RATE,
                         [this]() { bottomTankPressureCallback(); }};
         map.emplace(std::make_pair(bottomTankPressure.get(), info));
     }
 
     if (ccPressure)
     {
-        SensorInfo info{"CCPressure", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"CCPressure", Config::Sensors::ADS131M08::RATE,
                         [this]() { ccPressureCallback(); }};
         map.emplace(std::make_pair(ccPressure.get(), info));
     }
 
     if (tankTemp)
     {
-        SensorInfo info{"TankTemp", Config::Sensors::ADS131M08::PERIOD,
+        SensorInfo info{"TankTemp", Config::Sensors::ADS131M08::RATE,
                         [this]() { tankTempCallback(); }};
         map.emplace(std::make_pair(tankTemp.get(), info));
     }

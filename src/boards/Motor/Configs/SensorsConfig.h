@@ -44,7 +44,7 @@ namespace LPS22DF
 constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
 constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
 
-constexpr Hertz PERIOD = 50_hz;  // [ms] 50Hz
+constexpr Hertz RATE   = 50_hz;  // [ms] 50Hz
 constexpr bool ENABLED = true;
 }  // namespace LPS22DF
 
@@ -54,7 +54,7 @@ constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
     Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
 constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
     Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-constexpr Hertz PERIOD = 100_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace H3LIS331DL
 
@@ -124,7 +124,7 @@ constexpr Boardcore::ADS131M08Defs::Channel TANK_BOTTOM_PT_CHANNEL =
 constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
 
-constexpr Hertz PERIOD = 100_hz;
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace ADS131M08
 
@@ -145,10 +145,10 @@ constexpr float ENGINE_MAX_PRESSURE      = 40;   // bar
 namespace Kulite
 {
 // TODO: This needs to be properly calibrated
-constexpr float TANK_P0_VOLTAGE = 0.0f;
-constexpr float TANK_P0_TEMP    = 0.0f;
-constexpr float TANK_P1_VOLTAGE = 1.0f;
-constexpr float TANK_P1_TEMP    = 1.0f;
+constexpr float TANK_P0_VOLTAGE = 0.3917f;
+constexpr float TANK_P0_TEMP    = 31.0f;
+constexpr float TANK_P1_VOLTAGE = 0.4043f;
+constexpr float TANK_P1_TEMP    = 38.0f;
 }  // namespace Kulite
 
 namespace InternalADC
@@ -158,7 +158,7 @@ constexpr Boardcore::InternalADC::Channel VBAT_CH =
 
 constexpr float VBAT_SCALE = 9040.0f / 3000.0f;
 
-constexpr Hertz PERIOD = 10_hz;
+constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 

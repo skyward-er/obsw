@@ -56,19 +56,4 @@ struct CCPressureData : Boardcore::PressureData
     CCPressureData() {}
 };
 
-struct KuliteTemperatureData : Boardcore::TemperatureData
-{
-    explicit KuliteTemperatureData(const Boardcore::TemperatureData &data)
-        : Boardcore::TemperatureData{data}
-    {
-    }
-
-    KuliteTemperatureData(uint64_t temperatureTimestamp, float temperature)
-        : Boardcore::TemperatureData{temperatureTimestamp, temperature}
-    {
-    }
-
-    KuliteTemperatureData() {}
-};
-
 }  // namespace Motor

@@ -30,7 +30,7 @@
 namespace Motor
 {
 
-class KuliteThermocouple : public Boardcore::Sensor<KuliteTemperatureData>
+class KuliteThermocouple : public Boardcore::Sensor<Boardcore::TemperatureData>
 {
 public:
     KuliteThermocouple(std::function<Boardcore::ADCData()> getVoltage,
@@ -47,10 +47,10 @@ public:
     bool selfTest() override { return true; }
 
 protected:
-    KuliteTemperatureData sampleImpl() override
+    Boardcore::TemperatureData sampleImpl() override
     {
         auto voltage = getVoltage();
-        auto temp    = voltage.voltage * scale - offset;
+        auto temp    = voltage.voltage * scale + offset;
 
         return {voltage.voltageTimestamp, temp};
     }
