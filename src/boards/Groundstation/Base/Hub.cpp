@@ -24,6 +24,7 @@
 
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Base/Radio/RadioStatus.h>
 
@@ -62,5 +63,6 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     Serial* serial = ModuleManager::getInstance().get<Serial>();
     serial->sendMsg(msg);
 
-    // TODO: Add UDP dispatch
+    Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
+    ethernet->sendMsg(msg);
 }
