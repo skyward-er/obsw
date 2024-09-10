@@ -85,7 +85,7 @@ constexpr auto KI = 0.05f;
 
 namespace Guidance
 {
-constexpr auto CONFIDENCE                = 15;   // [samples]
+constexpr auto CONFIDENCE                = 10;   // [samples]
 constexpr auto M1_ALTITUDE_THRESHOLD     = 250;  // [m]
 constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]

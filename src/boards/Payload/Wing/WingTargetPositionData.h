@@ -55,4 +55,18 @@ struct WingTargetPositionData
     }
 };
 
+struct EarlyManeuversActiveTargetData
+{
+    uint64_t timestamp = 0;
+    uint32_t target    = 0;  ///< Active target enumeration
+    float altitude     = 0;  ///< Altitude when the target was changed
+
+    static std::string header() { return "timestamp,target,altitude\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << target << "," << altitude << "\n";
+    }
+};
+
 }  // namespace Payload

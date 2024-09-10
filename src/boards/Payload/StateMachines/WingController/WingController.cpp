@@ -324,6 +324,27 @@ bool WingController::start()
         return false;
     }
 
+    auto activeTargetTask = scheduler.addTask(
+        [this]
+        {
+            // Do not update the active target if the wing is not flying
+            if (!running)
+            {
+                return;
+            }
+
+            auto nasState  = getModule<NASController>()->getNasState();
+            float altitude = -nasState.d;
+            emGuidance.updateActiveTarget(altitude);
+        },
+        10_hz);
+
+    if (activeTargetTask == 0)
+    {
+        LOG_ERR(logger, "Failed to add early maneuver active target task");
+        return false;
+    }
+
     if (!HSM::start())
     {
         LOG_ERR(logger, "Failed to start WingController HSM active object");
@@ -482,8 +503,8 @@ WingAlgorithm& WingController::getCurrentAlgorithm()
 
 void WingController::startAlgorithm()
 {
-    running = true;
     updateEarlyManeuverPoints();
+    running = true;
 
     getCurrentAlgorithm().begin();
 }

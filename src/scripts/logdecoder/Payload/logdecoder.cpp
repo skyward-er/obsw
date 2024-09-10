@@ -71,7 +71,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<WingControllerAlgorithmData>();
     ds.registerType<WingAlgorithmData>();
     ds.registerType<WingTargetPositionData>();
-    ds.registerType<WindLogging>();
+    ds.registerType<EarlyManeuversActiveTargetData>();
 }
 
 // cppcheck-suppress passedByValue

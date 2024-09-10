@@ -51,12 +51,18 @@ struct EarlyManeuversPoints
  */
 class EarlyManeuversGuidanceAlgorithm : public GuidanceAlgorithm
 {
-
 public:
     /**
-     * @brief Constructor for the EM Algorithm
-     *
+     * @brief Enumerates all the possible targets of the EM algorithm
      */
+    enum class Target : uint32_t
+    {
+        EMC = 0,
+        M1,
+        M2,
+        FINAL
+    };
+
     EarlyManeuversGuidanceAlgorithm();
 
     virtual ~EarlyManeuversGuidanceAlgorithm();
@@ -71,7 +77,6 @@ public:
      * @param[out] heading Saves the heading vector for logging purposes
      *
      * @returns the yaw angle of the parafoil in rad
-     *
      */
     float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
                                Eigen::Vector2f& heading) override;
@@ -82,7 +87,6 @@ public:
      * @param[in] EMC NED
      * @param[in] M1 NED
      * @param[in] M2 NED
-     *
      */
     void setPoints(Eigen::Vector2f targetNED, Eigen::Vector2f EMC,
                    Eigen::Vector2f M1, Eigen::Vector2f M2);
@@ -98,38 +102,24 @@ public:
      */
     Eigen::Vector2f getActiveTarget();
 
-private:
-    /** @brief Updates the class target
-     *
-     */
-    void computeActiveTarget(float altitude);
-
     /**
-     * @brief Enumerates all the possible targets of the EM algorithm
+     * @brief Updates the active target based on the current altitude.
      */
-    enum class Target
-    {
-        EMC = 0,
-        M1,
-        M2,
-        FINAL
-    };
+    void updateActiveTarget(float altitude);
 
+private:
     // Point we are currently poinying to
     std::atomic<Target> activeTarget;
 
-    // Eigen::Vector2f targetNED;  // NED
-
+    // Eigen::Vector2f targetNED;  // NED, defined in the base class
     Eigen::Vector2f EMC;  // NED
+    Eigen::Vector2f M1;   // NED
+    Eigen::Vector2f M2;   // NED
 
-    Eigen::Vector2f M1;  // NED
-
-    Eigen::Vector2f M2;  // NED
-
-    unsigned int targetAltitudeConfidence;
-    unsigned int m2AltitudeConfidence;
-    unsigned int m1AltitudeConfidence;
-    unsigned int emcAltitudeConfidence;
+    uint32_t targetAltitudeConfidence;
+    uint32_t m2AltitudeConfidence;
+    uint32_t m1AltitudeConfidence;
+    uint32_t emcAltitudeConfidence;
 };
 
 }  // namespace Payload

@@ -22,9 +22,13 @@
 
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
+#include <Payload/Wing/WingTargetPositionData.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <logger/Logger.h>
 
 #include <Eigen/Core>
 
+using namespace Boardcore;
 using namespace Payload::Config::Wing;
 
 namespace Payload
@@ -40,10 +44,6 @@ EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
 float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
-    float altitude = abs(currentPositionNED[2]);
-
-    computeActiveTarget(altitude);
-
     switch (activeTarget)
     {
         case Target::EMC:
@@ -67,7 +67,7 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     return atan2(heading[1], heading[0]);
 }
 
-void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
+void EarlyManeuversGuidanceAlgorithm::updateActiveTarget(float altitude)
 {
     if (altitude <=
         Guidance::TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head directly
@@ -90,22 +90,25 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         emcAltitudeConfidence++;  // Altitude is too high, head to the emc
     }
 
-    switch (activeTarget)
+    auto currentTarget = activeTarget.load();
+    auto newTarget     = currentTarget;
+
+    switch (currentTarget)
     {
         case Target::EMC:
             if (targetAltitudeConfidence >= Guidance::CONFIDENCE)
             {
-                activeTarget          = Target::FINAL;
+                newTarget             = Target::FINAL;
                 emcAltitudeConfidence = 0;
             }
             else if (m2AltitudeConfidence >= Guidance::CONFIDENCE)
             {
-                activeTarget          = Target::M2;
+                newTarget             = Target::M2;
                 emcAltitudeConfidence = 0;
             }
             else if (m1AltitudeConfidence >= Guidance::CONFIDENCE)
             {
-                activeTarget          = Target::M1;
+                newTarget             = Target::M1;
                 emcAltitudeConfidence = 0;
             }
             break;
@@ -113,12 +116,12 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         case Target::M1:
             if (targetAltitudeConfidence >= Guidance::CONFIDENCE)
             {
-                activeTarget         = Target::FINAL;
+                newTarget            = Target::FINAL;
                 m1AltitudeConfidence = 0;
             }
             else if (m2AltitudeConfidence >= Guidance::CONFIDENCE)
             {
-                activeTarget         = Target::M2;
+                newTarget            = Target::M2;
                 m1AltitudeConfidence = 0;
             }
             break;
@@ -126,13 +129,26 @@ void EarlyManeuversGuidanceAlgorithm::computeActiveTarget(float altitude)
         case Target::M2:
             if (targetAltitudeConfidence >= Guidance::CONFIDENCE)
             {
-                activeTarget         = Target::FINAL;
+                newTarget            = Target::FINAL;
                 m2AltitudeConfidence = 0;
             }
             break;
 
         case Target::FINAL:
             break;
+    }
+
+    if (newTarget != currentTarget)
+    {
+        activeTarget = newTarget;
+
+        // Log the active target change
+        auto data = EarlyManeuversActiveTargetData{
+            .timestamp = TimestampTimer::getTimestamp(),
+            .target    = static_cast<uint32_t>(newTarget),
+            .altitude  = altitude,
+        };
+        Logger::getInstance().log(data);
     }
 }
 
