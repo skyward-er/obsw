@@ -23,9 +23,9 @@
 #include "BoardStatus.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
+#include <Groundstation/Automated/SMController/SMController.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/HubBase.h>
@@ -70,7 +70,7 @@ void BoardStatus::run()
 
         Actuators *actuators = ModuleManager::getInstance().get<Actuators>();
         AntennaAngles targetAngles =
-            ModuleManager::getInstance().get<Follower>()->getTargetAngles();
+            ModuleManager::getInstance().get<SMController>()->getTargetAngles();
 
         mavlink_arp_tm_t tm = {0};
         tm.timestamp    = TimestampTimer::getTimestamp(); /*< [us] Timestamp*/
