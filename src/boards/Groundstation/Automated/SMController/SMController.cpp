@@ -63,19 +63,19 @@ bool SMController::start()
     result = scheduler->addTask(bind(&Propagator::update, &propagator),
                                 PropagatorConfig::PROPAGATOR_PERIOD,
                                 TaskScheduler::Policy::RECOVER);
-    ok &= result == 0;
+    ok &= result != 0;
 
     // add the Follower task
     result = scheduler->addTask(bind(&Follower::update, &follower),
                                 FollowerConfig::FOLLOWER_PERIOD,
                                 TaskScheduler::Policy::RECOVER);
-    ok &= result == 0;
+    ok &= result != 0;
 
     // add the update task
     result = scheduler->addTask(bind(&SMController::update, this),
                                 SMControllerConfig::UPDATE_PERIOD,
                                 TaskScheduler::Policy::SKIP);
-    ok &= result == 0;
+    ok &= result != 0;
 
     return ActiveObject::start() && ok;
 }
