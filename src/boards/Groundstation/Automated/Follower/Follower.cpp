@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Emilio Corigliano, Niccolò Betto
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano, Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,10 +102,9 @@ void Follower::step()
                                      (360 * FollowerConfig::FOLLOWER_PERIOD));
 
 #ifndef NDEBUG
-    std::cout << "[FOLLOWER] STEPPER "
-              << "Angles: [" << stepperAngles.yaw << ", " << stepperAngles.pitch
-              << "] "
-              << "Speed: [" << horizontalSpeed << ", " << verticalSpeed
+    std::cout << "[FOLLOWER] STEPPER " << "Angles: [" << stepperAngles.yaw
+              << ", " << stepperAngles.pitch << "] " << "Speed: ["
+              << horizontalSpeed << ", " << verticalSpeed
               << "]   VN300 measure: [" << vn300.yaw << ", " << vn300.pitch
               << "]\n";
 #endif
