@@ -21,10 +21,12 @@
  */
 
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
+#include <algorithms/NAS/NASState.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
-#include <tscpp/stream.h>
+#include <sensors/SensorData.h>
 #include <sensors/VN300/VN300Data.h>
+#include <tscpp/stream.h>
 
 #include <fstream>
 #include <iostream>
@@ -54,6 +56,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<StepperXData>();
     ds.registerType<StepperYData>();
     ds.registerType<VN300Data>();
+    ds.registerType<NASState>();
+    ds.registerType<GPSData>();
 }
 
 void showUsage(const string& cmdName)
