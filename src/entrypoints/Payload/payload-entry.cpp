@@ -246,9 +246,12 @@ int main()
     }
     std::cout.flush();
 
+    auto& sdLogger = Logger::getInstance();
+
     // Collect stack usage statistics
     while (true)
     {
+        sdLogger.log(sdLogger.getStats());
         StackLogger::getInstance().log();
         Thread::sleep(1000);
     }
