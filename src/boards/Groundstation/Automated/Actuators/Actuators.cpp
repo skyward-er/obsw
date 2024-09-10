@@ -74,12 +74,21 @@ Actuators::Actuators()
 }
 
 /**
- * @brief Enables all the stepperPWM
+ * @brief Dummy start for actuators
+ * @note The real enable is done by the `arm()` method
  */
-void Actuators::start()
+void Actuators::start() {}
+
+void Actuators::arm()
 {
     stepperX.enable();
     stepperY.enable();
+}
+
+void Actuators::disarm()
+{
+    stepperX.disable();
+    stepperY.disable();
 }
 
 void Actuators::setSpeed(StepperList axis, float speed)
