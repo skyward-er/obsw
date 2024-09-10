@@ -69,6 +69,13 @@ constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
 constexpr auto STRAIGHT_FLIGHT_TIMEOUT = 15s;
 constexpr auto UPDATE_RATE             = 1_hz;
 
+constexpr auto CUTTERS_TIMEOUT = 1s;
+
+constexpr auto FLARE_WAIT     = 5s;  ///< Time to wait before the first flare
+constexpr auto FLARE_COUNT    = 2;   ///< Number of flares
+constexpr auto FLARE_DURATION = 2s;  ///< Duration of the flare maneuver
+constexpr auto FLARE_INTERVAL = 1s;  ///< Interval between two flares
+
 namespace PI
 {
 constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
@@ -85,8 +92,6 @@ constexpr auto M1_ALTITUDE_THRESHOLD     = 250;  // [m]
 constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
 }  // namespace Guidance
-
-constexpr float TWIRL_RADIUS = 0.5;  // [%]
 
 }  // namespace Wing
 

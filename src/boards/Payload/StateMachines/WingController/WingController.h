@@ -87,7 +87,7 @@ public:
     // HSM states
     Boardcore::State Idle(const Boardcore::Event& event);
     Boardcore::State Flying(const Boardcore::Event& event);
-    Boardcore::State FlyingCalibration(const Boardcore::Event& event);
+    Boardcore::State FlyingDeployment(const Boardcore::Event& event);
     Boardcore::State FlyingControlledDescent(const Boardcore::Event& event);
     Boardcore::State OnGround(const Boardcore::Event& event);
 
@@ -242,6 +242,11 @@ private:
      * AutomaticWingAlgorithm
      */
     ClosedLoopGuidanceAlgorithm clGuidance;
+
+    uint16_t cuttersOffEventId = 0;
+    uint16_t flareEventId      = 0;
+
+    uint32_t flareCount = Config::Wing::FLARE_COUNT;
 
     std::atomic<bool> started{false};
     std::atomic<bool> running{false};  ///< Whether the algorithm is running

@@ -33,7 +33,7 @@ enum class WingControllerState : uint8_t
 {
     UNINIT = 0,
     IDLE,
-    FLYING_CALIBRATION,
+    FLYING_DEPLOYMENT,
     FLYING_CONTROLLED_DESCENT,
     ON_GROUND,
     END

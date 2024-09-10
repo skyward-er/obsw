@@ -79,13 +79,6 @@ State WingController::Idle(const Boardcore::Event& event)
 
         case FLIGHT_WING_DESCENT:
         {
-            auto nasState  = getModule<NASController>()->getNasState();
-            float altitude = -nasState.d;
-
-            getModule<Actuators>()->cuttersOn();
-            getModule<FlightStatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), altitude);
-
             return transition(&WingController::Flying);
         }
 
@@ -112,6 +105,13 @@ State WingController::Flying(const Event& event)
 
         case EV_EXIT:
         {
+            if (cuttersOffEventId != 0)
+            {
+                EventBroker::getInstance().removeDelayed(cuttersOffEventId);
+            }
+
+            getModule<Actuators>()->cuttersOff();
+
             return HANDLED;
         }
 
@@ -122,7 +122,13 @@ State WingController::Flying(const Event& event)
 
         case EV_INIT:
         {
-            return transition(&WingController::FlyingCalibration);
+            return transition(&WingController::FlyingDeployment);
+        }
+
+        case DPL_CUT_TIMEOUT:
+        {
+            getModule<Actuators>()->cuttersOff();
+            return HANDLED;
         }
 
         case FLIGHT_LANDING_DETECTED:
@@ -137,26 +143,38 @@ State WingController::Flying(const Event& event)
     }
 }
 
-State WingController::FlyingCalibration(const Boardcore::Event& event)
+State WingController::FlyingDeployment(const Boardcore::Event& event)
 {
-    static uint16_t calibrationTimeoutEventId;
-
     switch (event)
     {
-        case EV_ENTRY:  // starts twirling and calibration wes
+        case EV_ENTRY:
         {
-            updateState(WingControllerState::FLYING_CALIBRATION);
+            updateState(WingControllerState::FLYING_DEPLOYMENT);
 
-            flareWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_SERVO_ACTUATION_DETECTED, TOPIC_DPL, 2000);
+            getModule<Actuators>()->cuttersOn();
+            cuttersOffEventId = EventBroker::getInstance().postDelayed(
+                DPL_CUT_TIMEOUT, TOPIC_DPL,
+                milliseconds{CUTTERS_TIMEOUT}.count());
+
+            auto nasState  = getModule<NASController>()->getNasState();
+            float altitude = -nasState.d;
+            getModule<FlightStatsRecorder>()->deploymentDetected(
+                TimestampTimer::getTimestamp(), altitude);
+
+            flareEventId = EventBroker::getInstance().postDelayed(
+                DPL_FLARE_START, TOPIC_DPL, milliseconds{FLARE_WAIT}.count());
 
             return HANDLED;
         }
 
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(calibrationTimeoutEventId);
+            if (flareEventId != 0)
+            {
+                EventBroker::getInstance().removeDelayed(flareEventId);
+            }
+            resetWing();
+
             return HANDLED;
         }
 
@@ -165,41 +183,37 @@ State WingController::FlyingCalibration(const Boardcore::Event& event)
             return tranSuper(&WingController::Flying);
         }
 
-        case DPL_SERVO_ACTUATION_DETECTED:
-        {
-            resetWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_WIGGLE, TOPIC_DPL, 1000);
-
-            return HANDLED;
-        }
-
-        case DPL_WIGGLE:
+        case DPL_FLARE_START:
         {
             flareWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_NC_OPEN, TOPIC_DPL, 2000);
+            flareEventId = EventBroker::getInstance().postDelayed(
+                DPL_FLARE_STOP, TOPIC_DPL,
+                milliseconds{FLARE_DURATION}.count());
 
             return HANDLED;
         }
 
-        case DPL_NC_OPEN:
+        case DPL_FLARE_STOP:
         {
             resetWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_WES_CAL_DONE, TOPIC_DPL,
-                milliseconds{Config::WES::ROTATION_PERIOD}.count());
-            getModule<WindEstimation>()->startWindEstimationSchemeCalibration();
+            flareCount--;
 
-            twirlWing();
+            if (flareCount > 0)
+            {
+                flareEventId = EventBroker::getInstance().postDelayed(
+                    DPL_FLARE_START, TOPIC_DPL,
+                    milliseconds{FLARE_INTERVAL}.count());
+            }
+            else
+            {
+                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+            }
 
             return HANDLED;
         }
 
-        case DPL_WES_CAL_DONE:
+        case DPL_DONE:
         {
-            resetWing();
-
             return transition(&WingController::FlyingControlledDescent);
         }
 
@@ -254,8 +268,8 @@ State WingController::OnGround(const Boardcore::Event& event)
             getModule<WindEstimation>()->stopWindEstimationScheme();
             getModule<WindEstimation>()->stopWindEstimationSchemeCalibration();
             stopAlgorithm();
+            resetWing();
 
-            // disable servos
             getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
             getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
 
@@ -512,7 +526,6 @@ void WingController::stopAlgorithm()
         running = false;
 
         getCurrentAlgorithm().end();
-        resetWing();
     }
 }
 
@@ -587,12 +600,6 @@ void WingController::flareWing()
 {
     getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 1.0f);
     getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 1.0f);
-}
-
-void WingController::twirlWing()
-{
-    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, TWIRL_RADIUS);
-    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 0.0f);
 }
 
 void WingController::resetWing()
