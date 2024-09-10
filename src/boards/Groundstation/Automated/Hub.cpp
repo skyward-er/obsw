@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor, Federico Lolli
+ * Author: Davide Mor, Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -94,8 +94,12 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             float angle = mavlink_msg_set_stepper_angle_tc_get_angle(&msg);
 
             // The stepper is moved of 'angle' degrees
-            modules.get<SMController>()->moveStepperDeg(stepperId, angle);
-            sendAck(msg);
+            ErrorMovement moved =
+                modules.get<SMController>()->moveStepperDeg(stepperId, angle);
+            if (moved == ErrorMovement::OK)
+                sendAck(msg);
+            else
+                sendNack(msg);
             break;
         }
         case MAVLINK_MSG_ID_SET_STEPPER_STEPS_TC:
@@ -106,8 +110,12 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             int16_t steps = mavlink_msg_set_stepper_steps_tc_get_steps(&msg);
 
             // The stepper is moved of 'steps' steps
-            modules.get<SMController>()->moveStepperSteps(stepperId, steps);
-            sendAck(msg);
+            ErrorMovement moved =
+                modules.get<SMController>()->moveStepperSteps(stepperId, steps);
+            if (moved == ErrorMovement::OK)
+                sendAck(msg);
+            else
+                sendNack(msg);
             break;
         }
         case MAVLINK_MSG_ID_SET_ROCKET_COORDINATES_ARP_TC:

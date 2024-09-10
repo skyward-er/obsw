@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -151,7 +151,7 @@ float Actuators::getCurrentDegPosition(StepperList axis)
     return 0;
 }
 
-void Actuators::move(StepperList axis, int16_t steps)
+ErrorMovement Actuators::move(StepperList axis, int16_t steps)
 {
     float microstepping = 1.0;
     float step_angle    = 1.8;
@@ -170,10 +170,11 @@ void Actuators::move(StepperList axis, int16_t steps)
             assert(false && "Non existent stepper");
             break;
     }
-    moveDeg(axis, static_cast<float>(steps) * step_angle / microstepping);
+    return moveDeg(axis,
+                   static_cast<float>(steps) * step_angle / microstepping);
 }
 
-void Actuators::moveDeg(StepperList axis, float degrees)
+ErrorMovement Actuators::moveDeg(StepperList axis, float degrees)
 {
     if (emergencyStop)
     {
@@ -192,17 +193,24 @@ void Actuators::moveDeg(StepperList axis, float degrees)
                 break;
         }
 
-        return;
+        return ErrorMovement::EMERGENCY_STOP;
     }
 
+    ErrorMovement actuationState =
+        ErrorMovement::OK;  //< In case the move command is not limited
     float positionDeg = getCurrentDegPosition(axis);
     switch (axis)
     {
         case StepperList::STEPPER_X:
+
+            if (!stepperX.isEnabled())
+                return ErrorMovement::DISABLED;
+
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_HORIZONTAL)
             {
-                degrees = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
+                degrees        = Config::MAX_ANGLE_HORIZONTAL - positionDeg;
+                actuationState = ErrorMovement::LIMIT;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_HORIZONTAL)
             {
@@ -215,10 +223,15 @@ void Actuators::moveDeg(StepperList axis, float degrees)
             deltaX = degrees;
             break;
         case StepperList::STEPPER_Y:
+
+            if (!stepperY.isEnabled())
+                return ErrorMovement::DISABLED;
+
             // LIMIT POSITION IN ACCEPTABLE RANGE
             if (positionDeg + degrees > Config::MAX_ANGLE_VERTICAL)
             {
-                degrees = Config::MAX_ANGLE_VERTICAL - positionDeg;
+                degrees        = Config::MAX_ANGLE_VERTICAL - positionDeg;
+                actuationState = ErrorMovement::LIMIT;
             }
             else if (positionDeg + degrees < Config::MIN_ANGLE_VERTICAL)
             {
@@ -232,11 +245,13 @@ void Actuators::moveDeg(StepperList axis, float degrees)
             break;
         default:
             assert(false && "Non existent stepper");
+            actuationState = ErrorMovement::NO_STEPPER;
             break;
     }
+    return actuationState;
 }
 
-void Actuators::setPosition(StepperList axis, int16_t steps)
+ErrorMovement Actuators::setPosition(StepperList axis, int16_t steps)
 {
 
     float microstepping = 1.0;
@@ -244,25 +259,30 @@ void Actuators::setPosition(StepperList axis, int16_t steps)
     switch (axis)
     {
         case StepperList::STEPPER_X:
+            if (!stepperX.isEnabled())
+                return ErrorMovement::DISABLED;
             microstepping =
                 static_cast<float>(Config::HORIZONTAL_MICROSTEPPING);
             step_angle = Config::HORIZONTAL_STEP_ANGLE;
             break;
         case StepperList::STEPPER_Y:
+            if (!stepperY.isEnabled())
+                return ErrorMovement::DISABLED;
             microstepping = static_cast<float>(Config::VERTICAL_MICROSTEPPING);
             step_angle    = Config::VERTICAL_STEP_ANGLE;
             break;
         default:
             assert(false && "Non existent stepper");
+            return ErrorMovement::NO_STEPPER;
             break;
     }
-    setPositionDeg(axis,
-                   static_cast<float>(steps) * step_angle / microstepping);
+    return setPositionDeg(
+        axis, static_cast<float>(steps) * step_angle / microstepping);
 }
 
-void Actuators::setPositionDeg(StepperList axis, float positionDeg)
+ErrorMovement Actuators::setPositionDeg(StepperList axis, float positionDeg)
 {
-    moveDeg(axis, positionDeg - getCurrentDegPosition(axis));
+    return moveDeg(axis, positionDeg - getCurrentDegPosition(axis));
 }
 
 void Actuators::IRQemergencyStop()
