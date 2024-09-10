@@ -370,13 +370,13 @@ State SMController::state_init_error(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::INIT_ERROR);
-            ModuleManager::getInstance().get<Leds>()->set_blinking(
+            ModuleManager::getInstance().get<Leds>()->setBlinking(
                 LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            ModuleManager::getInstance().get<Leds>()->set_off(LedColor::RED);
+            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::RED);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -409,7 +409,7 @@ State SMController::state_init_done(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::INIT_DONE);
-            ModuleManager::getInstance().get<Leds>()->set_on(LedColor::GREEN);
+            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::GREEN);
             return HANDLED;
         }
         case EV_EXIT:
@@ -582,14 +582,14 @@ State SMController::state_fix_antennas(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ANTENNAS);
-            ModuleManager::getInstance().get<Leds>()->set_blinking(
+            ModuleManager::getInstance().get<Leds>()->setBlinking(
                 LedColor::ORANGE);
             return HANDLED;
         }
         case EV_EXIT:
         {
             auto* leds = ModuleManager::getInstance().get<Leds>();
-            leds->set_on(LedColor::ORANGE);
+            leds->setOn(LedColor::ORANGE);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -622,14 +622,14 @@ State SMController::state_fix_rocket(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ROCKET);
-            ModuleManager::getInstance().get<Leds>()->set_blinking(
+            ModuleManager::getInstance().get<Leds>()->setBlinking(
                 LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
         {
             auto* leds = ModuleManager::getInstance().get<Leds>();
-            leds->set_off(LedColor::YELLOW);
+            leds->setOff(LedColor::YELLOW);
 
             // init the follower before leaving the state
             // (compute initial arp-rocket distance and bearing)
@@ -638,7 +638,7 @@ State SMController::state_fix_rocket(const Event& event)
                 LOG_ERR(logger, "Follower initialization failed");
             }
 
-            leds->set_on(LedColor::YELLOW);
+            leds->setOn(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -775,14 +775,14 @@ State SMController::state_fix_rocket_nf(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::FIX_ROCKET_NF);
-            ModuleManager::getInstance().get<Leds>()->set_blinking(
+            ModuleManager::getInstance().get<Leds>()->setBlinking(
                 LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
         {
             auto* leds = ModuleManager::getInstance().get<Leds>();
-            leds->set_off(LedColor::YELLOW);
+            leds->setOff(LedColor::YELLOW);
 
             // init the follower before leaving the state
             // (compute initial arp-rocket distance and bearing)
@@ -791,7 +791,7 @@ State SMController::state_fix_rocket_nf(const Event& event)
                 LOG_ERR(logger, "Follower initialization failed");
             }
 
-            leds->set_on(LedColor::YELLOW);
+            leds->setOn(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EMPTY:
