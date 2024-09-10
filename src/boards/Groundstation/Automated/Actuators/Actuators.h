@@ -198,10 +198,8 @@ private:
     Boardcore::StepperPWM stepperY;
 
     // Flags indicating if the multipliers have been set
-    bool multiplierX_set = false;
-    bool multiplierY_set = false;
-    float multiplierX    = 2.2f;  // Multiplier for the stepper X
-    float multiplierY    = 2.2f;  // Multiplier for the stepper Y
+    float multiplierX = 2.2f;  // Multiplier for the stepper X
+    float multiplierY = 2.2f;  // Multiplier for the stepper Y
 
     float deltaX = 0.0f;  // Delta angle to perform [deg]
     float deltaY = 0.0f;  // Delta angle to perform [deg]
