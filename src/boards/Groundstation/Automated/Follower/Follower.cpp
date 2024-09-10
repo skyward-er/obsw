@@ -41,7 +41,8 @@ Follower::Follower()
     : antennaCoordinates(
           Common::ReferenceConfig::defaultReferenceValues.refLatitude,
           Common::ReferenceConfig::defaultReferenceValues.refLongitude,
-          Common::ReferenceConfig::defaultReferenceValues.refAltitude)
+          Common::ReferenceConfig::defaultReferenceValues.refAltitude),
+      targetAngles({0, 0})
 {
 }
 
