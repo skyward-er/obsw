@@ -97,9 +97,8 @@ int main()
         });
     ButtonHandler::getInstance().start();
 
-    TaskScheduler *scheduler_low  = new TaskScheduler(0);
     TaskScheduler *scheduler_high = new TaskScheduler();
-    Leds *leds                    = new Leds(scheduler_low);
+    Leds *leds                    = new Leds();
     Hub *hub                      = new Hub();
     Buses *buses                  = new Buses();
     Serial *serial                = new Serial();
@@ -140,7 +139,6 @@ int main()
 #ifndef NO_SD_LOGGING
         START_MODULE("Logger", [&] { return Logger::getInstance().start(); });
 #endif
-        START_MODULE("Scheduler", [&] { return scheduler_low->start(); });
         START_MODULE("Scheduler", [&] { return scheduler_high->start(); });
         START_MODULE("Serial", [&] { return serial->start(); });
         START_MODULE("Main Radio", [&] { return radio_main->start(); });

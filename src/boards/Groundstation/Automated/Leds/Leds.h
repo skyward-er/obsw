@@ -22,11 +22,10 @@
 
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
+#include <ActiveObject.h>
 
 #include <array>
 #include <condition_variable>
-#include <map>
 #include <mutex>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -41,6 +40,45 @@ enum class LedColor : uint8_t
     GREEN
 };
 
+class LedThread : public Boardcore::ActiveObject
+{
+public:
+    explicit LedThread(LedColor color);
+
+    /**
+     * @brief non-blocking action to set a led to blink in a loop
+     */
+    void setBlinking(uint32_t ms_interval);
+
+    /**
+     * @brief non-blocking action to set on the led
+     */
+    void setOn();
+
+    /**
+     * @brief non-blocking action to set off the led
+     */
+    void setOff();
+
+private:
+    enum class LedState : uint8_t
+    {
+        OFF = 0,
+        ON,
+        BLINKING
+    };
+
+    void ledOn(LedColor color);
+    void ledOff(LedColor color);
+    void run() override;
+
+    LedColor color;
+    LedState state;
+    std::mutex mutex;
+    std::condition_variable cv;
+    uint32_t blinking_interval = 100;  // [ms]
+};
+
 /**
  * @brief Utility to handle blinking leds with non-blocking sleep
  * (useful for state machines states that need to blink leds without blocking)
@@ -48,20 +86,20 @@ enum class LedColor : uint8_t
 class Leds : public Boardcore::Module
 {
 public:
-    explicit Leds(Boardcore::TaskScheduler* scheduler);
+    explicit Leds();
 
     /**
-     * @brief Start the blinking LED thread
+     * @brief Start all the blinking LED thread
      */
     bool start();
 
     /**
      * @brief non-blocking action to set a led to blink in a loop
      */
-    void setBlinking(LedColor color);
+    void setBlinking(LedColor color, uint32_t ms_interval);
 
     /**
-     * @brief blocking action to set on a led
+     * @brief non-blocking action to set on a led
      */
     void setOn(LedColor color);
 
@@ -75,37 +113,13 @@ public:
      */
     void endlessBlink(LedColor color);
 
-protected:
-    enum class LedState : uint8_t
+private:
+    LedThread* ledRef(LedColor color)
     {
-        OFF = 0,
-        ON,
-        BLINKING
-    };
-
-    void ledOn(LedColor color);
-    void ledOff(LedColor color);
-    void ledThread(LedColor color, uint32_t ms_interval);
-
-    LedState* ledRef(LedColor color)
-    {
-        return &led_states[static_cast<uint8_t>(color)];
+        return leds[static_cast<uint8_t>(color)].get();
     }
 
-    std::mutex* mutexRef(LedColor color)
-    {
-        return led_mutexes[static_cast<uint8_t>(color)].get();
-    }
-
-    std::condition_variable* cvRef(LedColor color)
-    {
-        return led_cvs[static_cast<uint8_t>(color)].get();
-    }
-
-    Boardcore::TaskScheduler* scheduler;
-    std::array<LedState, 4> led_states;
-    std::array<unique_ptr<std::mutex>, 4> led_mutexes;
-    std::array<unique_ptr<std::condition_variable>, 4> led_cvs;
+    std::array<std::unique_ptr<LedThread>, 4> leds;
 };
 
 }  // namespace Antennas
