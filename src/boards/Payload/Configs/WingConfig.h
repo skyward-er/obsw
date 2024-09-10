@@ -51,16 +51,15 @@ enum class AlgorithmId : size_t
 
 namespace Default
 {
-// TODO: Verify the default target coordinates for all sites
 #if defined(EUROC)
 constexpr auto TARGET_LAT = 39.389733f;
 constexpr auto TARGET_LON = -8.288992f;
 #elif defined(ROCCARASO)
-constexpr auto TARGET_LAT = 41.809216;
-constexpr auto TARGET_LON = 14.055310;
+constexpr auto TARGET_LAT = 41.8091998f;
+constexpr auto TARGET_LON = 14.0552026f;
 #else  // Milan
-constexpr auto TARGET_LAT = 45.5010679f;
-constexpr auto TARGET_LON = 9.1563769f;
+constexpr auto TARGET_LAT = 45.5014089f;
+constexpr auto TARGET_LON = 9.1543615f;
 #endif
 
 constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
@@ -99,7 +98,7 @@ namespace AltitudeTrigger
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 300;  // [meters]
+constexpr auto DEPLOYMENT_ALTITUDE = 450;  // [meters]
 constexpr auto CONFIDENCE          = 10;   // [samples]
 constexpr auto UPDATE_RATE         = 10_hz;
 }  // namespace AltitudeTrigger

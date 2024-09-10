@@ -221,7 +221,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             parent.getModule<AltitudeTrigger>()->setDeploymentAltitude(
                 altitude);
 
-            if (altitude < 100 || altitude > 3000)
+            if (altitude < 200 || altitude > 450)
             {
                 return enqueueWack(msg);
             }
