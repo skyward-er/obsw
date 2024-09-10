@@ -56,9 +56,9 @@ int main()
 {
     miosix::ledOff();
 
-    Buses *buses          = new Buses();
-    Serial *serial        = new Serial();
-#ifndef DISABLE_MAIN_RADIO 
+    Buses *buses   = new Buses();
+    Serial *serial = new Serial();
+#ifndef DISABLE_MAIN_RADIO
     RadioMain *radio_main = new RadioMain();
 #endif
 #ifndef DISABLE_PAYLOAD_RADIO
@@ -90,20 +90,23 @@ int main()
     // Ok now start them
 
     ok &= serial->start();
-    if (!ok) {
+    if (!ok)
+    {
         printf("[error] Failed to start serial!\n");
     }
 
 #ifndef DISABLE_MAIN_RADIO
     ok &= radio_main->start();
-    if (!ok) {
+    if (!ok)
+    {
         printf("[error] Failed to start main radio!\n");
     }
 #endif
 
 #ifndef DISABLE_PAYLOAD_RADIO
     ok &= radio_payload->start();
-    if (!ok) {
+    if (!ok)
+    {
         printf("[error] Failed to start payload radio!\n");
     }
 #endif
