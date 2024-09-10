@@ -66,7 +66,6 @@ bool Sensors::vn300Init()
 void Sensors::vn300Callback()
 {
     Logger::getInstance().log(vn300->getLastSample());
-    Logger::getInstance().log(vn300->getLastError());
 }
 
 VN300Data Sensors::getVN300LastSample() { return vn300->getLastSample(); }
