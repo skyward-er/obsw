@@ -47,7 +47,8 @@ public:
     {
         antennaCoordinates = {gpsData.latitude, gpsData.longitude,
                               gpsData.height};
-        Boardcore::Logger::getInstance().log(static_cast<LogAntennasCoordinates>(gpsData));
+        Boardcore::Logger::getInstance().log(
+            static_cast<LogAntennasCoordinates>(gpsData));
         antennaCoordinatesSet = true;
     };
 
@@ -59,7 +60,8 @@ public:
     {
         initialRocketCoordinates = {gpsData.latitude, gpsData.longitude,
                                     gpsData.height};
-        Boardcore::Logger::getInstance().log(static_cast<LogRocketCoordinates>(gpsData));
+        Boardcore::Logger::getInstance().log(
+            static_cast<LogRocketCoordinates>(gpsData));
         rocketCoordinatesSet = true;
     }
 
