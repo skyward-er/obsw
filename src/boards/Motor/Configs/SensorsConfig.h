@@ -145,10 +145,15 @@ constexpr float ENGINE_MAX_PRESSURE      = 40;   // bar
 namespace Kulite
 {
 // TODO: This needs to be properly calibrated
-constexpr float TANK_P0_VOLTAGE = 0.3917f;
-constexpr float TANK_P0_TEMP    = 31.0f;
-constexpr float TANK_P1_VOLTAGE = 0.4043f;
-constexpr float TANK_P1_TEMP    = 38.0f;
+// constexpr float TANK_P0_VOLTAGE = 0.3917f;
+// constexpr float TANK_P0_TEMP    = 31.0f;
+// constexpr float TANK_P1_VOLTAGE = 0.4043f;
+// constexpr float TANK_P1_TEMP    = 38.0f;
+constexpr float TANK_P0_VOLTAGE = 0.2834f;
+constexpr float TANK_P0_TEMP    = 12.0f;
+constexpr float TANK_P1_VOLTAGE = 0.4034f;
+constexpr float TANK_P1_TEMP    = 34.0f;
+
 }  // namespace Kulite
 
 namespace InternalADC
