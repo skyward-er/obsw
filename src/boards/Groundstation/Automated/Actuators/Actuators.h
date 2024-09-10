@@ -90,14 +90,14 @@ public:
     int16_t getCurrentPosition(StepperList axis);
     float getCurrentDegPosition(StepperList axis);
 
-    bool isEmergencyStopped() { return emergencyStop; }
+    bool isEmergencyStopped() const { return emergencyStop; }
 
     /**
      * @brief Getter for the last actuation of the wanted stepper.
      * @param axis The stepper from which we want this information.
      * @returns The last delta angle the chosen stepper is performing [deg].
      */
-    float getDeltaAngleDeg(StepperList axis)
+    float getDeltaAngleDeg(StepperList axis) const
     {
         switch (axis)
         {
@@ -116,7 +116,7 @@ public:
      * @param axis The stepper from which we want this information.
      * @returns The speed of the chosen stepper [rps].
      */
-    float getSpeed(StepperList axis)
+    float getSpeed(StepperList axis) const
     {
         switch (axis)
         {
@@ -131,31 +131,31 @@ public:
     }
 
 private:
-    Boardcore::StepperPWM& getStepper(StepperList stepper)
+    Boardcore::StepperPWM* getStepper(StepperList stepper)
     {
         switch (stepper)
         {
             case StepperList::STEPPER_X:
-                return stepperX;
+                return &stepperX;
             case StepperList::STEPPER_Y:
-                return stepperY;
+                return &stepperY;
             default:
                 assert(false && "Non existent stepper");
-                return stepperX;
+                return nullptr;
         }
     };
 
-    const StepperConfig& getStepperConfig(StepperList stepper)
+    const StepperConfig* getStepperConfig(StepperList stepper) const
     {
         switch (stepper)
         {
             case StepperList::STEPPER_X:
-                return Antennas::Config::stepperXConfig;
+                return &Antennas::Config::stepperXConfig;
             case StepperList::STEPPER_Y:
-                return Antennas::Config::stepperYConfig;
+                return &Antennas::Config::stepperYConfig;
             default:
                 assert(false && "Non existent stepperConfig");
-                return StepperConfig();
+                return nullptr;
         }
     };
 
