@@ -28,8 +28,10 @@
 #include <drivers/timer/TimerUtils.h>
 #include <interfaces-impl/hwmapping.h>
 
+using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
+using namespace Boardcore::Units::Frequency;
 namespace config = Payload::Config::Actuators;
 
 namespace Payload
@@ -53,8 +55,9 @@ Actuators::Actuators()
         config::RightServo::MAX_PULSE.count());
     rightServo.fullRangeAngle = config::RightServo::ROTATION;
 
-    buzzer =
-        std::make_unique<PWM>(MIOSIX_BUZZER_TIM, config::Buzzer::FREQUENCY);
+    auto frequency =
+        static_cast<uint16_t>(Hertz{config::Buzzer::FREQUENCY}.value());
+    buzzer = std::make_unique<PWM>(MIOSIX_BUZZER_TIM, frequency);
     buzzer->setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL,
                          config::Buzzer::DUTY_CYCLE);
 }
@@ -96,7 +99,7 @@ bool Actuators::start()
     }
 
     auto buzzerTaskId = scheduler.addTask([this]() { updateBuzzer(); },
-                                          config::Buzzer::UPDATE_PERIOD,
+                                          config::Buzzer::UPDATE_RATE,
                                           TaskScheduler::Policy::RECOVER);
     if (buzzerTaskId == 0)
     {
@@ -105,7 +108,7 @@ bool Actuators::start()
     }
 
     auto statusTaskId = scheduler.addTask([this]() { updateStatusLed(); },
-                                          config::StatusLed::UPDATE_PERIOD,
+                                          config::StatusLed::UPDATE_RATE,
                                           TaskScheduler::Policy::RECOVER);
     if (statusTaskId == 0)
     {
@@ -239,7 +242,7 @@ void Actuators::setBuzzerOff() { buzzerThreshold = 0; }
 
 void Actuators::setBuzzerOnLand()
 {
-    buzzerThreshold = config::Buzzer::ON_LAND_PERIOD.count();
+    buzzerThreshold = config::Buzzer::LANDED_PERIOD.count();
 }
 
 void Actuators::setBuzzerArmed()
@@ -286,7 +289,10 @@ void Actuators::updateBuzzer()
     else
     {
         buzzerOff();
-        buzzerCounter += config::Buzzer::UPDATE_PERIOD.count();
+        constexpr auto period =
+            1000ms / static_cast<milliseconds::rep>(
+                         Hertz{config::Buzzer::UPDATE_RATE}.value());
+        buzzerCounter += period.count();
     }
 }
 
@@ -313,7 +319,10 @@ void Actuators::updateStatusLed()
     }
     else
     {
-        statusLedCounter += config::StatusLed::UPDATE_PERIOD.count();
+        constexpr auto period =
+            1000ms / static_cast<milliseconds::rep>(
+                         Hertz{config::StatusLed::UPDATE_RATE}.value());
+        statusLedCounter += period.count();
     }
 }
 

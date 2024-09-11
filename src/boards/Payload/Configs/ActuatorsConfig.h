@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <units/Frequency.h>
+
 #include <chrono>
 
 namespace Payload
@@ -32,6 +34,7 @@ namespace Actuators
 {
 
 /* linter off */ using namespace std::chrono_literals;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 // On Lyra 6-gear planetary multiplier: 100us ~= 1cm
 
@@ -51,18 +54,18 @@ constexpr auto MAX_PULSE = 500us;
 
 namespace StatusLed
 {
-constexpr auto UPDATE_PERIOD = 50ms;
-constexpr auto OK_PERIOD     = 1000ms;
-constexpr auto ERROR_PERIOD  = 500ms;
+constexpr auto UPDATE_RATE  = 10_hz;
+constexpr auto OK_PERIOD    = 1000ms;
+constexpr auto ERROR_PERIOD = 100ms;
 }  // namespace StatusLed
 
 namespace Buzzer
 {
-constexpr auto UPDATE_PERIOD  = 50ms;
-constexpr auto ON_LAND_PERIOD = 1000ms;
-constexpr auto ARMED_PERIOD   = 500ms;
+constexpr auto UPDATE_RATE   = 10_hz;
+constexpr auto ARMED_PERIOD  = 500ms;
+constexpr auto LANDED_PERIOD = 1000ms;
 // PWM parameters
-constexpr auto FREQUENCY  = 1000;  // [Hz]
+constexpr auto FREQUENCY  = 500_hz;
 constexpr auto DUTY_CYCLE = 0.5f;
 }  // namespace Buzzer
 
