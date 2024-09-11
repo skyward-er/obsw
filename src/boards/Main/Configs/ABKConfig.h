@@ -40,6 +40,25 @@ namespace ABK
 
 constexpr Hertz UPDATE_RATE = 10_hz;
 
+#ifdef ROCCARASO
+
+constexpr unsigned int SHADOW_MODE_TIMEOUT = 500;  // [ms]
+
+static const Boardcore::AirBrakesInterpConfig CONFIG = {
+    .FILTER_MINIMUM_ALTITUDE = 400,
+    .FILTER_MAXIMUM_ALTITUDE = 1000,
+    .STARTING_FILTER_VALUE   = 0.75f,
+    .ABK_CRITICAL_ALTITUDE   = 970,
+    .DZ                      = 10,
+    .INITIAL_MASS            = 26,
+    .DM                      = 0.1f,
+    .N_FORWARD               = 0};
+
+#else
+#ifndef EUROC
+#warning "MISSION NOT DEFINED: Using EUROC"
+#endif
+
 constexpr unsigned int SHADOW_MODE_TIMEOUT = 500;  // [ms]
 
 static const Boardcore::AirBrakesInterpConfig CONFIG = {
@@ -51,6 +70,8 @@ static const Boardcore::AirBrakesInterpConfig CONFIG = {
     .INITIAL_MASS            = 26,
     .DM                      = 0.4f,
     .N_FORWARD               = 0};
+
+#endif
 
 }  // namespace ABK
 
