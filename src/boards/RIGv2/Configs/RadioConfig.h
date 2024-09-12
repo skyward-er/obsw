@@ -42,8 +42,8 @@ constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 constexpr unsigned int CIRCULAR_BUFFER_SIZE  = 30;
 constexpr unsigned int MAX_PACKETS_PER_FLUSH = 4;
 
-constexpr uint8_t MAV_SYSTEM_ID    = 171;
-constexpr uint8_t MAV_COMPONENT_ID = 96;
+constexpr uint8_t MAV_SYSTEM_ID    = MAV_SYSID_RIG;
+constexpr uint8_t MAV_COMPONENT_ID = 0;
 
 constexpr long long LAST_COMMAND_THRESHOLD = 300;
 
