@@ -297,16 +297,17 @@ void NASController::update()
     nas.predictAcc(imu);
 
     // Then perform necessary corrections
-    if (lastMagTimestamp < imu.magneticFieldTimestamp &&
-        magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
-    {
-        nas.correctMag(imu);
-        magDecimateCount = 0;
-    }
-    else
-    {
-        magDecimateCount++;
-    }
+    // Disable magnetometer correction
+    // if (lastMagTimestamp < imu.magneticFieldTimestamp &&
+    //     magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
+    // {
+    //     nas.correctMag(imu);
+    //     magDecimateCount = 0;
+    // }
+    // else
+    // {
+    //     magDecimateCount++;
+    // }
 
     if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
         accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
@@ -320,14 +321,15 @@ void NASController::update()
     }
 
     // Correct with pitot if one pressure sample is new
-    if (dynamicPitot.pressure > 0 &&
-        (staticPitotTimestamp < staticPitot.pressureTimestamp ||
-         dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
-        (-nas.getState().d < Config::NAS::PITOT_ALTITUDE_THRESHOLD) &&
-        (-nas.getState().vd > Config::NAS::PITOT_SPEED_THRESHOLD))
-    {
-        nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
-    }
+    // Disable pitot correction
+    // if (dynamicPitot.pressure > 0 &&
+    //     (staticPitotTimestamp < staticPitot.pressureTimestamp ||
+    //      dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
+    //     (-nas.getState().d < Config::NAS::PITOT_ALTITUDE_THRESHOLD) &&
+    //     (-nas.getState().vd > Config::NAS::PITOT_SPEED_THRESHOLD))
+    // {
+    //     nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
+    // }
 
     // Correct with accelerometer if the acceleration is in specs
     if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
