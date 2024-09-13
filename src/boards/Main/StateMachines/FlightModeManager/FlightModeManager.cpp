@@ -549,6 +549,7 @@ State FlightModeManager::state_flying(const Event& event)
             return transition(&FlightModeManager::state_powered_ascent);
         }
         case FMM_MISSION_TIMEOUT:
+        case TMTC_FORCE_LANDING:
         {
             return transition(&FlightModeManager::state_landed);
         }
@@ -737,11 +738,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
         {
             getModule<Actuators>()->cutterOff();
             return HANDLED;
-        }
-
-        case TMTC_FORCE_LANDING:
-        {
-            return transition(&FlightModeManager::state_landed);
         }
 
         default:
