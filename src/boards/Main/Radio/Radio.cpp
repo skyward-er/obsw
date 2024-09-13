@@ -238,7 +238,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
 
             if (getModule<FlightModeManager>()->getState() ==
-                FlightModeManagerState::TEST_MODE)
+                    FlightModeManagerState::TEST_MODE ||
+                getModule<FlightModeManager>()->getState() ==
+                    FlightModeManagerState::LANDED)
             {
                 // If the state is test mode, the wiggle is done
                 getModule<Actuators>()->wiggleServo(servoId);
