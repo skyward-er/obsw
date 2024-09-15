@@ -223,7 +223,7 @@ private:
     std::atomic<Config::Wing::AlgorithmId> selectedAlgorithm{
         Config::Wing::Default::ALGORITHM};
 
-    std::atomic<WingControllerState> state{WingControllerState::UNINIT};
+    std::atomic<WingControllerState> state{WingControllerState::IDLE};
 
     std::array<std::unique_ptr<WingAlgorithm>,
                static_cast<size_t>(Config::Wing::AlgorithmId::LAST)>

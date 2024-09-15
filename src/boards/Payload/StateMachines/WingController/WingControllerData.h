@@ -31,18 +31,16 @@ namespace Payload
 
 enum class WingControllerState : uint8_t
 {
-    UNINIT = 0,
-    IDLE,
+    IDLE = 0,
     FLYING_DEPLOYMENT,
     FLYING_CONTROLLED_DESCENT,
     ON_GROUND,
-    END
 };
 
 struct WingControllerStatus
 {
     uint64_t timestamp        = 0;
-    WingControllerState state = WingControllerState::UNINIT;
+    WingControllerState state = WingControllerState::IDLE;
 
     static std::string header() { return "timestamp,state\n"; }
 
