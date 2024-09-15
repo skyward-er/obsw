@@ -60,6 +60,7 @@ void FlightStatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon,
     stats.apogeeTs  = ts;
     stats.apogeeLat = lat;
     stats.apogeeLon = lon;
+    stats.apogeeAlt = alt;
 }
 
 void FlightStatsRecorder::deploymentDetected(uint64_t ts, float alt)
@@ -69,7 +70,7 @@ void FlightStatsRecorder::deploymentDetected(uint64_t ts, float alt)
     stats.dplAlt = alt;
 }
 
-void FlightStatsRecorder::updateAcc(const AccelerometerData &data)
+void FlightStatsRecorder::updateAcc(const AccelerometerData& data)
 {
     auto state = getModule<FlightModeManager>()->getState();
 
@@ -106,7 +107,7 @@ void FlightStatsRecorder::updateAcc(const AccelerometerData &data)
     }
 }
 
-void FlightStatsRecorder::updateNas(const NASState &data, float refTemperature)
+void FlightStatsRecorder::updateNas(const NASState& data, float refTemperature)
 {
     auto state = getModule<FlightModeManager>()->getState();
     Lock<FastMutex> lock{statsMutex};
@@ -136,7 +137,7 @@ void FlightStatsRecorder::updateNas(const NASState &data, float refTemperature)
     }
 }
 
-void FlightStatsRecorder::updatePressure(const PressureData &data)
+void FlightStatsRecorder::updatePressure(const PressureData& data)
 {
     auto state = getModule<FlightModeManager>()->getState();
     Lock<FastMutex> lock{statsMutex};
