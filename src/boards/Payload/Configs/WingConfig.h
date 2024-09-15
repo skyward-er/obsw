@@ -64,8 +64,7 @@ constexpr auto TARGET_LON = 9.1543615f;
 constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
 }  // namespace Default
 
-constexpr auto STRAIGHT_FLIGHT_TIMEOUT = 15s;
-constexpr auto UPDATE_RATE             = 1_hz;
+constexpr auto UPDATE_RATE = 1_hz;
 
 constexpr auto CUTTERS_TIMEOUT = 1s;
 
@@ -90,6 +89,8 @@ constexpr auto M1_ALTITUDE_THRESHOLD     = 250;  // [m]
 constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
 }  // namespace Guidance
+
+constexpr auto ROTATION_PERIOD = 10s;  ///< Period of the rotation maneuver
 
 }  // namespace Wing
 

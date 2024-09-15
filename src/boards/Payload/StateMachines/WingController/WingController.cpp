@@ -24,7 +24,6 @@
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/Configs/ActuatorsConfig.h>
-#include <Payload/Configs/WESConfig.h>
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
@@ -43,7 +42,6 @@ using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
 using namespace Payload::Config::Wing;
-using namespace Payload::Config::WES;
 using namespace Payload::Config::Actuators;
 
 namespace Payload

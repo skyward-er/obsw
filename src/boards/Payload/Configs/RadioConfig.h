@@ -36,10 +36,9 @@ namespace Radio
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace std::chrono_literals;
 
-constexpr auto LOW_RATE_TELEMETRY         = 2_hz;
-constexpr auto HIGH_RATE_TELEMETRY        = 4_hz;
-constexpr auto MESSAGE_QUEUE_SIZE         = 30;
-constexpr auto MESSAGE_QUEUE_FLUSH_PERIOD = 200ms;
+constexpr auto LOW_RATE_TELEMETRY  = 2_hz;
+constexpr auto HIGH_RATE_TELEMETRY = 4_hz;
+constexpr auto MESSAGE_QUEUE_SIZE  = 30;
 
 constexpr bool MAVLINK_OVER_HIL_SERIAL_ENABLED = true;
 
