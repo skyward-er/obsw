@@ -102,11 +102,11 @@ State WingController::Flying(const Event& event)
 
         case EV_EXIT:
         {
+            // Turn off cutters in the case of an early exit
             if (cuttersOffEventId != 0)
             {
                 EventBroker::getInstance().removeDelayed(cuttersOffEventId);
             }
-
             getModule<Actuators>()->cuttersOff();
 
             return HANDLED;
@@ -166,6 +166,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
         case EV_EXIT:
         {
+            // Stop flares in the case of an early exit
             if (flareEventId != 0)
             {
                 EventBroker::getInstance().removeDelayed(flareEventId);
@@ -220,6 +221,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         }
     }
 }
+
 State WingController::FlyingControlledDescent(const Boardcore::Event& event)
 {
     switch (event)
@@ -232,6 +234,12 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             return HANDLED;
         }
 
+        case EV_EXIT:
+        {
+            stopAlgorithm();
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&WingController::Flying);
@@ -240,11 +248,6 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         case WING_ALGORITHM_ENDED:
         {
             return transition(&WingController::OnGround);
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
         }
 
         default:
@@ -262,11 +265,7 @@ State WingController::OnGround(const Boardcore::Event& event)
         {
             updateState(WingControllerState::ON_GROUND);
 
-            stopAlgorithm();
             resetWing();
-
-            getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
-            getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
 
             return HANDLED;
         }

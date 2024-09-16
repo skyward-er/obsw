@@ -112,9 +112,10 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_SERVO_ANGLE_TC:
         {
-            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
-            // Allow arbitrary servo movements in test mode only
-            if (!testMode)
+            bool allowed =
+                parent.getModule<FlightModeManager>()->servoMovesAllowed();
+            // Allow arbitrary servo movements in allowed states only
+            if (!allowed)
             {
                 return enqueueNack(msg);
             }
@@ -135,9 +136,10 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_RESET_SERVO_TC:
         {
-            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
-            // Reset servos in test mode only
-            if (!testMode)
+            bool allowed =
+                parent.getModule<FlightModeManager>()->servoMovesAllowed();
+            // Reset servos in allowed states only
+            if (!allowed)
             {
                 return enqueueNack(msg);
             }
@@ -160,9 +162,10 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_WIGGLE_SERVO_TC:
         {
-            bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
-            // Perform the wiggle in test mode only
-            if (!testMode)
+            bool allowed =
+                parent.getModule<FlightModeManager>()->servoMovesAllowed();
+            // Perform the wiggle in allowed states only
+            if (!allowed)
             {
                 return enqueueNack(msg);
             }

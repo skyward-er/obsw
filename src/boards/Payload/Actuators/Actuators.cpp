@@ -240,7 +240,7 @@ void Actuators::setStatusError()
 
 void Actuators::setBuzzerOff() { buzzerThreshold = 0; }
 
-void Actuators::setBuzzerOnLand()
+void Actuators::setBuzzerLanded()
 {
     buzzerThreshold = config::Buzzer::LANDED_PERIOD.count();
 }

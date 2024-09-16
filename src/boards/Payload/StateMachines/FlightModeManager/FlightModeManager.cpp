@@ -81,6 +81,14 @@ bool FlightModeManager::isTestMode() const
     return state == FlightModeManagerState::ON_GROUND_TEST_MODE;
 }
 
+bool FlightModeManager::servoMovesAllowed() const
+{
+    auto s = state.load();
+
+    return s == FlightModeManagerState::ON_GROUND_TEST_MODE ||
+           s == FlightModeManagerState::LANDED;
+}
+
 State FlightModeManager::OnGround(const Event& event)
 {
     switch (event)
@@ -665,6 +673,7 @@ State FlightModeManager::FlyingDrogueDescent(const Event& event)
 
         case EV_EXIT:
         {
+            getModule<AltitudeTrigger>()->disable();
             return HANDLED;
         }
 
@@ -681,7 +690,6 @@ State FlightModeManager::FlyingDrogueDescent(const Event& event)
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         case TMTC_FORCE_DEPLOYMENT:
         {
-            getModule<AltitudeTrigger>()->disable();
             return transition(&FlightModeManager::FlyingWingDescent);
         }
 
@@ -735,15 +743,13 @@ State FlightModeManager::Landed(const Event& event)
             updateState(FlightModeManagerState::LANDED);
 
             getModule<Actuators>()->cameraOff();
-            getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
-            getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
 
             EventBroker::getInstance().post(FLIGHT_LANDING_DETECTED,
                                             TOPIC_FLIGHT);
             Logger::getInstance().stop();
 
             // Update the buzzer last to ensure all previous operations are done
-            getModule<Actuators>()->setBuzzerOnLand();
+            getModule<Actuators>()->setBuzzerLanded();
             return HANDLED;
         }
 

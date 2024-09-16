@@ -93,7 +93,7 @@ private:
 
 public:
     void setBuzzerOff();
-    void setBuzzerOnLand();
+    void setBuzzerLanded();
     void setBuzzerArmed();
 
     void setStatusOff();

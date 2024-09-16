@@ -59,6 +59,11 @@ public:
     bool isTestMode() const;
 
     /**
+     * @return Whether arbitrary servo movements are allowed.
+     */
+    bool servoMovesAllowed() const;
+
+    /**
      * @brief Super state for when the Payload is on the ground.
      */
     Boardcore::State OnGround(const Boardcore::Event& event);
