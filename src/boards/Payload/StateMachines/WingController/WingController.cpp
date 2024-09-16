@@ -103,10 +103,7 @@ State WingController::Flying(const Event& event)
         case EV_EXIT:
         {
             // Turn off cutters in the case of an early exit
-            if (cuttersOffEventId != 0)
-            {
-                EventBroker::getInstance().removeDelayed(cuttersOffEventId);
-            }
+            EventBroker::getInstance().removeDelayed(cuttersOffEventId);
             getModule<Actuators>()->cuttersOff();
 
             return HANDLED;
@@ -167,10 +164,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         case EV_EXIT:
         {
             // Stop flares in the case of an early exit
-            if (flareEventId != 0)
-            {
-                EventBroker::getInstance().removeDelayed(flareEventId);
-            }
+            EventBroker::getInstance().removeDelayed(flareEventId);
             resetWing();
 
             return HANDLED;
@@ -411,7 +405,8 @@ bool WingController::selectAlgorithm(uint8_t index)
 
             auto data = WingControllerAlgorithmData{
                 .timestamp = TimestampTimer::getTimestamp(),
-                .algorithm = index};
+                .algorithm = index,
+            };
             Logger::getInstance().log(data);
 
             return true;
