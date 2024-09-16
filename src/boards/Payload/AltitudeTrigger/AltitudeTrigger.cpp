@@ -97,7 +97,7 @@ void AltitudeTrigger::update()
     {
         confidence = 0;
         EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
-                                        TOPIC_FLIGHT);
+                                        TOPIC_ALT);
         running = false;
     }
 }
