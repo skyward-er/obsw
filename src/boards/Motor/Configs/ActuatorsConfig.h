@@ -38,13 +38,16 @@ namespace Servos
 
 // Generic pulse width for all servos
 constexpr unsigned int MIN_PULSE = 500;
-constexpr unsigned int MAX_PULSE = 2460;
+constexpr unsigned int MAX_PULSE = 2440;
 
 constexpr unsigned int FREQUENCY = 333;
 
 constexpr Hertz SERVO_TIMINGS_CHECK_PERIOD = 10_hz;
 constexpr long long SERVO_CONFIDENCE_TIME  = 500;   // 0.5s
 constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
+
+// Timeout is currently set at 2h
+constexpr long long SERVO_ACTION_TIMEOUT = 2 * 60 * 60 * 1000;
 
 constexpr float VENTING_LIMIT = 0.90f;
 constexpr float MAIN_LIMIT    = 0.90f;

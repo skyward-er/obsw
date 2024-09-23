@@ -74,7 +74,9 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     miosix::FastMutex infosMutex;
-    ServoInfo infos[2] = {};
+    // Timestamp of last servo action
+    long long lastActionTs = 0;
+    ServoInfo infos[2]     = {};
 };
 
 }  // namespace Motor

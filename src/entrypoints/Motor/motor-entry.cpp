@@ -176,6 +176,9 @@ int main()
                   << (info.isInitialized ? "Ok" : "Error") << std::endl;
     }
 
+    std::cout << "Battery voltage: "
+              << sensors->getBatteryVoltageLastSample().voltage << std::endl;
+
     while (true)
     {
         // Log CpuMeter

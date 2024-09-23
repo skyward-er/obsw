@@ -37,7 +37,7 @@ namespace Servos
 
 // Generic pulse width for all servos
 constexpr unsigned int MIN_PULSE = 500;
-constexpr unsigned int MAX_PULSE = 2460;
+constexpr unsigned int MAX_PULSE = 2440;
 
 // Pulse width specific to SERVO 2 (disconnect servo)
 // TODO(davide.mor): This actually needs tweaking
