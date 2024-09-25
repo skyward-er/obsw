@@ -227,9 +227,9 @@ private:
         return data;
     };
 
-    Boardcore::MPXH6115AData updateDynamicPressureData()
+    Boardcore::MPX5010Data updateDynamicPressureData()
     {
-        Boardcore::MPXH6115AData data;
+        Boardcore::MPX5010Data data;
 
         auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 

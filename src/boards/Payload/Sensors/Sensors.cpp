@@ -655,7 +655,7 @@ void Sensors::dynamicPressureInit()
         return voltage;
     };
 
-    dynamicPressure = std::make_unique<MPXH6115A>(readVoltage);
+    dynamicPressure = std::make_unique<MPX5010>(readVoltage);
 }
 
 void Sensors::dynamicPressureCallback()

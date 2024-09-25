@@ -34,6 +34,7 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensorData.h>
+#include <sensors/analog/pressure/nxp/MPX5010.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -148,7 +149,7 @@ protected:
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure;
-    std::unique_ptr<Boardcore::MPXH6115A> dynamicPressure;
+    std::unique_ptr<Boardcore::MPX5010> dynamicPressure;
     std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
