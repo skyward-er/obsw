@@ -38,7 +38,7 @@
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
-#include <sensors/VN100/VN100Spi.h>
+#include <sensors/Vectornav/VN100/VN100Spi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
