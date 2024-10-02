@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,14 @@
 
 #pragma once
 
-#include <cstdint>
+#include <common/Mavlink.h>
 
+#include <cstdint>
 namespace Groundstation
 {
-
+constexpr uint8_t GS_SYSTEM_ID    = SysIDs::MAV_SYSID_GS;
 constexpr uint8_t GS_COMPONENT_ID = 1;
-constexpr uint8_t GS_SYSTEM_ID    = 1;
 
+constexpr uint8_t ARP_SYSTEM_ID    = SysIDs::MAV_SYSID_ARP;
+constexpr uint8_t ARP_COMPONENT_ID = 1;
 }  // namespace Groundstation

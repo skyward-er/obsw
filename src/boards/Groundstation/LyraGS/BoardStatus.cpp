@@ -123,8 +123,8 @@ void BoardStatus::arpRoutine()
     }
 
     mavlink_message_t msg;
-    mavlink_msg_arp_tm_encode(SysIDs::MAV_SYSID_ARP,
-                              Groundstation::GS_COMPONENT_ID, &msg, &tm);
+    mavlink_msg_arp_tm_encode(Groundstation::ARP_SYSTEM_ID,
+                              Groundstation::ARP_COMPONENT_ID, &msg, &tm);
 
     getModule<HubBase>()->dispatchIncomingMsg(msg);
 }
@@ -181,7 +181,8 @@ void BoardStatus::GSRoutine()
     }
 
     mavlink_message_t msg;
-    mavlink_msg_arp_tm_encode(GS_SYSTEM_ID, GS_COMPONENT_ID, &msg, &tm);
+    mavlink_msg_arp_tm_encode(Groundstation::GS_SYSTEM_ID, GS_COMPONENT_ID,
+                              &msg, &tm);
 
     getModule<HubBase>()->dispatchIncomingMsg(msg);
 }
