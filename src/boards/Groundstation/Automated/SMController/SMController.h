@@ -64,11 +64,6 @@ public:
     Boardcore::State state_active_nf(const Boardcore::Event& event);
 
     /**
-     * @brief Setter for the rocket NAS state (used in the propagator)
-     */
-    void setRocketNasState(const Boardcore::NASState newRocketNasState);
-
-    /**
      * @brief Setter for the antenna coordinates
      * @details works only in the `fix_antennas` state
      */
@@ -80,16 +75,6 @@ public:
      */
     void setInitialRocketCoordinates(
         const Boardcore::GPSData& antennaCoordinates);
-
-    // /**
-    //  * @brief This sets the rocket coordinates if the state is `fix_rocket`
-    //  (or
-    //  * `fix_rocket_nf`)
-    //  * @return `true` if the coordinates were set successfully, `false`
-    //  * otherwise (i.e. the state is not `fix_rocket` or `fix_rocket_nf`)
-    //  */
-    // bool trySetRocketCoordinates(const Boardcore::GPSData&
-    // rocketCoordinates);
 
     // Starts the FSM thread and adds an update function into the scheduler
     bool start() override;
