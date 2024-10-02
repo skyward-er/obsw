@@ -91,7 +91,7 @@ void BoardStatus::arpRoutine()
     tm.gps_latitude  = vn300.latitude;               /*< [deg] Latitude*/
     tm.gps_longitude = vn300.longitude;              /*< [deg] Longitude*/
     tm.gps_height    = vn300.altitude;               /*< [m] Altitude*/
-    tm.gps_fix       = vn300.fix_gps; /*<  Wether the GPS has a FIX*/
+    tm.gps_fix       = vn300.gpsFix; /*<  Wether the GPS has a FIX*/
     tm.log_number =
         Logger::getInstance().getCurrentLogNumber(); /*<  Log number*/
 

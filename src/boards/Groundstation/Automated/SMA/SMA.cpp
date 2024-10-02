@@ -153,18 +153,18 @@ void SMA::update()
     {
         // update antenna coordinates
         vn300Data = sensors->getVN300LastSample();
-        if (vn300Data.fix_gps == 3)
+        if (vn300Data.gpsFix == 3)
         {
             // build the GPSData struct with the VN300 data
             antennaCoordinates.gpsTimestamp  = vn300Data.insTimestamp;
             antennaCoordinates.latitude      = vn300Data.latitude;
             antennaCoordinates.longitude     = vn300Data.longitude;
             antennaCoordinates.height        = vn300Data.altitude;
-            antennaCoordinates.velocityNorth = vn300Data.nedVelX;
-            antennaCoordinates.velocityEast  = vn300Data.nedVelY;
-            antennaCoordinates.velocityDown  = vn300Data.nedVelZ;
-            antennaCoordinates.satellites    = vn300Data.fix_gps;
-            antennaCoordinates.fix           = vn300Data.fix_gps;
+            antennaCoordinates.velocityNorth = vn300Data.velocityX;
+            antennaCoordinates.velocityEast  = vn300Data.velocityY;
+            antennaCoordinates.velocityDown  = vn300Data.velocityZ;
+            antennaCoordinates.satellites    = vn300Data.gpsFix;
+            antennaCoordinates.fix           = vn300Data.gpsFix;
 
             // update follower with coordinates
             follower.setAntennaCoordinates(antennaCoordinates);

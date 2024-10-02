@@ -53,7 +53,7 @@ bool Sensors::vn300Init()
 {
     vn300 =
         new Boardcore::VN300(getModule<LyraGS::Buses>()->usart2, 115200,
-                             VN300Defs::SampleOptions::ARP,
+                             VN300Defs::SampleOptions::REDUCED,
                              VNCommonSerial::CRCOptions::CRC_ENABLE_16,
                              std::chrono::seconds(5));  ///< TODO: see that CRC
                                                         ///< behaves correctly
