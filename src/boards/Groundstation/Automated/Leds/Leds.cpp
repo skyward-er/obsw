@@ -124,9 +124,12 @@ void Leds::ledOn(LedColor color)
     {
         case LedColor::RED:
             miosix::userLed4::high();
+            miosix::commBox::ledTimR2::high();
             break;
         case LedColor::YELLOW:
             miosix::led2On();
+            miosix::commBox::ledTimY2::high();
+
             break;
         case LedColor::ORANGE:
             miosix::led3On();
@@ -135,6 +138,7 @@ void Leds::ledOn(LedColor color)
             miosix::led1On();
             break;
         case LedColor::BLUE:
+            miosix::commBox::ledTimB3::high();
             break;
     }
 }
@@ -145,9 +149,11 @@ void Leds::ledOff(LedColor color)
     {
         case LedColor::RED:
             miosix::userLed4::low();
+            miosix::commBox::ledTimR2::low();
             break;
         case LedColor::YELLOW:
             miosix::led2Off();
+            miosix::commBox::ledTimY1::low();
             break;
         case LedColor::ORANGE:
             miosix::led3Off();
@@ -156,6 +162,7 @@ void Leds::ledOff(LedColor color)
             miosix::led1Off();
             break;
         case LedColor::BLUE:
+            miosix::commBox::ledTimB3::low();
             break;
     }
 }

@@ -30,7 +30,7 @@
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 constexpr uint32_t LED_BLINK_FAST_PERIOD_MS = 50;
-constexpr uint32_t LED_BLINK_SLOW_PERIOD_MS = 100;
+constexpr uint32_t LED_BLINK_SLOW_PERIOD_MS = 300;
 
 namespace Antennas
 {
