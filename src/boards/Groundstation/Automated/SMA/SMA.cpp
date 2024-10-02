@@ -240,8 +240,8 @@ void SMA::update()
             FollowerState follow = follower.getState();
 
             // Log the target angles and propagations info
-            AntennaAngles target{follow.timestamp, follow.yaw, follow.pitch,
-                                 predicted.nPropagations};
+            AntennaAngles target  = follower.getTargetAngles();
+            target.nrPropagations = predicted.nPropagations;
             Boardcore::Logger::getInstance().log(
                 static_cast<Boardcore::AntennaAngles>(target));
 
@@ -308,8 +308,8 @@ void SMA::update()
             FollowerState follow = follower.getState();
 
             // Log the target angles and propagations info
-            AntennaAngles target{follow.timestamp, follow.yaw, follow.pitch,
-                                 predicted.nPropagations};
+            AntennaAngles target  = follower.getTargetAngles();
+            target.nrPropagations = predicted.nPropagations;
             Boardcore::Logger::getInstance().log(
                 static_cast<Boardcore::AntennaAngles>(target));
 
