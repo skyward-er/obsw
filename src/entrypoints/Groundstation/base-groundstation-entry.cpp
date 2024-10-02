@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
+#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
 #include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <miosix.h>
 

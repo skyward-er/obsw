@@ -36,4 +36,4 @@ namespace FollowerConfig
 
 constexpr uint32_t FOLLOWER_PERIOD = 100;
 }
-}
+}  // namespace Antennas

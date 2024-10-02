@@ -117,7 +117,8 @@ void test1(Actuators *actuators)
     LOG_INFO(logger, "Test 1 completed\n");
 }
 
-void test2(Actuators *actuators) {
+void test2(Actuators *actuators)
+{
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 2");
 
@@ -145,7 +146,8 @@ void test2(Actuators *actuators) {
     LOG_INFO(logger, "Test 2 completed\n");
 }
 
-void test3(Actuators *actuators) {
+void test3(Actuators *actuators)
+{
     actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
     actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
 
@@ -160,13 +162,14 @@ void test3(Actuators *actuators) {
     ledWaitLoop(TEST_WAIT);
 }
 
-void test6(Actuators *actuators) {
+void test6(Actuators *actuators)
+{
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 6");
 
     actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
     actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
-    
+
     actuators->moveDeg(Actuators::StepperList::VERTICAL, 22.5);
     ledWaitLoop(TEST_WAIT);
 
@@ -178,7 +181,7 @@ void test6(Actuators *actuators) {
 
     actuators->moveDeg(Actuators::StepperList::VERTICAL, -45);
     ledWaitLoop(TEST_WAIT);
-    
+
     actuators->moveDeg(Actuators::StepperList::VERTICAL, 65.5);
     ledWaitLoop(TEST_WAIT);
 
@@ -201,11 +204,11 @@ int main()
     enableExternalInterrupt(button.getPort(), button.getNumber(),
                             InterruptTrigger::RISING_EDGE);
 
-    Hub *hub                  = new Hub();
-    Buses *buses              = new Buses();
-    Serial *serial            = new Serial();
-    Actuators *actuators      = new Actuators();
-    Sensors *sensors          = new Sensors();
+    Hub *hub             = new Hub();
+    Buses *buses         = new Buses();
+    Serial *serial       = new Serial();
+    Actuators *actuators = new Actuators();
+    Sensors *sensors     = new Sensors();
 
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = PrintLogger{Logging::getLogger("test-actuators")};

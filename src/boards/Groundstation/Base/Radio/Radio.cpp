@@ -22,9 +22,9 @@
 
 #include "Radio.h"
 
+#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
