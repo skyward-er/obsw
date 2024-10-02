@@ -63,7 +63,7 @@ private:
      * @brief Synchronized getter that returns a copy of the last NAS state
      * of the rocket
      */
-    Boardcore::NASState Follower::getLastRocketNasState();
+    Boardcore::NASState getLastRocketNasState();
 
     /**
      * @brief Calculates the target angles from the given NED coordinates that
