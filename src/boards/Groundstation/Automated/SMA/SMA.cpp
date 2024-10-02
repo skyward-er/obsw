@@ -360,11 +360,6 @@ State SMA::state_config(const Event& event)
         {
             return transition(&SMA::state_init);
         }
-        case TMTC_ARP_RESET_BOARD:
-        {
-            reboot();
-            return HANDLED;
-        }
         default:
         {
             return UNHANDLED;

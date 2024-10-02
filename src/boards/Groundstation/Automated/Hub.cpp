@@ -75,7 +75,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 static const std::map<MavCommandList, Events> commandToEvent{
                     {MAV_CMD_FORCE_INIT, TMTC_ARP_FORCE_INIT},
                     {MAV_CMD_RESET_ALGORITHM, TMTC_ARP_RESET_ALGORITHM},
-                    {MAV_CMD_FORCE_REBOOT, TMTC_ARP_RESET_BOARD},
                     {MAV_CMD_ARP_FORCE_NO_FEEDBACK, TMTC_ARP_FORCE_NO_FEEDBACK},
                     {MAV_CMD_ARM, TMTC_ARP_ARM},
                     {MAV_CMD_DISARM, TMTC_ARP_DISARM},
@@ -87,6 +86,11 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
                 MavCommandList commandId = static_cast<MavCommandList>(
                     mavlink_msg_arp_command_tc_get_command_id(&msg));
+
+                if (commandId == MAV_CMD_FORCE_REBOOT)
+                {
+                    reboot();
+                }
 
                 auto it = commandToEvent.find(commandId);
 
