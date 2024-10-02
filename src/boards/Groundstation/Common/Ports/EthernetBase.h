@@ -41,7 +41,9 @@ using EthernetMavDriver =
 class EthernetBase : public Boardcore::Transceiver
 {
 public:
-    EthernetBase() {}
+    EthernetBase(){};
+    EthernetBase(bool randomIp, uint8_t ipOffset)
+        : randomIp{randomIp}, ipOffset{ipOffset} {};
 
     void handleINTn();
 
@@ -65,6 +67,8 @@ private:
     bool started = false;
     std::unique_ptr<Boardcore::Wiz5500> wiz5500;
     std::unique_ptr<EthernetMavDriver> mav_driver;
+    bool randomIp    = true;
+    uint8_t ipOffset = 0;
 };
 
 }  // namespace Groundstation

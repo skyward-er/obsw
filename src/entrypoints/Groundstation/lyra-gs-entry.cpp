@@ -114,8 +114,8 @@ int main()
     Serial *serial                = new Serial();
     RadioMain *radio_main         = new LyraGS::RadioMain();
     BoardStatus *board_status     = new BoardStatus(dipRead.isARP);
-    LyraGS::Ethernet *ethernet    = new LyraGS::Ethernet();
-    RadioPayload *radio_payload   = new RadioPayload();
+    LyraGS::Ethernet *ethernet  = new LyraGS::Ethernet(false, dipRead.ipConfig);
+    RadioPayload *radio_payload = new RadioPayload();
 
     bool ok = true;
 
