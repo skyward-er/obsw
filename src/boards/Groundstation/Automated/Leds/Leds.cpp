@@ -30,6 +30,7 @@ namespace Antennas
 Leds::Leds(TaskScheduler* scheduler) : scheduler(scheduler)
 {
     leds_state.fill(LedState::OFF);
+    led_toggles.fill(false);
     led_steps.fill(0);
 }
 
@@ -54,7 +55,7 @@ void Leds::update()
     LedState state;
     LedColor color;
 
-    for (size_t i = 0; i < leds_state.size(); i++)
+    for (uint8_t i = 0; i < leds_state.size(); i++)
     {
         state = leds_state[i];
         color = static_cast<LedColor>(i);
@@ -62,7 +63,7 @@ void Leds::update()
         switch (state)
         {
             case LedState::BLINK_SLOW:
-                if (led_steps[i]++ == 1)
+                if (led_steps[i]++ >= 1)
                 {
                     ledToggle(color);
                     led_steps[i] = 0;
@@ -109,7 +110,7 @@ void Leds::endlessBlink(LedColor color)
 
 void Leds::ledToggle(LedColor color)
 {
-    size_t i = static_cast<size_t>(color);
+    uint8_t i = static_cast<uint8_t>(color);
     led_toggles[i] ? ledOn(color) : ledOff(color);
     led_toggles[i] = !led_toggles[i];
 }
@@ -131,21 +132,23 @@ void Leds::ledOn(LedColor color)
         case LedColor::GREEN:
             miosix::led1On();
             break;
+        case LedColor::BLUE:
+            break;
     }
 #else
     switch (color)
     {
         case LedColor::RED:
-            miosix::ledOn();
-            break;
-        case LedColor::YELLOW:
-            miosix::led2On();
-            break;
-        case LedColor::ORANGE:
             miosix::led3On();
+            break;
+        case LedColor::BLUE:
+            miosix::led2On();
             break;
         case LedColor::GREEN:
             miosix::led1On();
+            break;
+        case LedColor::ORANGE:
+        case LedColor::YELLOW:
             break;
     }
 #endif
@@ -168,21 +171,23 @@ void Leds::ledOff(LedColor color)
         case LedColor::GREEN:
             miosix::led1Off();
             break;
+        case LedColor::BLUE:
+            break;
     }
 #else
     switch (color)
     {
         case LedColor::RED:
-            miosix::ledOff();
-            break;
-        case LedColor::YELLOW:
-            miosix::led2Off();
-            break;
-        case LedColor::ORANGE:
             miosix::led3Off();
+            break;
+        case LedColor::BLUE:
+            miosix::led2Off();
             break;
         case LedColor::GREEN:
             miosix::led1Off();
+            break;
+        case LedColor::ORANGE:
+        case LedColor::YELLOW:
             break;
     }
 #endif

@@ -40,6 +40,7 @@ enum class LedColor : uint8_t
     RED = 0,
     YELLOW,
     ORANGE,
+    BLUE,
     GREEN
 };
 
@@ -110,11 +111,11 @@ private:
     // scheduler to run the update blink function
     Boardcore::TaskScheduler* scheduler;
     // toggles to allow led to blink
-    std::array<bool, 4> led_toggles;
+    std::array<bool, 5> led_toggles;
     // counter to keep track of slow blink
-    std::array<uint32_t, 4> led_steps;
+    std::array<uint32_t, 5> led_steps;
     // state of the leds
-    std::array<LedState, 4> leds_state;
+    std::array<LedState, 5> leds_state;
 };
 
 }  // namespace Antennas
