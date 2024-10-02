@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,31 @@
 
 #pragma once
 
-#include <Groundstation/Common/Radio/RadioBase.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
 
-namespace GroundstationBase
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+#include "interfaces-impl/hwmapping.h"
+
+namespace LyraGS
 {
 
-class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
-{
-public:
-    [[nodiscard]] bool start();
-
-    RadioMain(bool hasBackup, uint8_t ipConfig)
-        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
-
-    RadioMain() : hasBackup{false}, ipConfig{0} {};
-
-private:
-    bool hasBackup   = false;
-    uint8_t ipConfig = 0;
-};
-
-class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
+class Buses : public Boardcore::Module
 {
 public:
-    [[nodiscard]] bool start();
+    Boardcore::SPIBus radio1_bus;
+    Boardcore::SPIBus radio2_bus;
+    Boardcore::USART usart2;
+    Boardcore::USART uart4;
+    Boardcore::SPIBus ethernet_bus;
 
-    RadioPayload(bool hasBackup, uint8_t ipConfig)
-        : hasBackup{hasBackup}, ipConfig{ipConfig} {};
-
-    RadioPayload() : hasBackup{false}, ipConfig{0} {};
-
-private:
-    bool hasBackup   = false;
-    uint8_t ipConfig = 0;
+    Buses()
+        : radio1_bus{MIOSIX_RADIO1_SPI}, radio2_bus{MIOSIX_RADIO2_SPI},
+          usart2{USART2, 115200}, uart4{UART4, 115200}, ethernet_bus{
+                                                            MIOSIX_ETHERNET_SPI}
+    {
+    }
 };
 
-}  // namespace GroundstationBase
+}  // namespace LyraGS

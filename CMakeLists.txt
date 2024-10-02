@@ -86,47 +86,9 @@ add_executable(nokia-groundstation-entry
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(nokia-groundstation-entry stm32f429zi_nokia)
 
-add_executable(base-groundstation-entry 
-    src/entrypoints/Groundstation/base-groundstation-entry.cpp 
-    ${GROUNDSTATION_COMMON} ${GROUNDSTATION_BASE}
-)
-target_include_directories(base-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(base-groundstation-entry stm32f767zi_gemini_gs)
-
-add_executable(automated-antennas-entry 
-    src/entrypoints/Groundstation/Automated/automated-antennas-entry.cpp
-    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED}
-)
-target_include_directories(automated-antennas-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(automated-antennas-entry stm32f767zi_automated_antennas)
-
-add_executable(test-automated-radio
-    src/entrypoints/Groundstation/Automated/test-automated-radio.cpp
-    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED}
-)
-target_include_directories(test-automated-radio PRIVATE ${OBSW_INCLUDE_DIRS})
-# target_compile_definitions(test-automated-radio PRIVATE NO_SD_LOGGING)
-sbs_target(test-automated-radio stm32f767zi_automated_antennas)
-
-add_executable(test-steps src/entrypoints/Groundstation/Automated/test-steps.cpp ${ANTENNAS})
-target_include_directories(test-steps PRIVATE ${OBSW_INCLUDE_DIRS})
-# target_compile_definitions(test-steps PRIVATE NO_SD_LOGGING)
-sbs_target(test-steps stm32f767zi_automated_antennas)
-
-add_executable(test-actuators src/entrypoints/Groundstation/Automated/test-actuators.cpp
-    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED}
-)
-target_include_directories(test-actuators PRIVATE ${OBSW_INCLUDE_DIRS})
-# target_compile_definitions(test-actuators PRIVATE NO_SD_LOGGING)
-sbs_target(test-actuators stm32f767zi_automated_antennas)
-
-# add_executable(test-smcontroller src/entrypoints/Groundstation/Automated/test-smcontroller.cpp ${GROUNDSTATION_COMMON})
-# target_include_directories(test-smcontroller PRIVATE ${OBSW_INCLUDE_DIRS})
-# sbs_target(test-smcontroller stm32f767zi_nucleo)
-
 add_executable(lyra-gs-entry
     src/entrypoints/Groundstation/lyra-gs-entry.cpp
-    ${ANTENNAS} ${GROUNDSTATION_COMMON} ${GROUNDSTATION_AUTOMATED} ${GROUNDSTATION_BASE}
+    ${LYRA_GS} ${GROUNDSTATION_COMMON}
 )
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)

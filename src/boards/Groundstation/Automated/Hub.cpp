@@ -23,12 +23,12 @@
 #include "Hub.h"
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/BoardStatus.h>
-#include <Groundstation/Automated/Ports/Ethernet.h>
-#include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/Events.h>
 #include <common/Mavlink.h>
@@ -49,7 +49,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     bool send_ok           = false;
     ModuleManager& modules = ModuleManager::getInstance();
 
-    RadioMain* radio = modules.get<RadioMain>();
+    LyraGS::RadioMain* radio = modules.get<LyraGS::RadioMain>();
 
     if (msg.sysid == MAV_SYSID_ARP)
     {
@@ -284,7 +284,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         Logger::getInstance().log(gpsState);
     }
 
-    Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
+    LyraGS::Ethernet* ethernet =
+        ModuleManager::getInstance().get<LyraGS::Ethernet>();
     ethernet->sendMsg(msg);
 }
 

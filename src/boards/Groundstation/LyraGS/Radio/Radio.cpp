@@ -22,14 +22,15 @@
 
 #include "Radio.h"
 
-#include <Groundstation/Base/BoardStatus.h>
-#include <Groundstation/Base/Buses.h>
-#include <Groundstation/Base/Hub.h>
+#include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Buses.h>
+#include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
+using namespace LyraGS;
 using namespace Boardcore;
 using namespace miosix;
 
@@ -114,15 +115,12 @@ bool RadioPayload::start()
         frontend = std::make_unique<EbyteFrontend>(radio2::txen::getPin(),
                                                    radio2::rxen::getPin());
     else
-    {
         frontend = std::make_unique<Skyward433Frontend>();
 
-        sx1278 = std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Buses>()->radio2_bus,
-            radio2::cs::getPin(), radio2::dio0::getPin(),
-            radio2::dio1::getPin(), radio2::dio3::getPin(),
-            SPI::ClockDivider::DIV_64, std::move(frontend));
-    }
+    sx1278 = std::make_unique<Boardcore::SX1278Fsk>(
+        ModuleManager::getInstance().get<Buses>()->radio2_bus,
+        radio2::cs::getPin(), radio2::dio0::getPin(), radio2::dio1::getPin(),
+        radio2::dio3::getPin(), SPI::ClockDivider::DIV_64, std::move(frontend));
 
     // First check if the device is even connected
     bool present = sx1278->checkVersion();

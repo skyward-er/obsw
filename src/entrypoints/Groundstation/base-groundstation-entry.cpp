@@ -20,16 +20,15 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <Groundstation/Base/Hub.h>
 #include <Groundstation/Base/Ports/Ethernet.h>
 #include <Groundstation/Base/Radio/Radio.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
 #include <miosix.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
 using namespace Boardcore;
 using namespace miosix;
 
