@@ -51,7 +51,6 @@ enum class ActuationStatus : uint8_t
     NOT_TEST,        ///< `3` Such movement is allowed only in test
     NO_STEPPER,      ///< `4` The specified stepper does not exist
     DISABLED,        ///< `5`
-    EMERGENCY_STOP,  ///< `6`
 };
 
 class Actuators : public Boardcore::Injectable

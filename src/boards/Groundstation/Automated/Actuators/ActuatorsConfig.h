@@ -49,13 +49,14 @@ static const Antennas::StepperConfig stepperYConfig{
 
 namespace StepperSettings
 {
-// TIM1_CH4 PA11 AF1
+// TIM1_CH1 PA8 AF1 Stepper H step
 //      |
-// TIM3_CH2 PC7  AF2
+// TIM3_CH2 PC7  AF2 Stepper H count
 
-// TIM4_CH1 PD12 AF2
+// TIM4_CH1 PD12 AF2 Stepper V step
 //      |
-// TIM8_CH4 PC9  AF3
+// TIM8_CH1 PC6  AF3 Stepper V count
+
 static TIM_TypeDef* const SERVO1_PULSE_TIM = TIM1;
 static TIM_TypeDef* const SERVO1_COUNT_TIM = TIM3;
 static TIM_TypeDef* const SERVO2_PULSE_TIM = TIM4;
