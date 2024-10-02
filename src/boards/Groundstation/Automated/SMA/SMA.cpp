@@ -141,11 +141,8 @@ void SMA::update()
     Hub* hub          = static_cast<Hub*>(getModule<Groundstation::HubBase>());
     rocketCoordinates = hub->getRocketOrigin();
 
-    if (rocketCoordinates.fix != 0)
-    {
-        // update follower with the rocket GPS data
-        follower.setRocketNASOrigin(rocketCoordinates);
-    }
+    // update follower with the rocket GPS data
+    follower.setRocketNASOrigin(rocketCoordinates);
 
     switch (status.state)
     {
@@ -169,7 +166,7 @@ void SMA::update()
             auto* sensors = getModule<Sensors>();
 
             vn300Data = sensors->getVN300LastSample();
-            if (vn300Data.fix_gps != 0)
+            if (vn300Data.fix_gps == 3)
             {
                 // build the GPSData struct with the VN300 data
                 antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
@@ -180,7 +177,7 @@ void SMA::update()
                 antennaPosition.velocityEast  = vn300Data.nedVelY;
                 antennaPosition.velocityDown  = vn300Data.nedVelZ;
                 antennaPosition.satellites    = vn300Data.fix_gps;
-                antennaPosition.fix           = (vn300Data.fix_gps > 0);
+                antennaPosition.fix           = vn300Data.fix_gps;
 
                 // update follower with coordinates
                 follower.setAntennaCoordinates(antennaPosition);
@@ -198,7 +195,7 @@ void SMA::update()
         case SMAState::FIX_ROCKET:
         case SMAState::FIX_ROCKET_NF:
         {
-            if (rocketCoordinates.fix != 0)
+            if (rocketCoordinates.fix == 3)
             {
                 LOG_INFO(Logging::getLogger("automated_antennas"),
                          "Rocket NAS position with fix acquired [{}, {}] [deg]",
