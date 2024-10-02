@@ -267,20 +267,50 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 mavlink_msg_rocket_flight_tm_get_nas_bias_y(&msg),
                 mavlink_msg_rocket_flight_tm_get_nas_bias_z(&msg))};
 
-        GPSData gpsState;
-        gpsState.gpsTimestamp =
-            mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
-        gpsState.latitude  = mavlink_msg_rocket_flight_tm_get_gps_lat(&msg);
-        gpsState.longitude = mavlink_msg_rocket_flight_tm_get_gps_lon(&msg);
-        gpsState.height    = mavlink_msg_rocket_flight_tm_get_gps_alt(&msg);
-        gpsState.fix       = mavlink_msg_rocket_flight_tm_get_gps_fix(&msg);
+        GPSData gpsState = getRocketOrigin();
+        /** In case there is no previous correct gps data, we first set the
+         * origin with the first packet with a fix >= 3 */
+        if (gpsState.fix < 3)
+        {
+            gpsState.fix = mavlink_msg_rocket_flight_tm_get_gps_fix(&msg);
+            if (gpsState.fix >= 3)
+            {
+                gpsState.gpsTimestamp =
+                    mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
+                gpsState.latitude =
+                    mavlink_msg_rocket_flight_tm_get_gps_lat(&msg);
+                gpsState.longitude =
+                    mavlink_msg_rocket_flight_tm_get_gps_lon(&msg);
+                gpsState.height =
+                    mavlink_msg_rocket_flight_tm_get_gps_alt(&msg);
+
+                setRocketOrigin(gpsState);
+
+                Logger::getInstance().log(gpsState);
+            }
+        }
 
         // Set the rocket NAS
         setRocketNasState(nasState);
-        setRocketCoordinates(gpsState);
 
         Logger::getInstance().log(nasState);
-        Logger::getInstance().log(gpsState);
+    }
+    else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+    {
+        GPSData gpsState;
+        gpsState = getRocketOrigin();
+        /** In case a first gps coordinate with a  good fix has been set, we
+         * take then the origin reference*/
+        if (gpsState.fix >= 3)
+        {
+            gpsState.latitude  = mavlink_msg_rocket_stats_tm_get_ref_lat(&msg);
+            gpsState.longitude = mavlink_msg_rocket_stats_tm_get_ref_lon(&msg);
+            gpsState.height    = mavlink_msg_rocket_stats_tm_get_ref_alt(&msg);
+
+            setRocketOrigin(gpsState);
+
+            Logger::getInstance().log(gpsState);
+        }
     }
 
     LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
@@ -295,7 +325,7 @@ void Hub::sendAck(const mavlink_message_t& msg)
     dispatchIncomingMsg(ackMsg);
 }
 
-GPSData Hub::getRocketCoordinates()
+GPSData Hub::getRocketOrigin()
 {
     Lock<FastMutex> lock(coordinatesMutex);
     return lastRocketCoordinates;
@@ -317,7 +347,7 @@ void Hub::setRocketNasState(const NASState& newRocketNasState)
     lastRocketNasState = newRocketNasState;
 }
 
-void Hub::setRocketCoordinates(const GPSData& newRocketCoordinates)
+void Hub::setRocketOrigin(const GPSData& newRocketCoordinates)
 {
     Lock<FastMutex> lock(coordinatesMutex);
     lastRocketCoordinates = newRocketCoordinates;

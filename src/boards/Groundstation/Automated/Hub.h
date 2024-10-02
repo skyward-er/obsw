@@ -69,9 +69,9 @@ public:
     void sendAck(const mavlink_message_t& msg);
 
     /**
-     * @brief Synchronized getter for the last rocket coordinates.
+     * @brief Synchronized getter for the last rocket origin for NAS.
      */
-    Boardcore::GPSData getRocketCoordinates();
+    Boardcore::GPSData getRocketOrigin();
 
     /**
      * @brief Synchronized getter for the last rocket NAS state.
@@ -87,9 +87,9 @@ private:
     void setRocketNasState(const Boardcore::NASState& newRocketNasState);
 
     /**
-     * @brief Synchronized setter for the last rocket coordinates.
+     * @brief Synchronized setter for the last rocket origin for NAS.
      */
-    void setRocketCoordinates(const Boardcore::GPSData& newRocketCoordinates);
+    void setRocketOrigin(const Boardcore::GPSData& newRocketCoordinates);
 
     Boardcore::GPSData lastRocketCoordinates;
     Boardcore::NASState lastRocketNasState;

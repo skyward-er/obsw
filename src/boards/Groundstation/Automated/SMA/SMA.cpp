@@ -193,7 +193,7 @@ void SMA::update()
 
             Hub* hub = static_cast<Hub*>(getModule<Groundstation::HubBase>());
 
-            rocketCoordinates = hub->getRocketCoordinates();
+            rocketCoordinates = hub->getRocketOrigin();
             if (rocketCoordinates.fix != 0)
             {
                 // update follower with the rocket GPS data
