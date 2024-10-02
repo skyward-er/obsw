@@ -1,5 +1,5 @@
 /* Copyright (c) 2023-2024 Skyward Experimental Rocketry
- * Author: Emilio Corigliano, Nicolò Caruso
+ * Authors: Emilio Corigliano, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,15 +34,13 @@ namespace Antennas
 
 using namespace Config;
 
-// TIM1_CH4 PA11 AF1
+// TIM1_CH1 PA8 AF1 Stepper H step
 //      |
-// TIM3_CH2 PC7  AF2
+// TIM3_CH2 PC7  AF2 Stepper H count
 
-// TIM4_CH1 PD12 AF2
+// TIM4_CH1 PD12 AF2 Stepper V step
 //      |
-// TIM8_CH4 PC9  AF3
-
-GpioPin ledRGB = GpioPin(GPIOG_BASE, 14);
+// TIM8_CH1 PC6  AF3 Stepper V count
 
 CountedPWM countedPwmX(StepperSettings::SERVO1_PULSE_TIM,
                        StepperSettings::SERVO1_PULSE_CH,
@@ -72,10 +70,6 @@ Actuators::Actuators()
 {
 }
 
-/**
- * @brief Dummy start for actuators
- * @note The real enable is done by the `arm()` method
- */
 void Actuators::start() {}
 
 void Actuators::arm()
@@ -145,12 +139,6 @@ ActuationStatus Actuators::move(StepperList axis, int16_t steps)
 {
     auto *stepper = getStepper(axis);
 
-    if (emergencyStop)
-    {
-        logStepperData(axis, stepper->getState(0));
-        return ActuationStatus::EMERGENCY_STOP;
-    }
-
     ActuationStatus actuationState =
         ActuationStatus::OK;  //< In case the move command is not limited
 
@@ -185,12 +173,6 @@ ActuationStatus Actuators::move(StepperList axis, int16_t steps)
 ActuationStatus Actuators::moveDeg(StepperList axis, float degrees)
 {
     auto *stepper = getStepper(axis);
-
-    if (emergencyStop)
-    {
-        logStepperData(axis, stepper->getState(0));
-        return ActuationStatus::EMERGENCY_STOP;
-    }
 
     ActuationStatus actuationState =
         ActuationStatus::OK;  //< In case the move command is not limited
@@ -236,31 +218,4 @@ void Actuators::setMultipliers(StepperList axis, float multiplier)
             break;
     }
 }
-
-void Actuators::IRQemergencyStop()
-{
-    // Do not preempt during this method
-    emergencyStop = true;
-    countedPwmX.stop();  // Terminate current stepper actuation
-    countedPwmY.stop();  // Terminate current stepper actuation
-    stepperX.disable();  // Disable the horizontal movement
-    stepperY.enable();   // Don't make the antenna fall
-
-    ledOn();
-
-    // Set LED to RED
-}
-
-void Actuators::IRQemergencyStopRecovery()
-{
-    // Do not preempt during this method
-    emergencyStop = false;
-    stepperX.enable();  // Re-enable horizontal movement
-    stepperY.enable();  // Re-enable vertical movement
-
-    ledOff();
-
-    // Set LED to GREEN
-}
-
 }  // namespace Antennas

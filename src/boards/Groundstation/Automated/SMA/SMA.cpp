@@ -144,23 +144,31 @@ void SMA::update()
     auto* sensors     = getModule<Sensors>();
     rocketCoordinates = hub->getRocketOrigin();
 
-    // update antenna coordinates
-    vn300Data = sensors->getVN300LastSample();
-    if (vn300Data.fix_gps == 3)
+    // Update the antenna position except in case of no feedback
+    if (status.state != SMAState::FIX_ROCKET_NF &&
+        status.state != SMAState::INIT_ERROR &&
+        status.state != SMAState::ACTIVE_NF &&
+        status.state != SMAState::ARM_READY &&
+        status.state != SMAState::ACTIVE_NF)
     {
-        // build the GPSData struct with the VN300 data
-        antennaCoordinates.gpsTimestamp  = vn300Data.insTimestamp;
-        antennaCoordinates.latitude      = vn300Data.latitude;
-        antennaCoordinates.longitude     = vn300Data.longitude;
-        antennaCoordinates.height        = vn300Data.altitude;
-        antennaCoordinates.velocityNorth = vn300Data.nedVelX;
-        antennaCoordinates.velocityEast  = vn300Data.nedVelY;
-        antennaCoordinates.velocityDown  = vn300Data.nedVelZ;
-        antennaCoordinates.satellites    = vn300Data.fix_gps;
-        antennaCoordinates.fix           = vn300Data.fix_gps;
+        // update antenna coordinates
+        vn300Data = sensors->getVN300LastSample();
+        if (vn300Data.fix_gps == 3)
+        {
+            // build the GPSData struct with the VN300 data
+            antennaCoordinates.gpsTimestamp  = vn300Data.insTimestamp;
+            antennaCoordinates.latitude      = vn300Data.latitude;
+            antennaCoordinates.longitude     = vn300Data.longitude;
+            antennaCoordinates.height        = vn300Data.altitude;
+            antennaCoordinates.velocityNorth = vn300Data.nedVelX;
+            antennaCoordinates.velocityEast  = vn300Data.nedVelY;
+            antennaCoordinates.velocityDown  = vn300Data.nedVelZ;
+            antennaCoordinates.satellites    = vn300Data.fix_gps;
+            antennaCoordinates.fix           = vn300Data.fix_gps;
 
-        // update follower with coordinates
-        follower.setAntennaCoordinates(antennaCoordinates);
+            // update follower with coordinates
+            follower.setAntennaCoordinates(antennaCoordinates);
+        }
     }
 
     // update follower with the rocket GPS data
@@ -222,7 +230,6 @@ void SMA::update()
 
             // update the follower with the propagated state
             follower.setLastRocketNasState(predicted.getNasState());
-            VN300Data vn300Data = getModule<Sensors>()->getVN300LastSample();
             follower.setLastAntennaAttitude(vn300Data);
             follower.update();  // step the follower
             FollowerState follow = follower.getState();

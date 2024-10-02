@@ -1,5 +1,5 @@
 /* Copyright (c) 2023-2024 Skyward Experimental Rocketry
- * Author: Emilio Corigliano, Nicolò Caruso
+ * Authors: Emilio Corigliano, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,13 @@
 #include "ActuatorsData.h"
 #include "actuators/stepper/StepperPWM.h"
 
-// TIM1_CH4 PA11 AF1
+// TIM1_CH1 PA8 AF1 Stepper H step
 //      |
-// TIM3_CH2 PC7  AF2
+// TIM3_CH2 PC7  AF2 Stepper H count
 
-// TIM4_CH1 PD12 AF2
+// TIM4_CH1 PD12 AF2 Stepper V step
 //      |
-// TIM8_CH4 PC9  AF3
+// TIM8_CH1 PC6  AF3 Stepper V count
 
 namespace Antennas
 {
@@ -75,9 +75,6 @@ public:
      */
     void disarm();
 
-    void IRQemergencyStop();
-    void IRQemergencyStopRecovery();
-
     ActuationStatus setSpeed(StepperList axis, float speed);
     ActuationStatus move(StepperList axis, int16_t steps);
     ActuationStatus moveDeg(StepperList axis, float degrees);
@@ -91,8 +88,6 @@ public:
 
     int16_t getCurrentPosition(StepperList axis);
     float getCurrentDegPosition(StepperList axis);
-
-    bool isEmergencyStopped() const { return emergencyStop; }
 
     /**
      * @brief Getter for the last actuation of the wanted stepper.
@@ -206,8 +201,5 @@ private:
         Config::stepperXConfig.MAX_SPEED;  // Speed of the stepper [rps]
     float speedY =
         Config::stepperYConfig.MAX_SPEED;  // Speed of the stepper [rps]
-
-    bool emergencyStop =
-        false;  // Whether the system performed an emergency stop
 };
 }  // namespace Antennas
