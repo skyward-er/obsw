@@ -36,39 +36,22 @@
 namespace Antennas
 {
 
-class Follower : public Boardcore::Algorithm, public Boardcore::Module
+class Follower : public Boardcore::Algorithm
 {
 public:
     Follower();
 
     bool init() override;
 
-    void setAntennaCoordinates(const Boardcore::GPSData& gpsData)
-    {
-        antennaCoordinates = {gpsData.latitude, gpsData.longitude,
-                              gpsData.height};
-        Boardcore::Logger::getInstance().log(
-            static_cast<LogAntennasCoordinates>(gpsData));
-        antennaCoordinatesSet = true;
-    };
+    // Setters for the GPS coordinates of the antenna
+    void setAntennaCoordinates(const Boardcore::GPSData& gpsData);
+    // Setters for the GPS coordinates of the rocket while in ramp
+    void setInitialRocketCoordinates(const Boardcore::GPSData& gpsData);
+    // Setters for the NAS state of the rocket
+    void setLastRocketNasState(const Boardcore::NASState nasState);
 
-    bool isRocketCoordinatesSet() { return rocketCoordinatesSet; }
-
-    bool isAntennaCoordinatesSet() { return antennaCoordinatesSet; }
-
-    void setInitialRocketCoordinates(const Boardcore::GPSData& gpsData)
-    {
-        initialRocketCoordinates = {gpsData.latitude, gpsData.longitude,
-                                    gpsData.height};
-        Boardcore::Logger::getInstance().log(
-            static_cast<LogRocketCoordinates>(gpsData));
-        rocketCoordinatesSet = true;
-    }
-
-    Eigen::Vector2f getInitialAntennaRocketDistance()
-    {
-        return initialAntennaRocketDistance;
-    }
+    // Get the initial distance between the antenna and the rocket while in ramp
+    Eigen::Vector2f getInitialAntennaRocketDistance();
 
     /**
      * @brief Getter for the target antenna position computed by the algorithm.
@@ -78,6 +61,12 @@ public:
 
 private:
     void step() override;
+
+    /**
+     * @brief Synchronized getter that returns a copy of the last NAS state
+     * of the rocket
+     */
+    Boardcore::NASState Follower::getLastRocketNasState();
 
     /**
      * @brief Calculates the target angles from the given NED coordinates that
