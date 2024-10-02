@@ -33,10 +33,12 @@ namespace Antennas
 
 Leds::Leds(TaskScheduler* scheduler) : scheduler(scheduler)
 {
-    *led_ref(LedColor::RED)    = LedState::OFF;
-    *led_ref(LedColor::YELLOW) = LedState::OFF;
-    *led_ref(LedColor::ORANGE) = LedState::OFF;
-    *led_ref(LedColor::GREEN)  = LedState::OFF;
+    for (size_t i = 0; i < led_states.size(); i++)
+    {
+        led_states[i]  = LedState::OFF;
+        led_mutexes[i] = make_unique<mutex>();
+        led_cvs[i]     = make_unique<condition_variable>();
+    }
 }
 
 bool Leds::start()
