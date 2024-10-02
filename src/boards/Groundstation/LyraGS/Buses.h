@@ -30,7 +30,6 @@
 
 namespace LyraGS
 {
-
 class Buses : public Boardcore::Injectable
 {
 public:

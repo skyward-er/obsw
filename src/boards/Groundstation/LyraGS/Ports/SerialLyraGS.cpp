@@ -20,36 +20,51 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "SerialLyraGS.h"
 
-#include <Groundstation/Common/HubBase.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
-#include <common/Mavlink.h>
-#include <utils/DependencyManager/DependencyManager.h>
+using namespace Groundstation;
+using namespace LyraGS;
 
-namespace GroundstationBase
+bool SerialLyraGS::start()
 {
-/**
- * @brief Central hub connecting all outgoing and ingoing modules.
- */
-class Hub : public Boardcore::InjectableWithDeps<
-                Boardcore::InjectableBase<Groundstation::HubBase>,
-                LyraGS::BoardStatus, LyraGS::RadioMain, LyraGS::RadioPayload,
-                LyraGS::SerialLyraGS, LyraGS::EthernetGS>
+    auto mav_handler = [this](SerialMavDriver* channel,
+                              const mavlink_message_t& msg) { handleMsg(msg); };
+
+    mav_driver = std::make_unique<SerialMavDriver>(this, mav_handler, 0, 10);
+
+    if (!mav_driver->start())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void SerialLyraGS::sendMsg(const mavlink_message_t& msg)
 {
-public:
-    /**
-     * @brief Dispatch to the correct interface and outgoing packet (gs ->
-     * rocket).
-     */
-    void dispatchOutgoingMsg(const mavlink_message_t& msg) override;
+    if (mav_driver && mav_driver->isStarted())
+    {
+        mav_driver->enqueueMsg(msg);
+    }
+}
 
-    /**
-     * @brief Dispatch to the correct interface and incoming packet (rocket ->
-     * gs).
-     */
-    void dispatchIncomingMsg(const mavlink_message_t& msg) override;
-};
+void SerialLyraGS::handleMsg(const mavlink_message_t& msg)
+{
+    // Dispatch the message through the hub.
+    getModule<HubBase>()->dispatchOutgoingMsg(msg);
+}
 
-}  // namespace GroundstationBase
+ssize_t SerialLyraGS::receive(uint8_t* pkt, size_t max_len)
+{
+    Boardcore::USART& serial = getModule<Buses>()->uart4;
+    size_t bytesRead         = 0;
+    bool result              = serial.readBlocking(pkt, max_len, bytesRead);
+    return result ? bytesRead : 0;
+}
+
+bool SerialLyraGS::send(uint8_t* pkt, size_t len)
+{
+    Boardcore::USART& serial = getModule<Buses>()->uart4;
+    serial.write(pkt, len);
+    return true;
+}

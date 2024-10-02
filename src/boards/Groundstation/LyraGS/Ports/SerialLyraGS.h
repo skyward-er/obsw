@@ -22,34 +22,57 @@
 
 #pragma once
 
-#include <Groundstation/Common/HubBase.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
+#include <ActiveObject.h>
+#include <Groundstation/Common/Ports/EthernetBase.h>
+#include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Buses.h>
 #include <common/Mavlink.h>
+#include <drivers/usart/USART.h>
+#include <filesystem/console/console_device.h>
+#include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace GroundstationBase
+#include <memory>
+
+namespace LyraGS
 {
+
+using SerialMavDriver =
+    Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
+
 /**
- * @brief Central hub connecting all outgoing and ingoing modules.
+ * @brief Class responsible for UART communication.
  */
-class Hub : public Boardcore::InjectableWithDeps<
-                Boardcore::InjectableBase<Groundstation::HubBase>,
-                LyraGS::BoardStatus, LyraGS::RadioMain, LyraGS::RadioPayload,
-                LyraGS::SerialLyraGS, LyraGS::EthernetGS>
+class SerialLyraGS : public Boardcore::InjectableWithDeps<
+                         Boardcore::InjectableBase<Groundstation::Serial>,
+                         Buses, Groundstation::HubBase>
 {
 public:
-    /**
-     * @brief Dispatch to the correct interface and outgoing packet (gs ->
-     * rocket).
-     */
-    void dispatchOutgoingMsg(const mavlink_message_t& msg) override;
+    SerialLyraGS() {}
 
     /**
-     * @brief Dispatch to the correct interface and incoming packet (rocket ->
-     * gs).
+     * @brief Initialize the serial module.
      */
-    void dispatchIncomingMsg(const mavlink_message_t& msg) override;
+    [[nodiscard]] bool start();
+
+    /**
+     * @brief Send a mavlink message through this port.
+     */
+    void sendMsg(const mavlink_message_t& msg);
+
+private:
+    /**
+     * @brief Called internally when a message is received.
+     */
+    void handleMsg(const mavlink_message_t& msg);
+
+    ssize_t receive(uint8_t* pkt, size_t max_len) override;
+
+    bool send(uint8_t* pkt, size_t len) override;
+
+    miosix::FastMutex mutex;
+    std::unique_ptr<SerialMavDriver> mav_driver;
 };
 
-}  // namespace GroundstationBase
+}  // namespace LyraGS

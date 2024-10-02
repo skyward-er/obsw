@@ -23,9 +23,9 @@
 #include "Hub.h"
 
 #include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 
 using namespace Groundstation;
 using namespace GroundstationBase;
@@ -63,7 +63,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
     LyraGS::BoardStatus* status = getModule<LyraGS::BoardStatus>();
 
-    Serial* serial = getModule<Serial>();
+    SerialLyraGS* serial = getModule<SerialLyraGS>();
     serial->sendMsg(msg);
 
     if (status->isEthernetPresent())

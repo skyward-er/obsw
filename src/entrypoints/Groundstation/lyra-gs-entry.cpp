@@ -26,11 +26,11 @@
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
-#include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/LyraGS/Base/Hub.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Buses.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
@@ -138,7 +138,7 @@ int main()
     TaskScheduler *scheduler_low  = new TaskScheduler(0);
     TaskScheduler *scheduler_high = new TaskScheduler();
     Buses *buses                  = new Buses();
-    Serial *serial                = new Serial();
+    SerialLyraGS *serial          = new SerialLyraGS();
     LyraGS::RadioMain *radio_main =
         new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
     LyraGS::BoardStatus *board_status = new LyraGS::BoardStatus(dipRead.isARP);

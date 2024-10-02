@@ -25,9 +25,9 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/Events.h>
@@ -240,7 +240,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    Groundstation::Serial* serial = getModule<Groundstation::Serial>();
+    LyraGS::SerialLyraGS* serial = getModule<LyraGS::SerialLyraGS>();
 #if !defined(NO_MAVLINK_ON_SERIAL)
     serial->sendMsg(msg);
 #else
