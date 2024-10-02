@@ -23,13 +23,13 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <Gs/Config/RadioConfig.h>
-#include <Gs/Radio/Radio.h>
+#include <Groundstation/Common/Config/RadioConfig.h>
+#include <Groundstation/Common/Radio/RadioBase.h>
 #include <utils/collections/CircularBuffer.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
-namespace Gs
+namespace Groundstation
 {
 
 /**
@@ -109,4 +109,4 @@ private:
     bool payload_radio_present = false;
 };
 
-}  // namespace Gs
+}  // namespace Groundstation

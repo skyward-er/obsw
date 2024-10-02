@@ -24,28 +24,21 @@
 
 #include <ActiveObject.h>
 #include <common/Mavlink.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <drivers/usart/USART.h>
 
-#include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Groundstation
 {
 
-using SerialMavDriver =
-    Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
-
 /**
  * @brief Class responsible for UART communication.
  */
-class Serial : public Boardcore::Module, public Boardcore::Transceiver
+class Serial : public Boardcore::Module, private Boardcore::ActiveObject
 {
 public:
     Serial() {}
 
-    /**
-     * @brief Initialize the serial module.
-     */
     [[nodiscard]] bool start();
 
     /**
@@ -53,18 +46,14 @@ public:
      */
     void sendMsg(const mavlink_message_t& msg);
 
-private:
+protected:
     /**
-     * @brief Called internally when a message is received.
+     * @brief Internal run method
      */
-    void handleMsg(const mavlink_message_t& msg);
+    void run() override;
 
-    ssize_t receive(uint8_t* pkt, size_t max_len) override;
-
-    bool send(uint8_t* pkt, size_t len) override;
-
+private:
     miosix::FastMutex mutex;
-    std::unique_ptr<SerialMavDriver> mav_driver;
 };
 
 }  // namespace Groundstation

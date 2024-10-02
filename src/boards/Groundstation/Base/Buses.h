@@ -28,7 +28,7 @@
 
 #include "interfaces-impl/hwmapping.h"
 
-namespace GroundstationBase
+namespace Groundstation
 {
 
 class Buses : public Boardcore::Module
@@ -45,4 +45,4 @@ public:
     }
 };
 
-}  // namespace GroundstationBase
+}  // namespace Groundstation

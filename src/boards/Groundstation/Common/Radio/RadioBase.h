@@ -35,9 +35,8 @@
 namespace Groundstation
 {
 
-using RadioMavDriver =
-    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
-                             Groundstation::MAV_OUT_QUEUE_SIZE,
+using MavDriver =
+    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU, Groundstation::MAV_OUT_QUEUE_SIZE,
                              MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
 /**
@@ -122,7 +121,7 @@ private:
     // Objects are always destructed in reverse order, so keep them in this
     // order
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278;
-    std::unique_ptr<RadioMavDriver> mav_driver;
+    std::unique_ptr<MavDriver> mav_driver;
 };
 
 }  // namespace Groundstation

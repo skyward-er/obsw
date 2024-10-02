@@ -24,19 +24,18 @@
 
 #include <Groundstation/Common/Radio/RadioBase.h>
 
-namespace GroundstationBase
-{
+namespace Groundstation {
 
-class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
-{
-public:
-    [[nodiscard]] bool start();
-};
-
-class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
+class RadioMain : public RadioBase, public Boardcore::Module
 {
 public:
     [[nodiscard]] bool start();
 };
 
-}  // namespace GroundstationBase
+class RadioPayload : public RadioBase, public Boardcore::Module
+{
+public:
+    [[nodiscard]] bool start();
+};
+
+}

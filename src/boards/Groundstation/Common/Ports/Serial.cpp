@@ -23,7 +23,6 @@
 #include "Serial.h"
 
 #include <Groundstation/Common/HubBase.h>
-#include <filesystem/console/console_device.h>
 
 using namespace miosix;
 using namespace Groundstation;
@@ -31,12 +30,7 @@ using namespace Boardcore;
 
 bool Serial::start()
 {
-    auto mav_handler = [this](SerialMavDriver* channel,
-                              const mavlink_message_t& msg) { handleMsg(msg); };
-
-    mav_driver = std::make_unique<SerialMavDriver>(this, mav_handler, 0, 10);
-
-    if (!mav_driver->start())
+    if (!ActiveObject::start())
     {
         return false;
     }
@@ -44,28 +38,40 @@ bool Serial::start()
     return true;
 }
 
-void Serial::sendMsg(const mavlink_message_t& msg)
+void Serial::sendMsg(const mavlink_message_t &msg)
 {
-    if (mav_driver && mav_driver->isStarted())
+    Lock<FastMutex> l(mutex);
+    uint8_t msg_buf[MAVLINK_NUM_NON_PAYLOAD_BYTES +
+                    MAVLINK_MAX_DIALECT_PAYLOAD_SIZE];
+    int msg_len = mavlink_msg_to_send_buffer(msg_buf, &msg);
+
+    auto serial = miosix::DefaultConsole::instance().get();
+    serial->writeBlock(msg_buf, msg_len, 0);
+}
+
+void Serial::run()
+{
+    mavlink_message_t msg;
+    mavlink_status_t status;
+    uint8_t msg_buf[256];
+
+    while (!shouldStop())
     {
-        mav_driver->enqueueMsg(msg);
+        auto serial = miosix::DefaultConsole::instance().get();
+        int rcv_len = serial->readBlock(msg_buf, sizeof(msg_buf), 0);
+
+        for (int i = 0; i < rcv_len; i++)
+        {
+            uint8_t parse_result =
+                mavlink_parse_char(MAVLINK_COMM_0, msg_buf[i], &msg, &status);
+
+            if (parse_result == 1)
+            {
+                // Dispatch the message through the hub.
+                ModuleManager::getInstance()
+                    .get<HubBase>()
+                    ->dispatchOutgoingMsg(msg);
+            }
+        }
     }
-}
-
-void Serial::handleMsg(const mavlink_message_t& msg)
-{
-    // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchOutgoingMsg(msg);
-}
-
-ssize_t Serial::receive(uint8_t* pkt, size_t max_len)
-{
-    auto serial = miosix::DefaultConsole::instance().get();
-    return serial->readBlock(pkt, max_len, 0);
-}
-
-bool Serial::send(uint8_t* pkt, size_t len)
-{
-    auto serial = miosix::DefaultConsole::instance().get();
-    return serial->writeBlock(pkt, len, 0) != static_cast<ssize_t>(len);
 }
