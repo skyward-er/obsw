@@ -177,7 +177,7 @@ void ADAController::update()
                 // Notify stats recorder
                 getModule<StatsRecorder>()->apogeeDetected(
                     TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                    ada.getState().mslAltitude);
+                    ada.getState().aglAltitude);
 
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
             }
