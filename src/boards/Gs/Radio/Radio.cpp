@@ -23,9 +23,9 @@
 #include "Radio.h"
 
 #include <Gs/Buses.h>
-#include <radio/SX1278/SX1278Frontends.h>
 #include <Gs/Ports/Serial.h>
 #include <Gs/Radio/RadioStatus.h>
+#include <radio/SX1278/SX1278Frontends.h>
 
 using namespace miosix;
 using namespace Gs;
@@ -81,7 +81,8 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278,
     this->sx1278 = std::move(sx1278);
 
     // Configure the radio
-    if (this->sx1278->configure(config) != SX1278Fsk::Error::NONE) {
+    if (this->sx1278->configure(config) != SX1278Fsk::Error::NONE)
+    {
         return false;
     }
 
@@ -119,13 +120,15 @@ bool RadioMain::start()
             SPI::ClockDivider::DIV_64, std::move(frontend));
 
     // First check if the device is even connected
-    RadioStatus *status = ModuleManager::getInstance().get<RadioStatus>();
+    RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
     // Set if the device is present
     status->setMainRadioPresent(sx1278->checkVersion());
 
-    if(status->isMainRadioPresent()) {
+    if (status->isMainRadioPresent())
+    {
         // Initialize if only if present
-        if(!RadioBase::start(std::move(sx1278), Common::MAIN_RADIO_CONFIG)) {
+        if (!RadioBase::start(std::move(sx1278), Common::MAIN_RADIO_CONFIG))
+        {
             return false;
         }
     }
@@ -152,13 +155,15 @@ bool RadioPayload::start()
             SPI::ClockDivider::DIV_64, std::move(frontend));
 
     // First check if the device is even connected
-    RadioStatus *status = ModuleManager::getInstance().get<RadioStatus>();
+    RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
     // Set if the device is present
     status->setPayloadRadioPresent(sx1278->checkVersion());
 
-    if(status->isPayloadRadioPresent()) {
+    if (status->isPayloadRadioPresent())
+    {
         // Initialize if only if present
-        if(!RadioBase::start(std::move(sx1278), Common::PAYLOAD_RADIO_CONFIG)) {
+        if (!RadioBase::start(std::move(sx1278), Common::PAYLOAD_RADIO_CONFIG))
+        {
             return false;
         }
     }
@@ -168,10 +173,9 @@ bool RadioPayload::start()
 
 void RadioBase::handleMsg(const mavlink_message_t& msg)
 {
-    printf("Bruh\n");
-
     // TODO:
-    Serial *serial = ModuleManager::getInstance().get<Serial>();
+
+    Serial* serial = ModuleManager::getInstance().get<Serial>();
     serial->sendMsg(msg);
 
     if (isEndOfTransmissionPacket(msg))
