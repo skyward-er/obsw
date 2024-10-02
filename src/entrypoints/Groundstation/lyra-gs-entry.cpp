@@ -47,6 +47,27 @@ using namespace miosix;
 using namespace Groundstation;
 using namespace LyraGS;
 
+/**
+ * @brief Dip switch status for the GS board
+ */
+struct DipStatusLyraGS
+{
+    bool isARP;
+    bool mainHasBackup;
+    bool payloadHasBackup;
+    uint8_t ipConfig;
+};
+
+DipStatusLyraGS getDipStatus(uint8_t read)
+{
+    DipStatusLyraGS dipRead;
+    dipRead.isARP            = 1 & read;
+    dipRead.mainHasBackup    = 1 & (read >> 1);
+    dipRead.payloadHasBackup = 1 & (read >> 2);
+    dipRead.ipConfig         = 0 | (read >> 3);
+    return dipRead;
+}
+
 void idleLoop()
 {
     while (1)
@@ -87,7 +108,7 @@ void errorLoop()
  * Otherwise initialize the GroundstationBase
  * - Initializes software modules
  *   -> Green LED is turned on when main radio on
- *   -> Yellow LED is turned on when backup radio on
+ *   -> Yellow LED is turned on when payload radio on
  *   -> Orange LED is turned on when ethernet radio on
  *
  * - When done the red LED is fixed. Blinks if error in modules init.
@@ -103,7 +124,7 @@ int main()
     GpioPin qh           = dipSwitch::qh::getPin();
 
     DipSwitch dip(sh, clk, qh, microSecClk);
-    DipStatus dipRead = dip.read();
+    DipStatusLyraGS dipRead = getDipStatus(dip.read());
 
     // TODO: Pass to DependencyManager when rebased!
     ModuleManager &modules = ModuleManager::getInstance();
@@ -114,10 +135,10 @@ int main()
     TaskScheduler *scheduler_high = new TaskScheduler();
     Buses *buses                  = new Buses();
     Serial *serial                = new Serial();
-    RadioMain *radio_main         = new LyraGS::RadioMain();
-    BoardStatus *board_status     = new BoardStatus(dipRead.isARP);
+    RadioMain *radio_main       = new LyraGS::RadioMain(dipRead.mainHasBackup);
+    BoardStatus *board_status   = new BoardStatus(dipRead.isARP);
     LyraGS::Ethernet *ethernet  = new LyraGS::Ethernet(false, dipRead.ipConfig);
-    RadioPayload *radio_payload = new RadioPayload();
+    RadioPayload *radio_payload = new RadioPayload(dipRead.payloadHasBackup);
     Antennas::Actuators *actuators = nullptr;
 
     bool ok = true;
@@ -209,6 +230,8 @@ int main()
     if (!radio_payload->start())
     {
         LOG_ERR(logger, "[error] Failed to start payload radio!\n");
+        // Payload module is needed just for GS, not for ARP
+        ok &= dipRead.isARP;
     }
 
     if (!ethernet->start())
@@ -227,41 +250,42 @@ int main()
 
     if (dipRead.isARP)
     {
-        ok &= ModuleManager::getInstance().get<Antennas::Leds>()->start();
-        if (!ok)
+        if (!ModuleManager::getInstance().get<Antennas::Leds>()->start())
         {
             LOG_ERR(logger, "[error] Failed to start leds!\n");
+            ok = false;
         }
 
-        ok &= ModuleManager::getInstance().get<Antennas::Sensors>()->start();
-        if (!ok)
+        if (!ModuleManager::getInstance().get<Antennas::Sensors>()->start())
         {
             LOG_ERR(logger, "[error] Failed to start sensors!\n");
+            ok = false;
         }
 
-        ok &= ModuleManager::getInstance().get<Antennas::SMA>()->start();
-        if (!ok)
+        if (!ModuleManager::getInstance().get<Antennas::SMA>()->start())
         {
             LOG_ERR(logger, "[error] Failed to start sma!\n");
+            ok = false;
         }
 
         if (actuators)
         {
+            actuators->start();
             LOG_INFO(logger, "[info] Actuators started!\n");
         }
-
-        ok &= ModuleManager::getInstance().get<Antennas::PinHandler>()->start();
+        else
+            LOG_ERR(logger, "[error] Failed to start actuators!\n");
 
         if (!modules.get<Antennas::PinHandler>()->start())
-            if (!ok)
-            {
-                LOG_ERR(logger, "[error] Failed to start PinHandler!\n");
-            }
+        {
+            LOG_ERR(logger, "[error] Failed to start PinHandler!\n");
+            ok = false;
+        }
     }
 
-    if (!ok)
+    if (!dipRead.isARP && !ok)
     {
-        LOG_ERR(logger, "Could not start all modules successfully!\n");
+        LOG_ERR(logger, "GS: could not start all modules successfully!\n");
         errorLoop();
     }
 
@@ -293,8 +317,11 @@ int main()
     else
         LOG_ERR(logger, "Ethernet NOT detected\n");
 
-    if (!ok)
+    if (!dipRead.isARP && !ok)
     {
+        LOG_ERR(logger,
+                "GS initialization has failed. Not all modules started "
+                "correctly!\n");
         errorLoop();
     }
 
@@ -303,11 +330,19 @@ int main()
         // If init fatal and sma not started, blink red endlessly
         if (init_fatal)
         {
+            LOG_ERR(logger,
+                    "ARP's modules initialization has failed. Init fatal "
+                    "error. Cannot proceed, a restart and fix of the "
+                    "boards/module is required.\n");
             ModuleManager::getInstance().get<Antennas::Leds>()->endlessBlink(
                 Antennas::LedColor::RED, LED_BLINK_FAST_PERIOD_MS);
         }  // If another module is in error
         else if (!ok)
         {
+            LOG_ERR(
+                logger,
+                "ARP's modules initialization has failed. Init error. It "
+                "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT.\n");
             EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
                                             Common::TOPIC_ARP);
         }  // If all modules are ok
