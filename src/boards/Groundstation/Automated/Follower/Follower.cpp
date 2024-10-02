@@ -84,6 +84,16 @@ void Follower::step()
     AntennaAngles stepperAngles{targetAngles.yaw - vn300.yaw,
                                 targetAngles.pitch - vn300.pitch};
 
+    // Rotate in the shortest direction
+    if (stepperAngles.yaw > 180)
+    {
+        stepperAngles.yaw -= 360;
+    }
+    else if (stepperAngles.yaw < -180)
+    {
+        stepperAngles.yaw += 360;
+    }
+
     // Calculate angular velocity for moving the antennas toward position
     float horizontalSpeed = std::abs((stepperAngles.yaw * 1000) /
                                      (360 * FollowerConfig::FOLLOWER_PERIOD));
