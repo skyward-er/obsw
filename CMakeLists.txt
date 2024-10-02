@@ -86,6 +86,13 @@ add_executable(nokia-groundstation-entry
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(nokia-groundstation-entry stm32f429zi_nokia)
 
+add_executable(test-actuators
+    src/entrypoints/Groundstation/Automated/test-actuators.cpp
+    ${LYRA_GS} ${GROUNDSTATION_COMMON}
+)
+target_include_directories(test-actuators PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(test-actuators stm32f767zi_lyra_gs)
+
 add_executable(lyra-gs-entry
     src/entrypoints/Groundstation/lyra-gs-entry.cpp
     ${LYRA_GS} ${GROUNDSTATION_COMMON}
