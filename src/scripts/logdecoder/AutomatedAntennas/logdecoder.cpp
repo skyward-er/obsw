@@ -23,6 +23,7 @@
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <Groundstation/Automated/SMA/SMAData.h>
+#include <algorithms/Follower/FollowerData.h>
 #include <algorithms/NAS/NASState.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
@@ -59,6 +60,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<StepperYData>();
     ds.registerType<VN300Data>();
     ds.registerType<NASState>();
+    ds.registerType<AntennaAngles>();
     ds.registerType<GPSData>();
     ds.registerType<SMAStatus>();
     ds.registerType<PinChangeData>();
