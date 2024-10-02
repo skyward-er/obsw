@@ -22,8 +22,12 @@
 
 #pragma once
 
+#include <Groundstation/Automated/Follower/Follower.h>
+#include <algorithms/Propagator/Propagator.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>
+#include <scheduler/TaskScheduler.h>
+#include <sensors/SensorData.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
 
@@ -36,9 +40,10 @@ class SMController : public Boardcore::Module,
                      public Boardcore::HSM<SMController>
 {
 public:
-    SMController();
+    SMController(Boardcore::TaskScheduler* scheduler);
 
     // FSM States
+
     Boardcore::State state_config(const Boardcore::Event& event);
     Boardcore::State state_feedback(const Boardcore::Event& event);
     Boardcore::State state_no_feedback(const Boardcore::Event& event);
@@ -57,6 +62,19 @@ public:
     Boardcore::State state_fix_rocket_nf(const Boardcore::Event& event);
     Boardcore::State state_active_nf(const Boardcore::Event& event);
 
+    /**
+     * @brief Setter for the antenna coordinates
+     * @details works only in the `fix_antennas` state
+     */
+    void setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates);
+
+    /**
+     * @brief Setter for the initial rocket coordinates
+     * @details log an error if not in the correct state
+     */
+    void setInitialRocketCoordinates(
+        const Boardcore::GPSData& antennaCoordinates);
+
 private:
     /**
      * @brief Logs the current state of the FSM
@@ -65,6 +83,11 @@ private:
     void logStatus(SMControllerState state);
 
     SMControllerStatus status;
+    Boardcore::Propagator propagator;
+    Antennas::Follower follower;
+
+    // Scheduler to be used for update function
+    Boardcore::TaskScheduler* scheduler = nullptr;
 
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("SMController");

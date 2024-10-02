@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,9 @@
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/BoardStatus.h>
-#include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
+#include <Groundstation/Automated/SMController/SMController.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <algorithms/NAS/NASState.h>
@@ -39,6 +39,7 @@
 using namespace Antennas;
 using namespace Boardcore;
 using namespace Groundstation;
+using namespace miosix;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
@@ -93,7 +94,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             gpsData.fix        = 3;
             gpsData.satellites = 42;
 
-            modules.get<Follower>()->setInitialRocketCoordinates(gpsData);
+            modules.get<SMController>()->setInitialRocketCoordinates(gpsData);
             sendAck(msg);
             break;
         }
@@ -115,7 +116,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             gpsData.fix        = 3;
             gpsData.satellites = 42;
 
-            modules.get<Follower>()->setAntennaCoordinates(gpsData);
+            modules.get<SMController>()->setAntennaCoordinates(gpsData);
             sendAck(msg);
             break;
         }
@@ -167,8 +168,9 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         gpsState.height    = mavlink_msg_rocket_flight_tm_get_gps_alt(&msg);
         gpsState.fix       = mavlink_msg_rocket_flight_tm_get_gps_fix(&msg);
 
-        lastRocketNasState = nasState;
-        lastRocketGpsState = gpsState;
+        // Set the rocket NAS
+        setRocketNasState(nasState);
+        setRocketCoordinates(gpsState);
 
         Logger::getInstance().log(nasState);
         Logger::getInstance().log(gpsState);
@@ -186,6 +188,26 @@ void Hub::sendAck(const mavlink_message_t& msg)
     dispatchIncomingMsg(ackMsg);
 }
 
-NASState Hub::getLastRocketNasState() { return lastRocketNasState; }
+GPSData Hub::getRocketCoordinates()
+{
+    Lock<FastMutex> lock(coordinatesMutex);
+    return lastRocketCoordinates;
+}
 
-GPSData Hub::getLastRocketGpsState() { return lastRocketGpsState; }
+NASState Hub::getRocketNasState()
+{
+    Lock<FastMutex> lock(nasStateMutex);
+    return lastRocketNasState;
+}
+
+void Hub::setRocketNasState(const NASState& newRocketNasState)
+{
+    Lock<FastMutex> lock(nasStateMutex);
+    lastRocketNasState = newRocketNasState;
+}
+
+void Hub::setRocketCoordinates(const GPSData& newRocketCoordinates)
+{
+    Lock<FastMutex> lock(coordinatesMutex);
+    lastRocketCoordinates = newRocketCoordinates;
+}
