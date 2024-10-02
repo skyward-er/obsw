@@ -23,11 +23,13 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Groundstation/Common/HubBase.h>
 #include <common/Mavlink.h>
+#include <filesystem/console/console_device.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Groundstation
 {
@@ -38,7 +40,8 @@ using SerialMavDriver =
 /**
  * @brief Class responsible for UART communication.
  */
-class Serial : public Boardcore::Module, public Boardcore::Transceiver
+class Serial : public Boardcore::InjectableWithDeps<HubBase>,
+               public Boardcore::Transceiver
 {
 public:
     Serial() {}

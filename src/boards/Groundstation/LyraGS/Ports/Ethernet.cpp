@@ -27,21 +27,27 @@
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
+using namespace LyraGS;
+
+namespace LyraGS
+{
+EthernetGS* ethernetGSGlobal = nullptr;
+}
 
 void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 {
-    ModuleManager::getInstance().get<LyraGS::Ethernet>()->handleINTn();
+    if (ethernetGSGlobal)
+        ethernetGSGlobal->handleINTn();
 }
 
 namespace LyraGS
 {
 
-bool Ethernet::start()
+bool EthernetGS::start()
 {
     std::unique_ptr<Wiz5500> wiz5500 = std::make_unique<Wiz5500>(
-        ModuleManager::getInstance().get<Buses>()->ethernet_bus,
-        miosix::ethernet::cs::getPin(), miosix::ethernet::intr::getPin(),
-        SPI::ClockDivider::DIV_64);
+        getModule<Buses>()->ethernet_bus, miosix::ethernet::cs::getPin(),
+        miosix::ethernet::intr::getPin(), SPI::ClockDivider::DIV_64);
 
     // First check if the device is even connected
     bool present = wiz5500->checkVersion();
@@ -56,8 +62,17 @@ bool Ethernet::start()
         return false;
     }
 
-    ModuleManager::getInstance().get<BoardStatus>()->setEthernetPresent(true);
+    ethernetGSGlobal = this;
+    getModule<BoardStatus>()->setEthernetPresent(true);
 
     return true;
 }
+
+void EthernetGS::sendMsg(const mavlink_message_t& msg) { Super::sendMsg(msg); };
+
+void EthernetGS::handleINTn() { EthernetBase::handleINTn(); }
+Boardcore::Wiz5500::PhyState EthernetGS::getState()
+{
+    return Super::getState();
+};
 }  // namespace LyraGS

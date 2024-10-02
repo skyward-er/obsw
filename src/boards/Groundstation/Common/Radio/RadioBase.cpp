@@ -141,7 +141,7 @@ bool RadioBase::send(uint8_t* pkt, size_t len)
 void RadioBase::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
+    getModule<HubBase>()->dispatchIncomingMsg(msg);
 
     if (isEndOfTransmissionPacket(msg))
     {

@@ -120,7 +120,7 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
 void EthernetBase::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchOutgoingMsg(msg);
+    getModule<HubBase>()->dispatchOutgoingMsg(msg);
 }
 
 ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)

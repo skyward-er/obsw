@@ -24,13 +24,14 @@
 
 #include <ActiveObject.h>
 #include <Groundstation/Common/Config/RadioConfig.h>
+#include <Groundstation/Common/HubBase.h>
 #include <common/Mavlink.h>
 #include <common/Radio.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Groundstation
 {
@@ -58,7 +59,9 @@ struct RadioStats
  * @brief Base radio class, used to implement functionality independent of
  * main/payload radios.
  */
-class RadioBase : private Boardcore::ActiveObject, public Boardcore::Transceiver
+class RadioBase : private Boardcore::ActiveObject,
+                  public Boardcore::Transceiver,
+                  public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
     RadioBase() {}

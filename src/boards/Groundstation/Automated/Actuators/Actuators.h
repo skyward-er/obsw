@@ -23,8 +23,7 @@
 
 #include <common/Mavlink.h>
 #include <logger/Logger.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "ActuatorsConfig.h"
 #include "ActuatorsData.h"
@@ -55,7 +54,7 @@ enum class ActuationStatus : uint8_t
     EMERGENCY_STOP,  ///< `6`
 };
 
-class Actuators : public Boardcore::Module
+class Actuators : public Boardcore::Injectable
 {
 public:
     Actuators();

@@ -24,29 +24,23 @@
 
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "interfaces-impl/hwmapping.h"
 
 namespace LyraGS
 {
 
-class Buses : public Boardcore::Module
+class Buses : public Boardcore::Injectable
 {
 public:
-    Boardcore::SPIBus radio1_bus;
-    Boardcore::SPIBus radio2_bus;
-    Boardcore::USART usart2;
-    Boardcore::USART uart4;
-    Boardcore::SPIBus ethernet_bus;
+    Boardcore::SPIBus &getRadio() { return radio1_bus; }
 
-    Buses()
-        : radio1_bus{MIOSIX_RADIO1_SPI}, radio2_bus{MIOSIX_RADIO2_SPI},
-          usart2{USART2, 115200}, uart4{UART4, 115200}, ethernet_bus{
-                                                            MIOSIX_ETHERNET_SPI}
-    {
-    }
+    Boardcore::SPIBus radio1_bus{MIOSIX_RADIO1_SPI};
+    Boardcore::SPIBus radio2_bus{MIOSIX_RADIO2_SPI};
+    Boardcore::USART usart2{USART2, 115200};
+    Boardcore::USART uart4{UART4, 115200};
+    Boardcore::SPIBus ethernet_bus{MIOSIX_ETHERNET_SPI};
 };
 
 }  // namespace LyraGS

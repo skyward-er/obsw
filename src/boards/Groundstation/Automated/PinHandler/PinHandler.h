@@ -25,13 +25,12 @@
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/PinObserver/PinObserver.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace Antennas
 {
-class PinHandler : public Boardcore::Module
+class PinHandler : public Boardcore::Injectable
 {
 public:
     enum PinList : uint8_t

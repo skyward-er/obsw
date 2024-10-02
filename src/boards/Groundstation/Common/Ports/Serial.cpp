@@ -22,9 +22,6 @@
 
 #include "Serial.h"
 
-#include <Groundstation/Common/HubBase.h>
-#include <filesystem/console/console_device.h>
-
 using namespace miosix;
 using namespace Groundstation;
 using namespace Boardcore;
@@ -55,7 +52,7 @@ void Serial::sendMsg(const mavlink_message_t& msg)
 void Serial::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchOutgoingMsg(msg);
+    getModule<HubBase>()->dispatchOutgoingMsg(msg);
 }
 
 ssize_t Serial::receive(uint8_t* pkt, size_t max_len)

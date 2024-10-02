@@ -23,14 +23,25 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/SMA/SMA.h>
+#include <Groundstation/Automated/Sensors/Sensors.h>
+#include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Config/RadioConfig.h>
+#include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
+#include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Radio/Radio.h>
+#include <common/Mavlink.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 namespace LyraGS
 {
+class RadioMain;
+class RadioPayload;
+class EthernetGS;
 
 /**
  * @brief Utility to calculate the bitrate
@@ -70,7 +81,11 @@ private:
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class BoardStatus : public Boardcore::Module, private Boardcore::ActiveObject
+class BoardStatus
+    : public Boardcore::InjectableWithDeps<
+          Antennas::Actuators, Antennas::SMA, Antennas::Sensors,
+          Groundstation::HubBase, RadioMain, RadioPayload, EthernetGS>,
+      private Boardcore::ActiveObject
 {
 public:
     explicit BoardStatus(bool isArp) : isArp{isArp} {}
@@ -88,7 +103,7 @@ public:
     bool isPayloadRadioPresent();
 
     /**
-     * @brief Check wether the ethernet was found during boot.
+     * @brief Check wether the ethernet was found d\uring boot.
      */
     bool isEthernetPresent();
 

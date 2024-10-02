@@ -199,19 +199,19 @@ int main()
     Actuators *actuators = new Actuators();
     Sensors *sensors     = new Sensors();
 
-    ModuleManager &modules = ModuleManager::getInstance();
-    PrintLogger logger     = PrintLogger{Logging::getLogger("test-actuators")};
-    bool ok                = true;
+    DependencyManager manager;
+    PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
+    bool ok            = true;
 
     LOG_INFO(logger, "test-actuators\n");
 
     // Insert modules
     {
-        ok &= modules.insert<HubBase>(hub);
-        ok &= modules.insert(buses);
-        ok &= modules.insert(serial);
-        ok &= modules.insert(actuators);
-        ok &= modules.insert(sensors);
+        ok &= manager.insert<HubBase>(hub);
+        ok &= manager.insert(buses);
+        ok &= manager.insert(serial);
+        ok &= manager.insert(actuators);
+        ok &= manager.insert(sensors);
 
         // If insertion failed, stop right here
         if (!ok)
@@ -222,6 +222,16 @@ int main()
         else
         {
             LOG_DEBUG(logger, "All modules inserted successfully!\n");
+        }
+
+        if (!manager.inject())
+        {
+            LOG_ERR(logger, "[error] Failed to inject the dependencies!\n");
+            errorLoop();
+        }
+        else
+        {
+            LOG_DEBUG(logger, "All modules injected successfully!\n");
         }
     }
 

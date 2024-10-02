@@ -23,8 +23,7 @@
 #pragma once
 
 #include <common/Mavlink.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace Groundstation
 {
@@ -32,7 +31,7 @@ namespace Groundstation
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class HubBase : public Boardcore::Module
+class HubBase : public Boardcore::Injectable
 {
 public:
     /**

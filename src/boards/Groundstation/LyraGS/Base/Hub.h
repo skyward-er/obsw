@@ -23,17 +23,20 @@
 #pragma once
 
 #include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <common/Mavlink.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationBase
 {
-
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class Hub : public Groundstation::HubBase
+class Hub : public Boardcore::InjectableWithDeps<
+                Boardcore::InjectableBase<Groundstation::HubBase>,
+                LyraGS::BoardStatus, LyraGS::RadioMain, LyraGS::RadioPayload,
+                Groundstation::Serial, LyraGS::EthernetGS>
 {
 public:
     /**

@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "Groundstation/LyraGS/Buses.h"
 #include "sensors/SensorManager.h"
@@ -29,7 +29,7 @@
 
 namespace Antennas
 {
-class Sensors : public Boardcore::Module
+class Sensors : public Boardcore::InjectableWithDeps<LyraGS::Buses>
 {
 public:
     Sensors();

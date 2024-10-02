@@ -31,8 +31,6 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <sensors/Vectornav/VN300/VN300Data.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 #include "SMAData.h"
 
 using namespace Boardcore;
@@ -104,8 +102,7 @@ ActuationStatus SMA::moveStepperDeg(StepperList stepperId, float angle)
     }
     else
     {
-        return ModuleManager::getInstance().get<Actuators>()->moveDeg(stepperId,
-                                                                      angle);
+        return getModule<Actuators>()->moveDeg(stepperId, angle);
     }
 }
 
@@ -118,8 +115,7 @@ ActuationStatus SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
     }
     else
     {
-        return ModuleManager::getInstance().get<Actuators>()->move(stepperId,
-                                                                   steps);
+        return getModule<Actuators>()->move(stepperId, steps);
     }
 }
 
@@ -134,8 +130,7 @@ void SMA::setMultipliers(StepperList axis, float multiplier)
     }
     else
     {
-        ModuleManager::getInstance().get<Actuators>()->setMultipliers(
-            axis, multiplier);
+        getModule<Actuators>()->setMultipliers(axis, multiplier);
     }
 }
 
@@ -162,7 +157,7 @@ void SMA::update()
             VN300Data vn300Data;
             GPSData antennaPosition;
 
-            auto* sensors = ModuleManager::getInstance().get<Sensors>();
+            auto* sensors = getModule<Sensors>();
 
             vn300Data = sensors->getVN300LastSample();
             if (vn300Data.fix_gps != 0)
@@ -196,8 +191,7 @@ void SMA::update()
         {
             GPSData rocketCoordinates;
 
-            Hub* hub =
-                static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
+            Hub* hub = static_cast<Hub*>(getModule<Groundstation::HubBase>());
 
             rocketCoordinates = hub->getRocketCoordinates();
             if (rocketCoordinates.fix != 0)
@@ -219,8 +213,7 @@ void SMA::update()
         case SMAState::ACTIVE:
         {
             // retrieve the last NAS Rocket state
-            Hub* hub =
-                static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
+            Hub* hub = static_cast<Hub*>(getModule<HubBase>());
             if (hub->hasNasSet())
             {
                 NASState nasState = hub->getRocketNasState();
@@ -234,9 +227,7 @@ void SMA::update()
 
             // update the follower with the propagated state
             follower.setLastRocketNasState(predicted.getNasState());
-            VN300Data vn300Data = ModuleManager::getInstance()
-                                      .get<Sensors>()
-                                      ->getVN300LastSample();
+            VN300Data vn300Data = getModule<Sensors>()->getVN300LastSample();
             follower.setLastAntennaAttitude(vn300Data);
             follower.update();  // step the follower
             FollowerState follow = follower.getState();
@@ -248,7 +239,7 @@ void SMA::update()
                 static_cast<Boardcore::AntennaAngles>(target));
 
             // actuate the steppers
-            auto steppers = ModuleManager::getInstance().get<Actuators>();
+            auto steppers = getModule<Actuators>();
             steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
             steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
 
@@ -280,8 +271,7 @@ void SMA::update()
             VN300Data fakeAttitudeData;
 
             // retrieve the last NAS Rocket state
-            Hub* hub =
-                static_cast<Hub*>(ModuleManager::getInstance().get<HubBase>());
+            Hub* hub = static_cast<Hub*>(getModule<HubBase>());
             if (hub->hasNasSet())
             {
                 NASState nasState = hub->getRocketNasState();
@@ -293,7 +283,7 @@ void SMA::update()
             propagator.update();  // step the propagator
             PropagatorState predicted = propagator.getState();
 
-            auto steppers = ModuleManager::getInstance().get<Actuators>();
+            auto steppers = getModule<Actuators>();
 
             // set the attitude as the current position of the steppers
             // FIXME this method of setting the attitude is too dirty
@@ -391,13 +381,13 @@ State SMA::state_feedback(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FEEDBACK);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::YELLOW);
+            getModule<Leds>()->setOn(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            ModuleManager::getInstance().get<Actuators>()->disarm();
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::YELLOW);
+            getModule<Actuators>()->disarm();
+            getModule<Leds>()->setOff(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -427,13 +417,13 @@ State SMA::state_no_feedback(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::NO_FEEDBACK);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::YELLOW);
+            getModule<Leds>()->setOn(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            ModuleManager::getInstance().get<Actuators>()->disarm();
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::YELLOW);
+            getModule<Actuators>()->disarm();
+            getModule<Leds>()->setOff(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -499,10 +489,9 @@ State SMA::state_init_error(const Event& event)
         {
             logStatus(SMAState::INIT_ERROR);
             if (fatalInit)
-                ModuleManager::getInstance().get<Leds>()->setFastBlink(
-                    LedColor::RED);
+                getModule<Leds>()->setFastBlink(LedColor::RED);
             else
-                ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
+                getModule<Leds>()->setOn(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -539,10 +528,9 @@ State SMA::state_init_done(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::INIT_DONE);
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::RED);
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::BLUE);
-            ModuleManager::getInstance().get<Leds>()->setSlowBlink(
-                LedColor::YELLOW);
+            getModule<Leds>()->setOff(LedColor::RED);
+            getModule<Leds>()->setOff(LedColor::BLUE);
+            getModule<Leds>()->setSlowBlink(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
@@ -579,8 +567,8 @@ State SMA::state_insert_info(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::INSERT_INFO);
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::YELLOW);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setOff(LedColor::YELLOW);
+            getModule<Leds>()->setOn(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -613,10 +601,9 @@ State SMA::state_arm_ready(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::ARM_READY);
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::BLUE);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
-            ModuleManager::getInstance().get<Leds>()->setSlowBlink(
-                LedColor::YELLOW);
+            getModule<Leds>()->setOff(LedColor::BLUE);
+            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setSlowBlink(LedColor::YELLOW);
             return HANDLED;
         }
         case EV_EXIT:
@@ -649,9 +636,9 @@ State SMA::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::ARMED);
-            ModuleManager::getInstance().get<Actuators>()->arm();
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::YELLOW);
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::BLUE);
+            getModule<Actuators>()->arm();
+            getModule<Leds>()->setOn(LedColor::YELLOW);
+            getModule<Leds>()->setOff(LedColor::BLUE);
             return HANDLED;
         }
         case EV_EXIT:
@@ -756,8 +743,7 @@ State SMA::state_fix_antennas(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FIX_ANTENNAS);
-            ModuleManager::getInstance().get<Leds>()->setSlowBlink(
-                LedColor::BLUE);
+            getModule<Leds>()->setSlowBlink(LedColor::BLUE);
             return HANDLED;
         }
         case EV_EXIT:
@@ -794,13 +780,12 @@ State SMA::state_fix_rocket(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FIX_ROCKET);
-            ModuleManager::getInstance().get<Leds>()->setFastBlink(
-                LedColor::BLUE);
+            getModule<Leds>()->setFastBlink(LedColor::BLUE);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            auto* leds = ModuleManager::getInstance().get<Leds>();
+            auto* leds = getModule<Leds>();
             leds->setOff(LedColor::YELLOW);
 
             // init the follower before leaving the state
@@ -845,7 +830,7 @@ State SMA::state_active(const Event& event)
             logStatus(SMAState::ACTIVE);
             follower.begin();
             propagator.begin();
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::BLUE);
+            getModule<Leds>()->setOn(LedColor::BLUE);
             return HANDLED;
         }
         case EV_EXIT:
@@ -880,10 +865,10 @@ State SMA::state_armed_nf(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::ARMED_NF);
-            ModuleManager::getInstance().get<Actuators>()->arm();
-            ModuleManager::getInstance().get<Leds>()->setOff(LedColor::BLUE);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::YELLOW);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
+            getModule<Actuators>()->arm();
+            getModule<Leds>()->setOff(LedColor::BLUE);
+            getModule<Leds>()->setOn(LedColor::YELLOW);
+            getModule<Leds>()->setOn(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -952,13 +937,12 @@ State SMA::state_fix_rocket_nf(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FIX_ROCKET_NF);
-            ModuleManager::getInstance().get<Leds>()->setFastBlink(
-                LedColor::BLUE);
+            getModule<Leds>()->setFastBlink(LedColor::BLUE);
             return HANDLED;
         }
         case EV_EXIT:
         {
-            auto* leds = ModuleManager::getInstance().get<Leds>();
+            auto* leds = getModule<Leds>();
             leds->setOff(LedColor::YELLOW);
 
             // init the follower before leaving the state
@@ -1003,8 +987,8 @@ State SMA::state_active_nf(const Event& event)
             logStatus(SMAState::ACTIVE_NF);
             follower.begin();
             propagator.begin();
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::BLUE);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setOn(LedColor::BLUE);
+            getModule<Leds>()->setOn(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:

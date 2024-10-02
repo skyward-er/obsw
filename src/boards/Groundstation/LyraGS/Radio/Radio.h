@@ -22,12 +22,23 @@
 
 #pragma once
 
+#include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Buses.h>
+#include <interfaces-impl/hwmapping.h>
+#include <radio/SX1278/SX1278Frontends.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace LyraGS
 {
 
-class RadioMain : public Groundstation::RadioBase, public Boardcore::Module
+class BoardStatus;
+
+class RadioMain : public Boardcore::InjectableWithDeps<
+                      Boardcore::InjectableBase<Groundstation::RadioBase>,
+                      Buses, BoardStatus>
 {
 public:
     [[nodiscard]] bool start();
@@ -39,8 +50,9 @@ public:
 private:
     bool hasBackup = false;
 };
-
-class RadioPayload : public Groundstation::RadioBase, public Boardcore::Module
+class RadioPayload : public Boardcore::InjectableWithDeps<
+                         Boardcore::InjectableBase<Groundstation::RadioBase>,
+                         Buses, BoardStatus>
 {
 public:
     [[nodiscard]] bool start();

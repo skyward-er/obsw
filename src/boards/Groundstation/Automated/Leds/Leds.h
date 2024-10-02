@@ -24,10 +24,10 @@
 
 #include <ActiveObject.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <array>
 #include <mutex>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 constexpr uint32_t LED_BLINK_FAST_PERIOD_MS = 50;
 constexpr uint32_t LED_BLINK_SLOW_PERIOD_MS = 300;
@@ -48,7 +48,7 @@ enum class LedColor : uint8_t
  * @brief Utility to handle blinking leds with non-blocking sleep
  * (useful for state machines states that need to blink leds without blocking)
  */
-class Leds : public Boardcore::Module
+class Leds : public Boardcore::Injectable
 {
 public:
     explicit Leds(Boardcore::TaskScheduler* scheduler);

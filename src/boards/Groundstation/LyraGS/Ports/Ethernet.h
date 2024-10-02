@@ -23,21 +23,24 @@
 #pragma once
 
 #include <Groundstation/Common/Ports/EthernetBase.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace LyraGS
 {
+class BoardStatus;
 
-class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
+class EthernetGS : public Boardcore::InjectableWithDeps<
+                       Boardcore::InjectableBase<Groundstation::EthernetBase>,
+                       Buses, BoardStatus>
 {
 public:
-    Ethernet() : EthernetBase(), Module() {}
-    Ethernet(bool randomIp, uint8_t ipOffset)
-        : EthernetBase(randomIp, ipOffset), Module()
-    {
-    }
+    EthernetGS() : Super{} {}
+    EthernetGS(bool randomIp, uint8_t ipOffset) : Super{randomIp, ipOffset} {}
     [[nodiscard]] bool start();
+    void sendMsg(const mavlink_message_t& msg);
+    void handleINTn();
+    Boardcore::Wiz5500::PhyState getState();
 };
 
 }  // namespace LyraGS

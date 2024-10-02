@@ -22,16 +22,6 @@
 
 #include "BoardStatus.h"
 
-#include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/SMA/SMA.h>
-#include <Groundstation/Automated/Sensors/Sensors.h>
-#include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/Common/HubBase.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Radio/Radio.h>
-#include <common/Mavlink.h>
-#include <drivers/timer/TimestampTimer.h>
-
 using namespace Boardcore;
 using namespace Groundstation;
 using namespace LyraGS;
@@ -70,12 +60,11 @@ void BoardStatus::arpRoutine()
     using namespace Antennas;
 
     miosix::Thread::sleep(Groundstation::RADIO_STATUS_PERIOD);
-    ModuleManager &modules = ModuleManager::getInstance();
 
-    auto vn300 = modules.get<Sensors>()->getVN300LastSample();
+    auto vn300 = getModule<Sensors>()->getVN300LastSample();
 
-    Actuators *actuators = modules.get<Actuators>();
-    SMA *sm              = modules.get<SMA>();
+    Actuators *actuators = getModule<Actuators>();
+    SMA *sm              = getModule<SMA>();
 
     AntennaAngles targetAngles = sm->getTargetAngles();
 
@@ -112,7 +101,7 @@ void BoardStatus::arpRoutine()
     {
         tm.main_radio_present = 1;
 
-        auto stats = ModuleManager::getInstance().get<RadioMain>()->getStats();
+        auto stats                    = getModule<RadioMain>()->getStats();
         tm.main_packet_tx_error_count = stats.send_errors;
         tm.main_tx_bitrate = main_tx_bitrate.update(stats.bits_tx_count);
         tm.main_packet_rx_success_count = stats.packet_rx_success_count;
@@ -125,7 +114,7 @@ void BoardStatus::arpRoutine()
 
     if (ethernet_present)
     {
-        auto stats = ModuleManager::getInstance().get<Ethernet>()->getState();
+        auto stats = getModule<EthernetGS>()->getState();
 
         tm.ethernet_present = 1;
         tm.ethernet_status  = (stats.link_up ? 1 : 0) |
@@ -137,7 +126,7 @@ void BoardStatus::arpRoutine()
     mavlink_msg_arp_tm_encode(SysIDs::MAV_SYSID_ARP,
                               Groundstation::GS_COMPONENT_ID, &msg, &tm);
 
-    ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
+    getModule<HubBase>()->dispatchIncomingMsg(msg);
 }
 
 void BoardStatus::GSRoutine()
@@ -154,7 +143,7 @@ void BoardStatus::GSRoutine()
     {
         tm.main_radio_present = 1;
 
-        auto stats = ModuleManager::getInstance().get<RadioMain>()->getStats();
+        auto stats                    = getModule<RadioMain>()->getStats();
         tm.main_packet_tx_error_count = stats.send_errors;
         tm.main_tx_bitrate = main_tx_bitrate.update(stats.bits_tx_count);
         tm.main_packet_rx_success_count = stats.packet_rx_success_count;
@@ -169,8 +158,7 @@ void BoardStatus::GSRoutine()
     {
         tm.payload_radio_present = 1;
 
-        auto stats =
-            ModuleManager::getInstance().get<RadioPayload>()->getStats();
+        auto stats = getModule<RadioPayload>()->getStats();
         tm.payload_packet_tx_error_count = stats.send_errors;
         tm.payload_tx_bitrate = payload_tx_bitrate.update(stats.bits_tx_count);
         tm.payload_packet_rx_success_count = stats.packet_rx_success_count;
@@ -183,7 +171,8 @@ void BoardStatus::GSRoutine()
 
     if (ethernet_present)
     {
-        auto stats = ModuleManager::getInstance().get<Ethernet>()->getState();
+        auto ethernet = getModule<EthernetGS>();
+        auto stats    = ethernet->getState();
 
         tm.ethernet_present = 1;
         tm.ethernet_status  = (stats.link_up ? 1 : 0) |
@@ -194,7 +183,7 @@ void BoardStatus::GSRoutine()
     mavlink_message_t msg;
     mavlink_msg_arp_tm_encode(GS_SYSTEM_ID, GS_COMPONENT_ID, &msg, &tm);
 
-    ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
+    getModule<HubBase>()->dispatchIncomingMsg(msg);
 }
 
 void BoardStatus::run()

@@ -38,14 +38,15 @@
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <thread>
-#include <utils/ModuleManager/ModuleManager.hpp>
 
 using namespace Boardcore;
 using namespace miosix;
 using namespace Groundstation;
 using namespace LyraGS;
+using namespace Antennas;
 
 /**
  * @brief Dip switch status for the GS board
@@ -126,29 +127,39 @@ int main()
     DipSwitch dip(sh, clk, qh, microSecClk);
     DipStatusLyraGS dipRead = getDipStatus(dip.read());
 
-    // TODO: Pass to DependencyManager when rebased!
-    ModuleManager &modules = ModuleManager::getInstance();
-    PrintLogger logger     = Logging::getLogger("lyra_gs");
+    DependencyManager manager;
+    PrintLogger logger = Logging::getLogger("lyra_gs");
 
     // TODO: Board scheduler for the schedulers
     TaskScheduler *scheduler_low  = new TaskScheduler(0);
     TaskScheduler *scheduler_high = new TaskScheduler();
     Buses *buses                  = new Buses();
     Serial *serial                = new Serial();
-    RadioMain *radio_main       = new LyraGS::RadioMain(dipRead.mainHasBackup);
-    BoardStatus *board_status   = new BoardStatus(dipRead.isARP);
-    LyraGS::Ethernet *ethernet  = new LyraGS::Ethernet(false, dipRead.ipConfig);
-    RadioPayload *radio_payload = new RadioPayload(dipRead.payloadHasBackup);
-    Antennas::Actuators *actuators = nullptr;
+    LyraGS::RadioMain *radio_main =
+        new LyraGS::RadioMain(dipRead.mainHasBackup);
+    LyraGS::BoardStatus *board_status = new LyraGS::BoardStatus(dipRead.isARP);
+    LyraGS::EthernetGS *ethernet =
+        new LyraGS::EthernetGS(false, dipRead.ipConfig);
+    LyraGS::RadioPayload *radio_payload =
+        new LyraGS::RadioPayload(dipRead.payloadHasBackup);
+
+    HubBase *hub = nullptr;
+
+    // ARP-related things
+    Antennas::Actuators *actuators   = nullptr;
+    Antennas::Leds *leds             = nullptr;
+    Antennas::Sensors *sensors       = nullptr;
+    Antennas::SMA *sma               = nullptr;
+    Antennas::PinHandler *pinHandler = nullptr;
 
     bool ok = true;
 
-    ok &= modules.insert(buses);
-    ok &= modules.insert(serial);
-    ok &= modules.insert(radio_main);
-    ok &= modules.insert(ethernet);
-    ok &= modules.insert(radio_payload);
-    ok &= modules.insert(board_status);
+    ok &= manager.insert(buses);
+    ok &= manager.insert(serial);
+    ok &= manager.insert<LyraGS::RadioMain>(radio_main);
+    ok &= manager.insert<LyraGS::EthernetGS>(ethernet);
+    ok &= manager.insert<LyraGS::RadioPayload>(radio_payload);
+    ok &= manager.insert(board_status);
 
     // Inserting Modules
 
@@ -156,30 +167,29 @@ int main()
     if (dipRead.isARP)
     {
         LOG_DEBUG(logger, "[debug] Starting as ARP Ground Station\n");
-        Antennas::Leds *leds             = new Antennas::Leds(scheduler_low);
-        HubBase *hub                     = new Antennas::Hub();
-        actuators                        = new Antennas::Actuators();
-        Antennas::Sensors *sensors       = new Antennas::Sensors();
-        Antennas::SMA *sma               = new Antennas::SMA(scheduler_high);
-        Antennas::PinHandler *pinHandler = new Antennas::PinHandler();
+        leds       = new Antennas::Leds(scheduler_low);
+        hub        = new Antennas::Hub();
+        actuators  = new Antennas::Actuators();
+        sensors    = new Antennas::Sensors();
+        sma        = new Antennas::SMA(scheduler_high);
+        pinHandler = new Antennas::PinHandler();
 
-        ok &= modules.insert(sma);
-        ok &= modules.insert<HubBase>(hub);
-        ok &= modules.insert(actuators);
-        ok &= modules.insert(sensors);
-        ok &= modules.insert(leds);
-        ok &= modules.insert(pinHandler);
+        ok &= manager.insert(sma);
+        ok &= manager.insert<HubBase>(hub);
+        ok &= manager.insert(actuators);
+        ok &= manager.insert(sensors);
+        ok &= manager.insert(leds);
+        ok &= manager.insert(pinHandler);
     }
     // Ground station module insertion
     else
     {
         LOG_DEBUG(logger, "[debug] Starting as GS base Ground Station\n");
-        HubBase *hub = new GroundstationBase::Hub();
-        ok &= modules.insert<HubBase>(hub);
+        hub = new GroundstationBase::Hub();
+        ok &= manager.insert<HubBase>(hub);
     }
 
     // If insertion failed, stop right here
-
     if (!ok)
     {
         LOG_ERR(logger, "[error] Failed to insert all modules!\n");
@@ -187,6 +197,15 @@ int main()
     }
 
     LOG_DEBUG(logger, "[debug] All modules inserted correctly!\n");
+
+    if (!manager.inject())
+    {
+        LOG_ERR(logger, "[error] Failed to inject the dependencies!\n");
+        errorLoop();
+    }
+
+    // Print out the graph of dependencies
+    manager.graphviz(std::cout);
 
     // Start the modules
 
@@ -201,11 +220,15 @@ int main()
     }
 #endif
 
+    LOG_DEBUG(logger, "DEBUG: scheduler_low starting...\n");
+
     if (!scheduler_low->start())
     {
         LOG_ERR(logger, "[error] Failed to start scheduler_low!\n");
         ok = false;
     }
+
+    LOG_DEBUG(logger, "DEBUG: scheduler_high starting...\n");
 
     if (!scheduler_high->start())
     {
@@ -214,11 +237,15 @@ int main()
         init_fatal = true;
     }
 
+    LOG_DEBUG(logger, "DEBUG: serial starting...\n");
+
     if (!serial->start())
     {
         LOG_ERR(logger, "[error] Failed to start serial!\n");
         ok = false;
     }
+
+    LOG_DEBUG(logger, "DEBUG: radio_main starting...\n");
 
     if (!radio_main->start())
     {
@@ -227,6 +254,8 @@ int main()
         init_fatal = true;
     }
 
+    LOG_DEBUG(logger, "DEBUG: radio_payload starting...\n");
+
     if (!radio_payload->start())
     {
         LOG_ERR(logger, "[error] Failed to start payload radio!\n");
@@ -234,11 +263,15 @@ int main()
         ok &= dipRead.isARP;
     }
 
+    LOG_DEBUG(logger, "DEBUG: ethernet starting...\n");
+
     if (!ethernet->start())
     {
         LOG_ERR(logger, "[error] Failed to start ethernet!\n");
         ok = false;
     }
+
+    LOG_DEBUG(logger, "DEBUG: board_status starting...\n");
 
     if (!board_status->start())
     {
@@ -250,23 +283,31 @@ int main()
 
     if (dipRead.isARP)
     {
-        if (!ModuleManager::getInstance().get<Antennas::Leds>()->start())
+        LOG_DEBUG(logger, "DEBUG: leds starting...\n");
+
+        if (leds && !(leds->start()))
         {
             LOG_ERR(logger, "[error] Failed to start leds!\n");
             ok = false;
         }
 
-        if (!ModuleManager::getInstance().get<Antennas::Sensors>()->start())
+        LOG_DEBUG(logger, "DEBUG: sensors starting...\n");
+
+        if (sensors && !(sensors->start()))
         {
             LOG_ERR(logger, "[error] Failed to start sensors!\n");
             ok = false;
         }
 
-        if (!ModuleManager::getInstance().get<Antennas::SMA>()->start())
+        LOG_DEBUG(logger, "DEBUG: sma starting...\n");
+
+        if (sma && !(sma->start()))
         {
             LOG_ERR(logger, "[error] Failed to start sma!\n");
             ok = false;
         }
+
+        LOG_DEBUG(logger, "DEBUG: actuators starting...\n");
 
         if (actuators)
         {
@@ -276,7 +317,9 @@ int main()
         else
             LOG_ERR(logger, "[error] Failed to start actuators!\n");
 
-        if (!modules.get<Antennas::PinHandler>()->start())
+        LOG_DEBUG(logger, "DEBUG: pin handler starting...\n");
+
+        if (pinHandler && !pinHandler->start())
         {
             LOG_ERR(logger, "[error] Failed to start PinHandler!\n");
             ok = false;
@@ -334,10 +377,8 @@ int main()
                     "ARP's modules initialization has failed. Init fatal "
                     "error. Cannot proceed, a restart and fix of the "
                     "boards/module is required.\n");
-            ModuleManager::getInstance().get<Antennas::Leds>()->setFastBlink(
-                Antennas::LedColor::RED);
-            ModuleManager::getInstance().get<Antennas::SMA>()->setFatal();
-
+            if (sma)
+                sma->setFatal();
             // Still go to INIT_ERROR to still allow initialization
             EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
                                             Common::TOPIC_ARP);
@@ -349,8 +390,6 @@ int main()
                 logger,
                 "ARP's modules initialization has failed. Init error. It "
                 "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT.\n");
-            ModuleManager::getInstance().get<Antennas::Leds>()->setOn(
-                Antennas::LedColor::RED);
             EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
                                             Common::TOPIC_ARP);
         }  // If all modules are ok

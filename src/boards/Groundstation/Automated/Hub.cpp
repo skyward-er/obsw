@@ -46,10 +46,9 @@ using namespace miosix;
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     // TODO: Dispatch to correct radio using mavlink ids
-    bool send_ok           = false;
-    ModuleManager& modules = ModuleManager::getInstance();
+    bool send_ok = false;
 
-    LyraGS::RadioMain* radio = modules.get<LyraGS::RadioMain>();
+    LyraGS::RadioMain* radio = getModule<LyraGS::RadioMain>();
 
     if (msg.sysid == MAV_SYSID_ARP)
     {
@@ -98,7 +97,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
                 // The stepper is moved of 'angle' degrees
                 ActuationStatus moved =
-                    modules.get<SMA>()->moveStepperDeg(stepperId, angle);
+                    getModule<SMA>()->moveStepperDeg(stepperId, angle);
                 if (moved == ActuationStatus::OK)
                     sendAck(msg);
                 else
@@ -114,7 +113,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
                 // The stepper is moved of 'steps' steps
                 ActuationStatus moved =
-                    modules.get<SMA>()->moveStepperSteps(stepperId, steps);
+                    getModule<SMA>()->moveStepperSteps(stepperId, steps);
                 if (moved == ActuationStatus::OK)
                     sendAck(msg);
                 else
@@ -128,7 +127,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 float multiplier =
                     mavlink_msg_set_stepper_multiplier_tc_get_multiplier(&msg);
 
-                modules.get<SMA>()->setMultipliers(stepperId, multiplier);
+                getModule<SMA>()->setMultipliers(stepperId, multiplier);
                 sendAck(msg);
                 break;
             }
@@ -150,7 +149,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 gpsData.fix        = 3;
                 gpsData.satellites = 42;
 
-                modules.get<SMA>()->setInitialRocketCoordinates(gpsData);
+                getModule<SMA>()->setInitialRocketCoordinates(gpsData);
                 sendAck(msg);
                 break;
             }
@@ -172,7 +171,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 gpsData.fix        = 3;
                 gpsData.satellites = 42;
 
-                modules.get<SMA>()->setAntennaCoordinates(gpsData);
+                getModule<SMA>()->setAntennaCoordinates(gpsData);
                 sendAck(msg);
                 break;
             }
@@ -241,7 +240,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    Serial* serial = ModuleManager::getInstance().get<Serial>();
+    Groundstation::Serial* serial = getModule<Groundstation::Serial>();
 #if !defined(NO_MAVLINK_ON_SERIAL)
     serial->sendMsg(msg);
 #else
@@ -284,8 +283,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         Logger::getInstance().log(gpsState);
     }
 
-    LyraGS::Ethernet* ethernet =
-        ModuleManager::getInstance().get<LyraGS::Ethernet>();
+    LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
     ethernet->sendMsg(msg);
 }
 

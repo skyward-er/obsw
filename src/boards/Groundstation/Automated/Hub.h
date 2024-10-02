@@ -22,13 +22,22 @@
 
 #pragma once
 
+#include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Ports/Ethernet.h>
+#include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/Mavlink.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
+namespace LyraGS
+{
+class BoardStatus;
+}
 
 namespace Antennas
 {
@@ -36,11 +45,11 @@ namespace Antennas
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class Hub : public Groundstation::HubBase
+class Hub : public Boardcore::InjectableWithDeps<
+                Boardcore::InjectableBase<Groundstation::HubBase>, SMA,
+                LyraGS::RadioMain, Groundstation::Serial, LyraGS::EthernetGS>
 {
 public:
-    Hub() {}
-
     /**
      * @brief Dispatch to the correct interface and outgoing packet (gs ->
      * rocket).

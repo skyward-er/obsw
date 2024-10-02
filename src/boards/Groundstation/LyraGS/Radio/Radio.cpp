@@ -22,51 +22,54 @@
 
 #include "Radio.h"
 
-#include <Groundstation/Common/HubBase.h>
-#include <Groundstation/Common/Ports/Serial.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <Groundstation/LyraGS/Buses.h>
-#include <interfaces-impl/hwmapping.h>
-#include <radio/SX1278/SX1278Frontends.h>
-
-using namespace Groundstation;
 using namespace LyraGS;
 using namespace Boardcore;
 using namespace miosix;
 
+SX1278Fsk* radioMainGlobal{nullptr};
+SX1278Fsk* radioPayloadGlobal{nullptr};
+
 void __attribute__((used)) MIOSIX_RADIO1_DIO0_IRQ()
 {
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
+    SX1278Fsk* instance = radioMainGlobal;
+    if (instance)
+        instance->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO1_DIO1_IRQ()
 {
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
+    SX1278Fsk* instance = radioMainGlobal;
+    if (instance)
+        instance->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO1_DIO3_IRQ()
 {
-    ModuleManager::getInstance().get<RadioMain>()->handleDioIRQ();
+    SX1278Fsk* instance = radioMainGlobal;
+    if (instance)
+        instance->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO2_DIO0_IRQ()
 {
-    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
+    if (radioPayloadGlobal)
+        radioPayloadGlobal->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO2_DIO1_IRQ()
 {
-    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
+    if (radioPayloadGlobal)
+        radioPayloadGlobal->handleDioIRQ();
 }
 
 void __attribute__((used)) MIOSIX_RADIO2_DIO3_IRQ()
 {
-    ModuleManager::getInstance().get<RadioPayload>()->handleDioIRQ();
+    if (radioPayloadGlobal)
+        radioPayloadGlobal->handleDioIRQ();
 }
 
 bool RadioMain::start()
 {
-
     std::unique_ptr<SX1278::ISX1278Frontend> frontend;
 
     if (hasBackup)
@@ -77,31 +80,30 @@ bool RadioMain::start()
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance().get<Buses>()->radio1_bus,
-            radio1::cs::getPin(), radio1::dio0::getPin(),
-            radio1::dio1::getPin(), radio1::dio3::getPin(),
-            SPI::ClockDivider::DIV_64, std::move(frontend));
+            getModule<Buses>()->radio1_bus, radio1::cs::getPin(),
+            radio1::dio0::getPin(), radio1::dio1::getPin(),
+            radio1::dio3::getPin(), SPI::ClockDivider::DIV_64,
+            std::move(frontend));
+
+    // Set the global radio for IRQ
+    radioMainGlobal = sx1278.get();
 
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<BoardStatus>()->setMainRadioPresent(
-        present);
+    getModule<LyraGS::BoardStatus>()->setMainRadioPresent(present);
 
     if (present)
     {
         // Configure the radio
         if (sx1278->configure(Common::MAIN_RADIO_CONFIG) !=
             SX1278Fsk::Error::NONE)
-        {
             return false;
-        }
 
         // Initialize if only if present
         if (!RadioBase::start(std::move(sx1278)))
-        {
+
             return false;
-        }
     }
 
     return true;
@@ -118,15 +120,17 @@ bool RadioPayload::start()
         frontend = std::make_unique<Skyward433Frontend>();
 
     sx1278 = std::make_unique<Boardcore::SX1278Fsk>(
-        ModuleManager::getInstance().get<Buses>()->radio2_bus,
-        radio2::cs::getPin(), radio2::dio0::getPin(), radio2::dio1::getPin(),
-        radio2::dio3::getPin(), SPI::ClockDivider::DIV_64, std::move(frontend));
+        getModule<Buses>()->radio2_bus, radio2::cs::getPin(),
+        radio2::dio0::getPin(), radio2::dio1::getPin(), radio2::dio3::getPin(),
+        SPI::ClockDivider::DIV_64, std::move(frontend));
+
+    // Set the global radio for IRQ
+    radioPayloadGlobal = sx1278.get();
 
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    ModuleManager::getInstance().get<BoardStatus>()->setPayloadRadioPresent(
-        present);
+    getModule<LyraGS::BoardStatus>()->setPayloadRadioPresent(present);
 
     if (present)
     {

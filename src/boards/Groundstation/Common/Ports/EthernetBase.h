@@ -23,9 +23,11 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Groundstation/Common/HubBase.h>
 #include <common/Mavlink.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
 
@@ -38,7 +40,8 @@ Boardcore::WizMac genNewRandomMac();
 using EthernetMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
-class EthernetBase : public Boardcore::Transceiver
+class EthernetBase : public Boardcore::Transceiver,
+                     public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
     EthernetBase(){};

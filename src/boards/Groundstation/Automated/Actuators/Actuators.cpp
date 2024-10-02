@@ -24,8 +24,6 @@
 
 #include <interfaces-impl/hwmapping.h>
 
-#include <utils/ModuleManager/ModuleManager.hpp>
-
 #include "ActuatorsConfig.h"
 
 using namespace miosix;
