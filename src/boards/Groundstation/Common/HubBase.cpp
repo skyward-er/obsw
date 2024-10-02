@@ -26,7 +26,7 @@
 
 using namespace Groundstation;
 
-void HubBase::sendNack(const mavlink_message_t& msg)
+void HubBase::sendNack(const mavlink_message_t& msg, const uint16_t errId)
 {
     mavlink_message_t nack_msg;
     mavlink_msg_nack_tm_pack(GS_SYSTEM_ID, GS_COMPONENT_ID, &nack_msg,
