@@ -47,7 +47,7 @@
         if (!_fun())                                                \
         {                                                           \
             LOG_ERR(logger, "Failed to start module " name);        \
-            Leds::errorLoop();                                      \
+            leds->endless_blink(LedColor::RED);                     \
         }                                                           \
         else                                                        \
         {                                                           \
@@ -97,17 +97,18 @@ int main()
         });
     ButtonHandler::getInstance().start();
 
-    TaskScheduler *scheduler  = new TaskScheduler();
-    Hub *hub                  = new Hub();
-    Buses *buses              = new Buses();
-    Serial *serial            = new Serial();
-    RadioMain *radio_main     = new RadioMain();
-    BoardStatus *board_status = new BoardStatus();
-    Actuators *actuators      = new Actuators();
-    Sensors *sensors          = new Sensors();
-    SMController *sm          = new SMController(scheduler);
-    Ethernet *ethernet        = new Ethernet();
-    Leds *leds                = new Leds();
+    TaskScheduler *scheduler_low  = new TaskScheduler(0);
+    TaskScheduler *scheduler_high = new TaskScheduler();
+    Leds *leds                    = new Leds(scheduler_low);
+    Hub *hub                      = new Hub();
+    Buses *buses                  = new Buses();
+    Serial *serial                = new Serial();
+    RadioMain *radio_main         = new RadioMain();
+    BoardStatus *board_status     = new BoardStatus();
+    Actuators *actuators          = new Actuators();
+    Sensors *sensors              = new Sensors();
+    SMController *sm              = new SMController(scheduler_high);
+    Ethernet *ethernet            = new Ethernet();
 
     // Inserting Modules
     {  // TODO remove this scope (improve readability)
@@ -126,7 +127,7 @@ int main()
         if (!ok)
         {
             LOG_ERR(logger, "Failed to insert all modules!\n");
-            Leds::errorLoop();
+            leds->endless_blink(LedColor::RED);
         }
         else
         {
@@ -139,7 +140,8 @@ int main()
 #ifndef NO_SD_LOGGING
         START_MODULE("Logger", [&] { return Logger::getInstance().start(); });
 #endif
-        START_MODULE("Scheduler", [&] { return scheduler->start(); });
+        START_MODULE("Scheduler", [&] { return scheduler_low->start(); });
+        START_MODULE("Scheduler", [&] { return scheduler_high->start(); });
         START_MODULE("Serial", [&] { return serial->start(); });
         START_MODULE("Main Radio", [&] { return radio_main->start(); });
         START_MODULE("Ethernet", [&] { return ethernet->start(); });
