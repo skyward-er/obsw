@@ -334,8 +334,14 @@ int main()
                     "ARP's modules initialization has failed. Init fatal "
                     "error. Cannot proceed, a restart and fix of the "
                     "boards/module is required.\n");
-            ModuleManager::getInstance().get<Antennas::Leds>()->endlessBlink(
-                Antennas::LedColor::RED, LED_BLINK_FAST_PERIOD_MS);
+            ModuleManager::getInstance().get<Antennas::Leds>()->setFastBlink(
+                Antennas::LedColor::RED);
+            ModuleManager::getInstance().get<Antennas::SMA>()->setFatal();
+
+            // Still go to INIT_ERROR to still allow initialization
+            EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
+                                            Common::TOPIC_ARP);
+
         }  // If another module is in error
         else if (!ok)
         {
@@ -343,6 +349,8 @@ int main()
                 logger,
                 "ARP's modules initialization has failed. Init error. It "
                 "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT.\n");
+            ModuleManager::getInstance().get<Antennas::Leds>()->setOn(
+                Antennas::LedColor::RED);
             EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
                                             Common::TOPIC_ARP);
         }  // If all modules are ok

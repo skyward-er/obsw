@@ -139,6 +139,8 @@ void SMA::setMultipliers(StepperList axis, float multiplier)
     }
 }
 
+void SMA::setFatal() { fatalInit = true; };
+
 void SMA::update()
 {
     switch (status.state)
@@ -496,7 +498,11 @@ State SMA::state_init_error(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::INIT_ERROR);
-            ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
+            if (fatalInit)
+                ModuleManager::getInstance().get<Leds>()->setFastBlink(
+                    LedColor::RED);
+            else
+                ModuleManager::getInstance().get<Leds>()->setOn(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:

@@ -120,6 +120,11 @@ public:
      */
     SMAStatus getStatus() { return status; }
 
+    /**
+     * @brief Set that the initialization had a fatal error
+     */
+    void setFatal();
+
 private:
     /**
      * @brief Logs the current state of the FSM
@@ -136,6 +141,7 @@ private:
 
     // Flags indicating if the antenna coordinates have been set
     bool antennaCoordinatesSet = false;
+    bool fatalInit = false;  ///< In case the initialization was fatal
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("SMA");
 };
