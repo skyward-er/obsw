@@ -55,16 +55,10 @@ SMController::SMController(TaskScheduler* sched)
 
 bool SMController::start()
 {
-    size_t result;
-    bool ok = true;
-
-    // add the update task
-    result = scheduler->addTask(bind(&SMController::update, this),
-                                SMControllerConfig::UPDATE_PERIOD,
-                                TaskScheduler::Policy::RECOVER);
-    ok &= result != 0;
-
-    return ActiveObject::start() && ok;
+    size_t result = scheduler->addTask(bind(&SMController::update, this),
+                                       SMControllerConfig::UPDATE_PERIOD,
+                                       TaskScheduler::Policy::RECOVER);
+    return HSM::start() && result != 0;
 }
 
 void SMController::setAntennaCoordinates(
