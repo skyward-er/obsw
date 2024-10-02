@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Riccardo Musso, Emilio Corigliano, Niccolò Betto
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Riccardo Musso, Emilio Corigliano, Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,22 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/BoardStatus.h>
 #include <Groundstation/Automated/Buses.h>
-#include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Hub.h>
+#include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
+#include <Groundstation/Automated/SMController/SMController.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include <diagnostic/CpuMeter/CpuMeter.h>
+#include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
-#include <diagnostic/StackLogger.h>
-#include <drivers/interrupt/external_interrupts.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/ButtonHandler/ButtonHandler.h>
 
-#include <iostream>
 #include <thread>
 #include <utils/ModuleManager/ModuleManager.hpp>
-
-#include "actuators/stepper/StepperPWM.h"
 
 #define START_MODULE(name, lambda)                                  \
     do                                                              \
@@ -52,7 +47,7 @@
         if (!_fun())                                                \
         {                                                           \
             LOG_ERR(logger, "Failed to start module " name);        \
-            errorLoop();                                            \
+            Leds::errorLoop();                                      \
         }                                                           \
         else                                                        \
         {                                                           \
@@ -62,92 +57,11 @@
 
 using namespace Groundstation;
 using namespace Antennas;
+using namespace Common;
 using namespace Boardcore;
 using namespace miosix;
 
 GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
-
-/**
- * @brief Infinite error loop, used to blink an LED when an error occurs.
- */
-void errorLoop()
-{
-    while (true)
-    {
-        userLed4::high();
-        Thread::sleep(100);
-        userLed4::low();
-        Thread::sleep(100);
-    }
-}
-
-/**
- * @brief Acquires the current rocket GPS position from the main radio.
- * @details As a side effect, this function also waits for the rocket to be
- * powered on.
- */
-void acquireRocketGpsState(Hub *hub)
-{
-    auto *follower = ModuleManager::getInstance().get<Follower>();
-    GPSData rocketGpsState;
-    do
-    {
-        rocketGpsState = hub->getLastRocketGpsState();
-        if (rocketGpsState.fix != 0)
-        {
-            follower->setInitialRocketCoordinates(rocketGpsState);
-        }
-        else
-        {
-            led2On();
-            Thread::sleep(50);
-            led2Off();
-            Thread::sleep(50);
-        }
-    } while (!follower->isRocketCoordinatesSet());
-
-    LOG_INFO(Logging::getLogger("automated_antennas"),
-             "Rocket GPS position acquired [{}, {}] [deg]",
-             rocketGpsState.latitude, rocketGpsState.longitude);
-}
-
-/**
- * @brief Acquires the current antenna GPS position from the VN300 IMU.
- */
-void acquireAntennaGpsState(Sensors *sensors)
-{
-    auto *follower = ModuleManager::getInstance().get<Follower>();
-    VN300Data vn300Data;
-    GPSData antennaPosition;
-    do
-    {
-        vn300Data = sensors->getVN300LastSample();
-        if (vn300Data.fix_gps != 0)
-        {
-            antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
-            antennaPosition.latitude      = vn300Data.latitude;
-            antennaPosition.longitude     = vn300Data.longitude;
-            antennaPosition.height        = vn300Data.altitude;
-            antennaPosition.velocityNorth = vn300Data.nedVelX;
-            antennaPosition.velocityEast  = vn300Data.nedVelY;
-            antennaPosition.velocityDown  = vn300Data.nedVelZ;
-            antennaPosition.satellites    = vn300Data.fix_gps;
-            antennaPosition.fix           = (vn300Data.fix_gps > 0);
-            follower->setAntennaCoordinates(antennaPosition);
-        }
-        else
-        {
-            led3On();
-            Thread::sleep(50);
-            led3Off();
-            Thread::sleep(50);
-        }
-    } while (!follower->isAntennaCoordinatesSet());
-
-    LOG_INFO(Logging::getLogger("automated_antennas"),
-             "Antenna GPS position acquired !coord [{}, {}] [deg]",
-             antennaPosition.latitude, antennaPosition.longitude);
-}
 
 /**
  * @brief Automated Antennas (SkyLink) entrypoint.
@@ -163,7 +77,6 @@ void acquireAntennaGpsState(Sensors *sensors)
  */
 int main()
 {
-    ledOff();
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("automated_antennas");
     bool ok                = true;
@@ -192,12 +105,13 @@ int main()
     BoardStatus *board_status = new BoardStatus();
     Actuators *actuators      = new Actuators();
     Sensors *sensors          = new Sensors();
-    Follower *follower        = new Follower();
+    SMController *sm          = new SMController(scheduler);
     Ethernet *ethernet        = new Ethernet();
+    Leds *leds                = new Leds();
 
     // Inserting Modules
-    {
-        ok &= modules.insert(follower);
+    {  // TODO remove this scope (improve readability)
+        ok &= modules.insert(sm);
         ok &= modules.insert<HubBase>(hub);
         ok &= modules.insert(buses);
         ok &= modules.insert(serial);
@@ -206,12 +120,13 @@ int main()
         ok &= modules.insert(actuators);
         ok &= modules.insert(sensors);
         ok &= modules.insert(ethernet);
+        ok &= modules.insert(leds);
 
         // If insertion failed, stop right here
         if (!ok)
         {
             LOG_ERR(logger, "Failed to insert all modules!\n");
-            errorLoop();
+            Leds::errorLoop();
         }
         else
         {
@@ -220,7 +135,7 @@ int main()
     }
 
     // Starting Modules
-    {
+    {  // TODO remove macro used
 #ifndef NO_SD_LOGGING
         START_MODULE("Logger", [&] { return Logger::getInstance().start(); });
 #endif
@@ -229,12 +144,11 @@ int main()
         START_MODULE("Main Radio", [&] { return radio_main->start(); });
         START_MODULE("Ethernet", [&] { return ethernet->start(); });
         START_MODULE("Board Status", [&] { return board_status->start(); });
+        START_MODULE("Leds", [&] { return leds->start(); });
         START_MODULE("Sensors", [&] { return sensors->start(); });
+        START_MODULE("SMController", [&] { return sm->start(); });
         actuators->start();
     }
-
-    // Setup success LED
-    led1On();
     LOG_INFO(logger, "Modules setup successful");
 
     if (board_status->isMainRadioPresent())
@@ -242,36 +156,8 @@ int main()
         LOG_DEBUG(logger, "Main radio is present\n");
     }
 
-    LOG_INFO(logger, "Starting Skylink");
-
-    // Wait for antenna GPS fix
-    acquireAntennaGpsState(sensors);
-
-    // Antenna GPS fix LED
-    led2On();
-
-    // Wait for rocket presence and GPS fix
-    acquireRocketGpsState(hub);
-
-    // Rocket presence and GPS fix LED
-    led3On();
-
-    // Init the follower after GPS position was acquired
-    if (!follower->init())
-    {
-        LOG_ERR(logger, "Failed to start follower!\n");
-        errorLoop();
-    }
-    else
-    {
-        auto distance = follower->getInitialAntennaRocketDistance();
-        LOG_INFO(logger, "Initial antenna - rocket distance: [{}, {}] [m]\n",
-                 distance[0], distance[1]);
-    }
-
-    follower->begin();
-    scheduler->addTask(std::bind(&Follower::update, follower), 200);
-    LOG_INFO(logger, "Follower task started successfully");
+    LOG_INFO(logger, "Starting ARP");
+    EventBroker::getInstance().post(ARP_INIT_OK, TOPIC_ARP);
 
     while (true)
     {

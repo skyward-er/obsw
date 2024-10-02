@@ -78,8 +78,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
         }
         case MAVLINK_MSG_ID_SET_ROCKET_COORDINATES_ARP_TC:
         {
-            // TODO set in which state we can use this command
-
             float latitude =
                 mavlink_msg_set_rocket_coordinates_arp_tc_get_latitude(&msg);
             float longitude =
@@ -100,8 +98,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
         }
         case MAVLINK_MSG_ID_SET_ANTENNA_COORDINATES_ARP_TC:
         {
-            // TODO set in which state we can use this command
-
             float latitude =
                 mavlink_msg_set_antenna_coordinates_arp_tc_get_latitude(&msg);
             float longitude =
