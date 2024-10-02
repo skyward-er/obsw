@@ -164,22 +164,22 @@ int main()
     // Inserting Modules
 
     // ARP modules insertion
+    LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
+    actuators  = new Antennas::Actuators();
+    sensors    = new Antennas::Sensors();
+    sma        = new Antennas::SMA(scheduler_high);
+    pinHandler = new Antennas::PinHandler();
+    leds       = new Antennas::Leds(scheduler_low);
+    ok &= manager.insert(sma);
+    ok &= manager.insert(actuators);
+    ok &= manager.insert(sensors);
+    ok &= manager.insert(leds);
+    ok &= manager.insert(pinHandler);
+
     if (dipRead.isARP)
     {
-        LOG_DEBUG(logger, "[debug] Starting as ARP Ground Station\n");
-        leds       = new Antennas::Leds(scheduler_low);
-        hub        = new Antennas::Hub();
-        actuators  = new Antennas::Actuators();
-        sensors    = new Antennas::Sensors();
-        sma        = new Antennas::SMA(scheduler_high);
-        pinHandler = new Antennas::PinHandler();
-
-        ok &= manager.insert(sma);
+        hub = new Antennas::Hub();
         ok &= manager.insert<HubBase>(hub);
-        ok &= manager.insert(actuators);
-        ok &= manager.insert(sensors);
-        ok &= manager.insert(leds);
-        ok &= manager.insert(pinHandler);
     }
     // Ground station module insertion
     else
