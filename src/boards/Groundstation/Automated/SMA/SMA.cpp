@@ -301,9 +301,9 @@ void SMA::update()
             steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
             steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
 
-            ErrorMovement actuation =
+            ActuationStatus actuation =
                 steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
-            if (actuation != ErrorMovement::OK)
+            if (actuation != ActuationStatus::OK)
             {
                 LOG_ERR(
                     logger,
@@ -313,7 +313,7 @@ void SMA::update()
             }
 
             actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
-            if (actuation != ErrorMovement::OK)
+            if (actuation != ActuationStatus::OK)
             {
                 LOG_ERR(
                     logger,
