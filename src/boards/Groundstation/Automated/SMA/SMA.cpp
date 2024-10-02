@@ -73,6 +73,7 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
     else
     {
         follower.setAntennaCoordinates(antennaCoordinates);
+        antennaCoordinatesSet = true;
         EventBroker::getInstance().post(ARP_FIX_ANTENNAS, TOPIC_ARP);
     }
 }
@@ -122,10 +123,39 @@ ActuationStatus SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
     }
 }
 
+void SMA::setMultipliers(StepperList axis, float multiplier)
+{
+    if (!testState(&SMA::state_insert_info) && !testState(&SMA::state_test) &&
+        !testState(&SMA::state_test_nf))
+    {
+        LOG_ERR(logger,
+                "Stepper multipliers can only be set in the "
+                "INSERT_INFO or TEST state");
+    }
+    else
+    {
+        ModuleManager::getInstance().get<Actuators>()->setMultipliers(
+            axis, multiplier);
+    }
+}
+
 void SMA::update()
 {
     switch (status.state)
     {
+        // when in insert_info state, wait for antenna fix (manual insertion)
+        // and multipliers set
+        case SMAState::INSERT_INFO:
+        {
+            auto* actuators = ModuleManager::getInstance().get<Actuators>();
+
+            if (actuators->areMultipliersSet() && antennaCoordinatesSet)
+            {
+                EventBroker::getInstance().post(ARP_INFO_INSERTED, TOPIC_ARP);
+            }
+
+            break;
+        }
         // in fix_antennas state, wait for the GPS fix of ARP
         case SMAState::FIX_ANTENNAS:
         {
@@ -485,7 +515,7 @@ State SMA::state_insert_info(const Event& event)
         {
             return HANDLED;
         }
-        case ARP_FIX_ANTENNAS:
+        case ARP_INFO_INSERTED:
         {
             return transition(&SMA::state_arm_ready);
         }

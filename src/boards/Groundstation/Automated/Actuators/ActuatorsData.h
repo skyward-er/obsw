@@ -29,7 +29,6 @@ struct StepperConfig
 {
     int MICROSTEPPING;
     float STEP_ANGLE;
-    float MULTIPLIER;
     float MIN_ANGLE;
     float MAX_ANGLE;
     float MAX_SPEED;

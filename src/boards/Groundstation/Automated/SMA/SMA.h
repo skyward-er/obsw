@@ -103,6 +103,11 @@ public:
     ActuationStatus moveStepperSteps(StepperList stepperId, int16_t steps);
 
     /**
+     * @brief Setter for the multipliers of the steppers
+     */
+    void setMultipliers(StepperList axis, float multiplier);
+
+    /**
      * @brief Getter for follower target angles
      */
     Boardcore::AntennaAngles getTargetAngles()
@@ -128,6 +133,9 @@ private:
     SMAStatus status;
     Boardcore::Propagator propagator;
     Boardcore::Follower follower;
+
+    // Flags indicating if the antenna coordinates have been set
+    bool antennaCoordinatesSet = false;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("SMA");
 };
