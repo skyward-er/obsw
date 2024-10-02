@@ -54,7 +54,7 @@ public:
             uint16_t delta = sample - last;
 
             // window size is in ms, we want the result in s
-            return delta * 1000 / Groundstation::RADIO_BITRATE_WINDOW_SIZE;
+            return delta * 1000 / WINDOW_SIZE;
         }
         else
         {
@@ -70,10 +70,10 @@ private:
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class RadioStatus : public Boardcore::Module, private Boardcore::ActiveObject
+class BoardStatus : public Boardcore::Module, protected Boardcore::ActiveObject
 {
 public:
-    RadioStatus() {}
+    BoardStatus() {}
 
     bool start();
 
@@ -83,18 +83,17 @@ public:
     bool isMainRadioPresent();
 
     /**
-     * @brief Check wether the payload radio was found during boot.
+     * @brief Check wether the ethernet was found during boot.
      */
-    bool isPayloadRadioPresent();
+    bool isEthernetPresent();
 
     void setMainRadioPresent(bool present);
-    void setPayloadRadioPresent(bool present);
+    void setEthernetPresent(bool present);
 
-private:
+protected:
     void run() override;
 
-    Groundstation::RadioStats last_main_stats    = {0};
-    Groundstation::RadioStats last_payload_stats = {0};
+    Groundstation::RadioStats last_main_stats = {0};
 
     BitrateCalculator<Groundstation::RADIO_BITRATE_WINDOW_SIZE,
                       Groundstation::RADIO_STATUS_PERIOD>
@@ -103,8 +102,8 @@ private:
                       Groundstation::RADIO_STATUS_PERIOD>
         main_rx_bitrate;
 
-    bool main_radio_present    = false;
-    bool payload_radio_present = false;
+    bool main_radio_present = false;
+    bool ethernet_present   = false;
 };
 
 }  // namespace Antennas
