@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Federico Lolli
+ * Author: Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,12 +91,12 @@ public:
     /**
      * @brief move the stepper `stepperId` of `angle` degrees
      */
-    void moveStepperDeg(StepperList stepperId, float angle);
+    ErrorMovement moveStepperDeg(StepperList stepperId, float angle);
 
     /**
      * @brief move the stepper `stepperId` of `steps` steps
      */
-    void moveStepperSteps(StepperList stepperId, int16_t steps);
+    ErrorMovement moveStepperSteps(StepperList stepperId, int16_t steps);
 
     /**
      * @brief Getter for follower target angles

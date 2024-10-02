@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Emilio Corigliano, Niccolò Betto, Federico Lolli
+ * Author: Emilio Corigliano, Niccolò Betto, Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -152,10 +152,24 @@ void Follower::step()
         StepperList::STEPPER_Y, verticalSpeed);
 
     // Actuating steppers
-    ModuleManager::getInstance().get<Actuators>()->moveDeg(
-        StepperList::STEPPER_X, stepperAngles.yaw);
-    ModuleManager::getInstance().get<Actuators>()->moveDeg(
+    ErrorMovement actuation =
+        ModuleManager::getInstance().get<Actuators>()->moveDeg(
+            StepperList::STEPPER_X, stepperAngles.yaw);
+
+    if (actuation != ErrorMovement::OK)
+        LOG_ERR(logger,
+                "Step antenna - STEPPER_X could not move or reached move "
+                "limit. Error: ",
+                actuation, "\n");
+
+    actuation = ModuleManager::getInstance().get<Actuators>()->moveDeg(
         StepperList::STEPPER_Y, stepperAngles.pitch);
+
+    if (actuation != ErrorMovement::OK)
+        LOG_ERR(logger,
+                "Step antenna - STEPPER_Y could not move or reached move "
+                "limit. Error: ",
+                actuation, "\n");
 }
 
 AntennaAngles Follower::rocketPositionToAntennaAngles(

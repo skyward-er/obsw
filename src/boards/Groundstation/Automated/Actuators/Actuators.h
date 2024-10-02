@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,20 @@
 
 namespace Antennas
 {
+
+/**
+ * @brief Error handling enum for the stepper movement
+ */
+enum class ErrorMovement : uint8_t
+{
+    OK,              ///< `0`
+    LIMIT,           ///< `1` The STEPPER_X reached its actuation limits
+    NOT_TEST,        ///< `2` Such movement is allowed only in test
+    NO_STEPPER,      ///< `3` The specified stepper does not exist
+    DISABLED,        ///< `4`
+    EMERGENCY_STOP,  ///< `5`
+};
+
 class Actuators : public Boardcore::Module
 {
 public:
@@ -54,10 +68,10 @@ public:
 
     void setSpeed(StepperList axis, float speed);
 
-    void move(StepperList axis, int16_t steps);
-    void moveDeg(StepperList axis, float degrees);
-    void setPosition(StepperList axis, int16_t steps);
-    void setPositionDeg(StepperList axis, float degrees);
+    ErrorMovement move(StepperList axis, int16_t steps);
+    ErrorMovement moveDeg(StepperList axis, float degrees);
+    ErrorMovement setPosition(StepperList axis, int16_t steps);
+    ErrorMovement setPositionDeg(StepperList axis, float degrees);
 
     void zeroPosition();
 

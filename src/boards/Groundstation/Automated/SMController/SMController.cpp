@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Federico Lolli
+ * Author: Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,30 +112,34 @@ void SMController::setInitialRocketCoordinates(
     }
 }
 
-void SMController::moveStepperDeg(StepperList stepperId, float angle)
+ErrorMovement SMController::moveStepperDeg(StepperList stepperId, float angle)
 {
     if (!testState(&SMController::state_test) &&
         !testState(&SMController::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
+        return ErrorMovement::NOT_TEST;
     }
     else
     {
-        ModuleManager::getInstance().get<Actuators>()->moveDeg(stepperId,
-                                                               angle);
+        return ModuleManager::getInstance().get<Actuators>()->moveDeg(stepperId,
+                                                                      angle);
     }
 }
 
-void SMController::moveStepperSteps(StepperList stepperId, int16_t steps)
+ErrorMovement SMController::moveStepperSteps(StepperList stepperId,
+                                             int16_t steps)
 {
     if (!testState(&SMController::state_test) &&
         !testState(&SMController::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
+        return ErrorMovement::NOT_TEST;
     }
     else
     {
-        ModuleManager::getInstance().get<Actuators>()->move(stepperId, steps);
+        return ModuleManager::getInstance().get<Actuators>()->move(stepperId,
+                                                                   steps);
     }
 }
 
