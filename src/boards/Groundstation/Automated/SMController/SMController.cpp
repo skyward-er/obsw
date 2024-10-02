@@ -22,6 +22,7 @@
 
 #include "SMController.h"
 
+#include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/Config/FollowerConfig.h>
 #include <Groundstation/Automated/Config/PropagatorConfig.h>
 #include <Groundstation/Automated/Config/SMControllerConfig.h>
@@ -108,6 +109,33 @@ void SMController::setInitialRocketCoordinates(
     else
     {
         follower.setInitialRocketCoordinates(rocketCoordinates);
+    }
+}
+
+void SMController::moveStepperDeg(StepperList stepperId, float angle)
+{
+    if (!testState(&SMController::state_test) &&
+        !testState(&SMController::state_test_nf))
+    {
+        LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
+    }
+    else
+    {
+        ModuleManager::getInstance().get<Actuators>()->moveDeg(stepperId,
+                                                               angle);
+    }
+}
+
+void SMController::moveStepperSteps(StepperList stepperId, int16_t steps)
+{
+    if (!testState(&SMController::state_test) &&
+        !testState(&SMController::state_test_nf))
+    {
+        LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
+    }
+    else
+    {
+        ModuleManager::getInstance().get<Actuators>()->move(stepperId, steps);
     }
 }
 
