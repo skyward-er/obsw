@@ -298,6 +298,7 @@ State SMController::state_feedback(const Event& event)
         }
         case EV_EXIT:
         {
+            ModuleManager::getInstance().get<Actuators>()->disarm();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -331,6 +332,7 @@ State SMController::state_no_feedback(const Event& event)
         }
         case EV_EXIT:
         {
+            ModuleManager::getInstance().get<Actuators>()->disarm();
             return HANDLED;
         }
         case EV_EMPTY:
@@ -503,6 +505,7 @@ State SMController::state_armed(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::ARMED);
+            ModuleManager::getInstance().get<Actuators>()->arm();
             return HANDLED;
         }
         case EV_EXIT:
@@ -732,6 +735,7 @@ State SMController::state_armed_nf(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMControllerState::ARMED_NF);
+            ModuleManager::getInstance().get<Actuators>()->arm();
             return HANDLED;
         }
         case EV_EXIT:
