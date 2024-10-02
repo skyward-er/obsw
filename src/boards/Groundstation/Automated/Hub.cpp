@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor, Federico Lolli, Nicolò Caruso
+ * Authors: Davide Mor, Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
@@ -45,10 +44,27 @@ using namespace miosix;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    // TODO: Dispatch to correct radio using mavlink ids
     bool send_ok = false;
 
-    LyraGS::RadioMain* radio = getModule<LyraGS::RadioMain>();
+    LyraGS::BoardStatus* status  = getModule<LyraGS::BoardStatus>();
+    LyraGS::RadioMain* radioMain = getModule<LyraGS::RadioMain>();
+
+    if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
+    {
+        if (!radioMain->sendMsg(msg))
+        {
+            sendNack(msg, 306);
+        }
+    }
+
+    if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
+    {
+        LyraGS::RadioPayload* radioPayload = getModule<LyraGS::RadioPayload>();
+        if (!radioPayload->sendMsg(msg))
+        {
+            sendNack(msg, 306);
+        }
+    }
 
     if (msg.sysid == MAV_SYSID_ARP)
     {
@@ -143,13 +159,14 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     mavlink_msg_set_rocket_coordinates_arp_tc_get_height(&msg);
 
                 GPSData gpsData;
-                gpsData.latitude   = latitude;
-                gpsData.longitude  = longitude;
-                gpsData.height     = height;
-                gpsData.fix        = 3;
-                gpsData.satellites = 42;
+                gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
+                gpsData.latitude     = latitude;
+                gpsData.longitude    = longitude;
+                gpsData.height       = height;
+                gpsData.fix          = 3;
+                gpsData.satellites   = 42;
 
-                getModule<SMA>()->setInitialRocketCoordinates(gpsData);
+                getModule<SMA>()->setRocketNASOrigin(gpsData);
                 sendAck(msg);
                 break;
             }
@@ -165,11 +182,12 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     mavlink_msg_set_antenna_coordinates_arp_tc_get_height(&msg);
 
                 GPSData gpsData;
-                gpsData.latitude   = latitude;
-                gpsData.longitude  = longitude;
-                gpsData.height     = height;
-                gpsData.fix        = 3;
-                gpsData.satellites = 42;
+                gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
+                gpsData.latitude     = latitude;
+                gpsData.longitude    = longitude;
+                gpsData.height       = height;
+                gpsData.fix          = 3;
+                gpsData.satellites   = 42;
 
                 getModule<SMA>()->setAntennaCoordinates(gpsData);
                 sendAck(msg);
@@ -229,13 +247,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             }
         }
     }
-    send_ok |= radio->sendMsg(msg);
-
-    // If both of the sends went wrong, just send a nack
-    if (!send_ok)
-    {
-        sendNack(msg, 306);
-    }
 }
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
@@ -267,29 +278,6 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 mavlink_msg_rocket_flight_tm_get_nas_bias_y(&msg),
                 mavlink_msg_rocket_flight_tm_get_nas_bias_z(&msg))};
 
-        GPSData gpsState = getRocketOrigin();
-        /** In case there is no previous correct gps data, we first set the
-         * origin with the first packet with a fix >= 3 */
-        if (gpsState.fix < 3)
-        {
-            gpsState.fix = mavlink_msg_rocket_flight_tm_get_gps_fix(&msg);
-            if (gpsState.fix >= 3)
-            {
-                gpsState.gpsTimestamp =
-                    mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
-                gpsState.latitude =
-                    mavlink_msg_rocket_flight_tm_get_gps_lat(&msg);
-                gpsState.longitude =
-                    mavlink_msg_rocket_flight_tm_get_gps_lon(&msg);
-                gpsState.height =
-                    mavlink_msg_rocket_flight_tm_get_gps_alt(&msg);
-
-                setRocketOrigin(gpsState);
-
-                Logger::getInstance().log(gpsState);
-            }
-        }
-
         // Set the rocket NAS
         setRocketNasState(nasState);
 
@@ -303,6 +291,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
          * take then the origin reference*/
         if (gpsState.fix >= 3)
         {
+            gpsState.gpsTimestamp =
+                mavlink_msg_rocket_stats_tm_get_timestamp(&msg);
             gpsState.latitude  = mavlink_msg_rocket_stats_tm_get_ref_lat(&msg);
             gpsState.longitude = mavlink_msg_rocket_stats_tm_get_ref_lon(&msg);
             gpsState.height    = mavlink_msg_rocket_stats_tm_get_ref_alt(&msg);

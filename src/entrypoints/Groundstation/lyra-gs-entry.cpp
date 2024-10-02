@@ -345,7 +345,7 @@ int main()
 
     // Check presence of radio and ethernet
 
-    if (board_status->isMainRadioPresent())
+    if (board_status->isMainRadioPresent() && !dipRead.isARP)
     {
         LOG_INFO(logger, "Main radio detected!\n");
         led1On();  //< GREEN led on (CU)
@@ -353,7 +353,7 @@ int main()
     else
         std::cout << "Main NOT detected" << std::endl;
 
-    if (board_status->isPayloadRadioPresent())
+    if (board_status->isPayloadRadioPresent() && !dipRead.isARP)
     {
         LOG_INFO(logger, "Payload radio detected!\n");
         led2On();  //< YELLOW led on (CU)
@@ -361,7 +361,7 @@ int main()
     else
         std::cout << "Payload NOT detected" << std::endl;
 
-    if (board_status->isEthernetPresent())
+    if (board_status->isEthernetPresent() && !dipRead.isARP)
     {
         LOG_INFO(logger, "Ethernet detected!\n");
         led4On();  //< ORANGE led on (CU)

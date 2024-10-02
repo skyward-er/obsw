@@ -47,7 +47,8 @@ namespace Antennas
  */
 class Hub : public Boardcore::InjectableWithDeps<
                 Boardcore::InjectableBase<Groundstation::HubBase>, SMA,
-                LyraGS::RadioMain, LyraGS::SerialLyraGS, LyraGS::EthernetGS>
+                LyraGS::RadioMain, LyraGS::RadioPayload, LyraGS::BoardStatus,
+                LyraGS::SerialLyraGS, LyraGS::EthernetGS>
 {
 public:
     /**

@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Federico Lolli, Nicolò Caruso
+ * Authors: Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,8 +82,7 @@ public:
      * @brief Setter for the initial rocket coordinates
      * @details log an error if not in the correct state
      */
-    void setInitialRocketCoordinates(
-        const Boardcore::GPSData& antennaCoordinates);
+    void setRocketNASOrigin(const Boardcore::GPSData& antennaCoordinates);
 
     /**
      * @brief Starts the FSM thread and adds an update function into the

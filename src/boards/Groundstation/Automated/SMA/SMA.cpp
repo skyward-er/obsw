@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Federico Lolli, Nicolò Caruso
+ * Authors: Federico Lolli, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,8 +76,7 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
     }
 }
 
-void SMA::setInitialRocketCoordinates(
-    const Boardcore::GPSData& rocketCoordinates)
+void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
 {
     if (!testState(&SMA::state_fix_rocket) &&
         !testState(&SMA::state_fix_rocket_nf))
@@ -88,7 +87,7 @@ void SMA::setInitialRocketCoordinates(
     }
     else
     {
-        follower.setInitialRocketCoordinates(rocketCoordinates);
+        follower.setRocketNASOrigin(rocketCoordinates);
         EventBroker::getInstance().post(ARP_FIX_ROCKET, TOPIC_ARP);
     }
 }
@@ -138,6 +137,16 @@ void SMA::setFatal() { fatalInit = true; };
 
 void SMA::update()
 {
+    GPSData rocketCoordinates;
+    Hub* hub          = static_cast<Hub*>(getModule<Groundstation::HubBase>());
+    rocketCoordinates = hub->getRocketOrigin();
+
+    if (rocketCoordinates.fix != 0)
+    {
+        // update follower with the rocket GPS data
+        follower.setRocketNASOrigin(rocketCoordinates);
+    }
+
     switch (status.state)
     {
         // when in insert_info state, wait for antenna fix (manual insertion)
@@ -189,18 +198,10 @@ void SMA::update()
         case SMAState::FIX_ROCKET:
         case SMAState::FIX_ROCKET_NF:
         {
-            GPSData rocketCoordinates;
-
-            Hub* hub = static_cast<Hub*>(getModule<Groundstation::HubBase>());
-
-            rocketCoordinates = hub->getRocketOrigin();
             if (rocketCoordinates.fix != 0)
             {
-                // update follower with the rocket GPS data
-                follower.setInitialRocketCoordinates(rocketCoordinates);
-
                 LOG_INFO(Logging::getLogger("automated_antennas"),
-                         "Rocket GPS position acquired [{}, {}] [deg]",
+                         "Rocket NAS position with fix acquired [{}, {}] [deg]",
                          rocketCoordinates.latitude,
                          rocketCoordinates.longitude);
 
@@ -213,7 +214,6 @@ void SMA::update()
         case SMAState::ACTIVE:
         {
             // retrieve the last NAS Rocket state
-            Hub* hub = static_cast<Hub*>(getModule<HubBase>());
             if (hub->hasNasSet())
             {
                 NASState nasState = hub->getRocketNasState();
@@ -271,7 +271,6 @@ void SMA::update()
             VN300Data fakeAttitudeData;
 
             // retrieve the last NAS Rocket state
-            Hub* hub = static_cast<Hub*>(getModule<HubBase>());
             if (hub->hasNasSet())
             {
                 NASState nasState = hub->getRocketNasState();
