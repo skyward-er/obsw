@@ -27,7 +27,7 @@
 #include <common/Radio.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
-#include <utils/collections/SyncCircularBuffer.h>
+#include <utils/collections/CircularBuffer.h>
 
 #include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -53,6 +53,11 @@ public:
      */
     void sendMsg(const mavlink_message_t& msg);
 
+    /**
+     * @brief Handle generic DIO irq.
+     */
+    void handleDioIRQ();
+
 protected:
     /**
      * @brief Initialize this radio module.
@@ -74,6 +79,11 @@ private:
      */
     void flush();
 
+    /**
+     * @brief Check if a message signals an end of trasmissiont
+    */
+    bool isEndOfTransmissionPacket(const mavlink_message_t& msg);
+
     miosix::FastMutex mutex;
 
     Boardcore::CircularBuffer<mavlink_message_t, Gs::MAV_PENDING_OUT_QUEUE_SIZE>
@@ -87,11 +97,13 @@ private:
 
 class RadioMain : public RadioBase, public Boardcore::Module
 {
+public:
     [[nodiscard]] bool start();
 };
 
 class RadioPayload : public RadioBase, public Boardcore::Module
 {
+public:
     [[nodiscard]] bool start();
 };
 

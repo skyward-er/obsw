@@ -117,3 +117,9 @@ set(GROUNDSTATION_COMMON
     src/boards/Groundstation/Common/Radio/RadioBase.cpp
     src/boards/Groundstation/Common/HubBase.cpp
 )
+
+set(GS_COMPUTER
+    src/boards/Gs/Ports/Serial.cpp
+    src/boards/Gs/Radio/Radio.cpp
+    src/boards/Gs/Radio/RadioStatus.cpp
+)

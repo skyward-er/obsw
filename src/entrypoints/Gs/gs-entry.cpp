@@ -20,22 +20,50 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Gs/Buses.h>
+#include <Gs/Ports/Serial.h>
+#include <Gs/Radio/Radio.h>
+#include <Gs/Radio/RadioStatus.h>
 
-#include <cstdint>
-#include <cstddef>
+using namespace Gs;
+using namespace Boardcore;
 
-// Uncomment the following line to enable backup RF for main
-// #define SKYWARD_GS_MAIN_USE_BACKUP_RF
-// Uncomment the following line to enable backup RF for payload
-// #define SKYWARD_GS_PAYLOAD_USE_BACKUP_RF
+int main() {
 
-namespace Gs
-{
+    Buses *buses = new Buses();
+    Serial *serial = new Serial();
+    RadioMain *radio_main = new RadioMain();
+    RadioPayload *radio_payload = new RadioPayload();
+    RadioStatus *radio_status = new RadioStatus();
 
-constexpr size_t MAV_OUT_QUEUE_SIZE = 20;
-constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 20;
-constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 1000;
+    ModuleManager &modules = ModuleManager::getInstance();
 
-} // namespace Gs
+    bool ok = true;
+
+    ok &= modules.insert(buses);
+    ok &= modules.insert(serial);
+    ok &= modules.insert(radio_main);
+    ok &= modules.insert(radio_payload);
+    ok &= modules.insert(radio_status);
+
+    // Ok now start them
+
+    ok &= serial->start();
+    ok &= radio_main->start();
+    ok &= radio_payload->start();
+
+    /*if(!ok) {
+        printf("[GS] Init failed!\n");
+    } else {
+        printf("[GS] Init succesfull!\n");
+        printf("[GS] radio main: %d\n", radio_status->isMainRadioPresent());
+        printf("[GS] radio payload: %d\n", radio_status->isPayloadRadioPresent());
+    }*/
+
+    
+    while(1) {
+        miosix::Thread::sleep(1000);
+    }
+
+    return 0;
+}
