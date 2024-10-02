@@ -116,6 +116,8 @@ public:
 protected:
     virtual bool postSensorCreationHook() { return true; }
 
+    virtual void lsm6dsrxCallback();
+
     Boardcore::TaskScheduler& getSensorsScheduler();
 
     miosix::FastMutex canMutex;
@@ -165,7 +167,6 @@ private:
     void ubxgpsCallback();
 
     void lsm6dsrxInit();
-    void lsm6dsrxCallback();
 
     void vn100Init();
     void vn100Callback();

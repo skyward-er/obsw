@@ -139,6 +139,8 @@ protected:
      */
     virtual bool postSensorCreationHook() { return true; }
 
+    virtual void lsm6dsrxCallback();
+
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
@@ -177,7 +179,6 @@ private:
     void ubxgpsCallback();
 
     void lsm6dsrxInit();
-    void lsm6dsrxCallback();
 
     void ads131m08Init();
     void ads131m08Callback();

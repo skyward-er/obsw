@@ -41,6 +41,14 @@ public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
 
 private:
+    void lsm6dsrxCallback() override
+    {
+        if (!lsm6dsrx)
+            return;
+
+        Boardcore::Logger::getInstance().log(lsm6dsrx->getLastSample());
+    }
+
     bool postSensorCreationHook() override
     {
         using namespace Boardcore;
