@@ -94,14 +94,14 @@ void Actuators::disarm()
 
 void Actuators::setSpeed(StepperList axis, float speed)
 {
-    const auto &config = getStepperConfig(axis);
-    auto &stepper      = getStepper(axis);
+    const auto *config = getStepperConfig(axis);
+    auto *stepper      = getStepper(axis);
 
-    if (speed > config.MAX_SPEED)
+    if (speed > config->MAX_SPEED)
     {
-        speed = config.MAX_SPEED;
+        speed = config->MAX_SPEED;
     }
-    stepper.setSpeed(speed);
+    stepper->setSpeed(speed);
 
     switch (axis)
     {
@@ -125,24 +125,24 @@ void Actuators::zeroPosition()
 
 int16_t Actuators::getCurrentPosition(StepperList axis)
 {
-    return getStepper(axis).getCurrentPosition();
+    return getStepper(axis)->getCurrentPosition();
 }
 
 float Actuators::getCurrentDegPosition(StepperList axis)
 {
-    const auto &config = getStepperConfig(axis);
-    auto &stepper      = getStepper(axis);
+    const auto *config = getStepperConfig(axis);
+    auto *stepper      = getStepper(axis);
 
-    return stepper.getCurrentDegPosition() / config.MULTIPLIER;
+    return stepper->getCurrentDegPosition() / config->MULTIPLIER;
 }
 
 ErrorMovement Actuators::move(StepperList axis, int16_t steps)
 {
-    auto &stepper = getStepper(axis);
+    auto *stepper = getStepper(axis);
 
     if (emergencyStop)
     {
-        logStepperData(axis, stepper.getState(0));
+        logStepperData(axis, stepper->getState(0));
         return ErrorMovement::EMERGENCY_STOP;
     }
 
@@ -152,13 +152,13 @@ ErrorMovement Actuators::move(StepperList axis, int16_t steps)
     if (!stepper.isEnabled())
         return ErrorMovement::DISABLED;
 
-    const auto &config = getStepperConfig(axis);
+    const auto *config = getStepperConfig(axis);
     // float position     = getCurrentPosition(axis);
 
     // int16_t maxSteps =
-    //     config.MAX_ANGLE * config.MICROSTEPPING / config.STEP_ANGLE;
+    //     config->MAX_ANGLE * config->MICROSTEPPING / config->STEP_ANGLE;
     // int16_t minSteps =
-    //     config.MIN_ANGLE * config.MICROSTEPPING / config.STEP_ANGLE;
+    //     config->MIN_ANGLE * config->MICROSTEPPING / config->STEP_ANGLE;
 
     // // LIMIT POSITION IN ACCEPTABLE RANGE
     // if (position + steps > maxSteps)
@@ -168,41 +168,41 @@ ErrorMovement Actuators::move(StepperList axis, int16_t steps)
     // }
     // else if (position + steps < minSteps)
     // {
-    //     steps = config.MIN_ANGLE - position;
+    //     steps = config->MIN_ANGLE - position;
     // }
 
-    stepper.move(steps);
-    logStepperData(axis, stepper.getState(steps * config.STEP_ANGLE /
-                                          config.MICROSTEPPING));
+    stepper->move(steps);
+    logStepperData(axis, stepper->getState(steps * config->STEP_ANGLE /
+                                           config->MICROSTEPPING));
     return actuationState;
 }
 
 ErrorMovement Actuators::moveDeg(StepperList axis, float degrees)
 {
-    auto &stepper = getStepper(axis);
+    auto *stepper = getStepper(axis);
 
     if (emergencyStop)
     {
-        logStepperData(axis, stepper.getState(0));
+        logStepperData(axis, stepper->getState(0));
         return ErrorMovement::EMERGENCY_STOP;
     }
 
-    const auto &config = getStepperConfig(axis);
+    const auto *config = getStepperConfig(axis);
     // float positionDeg  = getCurrentDegPosition(axis);
 
     // LIMIT POSITION IN ACCEPTABLE RANGE
-    // if (positionDeg + degrees > config.MAX_ANGLE)
+    // if (positionDeg + degrees > config->MAX_ANGLE)
     // {
-    //     degrees = config.MAX_ANGLE - positionDeg;
+    //     degrees = config->MAX_ANGLE - positionDeg;
     // }
-    // else if (positionDeg + degrees < config.MIN_ANGLE)
+    // else if (positionDeg + degrees < config->MIN_ANGLE)
     // {
-    //     degrees = config.MIN_ANGLE - positionDeg;
+    //     degrees = config->MIN_ANGLE - positionDeg;
     // }
 
     // Moving stepper of the angle 'degrees'
-    stepper.moveDeg(degrees * config.MULTIPLIER);
-    logStepperData(axis, stepper.getState(degrees));
+    stepper->moveDeg(degrees * config->MULTIPLIER);
+    logStepperData(axis, stepper->getState(degrees));
 }
 
 ErrorMovement Actuators::setPositionDeg(StepperList axis, float positionDeg)
