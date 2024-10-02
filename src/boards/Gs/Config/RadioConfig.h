@@ -38,4 +38,9 @@ constexpr size_t MAV_PENDING_OUT_QUEUE_SIZE = 20;
 constexpr uint16_t MAV_SLEEP_AFTER_SEND     = 0;
 constexpr size_t MAV_OUT_BUFFER_MAX_AGE     = 10;
 
+/// @brief Every how many ms force the flush of the send queue.
+constexpr unsigned int AUTOMATIC_FLUSH_PERIOD = 250;
+/// @brief After how many ms stop waiting for the other side to send commands.
+constexpr long long AUTOMATIC_FLUSH_DELAY = 2000;
+
 }  // namespace Gs

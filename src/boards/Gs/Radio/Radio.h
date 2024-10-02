@@ -28,6 +28,7 @@
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <utils/collections/CircularBuffer.h>
+#include <ActiveObject.h>
 
 #include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -43,7 +44,7 @@ using MavDriver =
  * @brief Base radio class, used to implement functionality independent of
  * main/payload radios.
  */
-class RadioBase
+class RadioBase : private Boardcore::ActiveObject
 {
 public:
     RadioBase() {}
@@ -68,6 +69,8 @@ protected:
     bool start(std::unique_ptr<Boardcore::SX1278Fsk> sx1278,
                const Boardcore::SX1278Fsk::Config& config);
 
+    void run() override;
+
 private:
     /**
      * @brief Called internally when a message is received.
@@ -88,6 +91,8 @@ private:
 
     Boardcore::CircularBuffer<mavlink_message_t, Gs::MAV_PENDING_OUT_QUEUE_SIZE>
         pending_msgs;
+
+    long long last_eot_packet_ts = 0;
 
     // Objects are always destructed in reverse order, so keep them in this
     // order
