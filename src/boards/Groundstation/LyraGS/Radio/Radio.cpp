@@ -150,3 +150,23 @@ bool RadioPayload::start()
 
     return true;
 }
+
+bool RadioMain::sendMsg(const mavlink_message_t& msg)
+{
+    if (txEnable)
+        return RadioBase::sendMsg(msg);
+    return false;
+};
+
+/**
+ * @brief Send a mavlink message through this radio if it has been enabled
+ * by dipSwitch
+ *
+ * @returns false when the queue is full.
+ */
+bool RadioPayload::sendMsg(const mavlink_message_t& msg)
+{
+    if (txEnable)
+        return RadioBase::sendMsg(msg);
+    return false;
+};

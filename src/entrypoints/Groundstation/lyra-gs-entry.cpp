@@ -56,6 +56,8 @@ struct DipStatusLyraGS
     bool isARP;
     bool mainHasBackup;
     bool payloadHasBackup;
+    bool mainTXenable;
+    bool payloadTXenable;
     uint8_t ipConfig;
 };
 
@@ -65,7 +67,9 @@ DipStatusLyraGS getDipStatus(uint8_t read)
     dipRead.isARP            = 1 & read;
     dipRead.mainHasBackup    = 1 & (read >> 1);
     dipRead.payloadHasBackup = 1 & (read >> 2);
-    dipRead.ipConfig         = 0 | (read >> 3);
+    dipRead.mainTXenable     = 1 & (read >> 3);
+    dipRead.payloadTXenable  = 1 & (read >> 4);
+    dipRead.ipConfig         = 0 | (read >> 5);
     return dipRead;
 }
 
@@ -136,12 +140,12 @@ int main()
     Buses *buses                  = new Buses();
     Serial *serial                = new Serial();
     LyraGS::RadioMain *radio_main =
-        new LyraGS::RadioMain(dipRead.mainHasBackup);
+        new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
     LyraGS::BoardStatus *board_status = new LyraGS::BoardStatus(dipRead.isARP);
     LyraGS::EthernetGS *ethernet =
         new LyraGS::EthernetGS(false, dipRead.ipConfig);
-    LyraGS::RadioPayload *radio_payload =
-        new LyraGS::RadioPayload(dipRead.payloadHasBackup);
+    LyraGS::RadioPayload *radio_payload = new LyraGS::RadioPayload(
+        dipRead.payloadHasBackup, dipRead.payloadTXenable);
 
     HubBase *hub = nullptr;
 

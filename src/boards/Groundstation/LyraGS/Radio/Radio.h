@@ -47,8 +47,20 @@ public:
 
     RadioMain() : hasBackup{false} {};
 
+    RadioMain(bool hasBackup, bool txEnable)
+        : hasBackup{hasBackup}, txEnable{txEnable} {};
+
+    /**
+     * @brief Send a mavlink message through this radio if it has been enabled
+     * by dipSwitch for transmission
+     *
+     * @returns false when the queue is full or if tx is not enabled.
+     */
+    bool sendMsg(const mavlink_message_t& msg);
+
 private:
     bool hasBackup = false;
+    bool txEnable  = true;
 };
 class RadioPayload : public Boardcore::InjectableWithDeps<
                          Boardcore::InjectableBase<Groundstation::RadioBase>,
@@ -61,8 +73,20 @@ public:
 
     RadioPayload() : hasBackup{false} {};
 
+    RadioPayload(bool hasBackup, bool txEnable)
+        : hasBackup{hasBackup}, txEnable{txEnable} {};
+
+    /**
+     * @brief Send a mavlink message through this radio if it has been enabled
+     * by dipSwitch for transmission
+     *
+     * @returns false when the queue is full or if tx is not enabled.
+     */
+    bool sendMsg(const mavlink_message_t& msg);
+
 private:
     bool hasBackup = false;
+    bool txEnable  = true;
 };
 
 }  // namespace LyraGS
