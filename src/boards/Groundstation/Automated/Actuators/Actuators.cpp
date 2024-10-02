@@ -90,6 +90,7 @@ void Actuators::setSpeed(StepperList axis, float speed)
                 speed = Config::MAX_SPEED_HORIZONTAL;
             }
             stepperX.setSpeed(speed);
+            speedX = speed;
             break;
         case StepperList::VERTICAL:
             if (speed > Config::MAX_SPEED_VERTICAL)
@@ -97,6 +98,7 @@ void Actuators::setSpeed(StepperList axis, float speed)
                 speed = Config::MAX_SPEED_VERTICAL;
             }
             stepperY.setSpeed(speed);
+            speedY = speed;
             break;
         default:
             assert(false && "Non existent stepper");
@@ -182,6 +184,7 @@ void Actuators::moveDeg(StepperList axis, float degrees)
             stepperX.moveDeg(degrees * Config::HORIZONTAL_MULTIPLIER);
             Logger::getInstance().log(
                 static_cast<StepperXData>(stepperX.getState(degrees)));
+            deltaX = degrees;
             break;
         case StepperList::VERTICAL:
             // LIMIT POSITION IN ACCEPTABLE RANGE
@@ -197,6 +200,7 @@ void Actuators::moveDeg(StepperList axis, float degrees)
             stepperY.moveDeg(degrees * Config::VERTICAL_MULTIPLIER);
             Logger::getInstance().log(
                 static_cast<StepperYData>(stepperY.getState(degrees)));
+            deltaY = degrees;
             break;
         default:
             assert(false && "Non existent stepper");

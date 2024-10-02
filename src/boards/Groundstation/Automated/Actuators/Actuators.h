@@ -69,11 +69,55 @@ public:
 
     bool isEmergencyStopped() { return emergencyStop; }
 
+    /**
+     * @brief Getter for the last actuation of the wanted stepper.
+     * @param axis The stepper from which we want this information.
+     * @returns The last delta angle the chosen stepper is performing [deg].
+     */
+    float getDeltaAngleDeg(StepperList axis)
+    {
+        switch (axis)
+        {
+            case StepperList::HORIZONTAL:
+                return deltaX;
+            case StepperList::VERTICAL:
+                return deltaY;
+            default:
+                assert(false && "Non existent stepper");
+                return 0;
+        }
+    }
+
+    /**
+     * @brief Getter for the speed of the wanted stepper.
+     * @param axis The stepper from which we want this information.
+     * @returns The speed of the chosen stepper [rps].
+     */
+    float getSpeed(StepperList axis)
+    {
+        switch (axis)
+        {
+            case StepperList::HORIZONTAL:
+                return speedX;
+            case StepperList::VERTICAL:
+                return speedY;
+            default:
+                assert(false && "Non existent stepper");
+                return 0;
+        }
+    }
+
 private:
     Boardcore::StepperPWM& getServo(StepperList servo);
 
     Boardcore::StepperPWM stepperX;
     Boardcore::StepperPWM stepperY;
+
+    float deltaX = 0.0f;  // Delta angle to perform [deg]
+    float deltaY = 0.0f;  // Delta angle to perform [deg]
+    float speedX = 0.0f;  // Speed of the stepper [rps]
+    float speedY = 0.0f;  // Speed of the stepper [rps]
+
     bool emergencyStop =
         false;  // Whether the system performed an emergency stop
 };

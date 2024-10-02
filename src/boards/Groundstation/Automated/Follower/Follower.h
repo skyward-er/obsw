@@ -78,6 +78,12 @@ public:
         return initialAntennaRocketDistance;
     }
 
+    /**
+     * @brief Getter for the target antenna position computed by the algorithm.
+     * @returns The target antenna positions.
+     */
+    AntennaAngles getTargetAngles() { return targetAngles; }
+
 private:
     void step() override;
 
@@ -98,6 +104,8 @@ private:
     Eigen::Vector3f initialRocketCoordinates;  ///< GPS coordinates of the
                                                ///< rocket while in ramp [lat,
                                                ///< lon, alt] [deg, deg, m]
+    AntennaAngles
+        targetAngles;  ///< Target yaw and pitch of the system [deg, deg].
     Eigen::Vector2f
         initialAntennaRocketDistance;  ///< Distance between the antenna and
                                        ///< the rocket while in ramp [m]
