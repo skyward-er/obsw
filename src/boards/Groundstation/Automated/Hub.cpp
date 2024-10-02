@@ -44,8 +44,6 @@ using namespace miosix;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    bool send_ok = false;
-
     LyraGS::BoardStatus* status  = getModule<LyraGS::BoardStatus>();
     LyraGS::RadioMain* radioMain = getModule<LyraGS::RadioMain>();
 
@@ -261,46 +259,38 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     // Extracting NAS rocket state
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM)
     {
+        mavlink_rocket_flight_tm_t rocketTM;
+        mavlink_msg_rocket_flight_tm_decode(&msg, &rocketTM);
         NASState nasState{
             mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
             Eigen::Matrix<float, 13, 1>(
-                mavlink_msg_rocket_flight_tm_get_nas_n(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_e(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_d(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_vn(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_ve(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_vd(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_qx(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_qy(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_qz(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_qw(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_bias_x(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_bias_y(&msg),
-                mavlink_msg_rocket_flight_tm_get_nas_bias_z(&msg))};
+                rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d, rocketTM.nas_vn,
+                rocketTM.nas_ve, rocketTM.nas_vd, rocketTM.nas_qx,
+                rocketTM.nas_qy, rocketTM.nas_qz, rocketTM.nas_qw,
+                rocketTM.nas_bias_x, rocketTM.nas_bias_y, rocketTM.nas_bias_z)};
 
         // Set the rocket NAS
         setRocketNasState(nasState);
 
+        Logger::getInstance().log(rocketTM);
         Logger::getInstance().log(nasState);
     }
     else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
     {
+        mavlink_rocket_stats_tm_t rocketST;
+        mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
         GPSData gpsState;
         gpsState = getRocketOrigin();
-        /** In case a first gps coordinate with a  good fix has been set, we
-         * take then the origin reference*/
-        if (gpsState.fix >= 3)
-        {
-            gpsState.gpsTimestamp =
-                mavlink_msg_rocket_stats_tm_get_timestamp(&msg);
-            gpsState.latitude  = mavlink_msg_rocket_stats_tm_get_ref_lat(&msg);
-            gpsState.longitude = mavlink_msg_rocket_stats_tm_get_ref_lon(&msg);
-            gpsState.height    = mavlink_msg_rocket_stats_tm_get_ref_alt(&msg);
 
-            setRocketOrigin(gpsState);
+        gpsState.gpsTimestamp = rocketST.timestamp;
+        gpsState.latitude     = rocketST.ref_lat;
+        gpsState.longitude    = rocketST.ref_lon;
+        gpsState.height       = rocketST.ref_alt;
 
-            Logger::getInstance().log(gpsState);
-        }
+        setRocketOrigin(gpsState);
+
+        Logger::getInstance().log(rocketST);
+        Logger::getInstance().log(gpsState);
     }
 
     LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
