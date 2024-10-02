@@ -37,19 +37,24 @@ using namespace miosix;
 #define SX1278_DIO1_IRQ EXTI4_IRQHandlerImpl
 #define SX1278_DIO3_IRQ EXTI11_IRQHandlerImpl
 
+Radio* radioGlobal = nullptr;
+
 void __attribute__((used)) SX1278_DIO0_IRQ()
 {
-    ModuleManager::getInstance().get<Radio>()->handleDioIRQ();
+    if (radioGlobal)
+        radioGlobal->handleDioIRQ();
 }
 
 void __attribute__((used)) SX1278_DIO1_IRQ()
 {
-    ModuleManager::getInstance().get<Radio>()->handleDioIRQ();
+    if (radioGlobal)
+        radioGlobal->handleDioIRQ();
 }
 
 void __attribute__((used)) SX1278_DIO3_IRQ()
 {
-    ModuleManager::getInstance().get<Radio>()->handleDioIRQ();
+    if (radioGlobal)
+        radioGlobal->handleDioIRQ();
 }
 
 bool Radio::start()
@@ -63,9 +68,7 @@ bool Radio::start()
 
     std::unique_ptr<Boardcore::SX1278Fsk> sx1278 =
         std::make_unique<Boardcore::SX1278Fsk>(
-            ModuleManager::getInstance()
-                .get<GroundstationNokia::Buses>()
-                ->radio_bus,
+            getModule<GroundstationNokia::Buses>()->radio_bus,
             peripherals::ra01::pc13::cs::getPin(),
             peripherals::ra01::pc13::dio0::getPin(),
             peripherals::ra01::pc13::dio1::getPin(),

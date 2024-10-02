@@ -23,9 +23,10 @@
 #pragma once
 
 #include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/Nokia/Radio/Radio.h>
 #include <common/Mavlink.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationNokia
 {
@@ -33,7 +34,9 @@ namespace GroundstationNokia
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class Hub : public Groundstation::HubBase
+class Hub : public Boardcore::InjectableWithDeps<
+                Boardcore::InjectableBase<Groundstation::HubBase>, Radio,
+                Groundstation::Serial>
 {
 public:
     Hub() {}

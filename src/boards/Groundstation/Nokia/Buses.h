@@ -23,15 +23,14 @@
 #pragma once
 
 #include <drivers/spi/SPIBus.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "interfaces-impl/hwmapping.h"
 
 namespace GroundstationNokia
 {
 
-class Buses : public Boardcore::Module
+class Buses : public Boardcore::Injectable
 {
 public:
     Boardcore::SPIBus radio_bus;

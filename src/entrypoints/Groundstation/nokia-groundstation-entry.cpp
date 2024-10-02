@@ -25,6 +25,7 @@
 #include <Groundstation/Nokia/Hub.h>
 #include <Groundstation/Nokia/Radio/Radio.h>
 #include <miosix.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Groundstation;
 using namespace GroundstationNokia;
@@ -48,19 +49,25 @@ int main()
     Radio *radio   = new Radio();
     Serial *serial = new Serial();
 
-    ModuleManager &modules = ModuleManager::getInstance();
+    DependencyManager manager;
 
     bool ok = true;
 
-    ok &= modules.insert<HubBase>(hub);
-    ok &= modules.insert(buses);
-    ok &= modules.insert(serial);
-    ok &= modules.insert(radio);
+    ok &= manager.insert<HubBase>(hub);
+    ok &= manager.insert(buses);
+    ok &= manager.insert(serial);
+    ok &= manager.insert(radio);
 
     // If insertion failed, stop right here
     if (!ok)
     {
         printf("[error] Failed to insert all modules!\n");
+        idleLoop();
+    }
+
+    if (!manager.inject())
+    {
+        printf("[error] Failed to inject the dependencies!\n");
         idleLoop();
     }
 

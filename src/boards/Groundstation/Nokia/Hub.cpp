@@ -32,7 +32,7 @@ using namespace Boardcore;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    Radio* radio = ModuleManager::getInstance().get<Radio>();
+    Radio* radio = getModule<Radio>();
 
     if (!radio->sendMsg(msg))
     {
@@ -42,6 +42,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    Serial* serial = ModuleManager::getInstance().get<Serial>();
+    Serial* serial = getModule<Serial>();
     serial->sendMsg(msg);
 }

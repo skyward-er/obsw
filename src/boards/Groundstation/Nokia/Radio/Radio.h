@@ -23,11 +23,14 @@
 #pragma once
 
 #include <Groundstation/Common/Radio/RadioBase.h>
+#include <Groundstation/Nokia/Buses.h>
 
 namespace GroundstationNokia
 {
 
-class Radio : public Groundstation::RadioBase, public Boardcore::Module
+class Radio : public Boardcore::InjectableWithDeps<
+                  Boardcore::InjectableBase<Groundstation::RadioBase>,
+                  GroundstationNokia::Buses>
 {
 public:
     [[nodiscard]] bool start();
