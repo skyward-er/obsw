@@ -209,6 +209,10 @@ int main()
 
     // Start the modules
 
+    ledOn();
+    Thread::sleep(2000);
+    ledOff();
+
     // ARP start errors
     bool init_fatal = false;
 
