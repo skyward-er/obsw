@@ -122,6 +122,7 @@
         "Aeroutils",
         "AIRBRAKES",
         "Baro",
+        "Betto",
         "Boardcore",
         "CALIB",
         "Canbus",
@@ -132,6 +133,7 @@
         "compid",
         "Conterio",
         "CONTIN",
+        "Corigliano",
         "CPHA",
         "cppcheck",
         "cwise",
@@ -147,15 +149,22 @@
         "EXTI",
         "Gpio",
         "GPIOF",
+        "GPIOG",
         "KALM",
         "kalman",
+        "Leds",
         "Lolli",
         "magcal",
+        "Mandelli",
         "mavlink",
         "miosix",
         "MPXH",
+        "Musso",
+        "Niccolò",
         "Nidasio",
         "pitot",
+        "Qemergency",
+        "Riccardo",
         "RSSI",
         "SATS",
         "setb",
@@ -174,6 +183,11 @@
     "cmake.configureSettings": {
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+<<<<<<< HEAD
     },
     "compilerexplorer.compilationDirectory": "${workspaceFolder}/build"
 }
+=======
+    }
+}
+>>>>>>> 170759b0 ([vscode] Add cspell words to workspace dictionary)
