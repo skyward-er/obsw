@@ -50,9 +50,6 @@ public:
     // Setters for the NAS state of the rocket
     void setLastRocketNasState(const Boardcore::NASState nasState);
 
-    // Get the initial distance between the antenna and the rocket while in ramp
-    Eigen::Vector2f getInitialAntennaRocketDistance();
-
     /**
      * @brief Getter for the target antenna position computed by the algorithm.
      * @returns The target antenna positions.
