@@ -200,8 +200,8 @@ private:
     // Flags indicating if the multipliers have been set
     bool multiplierX_set = false;
     bool multiplierY_set = false;
-    float multiplierX;  // Multiplier for the stepper X
-    float multiplierY;  // Multiplier for the stepper Y
+    float multiplierX    = 1.0f;  // Multiplier for the stepper X
+    float multiplierY    = 1.0f;  // Multiplier for the stepper Y
 
     float deltaX = 0.0f;  // Delta angle to perform [deg]
     float deltaY = 0.0f;  // Delta angle to perform [deg]
