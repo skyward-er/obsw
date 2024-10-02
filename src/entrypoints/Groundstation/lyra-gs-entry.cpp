@@ -213,7 +213,7 @@ int main()
     bool init_fatal = false;
 
 #ifndef NO_SD_LOGGING
-    if (!Logger::getInstance().start())
+    if (!Logger::getInstance().start() && dipRead.isARP)
     {
         LOG_ERR(logger, "ERROR: Failed to start Logger\n");
         ok = false;
