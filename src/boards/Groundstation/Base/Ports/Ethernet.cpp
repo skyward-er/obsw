@@ -22,12 +22,10 @@
 
 #include "Ethernet.h"
 
-#include <Groundstation/Base/BoardStatus.h>
 #include <Groundstation/Base/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Groundstation;
-using namespace GroundstationBase;
 using namespace Boardcore;
 using namespace miosix;
 
@@ -39,23 +37,9 @@ void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 bool Ethernet::start()
 {
     std::unique_ptr<Wiz5500> wiz5500 = std::make_unique<Wiz5500>(
-        ModuleManager::getInstance().get<Buses>()->ethernet_bus,
+        ModuleManager::getInstance().get<Groundstation::Buses>()->ethernet_bus,
         ethernet::cs::getPin(), ethernet::intr::getPin(),
         SPI::ClockDivider::DIV_64);
 
-    // First check if the device is even connected
-    bool present = wiz5500->checkVersion();
-
-    ModuleManager::getInstance().get<BoardStatus>()->setEthernetPresent(
-        present);
-
-    if (present)
-    {
-        if (!EthernetBase::start(std::move(wiz5500)))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return EthernetBase::start(std::move(wiz5500));
 }
