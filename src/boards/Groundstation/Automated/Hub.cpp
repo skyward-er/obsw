@@ -59,20 +59,20 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             {
                 // Create the map between the commands and the corresponding
                 // events
-                static const std::map<MavArpCommandList, Events> commandToEvent{
-                    {MAV_ARP_CMD_FORCE_INIT, TMTC_ARP_FORCE_INIT},
-                    {MAV_ARP_CMD_RESET_ALGORITHM, TMTC_ARP_RESET_ALGORITHM},
-                    {MAV_ARP_CMD_RESET_BOARD, TMTC_ARP_RESET_BOARD},
-                    {MAV_ARP_CMD_FORCE_NO_FEEDBACK, TMTC_ARP_FORCE_NO_FEEDBACK},
-                    {MAV_ARP_CMD_ARM, TMTC_ARP_ARM},
-                    {MAV_ARP_CMD_DISARM, TMTC_ARP_DISARM},
-                    {MAV_ARP_CMD_FOLLOW, TMTC_ARP_FOLLOW},
-                    {MAV_ARP_CMD_CALIBRATE, TMTC_ARP_CALIBRATE},
-                    {MAV_ARP_CMD_ENTER_TEST_MODE, TMTC_ARP_ENTER_TEST_MODE},
-                    {MAV_ARP_CMD_EXIT_TEST_MODE, TMTC_ARP_EXIT_TEST_MODE},
+                static const std::map<MavCommandList, Events> commandToEvent{
+                    {MAV_CMD_FORCE_INIT, TMTC_ARP_FORCE_INIT},
+                    {MAV_CMD_RESET_ALGORITHM, TMTC_ARP_RESET_ALGORITHM},
+                    {MAV_CMD_FORCE_REBOOT, TMTC_ARP_RESET_BOARD},
+                    {MAV_CMD_ARP_FORCE_NO_FEEDBACK, TMTC_ARP_FORCE_NO_FEEDBACK},
+                    {MAV_CMD_ARM, TMTC_ARP_ARM},
+                    {MAV_CMD_DISARM, TMTC_ARP_DISARM},
+                    {MAV_CMD_ARP_FOLLOW, TMTC_ARP_FOLLOW},
+                    {MAV_CMD_CALIBRATE, TMTC_ARP_CALIBRATE},
+                    {MAV_CMD_ENTER_TEST_MODE, TMTC_ARP_ENTER_TEST_MODE},
+                    {MAV_CMD_EXIT_TEST_MODE, TMTC_ARP_EXIT_TEST_MODE},
                 };
 
-                MavArpCommandList commandId = static_cast<MavArpCommandList>(
+                MavCommandList commandId = static_cast<MavCommandList>(
                     mavlink_msg_arp_command_tc_get_command_id(&msg));
 
                 auto it = commandToEvent.find(commandId);
