@@ -192,7 +192,7 @@ int main()
     // If insertion failed, stop right here
     if (!ok)
     {
-        LOG_ERR(logger, "[error] Failed to insert all modules!\n");
+        std::cout << "[error] Failed to insert all modules!" << std::endl;
         errorLoop();
     }
 
@@ -200,7 +200,7 @@ int main()
 
     if (!manager.inject())
     {
-        LOG_ERR(logger, "[error] Failed to inject the dependencies!\n");
+        std::cout << "[error] Failed to inject the dependencies!" << std::endl;
         errorLoop();
     }
 
@@ -215,7 +215,7 @@ int main()
 #ifndef NO_SD_LOGGING
     if (!Logger::getInstance().start() && dipRead.isARP)
     {
-        LOG_ERR(logger, "ERROR: Failed to start Logger\n");
+        std::cout << "ERROR: Failed to start Logger" << std::endl;
         ok = false;
     }
 #endif
@@ -224,7 +224,7 @@ int main()
 
     if (!scheduler_low->start())
     {
-        LOG_ERR(logger, "[error] Failed to start scheduler_low!\n");
+        std::cout << "[error] Failed to start scheduler_low!" << std::endl;
         ok = false;
     }
 
@@ -232,7 +232,7 @@ int main()
 
     if (!scheduler_high->start())
     {
-        LOG_ERR(logger, "[error] Failed to start scheduler_high!\n");
+        std::cout << "[error] Failed to start scheduler_high!" << std::endl;
         ok         = false;
         init_fatal = true;
     }
@@ -241,7 +241,7 @@ int main()
 
     if (!serial->start())
     {
-        LOG_ERR(logger, "[error] Failed to start serial!\n");
+        std::cout << "[error] Failed to start serial!" << std::endl;
         ok = false;
     }
 
@@ -249,7 +249,7 @@ int main()
 
     if (!radio_main->start())
     {
-        LOG_ERR(logger, "[error] Failed to start radio_main!\n");
+        std::cout << "[error] Failed to start radio_main!" << std::endl;
         ok         = false;
         init_fatal = true;
     }
@@ -258,7 +258,7 @@ int main()
 
     if (!radio_payload->start())
     {
-        LOG_ERR(logger, "[error] Failed to start payload radio!\n");
+        std::cout << "[error] Failed to start payload radio!" << std::endl;
         // Payload module is needed just for GS, not for ARP
         ok &= dipRead.isARP;
     }
@@ -267,7 +267,7 @@ int main()
 
     if (!ethernet->start())
     {
-        LOG_ERR(logger, "[error] Failed to start ethernet!\n");
+        std::cout << "[error] Failed to start ethernet!" << std::endl;
         ok = false;
     }
 
@@ -275,7 +275,7 @@ int main()
 
     if (!board_status->start())
     {
-        LOG_ERR(logger, "[error] Failed to start board_status!\n");
+        std::cout << "[error] Failed to start board_status!" << std::endl;
         ok = false;
     }
 
@@ -287,7 +287,7 @@ int main()
 
         if (leds && !(leds->start()))
         {
-            LOG_ERR(logger, "[error] Failed to start leds!\n");
+            std::cout << "[error] Failed to start leds!" << std::endl;
             ok = false;
         }
 
@@ -295,7 +295,7 @@ int main()
 
         if (sensors && !(sensors->start()))
         {
-            LOG_ERR(logger, "[error] Failed to start sensors!\n");
+            std::cout << "[error] Failed to start sensors!" << std::endl;
             ok = false;
         }
 
@@ -303,7 +303,7 @@ int main()
 
         if (sma && !(sma->start()))
         {
-            LOG_ERR(logger, "[error] Failed to start sma!\n");
+            std::cout << "[error] Failed to start sma!" << std::endl;
             ok = false;
         }
 
@@ -315,20 +315,21 @@ int main()
             LOG_INFO(logger, "[info] Actuators started!\n");
         }
         else
-            LOG_ERR(logger, "[error] Failed to start actuators!\n");
+            std::cout << "[error] Failed to start actuators!" << std::endl;
 
         LOG_DEBUG(logger, "DEBUG: pin handler starting...\n");
 
         if (pinHandler && !pinHandler->start())
         {
-            LOG_ERR(logger, "[error] Failed to start PinHandler!\n");
+            std::cout << "[error] Failed to start PinHandler!" << std::endl;
             ok = false;
         }
     }
 
     if (!dipRead.isARP && !ok)
     {
-        LOG_ERR(logger, "GS: could not start all modules successfully!\n");
+        std::cout << "GS: could not start all modules successfully!"
+                  << std::endl;
         errorLoop();
     }
 
@@ -342,7 +343,7 @@ int main()
         led1On();  //< GREEN led on (CU)
     }
     else
-        LOG_ERR(logger, "Main NOT detected\n");
+        std::cout << "Main NOT detected" << std::endl;
 
     if (board_status->isPayloadRadioPresent())
     {
@@ -350,7 +351,7 @@ int main()
         led2On();  //< YELLOW led on (CU)
     }
     else
-        LOG_ERR(logger, "Payload NOT detected\n");
+        std::cout << "Payload NOT detected" << std::endl;
 
     if (board_status->isEthernetPresent())
     {
@@ -358,13 +359,13 @@ int main()
         led4On();  //< ORANGE led on (CU)
     }
     else
-        LOG_ERR(logger, "Ethernet NOT detected\n");
+        std::cout << "Ethernet NOT detected" << std::endl;
 
     if (!dipRead.isARP && !ok)
     {
-        LOG_ERR(logger,
-                "GS initialization has failed. Not all modules started "
-                "correctly!\n");
+        std::cout << "GS initialization has failed. Not all modules started "
+                     "correctly!"
+                  << std::endl;
         errorLoop();
     }
 
@@ -373,10 +374,10 @@ int main()
         // If init fatal and sma not started, blink red endlessly
         if (init_fatal)
         {
-            LOG_ERR(logger,
-                    "ARP's modules initialization has failed. Init fatal "
-                    "error. Cannot proceed, a restart and fix of the "
-                    "boards/module is required.\n");
+            std::cout << "ARP's modules initialization has failed. Init fatal "
+                         "error. Cannot proceed, a restart and fix of the "
+                         "boards/module is required."
+                      << std::endl;
             if (sma)
                 sma->setFatal();
             // Still go to INIT_ERROR to still allow initialization
@@ -386,10 +387,10 @@ int main()
         }  // If another module is in error
         else if (!ok)
         {
-            LOG_ERR(
-                logger,
-                "ARP's modules initialization has failed. Init error. It "
-                "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT.\n");
+            std::cout
+                << "ARP's modules initialization has failed. Init error. It "
+                   "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT."
+                << std::endl;
             EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
                                             Common::TOPIC_ARP);
         }  // If all modules are ok
