@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Authors: Riccardo Musso, Emilio Corigliano
+ * Authors: Riccardo Musso, Emilio Corigliano, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,21 @@
 
 #include "actuators/stepper/StepperPWM.h"
 
+#define START_MODULE(name, lambda)                                  \
+    do                                                              \
+    {                                                               \
+        std::function<bool()> _fun = lambda;                        \
+        if (!_fun())                                                \
+        {                                                           \
+            LOG_ERR(logger, "Failed to start module " name);        \
+            errorLoop();                                            \
+        }                                                           \
+        else                                                        \
+        {                                                           \
+            LOG_DEBUG(logger, "Successfully started module " name); \
+        }                                                           \
+    } while (0)
+
 using namespace Groundstation;
 using namespace Antennas;
 using namespace Boardcore;
@@ -56,8 +71,93 @@ void __attribute__((used)) EXTI10_IRQHandlerImpl()
     ModuleManager::getInstance().get<Actuators>()->IRQemergencyStop();
 }
 
+/**
+ * @brief Waits for a given amount of time, blinking the supplied LED.
+ * @note Minimum wait granularity is 100ms.
+ */
+void ledBlinkWait(GpioPin led, int ms)
+{
+    int waited = 0;
+    while (waited < ms)
+    {
+        led.high();
+        Thread::sleep(50);
+        led.low();
+        Thread::sleep(50);
+        waited += 100;
+    }
+}
+
+/**
+ * @brief Infinite error loop, used to blink an LED when an error occurs.
+ */
+void errorLoop()
+{
+    while (true)
+    {
+        userLed4::high();
+        Thread::sleep(100);
+        userLed4::low();
+        Thread::sleep(100);
+    }
+}
+
+/**
+ * @brief Acquires the current rocket GPS position from the main radio.
+ * @details As a side effect, this function also waits for the rocket to be
+ * powered on.
+ */
+GPSData acquireRocketGpsState(Hub *hub)
+{
+    GPSData rocketGpsState;
+    do
+    {
+        rocketGpsState = hub->getLastRocketGpsState();
+        ledBlinkWait(userLed2::getPin(), 100);
+    } while (rocketGpsState.fix == 0);
+    return rocketGpsState;
+}
+
+/**
+ * @brief Acquires the current antenna GPS position from the VN300 IMU.
+ */
+GPSData acquireAntennaGpsState(Sensors *sensors)
+{
+    VN300Data vn300Data;
+    do
+    {
+        vn300Data = sensors->getVN300LastSample();
+        ledBlinkWait(userLed3_2::getPin(), 100);
+    } while (vn300Data.fix_gps == 0);
+
+    GPSData antennaPosition;
+    antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
+    antennaPosition.latitude      = vn300Data.latitude;
+    antennaPosition.longitude     = vn300Data.longitude;
+    antennaPosition.height        = vn300Data.altitude;
+    antennaPosition.velocityNorth = vn300Data.nedVelX;
+    antennaPosition.velocityEast  = vn300Data.nedVelY;
+    antennaPosition.velocityDown  = vn300Data.nedVelZ;
+    antennaPosition.satellites    = vn300Data.fix_gps;
+    antennaPosition.fix           = (vn300Data.fix_gps > 0);
+    return antennaPosition;
+}
+
+/**
+ * @brief Automated Antennas (SkyLink) entrypoint.
+ * The entrypoint performs the following operations:
+ * - Initializes software modules
+ *   -> Green LED is turned on when done
+ * - Waits for the rocket to be powered on and acquire a GPS fix
+ *   -> Yellow LED is turned on when done
+ * - Waits for the antenna to acquire a GPS fix
+ *   -> Orange LED is turned on when done
+ * - Initializes the follower
+ * - Starts the follower task
+ */
 int main()
 {
+    ledOff();
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("automated_antennas");
     bool ok                = true;
@@ -86,117 +186,79 @@ int main()
         ok &= modules.insert(radio_status);
         ok &= modules.insert(actuators);
         ok &= modules.insert(sensors);
+
+        // If insertion failed, stop right here
+        if (!ok)
+        {
+            LOG_ERR(logger, "Failed to insert all modules!\n");
+            errorLoop();
+        }
+        else
+        {
+            LOG_DEBUG(logger, "All modules inserted successfully!\n");
+        }
     }
 
     // Starting Modules
     {
 #ifndef NO_SD_LOGGING
-        // Starting the Logger
-        if (!Logger::getInstance().start())
-        {
-            ok = false;
-            LOG_ERR(logger, "Error initializing the Logger\n");
-        }
-        else
-        {
-            LOG_INFO(logger, "Logger started successfully\n");
-        }
+        START_MODULE("Logger", [&] { return Logger::getInstance().start(); });
 #endif
-
-        // Starting scheduler
-        if (!scheduler->start())
-        {
-            ok = false;
-            LOG_ERR(logger, "Error initializing the Scheduler\n");
-        }
-
-        if (!serial->start())
-        {
-            ok = false;
-            LOG_ERR(logger, "Failed to start serial!\n");
-        }
-
-        if (!radio_main->start())
-        {
-            ok = false;
-            LOG_ERR(logger, "Failed to start main radio!\n");
-        }
-
-        if (!radio_status->start())
-        {
-            ok = false;
-            LOG_ERR(logger, "Failed to start radio status!\n");
-        }
-
-        if (!sensors->start())
-        {
-            ok = false;
-            LOG_ERR(logger, "Failed to start sensors!\n");
-        }
-
+        START_MODULE("Scheduler", [&] { return scheduler->start(); });
+        START_MODULE("Serial", [&] { return serial->start(); });
+        START_MODULE("Main Radio", [&] { return radio_main->start(); });
+        START_MODULE("Radio Status", [&] { return radio_status->start(); });
+        START_MODULE("Sensors", [&] { return sensors->start(); });
         actuators->start();
-
-        if (!follower->init())
-        {
-            ok = false;
-            LOG_ERR(logger, "Failed to start follower!\n");
-        }
     }
 
-    follower->begin();
-    scheduler->addTask(std::bind(&Follower::update, follower), 100);
-
-    std::thread gpsFix(
-        [&]()
-        {
-            GPSData antennaPosition;
-            while (1)
-            {
-                VN300Data vn300Data = ModuleManager::getInstance()
-                                          .get<Antennas::Sensors>()
-                                          ->getVN300LastSample();
-
-                if (vn300Data.fix_gps != 0)
-                {
-                    antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
-                    antennaPosition.latitude      = vn300Data.latitude;
-                    antennaPosition.longitude     = vn300Data.longitude;
-                    antennaPosition.height        = vn300Data.altitude;
-                    antennaPosition.velocityNorth = vn300Data.nedVelX;
-                    antennaPosition.velocityEast  = vn300Data.nedVelY;
-                    antennaPosition.velocityDown  = vn300Data.nedVelZ;
-                    antennaPosition.satellites    = vn300Data.fix_gps;
-                    antennaPosition.fix           = (vn300Data.fix_gps > 0);
-                    LOG_INFO(logger,
-                             "GPS fix "
-                             "acquired !coord[%f, %f] ",
-                             antennaPosition.latitude,
-                             antennaPosition.longitude);
-                    follower->setAntennaPosition(antennaPosition);
-
-                    led3On();
-                    return;
-                }
-
-                Thread::sleep(1000);
-            }
-        });
+    // Setup success LED
+    led1On();
+    LOG_INFO(logger, "Modules setup successful");
 
     if (radio_status->isMainRadioPresent())
     {
-        led1On();
+        LOG_DEBUG(logger, "Main radio is present\n");
+    }
+
+    LOG_INFO(logger, "Starting Skylink");
+
+    // Wait for rocket presence and GPS fix
+    GPSData rocketGpsState = acquireRocketGpsState(hub);
+    LOG_INFO(logger, "Rocket GPS position acquired [{}, {}] [deg]",
+             rocketGpsState.latitude, rocketGpsState.longitude);
+    follower->setInitialRocketCoordinates(rocketGpsState);
+    // Rocket presence and GPS fix LED
+    led2On();
+
+    // Wait for antenna GPS fix
+    GPSData antennaGpsState = acquireAntennaGpsState(sensors);
+    LOG_INFO(logger, "Antenna GPS position acquired !coord [{}, {}] [deg]",
+             antennaGpsState.latitude, antennaGpsState.longitude);
+    follower->setAntennaCoordinates(antennaGpsState);
+    // Antenna GPS fix LED
+    led3On();
+
+    // Init the follower after GPS position was acquired
+    if (!follower->init())
+    {
+        LOG_ERR(logger, "Failed to start follower!\n");
+        errorLoop();
     }
     else
     {
-        led2On();
+        auto distance = follower->getInitialAntennaRocketDistance();
+        LOG_INFO(logger, "Initial antenna - rocket distance: [{}, {}] [m]\n",
+                 distance[0], distance[1]);
     }
 
-    gpsFix.join();
+    follower->begin();
+    scheduler->addTask(std::bind(&Follower::update, follower), 200);
+    LOG_INFO(logger, "Follower task started successfully");
 
     while (true)
     {
         Thread::wait();
     }
-
     return 0;
 }
