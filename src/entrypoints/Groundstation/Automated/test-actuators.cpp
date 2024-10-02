@@ -145,6 +145,21 @@ void test2(Actuators *actuators) {
     LOG_INFO(logger, "Test 2 completed\n");
 }
 
+void test3(Actuators *actuators) {
+    actuators->setSpeed(Actuators::StepperList::HORIZONTAL, STEPPER_SPEED);
+    actuators->setSpeed(Actuators::StepperList::VERTICAL, STEPPER_SPEED);
+
+    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, 180);
+    ledWaitLoop(TEST_WAIT + 4000);
+    actuators->moveDeg(Actuators::StepperList::HORIZONTAL, -180);
+    ledWaitLoop(TEST_WAIT + 4000);
+
+    actuators->moveDeg(Actuators::StepperList::VERTICAL, 90);
+    ledWaitLoop(TEST_WAIT);
+    actuators->moveDeg(Actuators::StepperList::VERTICAL, -90);
+    ledWaitLoop(TEST_WAIT);
+}
+
 void test6(Actuators *actuators) {
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 6");
@@ -238,6 +253,7 @@ int main()
 
     test1(actuators);
     test2(actuators);
+    test3(actuators);
     test6(actuators);
 
     LOG_INFO(logger, "Tests completed\n");
