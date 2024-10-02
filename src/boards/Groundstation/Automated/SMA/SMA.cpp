@@ -137,9 +137,31 @@ void SMA::setFatal() { fatalInit = true; };
 
 void SMA::update()
 {
-    GPSData rocketCoordinates;
+    GPSData rocketCoordinates, antennaCoordinates;
+    VN300Data vn300Data;
+
     Hub* hub          = static_cast<Hub*>(getModule<Groundstation::HubBase>());
+    auto* sensors     = getModule<Sensors>();
     rocketCoordinates = hub->getRocketOrigin();
+
+    // update antenna coordinates
+    vn300Data = sensors->getVN300LastSample();
+    if (vn300Data.fix_gps == 3)
+    {
+        // build the GPSData struct with the VN300 data
+        antennaCoordinates.gpsTimestamp  = vn300Data.insTimestamp;
+        antennaCoordinates.latitude      = vn300Data.latitude;
+        antennaCoordinates.longitude     = vn300Data.longitude;
+        antennaCoordinates.height        = vn300Data.altitude;
+        antennaCoordinates.velocityNorth = vn300Data.nedVelX;
+        antennaCoordinates.velocityEast  = vn300Data.nedVelY;
+        antennaCoordinates.velocityDown  = vn300Data.nedVelZ;
+        antennaCoordinates.satellites    = vn300Data.fix_gps;
+        antennaCoordinates.fix           = vn300Data.fix_gps;
+
+        // update follower with coordinates
+        follower.setAntennaCoordinates(antennaCoordinates);
+    }
 
     // update follower with the rocket GPS data
     follower.setRocketNASOrigin(rocketCoordinates);
@@ -160,32 +182,8 @@ void SMA::update()
         // in fix_antennas state, wait for the GPS fix of ARP
         case SMAState::FIX_ANTENNAS:
         {
-            VN300Data vn300Data;
-            GPSData antennaPosition;
-
-            auto* sensors = getModule<Sensors>();
-
-            vn300Data = sensors->getVN300LastSample();
-            if (vn300Data.fix_gps == 3)
+            if (antennaCoordinates.fix == 3)
             {
-                // build the GPSData struct with the VN300 data
-                antennaPosition.gpsTimestamp  = vn300Data.insTimestamp;
-                antennaPosition.latitude      = vn300Data.latitude;
-                antennaPosition.longitude     = vn300Data.longitude;
-                antennaPosition.height        = vn300Data.altitude;
-                antennaPosition.velocityNorth = vn300Data.nedVelX;
-                antennaPosition.velocityEast  = vn300Data.nedVelY;
-                antennaPosition.velocityDown  = vn300Data.nedVelZ;
-                antennaPosition.satellites    = vn300Data.fix_gps;
-                antennaPosition.fix           = vn300Data.fix_gps;
-
-                // update follower with coordinates
-                follower.setAntennaCoordinates(antennaPosition);
-
-                LOG_INFO(Logging::getLogger("automated_antennas"),
-                         "Antenna GPS position acquired !coord [{}, {}] [deg]",
-                         antennaPosition.latitude, antennaPosition.longitude);
-
                 // fix found, now move to the next state
                 EventBroker::getInstance().post(ARP_FIX_ANTENNAS, TOPIC_ARP);
             }

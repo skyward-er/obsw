@@ -286,6 +286,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         gpsState.latitude     = rocketST.ref_lat;
         gpsState.longitude    = rocketST.ref_lon;
         gpsState.height       = rocketST.ref_alt;
+        gpsState.fix          = 3;
 
         setRocketOrigin(gpsState);
 
