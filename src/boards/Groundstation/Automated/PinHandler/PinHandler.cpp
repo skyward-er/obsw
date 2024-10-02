@@ -85,7 +85,7 @@ void PinHandler::onActiveTransition(PinTransition transition)
     if (transition == Boardcore::PinTransition::RISING_EDGE)
     {
         EventBroker::getInstance().post(Common::Events::TMTC_ARP_FOLLOW,
-                                        Common::Topics::TOPIC_ARP);
+                                        Common::Topics::TOPIC_TMTC);
 
         // Log the event
         PinData data = getPinData(PinList::ACTIVE_SWITCH);
@@ -98,7 +98,7 @@ void PinHandler::onActiveTransition(PinTransition transition)
     {
         EventBroker::getInstance().post(
             Common::Events::TMTC_ARP_RESET_ALGORITHM,
-            Common::Topics::TOPIC_ARP);
+            Common::Topics::TOPIC_TMTC);
 
         // Log the event
         PinData data = getPinData(PinList::ACTIVE_SWITCH);
