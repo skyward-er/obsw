@@ -21,6 +21,9 @@
  */
 
 #pragma once
+#include <chrono>
+
+/* linter off */ using namespace std::chrono;
 
 namespace Antennas
 {
@@ -29,7 +32,7 @@ namespace SMAConfig
 {
 
 /// @brief Period of the propagator algorithm [ms].
-constexpr uint32_t UPDATE_PERIOD = 100;  // 10 Hz
+constexpr milliseconds UPDATE_PERIOD = 100ms;  // 10 Hz
 
 }  // namespace SMAConfig
 }  // namespace Antennas

@@ -31,6 +31,7 @@
 #include <sensors/Vectornav/VN300/VN300Data.h>
 #include <tscpp/stream.h>
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -60,7 +61,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<StepperYData>();
     ds.registerType<VN300Data>();
     ds.registerType<NASState>();
-    ds.registerType<AntennaAngles>();
+    ds.registerType<AntennaAnglesLog>();
     ds.registerType<GPSData>();
     ds.registerType<SMAStatus>();
     ds.registerType<PinChangeData>();

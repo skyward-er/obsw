@@ -69,7 +69,7 @@ DipStatusLyraGS getDipStatus(uint8_t read)
     dipRead.payloadHasBackup = 1 & (read >> 2);
     dipRead.mainTXenable     = 1 & (read >> 3);
     dipRead.payloadTXenable  = 1 & (read >> 4);
-    dipRead.ipConfig         = 0 | (read >> 5);
+    dipRead.ipConfig         = read >> 5;
     return dipRead;
 }
 
@@ -128,7 +128,7 @@ int main()
     GpioPin clk          = dipSwitch::clk::getPin();
     GpioPin qh           = dipSwitch::qh::getPin();
 
-    DipSwitch dip(sh, clk, qh, microSecClk);
+    DipSwitch dip(sh, clk, qh, std::chrono::microseconds(microSecClk));
     DipStatusLyraGS dipRead = getDipStatus(dip.read());
 
     DependencyManager manager;
