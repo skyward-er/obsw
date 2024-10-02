@@ -61,6 +61,8 @@ public:
     void setPosition(StepperList axis, int16_t steps);
     void setPositionDeg(StepperList axis, float degrees);
 
+    void zeroPosition();
+
     int16_t getCurrentPosition(StepperList axis);
     float getCurrentDegPosition(StepperList axis);
 
