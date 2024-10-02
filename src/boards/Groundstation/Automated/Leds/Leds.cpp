@@ -24,58 +24,18 @@
 
 #include <mutex>
 
-using namespace std;
 using namespace Boardcore;
 
 namespace Antennas
 {
 
-Leds::Leds(TaskScheduler* scheduler) : scheduler(scheduler)
+LedThread::LedThread(LedColor color)
+    : ActiveObject(miosix::STACK_DEFAULT_FOR_PTHREAD, 0), color(color),
+      state(LedState::OFF)
 {
-    for (size_t i = 0; i < led_states.size(); i++)
-    {
-        led_states[i]  = LedState::OFF;
-        led_mutexes[i] = make_unique<mutex>();
-        led_cvs[i]     = make_unique<condition_variable>();
-    }
 }
 
-bool Leds::start()
-{
-    size_t result;
-    bool ok = true;
-
-    // turn off all leds
-    miosix::ledOff();
-
-    // start the blinking thread for red led
-    result = scheduler->addTask(
-        std::bind(&Leds::ledThread, this, LedColor::RED, 100), 0,
-        TaskScheduler::Policy::ONE_SHOT);
-    ok &= result != 0;
-
-    // start the blinking thread for yellow led
-    result = scheduler->addTask(
-        std::bind(&Leds::ledThread, this, LedColor::YELLOW, 50), 0,
-        TaskScheduler::Policy::ONE_SHOT);
-    ok &= result != 0;
-
-    // start the blinking thread for orange led
-    result = scheduler->addTask(
-        std::bind(&Leds::ledThread, this, LedColor::ORANGE, 50), 0,
-        TaskScheduler::Policy::ONE_SHOT);
-    ok &= result != 0;
-
-    // start the blinking thread for green led
-    result = scheduler->addTask(
-        std::bind(&Leds::ledThread, this, LedColor::GREEN, 50), 0,
-        TaskScheduler::Policy::ONE_SHOT);
-    ok &= result != 0;
-
-    return ok;
-}
-
-void Leds::ledOn(LedColor color)
+void LedThread::ledOn(LedColor color)
 {
 #ifdef _BOARD_STM32F767ZI_AUTOMATED_ANTENNAS
     switch (color)
@@ -93,10 +53,26 @@ void Leds::ledOn(LedColor color)
             miosix::led1On();
             break;
     }
+#else
+    switch (color)
+    {
+        case LedColor::RED:
+            miosix::ledOn();
+            break;
+        case LedColor::YELLOW:
+            miosix::led2On();
+            break;
+        case LedColor::ORANGE:
+            miosix::led3On();
+            break;
+        case LedColor::GREEN:
+            miosix::led1On();
+            break;
+    }
 #endif
 }
 
-void Leds::ledOff(LedColor color)
+void LedThread::ledOff(LedColor color)
 {
 #ifdef _BOARD_STM32F767ZI_AUTOMATED_ANTENNAS
     switch (color)
@@ -114,21 +90,34 @@ void Leds::ledOff(LedColor color)
             miosix::led1Off();
             break;
     }
+#else
+    switch (color)
+    {
+        case LedColor::RED:
+            miosix::ledOff();
+            break;
+        case LedColor::YELLOW:
+            miosix::led2Off();
+            break;
+        case LedColor::ORANGE:
+            miosix::led3Off();
+            break;
+        case LedColor::GREEN:
+            miosix::led1Off();
+            break;
+    }
 #endif
 }
 
-/**
- * @brief Thread function that actuate leds based on state
- * @param color led color to actuate
- * @param blinking_interval blinking time interval [ms]
- */
-void Leds::ledThread(LedColor color, uint32_t blinking_interval)
+void LedThread::run()
 {
+    LedState old = state;
     while (true)
     {
-        unique_lock<mutex> lock(*mutexRef(color));
-        cvRef(color)->wait(lock);
-        switch (*ledRef(color))
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.wait(lock, [&] { return state != old; });
+        old = state;
+        switch (state)
         {
             case LedState::BLINKING:
             {
@@ -138,47 +127,85 @@ void Leds::ledThread(LedColor color, uint32_t blinking_interval)
                     miosix::Thread::sleep(blinking_interval);
                     ledOff(color);
                     miosix::Thread::sleep(blinking_interval);
-                } while (*ledRef(color) == LedState::BLINKING);
+                } while (state == LedState::BLINKING);
                 break;
             }
             case LedState::ON:
             {
                 ledOn(color);
+                break;
             }
             case LedState::OFF:
             {
                 ledOff(color);
+                break;
             }
         }
     }
 }
 
-void Leds::setBlinking(LedColor color)
+void LedThread::setBlinking(uint32_t ms_interval)
 {
-    lock_guard<mutex> lock(*mutexRef(color));
-    *ledRef(color) = LedState::BLINKING;
-    cvRef(color)->notify_one();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        state = LedState::BLINKING;
+    }
+    cv.notify_one();
 }
 
-void Leds::setOn(LedColor color)
+void LedThread::setOn()
 {
-    lock_guard<mutex> lock(*mutexRef(color));
-    *ledRef(color) = LedState::ON;
-    cvRef(color)->notify_one();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        state = LedState::ON;
+    }
+    cv.notify_one();
 }
 
-void Leds::setOff(LedColor color)
+void LedThread::setOff()
 {
-    lock_guard<mutex> lock(*mutexRef(color));
-    *ledRef(color) = LedState::OFF;
-    cvRef(color)->notify_one();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        state = LedState::OFF;
+    }
+    cv.notify_one();
 }
+
+Leds::Leds()
+{
+    for (size_t i = 0; i < leds.size(); i++)
+    {
+        leds[i] = std::make_unique<LedThread>(static_cast<LedColor>(i));
+    }
+}
+
+bool Leds::start()
+{
+    bool ok = true;
+
+    // turn off all leds
+    miosix::ledOff();
+
+    for (size_t i = 0; i < leds.size(); i++)
+    {
+        ok &= leds[i]->start();
+    }
+
+    return ok;
+}
+
+void Leds::setBlinking(LedColor color, uint32_t ms_interval)
+{
+    ledRef(color)->setBlinking(ms_interval);
+}
+
+void Leds::setOn(LedColor color) { ledRef(color)->setOn(); }
+
+void Leds::setOff(LedColor color) { ledRef(color)->setOff(); }
 
 void Leds::endlessBlink(LedColor color)
 {
-    lock_guard<mutex> lock(*mutexRef(color));
-    *ledRef(color) = LedState::BLINKING;
-    cvRef(color)->notify_one();
+    ledRef(color)->setBlinking(100);
     miosix::Thread::wait();  // wait forever
 }
 
