@@ -159,6 +159,53 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             sendAck(msg);
             break;
         }
+        case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:
+        {
+            mavlink_message_t msg_response;
+            SystemTMList tmId = static_cast<SystemTMList>(
+                mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
+
+            // If it is handled create the msg_response, otherwise return
+            // NACK
+            switch (tmId)
+            {
+                case SystemTMList::MAV_LOGGER_ID:
+                {
+                    mavlink_logger_tm_t tm;
+
+                    LoggerStats stats = Logger::getInstance().getStats();
+
+                    tm.timestamp          = TimestampTimer::getTimestamp();
+                    tm.log_number         = stats.logNumber;
+                    tm.too_large_samples  = stats.tooLargeSamples;
+                    tm.dropped_samples    = stats.droppedSamples;
+                    tm.queued_samples     = stats.queuedSamples;
+                    tm.buffers_filled     = stats.buffersFilled;
+                    tm.buffers_written    = stats.buffersWritten;
+                    tm.writes_failed      = stats.writesFailed;
+                    tm.last_write_error   = stats.lastWriteError;
+                    tm.average_write_time = stats.averageWriteTime;
+                    tm.max_write_time     = stats.maxWriteTime;
+
+                    mavlink_msg_logger_tm_encode(SysIDs::MAV_SYSID_ARP,
+                                                 Groundstation::GS_COMPONENT_ID,
+                                                 &msg_response, &tm);
+
+                    break;
+                }
+                default:
+                {
+                    sendNack(msg);
+                    return;
+                }
+            }
+
+            // Dispatching the created response message and then returning
+            // the ACK
+            dispatchIncomingMsg(msg_response);
+            sendAck(msg);
+            return;
+        }
     }
 
     send_ok |= radio->sendMsg(msg);
