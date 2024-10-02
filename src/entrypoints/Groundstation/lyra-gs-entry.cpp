@@ -23,6 +23,7 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
+#include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Ports/Serial.h>
@@ -104,10 +105,11 @@ int main()
     DipSwitch dip(sh, clk, qh, microSecClk);
     DipStatus dipRead = dip.read();
 
-    // TODO: Pass to DependencyManager when rebased
+    // TODO: Pass to DependencyManager when rebased!
     ModuleManager &modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("lyra_gs");
 
+    // TODO: Board scheduler for the schedulers
     TaskScheduler *scheduler_low  = new TaskScheduler(0);
     TaskScheduler *scheduler_high = new TaskScheduler();
     Buses *buses                  = new Buses();
@@ -132,17 +134,19 @@ int main()
     if (dipRead.isARP)
     {
         LOG_DEBUG(logger, "[debug] Starting as ARP Ground Station\n");
-        Antennas::Leds *leds = new Antennas::Leds(scheduler_low);
-        HubBase *hub = new Antennas::Hub();  //< TODO: Could it be this??? NAH!
-        Antennas::Actuators *actuators = new Antennas::Actuators();
-        Antennas::Sensors *sensors     = new Antennas::Sensors();
-        Antennas::SMA *sma             = new Antennas::SMA(scheduler_high);
+        Antennas::Leds *leds             = new Antennas::Leds(scheduler_low);
+        HubBase *hub                     = new Antennas::Hub();
+        Antennas::Actuators *actuators   = new Antennas::Actuators();
+        Antennas::Sensors *sensors       = new Antennas::Sensors();
+        Antennas::SMA *sma               = new Antennas::SMA(scheduler_high);
+        Antennas::PinHandler *pinHandler = new Antennas::PinHandler();
 
         ok &= modules.insert(sma);
         ok &= modules.insert<HubBase>(hub);
         ok &= modules.insert(actuators);
         ok &= modules.insert(sensors);
         ok &= modules.insert(leds);
+        ok &= modules.insert(pinHandler);
     }
     // Ground station module insertion
     else
@@ -226,6 +230,14 @@ int main()
         {
             LOG_ERR(logger, "[error] Failed to start sma!\n");
         }
+
+        ok &= ModuleManager::getInstance().get<Antennas::PinHandler>()->start();
+
+        if (!modules.get<Antennas::PinHandler>()->start())
+            if (!ok)
+            {
+                LOG_ERR(logger, "[error] Failed to start PinHandler!\n");
+            }
     }
 
     if (!ok)
