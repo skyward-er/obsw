@@ -186,11 +186,6 @@
     "cmake.configureSettings": {
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
-<<<<<<< HEAD
     },
     "compilerexplorer.compilationDirectory": "${workspaceFolder}/build"
 }
-=======
-    }
-}
->>>>>>> 170759b0 ([vscode] Add cspell words to workspace dictionary)
