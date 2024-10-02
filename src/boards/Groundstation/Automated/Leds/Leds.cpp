@@ -102,10 +102,13 @@ void Leds::setOn(LedColor color) { *ledRef(color) = LedState::ON; }
 
 void Leds::setOff(LedColor color) { *ledRef(color) = LedState::OFF; }
 
-void Leds::endlessBlink(LedColor color)
+void Leds::endlessBlink(LedColor color, uint32_t period)
 {
-    setSlowBlink(color);
-    miosix::Thread::wait();  // wait forever
+    while (true)
+    {
+        ledToggle(color);
+        sleep(period);
+    }
 }
 
 void Leds::ledToggle(LedColor color)
