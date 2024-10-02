@@ -118,6 +118,7 @@ int main()
     BoardStatus *board_status     = new BoardStatus(dipRead.isARP);
     LyraGS::Ethernet *ethernet  = new LyraGS::Ethernet(false, dipRead.ipConfig);
     RadioPayload *radio_payload = new RadioPayload();
+    Antennas::Actuators *actuators = nullptr;
 
     bool ok = true;
 
@@ -136,7 +137,7 @@ int main()
         LOG_DEBUG(logger, "[debug] Starting as ARP Ground Station\n");
         Antennas::Leds *leds             = new Antennas::Leds(scheduler_low);
         HubBase *hub                     = new Antennas::Hub();
-        Antennas::Actuators *actuators   = new Antennas::Actuators();
+        actuators                        = new Antennas::Actuators();
         Antennas::Sensors *sensors       = new Antennas::Sensors();
         Antennas::SMA *sma               = new Antennas::SMA(scheduler_high);
         Antennas::PinHandler *pinHandler = new Antennas::PinHandler();
@@ -168,6 +169,17 @@ int main()
 
     // Start the modules
 
+    // ARP start errors
+    bool init_fatal = false;
+
+#ifndef NO_SD_LOGGING
+    if (!Logger::getInstance().start())
+    {
+        LOG_ERR(logger, "ERROR: Failed to start Logger\n");
+        ok = false;
+    }
+#endif
+
     if (!scheduler_low->start())
     {
         LOG_ERR(logger, "[error] Failed to start scheduler_low!\n");
@@ -177,7 +189,8 @@ int main()
     if (!scheduler_high->start())
     {
         LOG_ERR(logger, "[error] Failed to start scheduler_high!\n");
-        ok = false;
+        ok         = false;
+        init_fatal = true;
     }
 
     if (!serial->start())
@@ -189,7 +202,8 @@ int main()
     if (!radio_main->start())
     {
         LOG_ERR(logger, "[error] Failed to start radio_main!\n");
-        ok = false;
+        ok         = false;
+        init_fatal = true;
     }
 
     if (!radio_payload->start())
@@ -229,6 +243,11 @@ int main()
         if (!ok)
         {
             LOG_ERR(logger, "[error] Failed to start sma!\n");
+        }
+
+        if (actuators)
+        {
+            LOG_INFO(logger, "[info] Actuators started!\n");
         }
 
         ok &= ModuleManager::getInstance().get<Antennas::PinHandler>()->start();
@@ -281,9 +300,23 @@ int main()
 
     if (dipRead.isARP)
     {
-        LOG_INFO(logger, "Starting ARP");
-        EventBroker::getInstance().post(Common::Events::ARP_INIT_OK,
-                                        Common::Topics::TOPIC_ARP);
+        // If init fatal and sma not started, blink red endlessly
+        if (init_fatal)
+        {
+            ModuleManager::getInstance().get<Antennas::Leds>()->endlessBlink(
+                Antennas::LedColor::RED, LED_BLINK_FAST_PERIOD_MS);
+        }  // If another module is in error
+        else if (!ok)
+        {
+            EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
+                                            Common::TOPIC_ARP);
+        }  // If all modules are ok
+        else
+        {
+            LOG_INFO(logger, "Starting ARP");
+            EventBroker::getInstance().post(Common::ARP_INIT_OK,
+                                            Common::TOPIC_ARP);
+        }
     }
     led3On();  //< fix RED led (CU)
     idleLoop();

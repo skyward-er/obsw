@@ -30,7 +30,7 @@ using namespace Boardcore;
 
 void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 {
-    ModuleManager::getInstance().get<Ethernet>()->handleINTn();
+    ModuleManager::getInstance().get<LyraGS::Ethernet>()->handleINTn();
 }
 
 namespace LyraGS
