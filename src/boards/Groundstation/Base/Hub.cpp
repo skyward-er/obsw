@@ -35,17 +35,15 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     RadioStatus* status = ModuleManager::getInstance().get<RadioStatus>();
 
-    // TODO: Dispatch to correct radio using mavlink ids
-
     bool send_ok = false;
 
-    if (status->isMainRadioPresent())
+    if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
     {
         RadioMain* radio = ModuleManager::getInstance().get<RadioMain>();
         send_ok |= radio->sendMsg(msg);
     }
 
-    if (status->isPayloadRadioPresent())
+    if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
     {
         RadioPayload* radio = ModuleManager::getInstance().get<RadioPayload>();
         send_ok |= radio->sendMsg(msg);
