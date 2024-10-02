@@ -22,12 +22,12 @@
 
 #pragma once
 
+#include <ActiveObject.h>
 #include <Gs/Config/RadioConfig.h>
 #include <common/Mavlink.h>
 #include <common/Radio.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
-#include <ActiveObject.h>
 
 #include <memory>
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -50,7 +50,7 @@ public:
 
     /**
      * @brief Send a mavlink message through this radio.
-     * 
+     *
      * @returns false when the queue is full.
      */
     bool sendMsg(const mavlink_message_t& msg);
