@@ -272,7 +272,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         // Set the rocket NAS
         setRocketNasState(nasState);
 
-        Logger::getInstance().log(rocketTM);
+        // Logger::getInstance().log(rocketTM);
         Logger::getInstance().log(nasState);
     }
     else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
@@ -289,7 +289,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 
         setRocketOrigin(gpsState);
 
-        Logger::getInstance().log(rocketST);
+        // Logger::getInstance().log(rocketST);
         Logger::getInstance().log(gpsState);
     }
 
