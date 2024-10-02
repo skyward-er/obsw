@@ -30,6 +30,8 @@
 #include <algorithms/NAS/NASState.h>
 #include <sensors/SensorData.h>
 
+#include <iostream>
+
 using namespace Antennas;
 using namespace Boardcore;
 using namespace Groundstation;
@@ -53,7 +55,9 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
     Serial* serial = ModuleManager::getInstance().get<Serial>();
+#ifdef NDEBUG
     serial->sendMsg(msg);
+#endif
 
     // Extracting NAS rocket state
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM)
@@ -74,6 +78,10 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 mavlink_msg_rocket_flight_tm_get_nas_bias_x(&msg),
                 mavlink_msg_rocket_flight_tm_get_nas_bias_y(&msg),
                 mavlink_msg_rocket_flight_tm_get_nas_bias_z(&msg))};
+
+#ifndef NDEBUG
+        nasState.print(std::cout);
+#endif
 
         GPSData gpsState;
         gpsState.gpsTimestamp =
