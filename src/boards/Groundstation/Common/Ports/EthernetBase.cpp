@@ -64,15 +64,17 @@ void EthernetBase::sendMsg(const mavlink_message_t& msg)
     }
 }
 
+Boardcore::Wiz5500::PhyState EthernetBase::getState()
+{
+    return wiz5500->getPhyState();
+}
+
 bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
 {
     this->wiz5500 = std::move(wiz5500);
 
     // Reset the device
-    if (!this->wiz5500->reset())
-    {
-        return false;
-    }
+    this->wiz5500->reset();
 
     // Setup ip and other stuff
     this->wiz5500->setSubnetMask(SUBNET);
@@ -111,7 +113,9 @@ void EthernetBase::handleMsg(const mavlink_message_t& msg)
 
 ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)
 {
-    return wiz5500->recv(0, pkt, max_len);
+    WizIp dst_ip;
+    uint16_t dst_port;
+    return wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
 }
 
 bool EthernetBase::send(uint8_t* pkt, size_t len)
