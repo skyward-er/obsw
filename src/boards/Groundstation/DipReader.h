@@ -48,11 +48,11 @@ public:
         DipStatus dipReading;
 
         // Write to the shift register (CS == Not LD)
-        miosix::dipSwitch::cs::low();
+        miosix::dipSwitch::sh::low();
         miosix::dipSwitch::clk::high();
         miosix::delayUs(100);
         miosix::dipSwitch::clk::low();
-        miosix::dipSwitch::cs::high();
+        miosix::dipSwitch::sh::high();
         miosix::delayUs(5);
 
         // Read first register GS(0)/ARP(1)
@@ -64,17 +64,17 @@ public:
         dipReading.ip3       = readBit();
         dipReading.ip4       = readBit();
         dipReading.ip5       = readBit();
-        dipReading.ip6       = readBit();
-        dipReading.ip7       = readBit();
+
+        return dipReading;
     }
 
 private:
-    bool readBit()
+    static bool readBit()
     {
         bool bit;
         miosix::dipSwitch::clk::high();
         miosix::delayUs(5);
-        bit = miosix::dipSwitch::qh;
+        bit = miosix::dipSwitch::qh::value();
         miosix::delayUs(5);
         miosix::dipSwitch::clk::low();
         miosix::delayUs(5);
