@@ -24,6 +24,7 @@
 #include <Groundstation/Automated/Buses.h>
 #include <Groundstation/Automated/Follower/Follower.h>
 #include <Groundstation/Automated/Hub.h>
+#include <Groundstation/Automated/Ports/Ethernet.h>
 #include <Groundstation/Automated/Radio/Radio.h>
 #include <Groundstation/Automated/Radio/RadioStatus.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
@@ -175,6 +176,7 @@ int main()
     Actuators *actuators      = new Actuators();
     Sensors *sensors          = new Sensors();
     Follower *follower        = new Follower();
+    Ethernet *ethernet        = new Ethernet();
 
     // Inserting Modules
     {
@@ -186,6 +188,7 @@ int main()
         ok &= modules.insert(radio_status);
         ok &= modules.insert(actuators);
         ok &= modules.insert(sensors);
+        ok &= modules.insert(ethernet);
 
         // If insertion failed, stop right here
         if (!ok)
@@ -207,6 +210,7 @@ int main()
         START_MODULE("Scheduler", [&] { return scheduler->start(); });
         START_MODULE("Serial", [&] { return serial->start(); });
         START_MODULE("Main Radio", [&] { return radio_main->start(); });
+        START_MODULE("Ethernet", [&] { return ethernet->start(); });
         START_MODULE("Radio Status", [&] { return radio_status->start(); });
         START_MODULE("Sensors", [&] { return sensors->start(); });
         actuators->start();
