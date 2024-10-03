@@ -47,7 +47,7 @@ constexpr float SHUTDOWN_APOGEE_TARGET      = 800;     // agl [m]
 #ifndef EUROC
 #warning "MISSION NOT DEFINED: Using EUROC"
 #endif
-constexpr unsigned int SHADOW_MODE_TIMEOUT  = 4500;    // [ms]
+constexpr unsigned int SHADOW_MODE_TIMEOUT  = 3000;    // [ms]
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.69f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
 #endif
