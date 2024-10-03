@@ -101,7 +101,10 @@ private:
     {
         auto ts           = miosix::getTime();
         auto tsSensorData = getModule<MainHIL>()->getTimestampSimulatorData();
-        auto simulationPeriod = getModule<MainHIL>()->getSimulationPeriod();
+        long long simulationPeriod =
+            static_cast<long long>(
+                getModule<MainHIL>()->getSimulationPeriod()) *
+            1e6;
 
         assert(ts >= tsSensorData &&
                "Actual timestamp is lesser then the packet timestamp");
