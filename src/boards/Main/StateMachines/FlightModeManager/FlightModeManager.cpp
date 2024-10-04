@@ -368,6 +368,10 @@ State FlightModeManager::state_disarmed(const Event& event)
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
             return transition(&FlightModeManager::state_calibrate_sensors);
         }
+        case TMTC_SET_CALIBRATION_PRESSURE:
+        {
+            return transition(&FlightModeManager::state_calibrate_sensors);
+        }
         case TMTC_ENTER_TEST_MODE:
         {
             getModule<CanHandler>()->sendEvent(

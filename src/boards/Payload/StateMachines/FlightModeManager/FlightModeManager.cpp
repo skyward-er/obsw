@@ -412,6 +412,7 @@ State FlightModeManager::OnGroundDisarmed(const Event& event)
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
             // Fallthrough
         }
+        case TMTC_SET_CALIBRATION_PRESSURE:
         case CAN_CALIBRATE:
         {
             return transition(&FlightModeManager::OnGroundSensorCalibration);
