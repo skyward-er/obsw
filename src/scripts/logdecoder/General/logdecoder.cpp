@@ -20,6 +20,9 @@
  * THE SOFTWARE.
  */
 
+#include <Groundstation/Automated/Actuators/ActuatorsData.h>
+#include <Groundstation/Automated/PinHandler/PinData.h>
+#include <Groundstation/Automated/SMA/SMAData.h>
 #include <Main/PinHandler/PinData.h>
 #include <Main/Sensors/SensorsData.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
@@ -27,6 +30,19 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
+#include <Motor/Actuators/ActuatorsData.h>
+#include <Motor/Sensors/SensorsData.h>
+#include <Payload/PinHandler/PinData.h>
+#include <Payload/Sensors/SensorData.h>
+#include <Payload/StateMachines/FlightModeManager/FlightModeManagerData.h>
+#include <Payload/StateMachines/NASController/NASControllerData.h>
+#include <Payload/StateMachines/WingController/WingControllerData.h>
+#include <Payload/Wing/WingAlgorithmData.h>
+#include <Payload/Wing/WingTargetPositionData.h>
+#include <RIGv2/Actuators/ActuatorsData.h>
+#include <RIGv2/Sensors/SensorsData.h>
+#include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
+#include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <algorithms/MEA/MEAData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
@@ -49,7 +65,6 @@
 
 using namespace tscpp;
 using namespace Boardcore;
-using namespace Main;
 
 void registerTypes(Deserializer& ds)
 {
@@ -57,17 +72,57 @@ void registerTypes(Deserializer& ds)
     LogTypes::registerTypes(ds);
 
     // Custom types
-    ds.registerType<FlightModeManagerStatus>();
-    ds.registerType<NASControllerStatus>();
-    ds.registerType<MEAControllerStatus>();
-    ds.registerType<ADAControllerSampleData>();
-    ds.registerType<ADAControllerStatus>();
-    ds.registerType<ABKControllerStatus>();
-    ds.registerType<PinChangeData>();
-    ds.registerType<StaticPressureData1>();
-    ds.registerType<StaticPressureData2>();
-    ds.registerType<DplBayPressureData>();
-    ds.registerType<CalibrationData>();
+    // Main
+    ds.registerType<Main::FlightModeManagerStatus>();
+    ds.registerType<Main::NASControllerStatus>();
+    ds.registerType<Main::MEAControllerStatus>();
+    ds.registerType<Main::ADAControllerSampleData>();
+    ds.registerType<Main::ADAControllerStatus>();
+    ds.registerType<Main::ABKControllerStatus>();
+    ds.registerType<Main::PinChangeData>();
+    ds.registerType<Main::StaticPressureData1>();
+    ds.registerType<Main::StaticPressureData2>();
+    ds.registerType<Main::DplBayPressureData>();
+    ds.registerType<Main::CalibrationData>();
+
+    // Motor
+    ds.registerType<Motor::TopTankPressureData>();
+    ds.registerType<Motor::BottomTankPressureData>();
+    ds.registerType<Motor::CCPressureData>();
+    ds.registerType<Motor::ActuatorsData>();
+
+    // Payload
+    ds.registerType<Payload::FlightModeManagerStatus>();
+    ds.registerType<Payload::NASControllerStatus>();
+    ds.registerType<Payload::WingControllerStatus>();
+    ds.registerType<Payload::StaticPressureData>();
+    ds.registerType<Payload::DynamicPressureData>();
+    ds.registerType<Payload::SensorCalibrationData>();
+    ds.registerType<Payload::PinChangeData>();
+    ds.registerType<Payload::WingControllerAlgorithmData>();
+    ds.registerType<Payload::WingAlgorithmData>();
+    ds.registerType<Payload::WingTargetPositionData>();
+    ds.registerType<Payload::EarlyManeuversActiveTargetData>();
+
+    // RIGv2
+    ds.registerType<RIGv2::ADC1Data>();
+    ds.registerType<RIGv2::TC1Data>();
+    ds.registerType<RIGv2::VesselWeightData>();
+    ds.registerType<RIGv2::TankWeightData>();
+    ds.registerType<RIGv2::VesselPressureData>();
+    ds.registerType<RIGv2::FillingPressureData>();
+    ds.registerType<RIGv2::TopTankPressureData>();
+    ds.registerType<RIGv2::BottomTankPressureData>();
+    ds.registerType<RIGv2::ActuatorsData>();
+    ds.registerType<RIGv2::GroundModeManagerData>();
+    ds.registerType<RIGv2::TarsActionData>();
+    ds.registerType<RIGv2::TarsSampleData>();
+
+    // Groundstation (ARP)
+    ds.registerType<Antennas::StepperXData>();
+    ds.registerType<Antennas::StepperYData>();
+    ds.registerType<Antennas::SMAStatus>();
+    ds.registerType<Antennas::PinChangeData>();
 }
 
 void showUsage(const string& cmdName)
