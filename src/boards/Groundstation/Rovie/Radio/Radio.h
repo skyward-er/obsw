@@ -22,7 +22,10 @@
 
 #pragma once
 
+#include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
+#include <Groundstation/Rovie/Buses.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
 
@@ -34,17 +37,13 @@ using RadioMavDriver =
                              Groundstation::MAV_OUT_QUEUE_SIZE,
                              MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
-class RadioRig : public Boardcore::Module
+class RadioRig
+    : public Boardcore::InjectableWithDeps<Groundstation::HubBase, Buses>
 {
 public:
     RadioRig() {}
 
     [[nodiscard]] bool start();
-
-    /**
-     * @brief Handle generic DIO irq.
-     */
-    void handleDioIRQ();
 
 private:
     /**
@@ -57,7 +56,7 @@ private:
     // Objects are always destructed in reverse order, so keep them in this
     // order
     std::unique_ptr<Boardcore::SX1278Lora> sx1278;
-    std::unique_ptr<RadioMavDriver> mav_driver;
+    std::unique_ptr<RadioMavDriver> mavDriver;
 };
 
 }  // namespace GroundstationRovie

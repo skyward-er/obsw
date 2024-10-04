@@ -23,9 +23,11 @@
 #pragma once
 
 #include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/Rovie/Ports/Ethernet.h>
+#include <Groundstation/Rovie/Radio/Radio.h>
 #include <common/Mavlink.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationRovie
 {
@@ -33,7 +35,9 @@ namespace GroundstationRovie
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class Hub : public Groundstation::HubBase
+class Hub : public Boardcore::InjectableWithDeps<
+                Boardcore::InjectableBase<Groundstation::HubBase>, Ethernet,
+                RadioRig, Groundstation::Serial>
 {
 public:
     Hub() {}

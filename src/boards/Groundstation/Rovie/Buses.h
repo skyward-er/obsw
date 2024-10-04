@@ -23,23 +23,20 @@
 #pragma once
 
 #include <drivers/spi/SPIBus.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "interfaces-impl/hwmapping.h"
 
 namespace GroundstationRovie
 {
 
-class Buses : public Boardcore::Module
+class Buses : public Boardcore::Injectable
 {
 public:
-    Boardcore::SPIBus radio1_bus;
-    Boardcore::SPIBus ethernet_bus;
+    Boardcore::SPIBus radio1;
+    Boardcore::SPIBus ethernet;
 
-    Buses() : radio1_bus(MIOSIX_RADIO1_SPI), ethernet_bus(MIOSIX_ETHERNET_SPI)
-    {
-    }
+    Buses() : radio1(MIOSIX_RADIO1_SPI), ethernet(MIOSIX_ETHERNET_SPI) {}
 };
 
 }  // namespace GroundstationRovie

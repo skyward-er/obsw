@@ -26,6 +26,7 @@
 #include <Groundstation/Rovie/Ports/Ethernet.h>
 #include <Groundstation/Rovie/Radio/Radio.h>
 #include <miosix.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Groundstation;
 using namespace GroundstationRovie;
@@ -55,21 +56,19 @@ int main()
 {
     ledOff();
 
-    Hub *hub            = new Hub();
-    Buses *buses        = new Buses();
-    Serial *serial      = new Serial();
-    Ethernet *ethernet  = new Ethernet();
-    RadioRig *radio_rig = new RadioRig();
+    Hub *hub           = new Hub();
+    Buses *buses       = new Buses();
+    Serial *serial     = new Serial();
+    Ethernet *ethernet = new Ethernet();
+    RadioRig *radioRig = new RadioRig();
 
-    ModuleManager &modules = ModuleManager::getInstance();
+    DependencyManager manager;
 
-    bool ok = true;
+    bool ok = manager.insert<HubBase>(hub) && manager.insert(buses) &&
+              manager.insert(serial) && manager.insert(ethernet) &&
+              manager.insert(radioRig) && manager.inject();
 
-    ok &= modules.insert<HubBase>(hub);
-    ok &= modules.insert(buses);
-    ok &= modules.insert(serial);
-    ok &= modules.insert(ethernet);
-    ok &= modules.insert(radio_rig);
+    manager.graphviz(std::cout);
 
     // If insertion failed, stop right here
     if (!ok)
@@ -92,7 +91,7 @@ int main()
         printf("[error] Failed to start ethernet!\n");
     }
 
-    ok &= radio_rig->start();
+    ok &= radioRig->start();
     if (!ok)
     {
         printf("[error] Failed to start RIG radio!\n");

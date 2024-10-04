@@ -38,9 +38,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    Serial* serial = ModuleManager::getInstance().get<Serial>();
-    serial->sendMsg(msg);
-
-    Ethernet* ethernet = ModuleManager::getInstance().get<Ethernet>();
-    ethernet->sendMsg(msg);
+    getModule<Serial>()->sendMsg(msg);
+    getModule<Ethernet>()->sendMsg(msg);
 }

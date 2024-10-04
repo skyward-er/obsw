@@ -23,13 +23,15 @@
 #pragma once
 
 #include <Groundstation/Common/Ports/EthernetBase.h>
-
-#include <utils/ModuleManager/ModuleManager.hpp>
+#include <Groundstation/Rovie/Buses.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationRovie
 {
 
-class Ethernet : public Groundstation::EthernetBase, public Boardcore::Module
+class Ethernet
+    : public Boardcore::InjectableWithDeps<
+          Boardcore::InjectableBase<Groundstation::EthernetBase>, Buses>
 {
 public:
     [[nodiscard]] bool start();

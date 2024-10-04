@@ -24,7 +24,6 @@
 
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Rovie/Buses.h>
-#include <Groundstation/Rovie/Hub.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Groundstation;
@@ -32,28 +31,26 @@ using namespace GroundstationRovie;
 using namespace Boardcore;
 using namespace miosix;
 
-void __attribute__((used)) MIOSIX_RADIO1_DIO0_IRQ()
-{
-    ModuleManager::getInstance().get<RadioRig>()->handleDioIRQ();
-}
+SX1278Lora* gRadio{nullptr};
 
-void __attribute__((used)) MIOSIX_RADIO1_DIO1_IRQ()
+void handleDioIRQ()
 {
-    ModuleManager::getInstance().get<RadioRig>()->handleDioIRQ();
-}
-
-void __attribute__((used)) MIOSIX_RADIO1_DIO3_IRQ()
-{
-    ModuleManager::getInstance().get<RadioRig>()->handleDioIRQ();
-}
-
-void RadioRig::handleDioIRQ()
-{
-    if (started)
+    SX1278Lora* instance = gRadio;
+    if (instance)
     {
-        sx1278->handleDioIRQ();
+        instance->handleDioIRQ();
     }
 }
+
+void setIRQRadio(SX1278Lora* radio)
+{
+    FastInterruptDisableLock dl;
+    gRadio = radio;
+}
+
+void __attribute__((used)) MIOSIX_RADIO_DIO0_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO_DIO1_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO_DIO3_IRQ() { handleDioIRQ(); }
 
 bool RadioRig::start()
 {
@@ -67,9 +64,12 @@ bool RadioRig::start()
 #endif
 
     sx1278 = std::make_unique<SX1278Lora>(
-        ModuleManager::getInstance().get<Buses>()->radio1_bus,
-        radio1::cs::getPin(), radio1::dio0::getPin(), radio1::dio1::getPin(),
-        radio1::dio3::getPin(), SPI::ClockDivider::DIV_64, std::move(frontend));
+        getModule<Buses>()->radio1, radio1::cs::getPin(),
+        radio1::dio0::getPin(), radio1::dio1::getPin(), radio1::dio3::getPin(),
+        SPI::ClockDivider::DIV_64, std::move(frontend));
+
+    // Store the global radio instance
+    setIRQRadio(sx1278.get());
 
     // Configure the radio
     if (sx1278->configure(Common::RIG_RADIO_CONFIG) != SX1278Lora::Error::NONE)
@@ -77,14 +77,14 @@ bool RadioRig::start()
         return false;
     }
 
-    auto mav_handler = [this](RadioMavDriver* channel,
-                              const mavlink_message_t& msg) { handleMsg(msg); };
+    auto mavHandler = [this](RadioMavDriver* channel,
+                             const mavlink_message_t& msg) { handleMsg(msg); };
 
-    mav_driver = std::make_unique<RadioMavDriver>(
-        sx1278.get(), mav_handler, Groundstation::MAV_SLEEP_AFTER_SEND,
+    mavDriver = std::make_unique<RadioMavDriver>(
+        sx1278.get(), mavHandler, Groundstation::MAV_SLEEP_AFTER_SEND,
         Groundstation::MAV_OUT_BUFFER_MAX_AGE);
 
-    if (!mav_driver->start())
+    if (!mavDriver->start())
     {
         return false;
     }
@@ -96,5 +96,5 @@ bool RadioRig::start()
 void RadioRig::handleMsg(const mavlink_message_t& msg)
 {
     // Dispatch the message through the hub.
-    ModuleManager::getInstance().get<HubBase>()->dispatchIncomingMsg(msg);
+    getModule<HubBase>()->dispatchIncomingMsg(msg);
 }
