@@ -287,7 +287,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             {
                 parent.getModule<Sensors>()->resetBaroCalibrationReference();
                 EventBroker::getInstance().post(TMTC_CALIBRATE, TOPIC_TMTC);
-                enqueueAck(msg);
+                return enqueueAck(msg);
             }
             else
             {
@@ -296,11 +296,11 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
                 if (press < 50000)
                 {
-                    enqueueWack(msg);
+                    return enqueueWack(msg);
                 }
                 else
                 {
-                    enqueueAck(msg);
+                    return enqueueAck(msg);
                 }
             }
         }
