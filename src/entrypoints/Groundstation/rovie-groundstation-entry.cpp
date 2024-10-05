@@ -79,27 +79,35 @@ int main()
 
     // Ok now start them
 
-    ok &= serial->start();
-    if (!ok)
+    if (!serial->start())
     {
+        ok &= false;
         printf("[error] Failed to start serial!\n");
     }
 
-    ok &= ethernet->start();
-    if (!ok)
+    if (!ethernet->start())
     {
+        ok &= false;
         printf("[error] Failed to start ethernet!\n");
     }
 
-    ok &= radioRig->start();
-    if (!ok)
+    if (!radioRig->start())
     {
+        ok &= false;
         printf("[error] Failed to start RIG radio!\n");
+    }
+
+    if (ok)
+    {
+        printf("All good!\n");
+        led1On();
+        idleLoop();
+    }
+    else
+    {
+        printf("Something didn't initialize!\n");
         errorLoop();
     }
 
-    printf("All good!\n");
-    led1On();
-    idleLoop();
     return 0;
 }
