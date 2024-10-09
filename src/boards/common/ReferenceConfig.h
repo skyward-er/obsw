@@ -42,7 +42,7 @@ static const Boardcore::ReferenceValues defaultReferenceValues = {
     Boardcore::Constants::MSL_TEMPERATURE,
 };
 
-const Eigen::Vector3f nedMag(0.5939, -0.0126, 0.8044);
+const Eigen::Vector3f nedMag(0.59448, -0.0093, 0.80406);
 
 #elif defined(ROCCARASO)
 

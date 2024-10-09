@@ -36,7 +36,7 @@ constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
 
 constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 6000;
 
-constexpr unsigned int APOGEE_TIMEOUT = 35 * 1000;
+constexpr unsigned int APOGEE_TIMEOUT = 28 * 1000;
 
 constexpr unsigned int CUT_DURATION = 500;  // [ms]
 

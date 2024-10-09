@@ -75,7 +75,7 @@ MEA::Config computeMEAConfig()
     float d = 0.15f;
     config.crossSection = Constants::PI * (d / 2) * (d / 2);
     
-    config.ae = 0.0028594f;
+    config.ae = 0.00285943f;
     config.p0 = 100093.7492f;
 
     config.cdCorrectionFactor = Config::MEA::CD_CORRECTION_FACTOR;

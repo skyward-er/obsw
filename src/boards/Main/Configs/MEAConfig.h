@@ -47,13 +47,13 @@ constexpr float SHUTDOWN_APOGEE_TARGET      = 800;     // agl [m]
 #ifndef EUROC
 #warning "MISSION NOT DEFINED: Using EUROC"
 #endif
-constexpr unsigned int SHADOW_MODE_TIMEOUT  = 3000;    // [ms]
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.69f;  // [kg]
+constexpr unsigned int SHADOW_MODE_TIMEOUT  = 2600;    // [ms]
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.87f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
 #endif
 
 constexpr float CD_CORRECTION_FACTOR =
-    2.69f;  // Completely random number (for now... i hope)
+    1.0f;  // Completely random number (for now... i hope)
 
 constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
 
@@ -61,7 +61,7 @@ constexpr float SENSOR_NOISE_VARIANCE = 0.36f;
 constexpr float MODEL_NOISE_VARIANCE  = 1.0f;
 
 // Pressure threshold after which the kalman is updated
-constexpr float CC_PRESSURE_THRESHOLD = 1.f;  // [bar]
+constexpr float CC_PRESSURE_THRESHOLD = 1.0f;  // [bar]
 
 constexpr Boardcore::Aeroutils::AerodynamicCoeff AERO_COEFF = {
     .n000 = 0.476899999999981f,
