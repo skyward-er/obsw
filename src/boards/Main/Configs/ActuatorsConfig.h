@@ -34,7 +34,7 @@ namespace Actuators
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr unsigned int ABK_MIN_PULSE = 1950;
-constexpr unsigned int ABK_MAX_PULSE = 1380;
+constexpr unsigned int ABK_MAX_PULSE = 1390;
 
 // Inverted to invert the servo logic
 constexpr unsigned int EXP_MIN_PULSE = 900;
