@@ -51,8 +51,8 @@ enum class AlgorithmId : size_t
 namespace Default
 {
 #if defined(EUROC)
-constexpr auto TARGET_LAT = 39.389733f;
-constexpr auto TARGET_LON = -8.288992f;
+constexpr auto TARGET_LAT = 39.38479088598281f;
+constexpr auto TARGET_LON = -8.28564625292085f;
 #elif defined(ROCCARASO)
 constexpr auto TARGET_LAT = 41.805101925447715f;
 constexpr auto TARGET_LON = 14.053726810082074f;
@@ -98,7 +98,7 @@ namespace AltitudeTrigger
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 470;  // [meters]
+constexpr auto DEPLOYMENT_ALTITUDE = 600;  // [meters]
 constexpr auto CONFIDENCE          = 10;   // [samples]
 constexpr auto UPDATE_RATE         = 10_hz;
 }  // namespace AltitudeTrigger

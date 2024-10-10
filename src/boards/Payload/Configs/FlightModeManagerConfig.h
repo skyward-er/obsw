@@ -34,7 +34,7 @@ namespace FlightModeManager
 /* linter-off */ using namespace std::chrono_literals;
 
 constexpr auto MISSION_TIMEOUT = 15min;
-constexpr auto APOGEE_TIMEOUT  = 18s;
+constexpr auto APOGEE_TIMEOUT  = 28s;
 
 }  // namespace FlightModeManager
 }  // namespace Config
