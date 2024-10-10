@@ -52,8 +52,7 @@ constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.87f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
 #endif
 
-constexpr float CD_CORRECTION_FACTOR =
-    1.0f;  // Completely random number (for now... i hope)
+constexpr float CD_CORRECTION_FACTOR = 1.165f;
 
 constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
 
