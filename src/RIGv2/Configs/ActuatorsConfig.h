@@ -72,7 +72,7 @@ constexpr bool FILLING_FLIPPED    = true;
 constexpr bool VENTING_FLIPPED    = true;
 constexpr bool MAIN_FLIPPED       = true;
 constexpr bool RELEASE_FLIPPED    = true;
-constexpr bool DISCONNECT_FLIPPED = false;
+constexpr bool DISCONNECT_FLIPPED = true;
 
 }  // namespace Servos
 
