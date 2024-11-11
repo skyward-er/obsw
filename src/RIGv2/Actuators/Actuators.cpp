@@ -125,7 +125,7 @@ Actuators::Actuators()
         Config::Servos::FREQUENCY);
     infos[2].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
-        Config::Servos::SERVO2_MIN_PULSE, Config::Servos::SERVO2_MAX_PULSE,
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[3].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
