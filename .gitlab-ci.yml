@@ -36,7 +36,7 @@ build-release:
   tags:
     - miosix
   script:
-    - ./sbs
+    - ./sbs build
 
 # Stage build-debug
 
@@ -45,7 +45,7 @@ build-debug:
   tags:
     - miosix
   script:
-    - ./sbs --debug
+    - ./sbs build --debug
 
 # Stage test
 
