@@ -67,10 +67,6 @@ add_executable(motor-entry src/entrypoints/Motor/motor-entry.cpp ${MOTOR_SOURCES
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_lyra_motor)
 
-add_executable(rig-entry src/entrypoints/RIG/rig-entry.cpp ${RIG_COMPUTER})
-target_include_directories(rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(rig-entry stm32f429zi_rig)
-
 add_executable(rig-v2-entry src/entrypoints/RIGv2/rig-v2-entry.cpp ${RIG_V2_COMPUTER})
 target_include_directories(rig-v2-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rig-v2-entry stm32f767zi_rig_v2)

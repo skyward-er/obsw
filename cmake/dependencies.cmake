@@ -55,18 +55,6 @@ set(MOTOR_SOURCES
     src/boards/Motor/Actuators/Actuators.cpp
     src/boards/Motor/Sensors/Sensors.cpp
     src/boards/Motor/CanHandler/CanHandler.cpp
-) 
-
-set(RIG_COMPUTER
-    src/boards/RIG/BoardScheduler.cpp
-    src/boards/RIG/Sensors/Sensors.cpp
-    src/boards/RIG/Actuators/Actuators.cpp
-    src/boards/RIG/Radio/Radio.cpp
-    src/boards/RIG/TMRepository/TMRepository.cpp
-    src/boards/RIG/StateMachines/GroundModeManager/GroundModeManager.cpp
-    src/boards/RIG/StateMachines/TARS1/TARS1.cpp
-    src/boards/RIG/CanHandler/CanHandler.cpp
-    src/boards/RIG/StatesMonitor/StatesMonitor.cpp
 )
 
 set(RIG_V2_COMPUTER
