@@ -34,70 +34,70 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
-add_executable(main-entry src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+add_executable(main-entry src/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry PRIVATE DEFAULT_STDOUT_LOG_LEVEL=20)
 sbs_target(main-entry stm32f767zi_lyra_biscotto)
 
-add_executable(main-entry-roccaraso src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+add_executable(main-entry-roccaraso src/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-roccaraso PRIVATE DEFAULT_STDOUT_LOG_LEVEL=20 ROCCARASO)
 sbs_target(main-entry-roccaraso stm32f767zi_lyra_biscotto)
 
-add_executable(main-entry-euroc src/entrypoints/Main/main-entry.cpp ${MAIN_COMPUTER})
+add_executable(main-entry-euroc src/Main/main-entry.cpp ${MAIN_COMPUTER})
 target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-euroc PRIVATE DEFAULT_STDOUT_LOG_LEVEL=20 EUROC)
 sbs_target(main-entry-euroc stm32f767zi_lyra_biscotto)
 
-add_executable(payload-entry src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+add_executable(payload-entry src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f767zi_lyra_biscotto)
 
-add_executable(payload-entry-roccaraso src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+add_executable(payload-entry-roccaraso src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-roccaraso PRIVATE ROCCARASO)
 sbs_target(payload-entry-roccaraso stm32f767zi_lyra_biscotto)
 
-add_executable(payload-entry-euroc src/entrypoints/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
+add_executable(payload-entry-euroc src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
 sbs_target(payload-entry-euroc stm32f767zi_lyra_biscotto)
 
-add_executable(motor-entry src/entrypoints/Motor/motor-entry.cpp ${MOTOR_SOURCES})
+add_executable(motor-entry src/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_lyra_motor)
 
-add_executable(rig-v2-entry src/entrypoints/RIGv2/rig-v2-entry.cpp ${RIG_V2_COMPUTER})
+add_executable(rig-v2-entry src/RIGv2/rig-v2-entry.cpp ${RIG_V2_COMPUTER})
 target_include_directories(rig-v2-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rig-v2-entry stm32f767zi_rig_v2)
 
-add_executable(con_rig-entry src/entrypoints/ConRIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
+add_executable(con_rig-entry src/ConRIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(con_rig-entry stm32f429zi_con_rig)
 
 add_executable(rovie-groundstation-entry 
-    src/entrypoints/Groundstation/rovie-groundstation-entry.cpp 
+    src/Groundstation/Rovie/rovie-groundstation-entry.cpp 
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_ROVIE}
 )
 target_include_directories(rovie-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rovie-groundstation-entry stm32f767zi_gemini_gs)
 
 add_executable(nokia-groundstation-entry 
-    src/entrypoints/Groundstation/nokia-groundstation-entry.cpp 
+    src/Groundstation/Nokia/nokia-groundstation-entry.cpp 
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_NOKIA}
 )
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(nokia-groundstation-entry stm32f429zi_nokia)
 
 add_executable(test-actuators
-    src/entrypoints/Groundstation/Automated/test-actuators.cpp
+    src/Groundstation/Automated/test-actuators.cpp
     ${LYRA_GS} ${GROUNDSTATION_COMMON}
 )
 target_include_directories(test-actuators PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(test-actuators stm32f767zi_lyra_gs)
 
 add_executable(lyra-gs-entry
-    src/entrypoints/Groundstation/lyra-gs-entry.cpp
+    src/Groundstation/LyraGS/lyra-gs-entry.cpp
     ${LYRA_GS} ${GROUNDSTATION_COMMON}
 )
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})

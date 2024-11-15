@@ -25,96 +25,96 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
-    src/boards/Main/Data/ABKTrajectorySet.cpp
-    src/boards/Main/PersistentVars/PersistentVars.cpp
-    src/boards/Main/HIL/HIL.cpp
-    src/boards/Main/Sensors/Sensors.cpp
-    src/boards/Main/AlgoReference/AlgoReference.cpp
-    src/boards/Main/Radio/Radio.cpp
-    src/boards/Main/CanHandler/CanHandler.cpp
-    src/boards/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
-    src/boards/Main/Actuators/Actuators.cpp
-    src/boards/Main/StateMachines/NASController/NASController.cpp
-    src/boards/Main/StateMachines/ADAController/ADAController.cpp
-    src/boards/Main/PinHandler/PinHandler.cpp
-    src/boards/Main/StateMachines/ABKController/ABKController.cpp
-    src/boards/Main/StateMachines/MEAController/MEAController.cpp
-    src/boards/Main/StatsRecorder/StatsRecorder.cpp
+    src/Main/Data/ABKTrajectorySet.cpp
+    src/Main/PersistentVars/PersistentVars.cpp
+    src/Main/HIL/HIL.cpp
+    src/Main/Sensors/Sensors.cpp
+    src/Main/AlgoReference/AlgoReference.cpp
+    src/Main/Radio/Radio.cpp
+    src/Main/CanHandler/CanHandler.cpp
+    src/Main/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/Main/Actuators/Actuators.cpp
+    src/Main/StateMachines/NASController/NASController.cpp
+    src/Main/StateMachines/ADAController/ADAController.cpp
+    src/Main/PinHandler/PinHandler.cpp
+    src/Main/StateMachines/ABKController/ABKController.cpp
+    src/Main/StateMachines/MEAController/MEAController.cpp
+    src/Main/StatsRecorder/StatsRecorder.cpp
 )
 
 set(GROUNDSTATION_COMMON
-    src/boards/Groundstation/Common/Radio/RadioBase.cpp
-    src/boards/Groundstation/Common/Ports/EthernetBase.cpp
-    src/boards/Groundstation/Common/Ports/Serial.cpp
-    src/boards/Groundstation/Common/HubBase.cpp
+    src/Groundstation/Common/Radio/RadioBase.cpp
+    src/Groundstation/Common/Ports/EthernetBase.cpp
+    src/Groundstation/Common/Ports/Serial.cpp
+    src/Groundstation/Common/HubBase.cpp
 )
 
 set(MOTOR_SOURCES
-    src/boards/Motor/PersistentVars/PersistentVars.cpp
-    src/boards/Motor/HIL/HIL.cpp
-    src/boards/Motor/Actuators/Actuators.cpp
-    src/boards/Motor/Sensors/Sensors.cpp
-    src/boards/Motor/CanHandler/CanHandler.cpp
+    src/Motor/PersistentVars/PersistentVars.cpp
+    src/Motor/HIL/HIL.cpp
+    src/Motor/Actuators/Actuators.cpp
+    src/Motor/Sensors/Sensors.cpp
+    src/Motor/CanHandler/CanHandler.cpp
 )
 
 set(RIG_V2_COMPUTER
-    src/boards/RIGv2/Radio/Radio.cpp
-    src/boards/RIGv2/Sensors/Sensors.cpp
-    src/boards/RIGv2/Actuators/Actuators.cpp
-    src/boards/RIGv2/Registry/Registry.cpp
-    src/boards/RIGv2/CanHandler/CanHandler.cpp
-    src/boards/RIGv2/StateMachines/GroundModeManager/GroundModeManager.cpp
-    src/boards/RIGv2/StateMachines/TARS1/TARS1.cpp
+    src/RIGv2/Radio/Radio.cpp
+    src/RIGv2/Sensors/Sensors.cpp
+    src/RIGv2/Actuators/Actuators.cpp
+    src/RIGv2/Registry/Registry.cpp
+    src/RIGv2/CanHandler/CanHandler.cpp
+    src/RIGv2/StateMachines/GroundModeManager/GroundModeManager.cpp
+    src/RIGv2/StateMachines/TARS1/TARS1.cpp
 )
 
 set(CON_RIG_COMPUTER
-    src/boards/ConRIG/Buttons/Buttons.cpp
-    src/boards/ConRIG/Radio/Radio.cpp
-    src/boards/ConRIG/Serial/Serial.cpp
+    src/ConRIG/Buttons/Buttons.cpp
+    src/ConRIG/Radio/Radio.cpp
+    src/ConRIG/Serial/Serial.cpp
 )
 
 set(PAYLOAD_COMPUTER
-    src/boards/Payload/Actuators/Actuators.cpp
-    src/boards/Payload/CanHandler/CanHandler.cpp
-    src/boards/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
-    src/boards/Payload/HIL/HIL.cpp
-    src/boards/Payload/Sensors/Sensors.cpp
-    src/boards/Payload/PersistentVars/PersistentVars.cpp
-    src/boards/Payload/PinHandler/PinHandler.cpp
-    src/boards/Payload/Radio/Radio.cpp
-    src/boards/Payload/Radio/MessageHandler.cpp
-    src/boards/Payload/StateMachines/NASController/NASController.cpp
-    src/boards/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
-    src/boards/Payload/StateMachines/WingController/WingController.cpp
-    src/boards/Payload/AltitudeTrigger/AltitudeTrigger.cpp
-    src/boards/Payload/Wing/AutomaticWingAlgorithm.cpp
-    src/boards/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
-    src/boards/Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
-    src/boards/Payload/Wing/FileWingAlgorithm.cpp
-    src/boards/Payload/Wing/WingAlgorithm.cpp
+    src/Payload/Actuators/Actuators.cpp
+    src/Payload/CanHandler/CanHandler.cpp
+    src/Payload/FlightStatsRecorder/FlightStatsRecorder.cpp
+    src/Payload/HIL/HIL.cpp
+    src/Payload/Sensors/Sensors.cpp
+    src/Payload/PersistentVars/PersistentVars.cpp
+    src/Payload/PinHandler/PinHandler.cpp
+    src/Payload/Radio/Radio.cpp
+    src/Payload/Radio/MessageHandler.cpp
+    src/Payload/StateMachines/NASController/NASController.cpp
+    src/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/Payload/StateMachines/WingController/WingController.cpp
+    src/Payload/AltitudeTrigger/AltitudeTrigger.cpp
+    src/Payload/Wing/AutomaticWingAlgorithm.cpp
+    src/Payload/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
+    src/Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
+    src/Payload/Wing/FileWingAlgorithm.cpp
+    src/Payload/Wing/WingAlgorithm.cpp
 )
 
 set(GROUNDSTATION_ROVIE
-    src/boards/Groundstation/Rovie/Radio/Radio.cpp
-    src/boards/Groundstation/Rovie/Ports/Ethernet.cpp
-    src/boards/Groundstation/Rovie/Hub.cpp
+    src/Groundstation/Rovie/Radio/Radio.cpp
+    src/Groundstation/Rovie/Ports/Ethernet.cpp
+    src/Groundstation/Rovie/Hub.cpp
 )
 
 set(GROUNDSTATION_NOKIA
-    src/boards/Groundstation/Nokia/Radio/Radio.cpp
-    src/boards/Groundstation/Nokia/Hub.cpp
+    src/Groundstation/Nokia/Radio/Radio.cpp
+    src/Groundstation/Nokia/Hub.cpp
 )
 
 set (LYRA_GS
-    src/boards/Groundstation/LyraGS/Radio/Radio.cpp
-    src/boards/Groundstation/LyraGS/Ports/Ethernet.cpp
-    src/boards/Groundstation/LyraGS/BoardStatus.cpp
-    src/boards/Groundstation/LyraGS/Base/Hub.cpp
-    src/boards/Groundstation/Automated/Hub.cpp
-    src/boards/Groundstation/Automated/Leds/Leds.cpp
-    src/boards/Groundstation/Automated/SMA/SMA.cpp
-    src/boards/Groundstation/Automated/Actuators/Actuators.cpp
-    src/boards/Groundstation/Automated/Sensors/Sensors.cpp
-    src/boards/Groundstation/Automated/PinHandler/PinHandler.cpp
-    src/boards/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
+    src/Groundstation/LyraGS/Radio/Radio.cpp
+    src/Groundstation/LyraGS/Ports/Ethernet.cpp
+    src/Groundstation/LyraGS/BoardStatus.cpp
+    src/Groundstation/LyraGS/Base/Hub.cpp
+    src/Groundstation/Automated/Hub.cpp
+    src/Groundstation/Automated/Leds/Leds.cpp
+    src/Groundstation/Automated/SMA/SMA.cpp
+    src/Groundstation/Automated/Actuators/Actuators.cpp
+    src/Groundstation/Automated/Sensors/Sensors.cpp
+    src/Groundstation/Automated/PinHandler/PinHandler.cpp
+    src/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
 )
