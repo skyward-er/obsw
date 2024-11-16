@@ -110,6 +110,11 @@ void BoardStatus::arpRoutine()
         tm.main_rx_rssi    = stats.rx_rssi;
 
         last_main_stats = stats;
+
+        Logger::getInstance().log(MainRadioLog{
+            tm.timestamp, tm.main_packet_tx_error_count, tm.main_tx_bitrate,
+            tm.main_packet_rx_success_count, tm.main_packet_rx_drop_count,
+            tm.main_rx_bitrate, tm.main_rx_rssi});
     }
 
     if (ethernet_present)
