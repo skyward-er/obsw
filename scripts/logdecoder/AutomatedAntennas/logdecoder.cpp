@@ -23,6 +23,7 @@
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <Groundstation/Automated/SMA/SMAData.h>
+#include <Groundstation/LyraGS/BoardStatus.h>
 #include <algorithms/Follower/FollowerData.h>
 #include <algorithms/NAS/NASState.h>
 #include <logger/Deserializer.h>
@@ -50,6 +51,7 @@
 using namespace tscpp;
 using namespace Boardcore;
 using namespace Antennas;
+using namespace LyraGS;
 
 void registerTypes(Deserializer& ds)
 {
@@ -65,6 +67,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<GPSData>();
     ds.registerType<SMAStatus>();
     ds.registerType<PinChangeData>();
+    ds.registerType<MainRadioLog>();
 }
 
 void showUsage(const string& cmdName)
