@@ -44,6 +44,36 @@ class RadioPayload;
 class EthernetGS;
 
 /**
+ * @brief Logging struct for the main radio informations
+ *
+ */
+struct MainRadioLog
+{
+    uint64_t timestamp                    = 0;
+    uint16_t main_packet_tx_error_count   = 0;
+    uint32_t main_tx_bitrate              = 0;
+    uint16_t main_packet_rx_success_count = 0;
+    uint16_t main_packet_rx_drop_count    = 0;
+    uint32_t main_rx_bitrate              = 0;
+    float main_rx_rssi                    = 0;
+
+    static std::string header()
+    {
+        return "timestamp,main_packet_tx_error_count,main_tx_bitrate,main_"
+               "packet_rx_success_count,main_packet_rx_drop_count,main_rx_"
+               "bitrate,main_rx_rssi\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << main_packet_tx_error_count << ","
+           << main_tx_bitrate << "," << main_tx_bitrate << ","
+           << main_packet_rx_success_count << "," << main_packet_rx_drop_count
+           << "," << main_rx_bitrate << "," << main_rx_rssi << "\n";
+    }
+};
+
+/**
  * @brief Utility to calculate the bitrate
  */
 template <unsigned int WINDOW_SIZE, unsigned int PERIOD>
