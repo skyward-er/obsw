@@ -118,3 +118,7 @@ set (LYRA_GS
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
     src/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
 )
+
+set(PARAFOIL_COMPUTER 
+    
+)
