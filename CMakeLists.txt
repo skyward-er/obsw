@@ -64,6 +64,10 @@ target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
 sbs_target(payload-entry-euroc stm32f767zi_lyra_biscotto)
 
+add_executable(parafoil-entry src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(parafoil-entry stm32f429zi_death_stack_v2)
+
 add_executable(motor-entry src/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_lyra_motor)
