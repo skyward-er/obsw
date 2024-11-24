@@ -25,7 +25,7 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <actuators/Servo/Servo.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Motor

@@ -24,7 +24,7 @@
 
 #include <Payload/Configs/RadioConfig.h>
 #include <Payload/PersistentVars/PersistentVars.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>

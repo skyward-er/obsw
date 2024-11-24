@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/PinObserver/PinObserver.h>

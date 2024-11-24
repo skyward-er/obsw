@@ -36,7 +36,7 @@
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>
 #include <scheduler/TaskScheduler.h>

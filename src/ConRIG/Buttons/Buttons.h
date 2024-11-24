@@ -23,7 +23,7 @@
 #pragma once
 
 #include <ConRIG/BoardScheduler.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>

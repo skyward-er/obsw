@@ -25,7 +25,7 @@
 #include <ActiveObject.h>
 #include <Groundstation/Common/Config/RadioConfig.h>
 #include <Groundstation/Common/HubBase.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <common/Radio.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Fsk.h>

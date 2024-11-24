@@ -29,7 +29,7 @@
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/NAS/NASState.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>

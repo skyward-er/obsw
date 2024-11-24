@@ -27,3 +27,5 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <mavlink_lib/gemini/mavlink.h>
 #pragma GCC diagnostic pop
+
+#warning "Gemini message definitions are deprecated, consider updating"

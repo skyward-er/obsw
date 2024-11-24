@@ -22,7 +22,7 @@
 
 #include "Radio.h"
 
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <common/Radio.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>

@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <logger/Logger.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

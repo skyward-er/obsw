@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 
 namespace RIGv2
 {

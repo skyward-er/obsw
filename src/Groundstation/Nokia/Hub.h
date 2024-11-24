@@ -25,7 +25,7 @@
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Nokia/Radio/Radio.h>
-#include <common/Mavlink.h>
+#include <common/MavlinkLyra.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationNokia
