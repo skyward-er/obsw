@@ -23,6 +23,7 @@
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <Groundstation/Automated/SMA/SMAData.h>
+#include <Groundstation/LyraGS/Radio/RadioData.h>
 #include <Main/PinHandler/PinData.h>
 #include <Main/Sensors/SensorsData.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
@@ -44,6 +45,7 @@
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <algorithms/MEA/MEAData.h>
+#include <algorithms/Propagator/PropagatorData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -130,8 +132,14 @@ void registerTypes(Deserializer& ds)
     // Groundstation (ARP)
     ds.registerType<Antennas::StepperXData>();
     ds.registerType<Antennas::StepperYData>();
+    ds.registerType<VN300Data>();
+    ds.registerType<NASState>();
+    ds.registerType<PropagatorState>();
+    ds.registerType<AntennaAnglesLog>();
+    ds.registerType<GPSData>();
     ds.registerType<Antennas::SMAStatus>();
     ds.registerType<Antennas::PinChangeData>();
+    ds.registerType<LyraGS::MainRadioLog>();
 }
 
 void showUsage(const string& cmdName)
