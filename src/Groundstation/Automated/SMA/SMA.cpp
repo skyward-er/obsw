@@ -236,7 +236,6 @@ void SMA::update()
             AntennaAngles target = follower.getTargetAngles();
             Boardcore::Logger::getInstance().log(
                 Boardcore::AntennaAnglesLog(target, predicted.nPropagations));
-            Boardcore::Logger::getInstance().log(predicted.getNasState());
 
             // actuate the steppers
             auto steppers = getModule<Actuators>();
@@ -302,7 +301,6 @@ void SMA::update()
             AntennaAngles target = follower.getTargetAngles();
             Boardcore::Logger::getInstance().log(
                 Boardcore::AntennaAnglesLog(target, predicted.nPropagations));
-            Boardcore::Logger::getInstance().log(predicted.getNasState());
 
             // actuate the steppers
             steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
