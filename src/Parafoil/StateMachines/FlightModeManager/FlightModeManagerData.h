@@ -20,40 +20,40 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/BoardScheduler.h>
-#include <Parafoil/Buses.h>
-#include <diagnostic/PrintLogger.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#pragma once
 
-#include <iostream>
-
-// Build type string for printing during startup
-#if defined(DEBUG)
-#define BUILD_TYPE "Debug"
-#else
-#define BUILD_TYPE "Release"
-#endif
-
-using namespace Boardcore;
-using namespace Parafoil;
-
-int main()
+#include <cstdint>
+#include <ostream>
+#include <string>
+namespace Parafoil
 {
-    std::cout << "Parafoil Entrypoint "
-              << "(" << BUILD_TYPE << ")"
-              << " by Skyward Experimental Rocketry" << std::endl;
 
-    auto logger = Logging::getLogger("Mockup");
-    DependencyManager depman{};
+enum class FlightModeManagerState : uint8_t
+{
+    PRE_FLIGHT = 0,
+    PRE_FLIGHT_INIT,
+    PRE_FLIGHT_INIT_ERROR,
+    PRE_FLIGHT_INIT_DONE,
+    PRE_FLIGHT_SENSOR_CALIBRATION,
+    PRE_FLIGHT_ALGORITHM_CALIBRATION,
+    PRE_FLIGHT_DISARMED,
+    READY,
+    READY_TEST_MODE,
+    FLYING_WING_DESCENT,
+    LANDED,
+};
 
-    std::cout << "Instantiating modules" << std::endl;
-    bool initResult = true;
+struct FlightModeManagerStatus
+{
+    uint64_t timestamp           = 0;
+    FlightModeManagerState state = FlightModeManagerState::PRE_FLIGHT;
 
-    // Core components
-    auto buses = new Buses();
-    initResult &= depman.insert(buses);
-    auto scheduler = new BoardScheduler();
-    initResult &= depman.insert(scheduler);
+    static std::string header() { return "timestamp,state\n"; }
 
-    return 0;
-}
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
+
+}  // namespace Parafoil
