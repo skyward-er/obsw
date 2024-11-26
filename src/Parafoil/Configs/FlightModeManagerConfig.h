@@ -20,40 +20,22 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/BoardScheduler.h>
-#include <Parafoil/Buses.h>
-#include <diagnostic/PrintLogger.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#pragma once
 
-#include <iostream>
+#include <chrono>
 
-// Build type string for printing during startup
-#if defined(DEBUG)
-#define BUILD_TYPE "Debug"
-#else
-#define BUILD_TYPE "Release"
-#endif
-
-using namespace Boardcore;
-using namespace Parafoil;
-
-int main()
+namespace Parafoil
 {
-    std::cout << "Parafoil Entrypoint "
-              << "(" << BUILD_TYPE << ")"
-              << " by Skyward Experimental Rocketry" << std::endl;
+namespace Config
+{
+namespace FlightModeManager
+{
 
-    auto logger = Logging::getLogger("Mockup");
-    DependencyManager depman{};
+/* linter-off */ using namespace std::chrono_literals;
 
-    std::cout << "Instantiating modules" << std::endl;
-    bool initResult = true;
+constexpr auto LOGGING_DELAY = 5s;
+constexpr auto CONTROL_DELAY = 5s;
 
-    // Core components
-    auto buses = new Buses();
-    initResult &= depman.insert(buses);
-    auto scheduler = new BoardScheduler();
-    initResult &= depman.insert(scheduler);
-
-    return 0;
-}
+}  // namespace FlightModeManager
+}  // namespace Config
+}  // namespace Parafoil
