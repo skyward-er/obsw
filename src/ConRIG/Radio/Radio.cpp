@@ -88,19 +88,19 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             {
                 Lock<FastMutex> lock{buttonsMutex};
                 // Reset the internal button state
-                buttonState.n2o_filling_btn     = false;
-                buttonState.n2o_release_btn     = false;
-                buttonState.n2_filling_btn      = false;
-                buttonState.n2_release_btn      = false;
-                buttonState.n2_detach_btn       = false;
-                buttonState.n2o_venting_btn     = false;
-                buttonState.nitrogen_btn        = false;
-                buttonState.n2o_detach_btn      = false;
-                buttonState.n2_quenching_btn    = false;
-                buttonState.n2_3way_btn         = false;
-                buttonState.tars_btn            = false;
-                buttonState.arm_switch          = false;
-                buttonState.ignition_btn        = false;
+                buttonState.n2o_filling_btn  = false;
+                buttonState.n2o_release_btn  = false;
+                buttonState.n2_filling_btn   = false;
+                buttonState.n2_release_btn   = false;
+                buttonState.n2_detach_btn    = false;
+                buttonState.n2o_venting_btn  = false;
+                buttonState.nitrogen_btn     = false;
+                buttonState.n2o_detach_btn   = false;
+                buttonState.n2_quenching_btn = false;
+                buttonState.n2_3way_btn      = false;
+                buttonState.tars_btn         = false;
+                buttonState.arm_switch       = false;
+                buttonState.ignition_btn     = false;
             }
 
             break;
@@ -179,19 +179,19 @@ void Radio::setButtonsState(mavlink_conrig_state_tc_t state)
     Lock<FastMutex> lock{buttonsMutex};
     // The OR operator is introduced to make sure that the receiver
     // understood the command
-    buttonState.n2o_filling_btn     |= state.n2o_filling_btn;
-    buttonState.n2o_release_btn     |= state.n2o_release_btn;
-    buttonState.n2_filling_btn      |= state.n2_filling_btn;
-    buttonState.n2_release_btn      |= state.n2_release_btn;
-    buttonState.n2_detach_btn       |= state.n2_detach_btn;
-    buttonState.n2o_venting_btn     |= state.n2o_venting_btn;
-    buttonState.nitrogen_btn        |= state.nitrogen_btn;
-    buttonState.n2o_detach_btn      |= state.n2o_detach_btn;
-    buttonState.n2_quenching_btn    |= state.n2_quenching_btn;
-    buttonState.n2_3way_btn         |= state.n2_3way_btn;
-    buttonState.tars_btn            |= state.tars_btn;
-    buttonState.arm_switch          |= state.arm_switch;
-    buttonState.ignition_btn        |= state.ignition_btn;
+    buttonState.n2o_filling_btn |= state.n2o_filling_btn;
+    buttonState.n2o_release_btn |= state.n2o_release_btn;
+    buttonState.n2_filling_btn |= state.n2_filling_btn;
+    buttonState.n2_release_btn |= state.n2_release_btn;
+    buttonState.n2_detach_btn |= state.n2_detach_btn;
+    buttonState.n2o_venting_btn |= state.n2o_venting_btn;
+    buttonState.nitrogen_btn |= state.nitrogen_btn;
+    buttonState.n2o_detach_btn |= state.n2o_detach_btn;
+    buttonState.n2_quenching_btn |= state.n2_quenching_btn;
+    buttonState.n2_3way_btn |= state.n2_3way_btn;
+    buttonState.tars_btn |= state.tars_btn;
+    buttonState.arm_switch |= state.arm_switch;
+    buttonState.ignition_btn |= state.ignition_btn;
 }
 
 bool Radio::start()
@@ -251,17 +251,17 @@ MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
 Radio::Radio()
 {
-    buttonState.n2o_filling_btn     = false;
-    buttonState.n2o_release_btn     = false;
-    buttonState.n2_filling_btn      = false;
-    buttonState.n2_release_btn      = false;
-    buttonState.n2_detach_btn       = false;
-    buttonState.n2o_venting_btn     = false;
-    buttonState.nitrogen_btn        = false;
-    buttonState.n2o_detach_btn      = false;
-    buttonState.n2_quenching_btn    = false;
-    buttonState.n2_3way_btn         = false;
-    buttonState.tars_btn            = false;
-    buttonState.arm_switch          = false;
-    buttonState.ignition_btn        = false;
+    buttonState.n2o_filling_btn  = false;
+    buttonState.n2o_release_btn  = false;
+    buttonState.n2_filling_btn   = false;
+    buttonState.n2_release_btn   = false;
+    buttonState.n2_detach_btn    = false;
+    buttonState.n2o_venting_btn  = false;
+    buttonState.nitrogen_btn     = false;
+    buttonState.n2o_detach_btn   = false;
+    buttonState.n2_quenching_btn = false;
+    buttonState.n2_3way_btn      = false;
+    buttonState.tars_btn         = false;
+    buttonState.arm_switch       = false;
+    buttonState.ignition_btn     = false;
 }

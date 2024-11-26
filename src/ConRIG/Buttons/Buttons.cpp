@@ -50,18 +50,18 @@ mavlink_conrig_state_tc_t Buttons::getState() { return state; }
 
 void Buttons::resetState()
 {
-    state.n2o_filling_btn   = false;
-    state.n2o_release_btn   = false;
-    state.n2_filling_btn    = false;
-    state.n2_release_btn    = false;
-    state.n2_detach_btn     = false;
-    state.n2o_venting_btn   = false;
-    state.nitrogen_btn      = false;
-    state.n2o_detach_btn    = false;
-    state.n2_quenching_btn  = false;
-    state.n2_3way_btn       = false;
-    state.tars_btn          = false;
-    state.ignition_btn      = false;
+    state.n2o_filling_btn  = false;
+    state.n2o_release_btn  = false;
+    state.n2_filling_btn   = false;
+    state.n2_release_btn   = false;
+    state.n2_detach_btn    = false;
+    state.n2o_venting_btn  = false;
+    state.nitrogen_btn     = false;
+    state.n2o_detach_btn   = false;
+    state.n2_quenching_btn = false;
+    state.n2_3way_btn      = false;
+    state.tars_btn         = false;
+    state.ignition_btn     = false;
 }
 
 void Buttons::periodicStatusCheck()
@@ -85,7 +85,7 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                   = 0;
+            guard                 = 0;
             state.n2o_filling_btn = true;
             LOG_DEBUG(logger, "n2o filling button pressed");
         }
@@ -98,7 +98,7 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                   = 0;
+            guard                 = 0;
             state.n2o_release_btn = true;
             LOG_DEBUG(logger, "n2o release button pressed");
         }
@@ -111,7 +111,7 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                      = 0;
+            guard                = 0;
             state.n2_release_btn = true;
             LOG_DEBUG(logger, "n2 release button pressed");
         }
@@ -124,7 +124,7 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                     = 0;
+            guard                 = 0;
             state.n2o_venting_btn = true;
             LOG_DEBUG(logger, "n2o venting button pressed");
         }
@@ -137,7 +137,7 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                = 0;
+            guard               = 0;
             state.n2_detach_btn = true;
             LOG_DEBUG(logger, "n2 detach button pressed");
         }
@@ -146,7 +146,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-        else if (btns::n2_filling::value())
+    else if (btns::n2_filling::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -159,11 +159,11 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-        else if (btns::nitrogen::value())
+    else if (btns::nitrogen::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                = 0;
+            guard              = 0;
             state.nitrogen_btn = true;
             LOG_DEBUG(logger, "nitrogen button pressed");
         }
