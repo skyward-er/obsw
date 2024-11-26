@@ -74,7 +74,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (btns::filling::value())
+    else if (btns::n2o_filling::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -86,7 +86,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (btns::venting::value())
+    else if (btns::n2o_venting::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -98,7 +98,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (btns::release::value())
+    else if (btns::n2o_release::value())
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
@@ -110,30 +110,7 @@ void Buttons::periodicStatusCheck()
             guard++;
         }
     }
-    else if (btns::detach::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                     = 0;
-            state.quick_connector_btn = true;
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::tars::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                = 0;
-            state.start_tars_btn = true;
-        }
-        else
-        {
-            guard++;
-        }
-    }
+    // TODO: implement missing buttons
     else
     {
         // Reset all the states and guard
