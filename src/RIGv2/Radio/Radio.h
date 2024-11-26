@@ -31,7 +31,7 @@
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>

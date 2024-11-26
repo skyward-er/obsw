@@ -132,7 +132,8 @@ Actuators::Actuators()
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     // This servo is currently unusable, due to it sharing the same timer as
-    // miosix, TIM5 infos[4].servo = std::make_unique<Servo>(
+    // miosix, TIM5
+    // infos[4].servo = std::make_unique<Servo>(
     //     MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
     //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
     //     Config::Servos::FREQUENCY);
@@ -142,10 +143,11 @@ Actuators::Actuators()
         Config::Servos::FREQUENCY);
     infos[6].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_7_TIM, TimerUtils::Channel::MIOSIX_SERVOS_7_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::SERVO2_MIN_PULSE, Config::Servos::SERVO2_MAX_PULSE,
         Config::Servos::FREQUENCY);
     // This servo is currently unusable, due to it sharing the same timer as
-    // servo 1 infos[7].servo = std::make_unique<Servo>(
+    // servo 1
+    // infos[7].servo = std::make_unique<Servo>(
     //     MIOSIX_SERVOS_8_TIM, TimerUtils::Channel::MIOSIX_SERVOS_8_CHANNEL,
     //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
     //     Config::Servos::FREQUENCY);
@@ -159,7 +161,7 @@ Actuators::Actuators()
         Config::Servos::FREQUENCY);
 
     ServoInfo* info;
-    info                     = getServo(ServosList::FILLING_VALVE);
+    info                     = getServo(ServosList::N2O_FILLING_VALVE);
     info->defaultMaxAperture = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
     info->defaultOpeningTime = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
     info->limit              = Config::Servos::FILLING_LIMIT;
@@ -170,7 +172,7 @@ Actuators::Actuators()
     info->maxApertureKey     = CONFIG_ID_FILLING_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    info                     = getServo(ServosList::RELEASE_VALVE);
+    info                     = getServo(ServosList::N2O_RELEASE_VALVE);
     info->defaultMaxAperture = Config::Servos::DEFAULT_RELEASE_MAX_APERTURE;
     info->defaultOpeningTime = Config::Servos::DEFAULT_RELEASE_OPENING_TIME;
     info->limit              = Config::Servos::RELEASE_LIMIT;
@@ -181,7 +183,40 @@ Actuators::Actuators()
     info->maxApertureKey     = CONFIG_ID_RELEASE_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    info                     = getServo(ServosList::DISCONNECT_SERVO);
+    info                     = getServo(ServosList::N2O_VENTING_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_VENTING_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
+    info->limit              = Config::Servos::VENTING_LIMIT;
+    info->flipped            = Config::Servos::VENTING_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_VENTING_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
+    info->openingTimeKey     = CONFIG_ID_VENTING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_VENTING_MAX_APERTURE;
+    info->unsafeSetServoPosition(0.0f);
+
+    info                     = getServo(ServosList::N2_FILLING_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
+    info->limit              = Config::Servos::FILLING_LIMIT;
+    info->flipped            = Config::Servos::FILLING_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_FILLING_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
+    info->openingTimeKey     = CONFIG_ID_FILLING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_FILLING_MAX_APERTURE;
+    info->unsafeSetServoPosition(0.0f);
+
+    info                     = getServo(ServosList::N2_RELEASE_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_RELEASE_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_RELEASE_OPENING_TIME;
+    info->limit              = Config::Servos::RELEASE_LIMIT;
+    info->flipped            = Config::Servos::RELEASE_FLIPPED;
+    info->openingEvent       = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
+    info->closingEvent       = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
+    info->openingTimeKey     = CONFIG_ID_RELEASE_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_RELEASE_MAX_APERTURE;
+    info->unsafeSetServoPosition(0.0f);
+
+    info                     = getServo(ServosList::N2_DETACH_SERVO);
     info->defaultMaxAperture = Config::Servos::DEFAULT_DISCONNECT_MAX_APERTURE;
     info->defaultOpeningTime = Config::Servos::DEFAULT_DISCONNECT_OPENING_TIME;
     info->limit              = Config::Servos::DISCONNECT_LIMIT;
@@ -202,15 +237,15 @@ Actuators::Actuators()
     info->maxApertureKey     = CONFIG_ID_MAIN_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
-    info                     = getServo(ServosList::VENTING_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_VENTING_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
-    info->limit              = Config::Servos::VENTING_LIMIT;
-    info->flipped            = Config::Servos::VENTING_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_VENTING_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_VENTING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_VENTING_MAX_APERTURE;
+    info                     = getServo(ServosList::NITROGEN_VALVE);
+    info->defaultMaxAperture = Config::Servos::DEFAULT_MAIN_MAX_APERTURE;
+    info->defaultOpeningTime = Config::Servos::DEFAULT_MAIN_OPENING_TIME;
+    info->limit              = Config::Servos::MAIN_LIMIT;
+    info->flipped            = Config::Servos::MAIN_FLIPPED;
+    info->openingEvent       = 0;
+    info->closingEvent       = 0;
+    info->openingTimeKey     = CONFIG_ID_MAIN_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_MAIN_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 }
 
@@ -328,7 +363,8 @@ void Actuators::closeAllServos()
         infos[idx].closeServo();
 
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(ServosList::VENTING_VALVE);
+    getModule<CanHandler>()->sendServoCloseCommand(
+        ServosList::N2O_VENTING_VALVE);
 }
 
 bool Actuators::setMaxAperture(ServosList servo, float aperture)
@@ -366,7 +402,7 @@ bool Actuators::isCanServoOpen(ServosList servo)
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
         return canMainOpen;
-    else if (servo == ServosList::VENTING_VALVE)
+    else if (servo == ServosList::N2O_VENTING_VALVE)
         return canVentingOpen;
     else
         return false;
@@ -423,7 +459,7 @@ void Actuators::setCanServoOpen(ServosList servo, bool open)
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
         canMainOpen = open;
-    else if (servo == ServosList::VENTING_VALVE)
+    else if (servo == ServosList::N2O_VENTING_VALVE)
         canVentingOpen = open;
 }
 
@@ -436,18 +472,25 @@ void Actuators::inject(DependencyInjector& injector)
 
 Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 {
+    // info[4] and info[7] are currently unavailable
     switch (servo)
     {
-        case FILLING_VALVE:
+        case N2O_FILLING_VALVE:
             return &infos[0];
-        case RELEASE_VALVE:
+        case N2O_RELEASE_VALVE:
             return &infos[1];
-        case DISCONNECT_SERVO:
+        case N2O_VENTING_VALVE:
             return &infos[2];
-        case MAIN_VALVE:
+        case N2_FILLING_VALVE:
             return &infos[3];
-        case VENTING_VALVE:
+        case N2_RELEASE_VALVE:
+            return &infos[5];
+        case N2_DETACH_SERVO:
             return &infos[6];
+        case MAIN_VALVE:
+            return &infos[8];
+        case NITROGEN_VALVE:
+            return &infos[9];
 
         default:
             // Oh FUCK

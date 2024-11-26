@@ -515,10 +515,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors
-            tm.loadcell_rocket  = sensors->getTankWeightLastSample().load;
-            tm.loadcell_vessel  = sensors->getVesselWeightLastSample().load;
-            tm.filling_pressure = sensors->getFillingPressLastSample().pressure;
-            tm.vessel_pressure  = sensors->getVesselPressLastSample().pressure;
+            tm.rocket_mass     = sensors->getTankWeightLastSample().load;
+            tm.n2o_vessel_mass = sensors->getVesselWeightLastSample().load;
+
+            tm.n2o_filling_pressure =
+                sensors->getFillingPressLastSample().pressure;
+            tm.n2o_vessel_pressure =
+                sensors->getVesselPressLastSample().pressure;
+
+            tm.n2_filling_pressure  = -1.f;  // TODO
+            tm.n2_vessel_1_pressure = -1.f;  // TODO
+            tm.n2_vessel_2_pressure = -1.f;  // TODO
+
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
             tm.current_consumption =
                 sensors->getServoCurrentLastSample().current;
@@ -540,15 +548,28 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             sdLogger.log(cpuStats);
 
             // Valve states
-            tm.filling_valve_state =
-                actuators->isServoOpen(ServosList::FILLING_VALVE) ? 1 : 0;
-            tm.venting_valve_state =
-                actuators->isServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
-            tm.release_valve_state =
-                actuators->isServoOpen(ServosList::RELEASE_VALVE) ? 1 : 0;
+            tm.n2o_filling_valve_state =
+                actuators->isServoOpen(ServosList::N2O_FILLING_VALVE);
+            tm.n2o_release_valve_state =
+                actuators->isServoOpen(ServosList::N2O_RELEASE_VALVE);
+            tm.n2o_detach_state = 0;  // TODO
+            tm.n2o_venting_valve_state =
+                actuators->isServoOpen(ServosList::N2O_VENTING_VALVE);
+
+            tm.n2_filling_valve_state =
+                actuators->isServoOpen(ServosList::N2_FILLING_VALVE);
+            tm.n2_release_valve_state =
+                actuators->isServoOpen(ServosList::N2_RELEASE_VALVE);
+            tm.n2_detach_state =
+                actuators->isServoOpen(ServosList::N2_DETACH_SERVO);
+            tm.n2_quenching_valve_state = 0;  // TODO
+            tm.n2_3way_valve_state      = 0;  // TODO
+
             tm.main_valve_state =
-                actuators->isServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
-            tm.nitrogen_valve_state = actuators->isNitrogenOpen() ? 1 : 0;
+                actuators->isServoOpen(ServosList::MAIN_VALVE);
+            tm.nitrogen_valve_state =
+                actuators->isServoOpen(ServosList::NITROGEN_VALVE);
+            tm.ignition_state = actuators->isNitrogenOpen();
 
             // Internal states
             tm.gmm_state    = getModule<GroundModeManager>()->getState();
@@ -600,7 +621,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.main_valve_state =
                 actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
             tm.venting_valve_state =
-                actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
+                actuators->isCanServoOpen(ServosList::N2O_VENTING_VALVE) ? 1
+                                                                         : 0;
 
             // Can data
             CanHandler::CanStatus canStatus =
@@ -857,50 +879,78 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.filling_valve_btn == 0 &&
-            state.filling_valve_btn == 1)
+        if (oldConrigState.n2o_filling_btn == 0 && state.n2o_filling_btn == 1)
         {
-            // The filling switch was pressed
+            // The N2O filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::FILLING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::N2O_FILLING_VALVE);
 
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.quick_connector_btn == 0 &&
-            state.quick_connector_btn == 1)
+        if (oldConrigState.n2o_release_btn == 0 && state.n2o_release_btn == 1)
         {
-            // The quick conector switch was pressed
+            // The N2O release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::DISCONNECT_SERVO);
+            getModule<Actuators>()->toggleServo(ServosList::N2O_RELEASE_VALVE);
 
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.release_pressure_btn == 0 &&
-            state.release_pressure_btn == 1)
+        // TODO: n2o_detach_btn
+
+        if (oldConrigState.n2o_venting_btn == 0 && state.n2o_venting_btn == 1)
         {
-            // The release switch was pressed
+            // The N2O venting switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::RELEASE_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::N2O_VENTING_VALVE);
 
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.venting_valve_btn == 0 &&
-            state.venting_valve_btn == 1)
+        if (oldConrigState.n2_filling_btn == 0 && state.n2_filling_btn == 1)
         {
-            // The venting switch was pressed
+            // The N2 filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::VENTING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::N2_FILLING_VALVE);
 
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.start_tars_btn == 0 && state.start_tars_btn == 1)
+        if (oldConrigState.n2_release_btn == 0 && state.n2_release_btn == 1)
+        {
+            // The N2 release switch was pressed
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::N2_RELEASE_VALVE);
+
+            lastManualActuation = currentTime;
+        }
+
+        if (oldConrigState.n2_detach_btn == 0 && state.n2_detach_btn == 1)
+        {
+            // The N2 detach switch was pressed
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::N2_DETACH_SERVO);
+
+            lastManualActuation = currentTime;
+        }
+
+        // TODO: n2_quenching_btn
+        // TODO: n2_3way_btn
+
+        if (oldConrigState.tars_btn == 0 && state.tars_btn == 1)
         {
             // The TARS switch was pressed
             EventBroker::getInstance().post(MOTOR_START_TARS, TOPIC_TARS);
+
+            lastManualActuation = currentTime;
+        }
+
+        if (oldConrigState.nitrogen_btn == 0 && state.nitrogen_btn == 1)
+        {
+            // The nitrogen switch was pressed
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
 
             lastManualActuation = currentTime;
         }
