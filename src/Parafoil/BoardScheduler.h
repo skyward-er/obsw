@@ -25,7 +25,7 @@
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace Payload
+namespace Parafoil
 {
 
 /**
@@ -51,6 +51,21 @@ public:
             CRITICAL = miosix::PRIORITY_MAX - 1,
         };
     };
+
+    static Priority::PriorityLevel flightModeManagerPriority()
+    {
+        return Priority::MEDIUM;
+    }
+
+    static Priority::PriorityLevel nasControllerPriority()
+    {
+        return Priority::MEDIUM;
+    }
+
+    static Priority::PriorityLevel wingControllerPriority()
+    {
+        return Priority::MEDIUM;
+    }
 
     /**
      * @brief Starts all the schedulers
@@ -102,4 +117,4 @@ private:
         Boardcore::Logging::getLogger("BoardScheduler");
 };
 
-}  // namespace Payload
+}  // namespace Parafoil
