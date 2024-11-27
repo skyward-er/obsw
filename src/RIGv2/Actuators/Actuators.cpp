@@ -408,12 +408,7 @@ bool Actuators::isCanServoOpen(ServosList servo)
         return false;
 }
 
-void Actuators::openNitrogen()
-{
-    openNitrogenWithTime(Config::Actuators::NITROGEN_OPENING_TIME);
-}
-
-void Actuators::openNitrogenWithTime(uint32_t time)
+void Actuators::openChamberWithTime(uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     long long currentTime = getTime();
@@ -422,13 +417,13 @@ void Actuators::openNitrogenWithTime(uint32_t time)
     nitrogenLastActionTs = currentTime;
 }
 
-void Actuators::closeNitrogen()
+void Actuators::closeChamber()
 {
     Lock<FastMutex> lock(infosMutex);
     nitrogenCloseTs = 0;
 }
 
-bool Actuators::isNitrogenOpen()
+bool Actuators::isChamberOpen()
 {
     Lock<FastMutex> lock(infosMutex);
     return nitrogenCloseTs != 0;
@@ -511,9 +506,9 @@ void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
     sdLogger.log(data);
 }
 
-void Actuators::unsafeOpenNitrogen() { relays::nitrogen::low(); }
+void Actuators::unsafeOpenChamber() { relays::nitrogen::low(); }
 
-void Actuators::unsafeCloseNitrogen() { relays::nitrogen::high(); }
+void Actuators::unsafeCloseChamber() { relays::nitrogen::high(); }
 
 void Actuators::updatePositionsTask()
 {
@@ -571,12 +566,12 @@ void Actuators::updatePositionsTask()
     // Handle nitrogen logic
     if (currentTime < nitrogenCloseTs)
     {
-        unsafeOpenNitrogen();
+        unsafeOpenChamber();
     }
     else
     {
         nitrogenCloseTs = 0;
 
-        unsafeCloseNitrogen();
+        unsafeCloseChamber();
     }
 }
