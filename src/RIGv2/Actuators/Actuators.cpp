@@ -180,8 +180,8 @@ Actuators::Actuators()
     info->flipped            = Config::Servos::FILLING_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_OPEN_FILLING_VALVE;
     info->closingEvent       = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_FILLING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_FILLING_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_N2O_FILLING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_N2O_FILLING_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
     info                     = getServo(ServosList::N2O_RELEASE_VALVE);
@@ -191,8 +191,8 @@ Actuators::Actuators()
     info->flipped            = Config::Servos::RELEASE_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
     info->closingEvent       = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
-    info->openingTimeKey     = CONFIG_ID_RELEASE_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_RELEASE_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_N2O_RELEASE_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_N2O_RELEASE_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
     info                     = getServo(ServosList::N2O_VENTING_VALVE);
@@ -202,8 +202,8 @@ Actuators::Actuators()
     info->flipped            = Config::Servos::VENTING_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_OPEN_VENTING_VALVE;
     info->closingEvent       = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_VENTING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_VENTING_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_N2O_VENTING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_N2O_VENTING_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
     info                     = getServo(ServosList::N2_FILLING_VALVE);
@@ -213,8 +213,8 @@ Actuators::Actuators()
     info->flipped            = Config::Servos::FILLING_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_OPEN_FILLING_VALVE;
     info->closingEvent       = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_FILLING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_FILLING_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_N2_FILLING_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_N2_FILLING_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
     info                     = getServo(ServosList::N2_RELEASE_VALVE);
@@ -224,8 +224,8 @@ Actuators::Actuators()
     info->flipped            = Config::Servos::RELEASE_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
     info->closingEvent       = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
-    info->openingTimeKey     = CONFIG_ID_RELEASE_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_RELEASE_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_N2_RELEASE_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_N2_RELEASE_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
     info                     = getServo(ServosList::N2_DETACH_SERVO);
@@ -234,8 +234,8 @@ Actuators::Actuators()
     info->limit              = Config::Servos::DISCONNECT_LIMIT;
     info->flipped            = Config::Servos::DISCONNECT_FLIPPED;
     info->openingEvent       = Common::Events::MOTOR_DISCONNECT;
-    info->openingTimeKey     = CONFIG_ID_DISCONNECT_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_DISCONNECT_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_N2_DETACH_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_N2_DETACH_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 
     info                     = getServo(ServosList::MAIN_VALVE);
@@ -256,8 +256,8 @@ Actuators::Actuators()
     info->flipped            = Config::Servos::MAIN_FLIPPED;
     info->openingEvent       = 0;
     info->closingEvent       = 0;
-    info->openingTimeKey     = CONFIG_ID_MAIN_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_MAIN_MAX_APERTURE;
+    info->openingTimeKey     = CONFIG_ID_NITROGEN_OPENING_TIME;
+    info->maxApertureKey     = CONFIG_ID_NITROGEN_MAX_APERTURE;
     info->unsafeSetServoPosition(0.0f);
 }
 

@@ -400,6 +400,17 @@ void Radio::enqueueRegistry()
             mavlink_message_t msg;
             const char* name = configurationIdToName(id);
 
+            // A safe copy function for key names
+            auto copyKeyName = [](auto& dest, const char* src)
+            {
+                // Ensure dest is not a pointer
+                static_assert(sizeof(dest) != sizeof(char*));
+
+                constexpr size_t maxKeyLen = sizeof(dest) / sizeof(dest[0]) - 1;
+                std::strncpy(dest, src, maxKeyLen);
+                dest[maxKeyLen] = '\0';  // Ensure null-termination
+            };
+
             switch (value.getType())
             {
                 case TypesEnum::UINT32:
@@ -408,7 +419,7 @@ void Radio::enqueueRegistry()
 
                     tm.timestamp = TimestampTimer::getTimestamp();
                     tm.key_id    = id;
-                    strcpy(tm.key_name, name);
+                    copyKeyName(tm.key_name, name);
                     value.get(tm.value);
 
                     mavlink_msg_registry_int_tm_encode(
@@ -422,7 +433,7 @@ void Radio::enqueueRegistry()
 
                     tm.timestamp = TimestampTimer::getTimestamp();
                     tm.key_id    = id;
-                    strcpy(tm.key_name, name);
+                    copyKeyName(tm.key_name, name);
                     value.get(tm.value);
 
                     mavlink_msg_registry_float_tm_encode(
@@ -436,7 +447,7 @@ void Radio::enqueueRegistry()
 
                     tm.timestamp = TimestampTimer::getTimestamp();
                     tm.key_id    = id;
-                    strcpy(tm.key_name, name);
+                    copyKeyName(tm.key_name, name);
                     Coordinates coord;
                     value.get(coord);
                     tm.latitude  = coord.latitude;
