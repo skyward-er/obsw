@@ -303,6 +303,7 @@ State GroundModeManager::state_firing(const Event& event)
             // Stop ignition and close all servos
             getModule<Actuators>()->igniterOff();
             getModule<Actuators>()->closeAllServos();
+            getModule<Actuators>()->closeChamber();
 
             // Disable all events
             EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
