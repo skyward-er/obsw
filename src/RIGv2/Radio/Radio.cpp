@@ -549,13 +549,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.rocket_mass     = sensors->getTankWeightLastSample().load;
             tm.n2o_vessel_mass = sensors->getVesselWeightLastSample().load;
 
+            // TODO: methods below have mismatching names
             tm.n2o_filling_pressure =
+                sensors->getVesselPressLastSample().pressure;
+            tm.n2_filling_pressure =
                 sensors->getFillingPressLastSample().pressure;
             tm.n2o_vessel_pressure =
-                sensors->getVesselPressLastSample().pressure;
+                sensors->getBottomTankPressLastSample().pressure;
+            tm.n2_vessel_1_pressure =
+                sensors->getTopTankPressLastSample().pressure;
 
-            tm.n2_filling_pressure  = -1.f;  // TODO
-            tm.n2_vessel_1_pressure = -1.f;  // TODO
             tm.n2_vessel_2_pressure = -1.f;  // TODO
 
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
