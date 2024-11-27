@@ -76,10 +76,5 @@ constexpr bool DISCONNECT_FLIPPED = false;
 
 }  // namespace Servos
 
-namespace Actuators
-{
-static constexpr uint32_t NITROGEN_OPENING_TIME = 5000;  // 5s
-}
-
 }  // namespace Config
 }  // namespace RIGv2
