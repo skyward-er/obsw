@@ -150,11 +150,11 @@ Actuators::Actuators()
     //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
     //     Config::Servos::FREQUENCY);
     infos[5].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_6_TIM, TimerUtils::Channel::MIOSIX_SERVOS_6_CHANNEL,
+        MIOSIX_SERVOS_7_TIM, TimerUtils::Channel::MIOSIX_SERVOS_7_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[6].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_7_TIM, TimerUtils::Channel::MIOSIX_SERVOS_7_CHANNEL,
+        MIOSIX_SERVOS_9_TIM, TimerUtils::Channel::MIOSIX_SERVOS_9_CHANNEL,
         Config::Servos::SERVO2_MIN_PULSE, Config::Servos::SERVO2_MAX_PULSE,
         Config::Servos::FREQUENCY);
     // This servo is currently unusable, due to it sharing the same timer as
@@ -164,11 +164,11 @@ Actuators::Actuators()
     //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
     //     Config::Servos::FREQUENCY);
     infos[8].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_9_TIM, TimerUtils::Channel::MIOSIX_SERVOS_9_CHANNEL,
+        MIOSIX_SERVOS_6_TIM, TimerUtils::Channel::MIOSIX_SERVOS_6_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[9].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_10_TIM, TimerUtils::Channel::MIOSIX_SERVOS_10_CHANNEL,
+        MIOSIX_SERVOS_8_TIM, TimerUtils::Channel::MIOSIX_SERVOS_8_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
 
