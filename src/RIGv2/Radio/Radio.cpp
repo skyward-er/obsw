@@ -259,6 +259,26 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_SET_NITROGEN_TIME_TC:
+        {
+            // Chamber valve opening time
+            uint32_t timing = mavlink_msg_set_nitrogen_time_tc_get_timing(&msg);
+            getModule<GroundModeManager>()->setChamberTime(timing);
+
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_COOLING_TIME_TC:
+        {
+            // Chamber valve delay after main valve opening
+            uint32_t timing = mavlink_msg_set_cooling_time_tc_get_timing(&msg);
+            getModule<GroundModeManager>()->setChamberDelay(timing);
+
+            enqueueAck(msg);
+            break;
+        }
+
         default:
         {
             // Unrecognized packet
@@ -569,7 +589,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::MAIN_VALVE);
             tm.nitrogen_valve_state =
                 actuators->isServoOpen(ServosList::NITROGEN_VALVE);
-            tm.ignition_state = actuators->isNitrogenOpen();
+            tm.ignition_state = actuators->isChamberOpen();
 
             // Internal states
             tm.gmm_state    = getModule<GroundModeManager>()->getState();

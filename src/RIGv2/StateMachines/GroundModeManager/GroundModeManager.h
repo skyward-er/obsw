@@ -51,6 +51,10 @@ public:
 
     void setIgnitionTime(uint32_t time);
 
+    void setChamberTime(uint32_t time);
+
+    void setChamberDelay(uint32_t time);
+
 private:
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_init(const Boardcore::Event& event);
@@ -70,7 +74,6 @@ private:
     std::atomic<GroundModeManagerState> state{GroundModeManagerState::IDLE};
 
     uint16_t openOxidantDelayEventId = -1;
-    uint16_t coolingDelayEventId     = -1;
 };
 
 }  // namespace RIGv2

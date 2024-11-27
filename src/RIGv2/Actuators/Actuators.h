@@ -92,10 +92,11 @@ public:
     bool setOpeningTime(ServosList servo, uint32_t time);
     bool isServoOpen(ServosList servo);
     bool isCanServoOpen(ServosList servo);
-    void openNitrogen();
-    void openNitrogenWithTime(uint32_t time);
-    void closeNitrogen();
-    bool isNitrogenOpen();
+
+    // Chamber valve control
+    void openChamberWithTime(uint32_t time);
+    void closeChamber();
+    bool isChamberOpen();
 
     uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
@@ -114,8 +115,8 @@ private:
     ServoInfo* getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
-    void unsafeOpenNitrogen();
-    void unsafeCloseNitrogen();
+    void unsafeOpenChamber();
+    void unsafeCloseChamber();
 
     void updatePositionsTask();
 
