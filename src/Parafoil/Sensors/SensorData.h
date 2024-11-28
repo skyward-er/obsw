@@ -20,39 +20,34 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/BoardScheduler.h>
-#include <Parafoil/Buses.h>
-#include <diagnostic/PrintLogger.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#pragma once
 
-#include <iostream>
+#include <sensors/SensorData.h>
 
-// Build type string for printing during startup
-#if defined(DEBUG)
-#define BUILD_TYPE "Debug"
-#else
-#define BUILD_TYPE "Release"
-#endif
-
-using namespace Boardcore;
-using namespace Parafoil;
-
-int main()
+namespace Parafoil
 {
-    std::cout << "Parafoil Entrypoint " << "(" << BUILD_TYPE << ")"
-              << " by Skyward Experimental Rocketry" << std::endl;
 
-    auto logger = Logging::getLogger("Mockup");
-    DependencyManager depman{};
+struct SensorCalibrationData
+{
+    uint64_t timestamp = 0;
+    float magBiasX     = 0.0f;
+    float magBiasY     = 0.0f;
+    float magBiasZ     = 0.0f;
+    float magScaleX    = 0.0f;
+    float magScaleY    = 0.0f;
+    float magScaleZ    = 0.0f;
 
-    std::cout << "Instantiating modules" << std::endl;
-    bool initResult = true;
+    static std::string header()
+    {
+        return "timestamp,magBiasX,magBiasY,magBiasZ,magScaleX,magScaleY,"
+               "magScaleZ\n";
+    }
 
-    // Core components
-    auto buses = new Buses();
-    initResult &= depman.insert(buses);
-    auto scheduler = new BoardScheduler();
-    initResult &= depman.insert(scheduler);
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << magBiasX << "," << magBiasY << "," << magBiasZ
+           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << "\n";
+    }
+};
 
-    return 0;
-}
+}  // namespace Parafoil
