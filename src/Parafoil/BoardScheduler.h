@@ -52,6 +52,8 @@ public:
         };
     };
 
+    Boardcore::TaskScheduler& sensors() { return high; }
+
     static Priority::PriorityLevel flightModeManagerPriority()
     {
         return Priority::MEDIUM;

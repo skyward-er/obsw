@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Parafoil/Configs/SensorsConfig.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/BMX160/BMX160.h>
@@ -32,7 +33,10 @@
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
 #include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include "SensorData.h"
 
 namespace Parafoil
 {
@@ -60,22 +64,45 @@ public:
     void calibrate();
 
     /**
-     * @brief Takes the result of the live magnetometer calibration and applies
-     * it to the current calibration + writes it in the csv file
+     * @brief Returns the current sensors calibration parameters.
      *
-     * @return true if the write was successful
+     * @internal Ensure mutexes are unlocked before calling this function.
      */
-    bool writeMagCalibration();
+    SensorCalibrationData getCalibrationData();
+
+    /**
+     * @brief Resets the magnetometer calibration.
+     */
+    void resetMagCalibrator();
+
+    /**
+     * @brief Enables the magnetometer calibration task.
+     */
+    void enableMagCalibrator();
+
+    /**
+     * @brief Disables the magnetometer calibration task.
+     */
+    void disableMagCalibrator();
+
+    /**
+     * @brief Saves the current magnetometer calibration to file, overwriting
+     * the previous one, and sets it as the active calibration.
+     *
+     * @return Whether the calibration was saved successfully.
+     */
+    bool saveMagCalibration();
 
     Boardcore::BMX160Data getBMX160LastSample();
     Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
     Boardcore::H3LIS331DLData getH3LISLastSample();
     Boardcore::LIS3MDLData getLIS3MDLLastSample();
-    Boardcore::LPS22DFData getLPS22LastSample();
-    Boardcore::UBXGPSData getUbxGpsLastSample();
+    Boardcore::LPS22DFData getLPS22DFLastSample();
+    Boardcore::UBXGPSData getUBXGPSLastSample();
     Boardcore::ADS131M08Data getADS131LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
-    Boardcore::BatteryVoltageSensorData getBatteryVoltageLastSample();
+
+    Boardcore::BatteryVoltageSensorData getBatteryVoltage();
 
     /**
      * @brief Returns information about all sensors managed by this class
@@ -97,13 +124,16 @@ protected:
     virtual bool postSensorCreationHook() { return true; }
 
     std::unique_ptr<Boardcore::BMX160> bmx160;
-    std::unique_ptr<Boardcore::BMX160WithCorrection> bmx160WithCorrection;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
     std::unique_ptr<Boardcore::LIS3MDL> lis3mdl;
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
+
+    std::unique_ptr<Boardcore::BMX160WithCorrection> bmx160WithCorrection;
+
+    std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
     /**
@@ -134,10 +164,17 @@ private:
     void internalADCInit();
     void internalADCCallback();
 
-    void batteryVoltageInit();
-    void batteryVoltageCallback();
-
     bool sensorManagerInit();
+
+    // Live calibration of the magnetomer
+    miosix::FastMutex magCalibrationMutex;
+    Boardcore::SoftAndHardIronCalibration magCalibrator;
+    Boardcore::SixParametersCorrector magCalibration;
+    size_t magCalibrationTaskId = 0;
+
+    std::atomic<bool> started{false};
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Sensors");
 };
 
 }  // namespace Parafoil

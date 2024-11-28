@@ -106,9 +106,8 @@ using namespace Common;
 int main()
 {
     miosix::ledOff();
-    std::cout << "Payload " << FLAVOR << " Entrypoint "
-              << "(" << BUILD_TYPE << ")"
-              << " by Skyward Experimental Rocketry" << std::endl;
+    std::cout << "Payload " << FLAVOR << " Entrypoint " << "(" << BUILD_TYPE
+              << ")" << " by Skyward Experimental Rocketry" << std::endl;
 
     // Unused but needed to set the log level properly
     auto logger = Logging::getLogger("Payload");
