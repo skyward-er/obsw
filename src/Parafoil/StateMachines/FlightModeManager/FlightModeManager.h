@@ -30,11 +30,7 @@
 namespace Parafoil
 {
 class Sensors;
-class CanHandler;
 class Actuators;
-class AltitudeTrigger;
-class FlightStatsRecorder;
-class NASController;
 
 /**
  * State machine that manages the flight modes of the Parafoil.
@@ -52,16 +48,13 @@ class NASController;
  * └── ReadyTestMode
  *
  * Flying
- * ├── FlyingDrogueDescent
  * └── FlyingWingDescent
  *
  * Landed
  */
 class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
-      public Boardcore::InjectableWithDeps<Sensors, CanHandler, Actuators,
-                                           AltitudeTrigger, FlightStatsRecorder,
-                                           NASController>
+      public Boardcore::InjectableWithDeps<Sensors, Actuators>
 {
     FlightModeManager();
     ~FlightModeManager();
