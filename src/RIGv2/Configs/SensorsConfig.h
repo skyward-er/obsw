@@ -99,10 +99,10 @@ constexpr float VESSEL_SHUNT_RESISTANCE      = ADS131M08::CH1_SHUNT_RESISTANCE;
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
-constexpr float FILLING_MAX_PRESSURE     = 100;  // bar
-constexpr float TANK_TOP_MAX_PRESSURE    = 100;  // bar
+constexpr float FILLING_MAX_PRESSURE     = 250;  // bar
+constexpr float TANK_TOP_MAX_PRESSURE    = 250;  // bar
 constexpr float TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
-constexpr float VESSEL_MAX_PRESSURE      = 400;  // bar
+constexpr float VESSEL_MAX_PRESSURE      = 100;  // bar
 }  // namespace Trafag
 
 namespace LoadCell
