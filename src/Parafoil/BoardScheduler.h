@@ -52,6 +52,7 @@ public:
         };
     };
 
+    Boardcore::TaskScheduler& nasController() { return critical; }
     Boardcore::TaskScheduler& sensors() { return high; }
 
     static Priority::PriorityLevel flightModeManagerPriority()

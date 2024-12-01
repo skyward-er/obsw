@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Authors: Niccolò Betto, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,44 +20,35 @@
  * THE SOFTWARE.
  */
 
-#include <Parafoil/BoardScheduler.h>
-#include <Parafoil/Buses.h>
-#include <Parafoil/Sensors/Sensors.h>
-#include <diagnostic/PrintLogger.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#pragma once
 
-#include <iostream>
+#include <cstdint>
+#include <ostream>
+#include <string>
 
-// Build type string for printing during startup
-#if defined(DEBUG)
-#define BUILD_TYPE "Debug"
-#else
-#define BUILD_TYPE "Release"
-#endif
-
-using namespace Boardcore;
-using namespace Parafoil;
-
-int main()
+namespace Parafoil
 {
-    std::cout << "Parafoil Entrypoint " << "(" << BUILD_TYPE << ")"
-              << " by Skyward Experimental Rocketry" << std::endl;
 
-    auto logger = Logging::getLogger("Mockup");
-    DependencyManager depman{};
+enum class NASControllerState : uint8_t
+{
+    INIT = 0,
+    CALIBRATING,
+    READY,
+    ACTIVE,
+    END
+};
 
-    std::cout << "Instantiating modules" << std::endl;
-    bool initResult = true;
+struct NASControllerStatus
+{
+    uint64_t timestamp       = 0;
+    NASControllerState state = NASControllerState::INIT;
 
-    // Core components
-    auto buses = new Buses();
-    initResult &= depman.insert(buses);
-    auto scheduler = new BoardScheduler();
-    initResult &= depman.insert(scheduler);
+    static std::string header() { return "timestamp,state\n"; }
 
-    // Sensors
-    auto sensors = new Sensors();
-    initResult &= depman.insert(sensors);
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
 
-    return 0;
-}
+}  // namespace Parafoil
