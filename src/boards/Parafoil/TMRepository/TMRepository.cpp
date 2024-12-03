@@ -54,13 +54,13 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
         {
             mavlink_sys_tm_t tm;
 
-            tm.timestamp = TimestampTimer::getTimestamp();
-            tm.logger    = Logger::getInstance().isStarted();
-            // tm.board_scheduler = modules.get<BoardScheduler>()->isStarted();
-            tm.event_broker = EventBroker::getInstance().isRunning();
-            tm.radio        = modules.get<Radio>()->isStarted();
-            tm.sensors      = modules.get<Sensors>()->isStarted();
-            tm.pin_handler  = modules.get<PinHandler>()->isStarted();
+            tm.timestamp       = TimestampTimer::getTimestamp();
+            tm.logger          = Logger::getInstance().isStarted();
+            tm.board_scheduler = modules.get<BoardScheduler>()->isStarted();
+            tm.event_broker    = EventBroker::getInstance().isRunning();
+            tm.radio           = modules.get<Radio>()->isStarted();
+            tm.sensors         = modules.get<Sensors>()->isStarted();
+            tm.pin_observer    = modules.get<PinHandler>()->isStarted();
 
             mavlink_msg_sys_tm_encode(RadioConfig::MAV_SYSTEM_ID,
                                       RadioConfig::MAV_COMP_ID, &msg, &tm);
@@ -91,34 +91,32 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
 
             break;
         }
-        // case SystemTMList::MAV_MAVLINK_STATS:
-        // {
-        //     mavlink_mavlink_stats_tm_t tm;
+        case SystemTMList::MAV_MAVLINK_STATS:
+        {
+            mavlink_mavlink_stats_tm_t tm;
 
-        //     // Get the mavlink stats
-        //     MavlinkStatus stats =
-        //     modules.get<Radio>()->mavDriver->getStatus();
+            // Get the mavlink stats
+            MavlinkStatus stats = modules.get<Radio>()->mavDriver->getStatus();
 
-        //     tm.timestamp               = stats.timestamp;
-        //     tm.n_send_queue            = stats.nSendQueue;
-        //     tm.max_send_queue          = stats.maxSendQueue;
-        //     tm.n_send_errors           = stats.nSendErrors;
-        //     tm.msg_received            = stats.mavStats.msg_received;
-        //     tm.buffer_overrun          = stats.mavStats.buffer_overrun;
-        //     tm.parse_error             = stats.mavStats.parse_error;
-        //     tm.parse_state             = stats.mavStats.parse_state;
-        //     tm.packet_idx              = stats.mavStats.packet_idx;
-        //     tm.current_rx_seq          = stats.mavStats.current_rx_seq;
-        //     tm.current_tx_seq          = stats.mavStats.current_tx_seq;
-        //     tm.packet_rx_success_count =
-        //     stats.mavStats.packet_rx_success_count; tm.packet_rx_drop_count
-        //     = stats.mavStats.packet_rx_drop_count;
+            tm.timestamp               = stats.timestamp;
+            tm.n_send_queue            = stats.nSendQueue;
+            tm.max_send_queue          = stats.maxSendQueue;
+            tm.n_send_errors           = stats.nSendErrors;
+            tm.msg_received            = stats.mavStats.msg_received;
+            tm.buffer_overrun          = stats.mavStats.buffer_overrun;
+            tm.parse_error             = stats.mavStats.parse_error;
+            tm.parse_state             = stats.mavStats.parse_state;
+            tm.packet_idx              = stats.mavStats.packet_idx;
+            tm.current_rx_seq          = stats.mavStats.current_rx_seq;
+            tm.current_tx_seq          = stats.mavStats.current_tx_seq;
+            tm.packet_rx_success_count = stats.mavStats.packet_rx_success_count;
+            tm.packet_rx_drop_count    = stats.mavStats.packet_rx_drop_count;
 
-        //     mavlink_msg_mavlink_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-        //                                         RadioConfig::MAV_COMP_ID,
-        //                                         &msg, &tm);
-        //     break;
-        // }
+            mavlink_msg_mavlink_stats_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                                RadioConfig::MAV_COMP_ID, &msg,
+                                                &tm);
+            break;
+        }
         case SystemTMList::MAV_NAS_ID:
         {
             mavlink_nas_tm_t tm;
@@ -235,9 +233,8 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                      .batVoltage;
             // tm.current_consumption =
             //     modules.get<Sensors>()->getCurrentLastSample().current;
-            tm.temperature = lps22df.temperature;
-            tm.cutter_presence =
-                Logger::getInstance().getStats().lastWriteError;
+            tm.temperature  = lps22df.temperature;
+            tm.logger_error = Logger::getInstance().getStats().lastWriteError;
 
             tm.battery_voltage = modules.get<Sensors>()
                                      ->getBatteryVoltageLastSample()
@@ -261,26 +258,26 @@ mavlink_message_t TMRepository::packSystemTm(SystemTMList tmId, uint8_t msgId,
                                                 &tm);
             break;
         }
-            // case SystemTMList::MAV_FSM_ID:
-            // {
-            // mavlink_fsm_tm_t tm;
+        case SystemTMList::MAV_FSM_ID:
+        {
+            mavlink_fsm_tm_t tm;
 
-            // tm.timestamp = TimestampTimer::getTimestamp();
-            // tm.abk_state = 0;
-            // tm.ada_state = 0;
-            // tm.dpl_state = static_cast<uint8_t>(
-            // modules.get<WingController>()->getStatus().state);
-            // tm.fmm_state = static_cast<uint8_t>(
-            // modules.get<FlightModeManager>()->getStatus().state);
-            // tm.nas_state = static_cast<uint8_t>(
-            // modules.get<NASController>()->getStatus().state);
-            // tm.wes_state = 0;
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.abk_state = 0;
+            tm.ada_state = 0;
+            tm.dpl_state = static_cast<uint8_t>(
+                modules.get<WingController>()->getStatus().state);
+            tm.fmm_state = static_cast<uint8_t>(
+                modules.get<FlightModeManager>()->getStatus().state);
+            tm.nas_state = static_cast<uint8_t>(
+                modules.get<NASController>()->getStatus().state);
+            tm.wes_state = 0;
 
-            // mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
-            //   RadioConfig::MAV_COMP_ID, &msg, &tm);
+            mavlink_msg_fsm_tm_encode(RadioConfig::MAV_SYSTEM_ID,
+                                      RadioConfig::MAV_COMP_ID, &msg, &tm);
 
-            // break;
-        // }
+            break;
+        }
         case SystemTMList::MAV_PIN_OBS_ID:
         {
             mavlink_pin_tm_t tm;
