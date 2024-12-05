@@ -65,9 +65,29 @@ bool Sensors::vn300Init()
     return true;
 }
 
+bool Sensors::calibrate()
+{
+    // Already in calibration mode.
+    if (calibrating)
+        return false;
+    calibrationStart = std::chrono::nanoseconds(miosix::getTime());
+    calibrating      = true;
+    vn300->startHSIEstimator(VN300_CAL_CONVERGENCE);
+    return true;
+}
+
+bool Sensors::isCalibrating() { return calibrating; }
+
 void Sensors::vn300Callback()
 {
-    Logger::getInstance().log(vn300->getLastSample());
+    if (calibrating)
+    {
+        if (calibrationStart - std::chrono::nanoseconds(miosix::getTime()) >
+            VN300_CAL_TIME)
+            vn300->stopHSIEstimator();
+    }
+    else
+        Logger::getInstance().log(vn300->getLastSample());
 }
 
 VN300Data Sensors::getVN300LastSample() { return vn300->getLastSample(); }

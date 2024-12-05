@@ -331,6 +331,12 @@ void SMA::update()
 
             break;
         }
+        case SMAState::CALIBRATE:
+        {
+            if (!sensors->isCalibrating())
+                EventBroker::getInstance().post(ARP_CAL_DONE, TOPIC_ARP);
+        }
+        break;
         default:
         {
             break;
@@ -704,6 +710,9 @@ State SMA::state_calibrate(const Event& event)
     {
         case EV_ENTRY:
         {
+            auto* sensors = getModule<Sensors>();
+            if (!sensors->calibrate() && sensors->isCalibrating())
+                transition(&SMA::state_test);
             logStatus(SMAState::CALIBRATE);
             return HANDLED;
         }
