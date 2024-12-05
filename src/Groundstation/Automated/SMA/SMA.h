@@ -97,6 +97,7 @@ public:
 
     /**
      * @brief move the stepper `stepperId` of `angle` degrees
+     *
      */
     ActuationStatus moveStepperDeg(StepperList stepperId, float angle);
 
