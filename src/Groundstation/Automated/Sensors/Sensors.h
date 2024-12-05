@@ -21,7 +21,10 @@
  */
 #pragma once
 
+#include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include <chrono>
 
 #include "Groundstation/LyraGS/Buses.h"
 #include "sensors/SensorManager.h"
@@ -29,6 +32,12 @@
 
 namespace Antennas
 {
+
+static constexpr uint8_t VN300_CAL_CONVERGENCE =
+    4;  ///< Calibration convergence parameter for VN300 soft and hard iron
+        ///< calibration. 5: converge in 60-90sec, 1: converge in 15-20sec
+static constexpr std::chrono::seconds VN300_CAL_TIME = std::chrono::seconds(30);
+
 class Sensors : public Boardcore::InjectableWithDeps<LyraGS::Buses>
 {
 public:
@@ -44,14 +53,27 @@ public:
      */
     Boardcore::VN300Data getVN300LastSample();
 
+    /**
+     * @brief Trigger the calibration process for soft-hard iron in the VN300
+     */
+    bool calibrate();
+
+    /**
+     * @brief Returns the status of the calibration
+     */
+    bool isCalibrating();
+
 private:
     bool vn300Init();
     void vn300Callback();
+
+    std::atomic<bool> calibrating{false};
 
     Boardcore::VN300* vn300 = nullptr;
 
     Boardcore::SensorManager* sm = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
+    std::chrono::nanoseconds calibrationStart;
 };
 }  // namespace Antennas
