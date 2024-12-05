@@ -41,6 +41,8 @@ constexpr int SELECTED_ALGORITHM   = 1;
 constexpr int SELECTED_ALGORITHM = 2;
 #elif ROTATION
 constexpr int SELECTED_ALGORITHM = 3;
+#elif PROGRESSIVE_ROTATION
+constexpr int SELECTED_ALGORITHM = 4;
 #else
 constexpr int SELECTED_ALGORITHM = 0;
 #endif
@@ -54,6 +56,8 @@ constexpr float DEFAULT_TARGET_LON = 9.1544219;
 #endif
 
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
+constexpr int PARAFOIL_COMMAND_PERIOD      = 5 * 1000;   // [ms]
+constexpr int PARAFOIL_WING_INCREMENT      = 10;         // [°]
 
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 

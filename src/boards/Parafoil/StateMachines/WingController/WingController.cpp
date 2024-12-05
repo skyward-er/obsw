@@ -348,6 +348,22 @@ bool WingController::addAlgorithms()
     result &= algorithm->init();
     algorithms.push_back(algorithm);
 
+    // Algorithm 4 (Progressive rotation)
+    algorithm = new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
+
+    step.timestamp = 0;
+    for (int i = 0; i < 80; i += PARAFOIL_WING_INCREMENT)
+    {
+        step.timestamp += PARAFOIL_COMMAND_PERIOD * 1000;  // us
+        step.servo1Angle = i;
+        step.servo2Angle = 0;
+        algorithm->addStep(step);
+        step.timestamp += PARAFOIL_COMMAND_PERIOD * 1000;  // us
+        step.servo1Angle = 0;
+        step.servo2Angle = i;
+        algorithm->addStep(step);
+    }
+
     selectAlgorithm(SELECTED_ALGORITHM);
 
     return result;

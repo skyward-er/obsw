@@ -33,6 +33,13 @@ project(OnBoardSoftware)
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 
+
+
+add_executable(parafoil-progressive-rotation src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-progressive-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-progressive-rotation PRIVATE PROGRESSIVE_ROTATION MILANO)
+sbs_target(parafoil-progressive-rotation stm32f429zi_skyward_death_stack_x)
+
 add_executable(parafoil-guided-milano src/entrypoints/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-milano PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-guided-milano PRIVATE CLOSED_LOOP MILANO)
