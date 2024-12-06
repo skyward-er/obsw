@@ -54,8 +54,8 @@ constexpr auto GYRO_FSR     = Boardcore::BMX160Config::GyroscopeRange::DEG_1000;
 constexpr auto ACC_GYRO_ODR = Boardcore::BMX160Config::OutputDataRate::HZ_200;
 constexpr auto MAG_ODR      = Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
-constexpr auto AXIS_ROTATION = {Boardcore::Direction::NEGATIVE_Y,
-                                Boardcore::Direction::NEGATIVE_Z};
+static const Boardcore::AxisOrthoOrientation AXIS_ORIENTATION = {
+    Boardcore::Direction::NEGATIVE_Y, Boardcore::Direction::NEGATIVE_Z};
 
 constexpr auto TEMP_DIVIDER   = 1000;
 constexpr auto FIFO_WATERMARK = 40;
