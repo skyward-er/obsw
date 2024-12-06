@@ -151,6 +151,7 @@
         "Gpio",
         "GPIOF",
         "GPIOG",
+        "hwmap",
         "KALM",
         "kalman",
         "Leds",
@@ -180,6 +181,7 @@
         "Ublox",
         "UBXGPS",
         "usart",
+        "Vbat",
         "VREF",
         "Xbee"
     ],

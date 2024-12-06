@@ -24,6 +24,7 @@
 
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/FlightModeManagerConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>

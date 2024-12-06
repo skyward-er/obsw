@@ -56,6 +56,7 @@ class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
       public Boardcore::InjectableWithDeps<Sensors, Actuators>
 {
+public:
     FlightModeManager();
     ~FlightModeManager();
 

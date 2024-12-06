@@ -149,6 +149,8 @@ void NASController::Calibrating(const Event& event)
     }
 }
 
+// State skipped on entry because we don't have Armed and Disarmed
+// states in the FMM
 void NASController::Ready(const Event& event)
 {
     switch (event)
@@ -156,18 +158,6 @@ void NASController::Ready(const Event& event)
         case EV_ENTRY:
         {
             updateState(NASControllerState::READY);
-            break;
-        }
-
-        case NAS_CALIBRATE:
-        {
-            transition(&NASController::Calibrating);
-            break;
-        }
-
-        case NAS_FORCE_START:
-        case FLIGHT_ARMED:
-        {
             transition(&NASController::Active);
             break;
         }
@@ -184,16 +174,15 @@ void NASController::Active(const Event& event)
             break;
         }
 
-        case FLIGHT_LANDING_DETECTED:
+        case NAS_CALIBRATE:
         {
-            transition(&NASController::End);
+            transition(&NASController::Calibrating);
             break;
         }
 
-        case NAS_FORCE_STOP:
-        case FLIGHT_DISARMED:
+        case FLIGHT_LANDING_DETECTED:
         {
-            transition(&NASController::Ready);
+            transition(&NASController::End);
             break;
         }
     }
@@ -250,7 +239,7 @@ void NASController::calibrate()
     ReferenceValues reference = nas.getReferenceValues();
     reference.refPressure     = meanBaro;
     reference.refAltitude     = Aeroutils::relAltitude(
-        reference.refPressure, reference.mslPressure, reference.mslTemperature);
+            reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // Also update the reference with the GPS if we have fix
     UBXGPSData gps = sensors->getUBXGPSLastSample();

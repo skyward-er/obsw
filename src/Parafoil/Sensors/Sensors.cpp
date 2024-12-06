@@ -245,7 +245,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(                                         \
-            SensorInfo { #name, config::name::SAMPLING_RATE, nullptr, false })
+            SensorInfo{#name, config::name::SAMPLING_RATE, nullptr, false})
 
         PUSH_SENSOR_INFO(bmx160, BMX160);
         PUSH_SENSOR_INFO(bmx160WithCorrection, BMX160);
@@ -288,16 +288,17 @@ void Sensors::bmx160Init()
     config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
 
     bmx160 = std::make_unique<BMX160>(getModule<Buses>()->spi1,
-                                      hwmap::bmx160::cs::getPin(), spiConfig,
-                                      config);
+                                      hwmap::bmx160::cs::getPin(), config,
+                                      spiConfig);
 
     LOG_INFO(logger, "BMX160 initialized!");
 }
 
 void Sensors::bmx160WithCorrectionInit()
 {
+
     bmx160WithCorrection = std::make_unique<BMX160WithCorrection>(
-        bmx160.get(), config::BMX160::AXIS_ROTATION);
+        bmx160.get(), config::BMX160::AXIS_ORIENTATION);
 
     LOG_INFO(logger, "BMX160WithCorrection initialized!");
 }
@@ -355,7 +356,7 @@ void Sensors::ubxGpsInit()
 
     ubxgps = std::make_unique<UBXGPSSpi>(getModule<Buses>()->spi1,
                                          hwmap::ubxgps::cs::getPin(), spiConfig,
-                                         config::UBXGPS::SAMPLING_RATE);
+                                         config::UBXGPS::SAMPLING_RATE.value());
 
     LOG_INFO(logger, "UBXGPS initialized!");
 }

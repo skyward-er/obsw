@@ -127,5 +127,7 @@ set (LYRA_GS
 )
 
 set(PARAFOIL_COMPUTER 
-    
+    src/Parafoil/Sensors/Sensors.cpp
+    # src/Parafoil/StateMachines/NASController/NASController.cpp
+    src/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
 )
