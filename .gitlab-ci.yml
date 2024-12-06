@@ -22,6 +22,9 @@
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
+default:
+  image: registry.skywarder.eu/avn/swd/docker/miosix:v1
+
 stages:
   - build-release
   - build-debug
@@ -33,8 +36,6 @@ stages:
 
 build-release:
   stage: build-release
-  tags:
-    - miosix
   script:
     - ./sbs build
 
@@ -42,8 +43,6 @@ build-release:
 
 build-debug:
   stage: build-debug
-  tags:
-    - miosix
   script:
     - ./sbs build --debug
 
@@ -61,29 +60,21 @@ build-debug:
 
 cppcheck:
   stage: lint
-  tags:
-    - miosix
   script:
     - ./skyward-boardcore/scripts/linter.py --cppcheck src
 
 format:
   stage: lint
-  tags:
-    - miosix
   script:
     - ./skyward-boardcore/scripts/linter.py --format src
 
 copyright:
   stage: lint
-  tags:
-    - miosix
   script:
     - ./skyward-boardcore/scripts/linter.py --copyright src
 
 find:
   stage: lint
-  tags:
-    - miosix
   script:
     - ./skyward-boardcore/scripts/linter.py --find src
 
