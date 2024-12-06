@@ -67,7 +67,7 @@ static const Boardcore::NASConfig CONFIG = {
 constexpr int MAGNETOMETER_DECIMATE = 50;
 
 // Maximum allowed acceleration to correct with GPS
-constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2]
+constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2].
 
 // How much confidence (in m/s^2) to apply to the accelerometer to check if it
 // is 1g

@@ -23,10 +23,47 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <common/Events.h>
+#include <common/Topics.h>
 #include <diagnostic/PrintLogger.h>
+#include <diagnostic/StackLogger.h>
+#include <events/EventBroker.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <iomanip>
 #include <iostream>
+
+/**
+ * @brief Starts a module and checks if it started correctly.
+ * Must be followed by a semicolon or a block of code.
+ * The block of code will be executed only if the module started correctly.
+ *
+ * @example START_MODULE(sensors) { miosix::ledOn(); }
+ */
+#define START_MODULE(module)                                             \
+    std::cout << "Starting " #module << std::endl;                       \
+    if (!module->start())                                                \
+    {                                                                    \
+        initResult = false;                                              \
+        std::cerr << "*** Failed to start " #module " ***" << std::endl; \
+    }                                                                    \
+    else
+
+/**
+ * @brief Starts a singleton and checks if it started correctly.
+ * Must be followed by a semicolon or a block of code.
+ * The block of code will be executed only if the singleton started correctly.
+ *
+ * @example `START_SINGLETON(Logger) { miosix::ledOn(); }`
+ */
+#define START_SINGLETON(singleton)                                          \
+    std::cout << "Starting " #singleton << std::endl;                       \
+    if (!singleton::getInstance().start())                                  \
+    {                                                                       \
+        initResult = false;                                                 \
+        std::cerr << "*** Failed to start " #singleton " ***" << std::endl; \
+    }
 
 // Build type string for printing during startup
 #if defined(DEBUG)
@@ -37,13 +74,15 @@
 
 using namespace Boardcore;
 using namespace Parafoil;
+using namespace Common;
 
 int main()
 {
-    std::cout << "Parafoil Entrypoint " << "(" << BUILD_TYPE << ")"
+    std::cout << "Parafoil Entrypoint "
+              << "(" << BUILD_TYPE << ")"
               << " by Skyward Experimental Rocketry" << std::endl;
 
-    auto logger = Logging::getLogger("Mockup");
+    auto logger = Logging::getLogger("Parafoil");
     DependencyManager depman{};
 
     std::cout << "Instantiating modules" << std::endl;
@@ -55,9 +94,69 @@ int main()
     auto scheduler = new BoardScheduler();
     initResult &= depman.insert(scheduler);
 
+    // Global state machine
+    auto flightModeManager = new FlightModeManager();
+    initResult &= depman.insert(flightModeManager);
+
     // Sensors
     auto sensors = new Sensors();
     initResult &= depman.insert(sensors);
+    // TODO: PinHandler
+
+    // TODO: Radio
+
+    // TODO: Flight algorithms
+
+    START_SINGLETON(Logger)
+    {
+        std::cout << "Logger Ok!\n"
+                  << "\tLog number: "
+                  << Logger::getInstance().getCurrentLogNumber() << std::endl;
+    }
+
+    START_MODULE(flightModeManager);
+    // START_MODULE(pinHandler);
+    // START_MODULE(radio) { miosix::led2On(); }
+    // START_MODULE(canHandler) { miosix::led3On(); }
+    // START_MODULE(nasController);
+    // START_MODULE(altitudeTrigger);
+    // START_MODULE(wingController);
+    // START_MODULE(actuators);
+
+    // START_MODULE(scheduler);
+
+    START_MODULE(sensors);
+
+    if (initResult)
+    {
+        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        // Turn on the initialization led on the CU
+        miosix::ledOn();
+        // TODO: actuators->setStatusOk();
+        std::cout << "Payload initialization Ok!" << std::endl;
+    }
+    else
+    {
+        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
+        // TODO: actuators->setStatusError();
+        std::cerr << "*** Payload initialization error ***" << std::endl;
+    }
+
+    std::cout << "Sensors status:" << std::endl;
+    auto sensorInfo = sensors->getSensorInfo();
+    for (const auto& info : sensorInfo)
+    {
+        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
+                  << (info.isInitialized ? "Ok" : "Error") << "\n";
+    }
+    std::cout.flush();
+
+    // Collect stack usage statistics
+    while (true)
+    {
+        StackLogger::getInstance().log();
+        Thread::sleep(1000);
+    }
 
     return 0;
 }
