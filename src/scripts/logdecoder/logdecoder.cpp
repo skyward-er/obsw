@@ -20,13 +20,13 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Parafoil/StateMachines/NASController/NASControllerData.h>
 #include <Parafoil/StateMachines/WingController/WingControllerData.h>
-#include <Parafoil/Configs/WingConfig.h>
-#include <Parafoil/Wing/WingTargetPositionData.h>
-#include <Parafoil/Wing/WingAlgorithmData.h>
 #include <Parafoil/WindEstimationScheme/WindEstimationData.h>
+#include <Parafoil/Wing/WingAlgorithmData.h>
+#include <Parafoil/Wing/WingTargetPositionData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <radio/Xbee/APIFramesLog.h>
@@ -75,7 +75,6 @@ void registerTypes(Deserializer& ds)
     ds.registerType<WingTargetPositionData>();
     ds.registerType<WingAlgorithmData>();
     ds.registerType<WindLogging>();
-    
 }
 
 void showUsage(const string& cmdName)

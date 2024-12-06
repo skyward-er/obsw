@@ -179,14 +179,15 @@ State WingController::state_calibration(const Boardcore::Event& event)
         case DPL_NC_OPEN:
         {
             reset();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_WES_CAL_DONE, TOPIC_DPL, WES_CALIBRATION_TIMEOUT);
-            modules.get<WindEstimation>()
-                ->startWindEstimationSchemeCalibration();
+            // calibrationTimeoutEventId =
+            // EventBroker::getInstance().postDelayed(
+            //    DPL_WES_CAL_DONE, TOPIC_DPL, WES_CALIBRATION_TIMEOUT);
+            // modules.get<WindEstimation>()
+            //    ->startWindEstimationSchemeCalibration();
 
-            modules.get<Actuators>()->startTwirl();
+            // modules.get<Actuators>()->startTwirl();
 
-            return HANDLED;
+            return transition(&WingController::state_controlled_descent);
         }
         case DPL_WES_CAL_DONE:
         {
@@ -351,10 +352,10 @@ bool WingController::addAlgorithms()
     // Algorithm 4 (Progressive rotation)
     algorithm = new WingAlgorithm(PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO);
 
-    step.timestamp = 0;
-    for (int i = 0; i < 80; i += PARAFOIL_WING_INCREMENT)
+    step.timestamp = 5000 * 1000;  // us
+
+    for (int i = 150; i >= 0; i -= PARAFOIL_WING_DECREMENT)
     {
-        step.timestamp += PARAFOIL_COMMAND_PERIOD * 1000;  // us
         step.servo1Angle = i;
         step.servo2Angle = 0;
         algorithm->addStep(step);
@@ -362,7 +363,10 @@ bool WingController::addAlgorithms()
         step.servo1Angle = 0;
         step.servo2Angle = i;
         algorithm->addStep(step);
+        step.timestamp += PARAFOIL_COMMAND_PERIOD * 1000;  // us
     }
+    result &= algorithm->init();
+    algorithms.push_back(algorithm);
 
     selectAlgorithm(SELECTED_ALGORITHM);
 

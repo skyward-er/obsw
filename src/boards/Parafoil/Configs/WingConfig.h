@@ -56,8 +56,8 @@ constexpr float DEFAULT_TARGET_LON = 9.1544219;
 #endif
 
 constexpr int WING_STRAIGHT_FLIGHT_TIMEOUT = 15 * 1000;  // [ms]
-constexpr int PARAFOIL_COMMAND_PERIOD      = 5 * 1000;   // [ms]
-constexpr int PARAFOIL_WING_INCREMENT      = 10;         // [°]
+constexpr int PARAFOIL_COMMAND_PERIOD      = 6 * 1000;   // [ms]
+constexpr int PARAFOIL_WING_DECREMENT      = 30;         // [°]
 
 constexpr int WING_UPDATE_PERIOD = 1000;  // [ms]
 
