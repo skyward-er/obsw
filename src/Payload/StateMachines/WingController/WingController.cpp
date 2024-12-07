@@ -284,9 +284,7 @@ State WingController::OnGround(const Boardcore::Event& event)
 void WingController::inject(DependencyInjector& injector)
 {
     for (auto& algorithm : algorithms)
-    {
         algorithm->inject(injector);
-    }
     Super::inject(injector);
 }
 
@@ -317,9 +315,7 @@ bool WingController::start()
         {
             // Do not update the active target if the wing is not flying
             if (!running)
-            {
                 return;
-            }
 
             auto nasState  = getModule<NASController>()->getNasState();
             float altitude = -nasState.d;
@@ -356,9 +352,7 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
 {
     // Allow changing the target position in the IDLE state only
     if (state != WingControllerState::IDLE)
-    {
         return false;
-    }
 
     targetPositionGEO = Coordinates{latitude, longitude};
 
@@ -391,9 +385,7 @@ bool WingController::selectAlgorithm(uint8_t index)
 {
     // Allow changing the algorithm in the IDLE state only
     if (state != WingControllerState::IDLE)
-    {
         return false;
-    }
 
     switch (index)
     {
@@ -519,7 +511,7 @@ void WingController::updateEarlyManeuverPoints()
 
     Vector2f currentPositionNED = {nasState.n, nasState.e};
     Vector2f targetNED          = Aeroutils::geodetic2NED(
-                 targetGEO, {nasRef.refLatitude, nasRef.refLongitude});
+        targetGEO, {nasRef.refLatitude, nasRef.refLongitude});
 
     Vector2f targetOffsetNED = targetNED - currentPositionNED;
     Vector2f normPoint       = targetOffsetNED / targetOffsetNED.norm();
@@ -570,9 +562,7 @@ void WingController::updateEarlyManeuverPoints()
 void WingController::update()
 {
     if (running)
-    {
         getCurrentAlgorithm().step();
-    }
 }
 
 void WingController::flareWing()

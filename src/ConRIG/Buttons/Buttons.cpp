@@ -40,7 +40,7 @@ Buttons::Buttons()
 
 bool Buttons::start()
 {
-    TaskScheduler &scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
 
     return scheduler.addTask([this]() { periodicStatusCheck(); },
                              Config::Buttons::BUTTON_SAMPLE_PERIOD) != 0;

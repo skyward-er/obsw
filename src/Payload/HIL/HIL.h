@@ -70,7 +70,6 @@ class PayloadHIL
           Payload::Buses, Payload::Actuators, Payload::FlightModeManager,
           Payload::WingController, Payload::NASController>
 {
-
 public:
     PayloadHIL();
 

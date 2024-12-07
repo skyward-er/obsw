@@ -34,24 +34,16 @@ using namespace miosix;
 bool Sensors::start()
 {
     if (Config::Sensors::LPS22DF::ENABLED)
-    {
         lps22dfInit();
-    }
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
-    {
         h3lis331dlInit();
-    }
 
     if (Config::Sensors::LIS2MDL::ENABLED)
-    {
         lis2mdlInit();
-    }
 
     if (Config::Sensors::LSM6DSRX::ENABLED)
-    {
         lsm6dsrxInit();
-    }
 
     if (Config::Sensors::ADS131M08::ENABLED)
     {
@@ -63,9 +55,7 @@ bool Sensors::start()
     }
 
     if (Config::Sensors::InternalADC::ENABLED)
-    {
         internalAdcInit();
-    }
 
     if (!postSensorCreationHook())
     {
@@ -271,9 +261,7 @@ void Sensors::lsm6dsrxCallback()
 
     // For every instance inside the fifo log the sample
     for (uint16_t i = 0; i < lsm6dsrx->getLastFifoSize(); i++)
-    {
         sdLogger.log(lsm6dsrx->getLastFifo().at(i));
-    }
 }
 
 void Sensors::ads131m08Init()

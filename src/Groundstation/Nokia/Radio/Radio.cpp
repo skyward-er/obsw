@@ -77,21 +77,15 @@ bool Radio::start()
 
     // First check if the device is even connected
     if (!sx1278->checkVersion())
-    {
         return false;
-    }
 
     // Configure the radio
     if (sx1278->configure(Common::MAIN_RADIO_CONFIG) != SX1278Fsk::Error::NONE)
-    {
         return false;
-    }
 
     // Initialize if only if present
     if (!RadioBase::start(std::move(sx1278)))
-    {
         return false;
-    }
 
     return true;
 }

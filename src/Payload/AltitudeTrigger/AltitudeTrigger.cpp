@@ -43,9 +43,7 @@ bool AltitudeTrigger::start()
                                   config::AltitudeTrigger::UPDATE_RATE);
 
     if (task == 0)
-    {
         return false;
-    }
 
     started = true;
     return true;
@@ -56,9 +54,7 @@ bool AltitudeTrigger::isStarted() { return started; }
 void AltitudeTrigger::enable()
 {
     if (running)
-    {
         return;
-    }
 
     confidence = 0;
     running    = true;
@@ -76,22 +72,16 @@ void AltitudeTrigger::setDeploymentAltitude(float altitude)
 void AltitudeTrigger::update()
 {
     if (!running)
-    {
         return;
-    }
 
     // NED frame, flip the D sign to get above-ground-level altitude
     auto nasState  = getModule<NASController>()->getNasState();
     float altitude = -nasState.d;
 
     if (altitude < targetAltitude)
-    {
         confidence++;
-    }
     else
-    {
         confidence = 0;
-    }
 
     if (confidence >= config::AltitudeTrigger::CONFIDENCE)
     {

@@ -41,9 +41,7 @@ void Actuators::ServoInfo::openServoWithTime(uint32_t time)
     lastActionTs = currentTime;
 
     if (openingEvent != 0)
-    {
         EventBroker::getInstance().post(openingEvent, TOPIC_MOTOR);
-    }
 }
 
 void Actuators::ServoInfo::closeServo()
@@ -52,24 +50,18 @@ void Actuators::ServoInfo::closeServo()
     lastActionTs = getTime();
 
     if (closingEvent != 0)
-    {
         EventBroker::getInstance().post(closingEvent, TOPIC_MOTOR);
-    }
 }
 
 void Actuators::ServoInfo::unsafeSetServoPosition(float position)
 {
     // Check that the servo is actually there, just to be safe
     if (!servo)
-    {
         return;
-    }
 
     position *= limit;
     if (flipped)
-    {
         position = 1.0f - position;
-    }
 
     servo->setPosition(position);
 }
@@ -78,15 +70,11 @@ float Actuators::ServoInfo::getServoPosition()
 {
     // Check that the servo is actually there, just to be safe
     if (!servo)
-    {
         return 0.0f;
-    }
 
     float position = servo->getPosition();
     if (flipped)
-    {
         position = 1.0f - position;
-    }
 
     position /= limit;
     return position;
@@ -170,7 +158,7 @@ Actuators::Actuators()
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
 
-    ServoInfo *info;
+    ServoInfo* info;
     info                     = getServo(ServosList::FILLING_VALVE);
     info->defaultMaxAperture = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
     info->defaultOpeningTime = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
@@ -230,7 +218,7 @@ bool Actuators::isStarted() { return started; }
 
 bool Actuators::start()
 {
-    TaskScheduler &scheduler =
+    TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getActuatorsScheduler();
 
     infos[0].servo->enable();
@@ -273,11 +261,9 @@ bool Actuators::wiggleServo(ServosList servo)
 bool Actuators::toggleServo(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     if (info->closeTs == 0)
     {
@@ -300,11 +286,9 @@ bool Actuators::toggleServo(ServosList servo)
 bool Actuators::openServo(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     uint32_t time = info->getOpeningTime();
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
@@ -316,11 +300,9 @@ bool Actuators::openServo(ServosList servo)
 bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->openServoWithTime(time);
@@ -330,11 +312,9 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 bool Actuators::closeServo(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     getModule<CanHandler>()->sendServoCloseCommand(servo);
     info->closeServo();
@@ -345,9 +325,7 @@ void Actuators::closeAllServos()
 {
     Lock<FastMutex> lock(infosMutex);
     for (uint8_t idx = 0; idx < 10; idx++)
-    {
         infos[idx].closeServo();
-    }
 
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::VENTING_VALVE);
@@ -356,11 +334,9 @@ void Actuators::closeAllServos()
 bool Actuators::setMaxAperture(ServosList servo, float aperture)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     return info->setMaxAperture(aperture);
 }
@@ -368,11 +344,9 @@ bool Actuators::setMaxAperture(ServosList servo, float aperture)
 bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     return info->setOpeningTime(time);
 }
@@ -380,11 +354,9 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
 bool Actuators::isServoOpen(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     return info->closeTs != 0;
 }
@@ -393,17 +365,11 @@ bool Actuators::isCanServoOpen(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
-    {
         return canMainOpen;
-    }
     else if (servo == ServosList::VENTING_VALVE)
-    {
         return canVentingOpen;
-    }
     else
-    {
         return false;
-    }
 }
 
 void Actuators::openNitrogen()
@@ -435,11 +401,9 @@ bool Actuators::isNitrogenOpen()
 uint32_t Actuators::getServoOpeningTime(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return 0;
-    }
 
     return info->getOpeningTime();
 }
@@ -447,11 +411,9 @@ uint32_t Actuators::getServoOpeningTime(ServosList servo)
 float Actuators::getServoMaxAperture(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return 0;
-    }
 
     return info->getMaxAperture();
 }
@@ -460,25 +422,19 @@ void Actuators::setCanServoOpen(ServosList servo, bool open)
 {
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
-    {
         canMainOpen = open;
-    }
     else if (servo == ServosList::VENTING_VALVE)
-    {
         canVentingOpen = open;
-    }
 }
 
-void Actuators::inject(DependencyInjector &injector)
+void Actuators::inject(DependencyInjector& injector)
 {
     Super::inject(injector);
-    for (ServoInfo &info : infos)
-    {
+    for (ServoInfo& info : infos)
         info.inject(injector);
-    }
 }
 
-Actuators::ServoInfo *Actuators::getServo(ServosList servo)
+Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 {
     switch (servo)
     {

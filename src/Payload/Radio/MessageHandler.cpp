@@ -65,9 +65,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_system_tm_request_tc_get_tm_id(&msg));
 
             if (!enqueueSystemTm(tmId))
-            {
                 return enqueueNack(msg);
-            }
 
             return enqueueAck(msg);
         }
@@ -78,9 +76,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg));
 
             if (!enqueueSensorsTm(sensorId))
-            {
                 return enqueueNack(msg);
-            }
 
             return enqueueAck(msg);
         }
@@ -93,9 +89,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             float position =
                 parent.getModule<Actuators>()->getServoPosition(servo);
             if (position < 0)
-            {
                 return enqueueNack(msg);
-            }
 
             mavlink_message_t tmMsg;
             mavlink_servo_tm_t tm;
@@ -116,22 +110,16 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 parent.getModule<FlightModeManager>()->servoMovesAllowed();
             // Allow arbitrary servo movements in allowed states only
             if (!allowed)
-            {
                 return enqueueNack(msg);
-            }
 
             auto servo = static_cast<ServosList>(
                 mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
             if (parent.getModule<Actuators>()->setServoAngle(servo, angle))
-            {
                 return enqueueAck(msg);
-            }
             else
-            {
                 return enqueueNack(msg);
-            }
         }
 
         case MAVLINK_MSG_ID_RESET_SERVO_TC:
@@ -140,9 +128,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 parent.getModule<FlightModeManager>()->servoMovesAllowed();
             // Reset servos in allowed states only
             if (!allowed)
-            {
                 return enqueueNack(msg);
-            }
 
             auto servo = static_cast<ServosList>(
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
@@ -166,9 +152,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 parent.getModule<FlightModeManager>()->servoMovesAllowed();
             // Perform the wiggle in allowed states only
             if (!allowed)
-            {
                 return enqueueNack(msg);
-            }
 
             auto servo = static_cast<ServosList>(
                 mavlink_msg_wiggle_servo_tc_get_servo_id(&msg));
@@ -206,13 +190,9 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
             float qNorm = quat.norm();
             if (std::abs(qNorm - 1) > 0.001)
-            {
                 return enqueueWack(msg);
-            }
             else
-            {
                 return enqueueAck(msg);
-            }
         }
 
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -224,13 +204,9 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 altitude);
 
             if (altitude < 200 || altitude > 450)
-            {
                 return enqueueWack(msg);
-            }
             else
-            {
                 return enqueueAck(msg);
-            }
         }
 
         case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
@@ -245,13 +221,9 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                     latitude, longitude);
 
             if (targetSet)
-            {
                 return enqueueAck(msg);
-            }
             else
-            {
                 return enqueueNack(msg);
-            }
         }
 
         case MAVLINK_MSG_ID_SET_ALGORITHM_TC:
@@ -263,13 +235,9 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 parent.getModule<WingController>()->selectAlgorithm(index);
 
             if (algorithmSet)
-            {
                 return enqueueAck(msg);
-            }
             else
-            {
                 return enqueueNack(msg);
-            }
         }
 
         case MAVLINK_MSG_ID_SET_CALIBRATION_PRESSURE_TC:
@@ -297,13 +265,9 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                                                 TOPIC_TMTC);
 
                 if (press < 50000)
-                {
                     return enqueueWack(msg);
-                }
                 else
-                {
                     return enqueueAck(msg);
-                }
             }
         }
 
@@ -315,9 +279,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
             // Raw events are allowed in test mode only
             if (!testMode)
-            {
                 return enqueueNack(msg);
-            }
 
             EventBroker::getInstance().post(topicId, eventId);
             return enqueueAck(msg);
@@ -341,9 +303,7 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
         {
             bool started = Logger::getInstance().start();
             if (!started)
-            {
                 return enqueueNack(msg);
-            }
 
             Logger::getInstance().resetStats();
             return enqueueAck(msg);
@@ -360,19 +320,13 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
             bool testMode = parent.getModule<FlightModeManager>()->isTestMode();
             // Save calibration data in test mode only
             if (!testMode)
-            {
                 return enqueueNack(msg);
-            }
 
             bool magResult = parent.getModule<Sensors>()->saveMagCalibration();
             if (magResult)
-            {
                 return enqueueAck(msg);
-            }
             else
-            {
                 return enqueueNack(msg);
-            }
         }
 
         default:
@@ -380,9 +334,7 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
             // Map the command to an event and post it, if it exists
             auto event = mavCmdToEvent(command);
             if (event == LAST_EVENT)
-            {
                 return enqueueNack(msg);
-            }
 
             EventBroker::getInstance().post(event, TOPIC_TMTC);
             return enqueueAck(msg);

@@ -38,7 +38,7 @@ bool PinHandler::isStarted() { return started; }
 
 bool PinHandler::start()
 {
-    TaskScheduler &scheduler =
+    TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getPinObserverScheduler();
 
     pinObserver = std::make_unique<PinObserver>(scheduler, 20);
@@ -49,26 +49,22 @@ bool PinHandler::start()
         Config::PinHandler::RAMP_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::detachMain::getPin(),
-        [this](PinTransition transition)
+        sense::detachMain::getPin(), [this](PinTransition transition)
         { onDetachMainTransition(transition); },
         Config::PinHandler::MAIN_DETACH_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::detachPayload::getPin(),
-        [this](PinTransition transition)
+        sense::detachPayload::getPin(), [this](PinTransition transition)
         { onDetachPayloadTransition(transition); },
         Config::PinHandler::PAYLOAD_DETACH_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::expulsionSense::getPin(),
-        [this](PinTransition transition)
+        sense::expulsionSense::getPin(), [this](PinTransition transition)
         { onExpulsionSenseTransition(transition); },
         Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::cutterSense::getPin(),
-        [this](PinTransition transition)
+        sense::cutterSense::getPin(), [this](PinTransition transition)
         { onCutterSenseTransition(transition); },
         Config::PinHandler::CUTTER_SENSE_PIN_THRESHOLD);
 

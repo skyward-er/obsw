@@ -33,7 +33,7 @@ namespace LyraGS
 class Buses : public Boardcore::Injectable
 {
 public:
-    Boardcore::SPIBus &getRadio() { return radio1_bus; }
+    Boardcore::SPIBus& getRadio() { return radio1_bus; }
 
     Boardcore::SPIBus radio1_bus{MIOSIX_RADIO1_SPI};
     Boardcore::SPIBus radio2_bus{MIOSIX_RADIO2_SPI};

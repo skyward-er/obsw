@@ -86,8 +86,8 @@ void Actuators::disarm()
 
 ActuationStatus Actuators::setSpeed(StepperList axis, float speed)
 {
-    const auto *config  = getStepperConfig(axis);
-    auto *stepper       = getStepper(axis);
+    const auto* config  = getStepperConfig(axis);
+    auto* stepper       = getStepper(axis);
     auto actuationState = ActuationStatus::OK;
     auto multiplier     = getStepperMultiplier(axis);
 
@@ -130,14 +130,14 @@ int16_t Actuators::getCurrentPosition(StepperList axis)
 float Actuators::getCurrentDegPosition(StepperList axis)
 {
     auto multiplier = getStepperMultiplier(axis);
-    auto *stepper   = getStepper(axis);
+    auto* stepper   = getStepper(axis);
 
     return stepper->getCurrentDegPosition() / multiplier;
 }
 
 ActuationStatus Actuators::move(StepperList axis, int16_t steps)
 {
-    auto *stepper = getStepper(axis);
+    auto* stepper = getStepper(axis);
 
     ActuationStatus actuationState =
         ActuationStatus::OK;  //< In case the move command is not limited
@@ -145,7 +145,7 @@ ActuationStatus Actuators::move(StepperList axis, int16_t steps)
     if (!stepper->isEnabled())
         return ActuationStatus::DISABLED;
 
-    const auto *config = getStepperConfig(axis);
+    const auto* config = getStepperConfig(axis);
     float position     = getCurrentPosition(axis);
 
     int16_t maxSteps =
@@ -172,12 +172,12 @@ ActuationStatus Actuators::move(StepperList axis, int16_t steps)
 
 ActuationStatus Actuators::moveDeg(StepperList axis, float degrees)
 {
-    auto *stepper = getStepper(axis);
+    auto* stepper = getStepper(axis);
 
     ActuationStatus actuationState =
         ActuationStatus::OK;  //< In case the move command is not limited
 
-    const auto *config = getStepperConfig(axis);
+    const auto* config = getStepperConfig(axis);
     auto multiplier    = getStepperMultiplier(axis);
     float positionDeg  = getCurrentDegPosition(axis);
 

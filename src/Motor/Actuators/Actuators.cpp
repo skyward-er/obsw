@@ -48,15 +48,11 @@ void Actuators::ServoInfo::unsafeSetServoPosition(float position)
 {
     // Check that the servo is actually there, just to be safe
     if (!servo)
-    {
         return;
-    }
 
     position *= limit;
     if (flipped)
-    {
         position = 1.0f - position;
-    }
 
     servo->setPosition(position);
 }
@@ -65,15 +61,11 @@ float Actuators::ServoInfo::getServoPosition()
 {
     // Check that the servo is actually there, just to be safe
     if (!servo)
-    {
         return 0.0f;
-    }
 
     float position = servo->getPosition();
     if (flipped)
-    {
         position = 1.0f - position;
-    }
 
     position /= limit;
     return position;
@@ -90,7 +82,7 @@ Actuators::Actuators()
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
 
-    ServoInfo *info;
+    ServoInfo* info;
     info          = getServo(ServosList::MAIN_VALVE);
     info->limit   = Config::Servos::MAIN_LIMIT;
     info->flipped = Config::Servos::MAIN_FLIPPED;
@@ -104,7 +96,7 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
-    TaskScheduler &scheduler =
+    TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getActuatorsScheduler();
 
     infos[0].servo->enable();
@@ -128,11 +120,9 @@ bool Actuators::start()
 bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     lastActionTs = getTime();
     info->openServoWithTime(time);
@@ -142,11 +132,9 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 bool Actuators::closeServo(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     lastActionTs = getTime();
     info->closeServo();
@@ -156,11 +144,9 @@ bool Actuators::closeServo(ServosList servo)
 float Actuators::getServoPosition(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return 0.0f;
-    }
 
     return info->getServoPosition();
 }
@@ -168,16 +154,14 @@ float Actuators::getServoPosition(ServosList servo)
 bool Actuators::isServoOpen(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo *info = getServo(servo);
+    ServoInfo* info = getServo(servo);
     if (info == nullptr)
-    {
         return false;
-    }
 
     return info->closeTs != 0;
 }
 
-Actuators::ServoInfo *Actuators::getServo(ServosList servo)
+Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 {
     switch (servo)
     {

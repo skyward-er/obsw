@@ -29,7 +29,7 @@ namespace Main
 
 struct StaticPressureData1 : Boardcore::PressureData
 {
-    explicit StaticPressureData1(const Boardcore::PressureData &data)
+    explicit StaticPressureData1(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
@@ -39,7 +39,7 @@ struct StaticPressureData1 : Boardcore::PressureData
 
 struct StaticPressureData2 : Boardcore::PressureData
 {
-    explicit StaticPressureData2(const Boardcore::PressureData &data)
+    explicit StaticPressureData2(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
@@ -49,7 +49,7 @@ struct StaticPressureData2 : Boardcore::PressureData
 
 struct DplBayPressureData : Boardcore::PressureData
 {
-    explicit DplBayPressureData(const Boardcore::PressureData &data)
+    explicit DplBayPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
@@ -84,7 +84,7 @@ struct CalibrationData
                "dplBayPressBias,dplBayPressScale\n";
     }
 
-    void print(std::ostream &os) const
+    void print(std::ostream& os) const
     {
         os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
            << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ

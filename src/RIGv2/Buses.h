@@ -33,15 +33,15 @@ class Buses : public Boardcore::Injectable
 public:
     Buses() : spi1(SPI1), spi2(SPI2), spi3(SPI3), spi4(SPI4), spi6(SPI6) {}
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi4; }
-    Boardcore::SPIBus &getLPS22DF() { return spi4; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi4; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi4; }
-    Boardcore::SPIBus &getADS131M08_1() { return spi1; }
-    Boardcore::SPIBus &getADS131M08_2() { return spi3; }
-    Boardcore::SPIBus &getMAX31856_1() { return spi3; }
-    Boardcore::SPIBus &getMAX31856_2() { return spi1; }
-    Boardcore::SPIBus &getRadio() { return spi6; }
+    Boardcore::SPIBus& getH3LIS331DL() { return spi4; }
+    Boardcore::SPIBus& getLPS22DF() { return spi4; }
+    Boardcore::SPIBus& getLSM6DSRX() { return spi4; }
+    Boardcore::SPIBus& getLIS2MDL() { return spi4; }
+    Boardcore::SPIBus& getADS131M08_1() { return spi1; }
+    Boardcore::SPIBus& getADS131M08_2() { return spi3; }
+    Boardcore::SPIBus& getMAX31856_1() { return spi3; }
+    Boardcore::SPIBus& getMAX31856_2() { return spi1; }
+    Boardcore::SPIBus& getRadio() { return spi6; }
 
 private:
     Boardcore::SPIBus spi1;

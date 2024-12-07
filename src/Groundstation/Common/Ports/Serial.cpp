@@ -34,9 +34,7 @@ bool Serial::start()
     mav_driver = std::make_unique<SerialMavDriver>(this, mav_handler, 0, 10);
 
     if (!mav_driver->start())
-    {
         return false;
-    }
 
     return true;
 }
@@ -44,9 +42,7 @@ bool Serial::start()
 void Serial::sendMsg(const mavlink_message_t& msg)
 {
     if (mav_driver && mav_driver->isStarted())
-    {
         mav_driver->enqueueMsg(msg);
-    }
 }
 
 void Serial::handleMsg(const mavlink_message_t& msg)

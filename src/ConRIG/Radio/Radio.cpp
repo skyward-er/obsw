@@ -43,9 +43,7 @@ void handleDioIRQ()
 {
     SX1278Lora* instance = gRadio;
     if (instance)
-    {
         instance->handleDioIRQ();
-    }
 }
 
 void setIRQRadio(SX1278Lora* radio)
@@ -69,13 +67,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             isArmed = armingState == 1;
             if (armingState == 1)
-            {
                 getModule<Buttons>()->enableIgnition();
-            }
             else
-            {
                 getModule<Buttons>()->disableIgnition();
-            }
 
             break;
         }
@@ -220,10 +214,8 @@ bool Radio::start()
 
     // Initialize mavdriver
     mavDriver = std::make_unique<MavDriver>(
-        radio.get(),
-        [this](MavDriver*, const mavlink_message_t& msg)
-        { handleMessage(msg); },
-        Config::Radio::MAV_SLEEP_AFTER_SEND,
+        radio.get(), [this](MavDriver*, const mavlink_message_t& msg)
+        { handleMessage(msg); }, Config::Radio::MAV_SLEEP_AFTER_SEND,
         Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mavDriver->start())

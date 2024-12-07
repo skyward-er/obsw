@@ -29,19 +29,19 @@
 #include <memory>
 #include <unordered_set>
 
-#define ARP_EVENTS                                                   \
-    {                                                                \
-        ARP_INIT_OK, ARP_INIT_ERROR, ARP_CAL_DONE, ARP_FIX_ANTENNAS, \
-            ARP_FIX_ROCKET                                           \
-    }
+#define ARP_EVENTS                                                \
+    {ARP_INIT_OK, ARP_INIT_ERROR, ARP_CAL_DONE, ARP_FIX_ANTENNAS, \
+     ARP_FIX_ROCKET}
 
-#define TMTC_EVENTS                                                    \
-    {                                                                  \
-        TMTC_ARP_FORCE_INIT, TMTC_ARP_RESET_ALGORITHM,                 \
-            TMTC_ARP_FORCE_NO_FEEDBACK, TMTC_ARP_ARM, TMTC_ARP_DISARM, \
-            TMTC_ARP_CALIBRATE, TMTC_ARP_ENTER_TEST_MODE,              \
-            TMTC_ARP_EXIT_TEST_MODE                                    \
-    }
+#define TMTC_EVENTS              \
+    {TMTC_ARP_FORCE_INIT,        \
+     TMTC_ARP_RESET_ALGORITHM,   \
+     TMTC_ARP_FORCE_NO_FEEDBACK, \
+     TMTC_ARP_ARM,               \
+     TMTC_ARP_DISARM,            \
+     TMTC_ARP_CALIBRATE,         \
+     TMTC_ARP_ENTER_TEST_MODE,   \
+     TMTC_ARP_EXIT_TEST_MODE}
 
 #define TEST_STATE(INITIAL_STATE, EVENT, TOPIC_SM, FINAL_STATE)           \
     sm->forceState(&SMA::INITIAL_STATE);                                  \

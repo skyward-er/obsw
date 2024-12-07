@@ -31,7 +31,7 @@ namespace RIGv2
 
 struct ADC1Data : Boardcore::ADS131M08Data
 {
-    explicit ADC1Data(const Boardcore::ADS131M08Data &data)
+    explicit ADC1Data(const Boardcore::ADS131M08Data& data)
         : Boardcore::ADS131M08Data(data)
     {
     }
@@ -41,7 +41,7 @@ struct ADC1Data : Boardcore::ADS131M08Data
 
 struct TC1Data : Boardcore::MAX31856Data
 {
-    explicit TC1Data(const Boardcore::MAX31856Data &data)
+    explicit TC1Data(const Boardcore::MAX31856Data& data)
         : Boardcore::MAX31856Data(data)
     {
     }
@@ -51,7 +51,7 @@ struct TC1Data : Boardcore::MAX31856Data
 
 struct VesselWeightData : Boardcore::LoadCellData
 {
-    explicit VesselWeightData(const Boardcore::LoadCellData &data)
+    explicit VesselWeightData(const Boardcore::LoadCellData& data)
         : Boardcore::LoadCellData(data)
     {
     }
@@ -61,7 +61,7 @@ struct VesselWeightData : Boardcore::LoadCellData
 
 struct TankWeightData : Boardcore::LoadCellData
 {
-    explicit TankWeightData(const Boardcore::LoadCellData &data)
+    explicit TankWeightData(const Boardcore::LoadCellData& data)
         : Boardcore::LoadCellData(data)
     {
     }
@@ -71,7 +71,7 @@ struct TankWeightData : Boardcore::LoadCellData
 
 struct VesselPressureData : Boardcore::PressureData
 {
-    explicit VesselPressureData(const Boardcore::PressureData &data)
+    explicit VesselPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
@@ -81,7 +81,7 @@ struct VesselPressureData : Boardcore::PressureData
 
 struct FillingPressureData : Boardcore::PressureData
 {
-    explicit FillingPressureData(const Boardcore::PressureData &data)
+    explicit FillingPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
@@ -91,7 +91,7 @@ struct FillingPressureData : Boardcore::PressureData
 
 struct TopTankPressureData : Boardcore::PressureData
 {
-    explicit TopTankPressureData(const Boardcore::PressureData &data)
+    explicit TopTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
@@ -101,7 +101,7 @@ struct TopTankPressureData : Boardcore::PressureData
 
 struct BottomTankPressureData : Boardcore::PressureData
 {
-    explicit BottomTankPressureData(const Boardcore::PressureData &data)
+    explicit BottomTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }

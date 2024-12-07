@@ -54,11 +54,11 @@ public:
     void setInitStatus(InitStatus status);
 
 private:
-    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
-    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
-    void handleCommand(const Boardcore::Canbus::CanMessage &msg);
+    void handleMessage(const Boardcore::Canbus::CanMessage& msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage& msg);
+    void handleCommand(const Boardcore::Canbus::CanMessage& msg);
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 
     std::atomic<InitStatus> initStatus{InitStatus::UNKNOWN};

@@ -50,13 +50,13 @@ public:
 private:
     void sample();
 
-    void state_ready(const Boardcore::Event &event);
-    void state_refueling(const Boardcore::Event &event);
+    void state_ready(const Boardcore::Event& event);
+    void state_refueling(const Boardcore::Event& event);
 
     void logAction(TarsActionType action);
     void logSample(float pressure, float mass);
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tars1");
 
     float previousMass = 0;

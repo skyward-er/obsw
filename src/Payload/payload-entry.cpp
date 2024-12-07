@@ -202,13 +202,13 @@ int main()
 
     // Log all posted events
     std::cout << "Starting event sniffer" << std::endl;
-    EventSniffer sniffer(
-        EventBroker::getInstance(), TOPICS_LIST,
-        [](uint8_t event, uint8_t topic)
-        {
-            EventData ev{TimestampTimer::getTimestamp(), event, topic};
-            Logger::getInstance().log(ev);
-        });
+    EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
+                         [](uint8_t event, uint8_t topic)
+                         {
+                             EventData ev{TimestampTimer::getTimestamp(), event,
+                                          topic};
+                             Logger::getInstance().log(ev);
+                         });
 
     if (hil)
     {

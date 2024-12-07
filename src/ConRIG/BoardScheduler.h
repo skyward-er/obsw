@@ -42,7 +42,6 @@ public:
 
     [[nodiscard]] bool start()
     {
-
         if (!radio.start())
         {
             LOG_ERR(logger, "Failed to start radio scheduler");
@@ -58,9 +57,9 @@ public:
         return true;
     }
 
-    Boardcore::TaskScheduler &getRadioScheduler() { return radio; }
+    Boardcore::TaskScheduler& getRadioScheduler() { return radio; }
 
-    Boardcore::TaskScheduler &getButtonsScheduler() { return buttons; }
+    Boardcore::TaskScheduler& getButtonsScheduler() { return buttons; }
 
 private:
     Boardcore::PrintLogger logger =

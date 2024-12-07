@@ -72,27 +72,27 @@ public:
 
     bool isStarted() { return started; }
 
-    Boardcore::TaskScheduler &getNasScheduler() { return nas; }
+    Boardcore::TaskScheduler& getNasScheduler() { return nas; }
 
-    Boardcore::TaskScheduler &getMeaScheduler() { return nas; }
+    Boardcore::TaskScheduler& getMeaScheduler() { return nas; }
 
-    Boardcore::TaskScheduler &getAbkScheduler() { return nas; }
+    Boardcore::TaskScheduler& getAbkScheduler() { return nas; }
 
-    Boardcore::TaskScheduler &getAdaScheduler() { return ada; }
+    Boardcore::TaskScheduler& getAdaScheduler() { return ada; }
 
-    Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
+    Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
-    Boardcore::TaskScheduler &getPinObserverScheduler()
+    Boardcore::TaskScheduler& getPinObserverScheduler()
     {
         // TODO(davide.mor): Does this make sense?
         return sensors;
     }
 
-    Boardcore::TaskScheduler &getRadioScheduler() { return others; }
+    Boardcore::TaskScheduler& getRadioScheduler() { return others; }
 
-    Boardcore::TaskScheduler &getCanBusScheduler() { return others; }
+    Boardcore::TaskScheduler& getCanBusScheduler() { return others; }
 
-    Boardcore::TaskScheduler &getLowPriorityActuatorsScheduler()
+    Boardcore::TaskScheduler& getLowPriorityActuatorsScheduler()
     {
         return others;
     }

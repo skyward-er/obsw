@@ -42,8 +42,7 @@ ABKController::ABKController()
                   getModule<NASController>()->getNASState()};
           },
           Data::ABK::OPEN_TRAJECTORY_SET, Data::ABK::CLOSED_TRAJECTORY_SET,
-          Config::ABK::CONFIG,
-          [this](float position)
+          Config::ABK::CONFIG, [this](float position)
           { getModule<Actuators>()->setAbkPosition(position); }}
 
 {

@@ -92,9 +92,9 @@ public:
     void apogeeDetected(uint64_t ts, float lat, float lon, float alt);
     void deploymentDetected(uint64_t ts, float alt);
 
-    void updateAcc(const Boardcore::AccelerometerData &data);
-    void updateNas(const Boardcore::NASState &data);
-    void updateDplPressure(const Boardcore::PressureData &data);
+    void updateAcc(const Boardcore::AccelerometerData& data);
+    void updateNas(const Boardcore::NASState& data);
+    void updateDplPressure(const Boardcore::PressureData& data);
 
 private:
     miosix::FastMutex statsMutex;

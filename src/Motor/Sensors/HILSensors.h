@@ -51,7 +51,7 @@ private:
         return true;
     };
 
-    ~HILSensors(){};
+    ~HILSensors() {};
 
     int getSampleCounter(int nData)
     {

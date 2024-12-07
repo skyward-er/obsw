@@ -49,28 +49,28 @@ int main()
 {
     DependencyManager manager;
 
-    Buses *buses              = new Buses();
-    BoardScheduler *scheduler = new BoardScheduler();
+    Buses* buses              = new Buses();
+    BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors *sensors       = new Sensors();
-    Actuators *actuators   = new Actuators();
-    Registry *registry     = new Registry();
-    CanHandler *canHandler = new CanHandler();
-    GroundModeManager *gmm = new GroundModeManager();
-    TARS1 *tars1           = new TARS1();
-    Radio *radio           = new Radio();
+    Sensors* sensors       = new Sensors();
+    Actuators* actuators   = new Actuators();
+    Registry* registry     = new Registry();
+    CanHandler* canHandler = new CanHandler();
+    GroundModeManager* gmm = new GroundModeManager();
+    TARS1* tars1           = new TARS1();
+    Radio* radio           = new Radio();
 
-    Logger &sdLogger    = Logger::getInstance();
-    EventBroker &broker = EventBroker::getInstance();
+    Logger& sdLogger    = Logger::getInstance();
+    EventBroker& broker = EventBroker::getInstance();
 
     // Setup event sniffer
-    EventSniffer sniffer(
-        broker,
-        [&](uint8_t event, uint8_t topic)
-        {
-            EventData data{TimestampTimer::getTimestamp(), event, topic};
-            sdLogger.log(data);
-        });
+    EventSniffer sniffer(broker,
+                         [&](uint8_t event, uint8_t topic)
+                         {
+                             EventData data{TimestampTimer::getTimestamp(),
+                                            event, topic};
+                             sdLogger.log(data);
+                         });
 
     // Insert modules
     bool initResult = manager.insert<Buses>(buses) &&
@@ -115,9 +115,7 @@ int main()
     // Perform an initial registry load
     std::cout << "Loading backed registry" << std::endl;
     if (registry->load() != RegistryError::OK)
-    {
         std::cout << "*** Failed to load backed registry ***" << std::endl;
-    }
 
     std::cout << "Starting Actuators" << std::endl;
     if (!actuators->start())

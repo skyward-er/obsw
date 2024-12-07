@@ -49,19 +49,19 @@ int main()
 
     DependencyManager manager;
 
-    Buses *buses              = new Buses();
-    BoardScheduler *scheduler = new BoardScheduler();
+    Buses* buses              = new Buses();
+    BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors *sensors =
+    Sensors* sensors =
         (PersistentVars::getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
                                       : new Sensors());
-    Actuators *actuators   = new Actuators();
-    CanHandler *canHandler = new CanHandler();
+    Actuators* actuators   = new Actuators();
+    CanHandler* canHandler = new CanHandler();
 
-    Logger &sdLogger = Logger::getInstance();
+    Logger& sdLogger = Logger::getInstance();
 
     // HIL
-    MotorHIL *hil = nullptr;
+    MotorHIL* hil = nullptr;
     if (PersistentVars::getHilMode())
     {
         hil = new MotorHIL();

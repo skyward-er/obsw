@@ -35,9 +35,7 @@ bool Sensors::isStarted() { return started; }
 bool Sensors::start()
 {
     if (Config::Sensors::InternalADC::ENABLED)
-    {
         internalAdcInit();
-    }
 
     if (Config::Sensors::ADS131M08::ENABLED)
     {
@@ -51,9 +49,7 @@ bool Sensors::start()
     }
 
     if (Config::Sensors::MAX31856::ENABLED)
-    {
         tc1Init();
-    }
 
     if (!sensorManagerInit())
     {
@@ -119,49 +115,33 @@ PressureData Sensors::getBottomTankPressLastSample()
 PressureData Sensors::getCCPressLastSample()
 {
     if (useCanData)
-    {
         return getCanCCPressLastSample();
-    }
     else
-    {
         return PressureData{};
-    }
 }
 
 TemperatureData Sensors::getTankTempLastSample()
 {
     if (useCanData)
-    {
         return getCanTankTempLastSample();
-    }
     else
-    {
         return getTc1LastSample();
-    }
 }
 
 LoadCellData Sensors::getVesselWeightLastSample()
 {
     if (vesselWeight)
-    {
         return vesselWeight->getLastSample();
-    }
     else
-    {
         return {};
-    }
 }
 
 LoadCellData Sensors::getTankWeightLastSample()
 {
     if (tankWeight)
-    {
         return tankWeight->getLastSample();
-    }
     else
-    {
         return {};
-    }
 }
 
 CurrentData Sensors::getUmbilicalCurrentLastSample()
@@ -197,13 +177,9 @@ VoltageData Sensors::getBatteryVoltageLastSample()
 VoltageData Sensors::getMotorBatteryVoltageLastSample()
 {
     if (useCanData)
-    {
         return getCanMotorBatteryVoltageLastSample();
-    }
     else
-    {
         return VoltageData{};
-    }
 }
 
 PressureData Sensors::getCanTopTankPressLastSample()
@@ -551,7 +527,7 @@ void Sensors::tankWeightCallback()
 
 bool Sensors::sensorManagerInit()
 {
-    TaskScheduler &scheduler =
+    TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getSensorsScheduler();
 
     SensorManager::SensorMap_t map;

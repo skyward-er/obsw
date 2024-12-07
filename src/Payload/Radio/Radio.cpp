@@ -41,9 +41,7 @@ inline void handleDioIRQ()
 {
     auto transceiver = staticTransceiver.load();
     if (transceiver)
-    {
         transceiver->handleDioIRQ();
-    }
 }
 
 }  // namespace
@@ -86,8 +84,7 @@ bool Radio::start()
 
     // Initialize the Mavlink driver
     radioMavlink.driver = std::make_unique<MavDriver>(
-        transceiver.get(),
-        [this](MavDriver*, const mavlink_message_t& msg)
+        transceiver.get(), [this](MavDriver*, const mavlink_message_t& msg)
         { handleRadioMessage(msg); },
         milliseconds{config::MavlinkDriver::SLEEP_AFTER_SEND}.count(),
         milliseconds{config::MavlinkDriver::MAX_PKT_AGE}.count());
@@ -194,9 +191,7 @@ void Radio::MavlinkBackend::flushQueue()
     Lock<FastMutex> lock(mutex);
 
     for (uint32_t i = 0; i < index; i++)
-    {
         driver->enqueueMsg(queue[i]);
-    }
 
     // Reset the index
     index = 0;

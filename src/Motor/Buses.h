@@ -34,13 +34,13 @@ class Buses : public Boardcore::Injectable
 public:
     Buses() {}
 
-    Boardcore::SPIBus &getH3LIS331DL() { return spi1; }
-    Boardcore::SPIBus &getLPS22DF() { return spi1; }
-    Boardcore::SPIBus &getLIS2MDL() { return spi3; }
-    Boardcore::SPIBus &getLSM6DSRX() { return spi3; }
-    Boardcore::SPIBus &getADS131M08() { return spi4; }
+    Boardcore::SPIBus& getH3LIS331DL() { return spi1; }
+    Boardcore::SPIBus& getLPS22DF() { return spi1; }
+    Boardcore::SPIBus& getLIS2MDL() { return spi3; }
+    Boardcore::SPIBus& getLSM6DSRX() { return spi3; }
+    Boardcore::SPIBus& getADS131M08() { return spi4; }
 
-    Boardcore::USART &getHILUart() { return usart4; }
+    Boardcore::USART& getHILUart() { return usart4; }
 
 private:
     Boardcore::SPIBus spi1{SPI1};

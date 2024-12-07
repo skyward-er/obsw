@@ -42,34 +42,22 @@ bool Sensors::start()
     magCalibration.fromFile(config::MagCalibration::CALIBRATION_PATH);
 
     if (Config::Sensors::LPS22DF::ENABLED)
-    {
         lps22dfInit();
-    }
 
     if (Config::Sensors::LPS28DFW::ENABLED)
-    {
         lps28dfwInit();
-    }
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
-    {
         h3lis331dlInit();
-    }
 
     if (Config::Sensors::LIS2MDL::ENABLED)
-    {
         lis2mdlInit();
-    }
 
     if (Config::Sensors::UBXGPS::ENABLED)
-    {
         ubxgpsInit();
-    }
 
     if (Config::Sensors::LSM6DSRX::ENABLED)
-    {
         lsm6dsrxInit();
-    }
 
     if (Config::Sensors::ADS131M08::ENABLED)
     {
@@ -79,14 +67,10 @@ bool Sensors::start()
     }
 
     if (Config::Sensors::InternalADC::ENABLED)
-    {
         internalAdcInit();
-    }
 
     if (Config::Sensors::RotatedIMU::ENABLED)
-    {
         rotatedImuInit();
-    }
 
     // Return immediately if the hook fails as we cannot know what the hook does
     if (!postSensorCreationHook())
@@ -394,7 +378,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(                                         \
-            SensorInfo{#name, config::name::SAMPLING_RATE, nullptr, false})
+            SensorInfo { #name, config::name::SAMPLING_RATE, nullptr, false })
 
         PUSH_SENSOR_INFO(lps22df, LPS22DF);
         PUSH_SENSOR_INFO(lps28dfw, LPS28DFW);
@@ -563,9 +547,7 @@ void Sensors::lsm6dsrxCallback()
 
     // For every instance inside the fifo log the sample
     for (auto i = 0; i < fifoSize; i++)
-    {
         logger.log(fifo.at(i));
-    }
 }
 
 void Sensors::ads131m08Init()
@@ -582,9 +564,7 @@ void Sensors::ads131m08Init()
 
     // Disable all channels
     for (auto& channel : channels)
-    {
         channel.enabled = false;
-    }
     // Enable required channels
     channels[(int)config::StaticPressure::ADC_CH] = {
         .enabled = true,

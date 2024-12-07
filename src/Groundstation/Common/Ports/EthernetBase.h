@@ -44,7 +44,7 @@ class EthernetBase : public Boardcore::Transceiver,
                      public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
-    EthernetBase(){};
+    EthernetBase() {};
     EthernetBase(bool randomIp, uint8_t ipOffset)
         : randomIp{randomIp}, ipOffset{ipOffset} {};
 

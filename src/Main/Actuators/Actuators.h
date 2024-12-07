@@ -74,9 +74,9 @@ public:
     void setCanServoOpen(ServosList servo, bool open);
 
 private:
-    void unsafeSetServoPosition(Boardcore::Servo *servo, float position);
+    void unsafeSetServoPosition(Boardcore::Servo* servo, float position);
 
-    Boardcore::Servo *getServo(ServosList servo);
+    Boardcore::Servo* getServo(ServosList servo);
 
     void statusOn();
     void statusOff();
@@ -88,7 +88,7 @@ private:
     void updateStatus();
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
 
     std::atomic<bool> started{false};
 

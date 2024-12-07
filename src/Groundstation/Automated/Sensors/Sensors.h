@@ -48,9 +48,9 @@ private:
     bool vn300Init();
     void vn300Callback();
 
-    Boardcore::VN300 *vn300 = nullptr;
+    Boardcore::VN300* vn300 = nullptr;
 
-    Boardcore::SensorManager *sm = nullptr;
+    Boardcore::SensorManager* sm = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };

@@ -128,9 +128,7 @@ void PinHandler::onNoseconeDetachTransition(PinTransition transition)
              static_cast<int>(transition));
 
     if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
-    {
         EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
-    }
 }
 
 }  // namespace Payload

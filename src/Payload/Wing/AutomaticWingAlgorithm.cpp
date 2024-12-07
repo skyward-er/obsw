@@ -155,9 +155,7 @@ float AutomaticWingAlgorithm::angleDiff(float a, float b)
 
         // diff = fmod(diff, 2 * Constants::PI);
         if (diff == 0 && positiveInput)
-        {
             diff = 2 * Constants::PI;
-        }
 
         diff -= Constants::PI;
     }

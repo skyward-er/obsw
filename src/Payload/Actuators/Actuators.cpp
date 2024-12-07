@@ -126,9 +126,7 @@ bool Actuators::setServoPosition(ServosList servoId, float position)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-    {
         return false;
-    }
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
@@ -141,9 +139,7 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-    {
         return false;
-    }
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
@@ -157,9 +153,7 @@ float Actuators::getServoPosition(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-    {
         return -1.f;
-    }
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
@@ -170,9 +164,7 @@ float Actuators::getServoAngle(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-    {
         return -1.f;
-    }
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
@@ -183,9 +175,7 @@ bool Actuators::wiggleServo(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-    {
         return false;
-    }
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
@@ -200,9 +190,7 @@ bool Actuators::disableServo(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-    {
         return false;
-    }
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
@@ -305,13 +293,9 @@ void Actuators::updateStatusLed()
     }
 
     if (statusLedCounter >= statusLedThreshold)
-    {
         statusOn();
-    }
     else
-    {
         statusOff();
-    }
 
     if (statusLedCounter >= statusLedThreshold * 2)
     {

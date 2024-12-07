@@ -43,9 +43,7 @@ void handleDioIRQ()
 {
     SX1278Fsk* instance = gRadio;
     if (instance)
-    {
         instance->handleDioIRQ();
-    }
 }
 
 void setIRQRadio(SX1278Fsk* radio)
@@ -86,10 +84,8 @@ bool Radio::start()
 
     // Initialize mavdriver
     mavDriver = std::make_unique<MavDriver>(
-        radio.get(),
-        [this](MavDriver*, const mavlink_message_t& msg)
-        { handleMessage(msg); },
-        Config::Radio::MAV_SLEEP_AFTER_SEND,
+        radio.get(), [this](MavDriver*, const mavlink_message_t& msg)
+        { handleMessage(msg); }, Config::Radio::MAV_SLEEP_AFTER_SEND,
         Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mavDriver->start())
@@ -188,7 +184,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 {
     switch (msg.msgid)
     {
-
         case MAVLINK_MSG_ID_PING_TC:
         {
             enqueueAck(msg);
@@ -205,13 +200,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         {
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
             if (enqueueSystemTm(tmId))
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
 
             break;
         }
@@ -221,13 +212,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t tmId =
                 mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg);
             if (enqueueSensorsTm(tmId))
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
 
             break;
         }
@@ -313,13 +300,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 getModule<NASController>()->setOrientation(quat.normalized());
 
                 if (std::abs(qNorm - 1) > 0.001)
-                {
                     enqueueWack(msg, 0);
-                }
                 else
-                {
                     enqueueAck(msg);
-                }
             }
             else
             {
@@ -351,13 +334,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                         TMTC_SET_CALIBRATION_PRESSURE, TOPIC_TMTC);
 
                     if (press < 50000)
-                    {
                         enqueueWack(msg, 0);
-                    }
                     else
-                    {
                         enqueueAck(msg);
-                    }
                 }
             }
             else
@@ -406,13 +385,9 @@ void Radio::handleCommand(const mavlink_message_t& msg)
                 FlightModeManagerState::TEST_MODE)
             {
                 if (getModule<Sensors>()->saveMagCalibration())
-                {
                     enqueueAck(msg);
-                }
                 else
-                {
                     enqueueNack(msg, 0);
-                }
             }
             else
             {

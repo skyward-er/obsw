@@ -53,7 +53,7 @@ bool Actuators::isStarted() { return started; }
 
 bool Actuators::start()
 {
-    TaskScheduler &scheduler =
+    TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getLowPriorityActuatorsScheduler();
 
     servoAbk->enable();
@@ -103,7 +103,7 @@ void Actuators::openExpulsion()
 void Actuators::wiggleServo(ServosList servo)
 {
     Lock<FastMutex> lock{servosMutex};
-    Servo *info = getServo(servo);
+    Servo* info = getServo(servo);
     if (info != nullptr)
     {
         unsafeSetServoPosition(info, 1.0f);
@@ -125,7 +125,7 @@ void Actuators::wiggleCanServo(ServosList servo)
 float Actuators::getServoPosition(ServosList servo)
 {
     Lock<FastMutex> lock{servosMutex};
-    Servo *info = getServo(servo);
+    Servo* info = getServo(servo);
     return info ? info->getPosition() : 0.0f;
 }
 
@@ -133,17 +133,11 @@ bool Actuators::isCanServoOpen(ServosList servo)
 {
     Lock<FastMutex> lock{canServosMutex};
     if (servo == ServosList::MAIN_VALVE)
-    {
         return canMainOpen;
-    }
     else if (servo == ServosList::VENTING_VALVE)
-    {
         return canVentingOpen;
-    }
     else
-    {
         return false;
-    }
 }
 
 void Actuators::setStatusOff() { statusOverflow = 0; }
@@ -174,13 +168,9 @@ void Actuators::setCanServoOpen(ServosList servo, bool open)
 {
     Lock<FastMutex> lock{canServosMutex};
     if (servo == ServosList::MAIN_VALVE)
-    {
         canMainOpen = open;
-    }
     else if (servo == ServosList::VENTING_VALVE)
-    {
         canVentingOpen = open;
-    }
 }
 
 void Actuators::camOn() { gpios::camEnable::high(); }
@@ -209,13 +199,13 @@ void Actuators::buzzerOff()
     buzzer->disableChannel(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL);
 }
 
-void Actuators::unsafeSetServoPosition(Servo *servo, float position)
+void Actuators::unsafeSetServoPosition(Servo* servo, float position)
 {
     servo->setPosition(position);
     sdLogger.log(servo->getState());
 }
 
-Servo *Actuators::getServo(ServosList servo)
+Servo* Actuators::getServo(ServosList servo)
 {
     switch (servo)
     {
@@ -234,19 +224,16 @@ void Actuators::updateBuzzer()
     {
         buzzerOff();
     }
+    else if (buzzerCounter >= buzzerOverflow)
+    {
+        // Enable the channel for this period
+        buzzerOn();
+        buzzerCounter = 0;
+    }
     else
     {
-        if (buzzerCounter >= buzzerOverflow)
-        {
-            // Enable the channel for this period
-            buzzerOn();
-            buzzerCounter = 0;
-        }
-        else
-        {
-            buzzerOff();
-            buzzerCounter += 1;
-        }
+        buzzerOff();
+        buzzerCounter += 1;
     }
 }
 
@@ -259,13 +246,9 @@ void Actuators::updateStatus()
     else
     {
         if (statusCounter >= statusOverflow)
-        {
             statusOn();
-        }
         else
-        {
             statusOff();
-        }
 
         if (statusCounter >= statusOverflow * 2)
         {

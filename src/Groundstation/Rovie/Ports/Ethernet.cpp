@@ -36,9 +36,7 @@ void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 {
     Wiz5500* instance = gWiz5500;
     if (instance)
-    {
         instance->handleINTn();
-    }
 }
 
 void setIRQWiz5500(Wiz5500* instance)
@@ -55,9 +53,7 @@ bool Ethernet::start()
 
     setIRQWiz5500(wiz5500.get());
     if (!EthernetBase::start(std::move(wiz5500)))
-    {
         return false;
-    }
 
     return true;
 }

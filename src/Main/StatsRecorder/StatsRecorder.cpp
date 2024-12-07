@@ -73,7 +73,7 @@ void StatsRecorder::deploymentDetected(uint64_t ts, float alt)
     stats.dplAlt = alt;
 }
 
-void StatsRecorder::updateAcc(const AccelerometerData &data)
+void StatsRecorder::updateAcc(const AccelerometerData& data)
 {
     auto state = getModule<FlightModeManager>()->getState();
 
@@ -110,7 +110,7 @@ void StatsRecorder::updateAcc(const AccelerometerData &data)
     }
 }
 
-void StatsRecorder::updateNas(const NASState &data)
+void StatsRecorder::updateNas(const NASState& data)
 {
     auto state = getModule<FlightModeManager>()->getState();
 
@@ -144,7 +144,7 @@ void StatsRecorder::updateNas(const NASState &data)
     }
 }
 
-void StatsRecorder::updateDplPressure(const PressureData &data)
+void StatsRecorder::updateDplPressure(const PressureData& data)
 {
     auto state = getModule<FlightModeManager>()->getState();
 

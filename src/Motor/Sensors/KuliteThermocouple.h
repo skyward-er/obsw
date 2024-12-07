@@ -36,8 +36,8 @@ public:
     KuliteThermocouple(std::function<Boardcore::ADCData()> getVoltage,
                        float p0Voltage, float p0Temp, float p1Voltage,
                        float p1Temp)
-        : getVoltage{getVoltage}, scale{(p1Temp - p0Temp) /
-                                        (p1Voltage - p0Voltage)},
+        : getVoltage{getVoltage},
+          scale{(p1Temp - p0Temp) / (p1Voltage - p0Voltage)},
           offset{p0Temp - scale * p0Voltage}
     {
     }

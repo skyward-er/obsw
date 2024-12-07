@@ -297,25 +297,17 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
         {
             nasReady = true;
             if (adaReady)
-            {
                 return transition(&FlightModeManager::state_disarmed);
-            }
             else
-            {
                 return HANDLED;
-            }
         }
         case ADA_READY:
         {
             adaReady = true;
             if (nasReady)
-            {
                 return transition(&FlightModeManager::state_disarmed);
-            }
             else
-            {
                 return HANDLED;
-            }
         }
         default:
         {

@@ -52,19 +52,19 @@ public:
     void setIgnitionTime(uint32_t time);
 
 private:
-    Boardcore::State state_idle(const Boardcore::Event &event);
-    Boardcore::State state_init(const Boardcore::Event &event);
-    Boardcore::State state_init_error(const Boardcore::Event &event);
-    Boardcore::State state_disarmed(const Boardcore::Event &event);
-    Boardcore::State state_armed(const Boardcore::Event &event);
-    Boardcore::State state_firing(const Boardcore::Event &event);
-    Boardcore::State state_igniting(const Boardcore::Event &event);
-    Boardcore::State state_oxidizer(const Boardcore::Event &event);
-    Boardcore::State state_cooling(const Boardcore::Event &event);
+    Boardcore::State state_idle(const Boardcore::Event& event);
+    Boardcore::State state_init(const Boardcore::Event& event);
+    Boardcore::State state_init_error(const Boardcore::Event& event);
+    Boardcore::State state_disarmed(const Boardcore::Event& event);
+    Boardcore::State state_armed(const Boardcore::Event& event);
+    Boardcore::State state_firing(const Boardcore::Event& event);
+    Boardcore::State state_igniting(const Boardcore::Event& event);
+    Boardcore::State state_oxidizer(const Boardcore::Event& event);
+    Boardcore::State state_cooling(const Boardcore::Event& event);
 
     void updateAndLogStatus(GroundModeManagerState state);
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
 
     std::atomic<GroundModeManagerState> state{GroundModeManagerState::IDLE};

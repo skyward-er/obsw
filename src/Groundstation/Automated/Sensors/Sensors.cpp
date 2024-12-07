@@ -35,9 +35,7 @@ Sensors::Sensors() {}
 bool Sensors::start()
 {
     if (!vn300Init())
-    {
         return false;
-    }
 
     sm = new SensorManager(sensorsMap);
     if (!sm->start())

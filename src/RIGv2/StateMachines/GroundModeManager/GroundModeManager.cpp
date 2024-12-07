@@ -47,7 +47,7 @@ void GroundModeManager::setIgnitionTime(uint32_t time)
     getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
 }
 
-State GroundModeManager::state_idle(const Event &event)
+State GroundModeManager::state_idle(const Event& event)
 {
     switch (event)
     {
@@ -85,7 +85,7 @@ State GroundModeManager::state_idle(const Event &event)
     }
 }
 
-State GroundModeManager::state_init(const Event &event)
+State GroundModeManager::state_init(const Event& event)
 {
     switch (event)
     {
@@ -127,7 +127,7 @@ State GroundModeManager::state_init(const Event &event)
     }
 }
 
-State GroundModeManager::state_init_error(const Event &event)
+State GroundModeManager::state_init_error(const Event& event)
 {
     switch (event)
     {
@@ -164,7 +164,7 @@ State GroundModeManager::state_init_error(const Event &event)
     }
 }
 
-State GroundModeManager::state_disarmed(const Event &event)
+State GroundModeManager::state_disarmed(const Event& event)
 {
     switch (event)
     {
@@ -216,7 +216,7 @@ State GroundModeManager::state_disarmed(const Event &event)
     }
 }
 
-State GroundModeManager::state_armed(const Event &event)
+State GroundModeManager::state_armed(const Event& event)
 {
     switch (event)
     {
@@ -271,7 +271,7 @@ State GroundModeManager::state_armed(const Event &event)
     }
 }
 
-State GroundModeManager::state_firing(const Event &event)
+State GroundModeManager::state_firing(const Event& event)
 {
     switch (event)
     {
@@ -328,7 +328,7 @@ State GroundModeManager::state_firing(const Event &event)
     }
 }
 
-State GroundModeManager::state_igniting(const Event &event)
+State GroundModeManager::state_igniting(const Event& event)
 {
     switch (event)
     {
@@ -379,7 +379,7 @@ State GroundModeManager::state_igniting(const Event &event)
     }
 }
 
-State GroundModeManager::state_oxidizer(const Event &event)
+State GroundModeManager::state_oxidizer(const Event& event)
 {
     switch (event)
     {
@@ -419,7 +419,7 @@ State GroundModeManager::state_oxidizer(const Event &event)
     }
 }
 
-State GroundModeManager::state_cooling(const Event &event)
+State GroundModeManager::state_cooling(const Event& event)
 {
     switch (event)
     {

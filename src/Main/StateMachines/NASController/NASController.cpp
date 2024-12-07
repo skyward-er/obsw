@@ -154,9 +154,7 @@ void NASController::update()
         }
 
         if (lastBaroTimestamp < baro.pressureTimestamp)
-        {
             nas.correctBaro(baro.pressure);
-        }
 
         // Correct with pitot if one pressure sample is new
         // Disable pitot correction
@@ -171,9 +169,7 @@ void NASController::update()
 
         // Correct with accelerometer if the acceleration is in specs
         if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-        {
             nas.correctAcc(imu);
-        }
 
         // Check if the accelerometer is measuring 1g
         if (accLength <
@@ -182,13 +178,9 @@ void NASController::update()
                 (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
         {
             if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-            {
                 acc1gSamplesCount++;
-            }
             else
-            {
                 acc1g = true;
-            }
         }
         else
         {

@@ -77,9 +77,9 @@ public:
     CanStatus getCanStatus();
 
 private:
-    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
-    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
-    void handleStatus(const Boardcore::Canbus::CanMessage &msg);
+    void handleMessage(const Boardcore::Canbus::CanMessage& msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage& msg);
+    void handleStatus(const Boardcore::Canbus::CanMessage& msg);
 
     std::unique_ptr<Boardcore::Canbus::CanbusDriver> driver;
     std::unique_ptr<Boardcore::Canbus::CanProtocol> protocol;

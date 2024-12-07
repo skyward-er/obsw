@@ -187,13 +187,9 @@ void ADAController::update()
     if (curState == ADAControllerState::ACTIVE_DROGUE_DESCENT)
     {
         if (ada.getState().aglAltitude < getDeploymentAltitude())
-        {
             detectedDeployments++;
-        }
         else
-        {
             detectedDeployments = 0;
-        }
 
         if (detectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
         {

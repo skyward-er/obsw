@@ -143,9 +143,7 @@ bool RadioPayload::start()
 
         // Initialize if only if present
         if (!RadioBase::start(std::move(sx1278)))
-        {
             return false;
-        }
     }
 
     return true;

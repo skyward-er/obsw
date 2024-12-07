@@ -36,9 +36,7 @@ using namespace miosix;
 void idleLoop()
 {
     while (1)
-    {
         Thread::wait();
-    }
 }
 
 void errorLoop()
@@ -56,11 +54,11 @@ int main()
 {
     ledOff();
 
-    Hub *hub           = new Hub();
-    Buses *buses       = new Buses();
-    Serial *serial     = new Serial();
-    Ethernet *ethernet = new Ethernet();
-    RadioRig *radioRig = new RadioRig();
+    Hub* hub           = new Hub();
+    Buses* buses       = new Buses();
+    Serial* serial     = new Serial();
+    Ethernet* ethernet = new Ethernet();
+    RadioRig* radioRig = new RadioRig();
 
     DependencyManager manager;
 

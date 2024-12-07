@@ -148,13 +148,9 @@ void FlightStatsRecorder::updatePressure(const PressureData& data)
     {
         // Record this event only during flight
         if (stats.minPressure == 0)
-        {
             stats.minPressure = data.pressure;
-        }
         else if (data.pressure < stats.minPressure)
-        {
             stats.minPressure = data.pressure;
-        }
     }
 }
 

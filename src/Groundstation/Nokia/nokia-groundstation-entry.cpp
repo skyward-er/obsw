@@ -35,19 +35,17 @@ using namespace miosix;
 void idleLoop()
 {
     while (1)
-    {
         Thread::wait();
-    }
 }
 
 int main()
 {
     ledOff();
 
-    Hub *hub       = new Hub();
-    Buses *buses   = new Buses();
-    Radio *radio   = new Radio();
-    Serial *serial = new Serial();
+    Hub* hub       = new Hub();
+    Buses* buses   = new Buses();
+    Radio* radio   = new Radio();
+    Serial* serial = new Serial();
 
     DependencyManager manager;
 
@@ -75,20 +73,14 @@ int main()
 
     ok &= serial->start();
     if (!ok)
-    {
         printf("[error] Failed to start serial!\n");
-    }
 
     ok &= radio->start();
     if (!ok)
-    {
         printf("[error] Failed to start radio!\n");
-    }
 
     if (ok)
-    {
         printf("Init complete!\n");
-    }
 
     idleLoop();
     return 0;

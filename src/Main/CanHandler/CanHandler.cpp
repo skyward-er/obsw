@@ -35,7 +35,7 @@ using namespace Common;
 
 CanHandler::CanHandler()
     : driver{CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING},
-      protocol{&driver, [this](const CanMessage &msg) { handleMessage(msg); },
+      protocol{&driver, [this](const CanMessage& msg) { handleMessage(msg); },
                Config::Scheduler::OTHERS_PRIORITY}
 {
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
@@ -52,7 +52,7 @@ bool CanHandler::start()
 {
     driver.init();
 
-    TaskScheduler &scheduler =
+    TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getCanBusScheduler();
 
     uint8_t result = scheduler.addTask(
@@ -132,7 +132,7 @@ CanHandler::CanStatus CanHandler::getCanStatus()
     return status;
 }
 
-void CanHandler::handleMessage(const Canbus::CanMessage &msg)
+void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
@@ -171,7 +171,7 @@ void CanHandler::handleMessage(const Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleEvent(const Canbus::CanMessage &msg)
+void CanHandler::handleEvent(const Canbus::CanMessage& msg)
 {
     sdLogger.log(CanEvent{TimestampTimer::getTimestamp(), msg.getSource(),
                           msg.getDestination(), msg.getSecondaryType()});
@@ -188,12 +188,12 @@ void CanHandler::handleEvent(const Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleSensor(const Canbus::CanMessage &msg)
+void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 {
     CanConfig::SensorId sensor =
         static_cast<CanConfig::SensorId>(msg.getSecondaryType());
 
-    Sensors *sensors = getModule<Sensors>();
+    Sensors* sensors = getModule<Sensors>();
     switch (sensor)
     {
         case CanConfig::SensorId::PITOT_DYNAMIC_PRESSURE:
@@ -259,7 +259,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage &msg)
     }
 }
 
-void CanHandler::handleActuator(const Canbus::CanMessage &msg)
+void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
     ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
     CanServoFeedback data = servoFeedbackFromCanMessage(msg);
@@ -268,7 +268,7 @@ void CanHandler::handleActuator(const Canbus::CanMessage &msg)
     getModule<Actuators>()->setCanServoOpen(servo, data.open);
 }
 
-void CanHandler::handleStatus(const Canbus::CanMessage &msg)
+void CanHandler::handleStatus(const Canbus::CanMessage& msg)
 {
     CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
     CanDeviceStatus deviceStatus = deviceStatusFromCanMessage(msg);

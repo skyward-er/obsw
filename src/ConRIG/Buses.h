@@ -38,7 +38,7 @@ private:
 public:
     Buses() : spi1(SPI1) {}
 
-    Boardcore::SPIBus &getRadio() { return spi1; }
+    Boardcore::SPIBus& getRadio() { return spi1; }
 };
 
 }  // namespace ConRIG

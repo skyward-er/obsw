@@ -181,9 +181,7 @@ void SMA::update()
         case SMAState::INSERT_INFO:
         {
             if (antennaCoordinatesSet)
-            {
                 EventBroker::getInstance().post(ARP_INFO_INSERTED, TOPIC_ARP);
-            }
 
             break;
         }
@@ -785,9 +783,7 @@ State SMA::state_fix_rocket(const Event& event)
             // init the follower before leaving the state
             // (compute initial arp-rocket distance and bearing)
             if (!follower.init())
-            {
                 LOG_ERR(logger, "Follower initialization failed");
-            }
 
             leds->setOn(LedColor::YELLOW);
             return HANDLED;
@@ -942,9 +938,7 @@ State SMA::state_fix_rocket_nf(const Event& event)
             // init the follower before leaving the state
             // (compute initial arp-rocket distance and bearing)
             if (!follower.init())
-            {
                 LOG_ERR(logger, "Follower initialization failed");
-            }
 
             leds->setOn(LedColor::YELLOW);
             return HANDLED;

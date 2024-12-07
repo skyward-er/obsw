@@ -33,9 +33,7 @@ bool BoardStatus::isEthernetPresent() { return ethernet_present; }
 bool BoardStatus::start()
 {
     if (!ActiveObject::start())
-    {
         return false;
-    }
 
     return true;
 }
@@ -63,8 +61,8 @@ void BoardStatus::arpRoutine()
 
     auto vn300 = getModule<Sensors>()->getVN300LastSample();
 
-    Actuators *actuators = getModule<Actuators>();
-    SMA *sm              = getModule<SMA>();
+    Actuators* actuators = getModule<Actuators>();
+    SMA* sm              = getModule<SMA>();
 
     AntennaAngles targetAngles = sm->getTargetAngles();
 
@@ -190,10 +188,8 @@ void BoardStatus::GSRoutine()
 void BoardStatus::run()
 {
     while (!shouldStop())
-    {
         if (isArp)
             arpRoutine();
         else
             GSRoutine();
-    }
 }

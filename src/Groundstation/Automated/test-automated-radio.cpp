@@ -35,9 +35,7 @@ using namespace miosix;
 void spinLoop()
 {
     while (1)
-    {
         Thread::sleep(1000);
-    }
 }
 
 void errorLoop()
@@ -55,13 +53,13 @@ int main()
 {
     ledOff();
 
-    Hub *hub                  = new Hub();
-    Buses *buses              = new Buses();
-    Serial *serial            = new Serial();
-    RadioMain *radio_main     = new RadioMain();
-    BoardStatus *board_status = new BoardStatus();
+    Hub* hub                  = new Hub();
+    Buses* buses              = new Buses();
+    Serial* serial            = new Serial();
+    RadioMain* radio_main     = new RadioMain();
+    BoardStatus* board_status = new BoardStatus();
 
-    ModuleManager &modules = ModuleManager::getInstance();
+    ModuleManager& modules = ModuleManager::getInstance();
 
     bool ok = true;
 
@@ -82,31 +80,21 @@ int main()
 
     ok &= serial->start();
     if (!ok)
-    {
         printf("[error] Failed to start serial!\n");
-    }
 
     ok &= radio_main->start();
     if (!ok)
-    {
         printf("[error] Failed to start main radio!\n");
-    }
 
     ok &= board_status->start();
     if (!ok)
-    {
         printf("[error] Failed to start radio status!\n");
-    }
 
     if (board_status->isMainRadioPresent())
-    {
         led2On();
-    }
 
     if (!ok)
-    {
         errorLoop();
-    }
 
     led1On();
     spinLoop();

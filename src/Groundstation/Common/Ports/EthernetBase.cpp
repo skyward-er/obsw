@@ -51,17 +51,13 @@ WizMac Groundstation::genNewRandomMac()
 void EthernetBase::handleINTn()
 {
     if (wiz5500)
-    {
         wiz5500->handleINTn();
-    }
 }
 
 void EthernetBase::sendMsg(const mavlink_message_t& msg)
 {
     if (mav_driver && mav_driver->isStarted())
-    {
         mav_driver->enqueueMsg(msg);
-    }
 }
 
 Boardcore::Wiz5500::PhyState EthernetBase::getState()
@@ -110,9 +106,7 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
     mav_driver = std::make_unique<EthernetMavDriver>(this, mav_handler, 0, 10);
 
     if (!mav_driver->start())
-    {
         return false;
-    }
 
     return true;
 }

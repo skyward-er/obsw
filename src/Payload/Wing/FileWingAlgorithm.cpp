@@ -55,9 +55,7 @@ bool FileWingAlgorithm::init()
 
     // Communicate it via serial
     if (fileValid)
-    {
         LOG_INFO(logger, "File valid");
-    }
 
     // Close the file
     parser.close();

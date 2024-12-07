@@ -252,7 +252,7 @@ void NASController::calibrate()
     ReferenceValues reference = nas.getReferenceValues();
     reference.refPressure     = meanBaro;
     reference.refAltitude     = Aeroutils::relAltitude(
-            reference.refPressure, reference.mslPressure, reference.mslTemperature);
+        reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // Also update the reference with the GPS if we have fix
     UBXGPSData gps = sensors->getUBXGPSLastSample();
@@ -274,9 +274,7 @@ void NASController::update()
 {
     // Update the NAS state only if the FSM is active
     if (state != NASControllerState::ACTIVE)
-    {
         return;
-    }
 
     auto* sensors = getModule<Sensors>();
 
@@ -316,9 +314,7 @@ void NASController::update()
     }
 
     if (lastBaroTimestamp < baro.pressureTimestamp)
-    {
         nas.correctBaro(baro.pressure);
-    }
 
     // Correct with pitot if one pressure sample is new
     // Disable pitot correction
@@ -333,9 +329,7 @@ void NASController::update()
 
     // Correct with accelerometer if the acceleration is in specs
     if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-    {
         nas.correctAcc(imu);
-    }
 
     // Check if the accelerometer is measuring 1g
     if (accLength <
@@ -344,13 +338,9 @@ void NASController::update()
             (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
     {
         if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-        {
             acc1gSamplesCount++;
-        }
         else
-        {
             acc1g = true;
-        }
     }
     else
     {

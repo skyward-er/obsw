@@ -49,9 +49,7 @@ bool RadioBase::sendMsg(const mavlink_message_t& msg)
 void RadioBase::handleDioIRQ()
 {
     if (started)
-    {
         sx1278->handleDioIRQ();
-    }
 }
 
 RadioStats RadioBase::getStats()
@@ -87,14 +85,10 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278)
         Groundstation::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mav_driver->start())
-    {
         return false;
-    }
 
     if (!ActiveObject::start())
-    {
         return false;
-    }
 
     started = true;
     return true;
@@ -102,7 +96,6 @@ bool RadioBase::start(std::unique_ptr<SX1278Fsk> sx1278)
 
 void RadioBase::run()
 {
-
     while (!shouldStop())
     {
         miosix::Thread::sleep(AUTOMATIC_FLUSH_PERIOD);
@@ -120,9 +113,7 @@ ssize_t RadioBase::receive(uint8_t* pkt, size_t max_len)
 {
     ssize_t ret = sx1278->receive(pkt, max_len);
     if (ret > 0)
-    {
         bits_rx_count += ret * 8;
-    }
 
     return ret;
 }
@@ -131,9 +122,7 @@ bool RadioBase::send(uint8_t* pkt, size_t len)
 {
     bool ret = sx1278->send(pkt, len);
     if (ret)
-    {
         bits_tx_count += len * 8;
-    }
 
     return ret;
 }
@@ -154,9 +143,7 @@ void RadioBase::flush()
 {
     Lock<FastMutex> l(pending_msgs_mutex);
     for (size_t i = 0; i < pending_msgs_count; i++)
-    {
         mav_driver->enqueueMsg(pending_msgs[i]);
-    }
 
     pending_msgs_count = 0;
 }

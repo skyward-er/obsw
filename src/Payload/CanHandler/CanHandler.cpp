@@ -251,9 +251,7 @@ void CanHandler::handleEvent(const Boardcore::Canbus::CanMessage& msg)
 
     auto event = canEventToEvent(canEvent.event);
     if (event == LAST_EVENT)
-    {
         return;
-    }
 
     EventBroker::getInstance().post(event, TOPIC_CAN);
 }

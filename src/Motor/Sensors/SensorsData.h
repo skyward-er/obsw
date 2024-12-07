@@ -28,7 +28,7 @@ namespace Motor
 
 struct TopTankPressureData : Boardcore::PressureData
 {
-    explicit TopTankPressureData(const Boardcore::PressureData &data)
+    explicit TopTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
@@ -38,7 +38,7 @@ struct TopTankPressureData : Boardcore::PressureData
 
 struct BottomTankPressureData : Boardcore::PressureData
 {
-    explicit BottomTankPressureData(const Boardcore::PressureData &data)
+    explicit BottomTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
@@ -48,7 +48,7 @@ struct BottomTankPressureData : Boardcore::PressureData
 
 struct CCPressureData : Boardcore::PressureData
 {
-    explicit CCPressureData(const Boardcore::PressureData &data)
+    explicit CCPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }

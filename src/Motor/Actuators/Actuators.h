@@ -64,13 +64,13 @@ public:
     float getServoPosition(ServosList servo);
 
 private:
-    ServoInfo *getServo(ServosList servo);
+    ServoInfo* getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
 
     void updatePositionsTask();
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     miosix::FastMutex infosMutex;

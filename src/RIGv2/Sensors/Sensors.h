@@ -116,7 +116,7 @@ private:
 
     bool sensorManagerInit();
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     std::atomic<bool> started{false};

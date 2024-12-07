@@ -50,18 +50,14 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
     {
         if (!radioMain->sendMsg(msg))
-        {
             sendNack(msg, 306);
-        }
     }
 
     if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
     {
         LyraGS::RadioPayload* radioPayload = getModule<LyraGS::RadioPayload>();
         if (!radioPayload->sendMsg(msg))
-        {
             sendNack(msg, 306);
-        }
     }
 
     if (msg.sysid == MAV_SYSID_ARP)
@@ -88,20 +84,14 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     mavlink_msg_arp_command_tc_get_command_id(&msg));
 
                 if (commandId == MAV_CMD_FORCE_REBOOT)
-                {
                     reboot();
-                }
 
                 auto it = commandToEvent.find(commandId);
 
                 if (it != commandToEvent.end())
-                {
                     EventBroker::getInstance().post(it->second, TOPIC_TMTC);
-                }
                 else
-                {
                     return sendNack(msg, 301);
-                }
 
                 // Acknowledge the message
                 sendAck(msg);

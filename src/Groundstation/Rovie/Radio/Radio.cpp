@@ -37,9 +37,7 @@ void handleDioIRQ()
 {
     SX1278Lora* instance = gRadio;
     if (instance)
-    {
         instance->handleDioIRQ();
-    }
 }
 
 void setIRQRadio(SX1278Lora* radio)
@@ -73,9 +71,7 @@ bool RadioRig::start()
 
     // Configure the radio
     if (sx1278->configure(Common::RIG_RADIO_CONFIG) != SX1278Lora::Error::NONE)
-    {
         return false;
-    }
 
     auto mavHandler = [this](RadioMavDriver* channel,
                              const mavlink_message_t& msg) { handleMsg(msg); };
@@ -85,9 +81,7 @@ bool RadioRig::start()
         Groundstation::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mavDriver->start())
-    {
         return false;
-    }
 
     started = true;
     return true;

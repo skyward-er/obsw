@@ -58,13 +58,13 @@ public:
 
     bool isStarted() { return started; }
 
-    Boardcore::TaskScheduler &getTars1Scheduler() { return tars1; }
+    Boardcore::TaskScheduler& getTars1Scheduler() { return tars1; }
 
-    Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
+    Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
-    Boardcore::TaskScheduler &getActuatorsScheduler() { return sensors; }
+    Boardcore::TaskScheduler& getActuatorsScheduler() { return sensors; }
 
-    Boardcore::TaskScheduler &getCanBusScheduler() { return sensors; }
+    Boardcore::TaskScheduler& getCanBusScheduler() { return sensors; }
 
 private:
     Boardcore::PrintLogger logger =

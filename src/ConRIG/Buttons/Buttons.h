@@ -35,7 +35,6 @@ class Radio;
 
 class Buttons : public Boardcore::InjectableWithDeps<BoardScheduler, Radio>
 {
-
 public:
     Buttons();
 

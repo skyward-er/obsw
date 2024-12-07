@@ -32,15 +32,11 @@ using namespace Boardcore;
 bool Serial::start()
 {
     mavDriver = std::make_unique<SerialMavDriver>(
-        this,
-        [this](SerialMavDriver* channel, const mavlink_message_t& msg)
-        { handleMessage(msg); },
-        0, 10);
+        this, [this](SerialMavDriver* channel, const mavlink_message_t& msg)
+        { handleMessage(msg); }, 0, 10);
 
     if (!mavDriver->start())
-    {
         return false;
-    }
 
     return true;
 }
@@ -48,9 +44,7 @@ bool Serial::start()
 void Serial::sendMessage(const mavlink_message_t& msg)
 {
     if (mavDriver)
-    {
         mavDriver->enqueueMsg(msg);
-    }
 }
 
 void Serial::sendNack(const mavlink_message_t& msg)
@@ -74,9 +68,7 @@ void Serial::sendAck(const mavlink_message_t& msg)
 void Serial::handleMessage(const mavlink_message_t& msg)
 {
     if (!getModule<Radio>()->enqueueMessage(msg))
-    {
         sendNack(msg);
-    }
 }
 
 ssize_t Serial::receive(uint8_t* pkt, size_t maxLen)

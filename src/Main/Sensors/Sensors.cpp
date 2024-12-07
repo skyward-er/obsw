@@ -39,39 +39,25 @@ bool Sensors::start()
     magCalibration.fromFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
 
     if (Config::Sensors::LPS22DF::ENABLED)
-    {
         lps22dfInit();
-    }
 
     if (Config::Sensors::LPS28DFW::ENABLED)
-    {
         lps28dfwInit();
-    }
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
-    {
         h3lis331dlInit();
-    }
 
     if (Config::Sensors::LIS2MDL::ENABLED)
-    {
         lis2mdlInit();
-    }
 
     if (Config::Sensors::UBXGPS::ENABLED)
-    {
         ubxgpsInit();
-    }
 
     if (Config::Sensors::LSM6DSRX::ENABLED)
-    {
         lsm6dsrxInit();
-    }
 
     if (Config::Sensors::VN100::ENABLED)
-    {
         vn100Init();
-    }
 
     if (Config::Sensors::ADS131M08::ENABLED)
     {
@@ -82,14 +68,10 @@ bool Sensors::start()
     }
 
     if (Config::Sensors::InternalADC::ENABLED)
-    {
         internalAdcInit();
-    }
 
     if (Config::Sensors::IMU::ENABLED)
-    {
         rotatedImuInit();
-    }
 
     if (!postSensorCreationHook())
     {
@@ -382,13 +364,9 @@ IMUData Sensors::getIMULastSample()
 PressureData Sensors::getAtmosPressureLastSample()
 {
     if (Config::Sensors::Atmos::USE_PORT_2)
-    {
         return getStaticPressure2LastSample();
-    }
     else
-    {
         return getStaticPressure1LastSample();
-    }
 }
 
 PressureData Sensors::getCanPitotDynamicPressLastSample()
@@ -648,9 +626,7 @@ void Sensors::lsm6dsrxCallback()
 
     // For every instance inside the fifo log the sample
     for (uint16_t i = 0; i < lsm6dsrx->getLastFifoSize(); i++)
-    {
         sdLogger.log(lsm6dsrx->getLastFifo().at(i));
-    }
 }
 
 void Sensors::vn100Init()

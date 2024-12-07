@@ -103,14 +103,14 @@ public:
     CanStatus getCanStatus();
 
 private:
-    void handleMessage(const Boardcore::Canbus::CanMessage &msg);
-    void handleEvent(const Boardcore::Canbus::CanMessage &msg);
-    void handleSensor(const Boardcore::Canbus::CanMessage &msg);
-    void handleActuator(const Boardcore::Canbus::CanMessage &msg);
-    void handleStatus(const Boardcore::Canbus::CanMessage &msg);
+    void handleMessage(const Boardcore::Canbus::CanMessage& msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage& msg);
+    void handleSensor(const Boardcore::Canbus::CanMessage& msg);
+    void handleActuator(const Boardcore::Canbus::CanMessage& msg);
+    void handleStatus(const Boardcore::Canbus::CanMessage& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
 
     std::atomic<bool> started{false};
 

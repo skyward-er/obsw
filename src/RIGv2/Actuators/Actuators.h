@@ -108,10 +108,10 @@ public:
 
     void setCanServoOpen(ServosList servo, bool open);
 
-    void inject(Boardcore::DependencyInjector &injector) override;
+    void inject(Boardcore::DependencyInjector& injector) override;
 
 private:
-    ServoInfo *getServo(ServosList servo);
+    ServoInfo* getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
     void unsafeOpenNitrogen();
@@ -119,7 +119,7 @@ private:
 
     void updatePositionsTask();
 
-    Boardcore::Logger &sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     std::atomic<bool> started{false};

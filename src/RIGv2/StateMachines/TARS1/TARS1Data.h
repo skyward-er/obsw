@@ -55,7 +55,7 @@ struct TarsActionData
 
     static std::string header() { return "timestamp,action\n"; }
 
-    void print(std::ostream &os) const
+    void print(std::ostream& os) const
     {
         os << timestamp << "," << (int)action << "\n";
     }
@@ -76,7 +76,7 @@ struct TarsSampleData
 
     static std::string header() { return "timestamp,pressure,mass\n"; }
 
-    void print(std::ostream &os) const
+    void print(std::ostream& os) const
     {
         os << timestamp << "," << pressure << "," << mass << "\n";
     }

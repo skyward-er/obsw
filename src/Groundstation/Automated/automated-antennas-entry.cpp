@@ -62,7 +62,7 @@ GpioPin button = GpioPin(GPIOG_BASE, 10);  ///< Emergency stop button
  */
 int main()
 {
-    ModuleManager &modules = ModuleManager::getInstance();
+    ModuleManager& modules = ModuleManager::getInstance();
     PrintLogger logger     = Logging::getLogger("automated_antennas");
     bool ok                = true;
 
@@ -82,18 +82,18 @@ int main()
         });
     ButtonHandler::getInstance().start();
 
-    TaskScheduler *scheduler_low  = new TaskScheduler(0);
-    TaskScheduler *scheduler_high = new TaskScheduler();
-    Leds *leds                    = new Leds(scheduler_low);
-    Hub *hub                      = new Hub();
-    Buses *buses                  = new Buses();
-    Serial *serial                = new Serial();
-    RadioMain *radio_main         = new RadioMain();
-    BoardStatus *board_status     = new BoardStatus();
-    Actuators *actuators          = new Actuators();
-    Sensors *sensors              = new Sensors();
-    SMA *sma                      = new SMA(scheduler_high);
-    Ethernet *ethernet            = new Ethernet();
+    TaskScheduler* scheduler_low  = new TaskScheduler(0);
+    TaskScheduler* scheduler_high = new TaskScheduler();
+    Leds* leds                    = new Leds(scheduler_low);
+    Hub* hub                      = new Hub();
+    Buses* buses                  = new Buses();
+    Serial* serial                = new Serial();
+    RadioMain* radio_main         = new RadioMain();
+    BoardStatus* board_status     = new BoardStatus();
+    Actuators* actuators          = new Actuators();
+    Sensors* sensors              = new Sensors();
+    SMA* sma                      = new SMA(scheduler_high);
+    Ethernet* ethernet            = new Ethernet();
 
     // Inserting Modules
     {  // TODO remove this scope (improve readability)
@@ -181,9 +181,7 @@ int main()
     LOG_INFO(logger, "Modules setup successful");
 
     if (board_status->isMainRadioPresent())
-    {
         LOG_DEBUG(logger, "Main radio is present\n");
-    }
 
     // If init fatal and sma not started, blink red endlessly
     if (init_fatal)
@@ -201,8 +199,6 @@ int main()
     }
 
     while (true)
-    {
         Thread::wait();
-    }
     return 0;
 }

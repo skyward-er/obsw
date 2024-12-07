@@ -76,9 +76,7 @@ DipStatusLyraGS getDipStatus(uint8_t read)
 void idleLoop()
 {
     while (1)
-    {
         Thread::wait();
-    }
 }
 
 /**
@@ -135,26 +133,26 @@ int main()
     PrintLogger logger = Logging::getLogger("lyra_gs");
 
     // TODO: Board scheduler for the schedulers
-    TaskScheduler *scheduler_low  = new TaskScheduler(0);
-    TaskScheduler *scheduler_high = new TaskScheduler();
-    Buses *buses                  = new Buses();
-    SerialLyraGS *serial          = new SerialLyraGS();
-    LyraGS::RadioMain *radio_main =
+    TaskScheduler* scheduler_low  = new TaskScheduler(0);
+    TaskScheduler* scheduler_high = new TaskScheduler();
+    Buses* buses                  = new Buses();
+    SerialLyraGS* serial          = new SerialLyraGS();
+    LyraGS::RadioMain* radio_main =
         new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
-    LyraGS::BoardStatus *board_status = new LyraGS::BoardStatus(dipRead.isARP);
-    LyraGS::EthernetGS *ethernet =
+    LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
+    LyraGS::EthernetGS* ethernet =
         new LyraGS::EthernetGS(false, dipRead.ipConfig);
-    LyraGS::RadioPayload *radio_payload = new LyraGS::RadioPayload(
+    LyraGS::RadioPayload* radio_payload = new LyraGS::RadioPayload(
         dipRead.payloadHasBackup, dipRead.payloadTXenable);
 
-    HubBase *hub = nullptr;
+    HubBase* hub = nullptr;
 
     // ARP-related things
-    Antennas::Actuators *actuators   = nullptr;
-    Antennas::Leds *leds             = nullptr;
-    Antennas::Sensors *sensors       = nullptr;
-    Antennas::SMA *sma               = nullptr;
-    Antennas::PinHandler *pinHandler = nullptr;
+    Antennas::Actuators* actuators   = nullptr;
+    Antennas::Leds* leds             = nullptr;
+    Antennas::Sensors* sensors       = nullptr;
+    Antennas::SMA* sma               = nullptr;
+    Antennas::PinHandler* pinHandler = nullptr;
 
     bool ok = true;
 

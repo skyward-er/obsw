@@ -53,14 +53,10 @@ bool EthernetGS::start()
     bool present = wiz5500->checkVersion();
 
     if (!present)
-    {
         return false;
-    }
 
     if (!EthernetBase::start(std::move(wiz5500)))
-    {
         return false;
-    }
 
     ethernetGSGlobal = this;
     getModule<BoardStatus>()->setEthernetPresent(true);

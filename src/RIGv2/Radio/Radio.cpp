@@ -43,9 +43,7 @@ void handleDioIRQ()
 {
     SX1278Lora* instance = gRadio;
     if (instance)
-    {
         instance->handleDioIRQ();
-    }
 }
 
 void setIRQRadio(SX1278Lora* radio)
@@ -86,10 +84,8 @@ bool Radio::start()
 
     // Initialize mavdriver
     mavDriver = std::make_unique<MavDriver>(
-        radio.get(),
-        [this](MavDriver*, const mavlink_message_t& msg)
-        { handleMessage(msg); },
-        Config::Radio::MAV_SLEEP_AFTER_SEND,
+        radio.get(), [this](MavDriver*, const mavlink_message_t& msg)
+        { handleMessage(msg); }, Config::Radio::MAV_SLEEP_AFTER_SEND,
         Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
 
     if (!mavDriver->start())
@@ -155,13 +151,9 @@ void Radio::enqueueWack(const mavlink_message_t& msg, uint8_t errorId)
 MavlinkStatus Radio::getMavStatus()
 {
     if (mavDriver)
-    {
         return mavDriver->getStatus();
-    }
     else
-    {
         return {};
-    }
 }
 
 void Radio::handleMessage(const mavlink_message_t& msg)
@@ -190,13 +182,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         {
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
             if (enqueueSystemTm(tmId))
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
 
             break;
         }
@@ -206,13 +194,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             uint8_t tmId =
                 mavlink_msg_sensor_tm_request_tc_get_sensor_name(&msg);
             if (enqueueSensorTm(tmId))
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
 
             break;
         }
@@ -226,13 +210,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 GroundModeManagerState::DISARMED)
             {
                 if (getModule<Actuators>()->wiggleServo(servo))
-                {
                     enqueueAck(msg);
-                }
                 else
-                {
                     enqueueNack(msg, 0);
-                }
             }
             else
             {
@@ -249,13 +229,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_atomic_valve_timing_tc_get_servo_id(&msg));
 
             if (getModule<Actuators>()->setOpeningTime(servo, time))
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
             break;
         }
 
@@ -268,13 +244,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_valve_maximum_aperture_tc_get_servo_id(&msg));
 
             if (getModule<Actuators>()->setMaxAperture(servo, aperture))
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
             break;
         }
 
@@ -325,26 +297,18 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_REGISTRY_LOAD:
         {
             if (getModule<Registry>()->load() == RegistryError::OK)
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
             break;
         }
 
         case MAV_CMD_REGISTRY_SAVE:
         {
             if (getModule<Registry>()->save() == RegistryError::OK)
-            {
                 enqueueAck(msg);
-            }
             else
-            {
                 enqueueNack(msg, 0);
-            }
             break;
         }
 

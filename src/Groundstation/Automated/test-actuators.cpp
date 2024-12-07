@@ -79,7 +79,7 @@ void errorLoop()
     }
 }
 
-void test1(Actuators *actuators)
+void test1(Actuators* actuators)
 {
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 1");
@@ -109,7 +109,7 @@ void test1(Actuators *actuators)
     LOG_INFO(logger, "Test 1 completed\n");
 }
 
-void test2(Actuators *actuators)
+void test2(Actuators* actuators)
 {
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 2");
@@ -138,7 +138,7 @@ void test2(Actuators *actuators)
     LOG_INFO(logger, "Test 2 completed\n");
 }
 
-void test3(Actuators *actuators)
+void test3(Actuators* actuators)
 {
     actuators->setSpeed(StepperList::STEPPER_X, STEPPER_SPEED);
     actuators->setSpeed(StepperList::STEPPER_Y, STEPPER_SPEED);
@@ -154,7 +154,7 @@ void test3(Actuators *actuators)
     ledWaitLoop(TEST_WAIT);
 }
 
-void test6(Actuators *actuators)
+void test6(Actuators* actuators)
 {
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
     LOG_INFO(logger, "Executing Test 6");
@@ -193,11 +193,11 @@ int main()
 {
     ledOff();
 
-    Hub *hub             = new Hub();
-    LyraGS::Buses *buses = new LyraGS::Buses();
-    Serial *serial       = new Serial();
-    Actuators *actuators = new Actuators();
-    Sensors *sensors     = new Sensors();
+    Hub* hub             = new Hub();
+    LyraGS::Buses* buses = new LyraGS::Buses();
+    Serial* serial       = new Serial();
+    Actuators* actuators = new Actuators();
+    Sensors* sensors     = new Sensors();
 
     DependencyManager manager;
     PrintLogger logger = PrintLogger{Logging::getLogger("test-actuators")};
@@ -264,8 +264,6 @@ int main()
 
     led1Off();
     while (1)
-    {
         Thread::sleep(1000);
-    }
     return 0;
 }

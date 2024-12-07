@@ -63,22 +63,22 @@ int main()
 
     bool initResult = true;
 
-    Buses *buses              = new Buses();
-    BoardScheduler *scheduler = new BoardScheduler();
+    Buses* buses              = new Buses();
+    BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors *sensors;
-    Actuators *actuators    = new Actuators();
-    Radio *radio            = new Radio();
-    CanHandler *canHandler  = new CanHandler();
-    PinHandler *pinHandler  = new PinHandler();
-    FlightModeManager *fmm  = new FlightModeManager();
-    AlgoReference *ref      = new AlgoReference();
-    ADAController *ada      = new ADAController();
-    NASController *nas      = new NASController();
-    MEAController *mea      = new MEAController();
-    ABKController *abk      = new ABKController();
-    StatsRecorder *recorder = new StatsRecorder();
-    MainHIL *hil            = nullptr;
+    Sensors* sensors;
+    Actuators* actuators    = new Actuators();
+    Radio* radio            = new Radio();
+    CanHandler* canHandler  = new CanHandler();
+    PinHandler* pinHandler  = new PinHandler();
+    FlightModeManager* fmm  = new FlightModeManager();
+    AlgoReference* ref      = new AlgoReference();
+    ADAController* ada      = new ADAController();
+    NASController* nas      = new NASController();
+    MEAController* mea      = new MEAController();
+    ABKController* abk      = new ABKController();
+    StatsRecorder* recorder = new StatsRecorder();
+    MainHIL* hil            = nullptr;
 
     // HIL
     if (PersistentVars::getHilMode())
@@ -96,17 +96,17 @@ int main()
         sensors = new Sensors();
     }
 
-    Logger &sdLogger    = Logger::getInstance();
-    EventBroker &broker = EventBroker::getInstance();
+    Logger& sdLogger    = Logger::getInstance();
+    EventBroker& broker = EventBroker::getInstance();
 
     // Setup event sniffer
-    EventSniffer sniffer(
-        broker,
-        [&](uint8_t event, uint8_t topic)
-        {
-            EventData data{TimestampTimer::getTimestamp(), event, topic};
-            sdLogger.log(data);
-        });
+    EventSniffer sniffer(broker,
+                         [&](uint8_t event, uint8_t topic)
+                         {
+                             EventData data{TimestampTimer::getTimestamp(),
+                                            event, topic};
+                             sdLogger.log(data);
+                         });
 
     // Insert modules
     initResult = initResult && manager.insert<Buses>(buses) &&
@@ -258,15 +258,11 @@ int main()
                                    {
                                        std::cout << "LIFTOFF!" << std::endl;
                                        if (Config::HIL::IS_FULL_HIL)
-                                       {
                                            canHandler->sendServoOpenCommand(
                                                ServosList::MAIN_VALVE, 7000);
-                                       }
                                        else
-                                       {
                                            actuators->setCanServoOpen(
                                                ServosList::MAIN_VALVE, true);
-                                       }
                                    });
 
         std::cout << "Waiting start simulation" << std::endl;

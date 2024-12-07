@@ -55,11 +55,11 @@ public:
         return true;
     }
 
-    Boardcore::TaskScheduler &getSensorsScheduler() { return sensors; }
+    Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
-    Boardcore::TaskScheduler &getActuatorsScheduler() { return actuators; }
+    Boardcore::TaskScheduler& getActuatorsScheduler() { return actuators; }
 
-    Boardcore::TaskScheduler &getCanBusScheduler() { return actuators; }
+    Boardcore::TaskScheduler& getCanBusScheduler() { return actuators; }
 
 private:
     Boardcore::PrintLogger logger =
