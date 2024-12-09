@@ -80,9 +80,13 @@ void Sensors::vn300Callback()
 {
     if (calibrating)
     {
-        if (calibrationStart - std::chrono::nanoseconds(miosix::getTime()) >
+        LOG_DEBUG(logger, "Sensor Manager VN300 calibrating\n");
+        if (std::chrono::nanoseconds(miosix::getTime()) - calibrationStart >
             VN300_CAL_TIME)
+        {
             vn300->stopHSIEstimator();
+            calibrating = false;
+        }
     }
     else
         Logger::getInstance().log(vn300->getLastSample());
