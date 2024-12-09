@@ -118,3 +118,10 @@ set (LYRA_GS
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
     src/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
 )
+
+set (ROTATING_PLATFORM
+    src/Groundstation/RotatingPlatform/Actuators/Actuators.cpp
+    src/Groundstation/RotatingPlatform/PinHandler/PinHandler.cpp
+    src/Groundstation/Automated/Leds/Leds.cpp
+)
+
