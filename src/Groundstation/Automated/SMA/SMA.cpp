@@ -332,7 +332,10 @@ void SMA::update()
         case SMAState::CALIBRATE:
         {
             if (!sensors->isCalibrating())
+            {
                 EventBroker::getInstance().post(ARP_CAL_DONE, TOPIC_ARP);
+                LOG_DEBUG(logger, "Exit from calibration\n");
+            }
         }
         break;
         default:
