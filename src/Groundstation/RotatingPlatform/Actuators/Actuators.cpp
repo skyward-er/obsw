@@ -70,31 +70,43 @@ Actuators::Actuators(StepperConfig config)
 
 void Actuators::run()
 {
+    while (true)
     {
-        miosix::Lock<FastMutex> lock(rotationMutex);
-
-        float speed = speedX;
-
-        // Acceleration/stable phase
-        if (stepperX.isEnabled() && isRotating)
         {
-            if (speed < configX.MAX_SPEED)
-                speed += 0.1;
-            if (speed > configX.MAX_SPEED)
-                speed = configX.MAX_SPEED;
-            setSpeed(StepperList::STEPPER_X, speed);
+            miosix::Lock<FastMutex> lock(rotationMutex);
+
+            float stepSpeed = ACCELERATION * (TIME_WAIT_MS / 1000);
+
+            // Acceleration/stable phase
+            if (stepperX.isEnabled() && isRotating)
+            {
+                if (speed < configX.MAX_SPEED && speed < MAX_MAX_SPEED)
+                    speed += stepSpeed;
+                if (speed > configX.MAX_SPEED)
+                    speed = configX.MAX_SPEED;
+                if (speed > MAX_MAX_SPEED)
+                    speed = MAX_MAX_SPEED;
+                setSpeed(StepperList::STEPPER_X, speed);
+                std::cout << "Accelerate speed" << speed << std::endl;
+            }
+            // Deceleration phase
+            else if (stepperX.isEnabled())
+            {
+                speed = speed - stepSpeed;
+                if (speed <= 0.0001)
+                    speed = 0.0;
+                setSpeed(StepperList::STEPPER_X, speed);
+                std::cout << "Decelerate speed" << speed << std::endl;
+            }
+            else
+            {
+                speed = 0.0;
+                setSpeed(StepperList::STEPPER_X, 0.0);
+            }
         }
-        // Deceleration phase
-        else
-        {
-            if (speedX > 0)
-                speed -= 0.1;
-            if (speed < 0)
-                speed = 0;
-            setSpeed(StepperList::STEPPER_X, speed);
-        }
+        moveDeg(StepperList::STEPPER_X, 20);
+        Thread::sleep(TIME_WAIT_MS);
     }
-    Thread::sleep(100);
 }
 
 void Actuators::arm() { stepperX.enable(); }

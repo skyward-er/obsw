@@ -57,6 +57,7 @@ void PinHandler::onArmTransition(PinTransition transition)
 {
     if (transition == Boardcore::PinTransition::RISING_EDGE)
     {
+        LOG_DEBUG(logger, "ARM!\n");
         getModule<Antennas::Leds>()->setOn(Antennas::LedColor::YELLOW);
         getModule<Actuators>()->arm();
 
@@ -68,6 +69,7 @@ void PinHandler::onArmTransition(PinTransition transition)
     }
     else
     {
+        LOG_DEBUG(logger, "DISARM!\n");
         getModule<Antennas::Leds>()->setFastBlink(Antennas::LedColor::YELLOW);
         getModule<Actuators>()->disarm();
 
@@ -83,6 +85,7 @@ void PinHandler::onActiveTransition(PinTransition transition)
 {
     if (transition == Boardcore::PinTransition::RISING_EDGE)
     {
+        LOG_DEBUG(logger, "SPIN TO WIN!\n");
         getModule<Antennas::Leds>()->setOn(Antennas::LedColor::BLUE);
         getModule<Actuators>()->enableRotation();
 
@@ -95,6 +98,7 @@ void PinHandler::onActiveTransition(PinTransition transition)
 
     else
     {
+        LOG_DEBUG(logger, "NO SPIN!\n");
         getModule<Antennas::Leds>()->setFastBlink(Antennas::LedColor::BLUE);
         getModule<Actuators>()->disableRotation();
 

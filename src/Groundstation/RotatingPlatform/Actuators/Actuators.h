@@ -23,6 +23,7 @@
 
 #include <ActiveObject.h>
 #include <common/MavlinkLyra.h>
+#include <diagnostic/PrintLogger.h>
 #include <logger/Logger.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -36,6 +37,10 @@
 
 namespace RotatingPlatform
 {
+static constexpr float MAX_MAX_SPEED =
+    0.03;  // Structurally not go more than this
+static constexpr float ACCELERATION = 0.01;  //[RPS^2]
+static constexpr float TIME_WAIT_MS = 100;  //[MS]
 
 /**
  * @brief Error handling enum for the stepper movement
@@ -220,5 +225,9 @@ private:
     // Variables to enable the rotation
     bool isRotating = false;
     miosix::FastMutex rotationMutex;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("Actuator");
+
+    float speed = 0;
 };
 }  // namespace RotatingPlatform

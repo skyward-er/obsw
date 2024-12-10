@@ -93,12 +93,16 @@ int main()
     Buses* buses                           = new Buses();
     RotatingPlatform::Actuators* actuators = new RotatingPlatform::Actuators();
     Antennas::Leds* leds                   = new Antennas::Leds(scheduler_low);
+    PinHandler* pinHandler                 = new PinHandler();
 
     bool ok = true;
+
+    std::cout << "[error] Hello!" << std::endl;
 
     ok &= manager.insert(buses);
     ok &= manager.insert(leds);
     ok &= manager.insert(actuators);
+    ok &= manager.insert(pinHandler);
 
     if (!ok)
         errorLoop();
@@ -127,11 +131,33 @@ int main()
         ok = false;
     }
 
+    if (!leds->start())
+    {
+        std::cout << "[error] Failed to start leds!" << std::endl;
+        ok = false;
+    }
+
     // Fast blink to make the operator aware that this is not an ARP
     // entrypoint (lyra-gs-entry)
     leds->setFastBlink(LedColor::RED);
     leds->setFastBlink(LedColor::YELLOW);
     leds->setFastBlink(LedColor::BLUE);
+
+    if (actuators->start())
+    {
+        LOG_INFO(logger, "[info] Actuators started!\n");
+    }
+    else
+        std::cout << "[error] Failed to start actuators!" << std::endl;
+
+    if (pinHandler->start())
+    {
+        LOG_INFO(logger, "[info] Actuators started!\n");
+    }
+    else
+        std::cout << "[error] Failed to start actuators!" << std::endl;
+
+    std::cout << "[info] Ok!" << std::endl;
 
     idleLoop();
 }
