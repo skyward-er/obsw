@@ -22,6 +22,7 @@
 
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
+#include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <common/Events.h>
@@ -78,8 +79,7 @@ using namespace Common;
 
 int main()
 {
-    std::cout << "Parafoil Entrypoint "
-              << "(" << BUILD_TYPE << ")"
+    std::cout << "Parafoil Entrypoint " << "(" << BUILD_TYPE << ")"
               << " by Skyward Experimental Rocketry" << std::endl;
 
     auto logger = Logging::getLogger("Parafoil");
@@ -101,7 +101,8 @@ int main()
     // Sensors
     auto sensors = new Sensors();
     initResult &= depman.insert(sensors);
-    // TODO: PinHandler
+    auto pinHandler = new PinHandler();
+    initResult &= depman.insert(pinHandler);
 
     // TODO: Radio
 
