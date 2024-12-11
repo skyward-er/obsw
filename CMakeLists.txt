@@ -50,6 +50,11 @@ target_include_directories(main-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(main-entry-euroc PRIVATE DEFAULT_STDOUT_LOG_LEVEL=20 EUROC)
 sbs_target(main-entry-euroc stm32f767zi_orion_biscotto)
 
+add_executable(main-airbrakes-demo src/Main/main-airbrakes-demo.cpp)
+target_include_directories(main-airbrakes-demo PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(main-airbrakes-demo PRIVATE DEFAULT_STDOUT_LOG_LEVEL=20)
+sbs_target(main-airbrakes-demo stm32f767zi_orion_biscotto)
+
 add_executable(payload-entry src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(payload-entry stm32f767zi_lyra_biscotto)
