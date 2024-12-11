@@ -299,6 +299,68 @@ int main()
                   << (info.isInitialized ? "Ok" : "Error") << std::endl;
     }
 
+    using namespace std::chrono;
+    using fseconds = std::chrono::duration<float>;  // float seconds
+
+    // Move airbrakes from start to end in the given time
+    auto animateAbk =
+        [actuators](float start, float end, std::chrono::milliseconds time)
+    {
+        // Nothing to move
+        if (start == end)
+            return;
+
+        float step     = (end - start) / fseconds{time}.count();
+        float position = start;
+        auto startTime = steady_clock::now();
+        auto endTime   = startTime + time;
+        auto now       = startTime;
+
+        std::cout << "Animating ABK from " << start << " to " << end << " in "
+                  << time.count() << "ms" << std::endl;
+
+        while (now < endTime)
+        {
+            actuators->setAbkPosition(position);
+            now          = steady_clock::now();
+            auto elapsed = fseconds{now - startTime};
+            startTime    = now;
+
+            position += step * elapsed.count();
+
+            Thread::sleep(10);
+        }
+        actuators->setAbkPosition(end);
+    };
+
+    for (int i = 0; i < 3; i++)
+    {
+        // Fully open airbrakes
+        animateAbk(0.0f, 1.0f, 200ms * i);
+        Thread::sleep(1000);
+        // Fully close airbrakes
+        animateAbk(1.0f, 0.0f, 200ms * i);
+        Thread::sleep(2000);
+    }
+
+    float position = 0.0f;
+
+    while (true)
+    {
+        // Get a random position that is different enough from the current one
+        float newPosition = 0.0f;
+        do
+            newPosition = static_cast<float>(std::rand()) / RAND_MAX;
+        while (std::abs(position - newPosition) < 0.3f);
+
+        std::cout << "ABK position change: " << position << " -> "
+                  << newPosition << std::endl;
+        animateAbk(position, newPosition, 300ms);
+
+        position = newPosition;
+        Thread::sleep(2000);
+    }
+
     while (true)
     {
         sdLogger.log(sdLogger.getStats());
