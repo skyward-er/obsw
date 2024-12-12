@@ -20,11 +20,13 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
+#include <Parafoil/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/PrintLogger.h>
@@ -98,6 +100,10 @@ int main()
     auto flightModeManager = new FlightModeManager();
     initResult &= depman.insert(flightModeManager);
 
+    // Attitude estimation
+    auto nasController = new NASController();
+    initResult &= depman.insert(nasController);
+
     // Sensors
     auto sensors = new Sensors();
     initResult &= depman.insert(sensors);
@@ -106,7 +112,11 @@ int main()
 
     // TODO: Radio
 
-    // TODO: Flight algorithms
+    // TODO: Wing Algorithm
+
+    // Actuators
+    auto actuators = new Actuators();
+    initResult &= depman.insert(actuators);
 
     START_SINGLETON(Logger)
     {
@@ -116,15 +126,13 @@ int main()
     }
 
     START_MODULE(flightModeManager);
-    // START_MODULE(pinHandler);
+    START_MODULE(pinHandler);
     // START_MODULE(radio) { miosix::led2On(); }
-    // START_MODULE(canHandler) { miosix::led3On(); }
-    // START_MODULE(nasController);
-    // START_MODULE(altitudeTrigger);
+    START_MODULE(nasController);
     // START_MODULE(wingController);
-    // START_MODULE(actuators);
+    START_MODULE(actuators);
 
-    // START_MODULE(scheduler);
+    START_MODULE(scheduler);
 
     START_MODULE(sensors);
 
@@ -133,13 +141,11 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         // Turn on the initialization led on the CU
         miosix::ledOn();
-        // TODO: actuators->setStatusOk();
         std::cout << "Payload initialization Ok!" << std::endl;
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        // TODO: actuators->setStatusError();
         std::cerr << "*** Payload initialization error ***" << std::endl;
     }
 
