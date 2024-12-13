@@ -32,25 +32,34 @@ using namespace Boardcore;
 using namespace miosix;
 using namespace Common;
 using namespace RIGv2;
+using namespace std::chrono;
 
 void Actuators::ServoInfo::openServoWithTime(uint32_t time)
 {
     long long currentTime = getTime();
 
-    closeTs      = currentTime + (time * Constants::NS_IN_MS);
-    lastActionTs = currentTime;
+    closeTs  = currentTime + (time * Constants::NS_IN_MS);
+    adjustTs = currentTime +
+               (Config::Servos::SERVO_CONFIDENCE_TIME * Constants::NS_IN_MS);
 
     if (openingEvent != 0)
         EventBroker::getInstance().post(openingEvent, TOPIC_MOTOR);
+
+    unsafeSetServoPosition(getMaxAperture());
 }
 
 void Actuators::ServoInfo::closeServo()
 {
-    closeTs      = 0;
-    lastActionTs = getTime();
+    long long currentTime = getTime();
+
+    closeTs  = 0;
+    adjustTs = currentTime +
+               (Config::Servos::SERVO_CONFIDENCE_TIME * Constants::NS_IN_MS);
 
     if (closingEvent != 0)
         EventBroker::getInstance().post(closingEvent, TOPIC_MOTOR);
+
+    unsafeSetServoPosition(0.0);
 }
 
 void Actuators::ServoInfo::unsafeSetServoPosition(float position)
@@ -267,15 +276,14 @@ bool Actuators::start()
     infos[8].servo->enable();
     infos[9].servo->enable();
 
-    uint8_t result =
-        scheduler.addTask([this]() { updatePositionsTask(); },
-                          Config::Servos::SERVO_TIMINGS_CHECK_PERIOD);
-
-    if (result == 0)
-    {
-        LOG_ERR(logger, "Failed to add updatePositionsTask");
-        return false;
-    }
+    miosix::Thread::create(
+        [](void* arg) -> void*
+        {
+            static_cast<Actuators*>(arg)->valveSchedulerTask();
+            return nullptr;
+        },
+        STACK_DEFAULT_FOR_PTHREAD, (miosix::Priority)(PRIORITY_MAX - 1),
+        static_cast<void*>(this));
 
     started = true;
     return true;
@@ -315,6 +323,7 @@ bool Actuators::toggleServo(ServosList servo)
         info->closeServo();
     }
 
+    cv.notify_one();
     return true;
 }
 
@@ -329,6 +338,7 @@ bool Actuators::openServo(ServosList servo)
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->openServoWithTime(time);
 
+    cv.notify_one();
     return true;
 }
 
@@ -341,6 +351,8 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->openServoWithTime(time);
+
+    cv.notify_one();
     return true;
 }
 
@@ -353,6 +365,8 @@ bool Actuators::closeServo(ServosList servo)
 
     getModule<CanHandler>()->sendServoCloseCommand(servo);
     info->closeServo();
+
+    cv.notify_one();
     return true;
 }
 
@@ -365,6 +379,8 @@ void Actuators::closeAllServos()
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(
         ServosList::N2O_VENTING_VALVE);
+
+    cv.notify_one();
 }
 
 bool Actuators::setMaxAperture(ServosList servo, float aperture)
@@ -413,14 +429,17 @@ void Actuators::openChamberWithTime(uint32_t time)
     Lock<FastMutex> lock(infosMutex);
     long long currentTime = getTime();
 
-    nitrogenCloseTs      = currentTime + (time * Constants::NS_IN_MS);
-    nitrogenLastActionTs = currentTime;
+    nitrogenCloseTs = currentTime + (time * Constants::NS_IN_MS);
+    unsafeOpenChamber();
 }
 
 void Actuators::closeChamber()
 {
     Lock<FastMutex> lock(infosMutex);
     nitrogenCloseTs = 0;
+    unsafeCloseChamber();
+
+    cv.notify_one();
 }
 
 bool Actuators::isChamberOpen()
@@ -510,68 +529,124 @@ void Actuators::unsafeOpenChamber() { relays::nitrogen::low(); }
 
 void Actuators::unsafeCloseChamber() { relays::nitrogen::high(); }
 
-void Actuators::updatePositionsTask()
+void Actuators::updatePositions()
 {
-    Lock<FastMutex> lock(infosMutex);
-
     long long currentTime = getTime();
 
-    // Iterate over all servos
-    for (uint8_t idx = 0; idx < 10; idx++)
     {
-        if (currentTime < infos[idx].closeTs)
-        {
-            // The valve should be open
-            if (currentTime < infos[idx].lastActionTs +
-                                  (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                   Constants::NS_IN_MS))
-            {
-                // We should open the valve all the way
-                unsafeSetServoPosition(idx, infos[idx].getMaxAperture());
-            }
-            else
-            {
-                // Time to wiggle the valve a little
-                unsafeSetServoPosition(
-                    idx, infos[idx].getMaxAperture() *
-                             (1.0 - Config::Servos::SERVO_CONFIDENCE));
-            }
-        }
-        else
-        {
-            // Ok the valve should be closed
-            if (infos[idx].closeTs != 0)
-            {
-                // Perform the servo closing
-                infos[idx].closeServo();
-            }
+        Lock<FastMutex> lock(infosMutex);
 
-            if (currentTime < infos[idx].lastActionTs +
-                                  (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                   Constants::NS_IN_MS))
+        // Iterate over all servos
+        for (uint8_t idx = 0; idx < 10; idx++)
+        {
+            if (currentTime < infos[idx].closeTs)
             {
-                // We should close the valve all the way
-                unsafeSetServoPosition(idx, 0.0);
+                // The valve should be open
+                if (currentTime >= infos[idx].adjustTs)
+                {
+                    // Time to wiggle the valve a little
+                    unsafeSetServoPosition(
+                        idx, infos[idx].getMaxAperture() *
+                                 (1.0 - Config::Servos::SERVO_CONFIDENCE));
+
+                    infos[idx].adjustTs = 0;
+                }
             }
             else
             {
-                // Time to wiggle the valve a little
-                unsafeSetServoPosition(idx,
-                                       infos[idx].getMaxAperture() *
-                                           Config::Servos::SERVO_CONFIDENCE);
+                // Ok the valve is not already closed
+                if (infos[idx].closeTs != 0)
+                {
+                    // Perform the servo closing
+                    infos[idx].closeServo();
+                }
+
+                if (currentTime < infos[idx].adjustTs)
+                {
+                    // We should close the valve all the way
+                    unsafeSetServoPosition(idx, 0.0);
+                }
+                else if (infos[idx].adjustTs != 0)
+                {
+                    // Time to wiggle the valve a little
+                    unsafeSetServoPosition(
+                        idx, infos[idx].getMaxAperture() *
+                                 Config::Servos::SERVO_CONFIDENCE);
+
+                    // The valve has been wiggled
+                    infos[idx].adjustTs = 0;
+                }
             }
         }
     }
 
     // Handle nitrogen logic
-    if (currentTime < nitrogenCloseTs)
-    {
-        unsafeOpenChamber();
-    }
-    else
+    if (currentTime > nitrogenCloseTs)
     {
         nitrogenCloseTs = 0;
-
         unsafeCloseChamber();
+    }
+}
+
+void Actuators::updateNextActionTs()
+{
+    Lock<FastMutex> lock(infosMutex);
+
+    nextActionTs = std::numeric_limits<long long>::max();
+
+    // Iterate over all servos and get the smallest (non zero) timestamp
+    for (uint8_t idx = 0; idx < 10; idx++)
+    {
+        if (infos[idx].closeTs != 0 && infos[idx].closeTs < nextActionTs)
+            nextActionTs = infos[idx].closeTs;
+
+        if (infos[idx].adjustTs != 0 && infos[idx].adjustTs < nextActionTs)
+            nextActionTs = infos[idx].adjustTs;
+    }
+
+    if (nitrogenCloseTs != 0 && nitrogenCloseTs < nextActionTs)
+        nextActionTs = nitrogenCloseTs;
+
+    if (nextActionTs == std::numeric_limits<long long>::max())
+        nextActionTs = 0;
+}
+
+bool Actuators::terminateValveSchedulerTask()
+{
+    if (!isValveSchedulerAlive)
+    {
+        LOG_ERR(logger, "valve scheduler task is not currently running");
+        return 0;
+    }
+
+    isValveSchedulerAlive = 0;
+    return 1;
+}
+
+void Actuators::valveSchedulerTask()
+{
+    isValveSchedulerAlive = 1;
+
+    while (isValveSchedulerAlive)
+    {
+        std::unique_lock<std::mutex> lock(conditionVariableMutex);
+
+        std::cv_status waitResult;
+
+        if (nextActionTs == 0)
+        {
+            cv.wait(lock);
+            waitResult = std::cv_status::no_timeout;
+        }
+        else
+        {
+            waitResult = cv.wait_until(
+                lock, time_point<steady_clock>(nanoseconds(nextActionTs)));
+        }
+
+        if (waitResult == std::cv_status::timeout)
+            updatePositions();
+
+        updateNextActionTs();
     }
 }
