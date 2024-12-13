@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <Motor/BoardScheduler.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <actuators/Servo/Servo.h>
@@ -70,10 +71,21 @@ private:
 
     void updatePositionsTask();
 
+    void valveSchedulerTask();
+
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     miosix::FastMutex infosMutex;
+    std::mutex conditionVariableMutex; // Mutex used to ensure the condition variable is handled correctly for valveSchedulerTask()
+
+    std::condition_variable cv;
+
+    bool ready = false;        // variable to check for spurious wakeups
+
+    // timestamp of next valve to be opened
+    long long nextOpenTs;
+
     // Timestamp of last servo action
     long long lastActionTs = 0;
     ServoInfo infos[2]     = {};

@@ -255,3 +255,20 @@ void Actuators::updatePositionsTask()
                           Config::Servos::SERVO_ACTION_TIMEOUT + 1000);
     }
 }
+
+
+void Actuators::valveSchedulerTask()
+{
+    while(true)
+    {
+        {
+        std::unique_lock<std::mutex> lock(conditionVariableMutex);
+
+
+            // there has to be a better way to get the time point
+            bool waitResult = cv.wait_until(lock, std::chrono::time_point<std::chrono::steady_clock>(std::chrono::milliseconds(nextOpenTs)), [this]{return ready;});
+        }
+
+
+    }
+}
