@@ -24,6 +24,7 @@
 
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkOrion.h>
+#include <units/Angle.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <utils/ModuleManager/ModuleManager.hpp>
@@ -41,7 +42,8 @@ public:
     struct ServoActuator
     {
         std::unique_ptr<Boardcore::Servo> servo;
-        float fullRangeAngle;  ///< The full range of the servo [degrees]
+        Units::Angle::Degree fullRangeAngle =
+            Units::Angle::Degree(0);  ///< The full range of the servo [degrees]
         miosix::FastMutex mutex;
     };
 
@@ -67,7 +69,7 @@ public:
      * @param angle Angle to set [degree].
      * @return True if the the angle was set.
      */
-    bool setServoAngle(ServosList servoId, float angle);
+    bool setServoAngle(ServosList servoId, Units::Angle::Degree angle);
 
     /**
      * @brief Wiggles the servo for few seconds.
@@ -112,7 +114,7 @@ public:
      * @return float current Servo angle in range [0-180], (-1) if the servoId
      * is invalid.
      */
-    float getServoAngle(ServosList servoId);
+    Units::Angle::Degree getServoAngle(ServosList servoId);
 
     /**
      * @brief Starts twirl (one servo is set to 0 and the other one is not).

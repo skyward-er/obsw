@@ -21,6 +21,7 @@
  */
 
 #include <Parafoil/Actuators/Actuators.h>
+#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/PinHandler/PinHandler.h>
@@ -112,6 +113,9 @@ int main()
 
     // TODO: Radio
 
+    // Flight algorithms
+    auto altitudeTrigger = new AltitudeTrigger();
+    initResult &= depman.insert(altitudeTrigger);
     // TODO: Wing Algorithm
 
     // Actuators
@@ -129,6 +133,7 @@ int main()
     START_MODULE(pinHandler);
     // START_MODULE(radio) { miosix::led2On(); }
     START_MODULE(nasController);
+    START_MODULE(altitudeTrigger);
     // START_MODULE(wingController);
     START_MODULE(actuators);
 
@@ -141,12 +146,12 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         // Turn on the initialization led on the CU
         miosix::ledOn();
-        std::cout << "Payload initialization Ok!" << std::endl;
+        std::cout << "Parafoil initialization Ok!" << std::endl;
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        std::cerr << "*** Payload initialization error ***" << std::endl;
+        std::cerr << "*** Parafoil initialization error ***" << std::endl;
     }
 
     std::cout << "Sensors status:" << std::endl;

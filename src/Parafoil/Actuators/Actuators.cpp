@@ -29,6 +29,7 @@
 using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
+using namespace Boardcore::Units::Angle;
 namespace config = Parafoil::Config::Actuators;
 
 namespace Parafoil
@@ -40,13 +41,13 @@ Actuators::Actuators()
         config::LeftServo::TIMER, config::LeftServo::PWM_CH,
         config::LeftServo::MIN_PULSE.count(),
         config::LeftServo::MAX_PULSE.count());
-    leftServo.fullRangeAngle = config::LeftServo::ROTATION.value();
+    leftServo.fullRangeAngle = config::LeftServo::ROTATION;
 
     rightServo.servo = std::make_unique<Servo>(
         config::RightServo::TIMER, config::RightServo::PWM_CH,
         config::RightServo::MIN_PULSE.count(),
         config::RightServo::MAX_PULSE.count());
-    rightServo.fullRangeAngle = config::RightServo::ROTATION.value();
+    rightServo.fullRangeAngle = config::RightServo::ROTATION;
 }
 
 bool Actuators::start()
@@ -80,7 +81,7 @@ bool Actuators::setServoPosition(ServosList servoId, float position)
     return true;
 }
 
-bool Actuators::setServoAngle(ServosList servoId, float angle)
+bool Actuators::setServoAngle(ServosList servoId, Degree angle)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
@@ -88,7 +89,8 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    actuator->servo->setPosition(angle / actuator->fullRangeAngle);
+    actuator->servo->setPosition(
+        (angle / actuator->fullRangeAngle.value()).value());
 
     return true;
 }
@@ -104,11 +106,11 @@ float Actuators::getServoPosition(ServosList servoId)
     return actuator->servo->getPosition();
 }
 
-float Actuators::getServoAngle(ServosList servoId)
+Degree Actuators::getServoAngle(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-        return -1.f;
+        return Degree(-1.f);
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
