@@ -37,7 +37,7 @@ static const RotatingPlatform::StepperConfig stepperXConfig{
     .HAS_ANGLE_LIMITS = false,
     .MIN_ANGLE        = 0,
     .MAX_ANGLE        = 0,
-    .MAX_SPEED        = 0.1,  //<[RPS]
+    .MAX_SPEED        = 0.105 * 2.2,  //<[RPS] * multiplier (transmission)
 };
 
 namespace StepperSettings

@@ -38,9 +38,9 @@
 namespace RotatingPlatform
 {
 static constexpr float MAX_MAX_SPEED =
-    0.03;  // Structurally not go more than this
+    0.5 * 2.2;  // Structurally not go more than this
 static constexpr float ACCELERATION = 0.01;  //[RPS^2]
-static constexpr float TIME_WAIT_MS = 100;  //[MS]
+static constexpr float TIME_WAIT_MS = 100;   //[MS]
 
 /**
  * @brief Error handling enum for the stepper movement

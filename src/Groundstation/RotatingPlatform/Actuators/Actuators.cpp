@@ -70,17 +70,22 @@ Actuators::Actuators(StepperConfig config)
 
 void Actuators::run()
 {
+    int logNr = Logger::getInstance().getCurrentLogNumber();
     while (true)
     {
+        std::cout << "Log nr " << logNr << std::endl;
+        std::cout << "Speed limit is " << configX.MAX_SPEED << std::endl;
         {
             miosix::Lock<FastMutex> lock(rotationMutex);
 
-            float stepSpeed = ACCELERATION * (TIME_WAIT_MS / 1000);
+            float stepSpeed  = ACCELERATION * (TIME_WAIT_MS / 1000);
+            float multiplier = 2.2;
 
             // Acceleration/stable phase
             if (stepperX.isEnabled() && isRotating)
             {
-                if (speed < configX.MAX_SPEED && speed < MAX_MAX_SPEED)
+                if (speed < configX.MAX_SPEED / multiplier &&
+                    speed < MAX_MAX_SPEED)
                     speed += stepSpeed;
                 if (speed > configX.MAX_SPEED)
                     speed = configX.MAX_SPEED;
@@ -104,7 +109,7 @@ void Actuators::run()
                 setSpeed(StepperList::STEPPER_X, 0.0);
             }
         }
-        moveDeg(StepperList::STEPPER_X, 20);
+        moveDeg(StepperList::STEPPER_X, -20);
         Thread::sleep(TIME_WAIT_MS);
     }
 }
