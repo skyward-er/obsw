@@ -152,6 +152,7 @@
         "GPIOF",
         "GPIOG",
         "hwmap",
+        "JESOLO",
         "KALM",
         "kalman",
         "Leds",

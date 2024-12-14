@@ -1,5 +1,5 @@
-/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Niccolò Betto
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,13 @@
 
 #pragma once
 
-#include <Payload/Configs/WingConfig.h>
+#include <Parafoil/Configs/WingConfig.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace Payload
+#include <atomic>
+#include <utils/ModuleManager/ModuleManager.hpp>
+
+namespace Parafoil
 {
 class BoardScheduler;
 class NASController;
@@ -34,33 +37,50 @@ class AltitudeTrigger
     : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
 {
 public:
+    /**
+     * @brief Adds the update() task to the task scheduler.
+     */
     bool start();
+
+    /**
+     * @return If the AltitudeTrigger is started.
+     */
     bool isStarted();
 
+    /**
+     * @brief Enable the AltitudeTrigger.
+     */
     void enable();
+
+    /**
+     * @brief Disable the AltitudeTrigger.
+     */
     void disable();
+
+    /**
+     * @return The status of the AltitudeTrigger
+     */
     bool isEnabled();
 
     /**
-     * @return Set the deployment altitude.
+     * @return Set the altitude of the AltitudeTrigger
      */
     void setDeploymentAltitude(float altitude);
 
 private:
-    /**
-     * @brief Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-     * altitude is reached
-     */
+    // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
+    // altitude is reached
     void update();
 
     std::atomic<bool> started{false};
     std::atomic<bool> running{false};
 
-    std::atomic<float> targetAltitude{
-        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE};
+    // Number of times that the algorithm detects to be below the fixed
+    // altitude
+    int confidence = 0;
 
-    int confidence = 0;  ///< Number of consecutive readings that are below the
-                         ///< target altitude
+    std::atomic<float> targetAltitude{
+        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE.value()};
 };
 
-}  // namespace Payload
+}  // namespace Parafoil
