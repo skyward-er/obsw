@@ -55,6 +55,7 @@ public:
     Boardcore::TaskScheduler& nasController() { return critical; }
     Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& pinHandler() { return high; }
+    Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
     Boardcore::TaskScheduler& actuators() { return low; }
 
     static Priority::PriorityLevel flightModeManagerPriority()
