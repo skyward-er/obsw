@@ -22,12 +22,13 @@
 
 #pragma once
 
-#include <condition_variable>
 #include <Motor/BoardScheduler.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkLyra.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include <condition_variable>
 
 namespace Motor
 {
@@ -71,17 +72,21 @@ private:
 
     void updatePositionsTask();
 
+    void updateNextOpenTs();
+
     void valveSchedulerTask();
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     miosix::FastMutex infosMutex;
-    std::mutex conditionVariableMutex; // Mutex used to ensure the condition variable is handled correctly for valveSchedulerTask()
+    std::mutex conditionVariableMutex;  // Mutex used to ensure the condition
+                                        // variable is handled correctly for
+                                        // valveSchedulerTask()
 
     std::condition_variable cv;
 
-    bool ready = false;        // variable to check for spurious wakeups
+    bool forcedWakeup = false;  // variable to check for spurious wakeups
 
     // timestamp of next valve to be opened
     long long nextOpenTs;

@@ -126,6 +126,14 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
 
     lastActionTs = getTime();
     info->openServoWithTime(time);
+
+    // wake up valveSchedulerTask
+    {
+        std::lock_guard<std::mutex> lock(conditionVariableMutex);
+        forcedWakeup = true;
+        cv.notify_all();
+    }
+
     return true;
 }
 
@@ -138,6 +146,13 @@ bool Actuators::closeServo(ServosList servo)
 
     lastActionTs = getTime();
     info->closeServo();
+
+    // wake up valveSchedulerTask
+    {
+        std::lock_guard<std::mutex> lock(conditionVariableMutex);
+        forcedWakeup = true;
+        cv.notify_all();
+    }
     return true;
 }
 
@@ -219,7 +234,7 @@ void Actuators::updatePositionsTask()
             }
             else
             {
-                // Ok the valve should be closed
+                // Ok the valve is not already closed
                 if (infos[idx].closeTs != 0)
                 {
                     // Perform the servo closing
@@ -256,19 +271,46 @@ void Actuators::updatePositionsTask()
     }
 }
 
+void Actuators::updateNextOpenTs()
+{
+    // Iterate over all servos
+    for (uint8_t idx = 0; idx < 2; idx++)
+    {
+        // get the first non zero closeTS
+        if (infos[idx].closeTs != 0)
+        {
+            nextOpenTs = infos[idx].closeTs;
+            break;
+        }
+    }
+
+    // Iterate over all servos
+    for (uint8_t idx = 0; idx < 2; idx++)
+    {
+        // get the smallest (non zero) closeTS out of all the servos
+        if (infos[idx].closeTs != 0 || infos[idx].closeTs < nextOpenTs)
+            nextOpenTs = infos[idx].closeTs;
+    }
+}
 
 void Actuators::valveSchedulerTask()
 {
-    while(true)
+    while (true)
     {
         {
-        std::unique_lock<std::mutex> lock(conditionVariableMutex);
-
+            std::unique_lock<std::mutex> lock(conditionVariableMutex);
 
             // there has to be a better way to get the time point
-            bool waitResult = cv.wait_until(lock, std::chrono::time_point<std::chrono::steady_clock>(std::chrono::milliseconds(nextOpenTs)), [this]{return ready;});
+            cv.wait_until(lock,
+                          std::chrono::time_point<std::chrono::steady_clock>(
+                              std::chrono::milliseconds(nextOpenTs)),
+                          [this] { return forcedWakeup; });
+
+            updatePositionsTask();
+
+            updateNextOpenTs();
+
+            forcedWakeup = false;
         }
-
-
     }
 }
