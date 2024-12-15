@@ -131,9 +131,8 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
     {
         std::lock_guard<std::mutex> lock(conditionVariableMutex);
         forcedWakeup = true;
-        cv.notify_all();
     }
-
+    cv.notify_all();
     return true;
 }
 
@@ -151,8 +150,8 @@ bool Actuators::closeServo(ServosList servo)
     {
         std::lock_guard<std::mutex> lock(conditionVariableMutex);
         forcedWakeup = true;
-        cv.notify_all();
     }
+    cv.notify_all();
     return true;
 }
 
@@ -239,6 +238,8 @@ void Actuators::updatePositionsTask()
                 {
                     // Perform the servo closing
                     infos[idx].closeServo();
+                    // infos[idx].closetTs = 0;
+                    // infos[idx].lastActionTs = currentTime;
                 }
 
                 if (currentTime < infos[idx].lastActionTs +
@@ -273,24 +274,30 @@ void Actuators::updatePositionsTask()
 
 void Actuators::updateNextOpenTs()
 {
-    // Iterate over all servos
+    bool foundOpenServo = false;
+
+    // Iterate over all servos and get the first non zero closeTs
     for (uint8_t idx = 0; idx < 2; idx++)
     {
-        // get the first non zero closeTS
         if (infos[idx].closeTs != 0)
         {
-            nextOpenTs = infos[idx].closeTs;
+            nextOpenTs     = infos[idx].closeTs;
+            foundOpenServo = true;
             break;
         }
     }
 
-    // Iterate over all servos
-    for (uint8_t idx = 0; idx < 2; idx++)
+    if (!foundOpenServo)
     {
-        // get the smallest (non zero) closeTS out of all the servos
-        if (infos[idx].closeTs != 0 || infos[idx].closeTs < nextOpenTs)
-            nextOpenTs = infos[idx].closeTs;
+        nextOpenTs = 0;
+        return;
     }
+
+    // Iterate over all servos and get the smallest (non zero) closeTs out of
+    // all the servos
+    for (uint8_t idx = 0; idx < 2; idx++)
+        if (infos[idx].closeTs != 0 && infos[idx].closeTs < nextOpenTs)
+            nextOpenTs = infos[idx].closeTs;
 }
 
 void Actuators::valveSchedulerTask()
@@ -300,17 +307,26 @@ void Actuators::valveSchedulerTask()
         {
             std::unique_lock<std::mutex> lock(conditionVariableMutex);
 
-            // there has to be a better way to get the time point
-            cv.wait_until(lock,
-                          std::chrono::time_point<std::chrono::steady_clock>(
-                              std::chrono::milliseconds(nextOpenTs)),
-                          [this] { return forcedWakeup; });
+            // Makes the task wait indefinetly if no servo is open
+            if (nextOpenTs == 0)
+                cv.wait(lock, [this] { return forcedWakeup; });
 
-            updatePositionsTask();
+            // At least one servo is open
+            if (nextOpenTs > 0)
+            {
+                // There has to be a better way to get the time point
+                cv.wait_until(
+                    lock,
+                    std::chrono::time_point<std::chrono::steady_clock>(
+                        std::chrono::milliseconds(nextOpenTs)),
+                    [this] { return forcedWakeup; });
 
-            updateNextOpenTs();
+                updatePositionsTask();
 
-            forcedWakeup = false;
+                updateNextOpenTs();
+
+                forcedWakeup = false;
+            }
         }
     }
 }

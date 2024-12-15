@@ -80,16 +80,17 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 
     miosix::FastMutex infosMutex;
-    std::mutex conditionVariableMutex;  // Mutex used to ensure the condition
-                                        // variable is handled correctly for
-                                        // valveSchedulerTask()
+
+    // Mutex used to ensure the condition variable is handled correctly
+    std::mutex conditionVariableMutex;
 
     std::condition_variable cv;
 
-    bool forcedWakeup = false;  // variable to check for spurious wakeups
+    // variable to check for spurious wakeups
+    bool forcedWakeup = false;
 
     // timestamp of next valve to be opened
-    long long nextOpenTs;
+    long long nextOpenTs = 0;
 
     // Timestamp of last servo action
     long long lastActionTs = 0;
