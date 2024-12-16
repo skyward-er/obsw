@@ -60,6 +60,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             sendNack(msg, 306);
     }
 
+    // Message for ARP
     if (msg.sysid == MAV_SYSID_ARP)
     {
         switch (msg.msgid)
@@ -239,6 +240,18 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             }
         }
     }
+
+    // In case the message is spoofed from ethernet by another groundstation
+    if (msg.sysid == MAV_SYSID_MAIN)
+    {
+        TRACE(
+            "[info] Hub: A MAIN packet was received from ground packet (not "
+            "radio)\n");
+        /* The message received by ethernet (outgoing) in reality is not a
+         * command but the telemetry spoofed, therefore is then used as incoming
+         */
+        dispatchIncomingMsg(msg);
+    }
 }
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
@@ -255,6 +268,13 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     {
         mavlink_rocket_flight_tm_t rocketTM;
         mavlink_msg_rocket_flight_tm_decode(&msg, &rocketTM);
+        uint64_t timestamp = mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
+        /* Messages older and within the discard interval are treated as old
+         * messages*/
+        if (timestamp <= lastFlightTMTimestamp &&
+            lastFlightTMTimestamp > timestamp + DISCARD_MSG_DELAY)
+            return;
+        lastFlightTMTimestamp = timestamp;
         NASState nasState{
             mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
             Eigen::Matrix<float, 13, 1>(
@@ -273,6 +293,12 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     {
         mavlink_rocket_stats_tm_t rocketST;
         mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
+        /* Messages older and within the discard interval are treated as old
+         * messages*/
+        if (rocketST.timestamp <= lastStatsTMTimestamp &&
+            lastStatsTMTimestamp > rocketST.timestamp + DISCARD_MSG_DELAY)
+            return;
+        lastStatsTMTimestamp = rocketST.timestamp;
         GPSData gpsState;
         gpsState = getRocketOrigin();
 

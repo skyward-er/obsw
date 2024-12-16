@@ -42,6 +42,13 @@ class BoardStatus;
 namespace Antennas
 {
 
+/*  This is used to avoid discarding messages in case the rocket timestamp is
+ * reset. Therefore if older than the discard msg delay, resets the messages
+ * last timestamp */
+static constexpr uint64_t DISCARD_MSG_DELAY =
+    10 * 1000000;  ///< Maximum time for which the message, if older is
+                   ///< discarded. [micros]
+
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
@@ -97,6 +104,8 @@ private:
     miosix::FastMutex coordinatesMutex;
     miosix::FastMutex nasStateMutex;
     bool flagNasSet = false;
+    uint64_t lastFlightTMTimestamp;
+    uint64_t lastStatsTMTimestamp;
 };
 
 }  // namespace Antennas
