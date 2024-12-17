@@ -132,7 +132,7 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
         std::lock_guard<std::mutex> lock(conditionVariableMutex);
         forcedWakeup = true;
     }
-    cv.notify_all();
+    cv.notify_one();
     return true;
 }
 
@@ -151,7 +151,7 @@ bool Actuators::closeServo(ServosList servo)
         std::lock_guard<std::mutex> lock(conditionVariableMutex);
         forcedWakeup = true;
     }
-    cv.notify_all();
+    cv.notify_one();
     return true;
 }
 
@@ -275,15 +275,15 @@ void Actuators::updatePositionsTask()
 void Actuators::updateNextOpenTs()
 {
     bool foundOpenServo = false;
+    uint8_t idx;
 
     // Iterate over all servos and get the first non zero closeTs
-    for (uint8_t idx = 0; idx < 2; idx++)
+    for (idx = 0; idx < 2 && foundOpenServo == false; idx++)
     {
         if (infos[idx].closeTs != 0)
         {
             nextOpenTs     = infos[idx].closeTs;
             foundOpenServo = true;
-            break;
         }
     }
 
@@ -293,9 +293,8 @@ void Actuators::updateNextOpenTs()
         return;
     }
 
-    // Iterate over all servos and get the smallest (non zero) closeTs out of
-    // all the servos
-    for (uint8_t idx = 0; idx < 2; idx++)
+    // Iterate over all servos and get the smallest (non zero) closeTs
+    for (idx = 0; idx < 2; idx++)
         if (infos[idx].closeTs != 0 && infos[idx].closeTs < nextOpenTs)
             nextOpenTs = infos[idx].closeTs;
 }
@@ -307,9 +306,15 @@ void Actuators::valveSchedulerTask()
         {
             std::unique_lock<std::mutex> lock(conditionVariableMutex);
 
-            // Makes the task wait indefinetly if no servo is open
+            // Makes the task wait indefinitely if no servo is open
             if (nextOpenTs == 0)
+            {
                 cv.wait(lock, [this] { return forcedWakeup; });
+
+                updatePositionsTask();
+                updateNextOpenTs();
+                forcedWakeup = false;
+            }
 
             // At least one servo is open
             if (nextOpenTs > 0)
@@ -322,9 +327,7 @@ void Actuators::valveSchedulerTask()
                     [this] { return forcedWakeup; });
 
                 updatePositionsTask();
-
                 updateNextOpenTs();
-
                 forcedWakeup = false;
             }
         }
