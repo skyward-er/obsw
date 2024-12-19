@@ -70,7 +70,7 @@ private:
 
     void unsafeSetServoPosition(uint8_t idx, float position);
 
-    void updatePositionsTask();
+    void updatePositions();
 
     void updateNextOpenTs();
 
@@ -85,9 +85,6 @@ private:
     std::mutex conditionVariableMutex;
 
     std::condition_variable cv;
-
-    // variable to check for spurious wakeups
-    bool forcedWakeup = false;
 
     // timestamp of next valve to be opened
     long long nextOpenTs = 0;

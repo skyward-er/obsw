@@ -30,6 +30,8 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace Motor;
 
+using namespace std::chrono;
+
 void Actuators::ServoInfo::openServoWithTime(uint32_t time)
 {
     long long currentTime = getTime();
@@ -105,8 +107,18 @@ bool Actuators::start()
     // Reset all actions
     lastActionTs = getTime();
     uint8_t result =
-        scheduler.addTask([this]() { updatePositionsTask(); },
+        scheduler.addTask([this]() { updatePositions(); },
                           Config::Servos::SERVO_TIMINGS_CHECK_PERIOD);
+
+    miosix::Thread::create(
+        [](void* arg) -> void* {
+        static_cast<Actuators*>(arg)->valveSchedulerTask();
+        return nullptr;
+        }, 
+        STACK_DEFAULT_FOR_PTHREAD, 
+        (miosix::Priority) (PRIORITY_MAX - 1),
+        static_cast<void*>(this));
+
 
     if (result == 0)
     {
@@ -127,11 +139,6 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
     lastActionTs = getTime();
     info->openServoWithTime(time);
 
-    // wake up valveSchedulerTask
-    {
-        std::lock_guard<std::mutex> lock(conditionVariableMutex);
-        forcedWakeup = true;
-    }
     cv.notify_one();
     return true;
 }
@@ -146,11 +153,6 @@ bool Actuators::closeServo(ServosList servo)
     lastActionTs = getTime();
     info->closeServo();
 
-    // wake up valveSchedulerTask
-    {
-        std::lock_guard<std::mutex> lock(conditionVariableMutex);
-        forcedWakeup = true;
-    }
     cv.notify_one();
     return true;
 }
@@ -203,7 +205,7 @@ void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
     sdLogger.log(data);
 }
 
-void Actuators::updatePositionsTask()
+void Actuators::updatePositions()
 {
     long long currentTime = getTime();
     bool shouldVent       = false;
@@ -238,8 +240,6 @@ void Actuators::updatePositionsTask()
                 {
                     // Perform the servo closing
                     infos[idx].closeServo();
-                    // infos[idx].closetTs = 0;
-                    // infos[idx].lastActionTs = currentTime;
                 }
 
                 if (currentTime < infos[idx].lastActionTs +
@@ -309,11 +309,10 @@ void Actuators::valveSchedulerTask()
             // Makes the task wait indefinitely if no servo is open
             if (nextOpenTs == 0)
             {
-                cv.wait(lock, [this] { return forcedWakeup; });
+                cv.wait(lock);
 
-                updatePositionsTask();
+                updatePositions();
                 updateNextOpenTs();
-                forcedWakeup = false;
             }
 
             // At least one servo is open
@@ -322,13 +321,11 @@ void Actuators::valveSchedulerTask()
                 // There has to be a better way to get the time point
                 cv.wait_until(
                     lock,
-                    std::chrono::time_point<std::chrono::steady_clock>(
-                        std::chrono::milliseconds(nextOpenTs)),
-                    [this] { return forcedWakeup; });
+                    time_point<std::chrono::steady_clock>(
+                    milliseconds(nextOpenTs)));
 
-                updatePositionsTask();
+                updatePositions();
                 updateNextOpenTs();
-                forcedWakeup = false;
             }
         }
     }
