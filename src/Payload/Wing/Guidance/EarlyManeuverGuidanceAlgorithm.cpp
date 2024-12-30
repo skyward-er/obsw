@@ -37,9 +37,9 @@ namespace Payload
 EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
     : activeTarget(Target::EMC), targetAltitudeConfidence(0),
       m2AltitudeConfidence(0), m1AltitudeConfidence(0),
-      emcAltitudeConfidence(0){};
+      emcAltitudeConfidence(0) {};
 
-EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
+EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm() {};
 
 float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
