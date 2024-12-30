@@ -20,24 +20,48 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "FileWingAlgorithm.h"
 
-#include <units/Time.h>
+#include <drivers/timer/TimestampTimer.h>
 
-#include <chrono>
+using namespace Boardcore;
 
 namespace Parafoil
 {
-namespace Config
+std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
 {
-namespace FlightModeManager
+    input >> data.timestamp;
+    input.ignore(1, ',');
+    input >> data.servo1Angle;
+    input.ignore(1, ',');
+    input >> data.servo2Angle;
+    return input;
+}
+
+FileWingAlgorithm::FileWingAlgorithm(ServosList servo1, ServosList servo2,
+                                     const char* filename)
+    : WingAlgorithm(servo1, servo2), parser(filename)
 {
+    setServo(servo1, servo2);
+}
 
-/* linter-off */ using namespace Boardcore::Units::Time;
+bool FileWingAlgorithm::init()
+{
+    // Returns a std::vector which contains
+    // all the csv parsed with the data structure in mind
+    steps = parser.collect();
 
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
+    // Return if the size collected is greater than 0
+    fileValid = steps.size() > 0;
 
-}  // namespace FlightModeManager
-}  // namespace Config
+    // Communicate it via serial
+    if (fileValid)
+        LOG_INFO(logger, "File valid");
+
+    // Close the file
+    parser.close();
+
+    return fileValid;
+}
+
 }  // namespace Parafoil

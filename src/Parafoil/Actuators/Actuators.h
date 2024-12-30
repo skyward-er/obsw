@@ -42,8 +42,9 @@ public:
     struct ServoActuator
     {
         std::unique_ptr<Boardcore::Servo> servo;
-        Units::Angle::Degree fullRangeAngle =
-            Units::Angle::Degree(0);  ///< The full range of the servo [degrees]
+        Boardcore::Units::Angle::Degree fullRangeAngle =
+            Boardcore::Units::Angle::Degree(
+                0);  ///< The full range of the servo [degrees]
         miosix::FastMutex mutex;
     };
 
@@ -69,7 +70,8 @@ public:
      * @param angle Angle to set [degree].
      * @return True if the the angle was set.
      */
-    bool setServoAngle(ServosList servoId, Units::Angle::Degree angle);
+    bool setServoAngle(ServosList servoId,
+                       Boardcore::Units::Angle::Degree angle);
 
     /**
      * @brief Wiggles the servo for few seconds.
@@ -114,7 +116,7 @@ public:
      * @return float current Servo angle in range [0-180], (-1) if the servoId
      * is invalid.
      */
-    Units::Angle::Degree getServoAngle(ServosList servoId);
+    Boardcore::Units::Angle::Degree getServoAngle(ServosList servoId);
 
     /**
      * @brief Starts twirl (one servo is set to 0 and the other one is not).

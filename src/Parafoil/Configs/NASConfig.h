@@ -24,7 +24,9 @@
 
 #include <algorithms/NAS/NASConfig.h>
 #include <common/ReferenceConfig.h>
+#include <units/Acceleration.h>
 #include <units/Frequency.h>
+#include <units/Time.h>
 
 namespace Parafoil
 {
@@ -33,16 +35,18 @@ namespace Config
 namespace NAS
 {
 
+/* linter off */ using namespace Boardcore::Units::Time;
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Acceleration;
 
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
+constexpr auto UPDATE_RATE         = 50_hz;
+constexpr auto UPDATE_RATE_SECONDS = 0.02_s;
 
-constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
-constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+constexpr int CALIBRATION_SAMPLES_COUNT = 20;
+constexpr auto CALIBRATION_SLEEP_TIME   = 100_ms;
 
 static const Boardcore::NASConfig CONFIG = {
-    .T              = UPDATE_RATE_SECONDS,
+    .T              = UPDATE_RATE_SECONDS.value(),
     .SIGMA_BETA     = 0.0001,
     .SIGMA_W        = 0.0019,
     .SIGMA_ACC      = 0.202,
@@ -61,17 +65,14 @@ static const Boardcore::NASConfig CONFIG = {
     .SATS_NUM       = 6.0,
     .NED_MAG        = Common::ReferenceConfig::nedMag};
 
-// TODO: make sure this is correct!
-
 // Only use one out of every 50 samples (1 Hz)
 constexpr int MAGNETOMETER_DECIMATE = 50;
 
 // Maximum allowed acceleration to correct with GPS
-constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2].
+constexpr auto DISABLE_GPS_ACCELERATION_THRESHOLD = 34.0_mps2;
 
-// How much confidence (in m/s^2) to apply to the accelerometer to check if it
-// is 1g
-constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;
+// How much confidence to apply to the accelerometer to check if it is 1g
+constexpr auto ACCELERATION_1G_CONFIDENCE = 0.5_mps2;
 // How many samples will determine that we are in fact measuring gravity
 // acceleration
 constexpr int ACCELERATION_1G_SAMPLES = 20;

@@ -25,9 +25,8 @@
 #include <units/Angle.h>
 #include <units/Frequency.h>
 #include <units/Length.h>
+#include <units/Time.h>
 #include <utils/Constants.h>
-
-#include <chrono>
 
 namespace Parafoil
 {
@@ -36,15 +35,17 @@ namespace Config
 namespace Wing
 {
 
-/* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Length;
+/* linter off */ using namespace Boardcore::Units::Time;
 /* linter off */ using namespace Boardcore::Units::Angle;
 
-constexpr auto UPDATE_RATE             = 1_hz;
-constexpr auto STRAIGHT_FLIGHT_TIMEOUT = 15s;
-constexpr auto COMMAND_PERIOD          = 6s;
-constexpr auto WING_DECREMENT          = 30_deg;
+constexpr auto UPDATE_RATE                  = 1_hz;
+constexpr auto TARGET_UPDATE_RATE           = 10_hz;
+constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15_s;
+constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5_s;
+constexpr auto COMMAND_PERIOD               = 6_s;
+constexpr auto WING_DECREMENT               = 30_deg;
 
 /**
  * @brief The available algorithms for the wing controller.
@@ -56,6 +57,7 @@ enum class AlgorithmId : size_t
     SEQUENCE,
     ROTATION,
     PROGRESSIVE_ROTATION,
+    LAST  ///< Used to count the number of algorithms
 };
 
 namespace Default

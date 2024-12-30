@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Radu Raul
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,36 @@
 
 #pragma once
 
-#include <units/Time.h>
+#include <Parafoil/Wing/Guidance/GuidanceAlgorithm.h>
 
-#include <chrono>
+#include <Eigen/Core>
 
 namespace Parafoil
 {
-namespace Config
+
+/**
+ * This class is the implementation of the Simple Closed Loop guidance.
+ * It calculates the yaw between the current position and the target position by
+ * calculating the difference between the two vectors and the angle formed by
+ * the diff vector
+ */
+class ClosedLoopGuidanceAlgorithm : public GuidanceAlgorithm
 {
-namespace FlightModeManager
-{
+    /**
+     * @brief This method calculates the yaw angle of the parafoil knowing
+     * the current position and the target position.
+     *
+     * @param[in] position the current NED position of the parafoil in [m]
+     * @param[out] heading Saves the heading vector for logging purposes
+     *
+     * @returns the yaw angle of the parafoil in [rad]
+     */
+    Boardcore::Units::Angle::Radian calculateTargetAngle(
+        const Eigen::Vector3f& currentPositionNED,
+        Eigen::Vector2f& heading) override;
 
-/* linter-off */ using namespace Boardcore::Units::Time;
+public:
+    void setPoints(Eigen::Vector2f targetNED);
+};
 
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
-
-}  // namespace FlightModeManager
-}  // namespace Config
 }  // namespace Parafoil

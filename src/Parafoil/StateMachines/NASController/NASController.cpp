@@ -31,6 +31,8 @@
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
 using namespace Boardcore;
+using namespace Boardcore::Units::Time;
+using namespace Boardcore::Units::Acceleration;
 using namespace Eigen;
 using namespace Common;
 namespace config = Parafoil::Config::NAS;
@@ -220,7 +222,7 @@ void NASController::calibrate()
 
         baroSum += baro.pressure;
 
-        Thread::sleep(config::CALIBRATION_SLEEP_TIME);
+        Thread::sleep(Millisecond{config::CALIBRATION_SLEEP_TIME}.value());
     }
 
     Vector3f meanAcc = accSum / config::CALIBRATION_SAMPLES_COUNT;
@@ -239,7 +241,7 @@ void NASController::calibrate()
     ReferenceValues reference = nas.getReferenceValues();
     reference.refPressure     = meanBaro;
     reference.refAltitude     = Aeroutils::relAltitude(
-            reference.refPressure, reference.mslPressure, reference.mslTemperature);
+        reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // Also update the reference with the GPS if we have fix
     UBXGPSData gps = sensors->getUBXGPSLastSample();
@@ -261,9 +263,7 @@ void NASController::update()
 {
     // Update the NAS state only if the FSM is active
     if (state != NASControllerState::ACTIVE)
-    {
         return;
-    }
 
     auto* sensors = getModule<Sensors>();
 
@@ -272,8 +272,8 @@ void NASController::update()
     auto baro = sensors->getLPS22DFLastSample();
 
     // Calculate acceleration
-    Vector3f acc    = static_cast<AccelerometerData>(imu);
-    float accLength = acc.norm();
+    Vector3f acc   = static_cast<AccelerometerData>(imu);
+    auto accLength = MeterPerSecondSquared{acc.norm()};
 
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
@@ -282,36 +282,28 @@ void NASController::update()
     nas.predictAcc(imu);
 
     if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
-        accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
+        accLength < Config::NAS::DISABLE_GPS_ACCELERATION_THRESHOLD)
     {
         nas.correctGPS(gps);
     }
 
     if (lastBaroTimestamp < baro.pressureTimestamp)
-    {
         nas.correctBaro(baro.pressure);
-    }
 
     // Correct with accelerometer if the acceleration is in specs
     if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-    {
         nas.correctAcc(imu);
-    }
 
     // Check if the accelerometer is measuring 1g
-    if (accLength <
-            (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
-        accLength >
-            (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
+    if (accLength < (MeterPerSecondSquared{G{1}} +
+                     Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
+        accLength > (MeterPerSecondSquared{G{1}} -
+                     Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
     {
         if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-        {
             acc1gSamplesCount++;
-        }
         else
-        {
             acc1g = true;
-        }
     }
     else
     {
@@ -326,7 +318,7 @@ void NASController::update()
     lastBaroTimestamp = baro.pressureTimestamp;
 
     auto state = nas.getState();
-    auto ref   = nas.getReferenceValues();
+    // auto ref   = nas.getReferenceValues();
 
     Logger::getInstance().log(state);
 }

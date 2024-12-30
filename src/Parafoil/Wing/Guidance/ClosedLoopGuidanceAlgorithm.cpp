@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Author: Radu Raul, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,25 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
+#include <math.h>
 
-#include <units/Time.h>
-
-#include <chrono>
+using namespace Boardcore::Units::Angle;
 
 namespace Parafoil
 {
-namespace Config
+
+Radian ClosedLoopGuidanceAlgorithm::calculateTargetAngle(
+    const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
-namespace FlightModeManager
+    heading[0] = targetNED[0] - currentPositionNED[0];
+    heading[1] = targetNED[1] - currentPositionNED[1];
+    return Radian{atan2(heading[1], heading[0])};
+}
+
+void ClosedLoopGuidanceAlgorithm::setPoints(Eigen::Vector2f targetNED)
 {
+    this->targetNED = targetNED;
+}
 
-/* linter-off */ using namespace Boardcore::Units::Time;
-
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
-
-}  // namespace FlightModeManager
-}  // namespace Config
 }  // namespace Parafoil
