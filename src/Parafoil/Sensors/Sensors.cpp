@@ -43,34 +43,22 @@ bool Sensors::start()
     }
 
     if (config::LIS3MDL::ENABLED)
-    {
         lis3mdlInit();
-    }
 
     if (config::H3LIS331DL::ENABLED)
-    {
         h3lisInit();
-    }
 
     if (config::LPS22DF::ENABLED)
-    {
         lps22Init();
-    }
 
     if (config::UBXGPS::ENABLED)
-    {
         ubxGpsInit();
-    }
 
     if (config::ADS131M08::ENABLED)
-    {
         ads131Init();
-    }
 
     if (config::InternalADC::ENABLED)
-    {
         internalADCInit();
-    }
 
     if (!postSensorCreationHook())
     {
@@ -245,7 +233,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(                                         \
-            SensorInfo{#name, config::name::SAMPLING_RATE, nullptr, false})
+            SensorInfo { #name, config::name::SAMPLING_RATE, nullptr, false })
 
         PUSH_SENSOR_INFO(bmx160, BMX160);
         PUSH_SENSOR_INFO(bmx160WithCorrection, BMX160);
@@ -296,7 +284,6 @@ void Sensors::bmx160Init()
 
 void Sensors::bmx160WithCorrectionInit()
 {
-
     bmx160WithCorrection = std::make_unique<BMX160WithCorrection>(
         bmx160.get(), config::BMX160::AXIS_ORIENTATION);
 
@@ -395,9 +382,7 @@ void Sensors::bmx160Callback()
     Logger::getInstance().log(bmx160->getTemperature());
 
     for (auto i = 0; i < fifoSize; i++)
-    {
         Logger::getInstance().log(fifo.at(i));
-    }
 
     Logger::getInstance().log(bmx160->getFifoStats());
 }
