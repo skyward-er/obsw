@@ -1,5 +1,5 @@
 /* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Radu Raul
+ * Author: Radu Raul, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,19 @@
  * THE SOFTWARE.
  */
 
-#include <Payload/Configs/WingConfig.h>
-#include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
-#include <Payload/Wing/WingTargetPositionData.h>
+#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Wing/WingTargetPositionData.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <logger/Logger.h>
 
 #include <Eigen/Core>
 
-using namespace Boardcore;
-using namespace Payload::Config::Wing;
+#include "EarlyManeuversGuidanceAlgorithm.h"
 
-namespace Payload
+using namespace Boardcore;
+using namespace Parafoil::Config::Wing;
+
+namespace Parafoil
 {
 
 EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
@@ -41,7 +42,7 @@ EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
 
 EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
 
-float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
+Radian EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
     switch (activeTarget)
@@ -64,10 +65,10 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
             break;
     }
 
-    return static_cast<float>(atan2(heading[1], heading[0]));
+    return Radian{static_cast<float>(atan2(heading[1], heading[0]))};
 }
 
-void EarlyManeuversGuidanceAlgorithm::updateActiveTarget(float altitude)
+void EarlyManeuversGuidanceAlgorithm::updateActiveTarget(Meter altitude)
 {
     if (altitude <=
         Guidance::TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head directly
@@ -194,4 +195,4 @@ Eigen::Vector2f EarlyManeuversGuidanceAlgorithm::getActiveTarget()
     }
 }
 
-}  // namespace Payload
+}  // namespace Parafoil

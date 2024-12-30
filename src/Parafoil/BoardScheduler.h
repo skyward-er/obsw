@@ -56,6 +56,8 @@ public:
     Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& pinHandler() { return high; }
     Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
+    Boardcore::TaskScheduler& wingController() { return medium; }
+    Boardcore::TaskScheduler& windEstimation() { return low; }
     Boardcore::TaskScheduler& actuators() { return low; }
 
     static Priority::PriorityLevel flightModeManagerPriority()

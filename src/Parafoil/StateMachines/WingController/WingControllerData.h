@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Authors: Federico Mandelli, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,46 @@
 
 #pragma once
 
-#include <units/Time.h>
-
-#include <chrono>
+#include <cstdint>
+#include <iostream>
+#include <string>
 
 namespace Parafoil
 {
-namespace Config
+
+enum class WingControllerState : uint8_t
 {
-namespace FlightModeManager
+    IDLE = 0,
+    FLYING_CALIBRATION,
+    FLYING_DEPLOYMENT,
+    FLYING_CONTROLLED_DESCENT,
+    ON_GROUND,
+};
+
+struct WingControllerStatus
 {
+    uint64_t timestamp        = 0;
+    WingControllerState state = WingControllerState::IDLE;
 
-/* linter-off */ using namespace Boardcore::Units::Time;
+    static std::string header() { return "timestamp,state\n"; }
 
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)state << "\n";
+    }
+};
 
-}  // namespace FlightModeManager
-}  // namespace Config
+struct WingControllerAlgorithmData
+{
+    uint64_t timestamp = 0;
+    uint8_t algorithm  = 0;
+
+    static std::string header() { return "timestamp,algorithm\n"; }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << (int)algorithm << "\n";
+    }
+};
+
 }  // namespace Parafoil

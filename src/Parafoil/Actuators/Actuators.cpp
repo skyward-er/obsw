@@ -26,7 +26,6 @@
 #include <Parafoil/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
-using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
 using namespace Boardcore::Units::Angle;
@@ -52,10 +51,6 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
-    using namespace std::chrono;
-
-    auto& scheduler = getModule<BoardScheduler>()->actuators();
-
     leftServo.servo->enable();
     rightServo.servo->enable();
 

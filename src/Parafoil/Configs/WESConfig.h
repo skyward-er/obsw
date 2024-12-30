@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Author: Federico Mandelli, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,35 @@
 
 #pragma once
 
+#include <miosix.h>
 #include <units/Time.h>
-
-#include <chrono>
 
 namespace Parafoil
 {
+
 namespace Config
 {
-namespace FlightModeManager
+
+/**
+ * Configuration for the Wing Estimation Scheme (WES) algorithm.
+ */
+namespace WES
 {
 
 /* linter-off */ using namespace Boardcore::Units::Time;
 
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
+constexpr auto CALIBRATE = false;
 
-}  // namespace FlightModeManager
+constexpr auto CALIBRATION_TIMEOUT = 5_s;  // time needed for the first loop
+constexpr auto ROTATION_PERIOD     = 10_s;
+constexpr auto CALIBRATION_SAMPLE_NUMBER =
+    20;  // number of samples to take in the first loop
+constexpr auto CALIBRATION_UPDATE_PERIOD =
+    CALIBRATION_TIMEOUT / CALIBRATION_SAMPLE_NUMBER;
+constexpr auto PREDICTION_UPDATE_PERIOD = 100_ms;  // update period of WES[ms]
+
+}  // namespace WES
+
 }  // namespace Config
+
 }  // namespace Parafoil

@@ -31,7 +31,7 @@
 
 using namespace Boardcore;
 using namespace Common;
-using namespace std::chrono;
+using namespace Boardcore::Units::Time;
 namespace config = Parafoil::Config::FlightModeManager;
 
 namespace Parafoil
@@ -448,7 +448,7 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
             // Send the event to the WingController
             controlDelayId = EventBroker::getInstance().postDelayed(
                 FLIGHT_WING_DESCENT, TOPIC_FLIGHT,
-                milliseconds{config::CONTROL_DELAY}.count());
+                Millisecond{config::CONTROL_DELAY}.value());
             return HANDLED;
         }
 
@@ -492,7 +492,7 @@ State FlightModeManager::Landed(const Event& event)
                                             TOPIC_FLIGHT);
             EventBroker::getInstance().postDelayed(
                 FMM_STOP_LOGGING, TOPIC_FMM,
-                milliseconds{config::LOGGING_DELAY}.count());
+                Millisecond{config::LOGGING_DELAY}.value());
 
             return HANDLED;
         }
