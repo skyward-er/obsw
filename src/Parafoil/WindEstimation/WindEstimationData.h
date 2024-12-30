@@ -22,22 +22,52 @@
 
 #pragma once
 
-#include <units/Time.h>
+#include <units/Speed.h>
 
-#include <chrono>
+#include <Eigen/Core>
+#include <iostream>
+#include <string>
 
 namespace Parafoil
 {
-namespace Config
+
+/**
+ * Wind Estimation Scheme data.
+ */
+struct WindEstimationData
 {
-namespace FlightModeManager
+    uint64_t timestamp = 0;
+    Boardcore::Units::Speed::MeterPerSecond velocityNorth;
+    Boardcore::Units::Speed::MeterPerSecond velocityEast;
+    bool calibration = false;  ///< True if the wind estimation is in
+                               ///< calibration mode, false otherwise
+
+    static std::string header()
+    {
+        return "timestamp,velocityNorth,velocityEast,calibration\n";
+    }
+
+    void print(std::ostream& os) const
+    {
+        os << timestamp << "," << velocityNorth << "," << velocityEast << ","
+           << calibration << "\n ";
+    }
+};
+
+struct GeoVelocity
 {
+    Boardcore::Units::Speed::MeterPerSecond vn{0};  // North velocity
+    Boardcore::Units::Speed::MeterPerSecond ve{0};  // East velocity
 
-/* linter-off */ using namespace Boardcore::Units::Time;
+    /**
+     * @brief Calculate the squared norm of the velocity vector.
+     */
+    float normSquared() const
+    {
+        return vn.value() * vn.value() + ve.value() * ve.value();
+    }
 
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
+    Eigen::Vector2f asVector() const { return {vn.value(), ve.value()}; }
+};
 
-}  // namespace FlightModeManager
-}  // namespace Config
 }  // namespace Parafoil

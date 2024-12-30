@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Author: Radu Raul, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,41 @@
 
 #pragma once
 
-#include <units/Time.h>
+#include <units/Angle.h>
 
-#include <chrono>
+#include <Eigen/Core>
 
 namespace Parafoil
 {
-namespace Config
+
+/**
+ * This class acts as an interface for a generic guidance algorithm that is used
+ * by the Automatic Wing Algorithm.
+ */
+class GuidanceAlgorithm
 {
-namespace FlightModeManager
-{
+public:
+    /**
+     * @brief This method must calculate the yaw angle of the parafoil knowing
+     * the current position and the target position without changing the vectors
+     * passed as arguments.
+     *
+     * @note the args are const references to reduce access time by avoiding
+     * copying objects that will be read-only.
+     *
+     * @param position the current NED position of the parafoil in [m]
+     * @param heading The current heading, it is used for logging purposes
+     *
+     * @returns the yaw angle of the parafoil in [rad]
+     */
+    virtual Boardcore::Units::Angle::Radian calculateTargetAngle(
+        const Eigen::Vector3f& currentPositionNED,
+        Eigen::Vector2f& heading) = 0;
 
-/* linter-off */ using namespace Boardcore::Units::Time;
+    Eigen::Vector2f getTargetNED() { return targetNED; }
 
-constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 5_s;
+protected:
+    Eigen::Vector2f targetNED{0, 0};  // NED
+};
 
-}  // namespace FlightModeManager
-}  // namespace Config
 }  // namespace Parafoil
