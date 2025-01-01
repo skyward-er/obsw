@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Federico Mandelli, Davide Basso
+ * Authors: Federico Mandelli, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,10 @@ using namespace Units::Speed;
 
 namespace Parafoil
 {
-WindEstimation::WindEstimation() { funv << 1.0f, 0.0f, 0.0f, 1.0f; }
+WindEstimation::WindEstimation()
+{
+    funv << 1.0f, 0.0f, 0.0f, 1.0f;  // cppcheck-suppress constStatement
+}
 
 WindEstimation::~WindEstimation()
 {

@@ -87,6 +87,7 @@ int main()
     std::cout << "Parafoil Entrypoint " << "(" << BUILD_TYPE << ")"
               << " by Skyward Experimental Rocketry" << std::endl;
 
+    // cppcheck-suppress unreadVariable
     auto logger = Logging::getLogger("Parafoil");
     DependencyManager depman{};
 
