@@ -38,14 +38,14 @@ Actuators::Actuators()
 {
     leftServo.servo = std::make_unique<Servo>(
         config::LeftServo::TIMER, config::LeftServo::PWM_CH,
-        config::LeftServo::MIN_PULSE.count(),
-        config::LeftServo::MAX_PULSE.count());
+        config::LeftServo::MIN_PULSE.value(),
+        config::LeftServo::MAX_PULSE.value());
     leftServo.fullRangeAngle = config::LeftServo::ROTATION;
 
     rightServo.servo = std::make_unique<Servo>(
         config::RightServo::TIMER, config::RightServo::PWM_CH,
-        config::RightServo::MIN_PULSE.count(),
-        config::RightServo::MAX_PULSE.count());
+        config::RightServo::MIN_PULSE.value(),
+        config::RightServo::MAX_PULSE.value());
     rightServo.fullRangeAngle = config::RightServo::ROTATION;
 }
 
