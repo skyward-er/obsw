@@ -24,8 +24,7 @@
 
 #include <drivers/timer/TimerUtils.h>
 #include <units/Angle.h>
-
-#include <chrono>
+#include <units/Time.h>
 
 namespace Parafoil
 {
@@ -34,7 +33,7 @@ namespace Config
 namespace Actuators
 {
 
-/* linter off */ using namespace std::chrono_literals;
+/* linter off */ using namespace Boardcore::Units::Time;
 /* linter off */ using namespace Boardcore::Units::Angle;
 
 namespace LeftServo
@@ -44,8 +43,8 @@ constexpr Boardcore::TimerUtils::Channel PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_1;
 
 constexpr auto ROTATION  = 180_deg;
-constexpr auto MIN_PULSE = 500us;
-constexpr auto MAX_PULSE = 2460us;
+constexpr auto MIN_PULSE = 500_us;
+constexpr auto MAX_PULSE = 2460_us;
 }  // namespace LeftServo
 
 namespace RightServo
@@ -55,8 +54,8 @@ constexpr Boardcore::TimerUtils::Channel PWM_CH =
     Boardcore::TimerUtils::Channel::CHANNEL_2;
 
 constexpr auto ROTATION  = 180_deg;
-constexpr auto MIN_PULSE = 2460us;
-constexpr auto MAX_PULSE = 500us;
+constexpr auto MIN_PULSE = 2460_us;
+constexpr auto MAX_PULSE = 500_us;
 }  // namespace RightServo
 
 constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
