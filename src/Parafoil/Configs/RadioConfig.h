@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Niccolò Betto
+ * Author: Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,48 +19,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <cstdint>
-#include <iostream>
-#include <string>
+#include <common/MavlinkOrion.h>
+#include <units/Frequency.h>
+#include <units/Time.h>
 
 namespace Parafoil
 {
-
-enum class WingControllerState : uint8_t
+namespace Config
 {
-    IDLE = 0,
-    FLYING_DEPLOYMENT,
-    FLYING_CONTROLLED_DESCENT,
-    ON_GROUND,
-};
-
-struct WingControllerStatus
+namespace Radio
 {
-    uint64_t timestamp        = 0;
-    WingControllerState state = WingControllerState::IDLE;
 
-    static std::string header() { return "timestamp,state\n"; }
+/* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Time;
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)state << "\n";
-    }
-};
+constexpr auto LOW_RATE_TELEMETRY  = 0.5_hz;
+constexpr auto HIGH_RATE_TELEMETRY = 4_hz;
+constexpr auto MESSAGE_QUEUE_SIZE  = 10;
 
-struct WingControllerAlgorithmData
+namespace Mavlink
 {
-    uint64_t timestamp = 0;
-    uint8_t algorithm  = 0;
+constexpr uint8_t SYSTEM_ID    = SysIDs::MAV_SYSID_PAYLOAD;
+constexpr uint8_t COMPONENT_ID = 0;
+}  // namespace Mavlink
 
-    static std::string header() { return "timestamp,algorithm\n"; }
+namespace MavlinkDriver
+{
+constexpr auto PKT_LENGTH       = 255;
+constexpr auto PKT_QUEUE_SIZE   = 20;
+constexpr auto MSG_LENGTH       = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+constexpr auto SLEEP_AFTER_SEND = 0_ms;
+constexpr auto MAX_PKT_AGE      = 200_ms;
+}  // namespace MavlinkDriver
 
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)algorithm << "\n";
-    }
-};
+namespace Xbee
+{
+constexpr auto ENABLE_80KPS_DATA_RATE = true;
+constexpr auto TIMEOUT                = 5000_ms;
+}  // namespace Xbee
 
+}  // namespace Radio
+}  // namespace Config
 }  // namespace Parafoil

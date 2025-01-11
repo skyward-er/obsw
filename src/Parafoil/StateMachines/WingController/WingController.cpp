@@ -25,10 +25,12 @@
 #include <Parafoil/Configs/ActuatorsConfig.h>
 #include <Parafoil/Configs/WESConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/WindEstimation/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
+#include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithmData.h>
 #include <Parafoil/Wing/WingTargetPositionData.h>
@@ -107,7 +109,7 @@ State WingController::Flying(const Event& event)
         }
         case EV_INIT:
         {
-            return transition(&WingController::FlyingCalibration);
+            return transition(&WingController::FlyingDeployment);
         }
         case FLIGHT_LANDING_DETECTED:
         {
@@ -120,15 +122,20 @@ State WingController::Flying(const Event& event)
     }
 }
 
-State WingController::FlyingCalibration(const Boardcore::Event& event)
+State WingController::FlyingDeployment(const Boardcore::Event& event)
 {
     static uint16_t calibrationTimeoutEventId;
 
     switch (event)
     {
-        case EV_ENTRY:  // starts twirling and calibration wes
+        case EV_ENTRY:
         {
-            updateState(WingControllerState::FLYING_CALIBRATION);
+            updateState(WingControllerState::FLYING_DEPLOYMENT);
+
+            auto nasState = getModule<NASController>()->getNasState();
+            auto altitude = Meter{-nasState.d};
+            getModule<FlightStatsRecorder>()->deploymentDetected(
+                TimestampTimer::getTimestamp(), altitude);
 
             flareWing();
             calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
@@ -169,7 +176,7 @@ State WingController::FlyingCalibration(const Boardcore::Event& event)
                 calibrationTimeoutEventId =
                     EventBroker::getInstance().postDelayed(
                         DPL_WES_CAL_DONE, TOPIC_DPL,
-                        Millisecond{WES::CALIBRATION_TIMEOUT}.value());
+                        WES::CALIBRATION_TIMEOUT.value<Millisecond>());
                 getModule<WindEstimation>()->startAlgorithm();
 
                 getModule<Actuators>()->startTwirl();
@@ -391,6 +398,11 @@ Eigen::Vector2f WingController::getActiveTarget()
     return emGuidance.getActiveTarget();
 }
 
+uint8_t WingController::getSelectedAlgorithm()
+{
+    return static_cast<uint8_t>(selectedAlgorithm.load());
+}
+
 void WingController::loadAlgorithms()
 {
     using namespace Wing;
@@ -419,12 +431,12 @@ void WingController::loadAlgorithms()
         step.servo2Angle = 120_deg;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{STRAIGHT_FLIGHT_TIMEOUT}.value();
+        step.timestamp += STRAIGHT_FLIGHT_TIMEOUT.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = 0_deg;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{STRAIGHT_FLIGHT_TIMEOUT}.value();
+        step.timestamp += STRAIGHT_FLIGHT_TIMEOUT.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = 0_deg;
         algorithm->addStep(step);
@@ -444,32 +456,32 @@ void WingController::loadAlgorithms()
         step.servo2Angle = 0_deg;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{WES::ROTATION_PERIOD}.value();
+        step.timestamp += WES::ROTATION_PERIOD.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = RightServo::ROTATION / 2;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{WES::ROTATION_PERIOD}.value();
+        step.timestamp += WES::ROTATION_PERIOD.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = 0_deg;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{WES::ROTATION_PERIOD}.value();
+        step.timestamp += WES::ROTATION_PERIOD.value<Microsecond>();
         step.servo1Angle = LeftServo::ROTATION;
         step.servo2Angle = RightServo::ROTATION;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{WES::ROTATION_PERIOD}.value();
+        step.timestamp += WES::ROTATION_PERIOD.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = RightServo::ROTATION / 2;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{WES::ROTATION_PERIOD}.value();
+        step.timestamp += WES::ROTATION_PERIOD.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = 0_deg;
         algorithm->addStep(step);
 
-        step.timestamp += Microsecond{WES::ROTATION_PERIOD}.value();
+        step.timestamp += WES::ROTATION_PERIOD.value<Microsecond>();
         step.servo1Angle = 0_deg;
         step.servo2Angle = 0_deg;
         algorithm->addStep(step);
@@ -484,19 +496,19 @@ void WingController::loadAlgorithms()
                                                          PARAFOIL_RIGHT_SERVO);
         WingAlgorithmData step;
 
-        step.timestamp = Microsecond(PROGRESSIVE_ROTATION_TIMEOUT).value();
+        step.timestamp = PROGRESSIVE_ROTATION_TIMEOUT.value<Microsecond>();
 
         for (auto angle = 150_deg; angle >= 0_deg; angle -= WING_DECREMENT)
         {
             step.servo1Angle = angle;
             step.servo2Angle = 0_deg;
             algorithm->addStep(step);
-            step.timestamp += Microsecond(COMMAND_PERIOD).value();
+            step.timestamp += COMMAND_PERIOD.value<Microsecond>();
 
             step.servo1Angle = 0_deg;
             step.servo2Angle = angle;
             algorithm->addStep(step);
-            step.timestamp += Microsecond(COMMAND_PERIOD).value();
+            step.timestamp += COMMAND_PERIOD.value<Microsecond>();
         }
 
         algorithms[static_cast<size_t>(AlgorithmId::PROGRESSIVE_ROTATION)] =

@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
 #include <Parafoil/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
@@ -72,7 +73,6 @@ class WindEstimation;
  * Idle
  *
  * Flying
- * ├── FlyingCalibration
  * ├── FlyingDeployment
  * └── FlyingControlledDescent
  *
@@ -101,7 +101,6 @@ public:
     // HSM states
     Boardcore::State Idle(const Boardcore::Event& event);
     Boardcore::State Flying(const Boardcore::Event& event);
-    Boardcore::State FlyingCalibration(const Boardcore::Event& event);
     Boardcore::State FlyingDeployment(const Boardcore::Event& event);
     Boardcore::State FlyingControlledDescent(const Boardcore::Event& event);
     Boardcore::State OnGround(const Boardcore::Event& event);

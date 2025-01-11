@@ -46,7 +46,7 @@ constexpr int CALIBRATION_SAMPLES_COUNT = 20;
 constexpr auto CALIBRATION_SLEEP_TIME   = 100_ms;
 
 static const Boardcore::NASConfig CONFIG = {
-    .T              = UPDATE_RATE_SECONDS.value(),
+    .T              = UPDATE_RATE_SECONDS.value<Second>(),
     .SIGMA_BETA     = 0.0001,
     .SIGMA_W        = 0.0019,
     .SIGMA_ACC      = 0.202,
