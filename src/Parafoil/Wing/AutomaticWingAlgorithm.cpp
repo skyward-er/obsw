@@ -45,7 +45,7 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
     : Super(servo1, servo2), guidance(guidance)
 {
     // PIController needs the sample period in floating point seconds
-    auto samplePeriod = 1.0f / UPDATE_RATE.value();
+    auto samplePeriod = 1.0f / UPDATE_RATE.value<Hertz>();
 
     controller = std::make_unique<PIController>(Kp, Ki, samplePeriod,
                                                 PI::SATURATION_MIN_LIMIT,
@@ -121,7 +121,7 @@ Degree AutomaticWingAlgorithm::algorithmStep(const NASState& state)
     // Call the PI with the just calculated error. The result is in RADIANS,
     // if positive we activate one servo, if negative the other
     // We also need to convert the result from radians back to degrees
-    auto result = Degree(Radian(controller->update(error.value())));
+    auto result = Degree(Radian(controller->update(error.value<Radian>())));
 
     // Logs the outputs
     {
@@ -139,7 +139,7 @@ Degree AutomaticWingAlgorithm::algorithmStep(const NASState& state)
 
 Radian AutomaticWingAlgorithm::angleDiff(Radian a, Radian b)
 {
-    auto diff = (a - b).value();
+    auto diff = (a - b).value<Radian>();
 
     // Angle difference
     if (diff < -Constants::PI || Constants::PI < diff)

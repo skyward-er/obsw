@@ -27,8 +27,8 @@
 #include <Parafoil/Sensors/Sensors.h>
 
 using namespace Boardcore;
+using namespace Boardcore::Units::Speed;
 using namespace Parafoil::Config;
-using namespace Units::Speed;
 
 namespace Parafoil
 {
@@ -133,9 +133,9 @@ void WindEstimation::updateCalibration()
                                 MeterPerSecond{gps.velocityEast}};
 
                 calibrationMatrix(nSampleCalibration, 0) =
-                    gpsVelocity.vn.value();
+                    gpsVelocity.vn.value<MeterPerSecond>();
                 calibrationMatrix(nSampleCalibration, 1) =
-                    gpsVelocity.ve.value();
+                    gpsVelocity.ve.value<MeterPerSecond>();
                 calibrationV2(nSampleCalibration) = gpsVelocity.normSquared();
 
                 velocity.vn += gpsVelocity.vn;
@@ -154,9 +154,11 @@ void WindEstimation::updateCalibration()
                 for (int i = 0; i < nSampleCalibration; i++)
                 {
                     calibrationMatrix(i, 0) =
-                        calibrationMatrix(i, 0) - velocity.vn.value();
+                        calibrationMatrix(i, 0) -
+                        velocity.vn.value<MeterPerSecond>();
                     calibrationMatrix(i, 1) =
-                        calibrationMatrix(i, 1) - velocity.ve.value();
+                        calibrationMatrix(i, 1) -
+                        velocity.ve.value<MeterPerSecond>();
                     calibrationV2(i) = 0.5f * (calibrationV2(i) - speedSquared);
                 }
 
@@ -230,9 +232,11 @@ void WindEstimation::updateAlgorithm()
             speedSquared = (speedSquared * nSampleAlgorithm +
                             (gpsVelocity.normSquared())) /
                            (nSampleAlgorithm + 1);
-            phi(0) = gpsVelocity.vn.value() - velocity.vn.value();
-            phi(1) = gpsVelocity.ve.value() - velocity.ve.value();
-            y      = 0.5f * ((gpsVelocity.normSquared()) - speedSquared);
+            phi(0) = gpsVelocity.vn.value<MeterPerSecond>() -
+                     velocity.vn.value<MeterPerSecond>();
+            phi(1) = gpsVelocity.ve.value<MeterPerSecond>() -
+                     velocity.ve.value<MeterPerSecond>();
+            y = 0.5f * ((gpsVelocity.normSquared()) - speedSquared);
 
             phiT = phi.transpose();
             funv =
@@ -242,8 +246,8 @@ void WindEstimation::updateAlgorithm()
 
             {
                 miosix::Lock<FastMutex> l(mutex);
-                wind.vn = MeterPerSecond(wind.vn.value() + temp(0));
-                wind.ve = MeterPerSecond(wind.ve.value() + temp(1));
+                wind.vn = wind.vn + MeterPerSecond(temp(0));
+                wind.ve = wind.ve + MeterPerSecond(temp(1));
             }
 
             logStatus();

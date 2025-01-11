@@ -114,7 +114,7 @@
             "name": "stm32f767zi_death_stack_v4",
             "cStandard": "c11",
             "cppStandard": "c++14",
-            "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compilerPath": null,
             "defines": [
                 "${defaultDefines}",
                 "_ARCH_CORTEXM7_STM32F7",

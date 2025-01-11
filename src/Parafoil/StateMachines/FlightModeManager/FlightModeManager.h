@@ -31,6 +31,7 @@ namespace Parafoil
 {
 class Sensors;
 class Actuators;
+class FlightStatsRecorder;
 
 /**
  * State machine that manages the flight modes of the Parafoil.
@@ -54,7 +55,8 @@ class Actuators;
  */
 class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
-      public Boardcore::InjectableWithDeps<Sensors, Actuators>
+      public Boardcore::InjectableWithDeps<Sensors, Actuators,
+                                           FlightStatsRecorder>
 {
 public:
     FlightModeManager();

@@ -71,15 +71,15 @@ constexpr auto TARGET_LAT = 45.5013853;
 constexpr auto TARGET_LON = 9.1544219;
 #endif
 
-#if defined(CLOSED_LOOP)
+#if defined(ALGORITHM_CLOSED_LOOP)
 constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
-#elif EARLY_MANEUVER
+#elif defined(ALGORITHM_EARLY_MANEUVER)
 constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
-#elif SEQUENCE
+#elif defined(ALGORITHM_SEQUENCE)
 constexpr auto ALGORITHM = AlgorithmId::SEQUENCE;
-#elif ROTATION
+#elif defined(ALGORITHM_ROTATION)
 constexpr auto ALGORITHM = AlgorithmId::ROTATION;
-#elif PROGRESSIVE_ROTATION
+#elif defined(ALGORITHM_PROGRESSIVE_ROTATION)
 constexpr auto ALGORITHM = AlgorithmId::PROGRESSIVE_ROTATION;
 #else
 constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;

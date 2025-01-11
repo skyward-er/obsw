@@ -24,7 +24,9 @@
 #include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/PinHandler/PinHandler.h>
+#include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
@@ -114,7 +116,9 @@ int main()
     auto pinHandler = new PinHandler();
     initResult &= depman.insert(pinHandler);
 
-    // TODO: Radio
+    // Radio
+    auto radio = new Radio();
+    initResult &= depman.insert(radio);
 
     // Flight algorithms
     auto altitudeTrigger = new AltitudeTrigger();
@@ -123,6 +127,10 @@ int main()
     initResult &= depman.insert(wingController);
     auto windEstimation = new WindEstimation();
     initResult &= depman.insert(windEstimation);
+
+    // Stats recorder
+    auto flightStatsRecorder = new FlightStatsRecorder();
+    initResult &= depman.insert(flightStatsRecorder);
 
     // Actuators
     auto actuators = new Actuators();
@@ -138,7 +146,7 @@ int main()
     START_MODULE(flightModeManager);
 
     START_MODULE(pinHandler);
-    // START_MODULE(radio) { miosix::led2On(); }
+    START_MODULE(radio);
     START_MODULE(nasController);
     START_MODULE(altitudeTrigger);
     START_MODULE(windEstimation);
