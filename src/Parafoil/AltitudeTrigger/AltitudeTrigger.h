@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ public:
     /**
      * @return Set the altitude of the AltitudeTrigger
      */
-    void setDeploymentAltitude(float altitude);
+    void setDeploymentAltitude(Boardcore::Units::Length::Meter altitude);
 
 private:
     // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
@@ -80,7 +80,8 @@ private:
     int confidence = 0;
 
     std::atomic<float> targetAltitude{
-        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE.value()};
+        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE
+            .value<Boardcore::Units::Length::Meter>()};
 };
 
 }  // namespace Parafoil

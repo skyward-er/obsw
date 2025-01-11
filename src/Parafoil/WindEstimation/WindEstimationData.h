@@ -64,10 +64,17 @@ struct GeoVelocity
      */
     float normSquared() const
     {
-        return vn.value() * vn.value() + ve.value() * ve.value();
+        return vn.value<Boardcore::Units::Speed::MeterPerSecond>() *
+                   vn.value<Boardcore::Units::Speed::MeterPerSecond>() +
+               ve.value<Boardcore::Units::Speed::MeterPerSecond>() *
+                   ve.value<Boardcore::Units::Speed::MeterPerSecond>();
     }
 
-    Eigen::Vector2f asVector() const { return {vn.value(), ve.value()}; }
+    Eigen::Vector2f asVector() const
+    {
+        return {vn.value<Boardcore::Units::Speed::MeterPerSecond>(),
+                ve.value<Boardcore::Units::Speed::MeterPerSecond>()};
+    }
 };
 
 }  // namespace Parafoil

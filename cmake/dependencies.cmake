@@ -112,7 +112,7 @@ set(GROUNDSTATION_NOKIA
     src/Groundstation/Nokia/Hub.cpp
 )
 
-set (LYRA_GS
+set(LYRA_GS
     src/Groundstation/LyraGS/Radio/Radio.cpp
     src/Groundstation/LyraGS/Ports/Ethernet.cpp
     src/Groundstation/LyraGS/BoardStatus.cpp
@@ -130,6 +130,9 @@ set(PARAFOIL_COMPUTER
     src/Parafoil/Actuators/Actuators.cpp
     src/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
     src/Parafoil/PinHandler/PinHandler.cpp
+    src/Parafoil/Radio/Radio.cpp
+    src/Parafoil/Radio/MessageHandler.cpp
+    src/Parafoil/FlightStatsRecorder/FlightStatsRecorder.cpp
     src/Parafoil/Sensors/Sensors.cpp
     src/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/Parafoil/StateMachines/NASController/NASController.cpp

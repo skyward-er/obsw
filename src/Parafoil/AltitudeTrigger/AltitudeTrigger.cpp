@@ -29,6 +29,7 @@
 #include <events/EventBroker.h>
 
 using namespace Boardcore;
+using namespace Boardcore::Units::Length;
 using namespace Common;
 namespace config = Parafoil::Config;
 
@@ -64,9 +65,9 @@ void AltitudeTrigger::disable() { running = false; }
 
 bool AltitudeTrigger::isEnabled() { return running; }
 
-void AltitudeTrigger::setDeploymentAltitude(float altitude)
+void AltitudeTrigger::setDeploymentAltitude(Meter altitude)
 {
-    targetAltitude = altitude;
+    targetAltitude = altitude.value<Meter>();
 }
 
 void AltitudeTrigger::update()

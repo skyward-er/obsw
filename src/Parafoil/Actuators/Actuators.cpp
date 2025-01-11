@@ -29,6 +29,7 @@
 using namespace miosix;
 using namespace Boardcore;
 using namespace Boardcore::Units::Angle;
+using namespace Boardcore::Units::Time;
 namespace config = Parafoil::Config::Actuators;
 
 namespace Parafoil
@@ -38,14 +39,14 @@ Actuators::Actuators()
 {
     leftServo.servo = std::make_unique<Servo>(
         config::LeftServo::TIMER, config::LeftServo::PWM_CH,
-        config::LeftServo::MIN_PULSE.value(),
-        config::LeftServo::MAX_PULSE.value());
+        config::LeftServo::MIN_PULSE.value<Microsecond>(),
+        config::LeftServo::MAX_PULSE.value<Microsecond>());
     leftServo.fullRangeAngle = config::LeftServo::ROTATION;
 
     rightServo.servo = std::make_unique<Servo>(
         config::RightServo::TIMER, config::RightServo::PWM_CH,
-        config::RightServo::MIN_PULSE.value(),
-        config::RightServo::MAX_PULSE.value());
+        config::RightServo::MIN_PULSE.value<Microsecond>(),
+        config::RightServo::MAX_PULSE.value<Microsecond>());
     rightServo.fullRangeAngle = config::RightServo::ROTATION;
 }
 
@@ -84,8 +85,8 @@ bool Actuators::setServoAngle(ServosList servoId, Degree angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    actuator->servo->setPosition(
-        (angle / actuator->fullRangeAngle.value()).value());
+    actuator->servo->setPosition(angle.value<Degree>() /
+                                 actuator->fullRangeAngle.value<Degree>());
 
     return true;
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
+/* Copyright (c) 2025 Skyward Experimental Rocketry
  * Authors: Niccolò Betto, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,10 +33,12 @@ namespace Parafoil
 {
 class BoardScheduler;
 class Sensors;
+class FlightStatsRecorder;
 
 class NASController
     : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
+      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                           FlightStatsRecorder>
 {
 public:
     /**
@@ -59,6 +61,10 @@ public:
     NASControllerState getState();
 
     void setOrientation(const Eigen::Quaternionf& orientation);
+
+    void setReferenceAltitude(Boardcore::Units::Length::Meter altitude);
+    void setReferenceTemperature(float temperature);
+    void setReferenceCoordinates(float latitude, float longitude);
 
 private:
     void calibrate();

@@ -42,11 +42,13 @@ namespace Parafoil
 {
 class BoardScheduler;
 class Buses;
+class FlightStatsRecorder;
 
 /**
  * @brief Manages all the sensors of the parafoil board.
  */
-class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler, Buses>
+class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler, Buses,
+                                                     FlightStatsRecorder>
 {
 public:
     [[nodiscard]] bool start();

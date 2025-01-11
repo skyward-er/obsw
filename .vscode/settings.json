@@ -193,5 +193,6 @@
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
     },
-    "compilerexplorer.compilationDirectory": "${workspaceFolder}/build"
+    "compilerexplorer.compilationDirectory": "${workspaceFolder}/build",
+    "C_Cpp.default.compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++"
 }

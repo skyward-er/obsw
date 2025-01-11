@@ -24,10 +24,12 @@
 
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 
 #include <chrono>
 
 using namespace Boardcore;
+using namespace Boardcore::Units::Frequency;
 namespace config = Parafoil::Config::Sensors;
 namespace hwmap  = miosix::sensors;
 
@@ -341,9 +343,9 @@ void Sensors::ubxGpsInit()
     auto spiConfig         = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ubxgps = std::make_unique<UBXGPSSpi>(getModule<Buses>()->spi1,
-                                         hwmap::ubxgps::cs::getPin(), spiConfig,
-                                         config::UBXGPS::SAMPLING_RATE.value());
+    ubxgps = std::make_unique<UBXGPSSpi>(
+        getModule<Buses>()->spi1, hwmap::ubxgps::cs::getPin(), spiConfig,
+        config::UBXGPS::SAMPLING_RATE.value<Kilohertz>());
 
     LOG_INFO(logger, "UBXGPS initialized!");
 }
@@ -390,6 +392,10 @@ void Sensors::bmx160Callback()
 void Sensors::bmx160WithCorrectionCallback()
 {
     BMX160WithCorrectionData lastSample = bmx160WithCorrection->getLastSample();
+
+    // Update acceleration stats
+    getModule<FlightStatsRecorder>()->updateAcc(lastSample);
+
     Logger::getInstance().log(lastSample);
 }
 

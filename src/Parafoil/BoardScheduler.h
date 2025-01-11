@@ -55,10 +55,12 @@ public:
     Boardcore::TaskScheduler& nasController() { return critical; }
     Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& pinHandler() { return high; }
+    Boardcore::TaskScheduler& radio() { return medium; }
     Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
     Boardcore::TaskScheduler& wingController() { return medium; }
     Boardcore::TaskScheduler& windEstimation() { return low; }
     Boardcore::TaskScheduler& actuators() { return low; }
+    Boardcore::TaskScheduler& flightStatsRecorder() { return low; }
 
     static Priority::PriorityLevel flightModeManagerPriority()
     {

@@ -22,6 +22,7 @@
 
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/NASConfig.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <algorithms/NAS/StateInitializer.h>
@@ -32,6 +33,7 @@
 
 using namespace Boardcore;
 using namespace Boardcore::Units::Time;
+using namespace Boardcore::Units::Length;
 using namespace Boardcore::Units::Acceleration;
 using namespace Eigen;
 using namespace Common;
@@ -222,7 +224,7 @@ void NASController::calibrate()
 
         baroSum += baro.pressure;
 
-        Thread::sleep(Millisecond{config::CALIBRATION_SLEEP_TIME}.value());
+        Thread::sleep(config::CALIBRATION_SLEEP_TIME.value<Millisecond>());
     }
 
     Vector3f meanAcc = accSum / config::CALIBRATION_SAMPLES_COUNT;
@@ -281,6 +283,8 @@ void NASController::update()
     nas.predictGyro(imu);
     nas.predictAcc(imu);
 
+    // NOTE: Magnetometer correction has been disabled
+
     if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
         accLength < Config::NAS::DISABLE_GPS_ACCELERATION_THRESHOLD)
     {
@@ -318,8 +322,9 @@ void NASController::update()
     lastBaroTimestamp = baro.pressureTimestamp;
 
     auto state = nas.getState();
-    // auto ref   = nas.getReferenceValues();
+    auto ref   = nas.getReferenceValues();
 
+    getModule<FlightStatsRecorder>()->updateNas(state, ref.refTemperature);
     Logger::getInstance().log(state);
 }
 
@@ -332,6 +337,34 @@ void NASController::updateState(NASControllerState newState)
         .state     = newState,
     };
     Logger::getInstance().log(status);
+}
+
+void NASController::setReferenceAltitude(Meter altitude)
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto ref        = nas.getReferenceValues();
+    ref.refAltitude = altitude.value<Meter>();
+    nas.setReferenceValues(ref);
+}
+
+void NASController::setReferenceTemperature(float temperature)
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto ref           = nas.getReferenceValues();
+    ref.refTemperature = temperature;
+    nas.setReferenceValues(ref);
+}
+
+void NASController::setReferenceCoordinates(float latitude, float longitude)
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto ref         = nas.getReferenceValues();
+    ref.refLatitude  = latitude;
+    ref.refLongitude = longitude;
+    nas.setReferenceValues(ref);
 }
 
 }  // namespace Parafoil

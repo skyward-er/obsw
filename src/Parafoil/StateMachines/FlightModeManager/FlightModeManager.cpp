@@ -24,6 +24,7 @@
 
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/FlightModeManagerConfig.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -448,7 +449,11 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
             // Send the event to the WingController
             controlDelayId = EventBroker::getInstance().postDelayed(
                 FLIGHT_WING_DESCENT, TOPIC_FLIGHT,
-                Millisecond{config::CONTROL_DELAY}.value());
+                config::CONTROL_DELAY.value<Millisecond>());
+
+            getModule<FlightStatsRecorder>()->dropDetected(
+                TimestampTimer::getTimestamp());
+
             return HANDLED;
         }
 
@@ -492,7 +497,7 @@ State FlightModeManager::Landed(const Event& event)
                                             TOPIC_FLIGHT);
             EventBroker::getInstance().postDelayed(
                 FMM_STOP_LOGGING, TOPIC_FMM,
-                Millisecond{config::LOGGING_DELAY}.value());
+                config::LOGGING_DELAY.value<Millisecond>());
 
             return HANDLED;
         }

@@ -64,10 +64,6 @@ target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-euroc PRIVATE EUROC)
 sbs_target(payload-entry-euroc stm32f767zi_lyra_biscotto)
 
-add_executable(parafoil-entry src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_include_directories(parafoil-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(parafoil-entry stm32f429zi_death_stack_v2)
-
 add_executable(motor-entry src/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_lyra_motor)
@@ -115,3 +111,30 @@ add_executable(lyra-gs-entry
 )
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
+
+# Parafoil targets
+
+add_executable(parafoil-progressive-rotation src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-progressive-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-progressive-rotation PRIVATE ALGORITHM_PROGRESSIVE_ROTATION MILANO)
+sbs_target(parafoil-progressive-rotation stm32f429zi_death_stack_v2)
+
+add_executable(parafoil-guided-milano src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-guided-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-guided-milano PRIVATE ALGORITHM_CLOSED_LOOP MILANO)
+sbs_target(parafoil-guided-milano stm32f429zi_death_stack_v2)
+
+add_executable(parafoil-guided-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-guided-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-guided-jesolo PRIVATE ALGORITHM_CLOSED_LOOP JESOLO)
+sbs_target(parafoil-guided-jesolo stm32f429zi_death_stack_v2)
+
+add_executable(parafoil-t-approach-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-t-approach-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-t-approach-jesolo PRIVATE ALGORITHM_EARLY_MANEUVER JESOLO)
+sbs_target(parafoil-t-approach-jesolo stm32f429zi_death_stack_v2)
+
+add_executable(parafoil-t-approach-milano src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-t-approach-milano PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-t-approach-milano PRIVATE ALGORITHM_EARLY_MANEUVER MILANO)
+sbs_target(parafoil-t-approach-milano stm32f429zi_death_stack_v2)
