@@ -137,8 +137,6 @@ ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)
     ssize_t size = 0;
     WizIp dst_ip;
     uint16_t dst_port;
-    TRACE("Haloo\n");
-
     if (!sniffOtherGs)
         size = wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
     else
@@ -148,7 +146,6 @@ ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)
                                  RECEIVE_PORT_TIMEOUT_MS);
     if (size <= 0 && sniffOtherGs)
     {
-        TRACE("Second sniff\n");
         size = wiz5500->recvfrom(1, pkt, max_len, dst_ip, dst_port,
                                  RECEIVE_PORT_TIMEOUT_MS);
     }
