@@ -35,7 +35,7 @@ namespace Groundstation
 {
 
 // Timeout for the port receive
-static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 200;
+static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 500;
 
 Boardcore::WizIp genNewRandomIp();
 Boardcore::WizMac genNewRandomMac();
