@@ -82,7 +82,10 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
         WizIp ip = IP_BASE;
         ip.d = 1 + ipOffset;  // Add to the ip the offset set on the dipswitch
         this->wiz5500->setSourceIp(ip);
-        this->wiz5500->setSourceMac(genNewRandomMac());
+        WizMac mac = MAC_BASE;
+        // Add to the mac address the offset set on the dipswitch
+        mac.c += 1 + ipOffset;
+        this->wiz5500->setSourceMac(mac);
     }
     else
     {
@@ -98,6 +101,18 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
                                 500))
     {
         return false;
+    }
+
+    if (sniffOtherGs)
+    {
+        TRACE("[info] starting second UDP socket (inverse direction)\n");
+        if (!this->wiz5500->openUdp(1, SEND_PORT, {255, 255, 255, 255},
+                                    RECV_PORT, 500))
+
+        {
+            TRACE("[error] starting second UDP socket\n");
+            return false;
+        }
     }
 
     auto mav_handler = [this](EthernetMavDriver* channel,
@@ -119,12 +134,29 @@ void EthernetBase::handleMsg(const mavlink_message_t& msg)
 
 ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)
 {
+    ssize_t size = 0;
     WizIp dst_ip;
     uint16_t dst_port;
-    return wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
+    TRACE("Haloo\n");
+
+    if (!sniffOtherGs)
+        size = wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
+    else
+        // In case of sniffing, there is a maximum waiting time for messages
+        // from the groundstation software to switch between one and other port
+        size = wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port,
+                                 RECEIVE_PORT_TIMEOUT_MS);
+    if (size <= 0 && sniffOtherGs)
+    {
+        TRACE("Second sniff\n");
+        size = wiz5500->recvfrom(1, pkt, max_len, dst_ip, dst_port,
+                                 RECEIVE_PORT_TIMEOUT_MS);
+    }
+    return size;
 }
 
 bool EthernetBase::send(uint8_t* pkt, size_t len)
 {
     return wiz5500->send(0, pkt, len, 100);
+    // return true;
 }

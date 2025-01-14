@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,31 +19,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <Groundstation/Common/Ports/EthernetBase.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <stdint.h>
 
-namespace LyraGS
-{
-class BoardStatus;
+#include <iostream>
+#include <string>
 
-class EthernetGS : public Boardcore::InjectableWithDeps<
-                       Boardcore::InjectableBase<Groundstation::EthernetBase>,
-                       Buses, BoardStatus>
+namespace Antennas
 {
-public:
-    EthernetGS() : Super{} {}
-    EthernetGS(bool randomIp, uint8_t ipOffset, bool sniffing)
-        : Super{randomIp, ipOffset, sniffing}
+
+/**
+ * @brief Structure to handle the APR coordinates, a reduced set of the GPS
+ * data. ARP is assumed fixed, therefore do not move.
+ */
+struct ARPCoordinates
+{
+    uint64_t gpsTimestamp = 0;
+    float latitude        = 0;  // [deg]
+    float longitude       = 0;  // [deg]
+    float height          = 0;  // [m]
+    uint8_t satellites    = 0;  // [1]
+    uint8_t fix           = 0;  // 0 = no fix
+
+    static std::string header()
     {
+        return "timestamp,latitude,longitude,height,satellites,fix\n";
     }
-    [[nodiscard]] bool start();
-    void sendMsg(const mavlink_message_t& msg);
-    void handleINTn();
-    Boardcore::Wiz5500::PhyState getState();
-};
 
-}  // namespace LyraGS
+    void print(std::ostream& os) const
+    {
+        os << gpsTimestamp << "," << latitude << "," << longitude << ","
+           << height << "," << (int)satellites << "," << (int)fix << "\n";
+    }
+};
+}  // namespace Antennas
