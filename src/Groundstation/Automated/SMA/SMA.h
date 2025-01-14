@@ -109,6 +109,7 @@ public:
     /**
      * @brief Setter for the multipliers of the steppers
      */
+    // TODO: See if has sense to remove it...
     void setMultipliers(StepperList axis, float multiplier);
 
     /**
