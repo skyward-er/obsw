@@ -34,6 +34,9 @@
 namespace Groundstation
 {
 
+// Timeout for the port receive
+static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 200;
+
 Boardcore::WizIp genNewRandomIp();
 Boardcore::WizMac genNewRandomMac();
 
@@ -45,8 +48,8 @@ class EthernetBase : public Boardcore::Transceiver,
 {
 public:
     EthernetBase() {};
-    EthernetBase(bool randomIp, uint8_t ipOffset)
-        : randomIp{randomIp}, ipOffset{ipOffset} {};
+    EthernetBase(bool randomIp, uint8_t ipOffset, bool sniffing)
+        : randomIp{randomIp}, ipOffset{ipOffset}, sniffOtherGs{sniffing} {};
 
     void handleINTn();
 
@@ -56,6 +59,7 @@ public:
 
 protected:
     bool start(std::unique_ptr<Boardcore::Wiz5500> wiz5500);
+    std::unique_ptr<Boardcore::Wiz5500> wiz5500;
 
 private:
     /**
@@ -68,10 +72,10 @@ private:
     bool send(uint8_t* pkt, size_t len) override;
 
     bool started = false;
-    std::unique_ptr<Boardcore::Wiz5500> wiz5500;
     std::unique_ptr<EthernetMavDriver> mav_driver;
-    bool randomIp    = true;
-    uint8_t ipOffset = 0;
+    bool randomIp     = true;
+    uint8_t ipOffset  = 0;
+    bool sniffOtherGs = false;
 };
 
 }  // namespace Groundstation

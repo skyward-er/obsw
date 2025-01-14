@@ -36,7 +36,10 @@ class EthernetGS : public Boardcore::InjectableWithDeps<
 {
 public:
     EthernetGS() : Super{} {}
-    EthernetGS(bool randomIp, uint8_t ipOffset) : Super{randomIp, ipOffset} {}
+    EthernetGS(bool randomIp, uint8_t ipOffset, bool sniffing)
+        : Super{randomIp, ipOffset, sniffing}
+    {
+    }
     [[nodiscard]] bool start();
     void sendMsg(const mavlink_message_t& msg);
     void handleINTn();
