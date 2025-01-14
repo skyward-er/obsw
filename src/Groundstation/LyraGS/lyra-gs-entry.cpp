@@ -141,7 +141,7 @@ int main()
         new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
     LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
     LyraGS::EthernetGS* ethernet =
-        new LyraGS::EthernetGS(false, dipRead.ipConfig);
+        new LyraGS::EthernetGS(false, dipRead.ipConfig, true);
     LyraGS::RadioPayload* radio_payload = new LyraGS::RadioPayload(
         dipRead.payloadHasBackup, dipRead.payloadTXenable);
 
@@ -343,7 +343,7 @@ int main()
 
     // Check presence of radio and ethernet
 
-    if (board_status->isMainRadioPresent() && !dipRead.isARP)
+    if (board_status->isMainRadioPresent())
     {
         LOG_INFO(logger, "Main radio detected!\n");
         led1On();  //< GREEN led on (CU)
@@ -351,7 +351,7 @@ int main()
     else
         std::cout << "Main NOT detected" << std::endl;
 
-    if (board_status->isPayloadRadioPresent() && !dipRead.isARP)
+    if (board_status->isPayloadRadioPresent())
     {
         LOG_INFO(logger, "Payload radio detected!\n");
         led2On();  //< YELLOW led on (CU)
@@ -359,7 +359,7 @@ int main()
     else
         std::cout << "Payload NOT detected" << std::endl;
 
-    if (board_status->isEthernetPresent() && !dipRead.isARP)
+    if (board_status->isEthernetPresent())
     {
         LOG_INFO(logger, "Ethernet detected!\n");
         led4On();  //< ORANGE led on (CU)

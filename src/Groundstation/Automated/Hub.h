@@ -79,14 +79,17 @@ public:
     /**
      * @brief Synchronized getter for the last rocket origin for NAS.
      */
-    Boardcore::GPSData getRocketOrigin();
+    bool getRocketOrigin(Boardcore::GPSData& rocketOrigin);
 
     /**
      * @brief Synchronized getter for the last rocket NAS state.
+     *
+     * @return true only if the rocket NAS state and is valid and the value is
+     * new (got from radio)
      */
-    Boardcore::NASState getRocketNasState();
+    bool getLastRocketNasState(Boardcore::NASState& nasState);
 
-    bool hasNasSet();
+    bool hasNewNasState();
 
 private:
     /**
@@ -100,10 +103,12 @@ private:
     void setRocketOrigin(const Boardcore::GPSData& newRocketCoordinates);
 
     Boardcore::GPSData lastRocketCoordinates;
+    bool originReceived = false;
     Boardcore::NASState lastRocketNasState;
+    bool rocketNasSet = false;
     miosix::FastMutex coordinatesMutex;
     miosix::FastMutex nasStateMutex;
-    bool flagNasSet = false;
+    bool hasNewNasSet = false;
     uint64_t lastFlightTMTimestamp;
     uint64_t lastStatsTMTimestamp;
 };
