@@ -138,41 +138,45 @@ void SMA::setFatal() { fatalInit = true; };
 void SMA::update()
 {
     GPSData rocketCoordinates, antennaCoordinates;
-    VN300Data vn300Data;
+    VN300Data data;
+    auto steppers = getModule<Actuators>();
 
-    Hub* hub          = static_cast<Hub*>(getModule<Groundstation::HubBase>());
-    auto* sensors     = getModule<Sensors>();
-    rocketCoordinates = hub->getRocketOrigin();
+    Hub* hub      = static_cast<Hub*>(getModule<Groundstation::HubBase>());
+    auto* sensors = getModule<Sensors>();
 
-    // Update the antenna position except in case of no feedback
-    if (status.state != SMAState::FIX_ROCKET_NF &&
-        status.state != SMAState::INIT_ERROR &&
-        status.state != SMAState::ACTIVE_NF &&
-        status.state != SMAState::ARM_READY &&
-        status.state != SMAState::ACTIVE_NF)
+    // Update the antenna position if in feedback
+    if (status.state == SMAState::FEEDBACK)
     {
         // update antenna coordinates
-        vn300Data = sensors->getVN300LastSample();
-        if (vn300Data.gpsFix == 3)
+        data = sensors->getVN300LastSample();
+        if (data.gpsFix == 3)
         {
             // build the GPSData struct with the VN300 data
-            antennaCoordinates.gpsTimestamp  = vn300Data.insTimestamp;
-            antennaCoordinates.latitude      = vn300Data.latitude;
-            antennaCoordinates.longitude     = vn300Data.longitude;
-            antennaCoordinates.height        = vn300Data.altitude;
-            antennaCoordinates.velocityNorth = vn300Data.velocityX;
-            antennaCoordinates.velocityEast  = vn300Data.velocityY;
-            antennaCoordinates.velocityDown  = vn300Data.velocityZ;
-            antennaCoordinates.satellites    = vn300Data.gpsFix;
-            antennaCoordinates.fix           = vn300Data.gpsFix;
+            antennaCoordinates.gpsTimestamp  = data.insTimestamp;
+            antennaCoordinates.latitude      = data.latitude;
+            antennaCoordinates.longitude     = data.longitude;
+            antennaCoordinates.height        = data.altitude;
+            antennaCoordinates.velocityNorth = data.velocityX;
+            antennaCoordinates.velocityEast  = data.velocityY;
+            antennaCoordinates.velocityDown  = data.velocityZ;
+            antennaCoordinates.satellites    = data.gpsFix;
+            antennaCoordinates.fix           = data.gpsFix;
 
             // update follower with coordinates
             follower.setAntennaCoordinates(antennaCoordinates);
         }
     }
+    else
+    {
+        // Fake attitude data, taking the stepper current positions as pitch and
+        // yaw
+        data.pitch = steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
+        data.yaw   = steppers->getCurrentDegPosition(StepperList::STEPPER_X);
+    }
 
     // update follower with the rocket GPS data
-    follower.setRocketNASOrigin(rocketCoordinates);
+    if (hub->getRocketOrigin(rocketCoordinates))
+        follower.setRocketNASOrigin(rocketCoordinates);
 
     switch (status.state)
     {
@@ -211,89 +215,26 @@ void SMA::update()
             }
             break;
         }
+
         // in active state, update the follower and propagator inner states
         case SMAState::ACTIVE:
-        {
-            // retrieve the last NAS Rocket state
-            if (hub->hasNasSet())
-            {
-                NASState nasState = hub->getRocketNasState();
-
-                // update the propagator with the NAS state
-                // and retrieve the propagated state
-                propagator.setRocketNasState(nasState);
-            }
-            propagator.update();  // step the propagator
-            PropagatorState predicted = propagator.getState();
-
-            // update the follower with the propagated state
-            follower.setLastRocketNasState(predicted.getNasState());
-            follower.setLastAntennaAttitude(vn300Data);
-            follower.update();  // step the follower
-            FollowerState follow = follower.getState();
-
-            // Log the target angles and propagations info
-            AntennaAngles target = follower.getTargetAngles();
-            Boardcore::Logger::getInstance().log(
-                Boardcore::AntennaAnglesLog(target, predicted.nPropagations));
-
-            // actuate the steppers
-            auto steppers = getModule<Actuators>();
-            steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
-            steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
-
-            ActuationStatus actuation =
-                steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
-            if (actuation != ActuationStatus::OK)
-            {
-                LOG_ERR(
-                    logger,
-                    "Step antenna - STEPPER_X could not move or reached move "
-                    "limit. Error: ",
-                    actuation, "\n");
-            }
-
-            actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
-            if (actuation != ActuationStatus::OK)
-            {
-                LOG_ERR(
-                    logger,
-                    "Step antenna - STEPPER_Y could not move or reached move "
-                    "limit. Error: ",
-                    actuation, "\n");
-            }
-
-            break;
-        }
         case SMAState::ACTIVE_NF:
         {
-            VN300Data fakeAttitudeData;
-
             // retrieve the last NAS Rocket state
-            if (hub->hasNasSet())
-            {
-                NASState nasState = hub->getRocketNasState();
+
+            NASState nasState;
+            if (hub->hasNewNasState() && hub->getLastRocketNasState(nasState))
 
                 // update the propagator with the NAS state
                 // and retrieve the propagated state
                 propagator.setRocketNasState(nasState);
-            }
+
             propagator.update();  // step the propagator
             PropagatorState predicted = propagator.getState();
 
-            auto steppers = getModule<Actuators>();
-
-            // set the attitude as the current position of the steppers
-            // FIXME this method of setting the attitude is too dirty
-            // if the follower is updated something may break here
-            fakeAttitudeData.pitch =
-                steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
-            fakeAttitudeData.yaw =
-                steppers->getCurrentDegPosition(StepperList::STEPPER_X);
-
             // update the follower with the propagated state
             follower.setLastRocketNasState(predicted.getNasState());
-            follower.setLastAntennaAttitude(fakeAttitudeData);
+            follower.setLastAntennaAttitude(data);
             follower.update();  // step the follower
             FollowerState follow = follower.getState();
 
@@ -326,9 +267,9 @@ void SMA::update()
                     "limit. Error: ",
                     actuation, "\n");
             }
-
-            break;
         }
+        break;
+
         case SMAState::CALIBRATE:
         {
             if (!sensors->isCalibrating())
@@ -339,9 +280,7 @@ void SMA::update()
         }
         break;
         default:
-        {
             break;
-        }
     }
 }
 
@@ -795,7 +734,7 @@ State SMA::state_fix_rocket(const Event& event)
             // init the follower before leaving the state
             // (compute initial arp-rocket distance and bearing)
             if (!follower.init())
-                LOG_ERR(logger, "Follower initialization failed");
+                LOG_ERR(logger, "Follower initialization failed\n");
 
             leds->setOn(LedColor::YELLOW);
             return HANDLED;
