@@ -44,6 +44,7 @@ using namespace miosix;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
+    TRACE("[info] Hub: Packet arrived from outgoing messages!!!\n");
     LyraGS::BoardStatus* status  = getModule<LyraGS::BoardStatus>();
     LyraGS::RadioMain* radioMain = getModule<LyraGS::RadioMain>();
 
@@ -242,11 +243,12 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     }
 
     // In case the message is spoofed from ethernet by another groundstation
-    if (msg.sysid == MAV_SYSID_MAIN)
+    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
     {
         TRACE(
-            "[info] Hub: A MAIN packet was received from ground packet (not "
-            "radio)\n");
+            "[info] Hub: A MAIN packet was received from ground packet "
+            "(ethernet probably and NOT radio)\n");
         /* The message received by ethernet (outgoing) in reality is not a
          * command but the telemetry spoofed, therefore is then used as incoming
          */
@@ -269,11 +271,17 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         mavlink_rocket_flight_tm_t rocketTM;
         mavlink_msg_rocket_flight_tm_decode(&msg, &rocketTM);
         uint64_t timestamp = mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
+        TRACE(
+            "[info] Hub: A FLIGHT_ROCKET_TM packet was received from ground "
+            "packet with ts %llu\n",
+            timestamp);
         /* Messages older and within the discard interval are treated as old
          * messages*/
         if (timestamp <= lastFlightTMTimestamp &&
             lastFlightTMTimestamp > timestamp + DISCARD_MSG_DELAY)
             return;
+        TRACE("[info] Hub: A FLIGHT_ROCKET_TM packet is valid with ts %llu\n",
+              timestamp);
         lastFlightTMTimestamp = timestamp;
         NASState nasState{
             mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
@@ -293,15 +301,23 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     {
         mavlink_rocket_stats_tm_t rocketST;
         mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
+        TRACE(
+            "[info] Hub: A ROCKET_STAT_TM packet was received from ground "
+            "packet with ts %llu\n",
+            rocketST.timestamp);
         /* Messages older and within the discard interval are treated as old
          * messages*/
         if (rocketST.timestamp <= lastStatsTMTimestamp &&
             lastStatsTMTimestamp > rocketST.timestamp + DISCARD_MSG_DELAY)
             return;
+        TRACE("[info] Hub: A ROCKET_STAT_TM packet is valid, with ts %llu\n",
+              rocketST.timestamp);
         lastStatsTMTimestamp = rocketST.timestamp;
-        GPSData gpsState;
-        gpsState = getRocketOrigin();
 
+        // TODO: The origin should have its own struct since only timestamp and
+        // [lat, lon, alt] are needed
+        GPSData gpsState;
+        getRocketOrigin(gpsState);
         gpsState.gpsTimestamp = rocketST.timestamp;
         gpsState.latitude     = rocketST.ref_lat;
         gpsState.longitude    = rocketST.ref_lon;
@@ -326,25 +342,28 @@ void Hub::sendAck(const mavlink_message_t& msg)
     dispatchIncomingMsg(ackMsg);
 }
 
-GPSData Hub::getRocketOrigin()
+bool Hub::getRocketOrigin(Boardcore::GPSData& rocketOrigin)
 {
     Lock<FastMutex> lock(coordinatesMutex);
-    return lastRocketCoordinates;
+    rocketOrigin = lastRocketCoordinates;
+    return originReceived;
 }
 
-NASState Hub::getRocketNasState()
+bool Hub::getLastRocketNasState(Boardcore::NASState& nasState)
 {
     Lock<FastMutex> lock(nasStateMutex);
-    flagNasSet = false;
-    return lastRocketNasState;
+    nasState     = lastRocketNasState;
+    hasNewNasSet = false;
+    return rocketNasSet;
 }
 
-bool Hub::hasNasSet() { return flagNasSet; }
+bool Hub::hasNewNasState() { return hasNewNasSet; }
 
 void Hub::setRocketNasState(const NASState& newRocketNasState)
 {
     Lock<FastMutex> lock(nasStateMutex);
-    flagNasSet         = true;
+    hasNewNasSet       = true;
+    rocketNasSet       = true;
     lastRocketNasState = newRocketNasState;
 }
 
