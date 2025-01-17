@@ -357,7 +357,11 @@ bool Hub::getLastRocketNasState(Boardcore::NASState& nasState)
     return rocketNasSet;
 }
 
-bool Hub::hasNewNasState() { return hasNewNasSet; }
+bool Hub::hasNewNasState()
+{
+    Lock<FastMutex> lock(nasStateMutex);
+    return hasNewNasSet;
+}
 
 void Hub::setRocketNasState(const NASState& newRocketNasState)
 {
@@ -371,4 +375,5 @@ void Hub::setRocketOrigin(const GPSData& newRocketCoordinates)
 {
     Lock<FastMutex> lock(coordinatesMutex);
     lastRocketCoordinates = newRocketCoordinates;
+    originReceived        = true;
 }
