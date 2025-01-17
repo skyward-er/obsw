@@ -94,7 +94,8 @@ void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
 
 ActuationStatus SMA::moveStepperDeg(StepperList stepperId, float angle)
 {
-    if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf))
+    if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf) &&
+        !testState(&SMA::state_calibrate))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
         return ActuationStatus::NOT_TEST;
@@ -199,6 +200,7 @@ void SMA::update()
             }
             break;
         }
+        // TODO: See if semantically what we want
         // in fix_rocket state, wait for the GPS fix of the rocket
         case SMAState::FIX_ROCKET:
         case SMAState::FIX_ROCKET_NF:
@@ -223,8 +225,8 @@ void SMA::update()
             // retrieve the last NAS Rocket state
 
             NASState nasState;
+            // In case there is a new NAS packet
             if (hub->hasNewNasState() && hub->getLastRocketNasState(nasState))
-
                 // update the propagator with the NAS state
                 // and retrieve the propagated state
                 propagator.setRocketNasState(nasState);
