@@ -67,7 +67,7 @@ bool AltitudeTrigger::isEnabled() { return running; }
 
 void AltitudeTrigger::setDeploymentAltitude(Meter altitude)
 {
-    targetAltitude = altitude.value<Meter>();
+    targetAltitude = altitude.value();
 }
 
 void AltitudeTrigger::update()

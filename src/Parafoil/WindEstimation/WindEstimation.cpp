@@ -133,9 +133,9 @@ void WindEstimation::updateCalibration()
                                 MeterPerSecond{gps.velocityEast}};
 
                 calibrationMatrix(nSampleCalibration, 0) =
-                    gpsVelocity.vn.value<MeterPerSecond>();
+                    MeterPerSecond{gpsVelocity.vn}.value();
                 calibrationMatrix(nSampleCalibration, 1) =
-                    gpsVelocity.ve.value<MeterPerSecond>();
+                    MeterPerSecond{gpsVelocity.ve}.value();
                 calibrationV2(nSampleCalibration) = gpsVelocity.normSquared();
 
                 velocity.vn += gpsVelocity.vn;
@@ -155,10 +155,10 @@ void WindEstimation::updateCalibration()
                 {
                     calibrationMatrix(i, 0) =
                         calibrationMatrix(i, 0) -
-                        velocity.vn.value<MeterPerSecond>();
+                        MeterPerSecond{velocity.vn}.value();
                     calibrationMatrix(i, 1) =
                         calibrationMatrix(i, 1) -
-                        velocity.ve.value<MeterPerSecond>();
+                        MeterPerSecond{velocity.ve}.value();
                     calibrationV2(i) = 0.5f * (calibrationV2(i) - speedSquared);
                 }
 
@@ -232,10 +232,10 @@ void WindEstimation::updateAlgorithm()
             speedSquared = (speedSquared * nSampleAlgorithm +
                             (gpsVelocity.normSquared())) /
                            (nSampleAlgorithm + 1);
-            phi(0) = gpsVelocity.vn.value<MeterPerSecond>() -
-                     velocity.vn.value<MeterPerSecond>();
-            phi(1) = gpsVelocity.ve.value<MeterPerSecond>() -
-                     velocity.ve.value<MeterPerSecond>();
+            phi(0) = MeterPerSecond{gpsVelocity.vn}.value() -
+                     MeterPerSecond{velocity.vn}.value();
+            phi(1) = MeterPerSecond{gpsVelocity.ve}.value() -
+                     MeterPerSecond{velocity.ve}.value();
             y = 0.5f * ((gpsVelocity.normSquared()) - speedSquared);
 
             phiT = phi.transpose();
