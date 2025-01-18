@@ -449,7 +449,7 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
             // Send the event to the WingController
             controlDelayId = EventBroker::getInstance().postDelayed(
                 FLIGHT_WING_DESCENT, TOPIC_FLIGHT,
-                config::CONTROL_DELAY.value<Millisecond>());
+                Millisecond{config::CONTROL_DELAY}.value());
 
             getModule<FlightStatsRecorder>()->dropDetected(
                 TimestampTimer::getTimestamp());
@@ -497,7 +497,7 @@ State FlightModeManager::Landed(const Event& event)
                                             TOPIC_FLIGHT);
             EventBroker::getInstance().postDelayed(
                 FMM_STOP_LOGGING, TOPIC_FMM,
-                config::LOGGING_DELAY.value<Millisecond>());
+                Millisecond{config::LOGGING_DELAY}.value());
 
             return HANDLED;
         }

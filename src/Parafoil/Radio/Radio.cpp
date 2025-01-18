@@ -72,7 +72,7 @@ bool Radio::start()
                                             { handleXbeeFrame(frame); });
 
     Xbee::setDataRate(*transceiver, Config::Radio::Xbee::ENABLE_80KPS_DATA_RATE,
-                      Config::Radio::Xbee::TIMEOUT.value<Millisecond>());
+                      Millisecond{Config::Radio::Xbee::TIMEOUT}.value());
 
     // Set the static instance for handling radio interrupts
     staticTransceiver = transceiver.get();
@@ -81,8 +81,8 @@ bool Radio::start()
     radioMavlink.driver = std::make_unique<MavDriver>(
         transceiver.get(), [this](MavDriver*, const mavlink_message_t& msg)
         { handleRadioMessage(msg); },
-        config::MavlinkDriver::SLEEP_AFTER_SEND.value<Millisecond>(),
-        config::MavlinkDriver::MAX_PKT_AGE.value<Millisecond>());
+        Millisecond{config::MavlinkDriver::SLEEP_AFTER_SEND}.value(),
+        Millisecond{config::MavlinkDriver::MAX_PKT_AGE}.value());
 
     if (!radioMavlink.driver->start())
     {

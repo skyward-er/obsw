@@ -79,9 +79,9 @@ private:
     // altitude
     int confidence = 0;
 
-    std::atomic<float> targetAltitude{
-        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE
-            .value<Boardcore::Units::Length::Meter>()};
+    std::atomic<float> targetAltitude{Boardcore::Units::Length::Meter{
+        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE}
+                                          .value()};
 };
 
 }  // namespace Parafoil
