@@ -224,7 +224,7 @@ void NASController::calibrate()
 
         baroSum += baro.pressure;
 
-        Thread::sleep(config::CALIBRATION_SLEEP_TIME.value<Millisecond>());
+        Thread::sleep(Millisecond{config::CALIBRATION_SLEEP_TIME}.value());
     }
 
     Vector3f meanAcc = accSum / config::CALIBRATION_SAMPLES_COUNT;
@@ -344,7 +344,7 @@ void NASController::setReferenceAltitude(Meter altitude)
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
     auto ref        = nas.getReferenceValues();
-    ref.refAltitude = altitude.value<Meter>();
+    ref.refAltitude = altitude.value();
     nas.setReferenceValues(ref);
 }
 

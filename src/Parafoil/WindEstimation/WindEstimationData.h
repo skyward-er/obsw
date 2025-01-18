@@ -60,21 +60,14 @@ struct GeoVelocity
     Boardcore::Units::Speed::MeterPerSecond ve{0};  // East velocity
 
     /**
-     * @brief Calculate the squared norm of the velocity vector.
+     * @brief Calculate the squared norm of the velocity vector. [m^2/s^2]
      */
     float normSquared() const
     {
-        return vn.value<Boardcore::Units::Speed::MeterPerSecond>() *
-                   vn.value<Boardcore::Units::Speed::MeterPerSecond>() +
-               ve.value<Boardcore::Units::Speed::MeterPerSecond>() *
-                   ve.value<Boardcore::Units::Speed::MeterPerSecond>();
+        return vn.value() * vn.value() + ve.value() * ve.value();
     }
 
-    Eigen::Vector2f asVector() const
-    {
-        return {vn.value<Boardcore::Units::Speed::MeterPerSecond>(),
-                ve.value<Boardcore::Units::Speed::MeterPerSecond>()};
-    }
+    Eigen::Vector2f asVector() const { return {vn.value(), ve.value()}; }
 };
 
 }  // namespace Parafoil

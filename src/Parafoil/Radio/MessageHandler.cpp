@@ -537,13 +537,13 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
             // Servos
             tm.left_servo_angle =
-                parent.getModule<Actuators>()
-                    ->getServoAngle(ServosList::PARAFOIL_LEFT_SERVO)
-                    .value<Degree>();
+                Degree{parent.getModule<Actuators>()->getServoAngle(
+                           ServosList::PARAFOIL_LEFT_SERVO)}
+                    .value();
             tm.right_servo_angle =
-                parent.getModule<Actuators>()
-                    ->getServoAngle(ServosList::PARAFOIL_RIGHT_SERVO)
-                    .value<Degree>();
+                Degree{parent.getModule<Actuators>()->getServoAngle(
+                           ServosList::PARAFOIL_RIGHT_SERVO)}
+                    .value();
 
             // Algorithms
             tm.nas_n      = nasState.n;
@@ -563,8 +563,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             // Wind estimation
             auto wind = parent.getModule<WindEstimation>()->getPrediction();
 
-            tm.wes_n = wind.vn.value<MeterPerSecond>();
-            tm.wes_e = wind.ve.value<MeterPerSecond>();
+            tm.wes_n = MeterPerSecond{wind.vn}.value();
+            tm.wes_e = MeterPerSecond{wind.ve}.value();
 
             tm.battery_voltage = sensors->getBatteryVoltage().batVoltage;
             // No integrated camera
@@ -610,12 +610,12 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.liftoff_ts         = stats.dropTs;
             tm.liftoff_max_acc_ts = stats.dropMaxAccTs;
             tm.liftoff_max_acc =
-                stats.dropMaxAcc.value<MeterPerSecondSquared>();
+                MeterPerSecondSquared{stats.dropMaxAcc}.value();
 
             // Max speed stats
             tm.max_speed_ts       = stats.maxSpeedTs;
-            tm.max_speed          = stats.maxSpeed.value<MeterPerSecond>();
-            tm.max_speed_altitude = stats.maxSpeedAlt.value<Meter>();
+            tm.max_speed          = MeterPerSecond{stats.maxSpeed}.value();
+            tm.max_speed_altitude = Meter{stats.maxSpeedAlt}.value();
 
             // Useless for parafoil
             tm.max_mach_ts = 0;
@@ -639,8 +639,8 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             // Deployment stats
             tm.dpl_ts         = stats.dplTs;
             tm.dpl_max_acc_ts = stats.dplMaxAccTs;
-            tm.dpl_alt        = stats.dplAlt.value<Meter>();
-            tm.dpl_max_acc    = stats.dplMaxAcc.value<MeterPerSecondSquared>();
+            tm.dpl_alt        = Meter{stats.dplAlt}.value();
+            tm.dpl_max_acc    = MeterPerSecondSquared{stats.dplMaxAcc}.value();
 
             // NAS reference values
             tm.ref_lat = ref.refLatitude;

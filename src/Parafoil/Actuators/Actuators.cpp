@@ -39,14 +39,14 @@ Actuators::Actuators()
 {
     leftServo.servo = std::make_unique<Servo>(
         config::LeftServo::TIMER, config::LeftServo::PWM_CH,
-        config::LeftServo::MIN_PULSE.value<Microsecond>(),
-        config::LeftServo::MAX_PULSE.value<Microsecond>());
+        Microsecond{config::LeftServo::MIN_PULSE}.value(),
+        Microsecond{config::LeftServo::MAX_PULSE}.value());
     leftServo.fullRangeAngle = config::LeftServo::ROTATION;
 
     rightServo.servo = std::make_unique<Servo>(
         config::RightServo::TIMER, config::RightServo::PWM_CH,
-        config::RightServo::MIN_PULSE.value<Microsecond>(),
-        config::RightServo::MAX_PULSE.value<Microsecond>());
+        Microsecond{config::RightServo::MIN_PULSE}.value(),
+        Microsecond{config::RightServo::MAX_PULSE}.value());
     rightServo.fullRangeAngle = config::RightServo::ROTATION;
 }
 
@@ -85,8 +85,8 @@ bool Actuators::setServoAngle(ServosList servoId, Degree angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    actuator->servo->setPosition(angle.value<Degree>() /
-                                 actuator->fullRangeAngle.value<Degree>());
+    actuator->servo->setPosition(angle.value() /
+                                 actuator->fullRangeAngle.value());
 
     return true;
 }
