@@ -73,8 +73,7 @@ private:
     float massSample     = 0;
     float pressureSample = 0;
 
-    int massStableCounter       = 0;
-    uint16_t nextDelayedEventId = 0;
+    int massStableCounter = 0;
 };
 
 }  // namespace RIGv2

@@ -37,7 +37,6 @@ TARS1::TARS1()
           Config::Scheduler::TARS1_PRIORITY)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
-    EventBroker::getInstance().subscribe(this, TOPIC_TARS_ASYNC);
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
 }
 
@@ -83,35 +82,11 @@ void TARS1::state_ready(const Event& event)
     }
 }
 
-#define ASYNC_BEGIN(topic, event)                          \
-    constexpr auto _ASYNC_TOPIC      = topic;              \
-    constexpr auto _ASYNC_CONT_EVENT = event;              \
-    static int _lc                   = 0;                  \
-    if (event == TARS_ASYNC_CONTINUE || event == EV_ENTRY) \
-    {                                                      \
-        switch (_lc)                                       \
-        {                                                  \
-            case 0:
-#define ASYNC_END() \
-    }               \
-    return;         \
-    }
-
-#define ASYNC_WAIT_FOR(t)                                                \
-    _lc = __LINE__;                                                      \
-    case __LINE__:                                                       \
-        if (event != __LINE__)                                           \
-        {                                                                \
-            nextDelayedEventId = EventBroker::getInstance().postDelayed( \
-                _ASYNC_CONT_EVENT, _ASYNC_TOPIC, t);                     \
-            return;                                                      \
-        }
-
 void TARS1::state_refueling(const Event& event)
 {
     Actuators* actuators = getModule<Actuators>();
 
-    ASYNC_BEGIN(TOPIC_TARS_ASYNC, TARS_ASYNC_CONTINUE)
+    ASYNC_BEGIN(TOPIC_TARS)
 
     // Reset TARS state
     massStableCounter = 0;
@@ -185,7 +160,7 @@ void TARS1::state_refueling(const Event& event)
         // Wait for system stabilization based on valve opening time
         ASYNC_WAIT_FOR(
             actuators->getServoOpeningTime(ServosList::VENTING_VALVE) +
-            Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME * 5)  // wait (5000ms)
+            Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME * 5)
 
         // If the pressure is not stable, keep waiting until it is
         while (true)
@@ -228,8 +203,6 @@ void TARS1::state_refueling(const Event& event)
             LOG_INFO(logger, "TARS manual stop");
             logAction(TarsActionType::MANUAL_STOP);
 
-            // Disable next event
-            EventBroker::getInstance().removeDelayed(nextDelayedEventId);
             transition(&TARS1::state_ready);
             break;
         }
@@ -241,8 +214,7 @@ void TARS1::state_refueling(const Event& event)
 
             // The user requested that we stop
             getModule<Actuators>()->closeAllServos();
-            // Disable next event
-            EventBroker::getInstance().removeDelayed(nextDelayedEventId);
+
             transition(&TARS1::state_ready);
             break;
         }
