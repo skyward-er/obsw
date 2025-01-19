@@ -37,6 +37,7 @@ TARS1::TARS1()
           Config::Scheduler::TARS1_PRIORITY)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
+    EventBroker::getInstance().subscribe(this, TOPIC_TARS_ASYNC);
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
 }
 
@@ -82,113 +83,112 @@ void TARS1::state_ready(const Event& event)
     }
 }
 
+#define ASYNC_BEGIN(topic, event)                          \
+    constexpr auto _ASYNC_TOPIC      = topic;              \
+    constexpr auto _ASYNC_CONT_EVENT = event;              \
+    static int _lc                   = 0;                  \
+    if (event == TARS_ASYNC_CONTINUE || event == EV_ENTRY) \
+    {                                                      \
+        switch (_lc)                                       \
+        {                                                  \
+            case 0:
+#define ASYNC_END() \
+    }               \
+    return;         \
+    }
+
+#define ASYNC_WAIT_FOR(t)                                                \
+    _lc = __LINE__;                                                      \
+    case __LINE__:                                                       \
+        if (event != __LINE__)                                           \
+        {                                                                \
+            nextDelayedEventId = EventBroker::getInstance().postDelayed( \
+                _ASYNC_CONT_EVENT, _ASYNC_TOPIC, t);                     \
+            return;                                                      \
+        }
+
 void TARS1::state_refueling(const Event& event)
 {
     Actuators* actuators = getModule<Actuators>();
 
-    switch (event)
+    ASYNC_BEGIN(TOPIC_TARS_ASYNC, TARS_ASYNC_CONTINUE)
+
+    // Reset TARS state
+    massStableCounter = 0;
+    previousMass      = 0.0f;
+    currentMass       = 0.0f;
+    previousPressure  = 0.0f;
+    currentPressure   = 0.0f;
+
+    // Start with all vavles closed
+    actuators->closeAllServos();
+
+    LOG_INFO(logger, "TARS start washing");
+    logAction(TarsActionType::WASHING);
+
+    // Start washing procedure
+    actuators->openServoWithTime(ServosList::VENTING_VALVE,
+                                 Config::TARS1::WASHING_OPENING_TIME);
+    // Wait a bit so that the servo don't actuate at the same time
+    ASYNC_WAIT_FOR(Config::TARS1::WASHING_TIME_DELAY);
+    actuators->openServoWithTime(ServosList::FILLING_VALVE,
+                                 Config::TARS1::WASHING_OPENING_TIME);
+
+    // Wait after washing to ensure the valves have closed
+    ASYNC_WAIT_FOR(Config::TARS1::WASHING_OPENING_TIME * 2);
+
+    // Washing complete
+    LOG_INFO(logger, "TARS washing done");
+    logAction(TarsActionType::OPEN_FILLING);
+
+    // Open the filling valve for the whole refueling process
+    actuators->openServoWithTime(ServosList::FILLING_VALVE,
+                                 Config::TARS1::FILLING_OPENING_TIME);
+    // Wait for the system to stabilize
+    ASYNC_WAIT_FOR(Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME);
+
+    while (true)
     {
-        case EV_ENTRY:
+        LOG_INFO(logger, "TARS check mass");
+        logAction(TarsActionType::CHECK_MASS);
+
+        // Lock in a new mass value
         {
-            // Reset TARS state
-            massStableCounter = 0;
-            previousMass      = 0.0f;
-            currentMass       = 0.0f;
-            previousPressure  = 0.0f;
-            currentPressure   = 0.0f;
-
-            // First close all valves
-            actuators->closeAllServos();
-
-            LOG_INFO(logger, "TARS start washing");
-            logAction(TarsActionType::WASHING);
-
-            // Start washing
-            actuators->openServoWithTime(ServosList::VENTING_VALVE,
-                                         Config::TARS1::WASHING_OPENING_TIME);
-
-            // Wait a bit so that the servo don't actuate at the same time
-            Thread::sleep(Config::TARS1::WASHING_TIME_DELAY);
-
-            actuators->openServoWithTime(ServosList::FILLING_VALVE,
-                                         Config::TARS1::WASHING_OPENING_TIME);
-
-            // After double the time we opened the valve, move to the next phase
-            nextDelayedEventId = EventBroker::getInstance().postDelayed(
-                TARS_WASHING_DONE, TOPIC_TARS,
-                Config::TARS1::WASHING_OPENING_TIME * 2);
-
-            break;
+            Lock<FastMutex> lock(sampleMutex);
+            previousMass = currentMass;
+            currentMass  = massSample;
         }
 
-        case TARS_WASHING_DONE:
+        if (Config::TARS1::STOP_ON_MASS_STABILIZATION)
         {
-            LOG_INFO(logger, "TARS washing done");
-            logAction(TarsActionType::OPEN_FILLING);
+            float massDelta = std::abs(currentMass - previousMass);
+            // Update the mass stabilization counter
+            if (massDelta < Config::TARS1::MASS_TOLERANCE)
+                massStableCounter++;
+            else
+                massStableCounter = 0;
 
-            // Open the filling for a long time
-            actuators->openServoWithTime(ServosList::FILLING_VALVE,
-                                         Config::TARS1::FILLING_OPENING_TIME);
-
-            nextDelayedEventId = EventBroker::getInstance().postDelayed(
-                TARS_PRESSURE_STABILIZED, TOPIC_TARS,
-                Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME);
-
-            break;
-        }
-
-        case TARS_PRESSURE_STABILIZED:
-        {
-            LOG_INFO(logger, "TARS check mass");
-            logAction(TarsActionType::CHECK_MASS);
-
-            // Lock in a new mass value
+            // If the mass is stable, stop the refueling
+            if (massStableCounter >= Config::TARS1::NUM_MASS_STABLE_ITERATIONS)
             {
-                Lock<FastMutex> lock(sampleMutex);
-                previousMass = currentMass;
-                currentMass  = massSample;
+                massStableCounter = 0;
+                EventBroker::getInstance().post(TARS_FILLING_DONE, TOPIC_TARS);
+                break;
             }
-
-            if (Config::TARS1::STOP_ON_MASS_STABILIZATION)
-            {
-                if (std::abs(currentMass - previousMass) <
-                    Config::TARS1::MASS_TOLERANCE)
-                {
-                    if (massStableCounter >=
-                        Config::TARS1::NUM_MASS_STABLE_ITERATIONS)
-                    {
-                        EventBroker::getInstance().post(TARS_FILLING_DONE,
-                                                        TOPIC_TARS);
-                        break;
-                    }
-                    else
-                    {
-                        massStableCounter++;
-                    }
-                }
-                else
-                {
-                    massStableCounter = 0;
-                }
-            }
-
-            LOG_INFO(logger, "TARS open venting");
-            logAction(TarsActionType::OPEN_VENTING);
-
-            // Open the venting and check for pressure stabilization
-            actuators->openServo(ServosList::VENTING_VALVE);
-
-            // Calculate next check time based on the time the valve stays open
-            unsigned int nextCheckTime =
-                actuators->getServoOpeningTime(ServosList::VENTING_VALVE) +
-                Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME * 5;
-
-            nextDelayedEventId = EventBroker::getInstance().postDelayed(
-                TARS_CHECK_PRESSURE_STABILIZE, TOPIC_TARS, nextCheckTime);
-            break;
         }
 
-        case TARS_CHECK_PRESSURE_STABILIZE:
+        LOG_INFO(logger, "TARS open venting");
+        logAction(TarsActionType::OPEN_VENTING);
+
+        // Open venting valve
+        actuators->openServo(ServosList::VENTING_VALVE);
+        // Wait for system stabilization based on valve opening time
+        ASYNC_WAIT_FOR(
+            actuators->getServoOpeningTime(ServosList::VENTING_VALVE) +
+            Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME * 5)  // wait (5000ms)
+
+        // If the pressure is not stable, keep waiting until it is
+        while (true)
         {
             LOG_INFO(logger, "TARS check pressure");
             logAction(TarsActionType::CHECK_PRESSURE);
@@ -199,25 +199,20 @@ void TARS1::state_refueling(const Event& event)
                 currentPressure  = pressureSample;
             }
 
+            // Stop waiting once the pressure is stable
             if (std::abs(currentPressure - previousPressure) <
                 Config::TARS1::PRESSURE_TOLERANCE)
-            {
-                // The pressure is stable, do another cicle
-                nextDelayedEventId = EventBroker::getInstance().postDelayed(
-                    TARS_PRESSURE_STABILIZED, TOPIC_TARS,
-                    Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME);
-            }
-            else
-            {
-                // Schedule a new check
-                nextDelayedEventId = EventBroker::getInstance().postDelayed(
-                    TARS_CHECK_PRESSURE_STABILIZE, TOPIC_TARS,
-                    Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME);
-            }
+                break;
 
-            break;
+            // Pressure is not stable yet, wait more
+            ASYNC_WAIT_FOR(Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME);
         }
+    }
 
+    ASYNC_END()
+
+    switch (event)
+    {
         case TARS_FILLING_DONE:
         {
             LOG_INFO(logger, "TARS filling done");
@@ -249,6 +244,7 @@ void TARS1::state_refueling(const Event& event)
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
             transition(&TARS1::state_ready);
+            break;
         }
     }
 }

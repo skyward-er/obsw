@@ -44,7 +44,7 @@ constexpr uint32_t WASHING_TIME_DELAY           = 1000;
 constexpr uint32_t FILLING_OPENING_TIME         = 900000;
 constexpr uint32_t PRESSURE_STABILIZE_WAIT_TIME = 1000;
 
-constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
+constexpr int NUM_MASS_STABLE_ITERATIONS = 3;
 
 constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
 constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]

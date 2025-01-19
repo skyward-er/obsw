@@ -44,6 +44,7 @@ enum Topics : uint8_t
     TOPIC_TMTC,
     TOPIC_MOTOR,
     TOPIC_TARS,
+    TOPIC_TARS_ASYNC,
     TOPIC_ALT,
     TOPIC_WING,
 };
