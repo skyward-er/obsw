@@ -541,13 +541,13 @@ void Sensors::lsm6dsrxCallback()
         return;
 
     // We can skip logging the last sample since we are logging the fifo
-    auto& logger  = Logger::getInstance();
-    auto& fifo    = lsm6dsrx->getLastFifo();
-    auto fifoSize = lsm6dsrx->getLastFifoSize();
+    auto& logger = Logger::getInstance();
+    uint16_t lastFifoSize;
+    const auto lastFifo = lsm6dsrx->getLastFifo(lastFifoSize);
 
     // For every instance inside the fifo log the sample
-    for (auto i = 0; i < fifoSize; i++)
-        logger.log(fifo.at(i));
+    for (uint16_t i = 0; i < lastFifoSize; i++)
+        logger.log(lastFifo.at(i));
 }
 
 void Sensors::ads131m08Init()

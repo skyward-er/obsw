@@ -259,9 +259,12 @@ void Sensors::lsm6dsrxCallback()
     if (!lsm6dsrx)
         return;
 
+    uint16_t lastFifoSize;
+    const auto lastFifo = lsm6dsrx->getLastFifo(lastFifoSize);
+
     // For every instance inside the fifo log the sample
-    for (uint16_t i = 0; i < lsm6dsrx->getLastFifoSize(); i++)
-        sdLogger.log(lsm6dsrx->getLastFifo().at(i));
+    for (uint16_t i = 0; i < lastFifoSize; i++)
+        sdLogger.log(lastFifo.at(i));
 }
 
 void Sensors::ads131m08Init()
