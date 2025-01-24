@@ -45,7 +45,7 @@ namespace LyraGS
 
 bool EthernetGS::start()
 {
-    std::unique_ptr<Wiz5500> wiz5500 = std::make_unique<Wiz5500>(
+    std::shared_ptr<Wiz5500> wiz5500 = std::make_shared<Wiz5500>(
         getModule<Buses>()->ethernet_bus, miosix::ethernet::cs::getPin(),
         miosix::ethernet::intr::getPin(), SPI::ClockDivider::DIV_64);
 
@@ -55,7 +55,7 @@ bool EthernetGS::start()
     if (!present)
         return false;
 
-    if (!EthernetBase::start(std::move(wiz5500)))
+    if (!EthernetBase::start(wiz5500))
         return false;
 
     ethernetGSGlobal = this;

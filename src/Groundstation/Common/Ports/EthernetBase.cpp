@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ Boardcore::Wiz5500::PhyState EthernetBase::getState()
     return wiz5500->getPhyState();
 }
 
-bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
+bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 {
     this->wiz5500 = std::move(wiz5500);
 
@@ -103,16 +103,10 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
         return false;
     }
 
-    if (sniffOtherGs)
+    if (!this->wiz5500->openUdp(1, SEND_PORT, {255, 255, 255, 255}, RECV_PORT,
+                                500))
     {
-        TRACE("[info] starting second UDP socket (inverse direction)\n");
-        if (!this->wiz5500->openUdp(1, SEND_PORT, {255, 255, 255, 255},
-                                    RECV_PORT, 500))
-
-        {
-            TRACE("[error] starting second UDP socket\n");
-            return false;
-        }
+        return false;
     }
 
     auto mav_handler = [this](EthernetMavDriver* channel,
@@ -122,7 +116,17 @@ bool EthernetBase::start(std::unique_ptr<Boardcore::Wiz5500> wiz5500)
 
     if (!mav_driver->start())
         return false;
+    TRACE("[info] mavlink driver started correctly\n");
 
+    // Create and start a second mavlink driver to sniff the ethernet port
+    if (sniffOtherGs)
+    {
+        getModule<EthernetSniffer>()->init(1, RECV_PORT, SEND_PORT);
+        if (!getModule<EthernetSniffer>()->start(wiz5500))
+            return false;
+    }
+
+    TRACE("[info] Ethernet sniffing started correctly\n");
     return true;
 }
 
@@ -134,26 +138,13 @@ void EthernetBase::handleMsg(const mavlink_message_t& msg)
 
 ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)
 {
-    ssize_t size = 0;
     WizIp dst_ip;
     uint16_t dst_port;
-    if (!sniffOtherGs)
-        size = wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
-    else
-        // In case of sniffing, there is a maximum waiting time for messages
-        // from the groundstation software to switch between one and other port
-        size = wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port,
-                                 RECEIVE_PORT_TIMEOUT_MS);
-    if (size <= 0 && sniffOtherGs)
-    {
-        size = wiz5500->recvfrom(1, pkt, max_len, dst_ip, dst_port,
-                                 RECEIVE_PORT_TIMEOUT_MS);
-    }
-    return size;
+    return wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
 }
 
 bool EthernetBase::send(uint8_t* pkt, size_t len)
 {
-    return wiz5500->send(0, pkt, len, 100);
+    return wiz5500->send(0, pkt, len, 1000);
     // return true;
 }
