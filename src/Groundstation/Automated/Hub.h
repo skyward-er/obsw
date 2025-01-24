@@ -108,9 +108,9 @@ private:
     bool rocketNasSet = false;
     miosix::FastMutex coordinatesMutex;
     miosix::FastMutex nasStateMutex;
-    bool hasNewNasSet = false;
-    uint64_t lastFlightTMTimestamp;
-    uint64_t lastStatsTMTimestamp;
+    bool hasNewNasSet              = false;
+    uint64_t lastFlightTMTimestamp = 0;
+    uint64_t lastStatsTMTimestamp  = 0;
 };
 
 }  // namespace Antennas
