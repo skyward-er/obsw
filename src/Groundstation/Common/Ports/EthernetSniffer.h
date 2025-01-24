@@ -1,5 +1,5 @@
-/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Nicolò Caruso
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 #include <ActiveObject.h>
 #include <Groundstation/Common/HubBase.h>
-#include <Groundstation/Common/Ports/EthernetSniffer.h>
 #include <common/MavlinkLyra.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
@@ -35,35 +34,24 @@
 namespace Groundstation
 {
 
-// Timeout for the port receive
-static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 500;
-
-Boardcore::WizIp genNewRandomIp();
-Boardcore::WizMac genNewRandomMac();
-
 using EthernetMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
-class EthernetBase
-    : public Boardcore::Transceiver,
-      public Boardcore::InjectableWithDeps<HubBase, EthernetSniffer>
+class EthernetSniffer : public Boardcore::Transceiver,
+                        public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
-    EthernetBase() {};
-    EthernetBase(bool randomIp, uint8_t ipOffset, bool sniffing)
-        : randomIp{randomIp}, ipOffset{ipOffset}, sniffOtherGs{sniffing} {};
-
     void handleINTn();
-
-    void sendMsg(const mavlink_message_t& msg);
 
     Boardcore::Wiz5500::PhyState getState();
 
-protected:
     bool start(std::shared_ptr<Boardcore::Wiz5500> wiz5500);
-    std::shared_ptr<Boardcore::Wiz5500> wiz5500;
+
+    void init(uint16_t portNumber, uint16_t srcPort, uint16_t dstPort);
 
 private:
+    std::shared_ptr<Boardcore::Wiz5500> wiz5500;
+
     /**
      * @brief Called internally when a message is received.
      */
@@ -75,10 +63,9 @@ private:
 
     bool started = false;
     std::unique_ptr<EthernetMavDriver> mav_driver;
-    bool randomIp     = true;
-    uint8_t ipOffset  = 0;
-    bool sniffOtherGs = false;
-    bool firstPort    = true;
+    uint16_t portNr;
+    uint16_t srcPort;
+    uint16_t dstPort;
 };
 
 }  // namespace Groundstation
