@@ -45,6 +45,7 @@ set(MAIN_COMPUTER
 set(GROUNDSTATION_COMMON
     src/Groundstation/Common/Radio/RadioBase.cpp
     src/Groundstation/Common/Ports/EthernetBase.cpp
+    src/Groundstation/Common/Ports/EthernetSniffer.cpp
     src/Groundstation/Common/Ports/Serial.cpp
     src/Groundstation/Common/HubBase.cpp
 )

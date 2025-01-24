@@ -145,8 +145,13 @@ void SMA::update()
     Hub* hub      = static_cast<Hub*>(getModule<Groundstation::HubBase>());
     auto* sensors = getModule<Sensors>();
 
+    // TODO: Verify if same with the macrostate
     // Update the antenna position if in feedback
-    if (status.state == SMAState::FEEDBACK)
+    // if (testState(&SMA::state_feedback))
+    if (testState(&SMA::state_init_done) || testState(&SMA::state_armed) ||
+        testState(&SMA::state_fix_antennas) ||
+        testState(&SMA::state_fix_rocket) || testState(&SMA::state_active) ||
+        testState(&SMA::state_test))
     {
         // update antenna coordinates
         data = sensors->getVN300LastSample();
