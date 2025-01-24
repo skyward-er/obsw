@@ -93,6 +93,8 @@ void errorLoop()
     }
 }
 
+static bool constexpr ethernetSniffing = true;
+
 /**
  * @brief Lyra GS entrypoint.
  * This entrypoint performs the following operations:
@@ -141,7 +143,8 @@ int main()
         new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
     LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
     LyraGS::EthernetGS* ethernet =
-        new LyraGS::EthernetGS(false, dipRead.ipConfig, true);
+        new LyraGS::EthernetGS(false, dipRead.ipConfig, ethernetSniffing);
+    EthernetSniffer* ethernetSniffer    = new EthernetSniffer();
     LyraGS::RadioPayload* radio_payload = new LyraGS::RadioPayload(
         dipRead.payloadHasBackup, dipRead.payloadTXenable);
 
@@ -160,6 +163,7 @@ int main()
     ok &= manager.insert(serial);
     ok &= manager.insert<LyraGS::RadioMain>(radio_main);
     ok &= manager.insert<LyraGS::EthernetGS>(ethernet);
+    ok &= manager.insert<EthernetSniffer>(ethernetSniffer);
     ok &= manager.insert<LyraGS::RadioPayload>(radio_payload);
     ok &= manager.insert(board_status);
 
