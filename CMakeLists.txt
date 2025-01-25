@@ -21,14 +21,15 @@
 
 cmake_minimum_required(VERSION 3.16)
 enable_testing()
-include(skyward-boardcore/cmake/sbs.cmake)
-include(cmake/dependencies.cmake)
 
 # -----------------------------------------------------------------------------#
 #                                    Project                                   #
 # -----------------------------------------------------------------------------#
 
 project(OnBoardSoftware)
+
+include(skyward-boardcore/cmake/sbs.cmake)
+include(cmake/dependencies.cmake)
 
 #-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
