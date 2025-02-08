@@ -67,7 +67,7 @@ Boardcore::Wiz5500::PhyState EthernetBase::getState()
 
 bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 {
-    this->wiz5500 = std::move(wiz5500);
+    this->wiz5500 = wiz5500;
 
     // Reset the device
     this->wiz5500->reset();
@@ -103,12 +103,6 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
         return false;
     }
 
-    if (!this->wiz5500->openUdp(1, SEND_PORT, {255, 255, 255, 255}, RECV_PORT,
-                                500))
-    {
-        return false;
-    }
-
     auto mav_handler = [this](EthernetMavDriver* channel,
                               const mavlink_message_t& msg) { handleMsg(msg); };
 
@@ -116,17 +110,16 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 
     if (!mav_driver->start())
         return false;
-    TRACE("[info] mavlink driver started correctly\n");
 
-    // Create and start a second mavlink driver to sniff the ethernet port
+    // In case of sniffing mode initialize and start the EthernetSniffer
     if (sniffOtherGs)
     {
-        getModule<EthernetSniffer>()->init(1, RECV_PORT, SEND_PORT);
+        getModule<EthernetSniffer>()->init(1, SEND_PORT, RECV_PORT);
         if (!getModule<EthernetSniffer>()->start(wiz5500))
             return false;
     }
 
-    TRACE("[info] Ethernet sniffing started correctly\n");
+    TRACE("[info] Ethernet module started correctly\n");
     return true;
 }
 
