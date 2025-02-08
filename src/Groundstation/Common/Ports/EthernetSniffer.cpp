@@ -58,31 +58,25 @@ void EthernetSniffer::init(uint16_t portNumber, uint16_t srcPort,
 
 bool EthernetSniffer::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 {
-    TRACE("Movin\n");
-    this->wiz5500 = std::move(wiz5500);
+    this->wiz5500 = wiz5500;
 
-    TRACE("Opening\n");
-    // We open the port for sniffing using the port we specified
-    // if (!this->wiz5500->openUdp(portNr, srcPort, {255, 255, 255, 255},
-    // dstPort,
-    //                             500))
-    // {
-    //     return false;
-    // }
-
-    TRACE("Mavlinker\n");
+    TRACE("[info] Opening sniffing UDP socket\n");
+    // We open the UDP socket for sniffing
+    if (!this->wiz5500->openUdp(1, SEND_PORT, {255, 255, 255, 255}, RECV_PORT,
+                                500))
+    {
+        return false;
+    }
 
     auto mav_handler = [this](EthernetMavDriver* channel,
                               const mavlink_message_t& msg) { handleMsg(msg); };
 
-    mav_driver = std::make_unique<EthernetMavDriver>(this, mav_handler, 1, 10);
-
-    TRACE("Starting\n");
+    mav_driver = std::make_unique<EthernetMavDriver>(this, mav_handler, 0, 10);
 
     if (!mav_driver->start())
         return false;
 
-    TRACE("Start ok\n");
+    TRACE("[info] EthernetSniffer start ok\n");
 
     return true;
 }
