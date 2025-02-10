@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,29 +41,34 @@ class Actuators
 private:
     struct ServoInfo : public Boardcore::InjectableWithDeps<Registry>
     {
+        struct ServoConfig
+        {
+            float limit  = 1.0;    ///< Movement range limit
+            bool flipped = false;  ///< Whether the servo is flipped
+            uint32_t defaultOpeningTime = 1000;  // Default opening time [ms]
+            float defaultMaxAperture    = 1.0;   // Max aperture
+
+            uint8_t openingEvent = 0;  ///< Event to fire after opening
+            uint8_t closingEvent = 0;  ///< Event to fire after closing
+            uint32_t openingTimeRegKey =
+                CONFIG_ID_DEFAULT_OPENING_TIME;  ///< Registry key for opening
+                                                 ///< time
+            uint32_t maxApertureRegKey =
+                CONFIG_ID_DEFAULT_MAX_APERTURE;  ///< Registry key for max
+                                                 ///< aperture
+        };
+
+        ServoInfo(std::unique_ptr<Boardcore::Servo> servo,
+                  const ServoConfig& config)
+            : servo(std::move(servo)), config(config)
+        {
+        }
+
         std::unique_ptr<Boardcore::Servo> servo;
-        // Hard limit of the aperture
-        float limit = 1.0;
-        // Should this servo be reversed?
-        bool flipped = false;
-        // How much time to stay open
-        uint32_t defaultOpeningTime = 100000;  // Default 100s [ms]
-        // What angle is the maximum
-        float defaultMaxAperture = 1.0;
+        ServoConfig config;
 
-        // What event to fire while opening?
-        uint8_t openingEvent = 0;
-        // What event to fire while closing?
-        uint8_t closingEvent = 0;
-        // How much time to stay open
-        uint32_t openingTimeKey = CONFIG_ID_DEFAULT_OPENING_TIME;
-        // What angle is the maximum
-        uint32_t maxApertureKey = CONFIG_ID_DEFAULT_MAX_APERTURE;
-
-        // Timestamp of when the servo should close, 0 if closed
-        long long closeTs = 0;
-        // Timestamp of last servo action (open/close)
-        long long lastActionTs = 0;
+        long long closeTs = 0;  ///< Timestamp to close the servo (0 if closed)
+        long long lastActionTs = 0;  ///< Timestamp of last servo action
 
         void openServoWithTime(uint32_t time);
         void closeServo();
@@ -93,6 +98,9 @@ public:
     bool isServoOpen(ServosList servo);
     bool isCanServoOpen(ServosList servo);
 
+    // N2 3-way valve control
+    void set3wayValveState(bool state);
+
     // Chamber valve control
     void openChamberWithTime(uint32_t time);
     void closeChamber();
@@ -120,20 +128,21 @@ private:
 
     void updatePositionsTask();
 
-    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
-
     std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
-    ServoInfo infos[10] = {};
-    // Timestamp of when the servo should close, 0 if closed
-    long long nitrogenCloseTs = 0;
-    // Timestamp of last servo action (open/close)
-    long long nitrogenLastActionTs = 0;
+    ServoInfo infos[10];
+    ServoInfo n2_3wayValveInfo;
+
+    long long chamberCloseTs =
+        0;  ///< Timestamp to close the chamber (0 if closed)
+    long long chamberLastActionTs = 0;  ///< Timestamp of last chamber action
 
     bool canMainOpen    = false;
     bool canVentingOpen = false;
+
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 };
 
 }  // namespace RIGv2

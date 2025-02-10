@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;
 using namespace miosix;
@@ -40,8 +41,8 @@ void Actuators::ServoInfo::openServoWithTime(uint32_t time)
     closeTs      = currentTime + (time * Constants::NS_IN_MS);
     lastActionTs = currentTime;
 
-    if (openingEvent != 0)
-        EventBroker::getInstance().post(openingEvent, TOPIC_MOTOR);
+    if (config.openingEvent != 0)
+        EventBroker::getInstance().post(config.openingEvent, TOPIC_MOTOR);
 }
 
 void Actuators::ServoInfo::closeServo()
@@ -49,8 +50,8 @@ void Actuators::ServoInfo::closeServo()
     closeTs      = 0;
     lastActionTs = getTime();
 
-    if (closingEvent != 0)
-        EventBroker::getInstance().post(closingEvent, TOPIC_MOTOR);
+    if (config.closingEvent != 0)
+        EventBroker::getInstance().post(config.closingEvent, TOPIC_MOTOR);
 }
 
 void Actuators::ServoInfo::unsafeSetServoPosition(float position)
@@ -59,8 +60,8 @@ void Actuators::ServoInfo::unsafeSetServoPosition(float position)
     if (!servo)
         return;
 
-    position *= limit;
-    if (flipped)
+    position *= config.limit;
+    if (config.flipped)
         position = 1.0f - position;
 
     servo->setPosition(position);
@@ -73,30 +74,30 @@ float Actuators::ServoInfo::getServoPosition()
         return 0.0f;
 
     float position = servo->getPosition();
-    if (flipped)
+    if (config.flipped)
         position = 1.0f - position;
 
-    position /= limit;
+    position /= config.limit;
     return position;
 }
 
 float Actuators::ServoInfo::getMaxAperture()
 {
-    return getModule<Registry>()->getOrSetDefaultUnsafe(maxApertureKey,
-                                                        defaultMaxAperture);
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.maxApertureRegKey, config.defaultMaxAperture);
 }
 
 uint32_t Actuators::ServoInfo::getOpeningTime()
 {
-    return getModule<Registry>()->getOrSetDefaultUnsafe(openingTimeKey,
-                                                        defaultOpeningTime);
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.openingTimeRegKey, config.defaultOpeningTime);
 }
 
 bool Actuators::ServoInfo::setMaxAperture(float aperture)
 {
     if (aperture >= 0.0 && aperture <= 1.0)
     {
-        getModule<Registry>()->setUnsafe(maxApertureKey, aperture);
+        getModule<Registry>()->setUnsafe(config.maxApertureRegKey, aperture);
         return true;
     }
     else
@@ -108,145 +109,96 @@ bool Actuators::ServoInfo::setMaxAperture(float aperture)
 
 bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 {
-    getModule<Registry>()->setUnsafe(openingTimeKey, time);
+    getModule<Registry>()->setUnsafe(config.openingTimeRegKey, time);
     return true;
 }
 
+/**
+ * @brief Shorthand to create a ServoInfo struct from the servo name
+ */
+#define MAKE_SERVO(name)                                          \
+    ServoInfo                                                     \
+    {                                                             \
+        std::make_unique<Servo>(                                  \
+            MIOSIX_SERVOS_##name##_TIM,                           \
+            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,  \
+            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE, \
+            Config::Servos::FREQUENCY),                           \
+            ServoInfo::ServoConfig                                \
+        {                                                         \
+            .limit   = Config::Servos::name##_LIMIT,              \
+            .flipped = Config::Servos::name##_FLIPPED,            \
+            .defaultOpeningTime =                                 \
+                Config::Servos::DEFAULT_##name##_OPENING_TIME,    \
+            .defaultMaxAperture =                                 \
+                Config::Servos::DEFAULT_##name##_MAX_APERTURE,    \
+            .openingEvent      = MOTOR_##name##_OPEN,             \
+            .closingEvent      = MOTOR_##name##_CLOSE,            \
+            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME, \
+            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE  \
+        }                                                         \
+    }
+
+/**
+ * @brief Shorthand to create a detach ServoInfo struct from the servo name
+ */
+#define MAKE_DETACH_SERVO(name)                                           \
+    ServoInfo                                                             \
+    {                                                                     \
+        std::make_unique<Servo>(                                          \
+            MIOSIX_SERVOS_##name##_TIM,                                   \
+            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,          \
+            Config::Servos::DETACH_MIN_PULSE,                             \
+            Config::Servos::DETACH_MAX_PULSE, Config::Servos::FREQUENCY), \
+            ServoInfo::ServoConfig                                        \
+        {                                                                 \
+            .limit   = Config::Servos::name##_LIMIT,                      \
+            .flipped = Config::Servos::name##_FLIPPED,                    \
+            .defaultOpeningTime =                                         \
+                Config::Servos::DEFAULT_##name##_OPENING_TIME,            \
+            .defaultMaxAperture =                                         \
+                Config::Servos::DEFAULT_##name##_MAX_APERTURE,            \
+            .openingEvent      = MOTOR_##name##_OPEN,                     \
+            .closingEvent      = MOTOR_##name##_CLOSE,                    \
+            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,         \
+            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE          \
+        }                                                                 \
+    }
+
+/**
+ * @brief Shorthand to create a non-atomic ServoInfo struct from the servo name
+ */
+#define MAKE_SIMPLE_SERVO(name)                                   \
+    ServoInfo                                                     \
+    {                                                             \
+        std::make_unique<Servo>(                                  \
+            MIOSIX_SERVOS_##name##_TIM,                           \
+            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,  \
+            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE, \
+            Config::Servos::FREQUENCY),                           \
+            ServoInfo::ServoConfig                                \
+        {                                                         \
+            .limit        = Config::Servos::name##_LIMIT,         \
+            .flipped      = Config::Servos::name##_FLIPPED,       \
+            .openingEvent = MOTOR_##name##_OPEN,                  \
+            .closingEvent = MOTOR_##name##_CLOSE,                 \
+        }                                                         \
+    }
+
 Actuators::Actuators()
+    : infos{
+          MAKE_SERVO(OX_FIL),        MAKE_SERVO(OX_REL),
+          MAKE_DETACH_SERVO(OX_DET),
+          MAKE_SERVO(N2_FIL),        MAKE_SERVO(N2_REL),
+          MAKE_DETACH_SERVO(N2_DET), MAKE_SERVO(NITR),
+          MAKE_SERVO(OX_VEN),        MAKE_SERVO(N2_QUE),
+          MAKE_SERVO(MAIN),
+      }, n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
 {
-    // Initialize servos
-    infos[0].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_1_TIM, TimerUtils::Channel::MIOSIX_SERVOS_1_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[1].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_2_TIM, TimerUtils::Channel::MIOSIX_SERVOS_2_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[2].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[3].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    // This servo is currently unusable, due to it sharing the same timer as
-    // miosix, TIM5
-    // infos[4].servo = std::make_unique<Servo>(
-    //     MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
-    //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-    //     Config::Servos::FREQUENCY);
-    infos[5].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_7_TIM, TimerUtils::Channel::MIOSIX_SERVOS_7_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[6].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_9_TIM, TimerUtils::Channel::MIOSIX_SERVOS_9_CHANNEL,
-        Config::Servos::SERVO2_MIN_PULSE, Config::Servos::SERVO2_MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    // This servo is currently unusable, due to it sharing the same timer as
-    // servo 1
-    // infos[7].servo = std::make_unique<Servo>(
-    //     MIOSIX_SERVOS_8_TIM, TimerUtils::Channel::MIOSIX_SERVOS_8_CHANNEL,
-    //     Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-    //     Config::Servos::FREQUENCY);
-    infos[8].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_6_TIM, TimerUtils::Channel::MIOSIX_SERVOS_6_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[9].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_8_TIM, TimerUtils::Channel::MIOSIX_SERVOS_8_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
+    for (auto& servo : infos)
+        servo.unsafeSetServoPosition(0.0f);
 
-    ServoInfo* info;
-    info                     = getServo(ServosList::N2O_FILLING_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
-    info->limit              = Config::Servos::FILLING_LIMIT;
-    info->flipped            = Config::Servos::FILLING_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_FILLING_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_N2O_FILLING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_N2O_FILLING_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::N2O_RELEASE_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_RELEASE_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_RELEASE_OPENING_TIME;
-    info->limit              = Config::Servos::RELEASE_LIMIT;
-    info->flipped            = Config::Servos::RELEASE_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
-    info->openingTimeKey     = CONFIG_ID_N2O_RELEASE_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_N2O_RELEASE_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::N2O_VENTING_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_VENTING_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_VENTING_OPENING_TIME;
-    info->limit              = Config::Servos::VENTING_LIMIT;
-    info->flipped            = Config::Servos::VENTING_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_VENTING_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_VENTING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_N2O_VENTING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_N2O_VENTING_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::N2_FILLING_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_FILLING_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_FILLING_OPENING_TIME;
-    info->limit              = Config::Servos::FILLING_LIMIT;
-    info->flipped            = Config::Servos::FILLING_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_FILLING_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_FILLING_VALVE;
-    info->openingTimeKey     = CONFIG_ID_N2_FILLING_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_N2_FILLING_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::N2_RELEASE_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_RELEASE_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_RELEASE_OPENING_TIME;
-    info->limit              = Config::Servos::RELEASE_LIMIT;
-    info->flipped            = Config::Servos::RELEASE_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_RELEASE_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_RELEASE_VALVE;
-    info->openingTimeKey     = CONFIG_ID_N2_RELEASE_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_N2_RELEASE_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::N2_DETACH_SERVO);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_DISCONNECT_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_DISCONNECT_OPENING_TIME;
-    info->limit              = Config::Servos::DISCONNECT_LIMIT;
-    info->flipped            = Config::Servos::DISCONNECT_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_DISCONNECT;
-    info->openingTimeKey     = CONFIG_ID_N2_DETACH_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_N2_DETACH_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::MAIN_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_MAIN_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_MAIN_OPENING_TIME;
-    info->limit              = Config::Servos::MAIN_LIMIT;
-    info->flipped            = Config::Servos::MAIN_FLIPPED;
-    info->openingEvent       = Common::Events::MOTOR_OPEN_FEED_VALVE;
-    info->closingEvent       = Common::Events::MOTOR_CLOSE_FEED_VALVE;
-    info->openingTimeKey     = CONFIG_ID_MAIN_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_MAIN_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
-
-    info                     = getServo(ServosList::NITROGEN_VALVE);
-    info->defaultMaxAperture = Config::Servos::DEFAULT_MAIN_MAX_APERTURE;
-    info->defaultOpeningTime = Config::Servos::DEFAULT_MAIN_OPENING_TIME;
-    info->limit              = Config::Servos::MAIN_LIMIT;
-    info->flipped            = Config::Servos::MAIN_FLIPPED;
-    info->openingEvent       = 0;
-    info->closingEvent       = 0;
-    info->openingTimeKey     = CONFIG_ID_NITROGEN_OPENING_TIME;
-    info->maxApertureKey     = CONFIG_ID_NITROGEN_MAX_APERTURE;
-    info->unsafeSetServoPosition(0.0f);
+    n2_3wayValveInfo.unsafeSetServoPosition(0.0f);
 }
 
 bool Actuators::isStarted() { return started; }
@@ -256,16 +208,9 @@ bool Actuators::start()
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getActuatorsScheduler();
 
-    infos[0].servo->enable();
-    infos[1].servo->enable();
-    infos[2].servo->enable();
-    infos[3].servo->enable();
-    // infos[4].servo->enable();
-    infos[5].servo->enable();
-    infos[6].servo->enable();
-    // infos[7].servo->enable();
-    infos[8].servo->enable();
-    infos[9].servo->enable();
+    // Enable all servos
+    for (ServoInfo& info : infos)
+        info.servo->enable();
 
     uint8_t result =
         scheduler.addTask([this]() { updatePositionsTask(); },
@@ -408,25 +353,31 @@ bool Actuators::isCanServoOpen(ServosList servo)
         return false;
 }
 
+void Actuators::set3wayValveState(bool state)
+{
+    auto position = state ? 1.0f : 0.0f;
+    n2_3wayValveInfo.unsafeSetServoPosition(position);
+}
+
 void Actuators::openChamberWithTime(uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     long long currentTime = getTime();
 
-    nitrogenCloseTs      = currentTime + (time * Constants::NS_IN_MS);
-    nitrogenLastActionTs = currentTime;
+    chamberCloseTs      = currentTime + (time * Constants::NS_IN_MS);
+    chamberLastActionTs = currentTime;
 }
 
 void Actuators::closeChamber()
 {
     Lock<FastMutex> lock(infosMutex);
-    nitrogenCloseTs = 0;
+    chamberCloseTs = 0;
 }
 
 bool Actuators::isChamberOpen()
 {
     Lock<FastMutex> lock(infosMutex);
-    return nitrogenCloseTs != 0;
+    return chamberCloseTs != 0;
 }
 
 uint32_t Actuators::getServoOpeningTime(ServosList servo)
@@ -467,25 +418,28 @@ void Actuators::inject(DependencyInjector& injector)
 
 Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 {
-    // info[4] and info[7] are currently unavailable
     switch (servo)
     {
-        case N2O_FILLING_VALVE:
+        case N2O_FILLING_VALVE:  // OX_FIL
             return &infos[0];
-        case N2O_RELEASE_VALVE:
+        case N2O_RELEASE_VALVE:  // OX_REL
             return &infos[1];
-        case N2O_VENTING_VALVE:
+        case N2O_DETACH_SERVO:  // OX_DET
             return &infos[2];
-        case N2_FILLING_VALVE:
-            return &infos[3];
-        case N2_RELEASE_VALVE:
+        case N2_FILLING_VALVE:  // N2_FIL
+            return &infos[4];
+        case N2_RELEASE_VALVE:  // N2_REL
             return &infos[5];
-        case N2_DETACH_SERVO:
+        case N2_DETACH_SERVO:  // N2_DET
             return &infos[6];
-        case MAIN_VALVE:
+        case NITROGEN_VALVE:  // NITR
+            return &infos[7];
+        case N2O_VENTING_VALVE:  // OX_VEN
             return &infos[8];
-        case NITROGEN_VALVE:
+        case N2_QUENCHING_VALVE:  // N2_QUE
             return &infos[9];
+        case MAIN_VALVE:  // MAIN
+            return &infos[10];
 
         default:
             // Oh FUCK
@@ -564,13 +518,13 @@ void Actuators::updatePositionsTask()
     }
 
     // Handle nitrogen logic
-    if (currentTime < nitrogenCloseTs)
+    if (currentTime < chamberCloseTs)
     {
         unsafeOpenChamber();
     }
     else
     {
-        nitrogenCloseTs = 0;
+        chamberCloseTs = 0;
 
         unsafeCloseChamber();
     }

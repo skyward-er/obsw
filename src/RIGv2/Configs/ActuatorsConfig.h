@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,26 @@
 
 #pragma once
 
-#include <interfaces-impl/hwmapping.h>
 #include <units/Frequency.h>
+
+#include <chrono>
 
 namespace RIGv2
 {
 namespace Config
 {
-
 namespace Servos
 {
-
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace std::chrono;
 
-// Generic pulse width for all servos
+// Pulse width for all servos
 constexpr unsigned int MIN_PULSE = 500;
 constexpr unsigned int MAX_PULSE = 2440;
 
-// Pulse width specific to SERVO 2 (disconnect servo)
-// TODO(davide.mor): This actually needs tweaking
-constexpr unsigned int SERVO2_MIN_PULSE = 900;
-constexpr unsigned int SERVO2_MAX_PULSE = 2100;
+// Pulse width for detach servos
+constexpr unsigned int DETACH_MIN_PULSE = 900;
+constexpr unsigned int DETACH_MAX_PULSE = 2100;
 
 constexpr unsigned int FREQUENCY = 333;
 
@@ -50,31 +49,52 @@ constexpr Hertz SERVO_TIMINGS_CHECK_PERIOD = 10_hz;
 constexpr long long SERVO_CONFIDENCE_TIME  = 500;   // 0.5s
 constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
 
-constexpr uint32_t DEFAULT_FILLING_OPENING_TIME    = 15000;  // 15s
-constexpr uint32_t DEFAULT_VENTING_OPENING_TIME    = 15000;  // 15s
-constexpr uint32_t DEFAULT_MAIN_OPENING_TIME       = 6000;   // 6s
-constexpr uint32_t DEFAULT_RELEASE_OPENING_TIME    = 10000;  // 10s
-constexpr uint32_t DEFAULT_DISCONNECT_OPENING_TIME = 2000;   // 2s
+constexpr uint32_t DEFAULT_OX_FIL_OPENING_TIME = 15000;
+constexpr uint32_t DEFAULT_OX_REL_OPENING_TIME = 10000;
+constexpr uint32_t DEFAULT_OX_DET_OPENING_TIME = 2000;
+constexpr uint32_t DEFAULT_N2_FIL_OPENING_TIME = 15000;
+constexpr uint32_t DEFAULT_N2_REL_OPENING_TIME = 10000;
+constexpr uint32_t DEFAULT_N2_DET_OPENING_TIME = 2000;
+constexpr uint32_t DEFAULT_NITR_OPENING_TIME   = 600000;
+constexpr uint32_t DEFAULT_OX_VEN_OPENING_TIME = 15000;
+constexpr uint32_t DEFAULT_N2_QUE_OPENING_TIME = 15000;
+constexpr uint32_t DEFAULT_MAIN_OPENING_TIME   = 6000;
 
-constexpr float DEFAULT_FILLING_MAX_APERTURE    = 1.00f;
-constexpr float DEFAULT_VENTING_MAX_APERTURE    = 1.00f;
-constexpr float DEFAULT_MAIN_MAX_APERTURE       = 1.00f;
-constexpr float DEFAULT_RELEASE_MAX_APERTURE    = 1.00f;
-constexpr float DEFAULT_DISCONNECT_MAX_APERTURE = 1.00f;
+constexpr float DEFAULT_OX_FIL_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_OX_REL_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_OX_DET_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_N2_FIL_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_N2_REL_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_N2_DET_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_NITR_MAX_APERTURE   = 1.0;
+constexpr float DEFAULT_OX_VEN_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_N2_QUE_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_MAIN_MAX_APERTURE   = 1.0;
 
-constexpr float FILLING_LIMIT    = 0.90f;
-constexpr float VENTING_LIMIT    = 0.90f;
-constexpr float MAIN_LIMIT       = 0.90f;
-constexpr float RELEASE_LIMIT    = 0.50f;
-constexpr float DISCONNECT_LIMIT = 1.00f;
+constexpr float OX_FIL_LIMIT = 0.9;
+constexpr float OX_REL_LIMIT = 0.5;
+constexpr float OX_DET_LIMIT = 1.0;
+constexpr float N2_3W_LIMIT  = 1.0;
+constexpr float N2_FIL_LIMIT = 0.9;
+constexpr float N2_REL_LIMIT = 0.5;
+constexpr float N2_DET_LIMIT = 1.0;
+constexpr float NITR_LIMIT   = 0.9;
+constexpr float OX_VEN_LIMIT = 0.9;
+constexpr float N2_QUE_LIMIT = 0.9;
+constexpr float MAIN_LIMIT   = 0.9;
 
-constexpr bool FILLING_FLIPPED    = true;
-constexpr bool VENTING_FLIPPED    = true;
-constexpr bool MAIN_FLIPPED       = true;
-constexpr bool RELEASE_FLIPPED    = true;
-constexpr bool DISCONNECT_FLIPPED = false;
+constexpr bool OX_FIL_FLIPPED = true;
+constexpr bool OX_REL_FLIPPED = true;
+constexpr bool OX_DET_FLIPPED = false;
+constexpr bool N2_3W_FLIPPED  = true;
+constexpr bool N2_FIL_FLIPPED = true;
+constexpr bool N2_REL_FLIPPED = true;
+constexpr bool N2_DET_FLIPPED = false;
+constexpr bool NITR_FLIPPED   = true;
+constexpr bool OX_VEN_FLIPPED = true;
+constexpr bool N2_QUE_FLIPPED = true;
+constexpr bool MAIN_FLIPPED   = true;
 
 }  // namespace Servos
-
 }  // namespace Config
 }  // namespace RIGv2

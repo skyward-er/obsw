@@ -33,46 +33,46 @@ const char* RIGv2::configurationIdToName(ConfigurationId id)
 {
     switch (id)
     {
-        case CONFIG_ID_N2O_FILLING_OPENING_TIME:
-            return "N2O_FILLING_OPENING_TIME";
-        case CONFIG_ID_N2O_FILLING_MAX_APERTURE:
-            return "N2O_FILLING_MAX_APERTURE";
-        case CONFIG_ID_N2O_RELEASE_OPENING_TIME:
-            return "N2O_RELEASE_OPENING_TIME";
-        case CONFIG_ID_N2O_RELEASE_MAX_APERTURE:
-            return "N2O_RELEASE_MAX_APERTURE";
-        case CONFIG_ID_N2O_DETACH_OPENING_TIME:
-            return "N2O_DETACH_OPENING_TIME";
-        case CONFIG_ID_N2O_DETACH_MAX_APERTURE:
-            return "N2O_DETACH_MAX_APERTURE";
-        case CONFIG_ID_N2O_VENTING_OPENING_TIME:
-            return "N2O_VENTING_OPENING_TIME";
-        case CONFIG_ID_N2O_VENTING_MAX_APERTURE:
-            return "N2O_VENTING_MAX_APERTURE";
-        case CONFIG_ID_N2_FILLING_OPENING_TIME:
-            return "N2_FILLING_OPENING_TIME";
-        case CONFIG_ID_N2_FILLING_MAX_APERTURE:
-            return "N2_FILLING_MAX_APERTURE";
-        case CONFIG_ID_N2_RELEASE_OPENING_TIME:
-            return "N2_RELEASE_OPENING_TIME";
-        case CONFIG_ID_N2_RELEASE_MAX_APERTURE:
-            return "N2_RELEASE_MAX_APERTURE";
-        case CONFIG_ID_N2_DETACH_OPENING_TIME:
-            return "N2_DETACH_OPENING_TIME";
-        case CONFIG_ID_N2_DETACH_MAX_APERTURE:
-            return "N2_DETACH_MAX_APERTURE";
-        case CONFIG_ID_N2_QUENCHING_OPENING_TIME:
-            return "N2_QUENCHING_OPENING_TIME";
-        case CONFIG_ID_N2_QUENCHING_MAX_APERTURE:
-            return "N2_QUENCHING_MAX_APERTURE";
+        case CONFIG_ID_OX_FIL_OPENING_TIME:
+            return "OX_FIL_OPENING_TIME";
+        case CONFIG_ID_OX_FIL_MAX_APERTURE:
+            return "OX_FIL_MAX_APERTURE";
+        case CONFIG_ID_OX_REL_OPENING_TIME:
+            return "OX_REL_OPENING_TIME";
+        case CONFIG_ID_OX_REL_MAX_APERTURE:
+            return "OX_REL_MAX_APERTURE";
+        case CONFIG_ID_OX_DET_OPENING_TIME:
+            return "OX_DET_OPENING_TIME";
+        case CONFIG_ID_OX_DET_MAX_APERTURE:
+            return "OX_DET_MAX_APERTURE";
+        case CONFIG_ID_OX_VEN_OPENING_TIME:
+            return "OX_VEN_OPENING_TIME";
+        case CONFIG_ID_OX_VEN_MAX_APERTURE:
+            return "OX_VEN_MAX_APERTURE";
+        case CONFIG_ID_N2_FIL_OPENING_TIME:
+            return "N2_FIL_OPENING_TIME";
+        case CONFIG_ID_N2_FIL_MAX_APERTURE:
+            return "N2_FIL_MAX_APERTURE";
+        case CONFIG_ID_N2_REL_OPENING_TIME:
+            return "N2_REL_OPENING_TIME";
+        case CONFIG_ID_N2_REL_MAX_APERTURE:
+            return "N2_REL_MAX_APERTURE";
+        case CONFIG_ID_N2_DET_OPENING_TIME:
+            return "N2_DET_OPENING_TIME";
+        case CONFIG_ID_N2_DET_MAX_APERTURE:
+            return "N2_DET_MAX_APERTURE";
+        case CONFIG_ID_N2_QUE_OPENING_TIME:
+            return "N2_QUE_OPENING_TIME";
+        case CONFIG_ID_N2_QUE_MAX_APERTURE:
+            return "N2_QUE_MAX_APERTURE";
         case CONFIG_ID_MAIN_OPENING_TIME:
             return "MAIN_OPENING_TIME";
         case CONFIG_ID_MAIN_MAX_APERTURE:
             return "MAIN_MAX_APERTURE";
-        case CONFIG_ID_NITROGEN_OPENING_TIME:
-            return "NITROGEN_OPENING_TIME";
-        case CONFIG_ID_NITROGEN_MAX_APERTURE:
-            return "NITROGEN_MAX_APERTURE";
+        case CONFIG_ID_NITR_OPENING_TIME:
+            return "NITR_OPENING_TIME";
+        case CONFIG_ID_NITR_MAX_APERTURE:
+            return "NITR_MAX_APERTURE";
         case CONFIG_ID_IGNITION_TIME:
             return "IGNITION_TIME";
         case CONFIG_ID_DEFAULT_OPENING_TIME:
