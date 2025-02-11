@@ -88,7 +88,8 @@ private:
 
     // Last time a ConRIG state triggered an actuation [ns]
     long long lastManualActuation = 0;
-    mavlink_conrig_state_tc_t oldConrigState;
+    // Last ConRIG state received and processed
+    mavlink_conrig_state_tc_t lastConrigState;
 };
 
 }  // namespace RIGv2

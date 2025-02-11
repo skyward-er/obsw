@@ -889,109 +889,124 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     mavlink_conrig_state_tc_t state;
     mavlink_msg_conrig_state_tc_decode(&msg, &state);
 
+#define BUTTON_PRESSED(btn) (lastConrigState.btn == 0 && state.btn == 1)
+#define BUTTON_CHANGED(btn) (lastConrigState.btn != state.btn)
+
+    // Use a debounce time to prevent updates too close to each other
+    // that may be caused by interference on the buttons
+    auto debounceTime     = msToNs(Config::Radio::LAST_COMMAND_THRESHOLD);
     long long currentTime = getTime();
-    if (currentTime >
-        lastManualActuation +
-            (Config::Radio::LAST_COMMAND_THRESHOLD * Constants::NS_IN_MS))
+
+    if (currentTime > lastManualActuation + debounceTime)
     {
         // Ok we can accept new commands
-        if (oldConrigState.arm_switch == 0 && state.arm_switch == 1)
+        if (BUTTON_PRESSED(arm_switch))
         {
             // The ARM switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             EventBroker::getInstance().post(TMTC_ARM, TOPIC_MOTOR);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.ignition_btn == 0 && state.ignition_btn == 1)
+        if (BUTTON_PRESSED(ignition_btn))
         {
             // The ignition switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             EventBroker::getInstance().post(MOTOR_IGNITION, TOPIC_MOTOR);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.n2o_filling_btn == 0 && state.n2o_filling_btn == 1)
+        if (BUTTON_PRESSED(n2o_filling_btn))
         {
             // The N2O filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2O_FILLING_VALVE);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.n2o_release_btn == 0 && state.n2o_release_btn == 1)
+        if (BUTTON_PRESSED(n2o_release_btn))
         {
             // The N2O release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2O_RELEASE_VALVE);
-
             lastManualActuation = currentTime;
         }
 
-        // TODO: n2o_detach_btn
+        if (BUTTON_PRESSED(n2o_detach_btn))
+        {
+            // The N2O detach switch was pressed
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::N2O_DETACH_SERVO);
+            lastManualActuation = currentTime;
+        }
 
-        if (oldConrigState.n2o_venting_btn == 0 && state.n2o_venting_btn == 1)
+        if (BUTTON_PRESSED(n2o_venting_btn))
         {
             // The N2O venting switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2O_VENTING_VALVE);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.n2_filling_btn == 0 && state.n2_filling_btn == 1)
+        if (BUTTON_PRESSED(n2_filling_btn))
         {
             // The N2 filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2_FILLING_VALVE);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.n2_release_btn == 0 && state.n2_release_btn == 1)
+        if (BUTTON_PRESSED(n2_release_btn))
         {
             // The N2 release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2_RELEASE_VALVE);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.n2_detach_btn == 0 && state.n2_detach_btn == 1)
+        if (BUTTON_PRESSED(n2_detach_btn))
         {
             // The N2 detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2_DETACH_SERVO);
-
             lastManualActuation = currentTime;
         }
 
-        // TODO: n2_quenching_btn
-        // TODO: n2_3way_btn
+        if (BUTTON_PRESSED(n2_quenching_btn))
+        {
+            // The N2 quenching switch was pressed
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::N2_QUENCHING_VALVE);
+            lastManualActuation = currentTime;
+        }
 
-        if (oldConrigState.tars_btn == 0 && state.tars_btn == 1)
+        // TODO: tars3
+        if (BUTTON_PRESSED(tars_btn))
         {
             // The TARS switch was pressed
             EventBroker::getInstance().post(MOTOR_START_TARS, TOPIC_TARS);
-
             lastManualActuation = currentTime;
         }
 
-        if (oldConrigState.nitrogen_btn == 0 && state.nitrogen_btn == 1)
+        if (BUTTON_PRESSED(nitrogen_btn))
         {
             // The nitrogen switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
+            lastManualActuation = currentTime;
+        }
 
+        if (BUTTON_CHANGED(n2_3way_btn))
+        {
+            // The 3-way valve switch was pressed
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->set3wayValveState(state.n2_3way_btn);
             lastManualActuation = currentTime;
         }
     }
 
     // Special case for disarming, that can be done bypassing the timeout
-    if (oldConrigState.arm_switch == 1 && state.arm_switch == 0)
+    if (lastConrigState.arm_switch == 1 && state.arm_switch == 0)
     {
         EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
         EventBroker::getInstance().post(TMTC_DISARM, TOPIC_MOTOR);
@@ -999,5 +1014,5 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         lastManualActuation = currentTime;
     }
 
-    oldConrigState = state;
+    lastConrigState = state;
 }
