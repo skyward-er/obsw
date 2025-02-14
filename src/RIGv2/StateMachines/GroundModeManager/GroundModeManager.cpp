@@ -47,6 +47,16 @@ void GroundModeManager::setIgnitionTime(uint32_t time)
     getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
 }
 
+void GroundModeManager::setChamberTime(uint32_t time)
+{
+    getModule<Registry>()->setUnsafe(CONFIG_ID_CHAMBER_TIME, time);
+}
+
+void GroundModeManager::setChamberDelay(uint32_t time)
+{
+    getModule<Registry>()->setUnsafe(CONFIG_ID_CHAMBER_DELAY, time);
+}
+
 State GroundModeManager::state_idle(const Event& event)
 {
     switch (event)
@@ -194,7 +204,11 @@ State GroundModeManager::state_disarmed(const Event& event)
 
         case TMTC_OPEN_NITROGEN:
         {
-            getModule<Actuators>()->openNitrogen();
+            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
+                CONFIG_ID_CHAMBER_TIME,
+                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
+
+            getModule<Actuators>()->openChamberWithTime(chamberTime);
             return HANDLED;
         }
 
@@ -227,7 +241,7 @@ State GroundModeManager::state_armed(const Event& event)
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             getModule<Actuators>()->armLightOn();
             getModule<Actuators>()->closeAllServos();
-            getModule<Actuators>()->closeNitrogen();
+            getModule<Actuators>()->closeChamber();
             return HANDLED;
         }
 
@@ -248,7 +262,10 @@ State GroundModeManager::state_armed(const Event& event)
 
         case TMTC_OPEN_NITROGEN:
         {
-            getModule<Actuators>()->openNitrogen();
+            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
+                CONFIG_ID_CHAMBER_TIME,
+                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
+            getModule<Actuators>()->openChamberWithTime(chamberTime);
 
             // Nitrogen causes automatic disarm
             return transition(&GroundModeManager::state_disarmed);
@@ -286,10 +303,10 @@ State GroundModeManager::state_firing(const Event& event)
             // Stop ignition and close all servos
             getModule<Actuators>()->igniterOff();
             getModule<Actuators>()->closeAllServos();
+            getModule<Actuators>()->closeChamber();
 
             // Disable all events
             EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
-            EventBroker::getInstance().removeDelayed(coolingDelayEventId);
 
             return HANDLED;
         }
@@ -307,7 +324,11 @@ State GroundModeManager::state_firing(const Event& event)
         case TMTC_OPEN_NITROGEN:
         {
             // Open nitrogen
-            getModule<Actuators>()->openNitrogen();
+            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
+                CONFIG_ID_CHAMBER_TIME,
+                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
+
+            getModule<Actuators>()->openChamberWithTime(chamberTime);
 
             return transition(&GroundModeManager::state_disarmed);
         }
@@ -315,9 +336,6 @@ State GroundModeManager::state_firing(const Event& event)
         case MOTOR_COOLING_TIMEOUT:  // Normal firing end
         case TMTC_DISARM:            // Abort signal
         {
-            getModule<Actuators>()->openNitrogenWithTime(
-                Config::GroundModeManager::NITROGEN_TIME);
-
             return transition(&GroundModeManager::state_disarmed);
         }
 
@@ -389,6 +407,14 @@ State GroundModeManager::state_oxidizer(const Event& event)
 
             getModule<Actuators>()->openServo(ServosList::MAIN_VALVE);
 
+            uint32_t chamberDelay =
+                getModule<Registry>()->getOrSetDefaultUnsafe(
+                    CONFIG_ID_CHAMBER_DELAY,
+                    Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_DELAY);
+
+            EventBroker::getInstance().postDelayed(MOTOR_OPEN_CHAMBER,
+                                                   TOPIC_MOTOR, chamberDelay);
+
             return HANDLED;
         }
 
@@ -407,8 +433,15 @@ State GroundModeManager::state_oxidizer(const Event& event)
             return HANDLED;
         }
 
-        case MOTOR_CLOSE_FEED_VALVE:
+        case MOTOR_OPEN_CHAMBER:
         {
+            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
+                CONFIG_ID_CHAMBER_TIME,
+                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
+
+            // Open the chamber valve
+            getModule<Actuators>()->openChamberWithTime(chamberTime);
+
             return transition(&GroundModeManager::state_cooling);
         }
 
@@ -426,10 +459,6 @@ State GroundModeManager::state_cooling(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(GroundModeManagerState::COOLING);
-
-            coolingDelayEventId = EventBroker::getInstance().postDelayed(
-                MOTOR_COOLING_TIMEOUT, TOPIC_MOTOR,
-                Config::GroundModeManager::MOTOR_COOLING_TIME);
 
             return HANDLED;
         }

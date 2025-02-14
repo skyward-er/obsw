@@ -99,10 +99,10 @@ constexpr float VESSEL_SHUNT_RESISTANCE      = ADS131M08::CH1_SHUNT_RESISTANCE;
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
-constexpr float FILLING_MAX_PRESSURE     = 100;  // bar
-constexpr float TANK_TOP_MAX_PRESSURE    = 100;  // bar
+constexpr float FILLING_MAX_PRESSURE     = 250;  // bar
+constexpr float TANK_TOP_MAX_PRESSURE    = 250;  // bar
 constexpr float TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
-constexpr float VESSEL_MAX_PRESSURE      = 400;  // bar
+constexpr float VESSEL_MAX_PRESSURE      = 100;  // bar
 }  // namespace Trafag
 
 namespace LoadCell
@@ -123,7 +123,7 @@ constexpr float TANK_P1_MASS    = 6.916;
 // LC Vessel sensor calibration data
 // - 1.866kg V: 0.00027
 // - 5.050kg V: 0.00073
-// - 6.916kg V: 0.00100
+// - 6.916kg V: 0.00100000941
 constexpr float VESSEL_P0_VOLTAGE = 0.00027;
 constexpr float VESSEL_P0_MASS    = 1.866;
 constexpr float VESSEL_P1_VOLTAGE = 0.0010;
@@ -139,6 +139,15 @@ constexpr float VESSEL_P0_MASS    = 4.985;
 constexpr float VESSEL_P1_VOLTAGE = 0.00030895;
 constexpr float VESSEL_P1_MASS    = 10.177;
 
+/*
+// LC Vessel sensor calibration data (post 08/11/2024, old flipping)
+// - 0kg      V: -0.009553
+// - 8.720kg  V: -0.010958 (−31125.124875125 kg/v)
+constexpr float VESSEL_P0_VOLTAGE = -0.009553;
+constexpr float VESSEL_P0_MASS    = 0.0;
+constexpr float VESSEL_P1_VOLTAGE = -0.010958;
+constexpr float VESSEL_P1_MASS    = 8.720;
+*/
 }  // namespace LoadCell
 
 namespace InternalADC

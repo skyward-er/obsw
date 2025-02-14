@@ -33,8 +33,10 @@ namespace GroundModeManager
 
 constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 3700;  // [ms]
 
-constexpr uint32_t MOTOR_COOLING_TIME = 1500;
-constexpr uint32_t NITROGEN_TIME      = 20000;  // 20s
+/// Delay between the main valve opening and the chamber valve opening
+constexpr uint32_t DEFAULT_CHAMBER_VALVE_DELAY = 500;
+// Time the chamber valve stays open
+constexpr uint32_t DEFAULT_CHAMBER_VALVE_TIME = 6000;
 
 }  // namespace GroundModeManager
 }  // namespace Config

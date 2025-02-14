@@ -26,10 +26,11 @@
 #include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
 
+#include <condition_variable>
 #include <memory>
 
 namespace RIGv2
@@ -62,8 +63,8 @@ private:
 
         // Timestamp of when the servo should close, 0 if closed
         long long closeTs = 0;
-        // Timestamp of last servo action (open/close)
-        long long lastActionTs = 0;
+        // Timestamp of when to wiggle the valve
+        long long adjustTs = 0;
 
         void openServoWithTime(uint32_t time);
         void closeServo();
@@ -92,10 +93,11 @@ public:
     bool setOpeningTime(ServosList servo, uint32_t time);
     bool isServoOpen(ServosList servo);
     bool isCanServoOpen(ServosList servo);
-    void openNitrogen();
-    void openNitrogenWithTime(uint32_t time);
-    void closeNitrogen();
-    bool isNitrogenOpen();
+
+    // Chamber valve control
+    void openChamberWithTime(uint32_t time);
+    void closeChamber();
+    bool isChamberOpen();
 
     uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
@@ -110,14 +112,20 @@ public:
 
     void inject(Boardcore::DependencyInjector& injector) override;
 
+    bool terminateValveSchedulerTask();
+
 private:
     ServoInfo* getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
-    void unsafeOpenNitrogen();
-    void unsafeCloseNitrogen();
+    void unsafeOpenChamber();
+    void unsafeCloseChamber();
 
-    void updatePositionsTask();
+    void updatePositions();
+
+    void updateNextActionTs();
+
+    void valveSchedulerTask();
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
@@ -125,11 +133,20 @@ private:
     std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
+
+    // Mutex used to ensure the condition variable is handled correctly
+    std::mutex conditionVariableMutex;
+
+    std::condition_variable cv;
+
+    bool isValveSchedulerAlive = 0;
+
+    // timestamp of next action that needs to be scheduled
+    long long nextActionTs = 0;
+
     ServoInfo infos[10] = {};
     // Timestamp of when the servo should close, 0 if closed
     long long nitrogenCloseTs = 0;
-    // Timestamp of last servo action (open/close)
-    long long nitrogenLastActionTs = 0;
 
     bool canMainOpen    = false;
     bool canVentingOpen = false;
