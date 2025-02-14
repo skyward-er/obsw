@@ -29,6 +29,7 @@
 #include <common/MavlinkOrion.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
+#include <scheduler/ValveScheduler.h>
 
 #include <condition_variable>
 #include <memory>
@@ -37,7 +38,8 @@ namespace RIGv2
 {
 
 class Actuators
-    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>,
+      public Boardcore::valveScheduler
 {
 private:
     struct ServoInfo : public Boardcore::InjectableWithDeps<Registry>
@@ -112,8 +114,6 @@ public:
 
     void inject(Boardcore::DependencyInjector& injector) override;
 
-    bool terminateValveSchedulerTask();
-
 private:
     ServoInfo* getServo(ServosList servo);
 
@@ -121,11 +121,9 @@ private:
     void unsafeOpenChamber();
     void unsafeCloseChamber();
 
-    void updatePositions();
+    void updatePositions() override;
 
-    void updateNextActionTs();
-
-    void valveSchedulerTask();
+    void updateNextActionTs() override;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");

@@ -122,6 +122,8 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 }
 
 Actuators::Actuators()
+    : valveScheduler(STACK_DEFAULT_FOR_PTHREAD,
+                     (miosix::Priority)(PRIORITY_MAX - 1))
 {
     // Initialize servos
     infos[0].servo = std::make_unique<Servo>(
@@ -276,14 +278,8 @@ bool Actuators::start()
     infos[8].servo->enable();
     infos[9].servo->enable();
 
-    miosix::Thread::create(
-        [](void* arg) -> void*
-        {
-            static_cast<Actuators*>(arg)->valveSchedulerTask();
-            return nullptr;
-        },
-        STACK_DEFAULT_FOR_PTHREAD, (miosix::Priority)(PRIORITY_MAX - 1),
-        static_cast<void*>(this));
+    // Start the ValveScheduler thread
+    valveScheduler::start();
 
     started = true;
     return true;
@@ -609,44 +605,4 @@ void Actuators::updateNextActionTs()
 
     if (nextActionTs == std::numeric_limits<long long>::max())
         nextActionTs = 0;
-}
-
-bool Actuators::terminateValveSchedulerTask()
-{
-    if (!isValveSchedulerAlive)
-    {
-        LOG_ERR(logger, "valve scheduler task is not currently running");
-        return 0;
-    }
-
-    isValveSchedulerAlive = 0;
-    return 1;
-}
-
-void Actuators::valveSchedulerTask()
-{
-    isValveSchedulerAlive = 1;
-
-    while (isValveSchedulerAlive)
-    {
-        std::unique_lock<std::mutex> lock(conditionVariableMutex);
-
-        std::cv_status waitResult;
-
-        if (nextActionTs == 0)
-        {
-            cv.wait(lock);
-            waitResult = std::cv_status::no_timeout;
-        }
-        else
-        {
-            waitResult = cv.wait_until(
-                lock, time_point<steady_clock>(nanoseconds(nextActionTs)));
-        }
-
-        if (waitResult == std::cv_status::timeout)
-            updatePositions();
-
-        updateNextActionTs();
-    }
 }
