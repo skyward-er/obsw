@@ -55,8 +55,8 @@ bool Actuators::start()
     leftServo.servo->enable();
     rightServo.servo->enable();
 
-    leftServo.servo->setPosition(0);
-    rightServo.servo->setPosition(0);
+    setServoPosition(PARAFOIL_LEFT_SERVO, 0.0f);
+    setServoPosition(PARAFOIL_RIGHT_SERVO, 0.0f);
 
     started = true;
     return true;
@@ -72,6 +72,7 @@ bool Actuators::setServoPosition(ServosList servoId, float position)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
+    Logger::getInstance().log(actuator->servo->getState());
     actuator->servo->setPosition(position);
 
     return true;
