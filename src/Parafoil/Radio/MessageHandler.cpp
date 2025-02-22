@@ -116,10 +116,10 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
             auto servo = static_cast<ServosList>(
                 mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
-            auto position = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
+            auto angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
-            if (parent.getModule<Actuators>()->setServoPosition(servo,
-                                                                position))
+            if (parent.getModule<Actuators>()->setServoAngle(servo,
+                                                             Degree{angle}))
                 return enqueueAck(msg);
             else
                 return enqueueNack(msg);
