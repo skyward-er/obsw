@@ -52,8 +52,8 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
-    leftServo.servo->enable();
-    rightServo.servo->enable();
+    enableServo(PARAFOIL_LEFT_SERVO);
+    enableServo(PARAFOIL_RIGHT_SERVO);
 
     setServoPosition(PARAFOIL_LEFT_SERVO, 0.0f);
     setServoPosition(PARAFOIL_RIGHT_SERVO, 0.0f);
@@ -86,6 +86,7 @@ bool Actuators::setServoAngle(ServosList servoId, Degree angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
+    Logger::getInstance().log(actuator->servo->getState());
     actuator->servo->setPosition(angle.value() /
                                  actuator->fullRangeAngle.value());
 
