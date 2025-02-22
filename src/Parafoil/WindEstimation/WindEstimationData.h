@@ -37,8 +37,8 @@ namespace Parafoil
 struct WindEstimationData
 {
     uint64_t timestamp = 0;
-    Boardcore::Units::Speed::MeterPerSecond velocityNorth;
-    Boardcore::Units::Speed::MeterPerSecond velocityEast;
+    Boardcore::Units::Speed::MeterPerSecond velocityNorth{0};
+    Boardcore::Units::Speed::MeterPerSecond velocityEast{0};
     bool calibration = false;  ///< True if the wind estimation is in
                                ///< calibration mode, false otherwise
 

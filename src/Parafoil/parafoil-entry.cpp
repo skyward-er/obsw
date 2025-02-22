@@ -86,10 +86,10 @@ using namespace Common;
 
 int main()
 {
+    miosix::ledOff();
     std::cout << "Parafoil Entrypoint " << "(" << BUILD_TYPE << ")"
               << " by Skyward Experimental Rocketry" << std::endl;
 
-    // cppcheck-suppress unreadVariable
     auto logger = Logging::getLogger("Parafoil");
     DependencyManager depman{};
 
@@ -136,18 +136,21 @@ int main()
     auto actuators = new Actuators();
     initResult &= depman.insert(actuators);
 
+    std::cout << "Injecting module dependencies" << std::endl;
+    initResult &= depman.inject();
+
     START_SINGLETON(Logger)
     {
         std::cout << "Logger Ok!\n"
                   << "\tLog number: "
                   << Logger::getInstance().getCurrentLogNumber() << std::endl;
     }
-
-    START_MODULE(flightModeManager);
+    START_SINGLETON(EventBroker);
 
     START_MODULE(pinHandler);
     START_MODULE(radio);
     START_MODULE(nasController);
+    START_MODULE(flightModeManager);
     START_MODULE(altitudeTrigger);
     START_MODULE(windEstimation);
     START_MODULE(wingController);
