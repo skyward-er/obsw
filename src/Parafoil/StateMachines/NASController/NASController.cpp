@@ -269,7 +269,7 @@ void NASController::update()
 
     auto* sensors = getModule<Sensors>();
 
-    auto imu  = sensors->getBMX160LastSample();
+    auto imu  = sensors->getBMX160WithCorrectionLastSample();
     auto gps  = sensors->getUBXGPSLastSample();
     auto baro = sensors->getLPS22DFLastSample();
 
