@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,61 +55,79 @@ public:
     // Getters for raw data coming from sensors
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::ADS131M08Data getADC1LastSample();
+    Boardcore::ADS131M08Data getADC2LastSample();
     Boardcore::MAX31856Data getTc1LastSample();
 
     // Getters for processed data
-    Boardcore::PressureData getVesselPressLastSample();
-    Boardcore::PressureData getFillingPressLastSample();
-    Boardcore::PressureData getTopTankPressLastSample();
-    Boardcore::PressureData getBottomTankPressLastSample();
-    Boardcore::PressureData getCCPressLastSample();
-    Boardcore::TemperatureData getTankTempLastSample();
-    Boardcore::LoadCellData getVesselWeightLastSample();
-    Boardcore::LoadCellData getTankWeightLastSample();
-    Boardcore::CurrentData getUmbilicalCurrentLastSample();
-    Boardcore::CurrentData getServoCurrentLastSample();
-    Boardcore::VoltageData getBatteryVoltageLastSample();
-    Boardcore::VoltageData getMotorBatteryVoltageLastSample();
+    Boardcore::PressureData getOxVesselPressure();
+    Boardcore::PressureData getOxFillingPressure();
+    Boardcore::PressureData getN2Vessel1Pressure();
+    Boardcore::PressureData getN2Vessel2Pressure();
+    Boardcore::PressureData getN2FillingPressure();
+    Boardcore::PressureData getOxTankTopPressure();
+    Boardcore::PressureData getOxTankBottomPressure();
+    Boardcore::PressureData getCombustionChamberPressure();
 
-    Boardcore::PressureData getCanTopTankPressLastSample();
-    Boardcore::PressureData getCanBottomTankPressLastSample();
-    Boardcore::PressureData getCanCCPressLastSample();
-    Boardcore::TemperatureData getCanTankTempLastSample();
-    Boardcore::VoltageData getCanMotorBatteryVoltageLastSample();
+    Boardcore::TemperatureData getOxTankTemperature();
+    Boardcore::LoadCellData getOxVesselWeight();
+    Boardcore::LoadCellData getOxTankWeight();
+
+    Boardcore::CurrentData getUmbilicalCurrent();
+    Boardcore::CurrentData getServoCurrent();
+    Boardcore::VoltageData getBatteryVoltage();
+    Boardcore::VoltageData getMotorBatteryVoltage();
+
+    Boardcore::PressureData getCanOxTankTopPressure();
+    Boardcore::PressureData getCanOxTankBottomPressure();
+    Boardcore::PressureData getCanCombustionChamberPressure();
+    Boardcore::TemperatureData getCanTankTemperature();
+    Boardcore::VoltageData getCanMotorBatteryVoltage();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
-    void setCanTopTankPress(Boardcore::PressureData data);
-    void setCanBottomTankPress(Boardcore::PressureData data);
-    void setCanCCPress(Boardcore::PressureData data);
-    void setCanTankTemp(Boardcore::TemperatureData data);
+    void setCanOxTankTopPressure(Boardcore::PressureData data);
+    void setCanOxTankBottomPressure(Boardcore::PressureData data);
+    void setCanCombustionChamberPressure(Boardcore::PressureData data);
+    void setCanOxTankTemperature(Boardcore::TemperatureData data);
     void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
     void switchToCanSensors();
 
 private:
-    void vesselPressureInit();
-    void vesselPressureCallback();
+    void oxVesselPressureInit();
+    void oxVesselPressureCallback();
 
-    void fillingPressureInit();
-    void fillingPressureCallback();
+    void oxFillingPressureInit();
+    void oxFillingPressureCallback();
 
-    void topTankPressureInit();
-    void topTankPressureCallback();
+    void n2Vessel1PressureInit();
+    void n2Vessel1PressureCallback();
 
-    void bottomTankPressureInit();
-    void bottomTankPressureCallback();
+    void n2Vessel2PressureInit();
+    void n2Vessel2PressureCallback();
 
-    void vesselWeightInit();
-    void vesselWeightCallback();
+    void n2FillingPressureInit();
+    void n2FillingPressureCallback();
 
-    void tankWeightInit();
-    void tankWeightCallback();
+    void oxTankTopPressureInit();
+    void oxTankTopPressureCallback();
+
+    void oxTankBottomPressureInit();
+    void oxTankBottomPressureCallback();
+
+    void oxVesselWeightInit();
+    void oxVesselWeightCallback();
+
+    void oxTankWeightInit();
+    void oxTankWeightCallback();
 
     void internalAdcInit();
     void internalAdcCallback();
 
     void adc1Init();
     void adc1Callback();
+
+    void adc2Init();
+    void adc2Callback();
 
     void tc1Init();
     void tc1Callback();
@@ -123,22 +141,28 @@ private:
 
     std::atomic<bool> useCanData{false};
     miosix::FastMutex canMutex;
-    Boardcore::PressureData canCCPressure;
-    Boardcore::PressureData canBottomTankPressure;
-    Boardcore::PressureData canTopTankPressure;
-    Boardcore::TemperatureData canTankTemperature;
+
+    Boardcore::PressureData canOxTankTopPressure;
+    Boardcore::PressureData canOxTankBottomPressure;
+    Boardcore::PressureData canCombustionChamberPressure;
+    // TODO: N2 tank pressure from CAN
+    Boardcore::TemperatureData canOxTankTemperature;
     Boardcore::VoltageData canMotorBatteryVoltage;
 
     // Analog sensors
-    std::unique_ptr<Boardcore::TrafagPressureSensor> vesselPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> fillingPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> topTankPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> bottomTankPressure;
-    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> vesselWeight;
-    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> tankWeight;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxVesselPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxFillingPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> n2Vessel1Pressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> n2Vessel2Pressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> n2FillingPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankTopPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottomPressure;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
 
     // Digital sensors
     std::unique_ptr<Boardcore::ADS131M08> adc1;
+    std::unique_ptr<Boardcore::ADS131M08> adc2;
     std::unique_ptr<Boardcore::MAX31856> tc1;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
     std::unique_ptr<Boardcore::SensorManager> manager;

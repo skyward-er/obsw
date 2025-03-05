@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,31 +42,11 @@ namespace Sensors
 
 namespace ADS131M08
 {
-
-constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
-    Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
-constexpr float CH1_SHUNT_RESISTANCE = 29.4048;
-constexpr float CH2_SHUNT_RESISTANCE = 29.5830;
-constexpr float CH3_SHUNT_RESISTANCE = 29.4973;
-constexpr float CH4_SHUNT_RESISTANCE = 29.8849;
-
-// ADC channels definitions for various sensors
-constexpr Boardcore::ADS131M08Defs::Channel VESSEL_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
-constexpr Boardcore::ADS131M08Defs::Channel FILLING_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
-constexpr Boardcore::ADS131M08Defs::Channel BOTTOM_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
-constexpr Boardcore::ADS131M08Defs::Channel TOP_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
-constexpr Boardcore::ADS131M08Defs::Channel SERVO_CURRENT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
-constexpr Boardcore::ADS131M08Defs::Channel VESSEL_LC_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
-constexpr Boardcore::ADS131M08Defs::Channel TANK_LC_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
+constexpr Hertz PERIOD = 100_hz;
+constexpr bool ENABLED = true;
 
 // Servo current sensor calibration data
 // - A: 0.0 V: 2.520
@@ -78,10 +58,38 @@ constexpr Boardcore::ADS131M08Defs::Channel TANK_LC_CHANNEL =
 // - A: 5.2 V: 2.441
 constexpr float SERVO_CURRENT_SCALE = 4.5466;
 constexpr float SERVO_CURRENT_ZERO  = 2.520 / SERVO_CURRENT_SCALE;
-
-constexpr Hertz PERIOD = 100_hz;
-constexpr bool ENABLED = true;
 }  // namespace ADS131M08
+
+namespace ADC_1
+{
+using Channel = Boardcore::ADS131M08Defs::Channel;
+
+constexpr auto OX_VESSEL_PT_CHANNEL   = Channel::CHANNEL_0;
+constexpr auto OX_FILLING_PT_CHANNEL  = Channel::CHANNEL_1;
+constexpr auto N2_VESSEL_1_PT_CHANNEL = Channel::CHANNEL_2;
+constexpr auto N2_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_3;
+constexpr auto SERVO_CURRENT_CHANNEL  = Channel::CHANNEL_4;
+constexpr auto OX_VESSEL_LC_CHANNEL   = Channel::CHANNEL_5;
+constexpr auto OX_TANK_LC_CHANNEL     = Channel::CHANNEL_6;
+constexpr auto N2_FILLING_PT_CHANNEL  = Channel::CHANNEL_7;
+
+constexpr float CH0_SHUNT_RESISTANCE = 29.4048;  // TODO: check
+constexpr float CH1_SHUNT_RESISTANCE = 29.5830;  // TODO: check
+constexpr float CH2_SHUNT_RESISTANCE = 29.4973;  // TODO: check
+constexpr float CH3_SHUNT_RESISTANCE = 29.8849;  // TODO: check
+constexpr float CH7_SHUNT_RESISTANCE = 29.0;     // TODO: measure
+}  // namespace ADC_1
+
+namespace ADC_2
+{
+using Channel = Boardcore::ADS131M08Defs::Channel;
+
+constexpr auto OX_TANK_TOP_PT_CHANNEL    = Channel::CHANNEL_0;
+constexpr auto OX_TANK_BOTTOM_PT_CHANNEL = Channel::CHANNEL_1;
+
+constexpr float CH0_SHUNT_RESISTANCE = 29.0;  // TODO: measure
+constexpr float CH1_SHUNT_RESISTANCE = 29.0;  // TODO: measure
+}  // namespace ADC_2
 
 namespace MAX31856
 {
@@ -91,18 +99,25 @@ constexpr bool ENABLED = true;
 
 namespace Trafag
 {
-constexpr float FILLING_SHUNT_RESISTANCE     = ADS131M08::CH2_SHUNT_RESISTANCE;
-constexpr float TANK_TOP_SHUNT_RESISTANCE    = ADS131M08::CH4_SHUNT_RESISTANCE;
-constexpr float TANK_BOTTOM_SHUNT_RESISTANCE = ADS131M08::CH3_SHUNT_RESISTANCE;
-constexpr float VESSEL_SHUNT_RESISTANCE      = ADS131M08::CH1_SHUNT_RESISTANCE;
+constexpr float OX_VESSEL_SHUNT_RESISTANCE      = ADC_1::CH0_SHUNT_RESISTANCE;
+constexpr float OX_FILLING_SHUNT_RESISTANCE     = ADC_1::CH1_SHUNT_RESISTANCE;
+constexpr float N2_VESSEL1_SHUNT_RESISTANCE     = ADC_1::CH2_SHUNT_RESISTANCE;
+constexpr float N2_VESSEL2_SHUNT_RESISTANCE     = ADC_1::CH3_SHUNT_RESISTANCE;
+constexpr float N2_FILLING_SHUNT_RESISTANCE     = ADC_1::CH7_SHUNT_RESISTANCE;
+constexpr float OX_TANK_TOP_SHUNT_RESISTANCE    = ADC_2::CH0_SHUNT_RESISTANCE;
+constexpr float OX_TANK_BOTTOM_SHUNT_RESISTANCE = ADC_2::CH1_SHUNT_RESISTANCE;
 
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
-constexpr float FILLING_MAX_PRESSURE     = 250;  // bar
-constexpr float TANK_TOP_MAX_PRESSURE    = 250;  // bar
-constexpr float TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
-constexpr float VESSEL_MAX_PRESSURE      = 100;  // bar
+// TODO: check depending on which trafags are used
+constexpr float OX_VESSEL_MAX_PRESSURE      = 100;  // bar
+constexpr float OX_FILLING_MAX_PRESSURE     = 250;  // bar
+constexpr float N2_VESSEL1_MAX_PRESSURE     = 400;  // bar
+constexpr float N2_VESSEL2_MAX_PRESSURE     = 400;  // bar
+constexpr float N2_FILLING_MAX_PRESSURE     = 400;  // bar
+constexpr float OX_TANK_TOP_MAX_PRESSURE    = 250;  // bar
+constexpr float OX_TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
 }  // namespace Trafag
 
 namespace LoadCell
@@ -152,8 +167,7 @@ constexpr float VESSEL_P1_MASS    = 8.720;
 
 namespace InternalADC
 {
-constexpr Boardcore::InternalADC::Channel BATTERY_VOLTAGE_CHANNEL =
-    Boardcore::InternalADC::CH14;
+constexpr auto BATTERY_VOLTAGE_CHANNEL = Boardcore::InternalADC::CH14;
 
 constexpr float BATTERY_VOLTAGE_SCALE = 4.7917;
 constexpr Hertz PERIOD                = 10_hz;

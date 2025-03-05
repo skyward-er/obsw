@@ -546,26 +546,19 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors
-            tm.rocket_mass     = sensors->getTankWeightLastSample().load;
-            tm.n2o_vessel_mass = sensors->getVesselWeightLastSample().load;
+            tm.rocket_mass     = sensors->getOxTankWeight().load;
+            tm.n2o_vessel_mass = sensors->getOxVesselWeight().load;
 
-            // TODO: methods below have mismatching names
-            tm.n2o_filling_pressure =
-                sensors->getVesselPressLastSample().pressure;
-            tm.n2_filling_pressure =
-                sensors->getFillingPressLastSample().pressure;
-            tm.n2o_vessel_pressure =
-                sensors->getBottomTankPressLastSample().pressure;
-            tm.n2_vessel_1_pressure =
-                sensors->getTopTankPressLastSample().pressure;
+            tm.n2o_vessel_pressure  = sensors->getOxVesselPressure().pressure;
+            tm.n2o_filling_pressure = sensors->getOxFillingPressure().pressure;
+            tm.n2_filling_pressure  = sensors->getN2FillingPressure().pressure;
+            tm.n2_vessel_1_pressure = sensors->getN2Vessel1Pressure().pressure;
+            tm.n2_vessel_2_pressure = sensors->getN2Vessel2Pressure().pressure;
 
-            tm.n2_vessel_2_pressure = -1.f;  // TODO
-
-            tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
-            tm.current_consumption =
-                sensors->getServoCurrentLastSample().current;
+            tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
+            tm.current_consumption = sensors->getServoCurrent().current;
             tm.umbilical_current_consumption =
-                sensors->getUmbilicalCurrentLastSample().current;
+                sensors->getUmbilicalCurrent().current;
 
             // Log data
             LoggerStats stats = sdLogger.getStats();
@@ -641,15 +634,13 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.top_tank_pressure =
-                sensors->getTopTankPressLastSample().pressure;
+            tm.top_tank_pressure = sensors->getOxTankTopPressure().pressure;
             tm.bottom_tank_pressure =
-                sensors->getBottomTankPressLastSample().pressure;
+                sensors->getOxTankBottomPressure().pressure;
             tm.combustion_chamber_pressure =
-                sensors->getCCPressLastSample().pressure;
-            tm.tank_temperature = sensors->getTankTempLastSample().temperature;
-            tm.battery_voltage =
-                sensors->getMotorBatteryVoltageLastSample().voltage;
+                sensors->getCombustionChamberPressure().pressure;
+            tm.tank_temperature = sensors->getOxTankTemperature().temperature;
+            tm.battery_voltage  = sensors->getMotorBatteryVoltage().voltage;
 
             // Valve states
             tm.main_valve_state =
@@ -708,12 +699,39 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             tm.channel_7 =
                 data.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
             tm.timestamp = data.timestamp;
-            strcpy(tm.sensor_name, "ADS131M08");
+            strcpy(tm.sensor_name, "ADS131M08_1");
 
             mavlink_msg_adc_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
                                       &tm);
             enqueuePacket(msg);
+
+            data = getModule<Sensors>()->getADC2LastSample();
+
+            tm.channel_0 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
+            tm.channel_1 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage;
+            tm.channel_2 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
+            tm.channel_3 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
+            tm.channel_4 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_4).voltage;
+            tm.channel_5 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage;
+            tm.channel_6 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage;
+            tm.channel_7 =
+                data.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
+            tm.timestamp = data.timestamp;
+            strcpy(tm.sensor_name, "ADS131M08_2");
+
+            mavlink_msg_adc_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            enqueuePacket(msg);
+
             return true;
         }
 
@@ -722,8 +740,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data =
-                getModule<Sensors>()->getVesselPressLastSample();
+            PressureData data = getModule<Sensors>()->getOxVesselPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -741,8 +758,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data =
-                getModule<Sensors>()->getFillingPressLastSample();
+            PressureData data = getModule<Sensors>()->getOxFillingPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -760,8 +776,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data =
-                getModule<Sensors>()->getBottomTankPressLastSample();
+            PressureData data = getModule<Sensors>()->getOxTankBottomPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -779,8 +794,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data =
-                getModule<Sensors>()->getTopTankPressLastSample();
+            PressureData data = getModule<Sensors>()->getOxTankTopPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -816,8 +830,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_load_tm_t tm;
 
-            LoadCellData data =
-                getModule<Sensors>()->getVesselWeightLastSample();
+            LoadCellData data = getModule<Sensors>()->getOxVesselWeight();
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
@@ -835,7 +848,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_load_tm_t tm;
 
-            LoadCellData data = getModule<Sensors>()->getTankWeightLastSample();
+            LoadCellData data = getModule<Sensors>()->getOxTankWeight();
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
@@ -853,8 +866,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_voltage_tm_t tm;
 
-            VoltageData data =
-                getModule<Sensors>()->getBatteryVoltageLastSample();
+            VoltageData data = getModule<Sensors>()->getBatteryVoltage();
 
             tm.timestamp = data.voltageTimestamp;
             tm.voltage   = data.voltage;

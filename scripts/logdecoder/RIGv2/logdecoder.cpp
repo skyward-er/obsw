@@ -54,13 +54,17 @@ void registerTypes(Deserializer& ds)
 
     // Custom types
     ds.registerType<ADC1Data>();
+    ds.registerType<ADC2Data>();
     ds.registerType<TC1Data>();
-    ds.registerType<VesselWeightData>();
-    ds.registerType<TankWeightData>();
-    ds.registerType<VesselPressureData>();
-    ds.registerType<FillingPressureData>();
-    ds.registerType<TopTankPressureData>();
-    ds.registerType<BottomTankPressureData>();
+    ds.registerType<OxVesselWeightData>();
+    ds.registerType<OxTankWeightData>();
+    ds.registerType<OxVesselPressureData>();
+    ds.registerType<OxFillingPressureData>();
+    ds.registerType<N2Vessel1PressureData>();
+    ds.registerType<N2Vessel2PressureData>();
+    ds.registerType<N2FillingPressureData>();
+    ds.registerType<OxTankTopPressureData>();
+    ds.registerType<OxTankBottomPressureData>();
     ds.registerType<ActuatorsData>();
     ds.registerType<GroundModeManagerData>();
     ds.registerType<TarsActionData>();

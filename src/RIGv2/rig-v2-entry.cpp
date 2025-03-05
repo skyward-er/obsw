@@ -208,8 +208,12 @@ int main()
     std::cout << "Sensor status:" << std::endl;
     for (auto info : sensors->getSensorInfos())
     {
+        auto statusStr = !info.isEnabled      ? "Disabled"
+                         : info.isInitialized ? "Ok"
+                                              : "Error";
+
         std::cout << "\t" << std::setw(16) << std::left << info.id << " "
-                  << (info.isInitialized ? "Ok" : "Error") << std::endl;
+                  << statusStr << std::endl;
     }
 
     // Periodic statistics

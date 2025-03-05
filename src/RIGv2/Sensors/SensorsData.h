@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,16 @@ struct ADC1Data : Boardcore::ADS131M08Data
     ADC1Data() {}
 };
 
+struct ADC2Data : Boardcore::ADS131M08Data
+{
+    explicit ADC2Data(const Boardcore::ADS131M08Data& data)
+        : Boardcore::ADS131M08Data(data)
+    {
+    }
+
+    ADC2Data() {}
+};
+
 struct TC1Data : Boardcore::MAX31856Data
 {
     explicit TC1Data(const Boardcore::MAX31856Data& data)
@@ -49,64 +59,94 @@ struct TC1Data : Boardcore::MAX31856Data
     TC1Data() {}
 };
 
-struct VesselWeightData : Boardcore::LoadCellData
+struct OxVesselWeightData : Boardcore::LoadCellData
 {
-    explicit VesselWeightData(const Boardcore::LoadCellData& data)
+    explicit OxVesselWeightData(const Boardcore::LoadCellData& data)
         : Boardcore::LoadCellData(data)
     {
     }
 
-    VesselWeightData() {}
+    OxVesselWeightData() {}
 };
 
-struct TankWeightData : Boardcore::LoadCellData
+struct OxTankWeightData : Boardcore::LoadCellData
 {
-    explicit TankWeightData(const Boardcore::LoadCellData& data)
+    explicit OxTankWeightData(const Boardcore::LoadCellData& data)
         : Boardcore::LoadCellData(data)
     {
     }
 
-    TankWeightData() {}
+    OxTankWeightData() {}
 };
 
-struct VesselPressureData : Boardcore::PressureData
+struct OxVesselPressureData : Boardcore::PressureData
 {
-    explicit VesselPressureData(const Boardcore::PressureData& data)
+    explicit OxVesselPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    VesselPressureData() {}
+    OxVesselPressureData() {}
 };
 
-struct FillingPressureData : Boardcore::PressureData
+struct OxFillingPressureData : Boardcore::PressureData
 {
-    explicit FillingPressureData(const Boardcore::PressureData& data)
+    explicit OxFillingPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    FillingPressureData() {}
+    OxFillingPressureData() {}
 };
 
-struct TopTankPressureData : Boardcore::PressureData
+struct N2Vessel1PressureData : Boardcore::PressureData
 {
-    explicit TopTankPressureData(const Boardcore::PressureData& data)
+    explicit N2Vessel1PressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    TopTankPressureData() {}
+    N2Vessel1PressureData() {}
 };
 
-struct BottomTankPressureData : Boardcore::PressureData
+struct N2Vessel2PressureData : Boardcore::PressureData
 {
-    explicit BottomTankPressureData(const Boardcore::PressureData& data)
+    explicit N2Vessel2PressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    BottomTankPressureData() {}
+    N2Vessel2PressureData() {}
+};
+
+struct N2FillingPressureData : Boardcore::PressureData
+{
+    explicit N2FillingPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    N2FillingPressureData() {}
+};
+
+struct OxTankTopPressureData : Boardcore::PressureData
+{
+    explicit OxTankTopPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    OxTankTopPressureData() {}
+};
+
+struct OxTankBottomPressureData : Boardcore::PressureData
+{
+    explicit OxTankBottomPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    OxTankBottomPressureData() {}
 };
 
 }  // namespace RIGv2
