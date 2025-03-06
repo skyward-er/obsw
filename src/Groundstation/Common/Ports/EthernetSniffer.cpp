@@ -51,9 +51,9 @@ Boardcore::Wiz5500::PhyState EthernetSniffer::getState()
 void EthernetSniffer::init(uint16_t portNumber, uint16_t srcPort,
                            uint16_t dstPort)
 {
-    portNr  = portNumber;
-    srcPort = srcPort;
-    dstPort = dstPort;
+    portNr        = portNumber;
+    this->srcPort = srcPort;
+    this->dstPort = dstPort;
 }
 
 bool EthernetSniffer::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
@@ -62,7 +62,7 @@ bool EthernetSniffer::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 
     TRACE("[info] Opening sniffing UDP socket\n");
     // We open the UDP socket for sniffing
-    if (!this->wiz5500->openUdp(1, SEND_PORT, {255, 255, 255, 255}, RECV_PORT,
+    if (!this->wiz5500->openUdp(portNr, srcPort, {255, 255, 255, 255}, dstPort,
                                 500))
     {
         return false;
