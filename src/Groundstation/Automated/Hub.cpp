@@ -247,7 +247,8 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
         msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
     {
         TRACE(
-            "[info] Hub: A MAIN packet was received from ground packet "
+            "[info][SNIFFING] Hub: A MAIN packet was received from ground "
+            "packet "
             "(ethernet probably and NOT radio)\n");
         /* The message received by ethernet (outgoing) in reality is not a
          * command but the telemetry spoofed, therefore is then used as incoming
@@ -272,7 +273,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         mavlink_msg_rocket_flight_tm_decode(&msg, &rocketTM);
         uint64_t timestamp = mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
         TRACE(
-            "[info] Hub: A FLIGHT_ROCKET_TM packet was received from ground "
+            "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet was "
+            "received "
             "packet with ts %llu\n",
             timestamp);
         /* Messages older and within the discard interval are treated as old
@@ -280,8 +282,10 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         if (timestamp <= lastFlightTMTimestamp &&
             lastFlightTMTimestamp > timestamp + DISCARD_MSG_DELAY)
             return;
-        TRACE("[info] Hub: A FLIGHT_ROCKET_TM packet is valid with ts %llu\n",
-              timestamp);
+        TRACE(
+            "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet is valid "
+            "with ts %llu\n",
+            timestamp);
         lastFlightTMTimestamp = timestamp;
         NASState nasState{
             mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
@@ -302,7 +306,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         mavlink_rocket_stats_tm_t rocketST;
         mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
         TRACE(
-            "[info] Hub: A ROCKET_STAT_TM packet was received from ground "
+            "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet was received "
             "packet with ts %llu\n",
             rocketST.timestamp);
         /* Messages older and within the discard interval are treated as old
@@ -310,8 +314,10 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         if (rocketST.timestamp <= lastStatsTMTimestamp &&
             lastStatsTMTimestamp > rocketST.timestamp + DISCARD_MSG_DELAY)
             return;
-        TRACE("[info] Hub: A ROCKET_STAT_TM packet is valid, with ts %llu\n",
-              rocketST.timestamp);
+        TRACE(
+            "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet is valid, "
+            "with ts %llu\n",
+            rocketST.timestamp);
         lastStatsTMTimestamp = rocketST.timestamp;
 
         // TODO: The origin should have its own struct since only timestamp and
