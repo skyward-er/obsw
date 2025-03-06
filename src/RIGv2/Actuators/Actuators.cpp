@@ -29,6 +29,8 @@
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 
+#include "ActuatorsMacros.h"
+
 using namespace Boardcore;
 using namespace miosix;
 using namespace Common;
@@ -112,78 +114,6 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
     getModule<Registry>()->setUnsafe(config.openingTimeRegKey, time);
     return true;
 }
-
-/**
- * @brief Shorthand to create a ServoInfo struct from the servo name
- */
-#define MAKE_SERVO(name)                                          \
-    ServoInfo                                                     \
-    {                                                             \
-        std::make_unique<Servo>(                                  \
-            MIOSIX_SERVOS_##name##_TIM,                           \
-            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,  \
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE, \
-            Config::Servos::FREQUENCY),                           \
-            ServoInfo::ServoConfig                                \
-        {                                                         \
-            .limit   = Config::Servos::name##_LIMIT,              \
-            .flipped = Config::Servos::name##_FLIPPED,            \
-            .defaultOpeningTime =                                 \
-                Config::Servos::DEFAULT_##name##_OPENING_TIME,    \
-            .defaultMaxAperture =                                 \
-                Config::Servos::DEFAULT_##name##_MAX_APERTURE,    \
-            .openingEvent      = MOTOR_##name##_OPEN,             \
-            .closingEvent      = MOTOR_##name##_CLOSE,            \
-            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME, \
-            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE  \
-        }                                                         \
-    }
-
-/**
- * @brief Shorthand to create a detach ServoInfo struct from the servo name
- */
-#define MAKE_DETACH_SERVO(name)                                           \
-    ServoInfo                                                             \
-    {                                                                     \
-        std::make_unique<Servo>(                                          \
-            MIOSIX_SERVOS_##name##_TIM,                                   \
-            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,          \
-            Config::Servos::DETACH_MIN_PULSE,                             \
-            Config::Servos::DETACH_MAX_PULSE, Config::Servos::FREQUENCY), \
-            ServoInfo::ServoConfig                                        \
-        {                                                                 \
-            .limit   = Config::Servos::name##_LIMIT,                      \
-            .flipped = Config::Servos::name##_FLIPPED,                    \
-            .defaultOpeningTime =                                         \
-                Config::Servos::DEFAULT_##name##_OPENING_TIME,            \
-            .defaultMaxAperture =                                         \
-                Config::Servos::DEFAULT_##name##_MAX_APERTURE,            \
-            .openingEvent      = MOTOR_##name##_OPEN,                     \
-            .closingEvent      = MOTOR_##name##_CLOSE,                    \
-            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,         \
-            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE          \
-        }                                                                 \
-    }
-
-/**
- * @brief Shorthand to create a non-atomic ServoInfo struct from the servo name
- */
-#define MAKE_SIMPLE_SERVO(name)                                   \
-    ServoInfo                                                     \
-    {                                                             \
-        std::make_unique<Servo>(                                  \
-            MIOSIX_SERVOS_##name##_TIM,                           \
-            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,  \
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE, \
-            Config::Servos::FREQUENCY),                           \
-            ServoInfo::ServoConfig                                \
-        {                                                         \
-            .limit        = Config::Servos::name##_LIMIT,         \
-            .flipped      = Config::Servos::name##_FLIPPED,       \
-            .openingEvent = MOTOR_##name##_OPEN,                  \
-            .closingEvent = MOTOR_##name##_CLOSE,                 \
-        }                                                         \
-    }
 
 Actuators::Actuators()
     : infos{
