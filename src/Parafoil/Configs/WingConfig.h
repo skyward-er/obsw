@@ -45,7 +45,7 @@ constexpr auto TARGET_UPDATE_RATE           = 10_hz;
 constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15_s;
 constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5_s;
 constexpr auto COMMAND_PERIOD               = 6_s;
-constexpr auto WING_DECREMENT               = 30_deg;
+constexpr auto WING_DECREMENT               = 20_deg;
 
 /**
  * @brief The available algorithms for the wing controller.

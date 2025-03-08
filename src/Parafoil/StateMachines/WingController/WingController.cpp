@@ -498,7 +498,7 @@ void WingController::loadAlgorithms()
 
         step.timestamp = Microsecond{PROGRESSIVE_ROTATION_TIMEOUT}.value();
 
-        for (auto angle = 150_deg; angle >= 0_deg; angle -= WING_DECREMENT)
+        for (auto angle = 80_deg; angle >= 0_deg; angle -= WING_DECREMENT)
         {
             step.servo1Angle = angle;
             step.servo2Angle = 0_deg;
