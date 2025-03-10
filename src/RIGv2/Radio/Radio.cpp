@@ -546,11 +546,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors
-            tm.rocket_mass     = sensors->getOxTankWeight().load;
-            tm.n2o_vessel_mass = sensors->getOxVesselWeight().load;
+            tm.rocket_mass    = sensors->getOxTankWeight().load;
+            tm.ox_vessel_mass = sensors->getOxVesselWeight().load;
 
-            tm.n2o_vessel_pressure  = sensors->getOxVesselPressure().pressure;
-            tm.n2o_filling_pressure = sensors->getOxFillingPressure().pressure;
+            tm.ox_vessel_pressure   = sensors->getOxVesselPressure().pressure;
+            tm.ox_filling_pressure  = sensors->getOxFillingPressure().pressure;
             tm.n2_filling_pressure  = sensors->getN2FillingPressure().pressure;
             tm.n2_vessel_1_pressure = sensors->getN2Vessel1Pressure().pressure;
             tm.n2_vessel_2_pressure = sensors->getN2Vessel2Pressure().pressure;
@@ -575,13 +575,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             sdLogger.log(cpuStats);
 
             // Valve states
-            tm.n2o_filling_valve_state =
-                actuators->isServoOpen(ServosList::N2O_FILLING_VALVE);
-            tm.n2o_release_valve_state =
-                actuators->isServoOpen(ServosList::N2O_RELEASE_VALVE);
-            tm.n2o_detach_state = 0;  // TODO
-            tm.n2o_venting_valve_state =
-                actuators->isServoOpen(ServosList::N2O_VENTING_VALVE);
+            tm.ox_filling_valve_state =
+                actuators->isServoOpen(ServosList::OX_FILLING_VALVE);
+            tm.ox_release_valve_state =
+                actuators->isServoOpen(ServosList::OX_RELEASE_VALVE);
+            tm.ox_detach_state =
+                actuators->isServoOpen(ServosList::OX_DETACH_SERVO);
+            tm.ox_venting_valve_state =
+                actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
 
             tm.n2_filling_valve_state =
                 actuators->isServoOpen(ServosList::N2_FILLING_VALVE);
@@ -589,22 +590,23 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::N2_RELEASE_VALVE);
             tm.n2_detach_state =
                 actuators->isServoOpen(ServosList::N2_DETACH_SERVO);
-            tm.n2_quenching_valve_state = 0;  // TODO
-            tm.n2_3way_valve_state      = 0;  // TODO
+            tm.n2_quenching_valve_state =
+                actuators->isServoOpen(ServosList::N2_QUENCHING_VALVE);
+            tm.n2_3way_valve_state =
+                actuators->isServoOpen(ServosList::N2_3WAY_VALVE);
 
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE);
             tm.nitrogen_valve_state =
                 actuators->isServoOpen(ServosList::NITROGEN_VALVE);
-            tm.ignition_state = actuators->isChamberOpen();
+            tm.chamber_valve_state = actuators->isChamberOpen();
 
             // Internal states
             tm.gmm_state    = getModule<GroundModeManager>()->getState();
-            tm.tars_state   = getModule<TARS1>()->isRefueling() ? 1 : 0;
+            tm.tars3_state  = getModule<TARS1>()->isRefueling();
+            tm.tars3m_state = 0;  // TODO
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
-                                      GroundModeManagerState::ARMED
-                                  ? 1
-                                  : 0;
+                              GroundModeManagerState::ARMED;
 
             // Can data
             CanHandler::CanStatus canStatus =
@@ -634,20 +636,20 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.top_tank_pressure = sensors->getOxTankTopPressure().pressure;
-            tm.bottom_tank_pressure =
+            tm.ox_tank_top_pressure = sensors->getOxTankTopPressure().pressure;
+            tm.ox_tank_bot_pressure =
                 sensors->getOxTankBottomPressure().pressure;
             tm.combustion_chamber_pressure =
                 sensors->getCombustionChamberPressure().pressure;
-            tm.tank_temperature = sensors->getOxTankTemperature().temperature;
-            tm.battery_voltage  = sensors->getMotorBatteryVoltage().voltage;
+            tm.ox_tank_temperature =
+                sensors->getOxTankTemperature().temperature;
+            tm.battery_voltage = sensors->getMotorBatteryVoltage().voltage;
 
             // Valve states
             tm.main_valve_state =
-                actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
-            tm.venting_valve_state =
-                actuators->isCanServoOpen(ServosList::N2O_VENTING_VALVE) ? 1
-                                                                         : 0;
+                actuators->isCanServoOpen(ServosList::MAIN_VALVE);
+            tm.ox_venting_valve_state =
+                actuators->isCanServoOpen(ServosList::OX_VENTING_VALVE);
 
             // Can data
             CanHandler::CanStatus canStatus =
@@ -928,35 +930,35 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(n2o_filling_btn))
+        if (BUTTON_PRESSED(ox_filling_btn))
         {
-            // The N2O filling switch was pressed
+            // The OX filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2O_FILLING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::OX_FILLING_VALVE);
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(n2o_release_btn))
+        if (BUTTON_PRESSED(ox_release_btn))
         {
-            // The N2O release switch was pressed
+            // The OX release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2O_RELEASE_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::OX_RELEASE_VALVE);
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(n2o_detach_btn))
+        if (BUTTON_PRESSED(ox_detach_btn))
         {
-            // The N2O detach switch was pressed
+            // The OX detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2O_DETACH_SERVO);
+            getModule<Actuators>()->toggleServo(ServosList::OX_DETACH_SERVO);
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(n2o_venting_btn))
+        if (BUTTON_PRESSED(ox_venting_btn))
         {
-            // The N2O venting switch was pressed
+            // The OX venting switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2O_VENTING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::OX_VENTING_VALVE);
             lastManualActuation = currentTime;
         }
 
@@ -993,7 +995,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         }
 
         // TODO: tars3
-        if (BUTTON_PRESSED(tars_btn))
+        if (BUTTON_PRESSED(tars3_btn))
         {
             // The TARS switch was pressed
             EventBroker::getInstance().post(MOTOR_START_TARS, TOPIC_TARS);

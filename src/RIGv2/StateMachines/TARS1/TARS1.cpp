@@ -104,13 +104,13 @@ void TARS1::state_refueling(const Event& event)
             logAction(TarsActionType::WASHING);
 
             // Start washing
-            actuators->openServoWithTime(ServosList::N2O_VENTING_VALVE,
+            actuators->openServoWithTime(ServosList::OX_VENTING_VALVE,
                                          Config::TARS1::WASHING_OPENING_TIME);
 
             // Wait a bit so that the servo don't actuate at the same time
             Thread::sleep(Config::TARS1::WASHING_TIME_DELAY);
 
-            actuators->openServoWithTime(ServosList::N2O_FILLING_VALVE,
+            actuators->openServoWithTime(ServosList::OX_FILLING_VALVE,
                                          Config::TARS1::WASHING_OPENING_TIME);
 
             // After double the time we opened the valve, move to the next phase
@@ -127,7 +127,7 @@ void TARS1::state_refueling(const Event& event)
             logAction(TarsActionType::OPEN_FILLING);
 
             // Open the filling for a long time
-            actuators->openServoWithTime(ServosList::N2O_FILLING_VALVE,
+            actuators->openServoWithTime(ServosList::OX_FILLING_VALVE,
                                          Config::TARS1::FILLING_OPENING_TIME);
 
             nextDelayedEventId = EventBroker::getInstance().postDelayed(
@@ -176,11 +176,11 @@ void TARS1::state_refueling(const Event& event)
             logAction(TarsActionType::OPEN_VENTING);
 
             // Open the venting and check for pressure stabilization
-            actuators->openServo(ServosList::N2O_VENTING_VALVE);
+            actuators->openServo(ServosList::OX_VENTING_VALVE);
 
             // Calculate next check time based on the time the valve stays open
             unsigned int nextCheckTime =
-                actuators->getServoOpeningTime(ServosList::N2O_VENTING_VALVE) +
+                actuators->getServoOpeningTime(ServosList::OX_VENTING_VALVE) +
                 Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME * 5;
 
             nextDelayedEventId = EventBroker::getInstance().postDelayed(

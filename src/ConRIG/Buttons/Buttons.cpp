@@ -32,11 +32,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace ConRIG;
 
-Buttons::Buttons()
-{
-    resetState();
-    state.arm_switch = false;
-}
+Buttons::Buttons() : state() {}
 
 bool Buttons::start()
 {
@@ -50,18 +46,10 @@ mavlink_conrig_state_tc_t Buttons::getState() { return state; }
 
 void Buttons::resetState()
 {
-    state.n2o_filling_btn  = false;
-    state.n2o_release_btn  = false;
-    state.n2_filling_btn   = false;
-    state.n2_release_btn   = false;
-    state.n2_detach_btn    = false;
-    state.n2o_venting_btn  = false;
-    state.nitrogen_btn     = false;
-    state.n2o_detach_btn   = false;
-    state.n2_quenching_btn = false;
-    state.n2_3way_btn      = false;
-    state.tars_btn         = false;
-    state.ignition_btn     = false;
+    // Preserve the arm switch state
+    auto armSwitch   = state.arm_switch;
+    state            = {};
+    state.arm_switch = armSwitch;
 }
 
 void Buttons::periodicStatusCheck()
@@ -85,9 +73,9 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                 = 0;
-            state.n2o_filling_btn = true;
-            LOG_DEBUG(logger, "n2o filling button pressed");
+            guard                = 0;
+            state.ox_filling_btn = true;
+            LOG_DEBUG(logger, "ox filling button pressed");
         }
         else
         {
@@ -98,9 +86,9 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                 = 0;
-            state.n2o_release_btn = true;
-            LOG_DEBUG(logger, "n2o release button pressed");
+            guard                = 0;
+            state.ox_release_btn = true;
+            LOG_DEBUG(logger, "ox release button pressed");
         }
         else
         {
@@ -124,9 +112,9 @@ void Buttons::periodicStatusCheck()
     {
         if (guard > Config::Buttons::GUARD_THRESHOLD)
         {
-            guard                 = 0;
-            state.n2o_venting_btn = true;
-            LOG_DEBUG(logger, "n2o venting button pressed");
+            guard                = 0;
+            state.ox_venting_btn = true;
+            LOG_DEBUG(logger, "ox venting button pressed");
         }
         else
         {

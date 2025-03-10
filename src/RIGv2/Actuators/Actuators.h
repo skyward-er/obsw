@@ -100,6 +100,7 @@ public:
 
     // N2 3-way valve control
     void set3wayValveState(bool state);
+    bool get3wayValveState();
 
     // Chamber valve control
     void openChamberWithTime(uint32_t time);
@@ -138,8 +139,10 @@ private:
         0;  ///< Timestamp to close the chamber (0 if closed)
     long long chamberLastActionTs = 0;  ///< Timestamp of last chamber action
 
-    bool canMainOpen    = false;
-    bool canVentingOpen = false;
+    bool canMainOpen        = false;
+    bool canNitrogenOpen    = false;
+    bool canOxVentingOpen   = false;
+    bool canN2QuenchingOpen = false;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");

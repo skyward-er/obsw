@@ -239,7 +239,7 @@ void Actuators::closeAllServos()
 
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(
-        ServosList::N2O_VENTING_VALVE);
+        ServosList::OX_VENTING_VALVE);
 }
 
 bool Actuators::setMaxAperture(ServosList servo, float aperture)
@@ -275,10 +275,15 @@ bool Actuators::isServoOpen(ServosList servo)
 bool Actuators::isCanServoOpen(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
+
     if (servo == ServosList::MAIN_VALVE)
         return canMainOpen;
-    else if (servo == ServosList::N2O_VENTING_VALVE)
-        return canVentingOpen;
+    else if (servo == ServosList::NITROGEN_VALVE)
+        return canNitrogenOpen;
+    else if (servo == ServosList::OX_VENTING_VALVE)
+        return canOxVentingOpen;
+    else if (servo == ServosList::N2_QUENCHING_VALVE)
+        return canN2QuenchingOpen;
     else
         return false;
 }
@@ -287,6 +292,11 @@ void Actuators::set3wayValveState(bool state)
 {
     auto position = state ? 1.0f : 0.0f;
     n2_3wayValveInfo.unsafeSetServoPosition(position);
+}
+
+bool Actuators::get3wayValveState()
+{
+    return n2_3wayValveInfo.getServoPosition() == 1.0f;
 }
 
 void Actuators::openChamberWithTime(uint32_t time)
@@ -335,8 +345,12 @@ void Actuators::setCanServoOpen(ServosList servo, bool open)
     Lock<FastMutex> lock(infosMutex);
     if (servo == ServosList::MAIN_VALVE)
         canMainOpen = open;
-    else if (servo == ServosList::N2O_VENTING_VALVE)
-        canVentingOpen = open;
+    else if (servo == ServosList::NITROGEN_VALVE)
+        canNitrogenOpen = open;
+    else if (servo == ServosList::OX_VENTING_VALVE)
+        canOxVentingOpen = open;
+    else if (servo == ServosList::N2_QUENCHING_VALVE)
+        canN2QuenchingOpen = open;
 }
 
 void Actuators::inject(DependencyInjector& injector)
@@ -350,11 +364,11 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 {
     switch (servo)
     {
-        case N2O_FILLING_VALVE:  // OX_FIL
+        case OX_FILLING_VALVE:  // OX_FIL
             return &infos[0];
-        case N2O_RELEASE_VALVE:  // OX_REL
+        case OX_RELEASE_VALVE:  // OX_REL
             return &infos[1];
-        case N2O_DETACH_SERVO:  // OX_DET
+        case OX_DETACH_SERVO:  // OX_DET
             return &infos[2];
         case N2_FILLING_VALVE:  // N2_FIL
             return &infos[4];
@@ -364,7 +378,7 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
             return &infos[6];
         case NITROGEN_VALVE:  // NITR
             return &infos[7];
-        case N2O_VENTING_VALVE:  // OX_VEN
+        case OX_VENTING_VALVE:  // OX_VEN
             return &infos[8];
         case N2_QUENCHING_VALVE:  // N2_QUE
             return &infos[9];
