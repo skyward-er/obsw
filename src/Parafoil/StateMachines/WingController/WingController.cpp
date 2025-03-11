@@ -26,6 +26,7 @@
 #include <Parafoil/Configs/WESConfig.h>
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/WindEstimation/WindEstimation.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
@@ -140,6 +141,11 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             flareWing();
             calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_SERVO_ACTUATION_DETECTED, TOPIC_DPL, 2000);
+
+            if (Config::Wing::DynamicTarget::ENABLED)
+                initDynamicTarget(
+                    Config::Wing::DynamicTarget::LATITUDE_OFFSET,
+                    Config::Wing::DynamicTarget::LONGITUDE_OFFSET);
 
             return HANDLED;
         }
@@ -396,6 +402,27 @@ EarlyManeuversPoints WingController::getEarlyManeuverPoints()
 Eigen::Vector2f WingController::getActiveTarget()
 {
     return emGuidance.getActiveTarget();
+}
+
+void WingController::initDynamicTarget(Meter latitudeOffset,
+                                       Meter longitudeOffset)
+{
+    auto gps = getModule<Sensors>()->getUBXGPSLastSample();
+
+    // Convert the offset from meters to degrees
+    auto earthRadius = 6371_km;
+    float metersPerDegreeLongitude =
+        Meter{earthRadius}.value() * Constants::DEGREES_TO_RADIANS *
+        cosf(gps.latitude * Constants::DEGREES_TO_RADIANS);
+    float metersPerDegreeLatitude =
+        Meter{earthRadius}.value() * Constants::DEGREES_TO_RADIANS;
+
+    float newLatitude =
+        gps.latitude + latitudeOffset.value() / metersPerDegreeLatitude;
+    float newLongitude =
+        gps.longitude + longitudeOffset.value() / metersPerDegreeLongitude;
+
+    setTargetCoordinates(newLatitude, newLongitude);
 }
 
 uint8_t WingController::getSelectedAlgorithm()

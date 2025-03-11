@@ -62,7 +62,6 @@ enum class AlgorithmId : size_t
 
 namespace Default
 {
-
 #if defined(JESOLO)
 constexpr auto TARGET_LAT = 45.565264f;
 constexpr auto TARGET_LON = 12.577050f;
@@ -87,6 +86,36 @@ constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
 
 }  // namespace Default
 
+/**
+ * @brief Dynamic target configuration. If enabled, the target is not fixed to
+ * the one specified in the Default config, but is dynamically set to a fixed
+ * offset relative to the position of launch (pin detach).
+ */
+namespace DynamicTarget
+{
+
+/* linter off */ using namespace Boardcore::Units::Length;
+
+#if defined(DYNAMIC_TARGET)
+constexpr auto ENABLED = true;
+#else
+constexpr auto ENABLED = false;
+#endif
+
+#if defined(DYNAMIC_TARGET_LATITUDE_OFFSET)
+constexpr auto LATITUDE_OFFSET = Meter{DYNAMIC_TARGET_LATITUDE_OFFSET};
+#else
+constexpr auto LATITUDE_OFFSET = 0_m;
+#endif
+
+#if defined(DYNAMIC_TARGET_LONGITUDE_OFFSET)
+constexpr auto LONGITUDE_OFFSET = Meter{DYNAMIC_TARGET_LONGITUDE_OFFSET};
+#else
+constexpr auto LONGITUDE_OFFSET = 0_m;
+#endif
+
+}  // namespace DynamicTarget
+
 namespace PI
 {
 constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
@@ -103,6 +132,7 @@ constexpr auto CONFIDENCE                = 15;  // [samples]
 constexpr auto M1_ALTITUDE_THRESHOLD     = 250_m;
 constexpr auto M2_ALTITUDE_THRESHOLD     = 150_m;
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50_m;
+
 }  // namespace Guidance
 
 }  // namespace Wing

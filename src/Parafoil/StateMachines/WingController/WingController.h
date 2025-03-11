@@ -29,6 +29,7 @@
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
+#include <units/Length.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -64,6 +65,7 @@ class Actuators;
 class NASController;
 class FlightStatsRecorder;
 class WindEstimation;
+class Sensors;
 
 /**
  * State machine that manages the wings of the Parafoil.
@@ -82,7 +84,7 @@ class WingController
     : public Boardcore::HSM<WingController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
                                            NASController, FlightStatsRecorder,
-                                           WindEstimation>
+                                           WindEstimation, Sensors>
 {
 public:
     /**
@@ -165,6 +167,15 @@ public:
     {
         return emGuidance.calculateTargetAngle(currentPositionNED, heading);
     }
+
+    /**
+     * @brief Calling this method will calculate and update the current target
+     * position based on a offset from the current position.
+     * @param latitudeOffset The latitude offset in meters
+     * @param longitudeOffset The longitude offset in meters
+     */
+    void initDynamicTarget(Boardcore::Units::Length::Meter latitudeOffset,
+                           Boardcore::Units::Length::Meter longitudeOffset);
 
 private:
     /**
