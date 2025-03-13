@@ -116,14 +116,11 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 }
 
 Actuators::Actuators()
-    : infos{
-          MAKE_SERVO(OX_FIL),        MAKE_SERVO(OX_REL),
-          MAKE_DETACH_SERVO(OX_DET),
-          MAKE_SERVO(N2_FIL),        MAKE_SERVO(N2_REL),
-          MAKE_DETACH_SERVO(N2_DET), MAKE_SERVO(NITR),
-          MAKE_SERVO(OX_VEN),        MAKE_SERVO(N2_QUE),
-          MAKE_SERVO(MAIN),
-      }, n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
+    : infos{MAKE_SERVO(OX_FIL), MAKE_SERVO(OX_REL), MAKE_DETACH_SERVO(OX_DET),
+            MAKE_SERVO(N2_FIL), MAKE_SERVO(N2_REL), MAKE_DETACH_SERVO(N2_DET),
+            MAKE_SERVO(NITR),   MAKE_SERVO(OX_VEN), MAKE_SERVO(N2_QUE),
+            MAKE_SERVO(MAIN)},
+      n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
 {
     for (auto& servo : infos)
         servo.unsafeSetServoPosition(0.0f);
@@ -141,6 +138,8 @@ bool Actuators::start()
     // Enable all servos
     for (ServoInfo& info : infos)
         info.servo->enable();
+
+    n2_3wayValveInfo.servo->enable();
 
     uint8_t result =
         scheduler.addTask([this]() { updatePositionsTask(); },
@@ -164,6 +163,19 @@ void Actuators::igniterOff() { relays::ignition::high(); }
 
 bool Actuators::wiggleServo(ServosList servo)
 {
+    // Special handling for the 3-way valve
+    if (servo == N2_3WAY_VALVE)
+    {
+        // Toggle the valve to the current opposite state
+        auto state = get3wayValveState();
+
+        set3wayValveState(!state);
+        Thread::sleep(1000);
+        set3wayValveState(state);
+
+        return true;
+    }
+
     // Wiggle means open the servo for 1s
     return openServoWithTime(servo, 1000);
 }
@@ -288,16 +300,9 @@ bool Actuators::isCanServoOpen(ServosList servo)
         return false;
 }
 
-void Actuators::set3wayValveState(bool state)
-{
-    auto position = state ? 1.0f : 0.0f;
-    n2_3wayValveInfo.unsafeSetServoPosition(position);
-}
+void Actuators::set3wayValveState(bool state) { n2_3wayValveState = state; }
 
-bool Actuators::get3wayValveState()
-{
-    return n2_3wayValveInfo.getServoPosition() == 1.0f;
-}
+bool Actuators::get3wayValveState() { return n2_3wayValveState; }
 
 void Actuators::openChamberWithTime(uint32_t time)
 {
@@ -472,4 +477,8 @@ void Actuators::updatePositionsTask()
 
         unsafeCloseChamber();
     }
+
+    // Handle the 3-way valve
+    auto position = n2_3wayValveState ? 1.0f : 0.0f;
+    n2_3wayValveInfo.unsafeSetServoPosition(position);
 }
