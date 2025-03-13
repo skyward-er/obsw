@@ -37,9 +37,11 @@
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
 using namespace RIGv2;
@@ -82,8 +84,6 @@ int main()
                       manager.insert<Registry>(registry) &&
                       manager.insert<GroundModeManager>(gmm) &&
                       manager.insert<TARS1>(tars1) && manager.inject();
-
-    manager.graphviz(std::cout);
 
     if (!initResult)
     {
@@ -208,11 +208,12 @@ int main()
     std::cout << "Sensor status:" << std::endl;
     for (auto info : sensors->getSensorInfos())
     {
-        auto statusStr = !info.isEnabled      ? "Disabled"
+        // The period being 0 means the sensor is disabled
+        auto statusStr = info.period == 0ns   ? "Disabled"
                          : info.isInitialized ? "Ok"
                                               : "Error";
 
-        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
+        std::cout << "\t" << std::setw(20) << std::left << info.id << " "
                   << statusStr << std::endl;
     }
 

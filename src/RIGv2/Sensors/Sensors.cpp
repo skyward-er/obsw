@@ -26,6 +26,9 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <interfaces-impl/hwmapping.h>
 
+#include <chrono>
+
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace miosix;
 using namespace RIGv2;
@@ -37,16 +40,23 @@ bool Sensors::start()
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
-    if (Config::Sensors::ADS131M08::ENABLED)
+    if (Config::Sensors::ADC_1::ENABLED)
     {
         adc1Init();
-        adc2Init();
         oxVesselPressureInit();
         oxFillingPressureInit();
-        oxTankTopPressureInit();
-        oxTankBottomPressureInit();
+        n2Vessel1PressureInit();
+        n2Vessel2PressureInit();
+        n2FillingPressureInit();
         oxVesselWeightInit();
         oxTankWeightInit();
+    }
+
+    if (Config::Sensors::ADC_2::ENABLED)
+    {
+        adc2Init();
+        oxTankTopPressureInit();
+        oxTankBottomPressureInit();
     }
 
     if (Config::Sensors::MAX31856::ENABLED)
@@ -297,11 +307,11 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
-        infos.push_back(SensorInfo { #name, 0, nullptr, false })
+        infos.push_back(SensorInfo{name, 0ns, nullptr, false})
 
-        PUSH_SENSOR_INFO(adc1, "ADC1");
-        PUSH_SENSOR_INFO(adc2, "ADC2");
-        PUSH_SENSOR_INFO(tc1, "TC1");
+        PUSH_SENSOR_INFO(adc1, "ADS131M08_1");
+        PUSH_SENSOR_INFO(adc2, "ADS131M08_2");
+        PUSH_SENSOR_INFO(tc1, "MAX31856_1");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(oxVesselPressure, "OxVesselPressure");
         PUSH_SENSOR_INFO(oxFillingPressure, "OxFillingPressure");

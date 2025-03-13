@@ -46,7 +46,6 @@ constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 constexpr Hertz PERIOD = 100_hz;
-constexpr bool ENABLED = true;
 
 // Servo current sensor calibration data
 // - A: 0.0 V: 2.520
@@ -62,6 +61,8 @@ constexpr float SERVO_CURRENT_ZERO  = 2.520 / SERVO_CURRENT_SCALE;
 
 namespace ADC_1
 {
+constexpr bool ENABLED = true;
+
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
 constexpr auto OX_VESSEL_PT_CHANNEL   = Channel::CHANNEL_0;
@@ -82,6 +83,8 @@ constexpr float CH7_SHUNT_RESISTANCE = 29.0;     // TODO: measure
 
 namespace ADC_2
 {
+constexpr bool ENABLED = true;
+
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
 constexpr auto OX_TANK_TOP_PT_CHANNEL    = Channel::CHANNEL_0;
