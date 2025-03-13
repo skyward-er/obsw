@@ -371,19 +371,19 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
         case OX_DETACH_SERVO:  // OX_DET
             return &infos[2];
         case N2_FILLING_VALVE:  // N2_FIL
-            return &infos[4];
+            return &infos[3];
         case N2_RELEASE_VALVE:  // N2_REL
-            return &infos[5];
+            return &infos[4];
         case N2_DETACH_SERVO:  // N2_DET
-            return &infos[6];
+            return &infos[5];
         case NITROGEN_VALVE:  // NITR
-            return &infos[7];
+            return &infos[6];
         case OX_VENTING_VALVE:  // OX_VEN
-            return &infos[8];
+            return &infos[7];
         case N2_QUENCHING_VALVE:  // N2_QUE
-            return &infos[9];
+            return &infos[8];
         case MAIN_VALVE:  // MAIN
-            return &infos[10];
+            return &infos[9];
 
         default:
             // Oh FUCK

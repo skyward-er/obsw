@@ -132,7 +132,7 @@ private:
     std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
-    ServoInfo infos[10];
+    std::array<ServoInfo, 10> infos;
     ServoInfo n2_3wayValveInfo;
 
     long long chamberCloseTs =
