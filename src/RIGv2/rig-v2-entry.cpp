@@ -115,7 +115,8 @@ int main()
     // Perform an initial registry load
     std::cout << "Loading backed registry" << std::endl;
     if (registry->load() != RegistryError::OK)
-        std::cout << "*** Failed to load backed registry ***" << std::endl;
+        std::cout << "* Warning: could not load a saved registry *"
+                  << std::endl;
 
     std::cout << "Starting Actuators" << std::endl;
     if (!actuators->start())
