@@ -145,7 +145,7 @@ void Radio::loopBuzzer()
         Thread::sleep(100);
         // Doesn't matter the precision, the important thing is
         // the beep, this is because an atomic is used
-        if ((!isArmed && messagesReceived > 2) ||
+        if ((!isArmed && messagesReceived > 10) ||
             (isArmed && messagesReceived > 0))
         {
             messagesReceived = 0;
