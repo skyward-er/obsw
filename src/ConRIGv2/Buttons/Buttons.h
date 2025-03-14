@@ -22,50 +22,40 @@
 
 #pragma once
 
+#include <ConRIGv2/BoardScheduler.h>
+#include <common/MavlinkOrion.h>
+#include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace ConRIG
+namespace ConRIGv2
 {
 
-/**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
- */
-class BoardScheduler : public Boardcore::Injectable
+class Radio;
+
+class Buttons : public Boardcore::InjectableWithDeps<BoardScheduler, Radio>
 {
 public:
-    BoardScheduler()
-        : radio{miosix::PRIORITY_MAX - 1}, buttons{miosix::PRIORITY_MAX - 2}
-    {
-    }
+    Buttons();
 
-    [[nodiscard]] bool start()
-    {
-        if (!radio.start())
-        {
-            LOG_ERR(logger, "Failed to start radio scheduler");
-            return false;
-        }
+    [[nodiscard]] bool start();
 
-        if (!buttons.start())
-        {
-            LOG_ERR(logger, "Failed to start buttons scheduler");
-            return false;
-        }
+    mavlink_conrig_state_tc_t getState();
 
-        return true;
-    }
-
-    Boardcore::TaskScheduler& getRadioScheduler() { return radio; }
-
-    Boardcore::TaskScheduler& getButtonsScheduler() { return buttons; }
+    void enableIgnition();
+    void disableIgnition();
 
 private:
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("boardscheduler");
+    void resetState();
 
-    Boardcore::TaskScheduler radio;
-    Boardcore::TaskScheduler buttons;
+    void periodicStatusCheck();
+
+    mavlink_conrig_state_tc_t state;
+
+    // Counter guard to avoid spurious triggers
+    uint8_t guard = 0;
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };
-}  // namespace ConRIG
+
+}  // namespace ConRIGv2

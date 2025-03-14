@@ -73,6 +73,12 @@ set(CON_RIG_COMPUTER
     src/ConRIG/Serial/Serial.cpp
 )
 
+set(CONRIG_V2_COMPUTER
+    src/ConRIGv2/Buttons/Buttons.cpp
+    src/ConRIGv2/Radio/Radio.cpp
+    src/ConRIGv2/Hub/Hub.cpp
+)
+
 set(PAYLOAD_COMPUTER
     src/Payload/Actuators/Actuators.cpp
     src/Payload/CanHandler/CanHandler.cpp

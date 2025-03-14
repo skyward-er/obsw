@@ -22,50 +22,30 @@
 
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
+#include <drivers/spi/SPIBus.h>
+#include <drivers/usart/USART.h>
+#include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace ConRIG
+namespace ConRIGv2
 {
 
-/**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
- */
-class BoardScheduler : public Boardcore::Injectable
+struct Buses : public Boardcore::Injectable
 {
-public:
-    BoardScheduler()
-        : radio{miosix::PRIORITY_MAX - 1}, buttons{miosix::PRIORITY_MAX - 2}
-    {
-    }
-
-    [[nodiscard]] bool start()
-    {
-        if (!radio.start())
-        {
-            LOG_ERR(logger, "Failed to start radio scheduler");
-            return false;
-        }
-
-        if (!buttons.start())
-        {
-            LOG_ERR(logger, "Failed to start buttons scheduler");
-            return false;
-        }
-
-        return true;
-    }
-
-    Boardcore::TaskScheduler& getRadioScheduler() { return radio; }
-
-    Boardcore::TaskScheduler& getButtonsScheduler() { return buttons; }
-
 private:
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("boardscheduler");
+    Boardcore::SPIBus spi1{SPI1};
+    Boardcore::SPIBus spi6{SPI6};
 
-    Boardcore::TaskScheduler radio;
-    Boardcore::TaskScheduler buttons;
+    Boardcore::USART usart2{USART2, 115200};
+    Boardcore::USART uart4{UART4, 115200};
+
+public:
+    Boardcore::SPIBus& getRadio() { return spi6; }
+
+    Boardcore::USART& getUsart2() { return usart2; }
+    Boardcore::USART& getUsart4() { return uart4; }
+
+    Boardcore::SPIBus& getEthernet() { return spi1; }
 };
-}  // namespace ConRIG
+
+}  // namespace ConRIGv2

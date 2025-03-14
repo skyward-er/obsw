@@ -22,50 +22,23 @@
 
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <units/Frequency.h>
 
-namespace ConRIG
+namespace ConRIGv2
+{
+namespace Config
+{
+namespace Buttons
 {
 
-/**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
- */
-class BoardScheduler : public Boardcore::Injectable
-{
-public:
-    BoardScheduler()
-        : radio{miosix::PRIORITY_MAX - 1}, buttons{miosix::PRIORITY_MAX - 2}
-    {
-    }
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-    [[nodiscard]] bool start()
-    {
-        if (!radio.start())
-        {
-            LOG_ERR(logger, "Failed to start radio scheduler");
-            return false;
-        }
+constexpr Hertz BUTTON_SAMPLE_PERIOD = 50_hz;
 
-        if (!buttons.start())
-        {
-            LOG_ERR(logger, "Failed to start buttons scheduler");
-            return false;
-        }
+constexpr uint8_t GUARD_THRESHOLD =
+    5;  // 5 samples to trigger the guard and activate a single button
 
-        return true;
-    }
+}  // namespace Buttons
+}  // namespace Config
 
-    Boardcore::TaskScheduler& getRadioScheduler() { return radio; }
-
-    Boardcore::TaskScheduler& getButtonsScheduler() { return buttons; }
-
-private:
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("boardscheduler");
-
-    Boardcore::TaskScheduler radio;
-    Boardcore::TaskScheduler buttons;
-};
-}  // namespace ConRIG
+}  // namespace ConRIGv2

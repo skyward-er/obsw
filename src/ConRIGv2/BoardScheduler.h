@@ -25,12 +25,11 @@
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace ConRIG
+namespace ConRIGv2
 {
 
 /**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
+ * @brief Class that wraps the main task schedulers of the entire OBSW.
  */
 class BoardScheduler : public Boardcore::Injectable
 {
@@ -68,4 +67,4 @@ private:
     Boardcore::TaskScheduler radio;
     Boardcore::TaskScheduler buttons;
 };
-}  // namespace ConRIG
+}  // namespace ConRIGv2

@@ -22,50 +22,34 @@
 
 #pragma once
 
-#include <scheduler/TaskScheduler.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <common/MavlinkOrion.h>
+#include <units/Frequency.h>
 
-namespace ConRIG
+namespace ConRIGv2
 {
 
-/**
- * @brief Class that wraps the 4 main task schedulers of the entire OBSW.
- * There is a task scheduler for every miosix priority
- */
-class BoardScheduler : public Boardcore::Injectable
+namespace Config
 {
-public:
-    BoardScheduler()
-        : radio{miosix::PRIORITY_MAX - 1}, buttons{miosix::PRIORITY_MAX - 2}
-    {
-    }
+namespace Radio
+{
 
-    [[nodiscard]] bool start()
-    {
-        if (!radio.start())
-        {
-            LOG_ERR(logger, "Failed to start radio scheduler");
-            return false;
-        }
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-        if (!buttons.start())
-        {
-            LOG_ERR(logger, "Failed to start buttons scheduler");
-            return false;
-        }
+constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
+constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-        return true;
-    }
+constexpr unsigned int CIRCULAR_BUFFER_SIZE = 10;
 
-    Boardcore::TaskScheduler& getRadioScheduler() { return radio; }
+constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
-    Boardcore::TaskScheduler& getButtonsScheduler() { return buttons; }
+// Mavlink ids
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-private:
-    Boardcore::PrintLogger logger =
-        Boardcore::Logging::getLogger("boardscheduler");
+// Periodic telemetries frequency
+constexpr Hertz PING_GSE_PERIOD = 2_hz;
 
-    Boardcore::TaskScheduler radio;
-    Boardcore::TaskScheduler buttons;
-};
-}  // namespace ConRIG
+}  // namespace Radio
+}  // namespace Config
+}  // namespace ConRIGv2

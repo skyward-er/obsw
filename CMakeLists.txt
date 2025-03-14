@@ -76,6 +76,10 @@ add_executable(con_rig-entry src/ConRIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(con_rig-entry stm32f429zi_con_rig)
 
+add_executable(conrig-v2-entry src/ConRIGv2/conrig-v2-entry.cpp ${CONRIG_V2_COMPUTER})
+target_include_directories(conrig-v2-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(conrig-v2-entry stm32f767zi_conrig_v2)
+
 add_executable(rovie-groundstation-entry 
     src/Groundstation/Rovie/rovie-groundstation-entry.cpp 
     ${GROUNDSTATION_COMMON} ${GROUNDSTATION_ROVIE}
