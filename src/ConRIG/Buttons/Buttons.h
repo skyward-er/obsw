@@ -36,8 +36,6 @@ class Radio;
 class Buttons : public Boardcore::InjectableWithDeps<BoardScheduler, Radio>
 {
 public:
-    Buttons();
-
     [[nodiscard]] bool start();
 
     mavlink_conrig_state_tc_t getState();
@@ -46,14 +44,11 @@ public:
     void disableIgnition();
 
 private:
-    void resetState();
-
     void periodicStatusCheck();
 
-    mavlink_conrig_state_tc_t state;
-
+    mavlink_conrig_state_tc_t state{};
     // Counter guard to avoid spurious triggers
-    uint8_t guard = 0;
+    mavlink_conrig_state_tc_t guard{};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("buttons");
 };

@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Ettore Pane
+ * Authors: Ettore Pane, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,9 +80,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             // we assume this ack is about the last sent message
             if (id == MAVLINK_MSG_ID_CONRIG_STATE_TC)
             {
-                Lock<FastMutex> lock{buttonsMutex};
                 // Reset the internal button state
-                buttonState = {};
+                resetButtonState();
             }
 
             break;
@@ -164,11 +163,11 @@ void Radio::buzzerTask()
     }
 }
 
-void Radio::setButtonsState(const mavlink_conrig_state_tc_t& state)
+void Radio::updateButtonState(const mavlink_conrig_state_tc_t& state)
 {
     Lock<FastMutex> lock{buttonsMutex};
-    // The OR operator is introduced to make sure that the receiver
-    // understood the command
+    // Merge the new state with the old one, an extra-dumb way to ensure
+    // that we don't lose any button pressess
     buttonState.ox_filling_btn |= state.ox_filling_btn;
     buttonState.ox_release_btn |= state.ox_release_btn;
     buttonState.n2_filling_btn |= state.n2_filling_btn;
@@ -178,11 +177,24 @@ void Radio::setButtonsState(const mavlink_conrig_state_tc_t& state)
     buttonState.nitrogen_btn |= state.nitrogen_btn;
     buttonState.ox_detach_btn |= state.ox_detach_btn;
     buttonState.n2_quenching_btn |= state.n2_quenching_btn;
-    buttonState.n2_3way_btn |= state.n2_3way_btn;
     buttonState.tars3_btn |= state.tars3_btn;
     buttonState.tars3m_btn |= state.tars3m_btn;
     buttonState.ignition_btn |= state.ignition_btn;
-    buttonState.arm_switch |= state.arm_switch;
+
+    // Don't merge lever states
+    buttonState.n2_3way_btn = state.n2_3way_btn;
+    buttonState.arm_switch  = state.arm_switch;
+}
+
+void Radio::resetButtonState()
+{
+    Lock<FastMutex> lock{buttonsMutex};
+    // Save and restore lever states
+    auto n2_3way_btn        = buttonState.n2_3way_btn;
+    auto arm_switch         = buttonState.arm_switch;
+    buttonState             = {};
+    buttonState.n2_3way_btn = n2_3way_btn;
+    buttonState.arm_switch  = arm_switch;
 }
 
 bool Radio::start()
@@ -239,7 +251,7 @@ bool Radio::start()
 
 MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
-Radio::Radio() : buzzer(MIOSIX_BUZZER_TIM, 523), buttonState()
+Radio::Radio() : buzzer(MIOSIX_BUZZER_TIM, 523)
 {
     buzzer.setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL, 0.5);
 }

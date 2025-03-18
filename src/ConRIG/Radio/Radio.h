@@ -49,13 +49,11 @@ class Radio : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
                                                    Buttons, Serial>
 {
 public:
-    Radio();
-
     [[nodiscard]] bool start();
 
     Boardcore::MavlinkStatus getMavlinkStatus();
 
-    void setButtonsState(mavlink_conrig_state_tc_t state);
+    void updateButtonState(const mavlink_conrig_state_tc_t& state);
 
     bool enqueueMessage(const mavlink_message_t& msg);
 
@@ -63,6 +61,8 @@ private:
     void sendPeriodicPing();
     void loopBuzzer();
     void handleMessage(const mavlink_message_t& msg);
+
+    void resetButtonState();
 
     std::unique_ptr<Boardcore::SX1278Lora> radio;
     std::unique_ptr<MavDriver> mavDriver;
@@ -72,10 +72,10 @@ private:
         messageQueue;
 
     miosix::FastMutex queueMutex;
-    miosix::FastMutex buttonsMutex;
 
     // Button internal state
-    mavlink_conrig_state_tc_t buttonState;
+    miosix::FastMutex buttonsMutex;
+    mavlink_conrig_state_tc_t buttonState{};
 
     std::thread buzzerLooper;
 

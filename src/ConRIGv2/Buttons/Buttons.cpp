@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Ettore Pane
+ * Authors: Ettore Pane, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,15 +32,10 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace ConRIGv2;
 
-Buttons::Buttons()
-{
-    resetState();
-    state.arm_switch = false;
-}
-
 bool Buttons::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+    TaskScheduler& scheduler =
+        getModule<BoardScheduler>()->getButtonsScheduler();
 
     return scheduler.addTask([this]() { periodicStatusCheck(); },
                              Config::Buttons::BUTTON_SAMPLE_PERIOD) != 0;
@@ -48,196 +43,48 @@ bool Buttons::start()
 
 mavlink_conrig_state_tc_t Buttons::getState() { return state; }
 
-void Buttons::resetState()
-{
-    // Preserve the arm switch state
-    auto armSwitch   = state.arm_switch;
-    state            = {};
-    state.arm_switch = armSwitch;
-}
-
 void Buttons::periodicStatusCheck()
 {
-    state.arm_switch = btns::arm::value();
+#define CHECK_BUTTON(cond, btn)                           \
+    if (cond)                                             \
+    {                                                     \
+        if (guard.btn > Config::Buttons::GUARD_THRESHOLD) \
+        {                                                 \
+            guard.btn = 0;                                \
+            state.btn = true;                             \
+            LOG_DEBUG(logger, #btn " button pressed");    \
+        }                                                 \
+        else                                              \
+        {                                                 \
+            guard.btn++;                                  \
+        }                                                 \
+    }                                                     \
+    else                                                  \
+    {                                                     \
+        guard.btn = 0;                                    \
+        state.btn = false;                                \
+    }
 
-    if (!btns::ignition::value() && state.arm_switch)
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard              = 0;
-            state.ignition_btn = true;
-            LOG_DEBUG(logger, "Ignition button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::ox_filling::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                = 0;
-            state.ox_filling_btn = true;
-            LOG_DEBUG(logger, "Ox filling button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::ox_release::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                = 0;
-            state.ox_release_btn = true;
-            LOG_DEBUG(logger, "Ox release button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::ox_detach::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard               = 0;
-            state.ox_detach_btn = true;
-            LOG_DEBUG(logger, "Ox detach button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::n2_3way::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard               = 0;
-            state.ox_detach_btn = true;
-            LOG_DEBUG(logger, "n2 3way button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::n2_filling::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                = 0;
-            state.n2_filling_btn = true;
-            LOG_DEBUG(logger, "N2 filling button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::n2_release::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                = 0;
-            state.n2_release_btn = true;
-            LOG_DEBUG(logger, "N2 release button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::n2_detach::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard               = 0;
-            state.n2_detach_btn = true;
-            LOG_DEBUG(logger, "N2 detach button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::nitrogen::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard              = 0;
-            state.nitrogen_btn = true;
-            LOG_DEBUG(logger, "Nitrogen button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::ox_venting::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                = 0;
-            state.ox_venting_btn = true;
-            LOG_DEBUG(logger, "Ox venting button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::n2_quenching::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard                  = 0;
-            state.n2_quenching_btn = true;
-            LOG_DEBUG(logger, "N2 quenching button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::tars3::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard           = 0;
-            state.tars3_btn = true;
-            LOG_DEBUG(logger, "Tars3 button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else if (btns::tars3m::value())
-    {
-        if (guard > Config::Buttons::GUARD_THRESHOLD)
-        {
-            guard            = 0;
-            state.tars3m_btn = true;
-            LOG_DEBUG(logger, "Tars3m button pressed");
-        }
-        else
-        {
-            guard++;
-        }
-    }
-    else
-    {
-        // Reset all the states and guard
-        guard = 0;
-        resetState();
-    }
+    state.arm_switch  = btns::arm::value();
+    state.n2_3way_btn = btns::n2_3way::value();
+
+    CHECK_BUTTON(!btns::ignition::value() && state.arm_switch, ignition_btn);
+    CHECK_BUTTON(btns::ox_filling::value(), ox_filling_btn);
+    CHECK_BUTTON(btns::ox_release::value(), ox_release_btn);
+    CHECK_BUTTON(btns::ox_detach::value(), ox_detach_btn);
+    CHECK_BUTTON(btns::ox_venting::value(), ox_venting_btn);
+    CHECK_BUTTON(btns::n2_filling::value(), n2_filling_btn);
+    CHECK_BUTTON(btns::n2_release::value(), n2_release_btn);
+    CHECK_BUTTON(btns::n2_detach::value(), n2_detach_btn);
+    CHECK_BUTTON(btns::n2_quenching::value(), n2_quenching_btn);
+    CHECK_BUTTON(btns::nitrogen::value(), nitrogen_btn);
+    CHECK_BUTTON(btns::tars3::value(), tars3_btn);
+    CHECK_BUTTON(btns::tars3m::value(), tars3m_btn);
+
+#undef CHECK_BUTTON
 
     // Set the internal button state in Radio module
-    getModule<Radio>()->setButtonsState(state);
+    getModule<Radio>()->updateButtonState(state);
 }
 
 void Buttons::enableIgnition() { ui::armedLed::high(); }
