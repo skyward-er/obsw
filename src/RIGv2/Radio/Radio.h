@@ -63,8 +63,8 @@ private:
     void enqueueWack(const mavlink_message_t& msg, uint8_t errorId);
     void enqueueNack(const mavlink_message_t& msg, uint8_t errorId);
 
-    void enqueuePacket(const mavlink_message_t& msg);
-    void flushPackets();
+    void enqueueMessage(const mavlink_message_t& msg);
+    void flushMessages();
 
     void handleMessage(const mavlink_message_t& msg);
     void handleCommand(const mavlink_message_t& msg);
@@ -80,7 +80,7 @@ private:
 
     Boardcore::CircularBuffer<mavlink_message_t,
                               Config::Radio::CIRCULAR_BUFFER_SIZE>
-        queuedPackets;
+        queuedMessages;
 
     std::atomic<bool> started{false};
     std::unique_ptr<Boardcore::SX1278Lora> radio;

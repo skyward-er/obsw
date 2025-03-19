@@ -39,8 +39,9 @@ constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
 constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
-constexpr unsigned int CIRCULAR_BUFFER_SIZE  = 30;
-constexpr unsigned int MAX_PACKETS_PER_FLUSH = 4;
+constexpr unsigned int CIRCULAR_BUFFER_SIZE = 30;
+// Measured empirically, used to determine how many packets to send in a flush
+constexpr unsigned int BITRATE = 4000;  // [bits/s]
 
 constexpr uint8_t MAV_SYSTEM_ID    = MAV_SYSID_RIG;
 constexpr uint8_t MAV_COMPONENT_ID = 0;
