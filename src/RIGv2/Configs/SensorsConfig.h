@@ -87,8 +87,8 @@ constexpr bool ENABLED = true;
 
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
-constexpr auto OX_TANK_TOP_PT_CHANNEL    = Channel::CHANNEL_0;
-constexpr auto OX_TANK_BOTTOM_PT_CHANNEL = Channel::CHANNEL_1;
+constexpr auto OX_TANK_PT_CHANNEL = Channel::CHANNEL_0;
+constexpr auto N2_TANK_PT_CHANNEL = Channel::CHANNEL_1;
 
 constexpr float CH0_SHUNT_RESISTANCE = 29.0;  // TODO: measure
 constexpr float CH1_SHUNT_RESISTANCE = 29.0;  // TODO: measure
@@ -102,25 +102,25 @@ constexpr bool ENABLED = true;
 
 namespace Trafag
 {
-constexpr float OX_VESSEL_SHUNT_RESISTANCE      = ADC_1::CH0_SHUNT_RESISTANCE;
-constexpr float OX_FILLING_SHUNT_RESISTANCE     = ADC_1::CH1_SHUNT_RESISTANCE;
-constexpr float N2_VESSEL1_SHUNT_RESISTANCE     = ADC_1::CH2_SHUNT_RESISTANCE;
-constexpr float N2_VESSEL2_SHUNT_RESISTANCE     = ADC_1::CH3_SHUNT_RESISTANCE;
-constexpr float N2_FILLING_SHUNT_RESISTANCE     = ADC_1::CH7_SHUNT_RESISTANCE;
-constexpr float OX_TANK_TOP_SHUNT_RESISTANCE    = ADC_2::CH0_SHUNT_RESISTANCE;
-constexpr float OX_TANK_BOTTOM_SHUNT_RESISTANCE = ADC_2::CH1_SHUNT_RESISTANCE;
+constexpr float OX_VESSEL_SHUNT_RESISTANCE  = ADC_1::CH0_SHUNT_RESISTANCE;
+constexpr float OX_FILLING_SHUNT_RESISTANCE = ADC_1::CH1_SHUNT_RESISTANCE;
+constexpr float N2_VESSEL1_SHUNT_RESISTANCE = ADC_1::CH2_SHUNT_RESISTANCE;
+constexpr float N2_VESSEL2_SHUNT_RESISTANCE = ADC_1::CH3_SHUNT_RESISTANCE;
+constexpr float N2_FILLING_SHUNT_RESISTANCE = ADC_1::CH7_SHUNT_RESISTANCE;
+constexpr float OX_TANK_SHUNT_RESISTANCE    = ADC_2::CH0_SHUNT_RESISTANCE;
+constexpr float N2_TANK_SHUNT_RESISTANCE    = ADC_2::CH1_SHUNT_RESISTANCE;
 
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
 // TODO: check depending on which trafags are used
-constexpr float OX_VESSEL_MAX_PRESSURE      = 100;  // bar
-constexpr float OX_FILLING_MAX_PRESSURE     = 250;  // bar
-constexpr float N2_VESSEL1_MAX_PRESSURE     = 400;  // bar
-constexpr float N2_VESSEL2_MAX_PRESSURE     = 400;  // bar
-constexpr float N2_FILLING_MAX_PRESSURE     = 400;  // bar
-constexpr float OX_TANK_TOP_MAX_PRESSURE    = 250;  // bar
-constexpr float OX_TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
+constexpr float OX_VESSEL_MAX_PRESSURE  = 100;  // bar
+constexpr float OX_FILLING_MAX_PRESSURE = 250;  // bar
+constexpr float N2_VESSEL1_MAX_PRESSURE = 400;  // bar
+constexpr float N2_VESSEL2_MAX_PRESSURE = 400;  // bar
+constexpr float N2_FILLING_MAX_PRESSURE = 400;  // bar
+constexpr float OX_TANK_MAX_PRESSURE    = 250;  // bar
+constexpr float N2_TANK_MAX_PRESSURE    = 100;  // bar
 }  // namespace Trafag
 
 namespace LoadCell

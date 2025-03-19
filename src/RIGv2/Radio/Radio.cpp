@@ -654,9 +654,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.ox_tank_top_pressure = sensors->getOxTankTopPressure().pressure;
-            tm.ox_tank_bot_pressure =
-                sensors->getOxTankBottomPressure().pressure;
+            tm.ox_tank_top_pressure = sensors->getN2TankPressure()
+                                          .pressure;  // TODO: rename in mavlink
+            tm.ox_tank_bot_pressure = sensors->getOxTankPressure()
+                                          .pressure;  // TODO: rename in mavlink
             tm.combustion_chamber_pressure =
                 sensors->getCombustionChamberPressure().pressure;
             tm.ox_tank_temperature =
@@ -796,7 +797,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getOxTankBottomPressure();
+            PressureData data = getModule<Sensors>()->getOxTankPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
@@ -814,7 +815,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getOxTankTopPressure();
+            PressureData data = getModule<Sensors>()->getN2TankPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;

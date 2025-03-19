@@ -129,24 +129,24 @@ struct N2FillingPressureData : Boardcore::PressureData
     N2FillingPressureData() {}
 };
 
-struct OxTankTopPressureData : Boardcore::PressureData
+struct OxTankPressureData : Boardcore::PressureData
 {
-    explicit OxTankTopPressureData(const Boardcore::PressureData& data)
+    explicit OxTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    OxTankTopPressureData() {}
+    OxTankPressureData() {}
 };
 
-struct OxTankBottomPressureData : Boardcore::PressureData
+struct N2TankPressureData : Boardcore::PressureData
 {
-    explicit OxTankBottomPressureData(const Boardcore::PressureData& data)
+    explicit N2TankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    OxTankBottomPressureData() {}
+    N2TankPressureData() {}
 };
 
 }  // namespace RIGv2

@@ -55,8 +55,8 @@ bool Sensors::start()
     if (Config::Sensors::ADC_2::ENABLED)
     {
         adc2Init();
-        oxTankTopPressureInit();
-        oxTankBottomPressureInit();
+        oxTankPressureInit();
+        n2TankPressureInit();
     }
 
     if (Config::Sensors::MAX31856::ENABLED)
@@ -122,29 +122,29 @@ PressureData Sensors::getN2FillingPressure()
                              : PressureData{};
 }
 
-PressureData Sensors::getOxTankTopPressure()
+PressureData Sensors::getOxTankPressure()
 {
     if (useCanData)
     {
-        return getCanOxTankTopPressure();
+        return getCanOxTankPressure();
     }
     else
     {
-        return oxTankTopPressure ? oxTankTopPressure->getLastSample()
-                                 : PressureData{};
+        return oxTankPressure ? oxTankPressure->getLastSample()
+                              : PressureData{};
     }
 }
 
-PressureData Sensors::getOxTankBottomPressure()
+PressureData Sensors::getN2TankPressure()
 {
     if (useCanData)
     {
-        return getCanOxTankBottomPressure();
+        return getCanN2TankPressure();
     }
     else
     {
-        return oxTankBottomPressure ? oxTankBottomPressure->getLastSample()
-                                    : PressureData{};
+        return n2TankPressure ? n2TankPressure->getLastSample()
+                              : PressureData{};
     }
 }
 
@@ -217,16 +217,16 @@ VoltageData Sensors::getMotorBatteryVoltage()
         return VoltageData{};
 }
 
-PressureData Sensors::getCanOxTankTopPressure()
+PressureData Sensors::getCanN2TankPressure()
 {
     Lock<FastMutex> lock{canMutex};
-    return canOxTankBottomPressure;
+    return canN2TankPressure;
 }
 
-PressureData Sensors::getCanOxTankBottomPressure()
+PressureData Sensors::getCanOxTankPressure()
 {
     Lock<FastMutex> lock{canMutex};
-    return canOxTankTopPressure;
+    return canOxTankPressure;
 }
 
 PressureData Sensors::getCanCombustionChamberPressure()
@@ -247,16 +247,16 @@ VoltageData Sensors::getCanMotorBatteryVoltage()
     return canMotorBatteryVoltage;
 }
 
-void Sensors::setCanOxTankTopPressure(PressureData data)
+void Sensors::setCanOxTankPressure(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canOxTankBottomPressure = data;
+    canN2TankPressure = data;
 }
 
-void Sensors::setCanOxTankBottomPressure(PressureData data)
+void Sensors::setCanN2TankPressure(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canOxTankTopPressure = data;
+    canOxTankPressure = data;
 }
 
 void Sensors::setCanCombustionChamberPressure(PressureData data)
@@ -318,8 +318,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(n2Vessel1Pressure, "N2Vessel1Pressure");
         PUSH_SENSOR_INFO(n2Vessel2Pressure, "N2Vessel2Pressure");
         PUSH_SENSOR_INFO(n2FillingPressure, "N2FillingPressure");
-        PUSH_SENSOR_INFO(oxTankTopPressure, "OxTankTopPressure");
-        PUSH_SENSOR_INFO(oxTankBottomPressure, "OxTankBotPressure");
+        PUSH_SENSOR_INFO(oxTankPressure, "OxTankPressure");
+        PUSH_SENSOR_INFO(n2TankPressure, "N2TankPressure");
         PUSH_SENSOR_INFO(oxVesselWeight, "OxVesselWeight");
         PUSH_SENSOR_INFO(oxTankWeight, "OxTankWeight");
 
@@ -437,14 +437,13 @@ void Sensors::adc2Init()
         channel.enabled = false;
 
     // Configure all required channels
-    config.channelsConfig[(int)Config::Sensors::ADC_2::OX_TANK_TOP_PT_CHANNEL] =
-        {.enabled = true,
-         .pga     = ADS131M08Defs::PGA::PGA_1,
-         .offset  = 0,
-         .gain    = 1.0};
+    config.channelsConfig[(int)Config::Sensors::ADC_2::OX_TANK_PT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
 
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::OX_TANK_BOTTOM_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::N2_TANK_PT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
@@ -569,45 +568,44 @@ void Sensors::n2FillingPressureCallback()
     sdLogger.log(N2FillingPressureData{getN2FillingPressure()});
 }
 
-void Sensors::oxTankTopPressureInit()
+void Sensors::oxTankPressureInit()
 {
-    oxTankTopPressure = std::make_unique<TrafagPressureSensor>(
+    oxTankPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADC2LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADC_2::OX_TANK_TOP_PT_CHANNEL);
+                Config::Sensors::ADC_2::OX_TANK_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_TANK_TOP_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::OX_TANK_TOP_MAX_PRESSURE,
+        Config::Sensors::Trafag::OX_TANK_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::OX_TANK_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
 }
 
-void Sensors::oxTankTopPressureCallback()
+void Sensors::oxTankPressureCallback()
 {
-    sdLogger.log(OxTankTopPressureData{oxTankTopPressure->getLastSample()});
+    sdLogger.log(OxTankPressureData{oxTankPressure->getLastSample()});
 }
 
-void Sensors::oxTankBottomPressureInit()
+void Sensors::n2TankPressureInit()
 {
-    oxTankBottomPressure = std::make_unique<TrafagPressureSensor>(
+    n2TankPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADC2LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADC_2::OX_TANK_BOTTOM_PT_CHANNEL);
+                Config::Sensors::ADC_2::N2_TANK_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_TANK_BOTTOM_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::OX_TANK_BOTTOM_MAX_PRESSURE,
+        Config::Sensors::Trafag::N2_TANK_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::N2_TANK_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
 }
 
-void Sensors::oxTankBottomPressureCallback()
+void Sensors::n2TankPressureCallback()
 {
-    sdLogger.log(
-        OxTankBottomPressureData{oxTankBottomPressure->getLastSample()});
+    sdLogger.log(N2TankPressureData{n2TankPressure->getLastSample()});
 }
 
 void Sensors::oxVesselWeightInit()
@@ -720,18 +718,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(std::make_pair(n2FillingPressure.get(), info));
     }
 
-    if (oxTankTopPressure)
+    if (oxTankPressure)
     {
-        SensorInfo info("OxTankTopPressure", Config::Sensors::ADS131M08::PERIOD,
-                        [this]() { oxTankTopPressureCallback(); });
-        map.emplace(std::make_pair(oxTankTopPressure.get(), info));
+        SensorInfo info("OxTankPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { oxTankPressureCallback(); });
+        map.emplace(std::make_pair(oxTankPressure.get(), info));
     }
 
-    if (oxTankBottomPressure)
+    if (n2TankPressure)
     {
-        SensorInfo info("OxTankBotPressure", Config::Sensors::ADS131M08::PERIOD,
-                        [this]() { oxTankBottomPressureCallback(); });
-        map.emplace(std::make_pair(oxTankBottomPressure.get(), info));
+        SensorInfo info("N2TankPressure", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { n2TankPressureCallback(); });
+        map.emplace(std::make_pair(n2TankPressure.get(), info));
     }
 
     if (oxVesselWeight)

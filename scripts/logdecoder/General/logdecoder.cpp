@@ -115,8 +115,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<RIGv2::N2Vessel1PressureData>();
     ds.registerType<RIGv2::N2Vessel2PressureData>();
     ds.registerType<RIGv2::N2FillingPressureData>();
-    ds.registerType<RIGv2::OxTankTopPressureData>();
-    ds.registerType<RIGv2::OxTankBottomPressureData>();
+    ds.registerType<RIGv2::OxTankPressureData>();
+    ds.registerType<RIGv2::N2TankPressureData>();
     ds.registerType<RIGv2::ActuatorsData>();
     ds.registerType<RIGv2::GroundModeManagerData>();
     ds.registerType<RIGv2::TarsActionData>();

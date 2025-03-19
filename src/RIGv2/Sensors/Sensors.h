@@ -64,8 +64,8 @@ public:
     Boardcore::PressureData getN2Vessel1Pressure();
     Boardcore::PressureData getN2Vessel2Pressure();
     Boardcore::PressureData getN2FillingPressure();
-    Boardcore::PressureData getOxTankTopPressure();
-    Boardcore::PressureData getOxTankBottomPressure();
+    Boardcore::PressureData getOxTankPressure();
+    Boardcore::PressureData getN2TankPressure();
     Boardcore::PressureData getCombustionChamberPressure();
 
     Boardcore::TemperatureData getOxTankTemperature();
@@ -77,16 +77,16 @@ public:
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::VoltageData getMotorBatteryVoltage();
 
-    Boardcore::PressureData getCanOxTankTopPressure();
-    Boardcore::PressureData getCanOxTankBottomPressure();
+    Boardcore::PressureData getCanOxTankPressure();
+    Boardcore::PressureData getCanN2TankPressure();
     Boardcore::PressureData getCanCombustionChamberPressure();
     Boardcore::TemperatureData getCanTankTemperature();
     Boardcore::VoltageData getCanMotorBatteryVoltage();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
-    void setCanOxTankTopPressure(Boardcore::PressureData data);
-    void setCanOxTankBottomPressure(Boardcore::PressureData data);
+    void setCanOxTankPressure(Boardcore::PressureData data);
+    void setCanN2TankPressure(Boardcore::PressureData data);
     void setCanCombustionChamberPressure(Boardcore::PressureData data);
     void setCanOxTankTemperature(Boardcore::TemperatureData data);
     void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
@@ -108,11 +108,11 @@ private:
     void n2FillingPressureInit();
     void n2FillingPressureCallback();
 
-    void oxTankTopPressureInit();
-    void oxTankTopPressureCallback();
+    void oxTankPressureInit();
+    void oxTankPressureCallback();
 
-    void oxTankBottomPressureInit();
-    void oxTankBottomPressureCallback();
+    void n2TankPressureInit();
+    void n2TankPressureCallback();
 
     void oxVesselWeightInit();
     void oxVesselWeightCallback();
@@ -142,8 +142,8 @@ private:
     std::atomic<bool> useCanData{false};
     miosix::FastMutex canMutex;
 
-    Boardcore::PressureData canOxTankTopPressure;
-    Boardcore::PressureData canOxTankBottomPressure;
+    Boardcore::PressureData canOxTankPressure;
+    Boardcore::PressureData canN2TankPressure;
     Boardcore::PressureData canCombustionChamberPressure;
     // TODO: N2 tank pressure from CAN
     Boardcore::TemperatureData canOxTankTemperature;
@@ -155,8 +155,8 @@ private:
     std::unique_ptr<Boardcore::TrafagPressureSensor> n2Vessel1Pressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> n2Vessel2Pressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> n2FillingPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankTopPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottomPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
 
