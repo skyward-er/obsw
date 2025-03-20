@@ -74,11 +74,11 @@ constexpr auto OX_VESSEL_LC_CHANNEL   = Channel::CHANNEL_5;
 constexpr auto OX_TANK_LC_CHANNEL     = Channel::CHANNEL_6;
 constexpr auto N2_FILLING_PT_CHANNEL  = Channel::CHANNEL_7;
 
-constexpr float CH0_SHUNT_RESISTANCE = 29.4048;  // TODO: check
-constexpr float CH1_SHUNT_RESISTANCE = 29.5830;  // TODO: check
-constexpr float CH2_SHUNT_RESISTANCE = 29.4973;  // TODO: check
-constexpr float CH3_SHUNT_RESISTANCE = 29.8849;  // TODO: check
-constexpr float CH7_SHUNT_RESISTANCE = 29.0;     // TODO: measure
+constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
+constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
+constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
+constexpr float CH3_SHUNT_RESISTANCE = 29.645f;
+constexpr float CH7_SHUNT_RESISTANCE = 29.708f;
 }  // namespace ADC_1
 
 namespace ADC_2
@@ -90,8 +90,8 @@ using Channel = Boardcore::ADS131M08Defs::Channel;
 constexpr auto OX_TANK_PT_CHANNEL = Channel::CHANNEL_0;
 constexpr auto N2_TANK_PT_CHANNEL = Channel::CHANNEL_1;
 
-constexpr float CH0_SHUNT_RESISTANCE = 29.0;  // TODO: measure
-constexpr float CH1_SHUNT_RESISTANCE = 29.0;  // TODO: measure
+constexpr float CH0_SHUNT_RESISTANCE = 29.685f;
+constexpr float CH1_SHUNT_RESISTANCE = 29.625f;
 }  // namespace ADC_2
 
 namespace MAX31856
@@ -113,14 +113,13 @@ constexpr float N2_TANK_SHUNT_RESISTANCE    = ADC_2::CH1_SHUNT_RESISTANCE;
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
-// TODO: check depending on which trafags are used
 constexpr float OX_VESSEL_MAX_PRESSURE  = 100;  // bar
-constexpr float OX_FILLING_MAX_PRESSURE = 250;  // bar
-constexpr float N2_VESSEL1_MAX_PRESSURE = 400;  // bar
-constexpr float N2_VESSEL2_MAX_PRESSURE = 400;  // bar
-constexpr float N2_FILLING_MAX_PRESSURE = 400;  // bar
-constexpr float OX_TANK_MAX_PRESSURE    = 250;  // bar
-constexpr float N2_TANK_MAX_PRESSURE    = 100;  // bar
+constexpr float OX_FILLING_MAX_PRESSURE = 100;  // bar
+constexpr float N2_VESSEL1_MAX_PRESSURE = 100;  // bar
+constexpr float N2_VESSEL2_MAX_PRESSURE = 100;  // bar
+constexpr float N2_FILLING_MAX_PRESSURE = 100;  // bar
+constexpr float OX_TANK_MAX_PRESSURE    = 100;  // bar
+constexpr float N2_TANK_MAX_PRESSURE    = 250;  // bar
 }  // namespace Trafag
 
 namespace LoadCell
