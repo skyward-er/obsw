@@ -35,6 +35,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/ND015X/ND015A.h>
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
@@ -74,7 +75,8 @@ public:
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLEXTLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLINEXTLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
     Boardcore::VN100SpiData getVN100LastSample();
@@ -90,6 +92,11 @@ public:
     Boardcore::PressureData getStaticPressure1LastSample();
     Boardcore::PressureData getStaticPressure2LastSample();
     Boardcore::PressureData getDplBayPressureLastSample();
+
+    Boardcore::ND015XData getND015A0LastSample();
+    Boardcore::ND015XData getND015A1LastSample();
+    Boardcore::ND015XData getND015A2LastSample();
+    Boardcore::ND015XData getND015A3LastSample();
 
     Boardcore::IMUData getIMULastSample();
     Boardcore::PressureData getAtmosPressureLastSample();
@@ -133,12 +140,17 @@ protected:
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
-    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_ext;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_in_ext;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
     std::unique_ptr<Boardcore::VN100Spi> vn100;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
+    std::unique_ptr<Boardcore::ND015A> nd015a_0;
+    std::unique_ptr<Boardcore::ND015A> nd015a_1;
+    std::unique_ptr<Boardcore::ND015A> nd015a_2;
+    std::unique_ptr<Boardcore::ND015A> nd015a_3;
 
     // Analog sensors
     std::unique_ptr<Boardcore::MPXH6115A> staticPressure1;
@@ -160,8 +172,11 @@ private:
     void h3lis331dlInit();
     void h3lis331dlCallback();
 
-    void lis2mdlInit();
-    void lis2mdlCallback();
+    void lis2mdlExtInit();
+    void lis2mdlExtCallback();
+
+    void lis2mdlInExtInit();
+    void lis2mdlInExtCallback();
 
     void ubxgpsInit();
     void ubxgpsCallback();
@@ -185,6 +200,18 @@ private:
 
     void dplBayPressureInit();
     void dplBayPressureCallback();
+
+    void nd015a0Init();
+    void nd015a0Callback();
+
+    void nd015a1Init();
+    void nd015a1Callback();
+
+    void nd015a2Init();
+    void nd015a2Callback();
+
+    void nd015a3Init();
+    void nd015a3Callback();
 
     void rotatedImuInit();
     void rotatedImuCallback();
