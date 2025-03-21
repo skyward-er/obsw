@@ -26,24 +26,34 @@
 namespace Motor
 {
 
-struct TopTankPressureData : Boardcore::PressureData
+struct OxTopTankPressureData : Boardcore::PressureData
 {
-    explicit TopTankPressureData(const Boardcore::PressureData& data)
+    explicit OxTopTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    TopTankPressureData() {}
+    OxTopTankPressureData() {}
 };
 
-struct BottomTankPressureData : Boardcore::PressureData
+struct OxBottomTankPressureData : Boardcore::PressureData
 {
-    explicit BottomTankPressureData(const Boardcore::PressureData& data)
+    explicit OxBottomTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    BottomTankPressureData() {}
+    OxBottomTankPressureData() {}
+};
+
+struct N2TankPressureData : Boardcore::PressureData
+{
+    explicit N2TankPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData{data}
+    {
+    }
+
+    N2TankPressureData() {}
 };
 
 struct CCPressureData : Boardcore::PressureData
