@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,11 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
-#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/ND015X/ND015A.h>
 #include <units/Frequency.h>
 
 #include <string>
@@ -41,15 +40,17 @@ namespace Config
 
 namespace Sensors
 {
-
 /* linter off */ using namespace Boardcore::Units::Frequency;
+
+// Switches between LPS22DF + LIS2MDL IN/EXT configuration and the dual
+// magnetometer configuration, LIS2MDL IN + LIS2MDL EXT.
+// The dual mag configuration is used during testing to compare magnetometer
+// positioning.
+// NOTE: Ensure the configuration pins on the board are soldered accordingly.
+constexpr bool USING_DUAL_MAGNETOMETER = false;
 
 constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
 constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
-
-// Minimum lps28dfw in order for the measure to be considered valid and
-// compensate other sensors
-constexpr float ATMOS_CALIBRATION_THRESH = 50000.0;  // [Pa]
 
 constexpr Hertz MAG_CALIBRATION_RATE = 50_hz;
 static const std::string MAG_CALIBRATION_FILENAME{"/sd/magCalibration.csv"};
@@ -62,16 +63,6 @@ constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
 constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace LPS22DF
-
-namespace LPS28DFW
-{
-constexpr Boardcore::LPS28DFW::FullScaleRange FS = Boardcore::LPS28DFW::FS_1260;
-constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_4;
-constexpr Boardcore::LPS28DFW::ODR ODR           = Boardcore::LPS28DFW::ODR_100;
-
-constexpr Hertz RATE   = 50_hz;
-constexpr bool ENABLED = true;
-}  // namespace LPS28DFW
 
 namespace H3LIS331DL
 {
@@ -125,33 +116,20 @@ constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace VN100
 
-namespace ADS131M08
+namespace ND015A
 {
-constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
-    Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
-constexpr bool GLOBAL_CHOP_MODE_EN = true;
+constexpr Boardcore::ND015A::IOWatchdogEnable IOW =
+    Boardcore::ND015A::IOWatchdogEnable::DISABLED;
+constexpr Boardcore::ND015A::BWLimitFilter BWL =
+    Boardcore::ND015A::BWLimitFilter::BWL_200;
+constexpr Boardcore::ND015A::NotchEnable NTC =
+    Boardcore::ND015A::NotchEnable::DISABLED;
 
-// ADC channels definitions for various sensors
-constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_1_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
-constexpr Boardcore::ADS131M08Defs::Channel STATIC_PRESSURE_2_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
-constexpr Boardcore::ADS131M08Defs::Channel DPL_BAY_PRESSURE_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_2;
-
-// These values have been calibrated via vacuum chamber, by looking at LPS28DFW
-// output and analog sensor output.
-constexpr float CHANNEL_0_SCALE = 4.21662235677003f;
-constexpr float CHANNEL_1_SCALE = 4.21662235677003f;
-constexpr float CHANNEL_2_SCALE = 4.21662235677003f;
-
-constexpr float STATIC_PRESSURE_1_SCALE = CHANNEL_0_SCALE;
-constexpr float STATIC_PRESSURE_2_SCALE = CHANNEL_1_SCALE;
-constexpr float DPL_BAY_PRESSURE_SCALE  = CHANNEL_2_SCALE;
+constexpr uint8_t ODR = 0x1C;
 
 constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
-}  // namespace ADS131M08
+}  // namespace ND015A
 
 namespace InternalADC
 {
@@ -178,15 +156,17 @@ constexpr bool ENABLED = true;
 
 namespace Atmos
 {
+enum class AtmosSensor
+{
+    SENSOR_0 = 0,
+    SENSOR_1 = 1,
+    SENSOR_2 = 2
+};
 
-// Setting this to true changes the atmospheric pressure to be the static
-// pressure port number 2
-constexpr bool USE_PORT_2 = false;
+// The sensor used for the atmospheric pressure, one of the 3 ND015A sensors
+constexpr AtmosSensor ATMOS_SENSOR = AtmosSensor::SENSOR_0;
 
 }  // namespace Atmos
-
 }  // namespace Sensors
-
 }  // namespace Config
-
 }  // namespace Main

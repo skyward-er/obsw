@@ -80,9 +80,13 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Main::ADAControllerStatus>();
     ds.registerType<Main::ABKControllerStatus>();
     ds.registerType<Main::PinChangeData>();
-    ds.registerType<Main::StaticPressureData1>();
-    ds.registerType<Main::StaticPressureData2>();
+    ds.registerType<Main::StaticPressure0Data>();
+    ds.registerType<Main::StaticPressure1Data>();
+    ds.registerType<Main::StaticPressure2Data>();
     ds.registerType<Main::DplBayPressureData>();
+    ds.registerType<Main::LSM6DSRX0Data>();
+    ds.registerType<Main::LSM6DSRX1Data>();
+    ds.registerType<Main::LIS2MDLExternalData>();
     ds.registerType<Main::CalibrationData>();
 
     // Motor

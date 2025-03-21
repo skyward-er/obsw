@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Emilio Corigliano
+ * Authors: Emilio Corigliano, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,12 +41,22 @@ public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
 
 private:
-    void lsm6dsrxCallback() override
+    void lsm6dsrx0Callback() override
     {
-        if (!lsm6dsrx)
+        if (!lsm6dsrx_0)
             return;
 
-        Boardcore::Logger::getInstance().log(lsm6dsrx->getLastSample());
+        Boardcore::Logger::getInstance().log(
+            LSM6DSRX0Data{lsm6dsrx_0->getLastSample()});
+    }
+
+    void lsm6dsrx1Callback() override
+    {
+        if (!lsm6dsrx_1)
+            return;
+
+        Boardcore::Logger::getInstance().log(
+            LSM6DSRX1Data{lsm6dsrx_1->getLastSample()});
     }
 
     bool postSensorCreationHook() override
@@ -75,8 +85,6 @@ private:
                 Config::HIL::BARO_PITOT_RATE);
         }
 
-        hillificator<>(lps28dfw, enableHw,
-                       [this]() { return updateLPS28DFWData(); });
         hillificator<>(lps22df, enableHw,
                        [this]() { return updateLPS22DFData(); });
         hillificator<>(h3lis331dl, enableHw,
@@ -85,11 +93,15 @@ private:
                        [this]() { return updateLIS2MDLData(); });
         hillificator<>(ubxgps, enableHw,
                        [this]() { return updateUBXGPSData(); });
-        hillificator<>(lsm6dsrx, enableHw,
+        hillificator<>(lsm6dsrx_0, enableHw,
                        [this]() { return updateLSM6DSRXData(); });
-        hillificator<>(staticPressure1, enableHw,
+        hillificator<>(lsm6dsrx_1, enableHw,
+                       [this]() { return updateLSM6DSRXData(); });
+        hillificator<>(nd015a_0, enableHw,
                        [this]() { return updateStaticPressureData(); });
-        hillificator<>(staticPressure2, enableHw,
+        hillificator<>(nd015a_1, enableHw,
+                       [this]() { return updateStaticPressureData(); });
+        hillificator<>(nd015a_2, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(rotatedImu, enableHw,
                        [this]() { return updateIMUData(*this); });
@@ -127,23 +139,6 @@ private:
 
         return sampleCounter;
     }
-
-    Boardcore::LPS28DFWData updateLPS28DFWData()
-    {
-        Boardcore::LPS28DFWData data;
-
-        auto* sensorData = getModule<MainHIL>()->getSensorData();
-
-        int iBaro = getSampleCounter(sensorData->barometer1.NDATA);
-        int iTemp = getSampleCounter(sensorData->temperature.NDATA);
-
-        data.pressureTimestamp = data.temperatureTimestamp =
-            Boardcore::TimestampTimer::getTimestamp();
-        data.pressure    = sensorData->barometer1.measures[iBaro];
-        data.temperature = sensorData->temperature.measures[iTemp];
-
-        return data;
-    };
 
     Boardcore::LPS22DFData updateLPS22DFData()
     {
@@ -245,9 +240,9 @@ private:
         return data;
     };
 
-    Boardcore::MPXH6115AData updateStaticPressureData()
+    Boardcore::ND015XData updateStaticPressureData()
     {
-        Boardcore::MPXH6115AData data;
+        Boardcore::ND015XData data;
 
         auto* sensorData = getModule<MainHIL>()->getSensorData();
 
@@ -262,8 +257,8 @@ private:
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
         auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
-                        ? getCalibratedLSM6DSRXLastSample()
-                        : getLSM6DSRXLastSample();
+                        ? getCalibratedLSM6DSRX0LastSample()
+                        : getLSM6DSRX0LastSample();
         auto mag  = getLIS2MDLLastSample();
 
         return Boardcore::IMUData{imu6, imu6, mag};

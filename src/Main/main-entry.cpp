@@ -47,9 +47,11 @@
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 
+using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
 using namespace Main;
@@ -292,11 +294,22 @@ int main()
         std::cout << "*** Init failure ***" << std::endl;
     }
 
-    std::cout << "Sensor status:" << std::endl;
+    std::string sensorConfig;
+    if (Config::Sensors::USING_DUAL_MAGNETOMETER)
+        sensorConfig = "LIS2MDL IN + LIS2MDL EXT";
+    else
+        sensorConfig = "LPS22DF + LIS2MDL IN/EXT";
+
+    std::cout << "Sensor status (config: " << sensorConfig << "):" << std::endl;
     for (auto info : sensors->getSensorInfos())
     {
-        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
-                  << (info.isInitialized ? "Ok" : "Error") << std::endl;
+        // The period being 0 means the sensor is disabled
+        auto statusStr = info.period == 0ns   ? "Disabled"
+                         : info.isInitialized ? "Ok"
+                                              : "Error";
+
+        std::cout << "\t" << std::setw(20) << std::left << info.id << " "
+                  << statusStr << std::endl;
     }
 
     while (true)

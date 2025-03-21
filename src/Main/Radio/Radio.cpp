@@ -312,41 +312,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
-        case MAVLINK_MSG_ID_SET_CALIBRATION_PRESSURE_TC:
-        {
-            if (getModule<FlightModeManager>()->getState() ==
-                FlightModeManagerState::DISARMED)
-            {
-                float press =
-                    mavlink_msg_set_calibration_pressure_tc_get_pressure(&msg);
-
-                if (press == 0)
-                {
-                    getModule<Sensors>()->resetBaroCalibrationReference();
-                    EventBroker::getInstance().post(
-                        TMTC_SET_CALIBRATION_PRESSURE, TOPIC_TMTC);
-                    enqueueAck(msg);
-                }
-                else
-                {
-                    getModule<Sensors>()->setBaroCalibrationReference(press);
-                    EventBroker::getInstance().post(
-                        TMTC_SET_CALIBRATION_PRESSURE, TOPIC_TMTC);
-
-                    if (press < 50000)
-                        enqueueWack(msg, 0);
-                    else
-                        enqueueAck(msg);
-                }
-            }
-            else
-            {
-                enqueueNack(msg, 0);
-            }
-
-            break;
-        }
-
         default:
         {
             enqueueNack(msg, 0);
@@ -591,12 +556,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.mag_scale_x          = data.magScaleX;
             tm.mag_scale_y          = data.magScaleY;
             tm.mag_scale_z          = data.magScaleZ;
-            tm.static_press_1_bias  = data.staticPress1Bias;
-            tm.static_press_1_scale = data.staticPress1Scale;
-            tm.static_press_2_bias  = data.staticPress2Bias;
-            tm.static_press_2_scale = data.staticPress2Scale;
-            tm.dpl_bay_press_bias   = data.dplBayPressBias;
-            tm.dpl_bay_press_scale  = data.dplBayPressScale;
+            tm.static_press_1_bias  = -1.0f;  // TODO: remove in mavlink
+            tm.static_press_1_scale = -1.0f;  // TODO: remove in mavlink
+            tm.static_press_2_bias  = -1.0f;  // TODO: remove in mavlink
+            tm.static_press_2_scale = -1.0f;  // TODO: remove in mavlink
+            tm.dpl_bay_press_bias   = -1.0f;  // TODO: remove in mavlink
+            tm.dpl_bay_press_scale  = -1.0f;  // TODO: remove in mavlink
 
             mavlink_msg_calibration_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                               Config::Radio::MAV_COMPONENT_ID,
@@ -689,11 +654,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             MEAController* mea     = getModule<MEAController>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
 
-            auto pressDigi    = sensors->getLPS28DFWLastSample();
             auto imu          = sensors->getIMULastSample();
             auto gps          = sensors->getUBXGPSLastSample();
             auto vn100        = sensors->getVN100LastSample();
-            auto pressStatic  = sensors->getStaticPressure1LastSample();
+            auto temperature  = sensors->getTemperatureLastSample();
+            auto pressStatic  = sensors->getAtmosPressureLastSample();
             auto pressDpl     = sensors->getDplBayPressureLastSample();
             auto pitotStatic  = sensors->getCanPitotStaticPressLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressLastSample();
@@ -717,7 +682,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.mea_apogee     = meaState.estimatedApogee;
 
             // Sensors
-            tm.pressure_digi   = pressDigi.pressure;
+            tm.pressure_digi   = -1.0f;  // TODO: rmeove in mavlink
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
 
@@ -771,7 +736,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
             tm.cam_battery_voltage =
                 sensors->getCamBatteryVoltageLastSample().voltage;
-            tm.temperature = pressDigi.temperature;
+            tm.temperature = temperature.temperature;
 
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                 Config::Radio::MAV_COMPONENT_ID,
@@ -968,39 +933,6 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
-        case MAV_ADS131M08_ID:
-        {
-            mavlink_message_t msg;
-
-            auto sample = getModule<Sensors>()->getADS131M08LastSample();
-
-            mavlink_adc_tm_t tm;
-            tm.channel_0 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
-            tm.channel_1 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_1).voltage;
-            tm.channel_2 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_2).voltage;
-            tm.channel_3 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_3).voltage;
-            tm.channel_4 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_4).voltage;
-            tm.channel_5 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_5).voltage;
-            tm.channel_6 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_6).voltage;
-            tm.channel_7 =
-                sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_7).voltage;
-            tm.timestamp = sample.timestamp;
-            strcpy(tm.sensor_name, "ADS131M08");
-
-            mavlink_msg_adc_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                      Config::Radio::MAV_COMPONENT_ID, &msg,
-                                      &tm);
-            enqueuePacket(msg);
-            return true;
-        }
-
         case MAV_BATTERY_VOLTAGE_ID:
         {
             mavlink_message_t msg;
@@ -1016,35 +948,6 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
                                           &tm);
             enqueuePacket(msg);
-            return true;
-        }
-
-        case MAV_LPS28DFW_ID:
-        {
-            mavlink_message_t msg;
-
-            auto sample = getModule<Sensors>()->getLPS28DFWLastSample();
-
-            mavlink_pressure_tm_t tm1;
-            tm1.pressure  = sample.pressure;
-            tm1.timestamp = sample.pressureTimestamp;
-            strcpy(tm1.sensor_name, "LPS28DFW");
-
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm1);
-            enqueuePacket(msg);
-
-            mavlink_temp_tm_t tm2;
-            tm2.temperature = sample.temperature;
-            tm2.timestamp   = sample.temperatureTimestamp;
-            strcpy(tm2.sensor_name, "LPS28DFW");
-
-            mavlink_msg_temp_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                       Config::Radio::MAV_COMPONENT_ID, &msg,
-                                       &tm2);
-            enqueuePacket(msg);
-
             return true;
         }
 
@@ -1116,27 +1019,54 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
         case MAV_LSM6DSRX_ID:
         {
-            mavlink_message_t msg;
+            {
+                mavlink_message_t msg;
 
-            auto sample = getModule<Sensors>()->getLSM6DSRXLastSample();
+                auto sample = getModule<Sensors>()->getLSM6DSRX0LastSample();
 
-            mavlink_imu_tm_t tm;
-            tm.mag_x     = -1.0f;
-            tm.mag_y     = -1.0f;
-            tm.mag_z     = -1.0f;
-            tm.acc_x     = sample.accelerationX;
-            tm.acc_y     = sample.accelerationY;
-            tm.acc_z     = sample.accelerationZ;
-            tm.gyro_x    = sample.angularSpeedX;
-            tm.gyro_y    = sample.angularSpeedY;
-            tm.gyro_z    = sample.angularSpeedZ;
-            tm.timestamp = sample.accelerationTimestamp;
-            strcpy(tm.sensor_name, "LSM6DSRX");
+                mavlink_imu_tm_t tm;
+                tm.mag_x     = -1.0f;
+                tm.mag_y     = -1.0f;
+                tm.mag_z     = -1.0f;
+                tm.acc_x     = sample.accelerationX;
+                tm.acc_y     = sample.accelerationY;
+                tm.acc_z     = sample.accelerationZ;
+                tm.gyro_x    = sample.angularSpeedX;
+                tm.gyro_y    = sample.angularSpeedY;
+                tm.gyro_z    = sample.angularSpeedZ;
+                tm.timestamp = sample.accelerationTimestamp;
+                strcpy(tm.sensor_name, "LSM6DSRX_0");
 
-            mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                      Config::Radio::MAV_COMPONENT_ID, &msg,
-                                      &tm);
-            enqueuePacket(msg);
+                mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+                enqueuePacket(msg);
+            }
+
+            {
+                mavlink_message_t msg;
+
+                auto sample = getModule<Sensors>()->getLSM6DSRX1LastSample();
+
+                mavlink_imu_tm_t tm;
+                tm.mag_x     = -1.0f;
+                tm.mag_y     = -1.0f;
+                tm.mag_z     = -1.0f;
+                tm.acc_x     = sample.accelerationX;
+                tm.acc_y     = sample.accelerationY;
+                tm.acc_z     = sample.accelerationZ;
+                tm.gyro_x    = sample.angularSpeedX;
+                tm.gyro_y    = sample.angularSpeedY;
+                tm.gyro_z    = sample.angularSpeedZ;
+                tm.timestamp = sample.accelerationTimestamp;
+                strcpy(tm.sensor_name, "LSM6DSRX_1");
+
+                mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+                enqueuePacket(msg);
+            }
+
             return true;
         }
 
@@ -1213,12 +1143,12 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         {
             mavlink_message_t msg;
 
-            auto sample = getModule<Sensors>()->getStaticPressure1LastSample();
+            auto sample = getModule<Sensors>()->getND015A0LastSample();
 
             mavlink_pressure_tm_t tm;
             tm.pressure  = sample.pressure;
             tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "StaticPressure1");
+            strcpy(tm.sensor_name, "ND015A_0");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -1232,12 +1162,12 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         {
             mavlink_message_t msg;
 
-            auto sample = getModule<Sensors>()->getStaticPressure2LastSample();
+            auto sample = getModule<Sensors>()->getND015A0LastSample();
 
             mavlink_pressure_tm_t tm;
             tm.pressure  = sample.pressure;
             tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "StaticPressure2");
+            strcpy(tm.sensor_name, "ND015A_1");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,

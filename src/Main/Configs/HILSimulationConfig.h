@@ -67,12 +67,10 @@ static_assert(N_DATA_MAGNETO * SIMULATION_RATE >= Sensors::LIS2MDL::RATE,
               "N_DATA_MAGNETO not enough");
 static_assert(N_DATA_GPS * SIMULATION_RATE >= Sensors::UBXGPS::RATE,
               "N_DATA_GPS not enough");
-static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::ADS131M08::RATE,
-              "N_DATA_BARO_STATIC not enough");
 static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::LPS22DF::RATE,
-              "N_DATA_BARO_STATIC not enough");
-static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::LPS28DFW::RATE,
-              "N_DATA_BARO_STATIC not enough");
+              "N_DATA_BARO_STATIC not enough (LPS22DF)");
+static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::ND015A::RATE,
+              "N_DATA_BARO_STATIC not enough (ND015A)");
 static_assert(N_DATA_BARO_CHAMBER * SIMULATION_RATE >= BARO_CHAMBER_RATE,
               "N_DATA_BARO_CHAMBER not enough");
 static_assert(N_DATA_PITOT * SIMULATION_RATE >= BARO_PITOT_RATE,

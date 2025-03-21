@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,17 @@
 
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
+#include <Main/Configs/SensorsConfig.h>
 #include <Main/Sensors/SensorsData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
-#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/ND015X/ND015A.h>
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
@@ -63,36 +63,40 @@ public:
 
     CalibrationData getCalibration();
 
-    void setBaroCalibrationReference(float reference);
-    void resetBaroCalibrationReference();
-
     void resetMagCalibrator();
     void enableMagCalibrator();
     void disableMagCalibrator();
     bool saveMagCalibration();
 
     Boardcore::LPS22DFData getLPS22DFLastSample();
-    Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLExtLastSample();
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
     Boardcore::VN100SpiData getVN100LastSample();
-    Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
+    Boardcore::LIS2MDLData getCalibratedLIS2MDLExtLastSample();
     Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
-    Boardcore::LSM6DSRXData getCalibratedLSM6DSRXLastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
+    Boardcore::IMUData getIMULastSample();
+
+    Boardcore::ND015XData getND015A0LastSample();
+    Boardcore::ND015XData getND015A1LastSample();
+    Boardcore::ND015XData getND015A2LastSample();
+    Boardcore::ND015XData getND015A3LastSample();
 
     Boardcore::VoltageData getBatteryVoltageLastSample();
     Boardcore::VoltageData getCamBatteryVoltageLastSample();
 
-    Boardcore::PressureData getStaticPressure1LastSample();
-    Boardcore::PressureData getStaticPressure2LastSample();
+    Boardcore::PressureData getAtmosPressureLastSample(
+        Config::Sensors::Atmos::AtmosSensor =
+            Config::Sensors::Atmos::ATMOS_SENSOR);
     Boardcore::PressureData getDplBayPressureLastSample();
-
-    Boardcore::IMUData getIMULastSample();
-    Boardcore::PressureData getAtmosPressureLastSample();
+    Boardcore::TemperatureData getTemperatureLastSample();
 
     Boardcore::PressureData getCanPitotDynamicPressLastSample();
     Boardcore::PressureData getCanPitotStaticPressLastSample();
@@ -116,7 +120,8 @@ public:
 protected:
     virtual bool postSensorCreationHook() { return true; }
 
-    virtual void lsm6dsrxCallback();
+    virtual void lsm6dsrx0Callback();
+    virtual void lsm6dsrx1Callback();
 
     Boardcore::TaskScheduler& getSensorsScheduler();
 
@@ -131,19 +136,18 @@ protected:
 
     // Digital sensors
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
-    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_ext;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
     std::unique_ptr<Boardcore::VN100Spi> vn100;
-    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
-
-    // Analog sensors
-    std::unique_ptr<Boardcore::MPXH6115A> staticPressure1;
-    std::unique_ptr<Boardcore::MPXH6115A> staticPressure2;
-    std::unique_ptr<Boardcore::MPXH6115A> dplBayPressure;
+    std::unique_ptr<Boardcore::ND015A> nd015a_0;
+    std::unique_ptr<Boardcore::ND015A> nd015a_1;
+    std::unique_ptr<Boardcore::ND015A> nd015a_2;
+    std::unique_ptr<Boardcore::ND015A> nd015a_3;
 
     // Virtual sensors
     std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
@@ -154,11 +158,11 @@ private:
     void lps22dfInit();
     void lps22dfCallback();
 
-    void lps28dfwInit();
-    void lps28dfwCallback();
-
     void h3lis331dlInit();
     void h3lis331dlCallback();
+
+    void lis2mdlExtInit();
+    void lis2mdlExtCallback();
 
     void lis2mdlInit();
     void lis2mdlCallback();
@@ -166,34 +170,32 @@ private:
     void ubxgpsInit();
     void ubxgpsCallback();
 
-    void lsm6dsrxInit();
+    void lsm6dsrx0Init();
+
+    void lsm6dsrx1Init();
 
     void vn100Init();
     void vn100Callback();
 
-    void ads131m08Init();
-    void ads131m08Callback();
-
     void internalAdcInit();
     void internalAdcCallback();
 
-    void staticPressure1Init();
-    void staticPressure1Callback();
+    void nd015a0Init();
+    void nd015a0Callback();
 
-    void staticPressure2Init();
-    void staticPressure2Callback();
+    void nd015a1Init();
+    void nd015a1Callback();
 
-    void dplBayPressureInit();
-    void dplBayPressureCallback();
+    void nd015a2Init();
+    void nd015a2Callback();
+
+    void nd015a3Init();
+    void nd015a3Callback();
 
     void rotatedImuInit();
     void rotatedImuCallback();
 
     bool sensorManagerInit();
-
-    miosix::FastMutex baroCalibrationMutex;
-    float baroCalibrationReference   = 0;
-    bool useBaroCalibrationReference = false;
 
     miosix::FastMutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;

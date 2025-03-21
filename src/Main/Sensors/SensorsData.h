@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,41 @@
 
 #pragma once
 
+#include <sensors/LIS2MDL/LIS2MDLData.h>
+#include <sensors/LSM6DSRX/LSM6DSRXData.h>
 #include <sensors/SensorData.h>
 
 namespace Main
 {
 
-struct StaticPressureData1 : Boardcore::PressureData
+struct StaticPressure0Data : public Boardcore::PressureData
 {
-    explicit StaticPressureData1(const Boardcore::PressureData& data)
+    explicit StaticPressure0Data(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    StaticPressureData1() {}
+    StaticPressure0Data() {}
 };
 
-struct StaticPressureData2 : Boardcore::PressureData
+struct StaticPressure1Data : Boardcore::PressureData
 {
-    explicit StaticPressureData2(const Boardcore::PressureData& data)
+    explicit StaticPressure1Data(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
-    StaticPressureData2() {}
+    StaticPressure1Data() {}
+};
+
+struct StaticPressure2Data : Boardcore::PressureData
+{
+    explicit StaticPressure2Data(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    StaticPressure2Data() {}
 };
 
 struct DplBayPressureData : Boardcore::PressureData
@@ -57,41 +69,60 @@ struct DplBayPressureData : Boardcore::PressureData
     DplBayPressureData() {}
 };
 
+struct LSM6DSRX0Data : Boardcore::LSM6DSRXData
+{
+    explicit LSM6DSRX0Data(const Boardcore::LSM6DSRXData& data)
+        : Boardcore::LSM6DSRXData(data)
+    {
+    }
+
+    LSM6DSRX0Data() {}
+};
+
+struct LSM6DSRX1Data : Boardcore::LSM6DSRXData
+{
+    explicit LSM6DSRX1Data(const Boardcore::LSM6DSRXData& data)
+        : Boardcore::LSM6DSRXData(data)
+    {
+    }
+
+    LSM6DSRX1Data() {}
+};
+
+struct LIS2MDLExternalData : Boardcore::LIS2MDLData
+{
+    explicit LIS2MDLExternalData(const Boardcore::LIS2MDLData& data)
+        : Boardcore::LIS2MDLData(data)
+    {
+    }
+
+    LIS2MDLExternalData() {}
+};
+
 struct CalibrationData
 {
-    uint64_t timestamp      = 0;
-    float gyroBiasX         = 0.0f;
-    float gyroBiasY         = 0.0f;
-    float gyroBiasZ         = 0.0f;
-    float magBiasX          = 0.0f;
-    float magBiasY          = 0.0f;
-    float magBiasZ          = 0.0f;
-    float magScaleX         = 0.0f;
-    float magScaleY         = 0.0f;
-    float magScaleZ         = 0.0f;
-    float staticPress1Bias  = 0.0f;
-    float staticPress1Scale = 0.0f;
-    float staticPress2Bias  = 0.0f;
-    float staticPress2Scale = 0.0f;
-    float dplBayPressBias   = 0.0f;
-    float dplBayPressScale  = 0.0f;
+    uint64_t timestamp = 0;
+    float gyroBiasX    = 0.0f;
+    float gyroBiasY    = 0.0f;
+    float gyroBiasZ    = 0.0f;
+    float magBiasX     = 0.0f;
+    float magBiasY     = 0.0f;
+    float magBiasZ     = 0.0f;
+    float magScaleX    = 0.0f;
+    float magScaleY    = 0.0f;
+    float magScaleZ    = 0.0f;
 
     static std::string header()
     {
         return "timestamp,gyroBiasX,gyroBiasY,gyroBiasZ,magBiasX,magBiasY,"
-               "magBiasZ,magScaleX,magScaleY,magScaleZ,staticPress1Bias,"
-               "staticPress1Scale,staticPress2Bias,staticPress2Scale,"
-               "dplBayPressBias,dplBayPressScale\n";
+               "magBiasZ,magScaleX,magScaleY,magScaleZ\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
            << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ
-           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << ","
-           << staticPress1Bias << "," << staticPress1Scale << ","
-           << staticPress2Bias << "," << staticPress2Scale << ","
-           << dplBayPressBias << "," << dplBayPressScale << "\n";
+           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << "\n";
     }
 };
 

@@ -64,9 +64,13 @@ void registerTypes(Deserializer& ds)
     ds.registerType<ADAControllerStatus>();
     ds.registerType<ABKControllerStatus>();
     ds.registerType<PinChangeData>();
-    ds.registerType<StaticPressureData1>();
-    ds.registerType<StaticPressureData2>();
+    ds.registerType<StaticPressure0Data>();
+    ds.registerType<StaticPressure1Data>();
+    ds.registerType<StaticPressure2Data>();
     ds.registerType<DplBayPressureData>();
+    ds.registerType<LSM6DSRX0Data>();
+    ds.registerType<LSM6DSRX1Data>();
+    ds.registerType<LIS2MDLExternalData>();
     ds.registerType<CalibrationData>();
 }
 

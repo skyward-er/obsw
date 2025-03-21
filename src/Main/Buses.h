@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <drivers/i2c/I2C.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
 #include <interfaces-impl/hwmapping.h>
@@ -43,11 +42,10 @@ public:
     Boardcore::SPIBus& getVN100() { return spi1; }
     Boardcore::SPIBus& getUBXGps() { return spi3; }
     Boardcore::SPIBus& getADS131M08() { return spi4; }
+    Boardcore::SPIBus& getND015A() { return spi4; }
     Boardcore::SPIBus& getRadio() { return spi6; }
 
     Boardcore::USART& getHILUart() { return usart4; }
-
-    Boardcore::I2C& getLPS28DFW() { return i2c1; }
 
 private:
     Boardcore::SPIBus spi1{SPI1};
@@ -56,9 +54,6 @@ private:
     Boardcore::SPIBus spi6{SPI6};
 
     Boardcore::USART usart4{UART4, 256000, 1024};
-
-    Boardcore::I2C i2c1{I2C1, miosix::interfaces::i2c1::scl::getPin(),
-                        miosix::interfaces::i2c1::sda::getPin()};
 };
 
 }  // namespace Main
