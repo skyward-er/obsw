@@ -75,8 +75,8 @@ public:
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLEXTLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLINEXTLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLExtLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLInExtLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
     Boardcore::VN100SpiData getVN100LastSample();

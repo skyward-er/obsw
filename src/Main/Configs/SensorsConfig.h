@@ -41,6 +41,10 @@ namespace Config
 
 namespace Sensors
 {
+// this variable is used to check if the LPS22DF sensor is connected to the PD7
+// pin, if it is set to false it is assumed that the external LIS2MDL sensor is
+// connected to said pin
+constexpr bool USING_LPS22DF = false;
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
@@ -152,6 +156,11 @@ constexpr float DPL_BAY_PRESSURE_SCALE  = CHANNEL_2_SCALE;
 constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace ADS131M08
+
+namespace ND015A
+{
+constexpr bool ENABLED = true;
+}  // namespace ND015A
 
 namespace InternalADC
 {
