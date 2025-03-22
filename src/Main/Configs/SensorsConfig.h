@@ -103,7 +103,7 @@ constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace UBXGPS
 
-namespace LSM6DSRX
+namespace LSM6DSRX_0
 {
 constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
     Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
@@ -121,7 +121,27 @@ constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
 
 constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
-}  // namespace LSM6DSRX
+}  // namespace LSM6DSRX_0
+
+namespace LSM6DSRX_1
+{
+constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
+    Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
+constexpr Boardcore::LSM6DSRXConfig::ACC_ODR ACC_ODR =
+    Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
+constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
+constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
+    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
+constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
+    Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
+constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace LSM6DSRX_1
 
 namespace VN100
 {
@@ -157,10 +177,65 @@ constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace ADS131M08
 
-namespace ND015A
+namespace ND015A_0
 {
+constexpr Boardcore::ND015A::IOWatchdogEnable IOW =
+    Boardcore::ND015A::IOWatchdogEnable::DISABLED;
+constexpr Boardcore::ND015A::BWLimitFilter BWL =
+    Boardcore::ND015A::BWLimitFilter::BWL_200;
+constexpr Boardcore::ND015A::NotchEnable NTC =
+    Boardcore::ND015A::NotchEnable::DISABLED;
+
+constexpr uint8_t ODR = 0x1C;
+
+constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
-}  // namespace ND015A
+}  // namespace ND015A_0
+
+namespace ND015A_1
+{
+constexpr Boardcore::ND015A::IOWatchdogEnable IOW =
+    Boardcore::ND015A::IOWatchdogEnable::DISABLED;
+constexpr Boardcore::ND015A::BWLimitFilter BWL =
+    Boardcore::ND015A::BWLimitFilter::BWL_200;
+constexpr Boardcore::ND015A::NotchEnable NTC =
+    Boardcore::ND015A::NotchEnable::DISABLED;
+
+constexpr uint8_t ODR = 0x1C;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace ND015A_1
+
+namespace ND015A_2
+{
+constexpr Boardcore::ND015A::IOWatchdogEnable IOW =
+    Boardcore::ND015A::IOWatchdogEnable::DISABLED;
+constexpr Boardcore::ND015A::BWLimitFilter BWL =
+    Boardcore::ND015A::BWLimitFilter::BWL_200;
+constexpr Boardcore::ND015A::NotchEnable NTC =
+    Boardcore::ND015A::NotchEnable::DISABLED;
+
+constexpr uint8_t ODR = 0x1C;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace ND015A_2
+
+namespace ND015A_3
+{
+constexpr Boardcore::ND015A::IOWatchdogEnable IOW =
+    Boardcore::ND015A::IOWatchdogEnable::DISABLED;
+constexpr Boardcore::ND015A::BWLimitFilter BWL =
+    Boardcore::ND015A::BWLimitFilter::BWL_200;
+constexpr Boardcore::ND015A::NotchEnable NTC =
+    Boardcore::ND015A::NotchEnable::DISABLED;
+
+constexpr uint8_t ODR = 0x1C;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace ND015A_3
 
 namespace InternalADC
 {

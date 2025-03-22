@@ -56,8 +56,11 @@ bool Sensors::start()
     if (Config::Sensors::UBXGPS::ENABLED)
         ubxgpsInit();
 
-    if (Config::Sensors::LSM6DSRX::ENABLED)
-        lsm6dsrxInit();
+    if (Config::Sensors::LSM6DSRX_0::ENABLED)
+        lsm6dsrx0Init();
+
+    if (Config::Sensors::LSM6DSRX_1::ENABLED)
+        lsm6dsrx1Init();
 
     if (Config::Sensors::VN100::ENABLED)
         vn100Init();
@@ -65,13 +68,17 @@ bool Sensors::start()
     if (Config::Sensors::ADS131M08::ENABLED)
         ads131m08Init();
 
-    if (Config::Sensors::ND015A::ENABLED)
-    {
+    if (Config::Sensors::ND015A_0::ENABLED)
         nd015a0Init();
+
+    if (Config::Sensors::ND015A_1::ENABLED)
         nd015a1Init();
+
+    if (Config::Sensors::ND015A_2::ENABLED)
         nd015a2Init();
+
+    if (Config::Sensors::ND015A_3::ENABLED)
         nd015a3Init();
-    }
 
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
@@ -282,9 +289,14 @@ UBXGPSData Sensors::getUBXGPSLastSample()
     return ubxgps ? ubxgps->getLastSample() : UBXGPSData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+LSM6DSRXData Sensors::getLSM6DSRX0LastSample()
 {
-    return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx_0 ? lsm6dsrx_0->getLastSample() : LSM6DSRXData{};
+}
+
+LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
+{
+    return lsm6dsrx_1 ? lsm6dsrx_1->getLastSample() : LSM6DSRXData{};
 }
 
 VN100SpiData Sensors::getVN100LastSample()
@@ -493,8 +505,11 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         if (ubxgps)
             infos.push_back(manager->getSensorInfo(ubxgps.get()));
 
-        if (lsm6dsrx)
-            infos.push_back(manager->getSensorInfo(lsm6dsrx.get()));
+        if (lsm6dsrx_0)
+            infos.push_back(manager->getSensorInfo(lsm6dsrx_0.get()));
+
+        if (lsm6dsrx_1)
+            infos.push_back(manager->getSensorInfo(lsm6dsrx_1.get()));
 
         if (vn100)
             infos.push_back(manager->getSensorInfo(vn100.get()));
@@ -634,7 +649,7 @@ void Sensors::ubxgpsInit()
 
 void Sensors::ubxgpsCallback() { sdLogger.log(getUBXGPSLastSample()); }
 
-void Sensors::lsm6dsrxInit()
+void Sensors::lsm6dsrx0Init()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -643,32 +658,71 @@ void Sensors::lsm6dsrxInit()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_0::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_0::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_0::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_0::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_0::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_0::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
 
-    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                          sensors::LSM6DSRX::cs::getPin(),
-                                          spiConfig, config);
+    lsm6dsrx_0 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
+                                            sensors::LSM6DSRX_0::cs::getPin(),
+                                            spiConfig, config);
 }
 
-void Sensors::lsm6dsrxCallback()
+void Sensors::lsm6dsrx0Callback()
 {
-    if (!lsm6dsrx)
+    if (!lsm6dsrx_0)
         return;
 
     // For every instance inside the fifo log the sample
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx_0->getLastFifo(lastFifoSize);
+    for (uint16_t i = 0; i < lastFifoSize; i++)
+        sdLogger.log(lastFifo.at(i));
+}
+
+void Sensors::lsm6dsrx1Init()
+{
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.mode         = SPI::Mode::MODE_0;
+
+    LSM6DSRXConfig config;
+    config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
+
+    config.fsAcc     = Config::Sensors::LSM6DSRX_1::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_1::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_1::ACC_OP_MODE;
+
+    config.fsGyr     = Config::Sensors::LSM6DSRX_1::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_1::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_1::GYR_OP_MODE;
+
+    config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
+    config.fifoTimestampDecimation =
+        LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
+    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+
+    lsm6dsrx_1 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
+                                            sensors::LSM6DSRX_1::cs::getPin(),
+                                            spiConfig, config);
+}
+
+void Sensors::lsm6dsrx1Callback()
+{
+    if (!lsm6dsrx_1)
+        return;
+
+    // For every instance inside the fifo log the sample
+    uint16_t lastFifoSize;
+    const auto lastFifo = lsm6dsrx_1->getLastFifo(lastFifoSize);
     for (uint16_t i = 0; i < lastFifoSize; i++)
         sdLogger.log(lastFifo.at(i));
 }
@@ -749,6 +803,58 @@ void Sensors::internalAdcCallback()
     sdLogger.log(getInternalADCLastSample());
 }
 
+void Sensors::nd015a0Init()
+{
+    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+
+    nd015a_0 = std::make_unique<ND015A>(
+        getModule<Buses>()->getND015A(), sensors::ND015A_0::cs::getPin(),
+        spiConfig, Config::Sensors::ND015A_0::IOW,
+        Config::Sensors::ND015A_0::BWL, Config::Sensors::ND015A_0::NTC,
+        Config::Sensors::ND015A_0::ODR);
+}
+
+void Sensors::nd015a0Callback() { sdLogger.log(getND015A0LastSample()); }
+
+void Sensors::nd015a1Init()
+{
+    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+
+    nd015a_1 = std::make_unique<ND015A>(
+        getModule<Buses>()->getND015A(), sensors::ND015A_1::cs::getPin(),
+        spiConfig, Config::Sensors::ND015A_1::IOW,
+        Config::Sensors::ND015A_1::BWL, Config::Sensors::ND015A_1::NTC,
+        Config::Sensors::ND015A_1::ODR);
+}
+
+void Sensors::nd015a1Callback() { sdLogger.log(getND015A1LastSample()); }
+
+void Sensors::nd015a2Init()
+{
+    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+
+    nd015a_2 = std::make_unique<ND015A>(
+        getModule<Buses>()->getND015A(), sensors::ND015A_2::cs::getPin(),
+        spiConfig, Config::Sensors::ND015A_2::IOW,
+        Config::Sensors::ND015A_2::BWL, Config::Sensors::ND015A_2::NTC,
+        Config::Sensors::ND015A_2::ODR);
+}
+
+void Sensors::nd015a2Callback() { sdLogger.log(getND015A2LastSample()); }
+
+void Sensors::nd015a3Init()
+{
+    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+
+    nd015a_3 = std::make_unique<ND015A>(
+        getModule<Buses>()->getND015A(), sensors::ND015A_3::cs::getPin(),
+        spiConfig, Config::Sensors::ND015A_3::IOW,
+        Config::Sensors::ND015A_3::BWL, Config::Sensors::ND015A_3::NTC,
+        Config::Sensors::ND015A_3::ODR);
+}
+
+void Sensors::nd015a3Callback() { sdLogger.log(getND015A3LastSample()); }
+
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
@@ -826,11 +932,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(ubxgps.get(), info);
     }
 
-    if (lsm6dsrx)
+    if (lsm6dsrx_0)
     {
-        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::RATE,
+        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX_0::RATE,
                         [this]() { lsm6dsrxCallback(); }};
-        map.emplace(lsm6dsrx.get(), info);
+        map.emplace(lsm6dsrx_0.get(), info);
+    }
+
+    if (lsm6dsrx_1)
+    {
+        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX_1::RATE,
+                        [this]() { lsm6dsrxCallback(); }};
+        map.emplace(lsm6dsrx_1.get(), info);
     }
 
     if (vn100)
@@ -852,6 +965,34 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE,
                         [this]() { internalAdcCallback(); }};
         map.emplace(internalAdc.get(), info);
+    }
+
+    if (nd015a_0)
+    {
+        SensorInfo info{"ND015A0", Config::Sensors::ND015A_0::RATE,
+                        [this]() { nd015a0Callback(); }};
+        map.emplace(nd015a_0.get(), info);
+    }
+
+    if (nd015a_1)
+    {
+        SensorInfo info{"ND015A1", Config::Sensors::ND015A_1::RATE,
+                        [this]() { nd015a1Callback(); }};
+        map.emplace(nd015a_1.get(), info);
+    }
+
+    if (nd015a_2)
+    {
+        SensorInfo info{"ND015A2", Config::Sensors::ND015A_2::RATE,
+                        [this]() { nd015a2Callback(); }};
+        map.emplace(nd015a_2.get(), info);
+    }
+
+    if (nd015a_3)
+    {
+        SensorInfo info{"ND015A3", Config::Sensors::ND015A_3::RATE,
+                        [this]() { nd015a3Callback(); }};
+        map.emplace(nd015a_3.get(), info);
     }
 
     if (rotatedImu)

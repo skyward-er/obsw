@@ -78,7 +78,8 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLExtLastSample();
     Boardcore::LIS2MDLData getLIS2MDLInExtLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
     Boardcore::VN100SpiData getVN100LastSample();
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
@@ -139,7 +140,8 @@ protected:
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_ext;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_in_ext;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
     std::unique_ptr<Boardcore::VN100Spi> vn100;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
@@ -172,7 +174,11 @@ private:
     void ubxgpsInit();
     void ubxgpsCallback();
 
-    void lsm6dsrxInit();
+    void lsm6dsrx0Init();
+    void lsm6dsrx0Callback();
+
+    void lsm6dsrx1Init();
+    void lsm6dsrx1Callback();
 
     void vn100Init();
     void vn100Callback();
