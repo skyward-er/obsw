@@ -112,7 +112,9 @@ add_executable(lyra-gs-entry
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
 
-# Parafoil targets
+#-----------------------------------------------------------------------------#
+#                            Parafoil entrypoints                             #
+#-----------------------------------------------------------------------------#
 
 add_executable(parafoil-progressive-rotation src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-progressive-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -155,3 +157,7 @@ target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
     DYNAMIC_TARGET_LONGITUDE_OFFSET=50
 )
 sbs_target(parafoil-t-approach-dynamic stm32f429zi_death_stack_v2)
+
+add_executable(mockup-main src/MockupMain/mockup-entry.cpp ${MOCKUP_MAIN_COMPUTER})
+target_include_directories(mockup-main PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(mockup-main stm32f429zi_death_stack_v2)

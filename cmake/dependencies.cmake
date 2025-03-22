@@ -144,3 +144,13 @@ set(PARAFOIL_COMPUTER
     src/Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
     src/Parafoil/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
 )
+
+set(MOCKUP_MAIN_COMPUTER 
+    src/MockupMain/PinHandler/PinHandler.cpp
+    src/MockupMain/Radio/Radio.cpp
+    src/MockupMain/Radio/MessageHandler.cpp
+    src/MockupMain/FlightStatsRecorder/FlightStatsRecorder.cpp
+    src/MockupMain/Sensors/Sensors.cpp
+    src/MockupMain/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/MockupMain/StateMachines/NASController/NASController.cpp
+)
