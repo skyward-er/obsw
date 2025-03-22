@@ -50,6 +50,12 @@ constexpr uint8_t MAV_COMPONENT_ID = 96;
 // Periodic telemetries frequency
 constexpr Hertz PING_GSE_PERIOD = 2_hz;
 
+// Audio feedback message threshold
+constexpr auto AUDIO_FEEDBACK_THRESHOLD = 10;
+// Value to reset the message counter to, to avoid long pauses without audio
+// feedback after startup or disarming
+constexpr auto AUDIO_FEEDBACK_RESET_VALUE = AUDIO_FEEDBACK_THRESHOLD * 4 / 5;
+
 }  // namespace Radio
 }  // namespace Config
 }  // namespace ConRIGv2

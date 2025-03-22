@@ -63,10 +63,18 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_GSE_TM:
         {
             int armingState = mavlink_msg_gse_tm_get_arming_state(&msg);
-            messagesReceived += 1;
+            bool wasArmed   = isArmed;
+            bool isNowArmed = armingState == 1;
+            isArmed         = isNowArmed;
 
-            isArmed = armingState == 1;
-            if (armingState == 1)
+            // Reset the message counter to a value higher than zero to avoid
+            // long pauses without audio feedback after disarming
+            if (wasArmed && !isNowArmed)
+                messagesReceived = Config::Radio::AUDIO_FEEDBACK_RESET_VALUE;
+            else
+                messagesReceived += 1;
+
+            if (isNowArmed)
                 getModule<Buttons>()->enableIgnition();
             else
                 getModule<Buttons>()->disableIgnition();
@@ -144,7 +152,8 @@ void Radio::loopBuzzer()
         Thread::sleep(100);
         // Doesn't matter the precision, the important thing is
         // the beep, this is because an atomic is used
-        if ((!isArmed && messagesReceived > 10) ||
+        if ((!isArmed &&
+             messagesReceived > Config::Radio::AUDIO_FEEDBACK_THRESHOLD) ||
             (isArmed && messagesReceived > 0))
         {
             messagesReceived = 0;

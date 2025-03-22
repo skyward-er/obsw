@@ -79,7 +79,8 @@ private:
 
     std::thread buzzerLooper;
 
-    std::atomic<uint8_t> messagesReceived{0};
+    std::atomic<uint8_t> messagesReceived{
+        Config::Radio::AUDIO_FEEDBACK_RESET_VALUE};
     std::atomic<bool> isArmed{false};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
