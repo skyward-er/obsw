@@ -89,10 +89,6 @@ public:
     Boardcore::VoltageData getBatteryVoltageLastSample();
     Boardcore::VoltageData getCamBatteryVoltageLastSample();
 
-    Boardcore::PressureData getStaticPressure1LastSample();
-    Boardcore::PressureData getStaticPressure2LastSample();
-    Boardcore::PressureData getDplBayPressureLastSample();
-
     Boardcore::ND015XData getND015A0LastSample();
     Boardcore::ND015XData getND015A1LastSample();
     Boardcore::ND015XData getND015A2LastSample();
@@ -152,11 +148,6 @@ protected:
     std::unique_ptr<Boardcore::ND015A> nd015a_2;
     std::unique_ptr<Boardcore::ND015A> nd015a_3;
 
-    // Analog sensors
-    std::unique_ptr<Boardcore::MPXH6115A> staticPressure1;
-    std::unique_ptr<Boardcore::MPXH6115A> staticPressure2;
-    std::unique_ptr<Boardcore::MPXH6115A> dplBayPressure;
-
     // Virtual sensors
     std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
 
@@ -191,15 +182,6 @@ private:
 
     void internalAdcInit();
     void internalAdcCallback();
-
-    void staticPressure1Init();
-    void staticPressure1Callback();
-
-    void staticPressure2Init();
-    void staticPressure2Callback();
-
-    void dplBayPressureInit();
-    void dplBayPressureCallback();
 
     void nd015a0Init();
     void nd015a0Callback();

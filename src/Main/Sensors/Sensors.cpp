@@ -63,12 +63,7 @@ bool Sensors::start()
         vn100Init();
 
     if (Config::Sensors::ADS131M08::ENABLED)
-    {
         ads131m08Init();
-        staticPressure1Init();
-        staticPressure2Init();
-        dplBayPressureInit();
-    }
 
     if (Config::Sensors::ND015A::ENABLED)
     {
@@ -324,21 +319,6 @@ VoltageData Sensors::getCamBatteryVoltageLastSample()
     return {sample.timestamp, voltage};
 }
 
-PressureData Sensors::getStaticPressure1LastSample()
-{
-    return staticPressure1 ? staticPressure1->getLastSample() : PressureData{};
-}
-
-PressureData Sensors::getStaticPressure2LastSample()
-{
-    return staticPressure2 ? staticPressure2->getLastSample() : PressureData{};
-}
-
-PressureData Sensors::getDplBayPressureLastSample()
-{
-    return dplBayPressure ? dplBayPressure->getLastSample() : PressureData{};
-}
-
 ND015XData Sensors::getND015A0LastSample()
 {
     return nd015a_0 ? nd015a_0->getLastSample() : ND015XData{};
@@ -524,15 +504,6 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 
         if (internalAdc)
             infos.push_back(manager->getSensorInfo(internalAdc.get()));
-
-        if (staticPressure1)
-            infos.push_back(manager->getSensorInfo(staticPressure1.get()));
-
-        if (staticPressure2)
-            infos.push_back(manager->getSensorInfo(staticPressure2.get()));
-
-        if (dplBayPressure)
-            infos.push_back(manager->getSensorInfo(dplBayPressure.get()));
 
         if (nd015a_0)
             infos.push_back(manager->getSensorInfo(nd015a_0.get()));
@@ -778,69 +749,6 @@ void Sensors::internalAdcCallback()
     sdLogger.log(getInternalADCLastSample());
 }
 
-void Sensors::staticPressure1Init()
-{
-    staticPressure1 = std::make_unique<MPXH6115A>(
-        [this]()
-        {
-            auto sample  = getADS131M08LastSample();
-            auto voltage = sample.getVoltage(
-                Config::Sensors::ADS131M08::STATIC_PRESSURE_1_CHANNEL);
-            voltage.voltage *=
-                Config::Sensors::ADS131M08::STATIC_PRESSURE_1_SCALE;
-
-            return voltage;
-        });
-}
-
-void Sensors::staticPressure1Callback()
-{
-    sdLogger.log(StaticPressureData1{getStaticPressure1LastSample()});
-}
-
-void Sensors::staticPressure2Init()
-{
-    staticPressure2 = std::make_unique<MPXH6115A>(
-        [this]()
-        {
-            auto sample  = getADS131M08LastSample();
-            auto voltage = sample.getVoltage(
-                Config::Sensors::ADS131M08::STATIC_PRESSURE_2_CHANNEL);
-            voltage.voltage *=
-                Config::Sensors::ADS131M08::STATIC_PRESSURE_2_SCALE;
-
-            return voltage;
-        });
-}
-
-void Sensors::staticPressure2Callback()
-{
-    sdLogger.log(StaticPressureData2{getStaticPressure2LastSample()});
-}
-
-void Sensors::dplBayPressureInit()
-{
-    dplBayPressure = std::make_unique<MPXH6115A>(
-        [this]()
-        {
-            auto sample  = getADS131M08LastSample();
-            auto voltage = sample.getVoltage(
-                Config::Sensors::ADS131M08::DPL_BAY_PRESSURE_CHANNEL);
-            voltage.voltage *=
-                Config::Sensors::ADS131M08::DPL_BAY_PRESSURE_SCALE;
-
-            return voltage;
-        });
-}
-
-void Sensors::dplBayPressureCallback()
-{
-    auto sample = getDplBayPressureLastSample();
-
-    getModule<StatsRecorder>()->updateDplPressure(sample);
-    sdLogger.log(DplBayPressureData{sample});
-}
-
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
@@ -937,27 +845,6 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::RATE,
                         [this]() { ads131m08Callback(); }};
         map.emplace(ads131m08.get(), info);
-    }
-
-    if (staticPressure1)
-    {
-        SensorInfo info{"StaticPressure1", Config::Sensors::ADS131M08::RATE,
-                        [this]() { staticPressure1Callback(); }};
-        map.emplace(staticPressure1.get(), info);
-    }
-
-    if (staticPressure2)
-    {
-        SensorInfo info{"StaticPressure2", Config::Sensors::ADS131M08::RATE,
-                        [this]() { staticPressure2Callback(); }};
-        map.emplace(staticPressure2.get(), info);
-    }
-
-    if (dplBayPressure)
-    {
-        SensorInfo info{"DplBayPressure", Config::Sensors::ADS131M08::RATE,
-                        [this]() { dplBayPressureCallback(); }};
-        map.emplace(dplBayPressure.get(), info);
     }
 
     if (internalAdc)
