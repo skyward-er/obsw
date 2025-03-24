@@ -134,7 +134,10 @@ ActuatorData MotorHIL::updateActuatorData()
 
     ActuatorsStateHIL actuatorsStateHIL{
         (actuators->getServoPosition(MAIN_VALVE)),
-        (actuators->getServoPosition(VENTING_VALVE))};
+        (actuators->getServoPosition(OX_VENTING_VALVE)),
+        (actuators->getServoPosition(NITROGEN_VALVE)),
+        (actuators->getServoPosition(N2_QUENCHING_VALVE)),
+    };
 
     // Returning the feedback for the simulator
     return ActuatorData{actuatorsStateHIL};
