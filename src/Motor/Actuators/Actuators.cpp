@@ -74,11 +74,19 @@ float Actuators::ServoInfo::getServoPosition()
 Actuators::Actuators()
 {
     infos[0].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_1_TIM, TimerUtils::Channel::MIOSIX_SERVOS_1_CHANNEL,
+        MIOSIX_SERVOS_0_TIM, TimerUtils::Channel::MIOSIX_SERVOS_0_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[1].servo = std::make_unique<Servo>(
+        MIOSIX_SERVOS_1_TIM, TimerUtils::Channel::MIOSIX_SERVOS_1_CHANNEL,
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
+    infos[2].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_2_TIM, TimerUtils::Channel::MIOSIX_SERVOS_2_CHANNEL,
+        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+        Config::Servos::FREQUENCY);
+    infos[3].servo = std::make_unique<Servo>(
+        MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
 
@@ -87,11 +95,25 @@ Actuators::Actuators()
     info->limit   = Config::Servos::MAIN_LIMIT;
     info->flipped = Config::Servos::MAIN_FLIPPED;
     info->unsafeSetServoPosition(0.0f);
+    // TODO: is the configuration correct? Same as lyra
 
-    info          = getServo(ServosList::VENTING_VALVE);
+    info          = getServo(ServosList::OX_VENTING_VALVE);
     info->limit   = Config::Servos::VENTING_LIMIT;
     info->flipped = Config::Servos::VENTING_FLIPPED;
     info->unsafeSetServoPosition(0.0f);
+    // TODO: is the configuration correct? Same as lyra
+
+    info          = getServo(ServosList::NITROGEN_VALVE);
+    info->limit   = Config::Servos::VENTING_LIMIT;
+    info->flipped = Config::Servos::VENTING_FLIPPED;
+    info->unsafeSetServoPosition(0.0f);
+    // TODO: is the configuration correct?
+
+    info          = getServo(ServosList::N2_QUENCHING_VALVE);
+    info->limit   = Config::Servos::VENTING_LIMIT;
+    info->flipped = Config::Servos::VENTING_FLIPPED;
+    info->unsafeSetServoPosition(0.0f);
+    // TODO: is the configuration correct?
 }
 
 bool Actuators::start()
@@ -99,8 +121,8 @@ bool Actuators::start()
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getActuatorsScheduler();
 
-    infos[0].servo->enable();
-    infos[1].servo->enable();
+    for (size_t i = 0; i < infos.size(); ++i)
+        infos[i].servo->enable();
 
     // Reset all actions
     lastActionTs = getTime();
@@ -165,10 +187,14 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 {
     switch (servo)
     {
-        case VENTING_VALVE:
+        case OX_VENTING_VALVE:
             return &infos[0];
         case MAIN_VALVE:
             return &infos[1];
+        case NITROGEN_VALVE:
+            return &infos[2];
+        case N2_QUENCHING_VALVE:
+            return &infos[3];
 
         default:
             // Oh FUCK
@@ -251,7 +277,7 @@ void Actuators::updatePositionsTask()
     if (shouldVent)
     {
         // Open for at least timeout time
-        openServoWithTime(ServosList::VENTING_VALVE,
+        openServoWithTime(ServosList::OX_VENTING_VALVE,
                           Config::Servos::SERVO_ACTION_TIMEOUT + 1000);
     }
 }
