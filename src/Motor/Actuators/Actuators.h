@@ -25,7 +25,7 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Motor
@@ -76,7 +76,7 @@ private:
     miosix::FastMutex infosMutex;
     // Timestamp of last servo action
     long long lastActionTs = 0;
-    ServoInfo infos[2]     = {};
+    std::array<ServoInfo, 4> infos;
 };
 
 }  // namespace Motor
