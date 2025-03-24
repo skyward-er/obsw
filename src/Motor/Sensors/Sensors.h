@@ -54,10 +54,13 @@ public:
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
 
-    Boardcore::PressureData getTopTankPressLastSample();
-    Boardcore::PressureData getBottomTankPressLastSample();
+    Boardcore::PressureData getOxTopTankPressLastSample();
+    Boardcore::PressureData getOxBottomTankPress0LastSample();
+    Boardcore::PressureData getOxBottomTankPress1LastSample();
+    Boardcore::PressureData getN2TankPressLastSample();
     Boardcore::PressureData getCCPressLastSample();
     Boardcore::TemperatureData getTankTempLastSample();
     Boardcore::VoltageData getBatteryVoltageLastSample();
@@ -73,13 +76,16 @@ protected:
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx0;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx1;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     // Analog sensors
-    std::unique_ptr<Boardcore::TrafagPressureSensor> topTankPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> bottomTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTopTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxBottomTankPressure0;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxBottomTankPressure1;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
     std::unique_ptr<KuliteThermocouple> tankTemp;
 
@@ -95,8 +101,10 @@ private:
     void lis2mdlInit();
     void lis2mdlCallback();
 
+    /// @brief Initialize both lsm6dsrx sensors.
     void lsm6dsrxInit();
-    void lsm6dsrxCallback();
+    void lsm6dsrx0Callback();
+    void lsm6dsrx1Callback();
 
     void ads131m08Init();
     void ads131m08Callback();
@@ -104,11 +112,16 @@ private:
     void internalAdcInit();
     void internalAdcCallback();
 
-    void topTankPressureInit();
-    void topTankPressureCallback();
+    void oxTopTankPressureInit();
+    void oxTopTankPressureCallback();
 
-    void bottomTankPressureInit();
-    void bottomTankPressureCallback();
+    /// @brief Initialize both ox bottom pressure sensors.
+    void oxBottomTankPressureInit();
+    void oxBottomTankPressure0Callback();
+    void oxBottomTankPressure1Callback();
+
+    void n2TankPressureInit();
+    void n2TankPressureCallback();
 
     void ccPressureInit();
     void ccPressureCallback();

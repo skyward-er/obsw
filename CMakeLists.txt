@@ -71,7 +71,7 @@ sbs_target(payload-entry-euroc stm32f767zi_orion_biscotto)
 
 add_executable(motor-entry src/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(motor-entry stm32f767zi_lyra_motor)
+sbs_target(motor-entry stm32f767zi_orion_engine)
 
 add_executable(rig-v2-entry src/RIGv2/rig-v2-entry.cpp ${RIG_V2_COMPUTER})
 target_include_directories(rig-v2-entry PRIVATE ${OBSW_INCLUDE_DIRS})

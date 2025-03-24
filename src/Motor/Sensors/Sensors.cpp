@@ -48,8 +48,9 @@ bool Sensors::start()
     if (Config::Sensors::ADS131M08::ENABLED)
     {
         ads131m08Init();
-        topTankPressureInit();
-        bottomTankPressureInit();
+        oxTopTankPressureInit();
+        oxBottomTankPressureInit();
+        n2TankPressureInit();
         ccPressureInit();
         tankTempInit();
     }
@@ -97,20 +98,37 @@ LIS2MDLData Sensors::getLIS2MDLLastSample()
     return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+LSM6DSRXData Sensors::getLSM6DSRX0LastSample()
 {
-    return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx0 ? lsm6dsrx0->getLastSample() : LSM6DSRXData{};
 }
 
-PressureData Sensors::getTopTankPressLastSample()
+LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
 {
-    return topTankPressure ? topTankPressure->getLastSample() : PressureData{};
+    return lsm6dsrx1 ? lsm6dsrx1->getLastSample() : LSM6DSRXData{};
 }
 
-PressureData Sensors::getBottomTankPressLastSample()
+PressureData Sensors::getOxTopTankPressLastSample()
 {
-    return bottomTankPressure ? bottomTankPressure->getLastSample()
-                              : PressureData{};
+    return oxTopTankPressure ? oxTopTankPressure->getLastSample()
+                             : PressureData{};
+}
+
+PressureData Sensors::getOxBottomTankPress0LastSample()
+{
+    return oxBottomTankPressure0 ? oxBottomTankPressure0->getLastSample()
+                                 : PressureData{};
+}
+
+PressureData Sensors::getOxBottomTankPress1LastSample()
+{
+    return oxBottomTankPressure1 ? oxBottomTankPressure1->getLastSample()
+                                 : PressureData{};
+}
+
+PressureData Sensors::getN2TankPressLastSample()
+{
+    return n2TankPressure ? n2TankPressure->getLastSample() : PressureData{};
 }
 
 PressureData Sensors::getCCPressLastSample()
@@ -146,8 +164,11 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         if (lis2mdl)
             infos.push_back(manager->getSensorInfo(lis2mdl.get()));
 
-        if (lsm6dsrx)
-            infos.push_back(manager->getSensorInfo(lsm6dsrx.get()));
+        if (lsm6dsrx0)
+            infos.push_back(manager->getSensorInfo(lsm6dsrx0.get()));
+
+        if (lsm6dsrx1)
+            infos.push_back(manager->getSensorInfo(lsm6dsrx1.get()));
 
         if (ads131m08)
             infos.push_back(manager->getSensorInfo(ads131m08.get()));
@@ -155,11 +176,19 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         if (internalAdc)
             infos.push_back(manager->getSensorInfo(internalAdc.get()));
 
-        if (topTankPressure)
-            infos.push_back(manager->getSensorInfo(topTankPressure.get()));
+        if (oxTopTankPressure)
+            infos.push_back(manager->getSensorInfo(oxTopTankPressure.get()));
 
-        if (bottomTankPressure)
-            infos.push_back(manager->getSensorInfo(bottomTankPressure.get()));
+        if (oxBottomTankPressure0)
+            infos.push_back(
+                manager->getSensorInfo(oxBottomTankPressure0.get()));
+
+        if (oxBottomTankPressure1)
+            infos.push_back(
+                manager->getSensorInfo(oxBottomTankPressure1.get()));
+
+        if (n2TankPressure)
+            infos.push_back(manager->getSensorInfo(n2TankPressure.get()));
 
         if (ccPressure)
             infos.push_back(manager->getSensorInfo(ccPressure.get()));
@@ -249,18 +278,34 @@ void Sensors::lsm6dsrxInit()
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
 
-    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                          sensors::LSM6DSRX::cs::getPin(),
-                                          spiConfig, config);
+    lsm6dsrx0 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
+                                           sensors::LSM6DSRX0::cs::getPin(),
+                                           spiConfig, config);
+    lsm6dsrx1 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
+                                           sensors::LSM6DSRX1::cs::getPin(),
+                                           spiConfig, config);
 }
 
-void Sensors::lsm6dsrxCallback()
+void Sensors::lsm6dsrx0Callback()
 {
-    if (!lsm6dsrx)
+    if (!lsm6dsrx0)
         return;
 
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx0->getLastFifo(lastFifoSize);
+
+    // For every instance inside the fifo log the sample
+    for (uint16_t i = 0; i < lastFifoSize; i++)
+        sdLogger.log(lastFifo.at(i));
+}
+
+void Sensors::lsm6dsrx1Callback()
+{
+    if (!lsm6dsrx1)
+        return;
+
+    uint16_t lastFifoSize;
+    const auto lastFifo = lsm6dsrx1->getLastFifo(lastFifoSize);
 
     // For every instance inside the fifo log the sample
     for (uint16_t i = 0; i < lastFifoSize; i++)
@@ -335,9 +380,9 @@ void Sensors::internalAdcCallback()
     sdLogger.log(getInternalADCLastSample());
 }
 
-void Sensors::topTankPressureInit()
+void Sensors::oxTopTankPressureInit()
 {
-    topTankPressure = std::make_unique<TrafagPressureSensor>(
+    oxTopTankPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADS131M08LastSample();
@@ -348,31 +393,75 @@ void Sensors::topTankPressureInit()
         Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
+    // TODO: is configuration correct?
 }
 
-void Sensors::topTankPressureCallback()
+void Sensors::oxTopTankPressureCallback()
 {
-    sdLogger.log(TopTankPressureData{getTopTankPressLastSample()});
+    sdLogger.log(OxTopTankPressureData{getOxTopTankPressLastSample()});
 }
 
-void Sensors::bottomTankPressureInit()
+void Sensors::oxBottomTankPressureInit()
 {
-    bottomTankPressure = std::make_unique<TrafagPressureSensor>(
+    oxBottomTankPressure0 = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADS131M08LastSample();
             return sample.getVoltage(
                 Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL);
+            // TODO: which is the correct channel?
         },
         Config::Sensors::Trafag::TANK_BOTTOM_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
+    // TODO: is this configuration correct?
+
+    oxBottomTankPressure1 = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADS131M08LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL);
+            // TODO: which is the correct channel?
+        },
+        Config::Sensors::Trafag::TANK_BOTTOM_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+    // TODO: is this configuration correct?
 }
 
-void Sensors::bottomTankPressureCallback()
+void Sensors::oxBottomTankPressure0Callback()
 {
-    sdLogger.log(BottomTankPressureData{getBottomTankPressLastSample()});
+    sdLogger.log(OxBottomTankPressureData{getOxBottomTankPress0LastSample()});
+}
+
+void Sensors::oxBottomTankPressure1Callback()
+{
+    sdLogger.log(OxBottomTankPressureData{getOxBottomTankPress1LastSample()});
+}
+
+void Sensors::n2TankPressureInit()
+{
+    n2TankPressure = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADS131M08LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADS131M08::TANK_TOP_PT_CHANNEL);
+            // TODO: which is the correct channel?
+        },
+        Config::Sensors::Trafag::TANK_TOP_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+    // TODO: is this configuration correct?
+}
+
+void Sensors::n2TankPressureCallback()
+{
+    sdLogger.log(N2TankPressureData{getN2TankPressLastSample()});
 }
 
 void Sensors::ccPressureInit()
@@ -438,11 +527,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(lis2mdl.get(), lis2mdlInfo);
     }
 
-    if (lsm6dsrx)
+    if (lsm6dsrx0)
     {
-        SensorInfo lsm6dsrxInfo{"LSM6DSRX", Config::Sensors::LSM6DSRX::RATE,
-                                [this]() { lsm6dsrxCallback(); }};
-        map.emplace(lsm6dsrx.get(), lsm6dsrxInfo);
+        SensorInfo lsm6dsrxInfo{"LSM6DSRX0", Config::Sensors::LSM6DSRX::RATE,
+                                [this]() { lsm6dsrx0Callback(); }};
+        map.emplace(lsm6dsrx0.get(), lsm6dsrxInfo);
+    }
+
+    if (lsm6dsrx1)
+    {
+        SensorInfo lsm6dsrxInfo{"LSM6DSRX1", Config::Sensors::LSM6DSRX::RATE,
+                                [this]() { lsm6dsrx1Callback(); }};
+        map.emplace(lsm6dsrx1.get(), lsm6dsrxInfo);
     }
 
     if (ads131m08)
@@ -460,18 +556,34 @@ bool Sensors::sensorManagerInit()
         map.emplace(internalAdc.get(), internalAdcInfo);
     }
 
-    if (topTankPressure)
+    if (oxTopTankPressure)
     {
-        SensorInfo info{"TopTankPressure", Config::Sensors::ADS131M08::RATE,
-                        [this]() { topTankPressureCallback(); }};
-        map.emplace(std::make_pair(topTankPressure.get(), info));
+        SensorInfo info{"OxTopTankPressure", Config::Sensors::ADS131M08::RATE,
+                        [this]() { oxTopTankPressureCallback(); }};
+        map.emplace(std::make_pair(oxTopTankPressure.get(), info));
     }
 
-    if (bottomTankPressure)
+    if (oxBottomTankPressure0)
     {
-        SensorInfo info{"BottomTankPressure", Config::Sensors::ADS131M08::RATE,
-                        [this]() { bottomTankPressureCallback(); }};
-        map.emplace(std::make_pair(bottomTankPressure.get(), info));
+        SensorInfo info{"OxBottomTankPressure0",
+                        Config::Sensors::ADS131M08::RATE,
+                        [this]() { oxBottomTankPressure0Callback(); }};
+        map.emplace(std::make_pair(oxBottomTankPressure0.get(), info));
+    }
+
+    if (oxBottomTankPressure1)
+    {
+        SensorInfo info{"OxBottomTankPressure1",
+                        Config::Sensors::ADS131M08::RATE,
+                        [this]() { oxBottomTankPressure1Callback(); }};
+        map.emplace(std::make_pair(oxBottomTankPressure1.get(), info));
+    }
+
+    if (n2TankPressure)
+    {
+        SensorInfo info{"N2TankPressure", Config::Sensors::ADS131M08::RATE,
+                        [this]() { n2TankPressureCallback(); }};
+        map.emplace(std::make_pair(n2TankPressure.get(), info));
     }
 
     if (ccPressure)
