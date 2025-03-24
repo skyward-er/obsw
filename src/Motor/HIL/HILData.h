@@ -46,17 +46,24 @@ enum class MotorFlightPhases
 
 struct ActuatorsStateHIL
 {
-    float mainValvePercentage    = 0;
-    float ventingValvePercentage = 0;
+    float mainValvePercentage        = 0;
+    float oxVentingValvePercentage   = 0;
+    float nitrogenValvePercentage    = 0;
+    float n2QuenchingValvePercentage = 0;
 
     ActuatorsStateHIL()
-        : mainValvePercentage(0.0f), ventingValvePercentage(0.0f)
+        : mainValvePercentage(0.0f), oxVentingValvePercentage(0.0f),
+          nitrogenValvePercentage(0.0f), n2QuenchingValvePercentage(0.0f)
     {
     }
 
-    ActuatorsStateHIL(float mainValvePercentage, float ventingValvePercentage)
+    ActuatorsStateHIL(float mainValvePercentage, float oxVentingValvePercentage,
+                      float nitrogenValvePercentage,
+                      float n2QuenchingValvePercentage)
         : mainValvePercentage(mainValvePercentage),
-          ventingValvePercentage(ventingValvePercentage)
+          oxVentingValvePercentage(oxVentingValvePercentage),
+          nitrogenValvePercentage(nitrogenValvePercentage),
+          n2QuenchingValvePercentage(n2QuenchingValvePercentage)
     {
     }
 
@@ -64,8 +71,11 @@ struct ActuatorsStateHIL
     {
         printf(
             "mainValve: %f perc\n"
-            "venting: %f perc\n",
-            mainValvePercentage * 100, ventingValvePercentage * 100);
+            "oxVenting: %f perc\n"
+            "nitrogen: %f perc\n"
+            "n2Quenching: %f perc\n",
+            mainValvePercentage * 100, oxVentingValvePercentage * 100,
+            nitrogenValvePercentage * 100, n2QuenchingValvePercentage * 100);
     }
 };
 
