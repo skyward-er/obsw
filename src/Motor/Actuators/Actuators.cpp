@@ -95,25 +95,21 @@ Actuators::Actuators()
     info->limit   = Config::Servos::MAIN_LIMIT;
     info->flipped = Config::Servos::MAIN_FLIPPED;
     info->unsafeSetServoPosition(0.0f);
-    // TODO: is the configuration correct? Same as lyra
 
     info          = getServo(ServosList::OX_VENTING_VALVE);
-    info->limit   = Config::Servos::VENTING_LIMIT;
-    info->flipped = Config::Servos::VENTING_FLIPPED;
+    info->limit   = Config::Servos::OX_VENTING_LIMIT;
+    info->flipped = Config::Servos::OX_VENTING_FLIPPED;
     info->unsafeSetServoPosition(0.0f);
-    // TODO: is the configuration correct? Same as lyra
 
     info          = getServo(ServosList::NITROGEN_VALVE);
-    info->limit   = Config::Servos::VENTING_LIMIT;
-    info->flipped = Config::Servos::VENTING_FLIPPED;
+    info->limit   = Config::Servos::NITROGEN_LIMIT;
+    info->flipped = Config::Servos::NITROGEN_FLIPPED;
     info->unsafeSetServoPosition(0.0f);
-    // TODO: is the configuration correct?
 
     info          = getServo(ServosList::N2_QUENCHING_VALVE);
-    info->limit   = Config::Servos::VENTING_LIMIT;
-    info->flipped = Config::Servos::VENTING_FLIPPED;
+    info->limit   = Config::Servos::N2_QUENCHING_LIMIT;
+    info->flipped = Config::Servos::N2_QUENCHING_FLIPPED;
     info->unsafeSetServoPosition(0.0f);
-    // TODO: is the configuration correct?
 }
 
 bool Actuators::start()
