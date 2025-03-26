@@ -49,11 +49,17 @@ constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
 // Timeout is currently set at 2h
 constexpr long long SERVO_ACTION_TIMEOUT = 2 * 60 * 60 * 1000;
 
-constexpr float VENTING_LIMIT = 0.90f;
-constexpr float MAIN_LIMIT    = 0.90f;
+// TODO: check this values
+constexpr float OX_VENTING_LIMIT   = 0.90f;
+constexpr float MAIN_LIMIT         = 0.90f;
+constexpr float NITROGEN_LIMIT     = 0.90f;
+constexpr float N2_QUENCHING_LIMIT = 0.90f;
 
-constexpr bool VENTING_FLIPPED = true;
-constexpr bool MAIN_FLIPPED    = true;
+// TODO: check this values
+constexpr bool OX_VENTING_FLIPPED   = true;
+constexpr bool MAIN_FLIPPED         = true;
+constexpr bool NITROGEN_FLIPPED     = true;
+constexpr bool N2_QUENCHING_FLIPPED = true;
 
 }  // namespace Servos
 
