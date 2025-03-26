@@ -335,18 +335,31 @@ void Sensors::ads131m08Init()
 
     // Configure all required channels
     config.channelsConfig[(
-        int)Config::Sensors::ADS131M08::TANK_TOP_PT_CHANNEL] = {
+        int)Config::Sensors::ADS131M08::OX_TANK_TOP_PT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
     config.channelsConfig[(
-        int)Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL] = {
+        int)Config::Sensors::ADS131M08::OX_TANK_BOTTOM_0_PT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADS131M08::OX_TANK_BOTTOM_1_PT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::N2_TANK_PT_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
 
     config.channelsConfig[(int)Config::Sensors::ADS131M08::ENGINE_PT_CHANNEL] =
         {.enabled = true,
@@ -387,13 +400,12 @@ void Sensors::oxTopTankPressureInit()
         {
             auto sample = getADS131M08LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADS131M08::TANK_TOP_PT_CHANNEL);
+                Config::Sensors::ADS131M08::OX_TANK_TOP_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::TANK_TOP_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
+        Config::Sensors::Trafag::OX_TANK_TOP_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::OX_TANK_TOP_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-    // TODO: is configuration correct?
 }
 
 void Sensors::oxTopTankPressureCallback()
@@ -408,28 +420,24 @@ void Sensors::oxBottomTankPressureInit()
         {
             auto sample = getADS131M08LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL);
-            // TODO: which is the correct channel?
+                Config::Sensors::ADS131M08::OX_TANK_BOTTOM_0_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::TANK_BOTTOM_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
+        Config::Sensors::Trafag::OX_TANK_BOTTOM_0_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::OX_TANK_BOTTOM_0_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-    // TODO: is this configuration correct?
 
     oxBottomTankPressure1 = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADS131M08LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADS131M08::TANK_BOTTOM_PT_CHANNEL);
-            // TODO: which is the correct channel?
+                Config::Sensors::ADS131M08::OX_TANK_BOTTOM_1_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::TANK_BOTTOM_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::TANK_BOTTOM_MAX_PRESSURE,
+        Config::Sensors::Trafag::OX_TANK_BOTTOM_1_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::OX_TANK_BOTTOM_1_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-    // TODO: is this configuration correct?
 }
 
 void Sensors::oxBottomTankPressure0Callback()
@@ -449,14 +457,12 @@ void Sensors::n2TankPressureInit()
         {
             auto sample = getADS131M08LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADS131M08::TANK_TOP_PT_CHANNEL);
-            // TODO: which is the correct channel?
+                Config::Sensors::ADS131M08::N2_TANK_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::TANK_TOP_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::TANK_TOP_MAX_PRESSURE,
+        Config::Sensors::Trafag::N2_TANK_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::N2_TANK_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
-    // TODO: is this configuration correct?
 }
 
 void Sensors::n2TankPressureCallback()
