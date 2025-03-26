@@ -111,16 +111,26 @@ Channel 4 - 29.65ohm
 0.3584V 12.06mA 29.72ohm
 0.5911V 20mA    29.55ohm
 */
+
+// TODO: calibrate ch0 and ch1
+constexpr float CH0_SHUNT_RESISTANCE = 29.0;
+constexpr float CH1_SHUNT_RESISTANCE = 29.0;
+
 constexpr float CH4_SHUNT_RESISTANCE = 29.79;
 constexpr float CH5_SHUNT_RESISTANCE = 29.7;
 constexpr float CH6_SHUNT_RESISTANCE = 29.65;
 
+// TODO: check if the selected channels are fine
 constexpr Boardcore::ADS131M08Defs::Channel TANK_TC_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
-constexpr Boardcore::ADS131M08Defs::Channel TANK_TOP_PT_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel OX_TANK_TOP_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
-constexpr Boardcore::ADS131M08Defs::Channel TANK_BOTTOM_PT_CHANNEL =
+constexpr Boardcore::ADS131M08Defs::Channel OX_TANK_BOTTOM_0_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
+constexpr Boardcore::ADS131M08Defs::Channel OX_TANK_BOTTOM_1_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
+constexpr Boardcore::ADS131M08Defs::Channel N2_TANK_PT_CHANNEL =
+    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
 constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
     Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
 
@@ -130,16 +140,23 @@ constexpr bool ENABLED = true;
 
 namespace Trafag
 {
-constexpr float TANK_TOP_SHUNT_RESISTANCE    = ADS131M08::CH5_SHUNT_RESISTANCE;
-constexpr float TANK_BOTTOM_SHUNT_RESISTANCE = ADS131M08::CH6_SHUNT_RESISTANCE;
-constexpr float ENGINE_SHUNT_RESISTANCE      = ADS131M08::CH4_SHUNT_RESISTANCE;
+constexpr float OX_TANK_TOP_SHUNT_RESISTANCE = ADS131M08::CH5_SHUNT_RESISTANCE;
+constexpr float OX_TANK_BOTTOM_0_SHUNT_RESISTANCE =
+    ADS131M08::CH6_SHUNT_RESISTANCE;
+constexpr float OX_TANK_BOTTOM_1_SHUNT_RESISTANCE =
+    ADS131M08::CH0_SHUNT_RESISTANCE;
+constexpr float N2_TANK_SHUNT_RESISTANCE = ADS131M08::CH1_SHUNT_RESISTANCE;
+constexpr float ENGINE_SHUNT_RESISTANCE  = ADS131M08::CH4_SHUNT_RESISTANCE;
 
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
-constexpr float TANK_TOP_MAX_PRESSURE    = 100;  // bar
-constexpr float TANK_BOTTOM_MAX_PRESSURE = 100;  // bar
-constexpr float ENGINE_MAX_PRESSURE      = 40;   // bar
+// TODO: check these values
+constexpr float OX_TANK_TOP_MAX_PRESSURE      = 100;  // bar
+constexpr float OX_TANK_BOTTOM_0_MAX_PRESSURE = 100;  // bar
+constexpr float OX_TANK_BOTTOM_1_MAX_PRESSURE = 100;  // bar
+constexpr float N2_TANK_MAX_PRESSURE          = 100;  // TODO: CHECK
+constexpr float ENGINE_MAX_PRESSURE           = 40;   // bar
 }  // namespace Trafag
 
 namespace Kulite
