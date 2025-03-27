@@ -142,8 +142,8 @@ int main()
     LyraGS::RadioMain* radio_main =
         new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
     LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
-    LyraGS::EthernetGS* ethernet =
-        new LyraGS::EthernetGS(false, dipRead.ipConfig, ethernetSniffing);
+    LyraGS::EthernetGS* ethernet      = new LyraGS::EthernetGS(
+        false, dipRead.ipConfig, dipRead.isARP & ethernetSniffing);
     EthernetSniffer* ethernetSniffer    = new EthernetSniffer();
     LyraGS::RadioPayload* radio_payload = new LyraGS::RadioPayload(
         dipRead.payloadHasBackup, dipRead.payloadTXenable);

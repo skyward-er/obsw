@@ -280,7 +280,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         /* Messages older and within the discard interval are treated as old
          * messages*/
         if (timestamp <= lastFlightTMTimestamp &&
-            lastFlightTMTimestamp > timestamp + DISCARD_MSG_DELAY)
+            timestamp > lastFlightTMTimestamp - DISCARD_MSG_DELAY)
             return;
         TRACE(
             "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet is valid "
