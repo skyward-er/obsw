@@ -233,8 +233,7 @@ State FlightModeManager::PreFlightSensorCalibration(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateState(
-                FlightModeManagerState::PRE_FLIGHT_ALGORITHM_CALIBRATION);
+            updateState(FlightModeManagerState::PRE_FLIGHT_SENSOR_CALIBRATION);
 
             // Wait for sensors to stabilize before calibration
             // The first few LPS28DFW samples contain garbage data
