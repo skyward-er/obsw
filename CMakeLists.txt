@@ -134,8 +134,8 @@ sbs_target(parafoil-guided-jesolo stm32f429zi_death_stack_v2)
 add_executable(parafoil-guided-dynamic src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-dynamic PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-guided-dynamic PRIVATE ALGORITHM_CLOSED_LOOP DYNAMIC_TARGET
-    DYNAMIC_TARGET_LATITUDE_OFFSET=50
-    DYNAMIC_TARGET_LONGITUDE_OFFSET=50
+    DYNAMIC_TARGET_LATITUDE_OFFSET=35
+    DYNAMIC_TARGET_LONGITUDE_OFFSET=-156
 )
 sbs_target(parafoil-guided-dynamic stm32f429zi_death_stack_v2)
 
@@ -151,10 +151,10 @@ sbs_target(parafoil-t-approach-milano stm32f429zi_death_stack_v2)
 
 add_executable(parafoil-t-approach-dynamic src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-t-approach-dynamic PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
+    target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
     ALGORITHM_EARLY_MANEUVER DYNAMIC_TARGET
-    DYNAMIC_TARGET_LATITUDE_OFFSET=50
-    DYNAMIC_TARGET_LONGITUDE_OFFSET=50
+    DYNAMIC_TARGET_LATITUDE_OFFSET=35
+    DYNAMIC_TARGET_LONGITUDE_OFFSET=-156
 )
 sbs_target(parafoil-t-approach-dynamic stm32f429zi_death_stack_v2)
 
