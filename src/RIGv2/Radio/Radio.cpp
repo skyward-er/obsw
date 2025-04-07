@@ -654,10 +654,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors (either CAN or local)
-            tm.ox_tank_top_pressure = sensors->getN2TankPressure()
-                                          .pressure;  // TODO: rename in mavlink
-            tm.ox_tank_bot_pressure = sensors->getOxTankPressure()
-                                          .pressure;  // TODO: rename in mavlink
+            tm.n2_tank_pressure = sensors->getN2TankPressure().pressure;
+            tm.ox_tank_bot_pressure =
+                sensors->getOxTankBottomPressure().pressure;
+            tm.ox_tank_top_pressure =
+                sensors->getCanOxTankTopPressure().pressure;
             tm.combustion_chamber_pressure =
                 sensors->getCombustionChamberPressure().pressure;
             tm.ox_tank_temperature =
@@ -765,7 +766,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "VesselPressure");
+            strcpy(tm.sensor_name, "OxVesselPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -783,7 +784,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "FillingPressure");
+            strcpy(tm.sensor_name, "OxFillingPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -797,11 +798,11 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getOxTankPressure();
+            PressureData data = getModule<Sensors>()->getOxTankBottomPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "BottomTankPressure");
+            strcpy(tm.sensor_name, "OxTankBotPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -815,11 +816,11 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
 
-            PressureData data = getModule<Sensors>()->getN2TankPressure();
+            PressureData data = getModule<Sensors>()->getCanOxTankTopPressure();
 
             tm.timestamp = data.pressureTimestamp;
             tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "TopTankPressure");
+            strcpy(tm.sensor_name, "OxTankTopPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
@@ -855,7 +856,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
-            strcpy(tm.sensor_name, "VesselWeight");
+            strcpy(tm.sensor_name, "OxVesselWeight");
 
             mavlink_msg_load_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                        Config::Radio::MAV_COMPONENT_ID, &msg,

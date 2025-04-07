@@ -213,7 +213,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanOxTankPressure(data);
+            sensors->setCanOxTankTopPressure(data);
             break;
         }
 
@@ -221,7 +221,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanN2TankPressure(data);
+            sensors->setCanOxTankBottomPressure(data);
             break;
         }
 
