@@ -564,7 +564,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             // Sensors
-            tm.rocket_mass    = sensors->getOxTankWeight().load;
+            tm.rocket_mass    = sensors->getRocketWeight().load;
             tm.ox_vessel_mass = sensors->getOxVesselWeight().load;
 
             tm.ox_vessel_pressure   = sensors->getOxVesselPressure().pressure;
@@ -873,7 +873,7 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
             tm.timestamp = data.loadTimestamp;
             tm.load      = data.load;
-            strcpy(tm.sensor_name, "TankWeight");
+            strcpy(tm.sensor_name, "OxTankWeight");
 
             mavlink_msg_load_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                        Config::Radio::MAV_COMPONENT_ID, &msg,

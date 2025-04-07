@@ -109,6 +109,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<RIGv2::ADC2Data>();
     ds.registerType<RIGv2::TC1Data>();
     ds.registerType<RIGv2::OxVesselWeightData>();
+    ds.registerType<RIGv2::RocketWeightData>();
     ds.registerType<RIGv2::OxTankWeightData>();
     ds.registerType<RIGv2::OxVesselPressureData>();
     ds.registerType<RIGv2::OxFillingPressureData>();

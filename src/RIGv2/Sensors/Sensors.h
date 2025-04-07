@@ -70,6 +70,7 @@ public:
 
     Boardcore::TemperatureData getOxTankTemperature();
     Boardcore::LoadCellData getOxVesselWeight();
+    Boardcore::LoadCellData getRocketWeight();
     Boardcore::LoadCellData getOxTankWeight();
 
     Boardcore::CurrentData getUmbilicalCurrent();
@@ -117,6 +118,9 @@ private:
     void oxVesselWeightInit();
     void oxVesselWeightCallback();
 
+    void rocketWeightInit();
+    void rocketWeightCallback();
+
     void oxTankWeightInit();
     void oxTankWeightCallback();
 
@@ -158,6 +162,7 @@ private:
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
 
     // Digital sensors

@@ -49,6 +49,7 @@ bool Sensors::start()
         n2Vessel2PressureInit();
         n2FillingPressureInit();
         oxVesselWeightInit();
+        rocketWeightInit();
         oxTankWeightInit();
     }
 
@@ -166,18 +167,17 @@ TemperatureData Sensors::getOxTankTemperature()
 
 LoadCellData Sensors::getOxVesselWeight()
 {
-    if (oxVesselWeight)
-        return oxVesselWeight->getLastSample();
-    else
-        return {};
+    return oxVesselWeight ? oxVesselWeight->getLastSample() : LoadCellData{};
+}
+
+LoadCellData Sensors::getRocketWeight()
+{
+    return rocketWeight ? rocketWeight->getLastSample() : LoadCellData{};
 }
 
 LoadCellData Sensors::getOxTankWeight()
 {
-    if (oxTankWeight)
-        return oxTankWeight->getLastSample();
-    else
-        return {};
+    return oxTankWeight ? oxTankWeight->getLastSample() : LoadCellData{};
 }
 
 CurrentData Sensors::getUmbilicalCurrent()
@@ -290,7 +290,9 @@ void Sensors::calibrate()
         oxVesselStats.add(oxVesselWeight->getLastSample().load);
         oxTankStats.add(oxTankWeight->getLastSample().load);
 
-        Thread::sleep(Config::Sensors::LoadCell::CALIBRATE_SAMPLE_PERIOD);
+        Thread::sleep(
+            milliseconds{Config::Sensors::LoadCell::CALIBRATE_SAMPLE_PERIOD}
+                .count());
     }
 
     oxVesselWeight->updateOffset(oxVesselStats.getStats().mean);
@@ -321,6 +323,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(oxTankPressure, "OxTankPressure");
         PUSH_SENSOR_INFO(n2TankPressure, "N2TankPressure");
         PUSH_SENSOR_INFO(oxVesselWeight, "OxVesselWeight");
+        PUSH_SENSOR_INFO(rocketWeight, "RocketWeight");
         PUSH_SENSOR_INFO(oxTankWeight, "OxTankWeight");
 
         return infos;
@@ -401,7 +404,7 @@ void Sensors::adc1Init()
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC_1::OX_TANK_LC_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_1::ROCKET_LC_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_32,
         .offset  = 0,
@@ -628,19 +631,37 @@ void Sensors::oxVesselWeightCallback()
     sdLogger.log(OxVesselWeightData{getOxVesselWeight()});
 }
 
+void Sensors::rocketWeightInit()
+{
+    rocketWeight = std::make_unique<TwoPointAnalogLoadCell>(
+        [this]()
+        {
+            auto sample = getADC1LastSample();
+            return sample.getVoltage(Config::Sensors::ADC_1::ROCKET_LC_CHANNEL);
+        },
+        Config::Sensors::LoadCell::ROCKET_P0_VOLTAGE,
+        Config::Sensors::LoadCell::ROCKET_P0_MASS,
+        Config::Sensors::LoadCell::ROCKET_P1_VOLTAGE,
+        Config::Sensors::LoadCell::ROCKET_P1_MASS);
+}
+
+void Sensors::rocketWeightCallback()
+{
+    sdLogger.log(RocketWeightData{getRocketWeight()});
+}
+
 void Sensors::oxTankWeightInit()
 {
     oxTankWeight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC1LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_1::OX_TANK_LC_CHANNEL);
+            return sample.getVoltage(Config::Sensors::ADC_1::ROCKET_LC_CHANNEL);
         },
-        Config::Sensors::LoadCell::TANK_P0_VOLTAGE,
-        Config::Sensors::LoadCell::TANK_P0_MASS,
-        Config::Sensors::LoadCell::TANK_P1_VOLTAGE,
-        Config::Sensors::LoadCell::TANK_P1_MASS);
+        Config::Sensors::LoadCell::ROCKET_P0_VOLTAGE,
+        Config::Sensors::LoadCell::ROCKET_P0_MASS,
+        Config::Sensors::LoadCell::ROCKET_P1_VOLTAGE,
+        Config::Sensors::LoadCell::ROCKET_P1_MASS);
 }
 
 void Sensors::oxTankWeightCallback()
@@ -737,6 +758,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info("OxVesselWeight", Config::Sensors::ADS131M08::PERIOD,
                         [this]() { oxVesselWeightCallback(); });
         map.emplace(std::make_pair(oxVesselWeight.get(), info));
+    }
+
+    if (rocketWeight)
+    {
+        SensorInfo info("RocketWeight", Config::Sensors::ADS131M08::PERIOD,
+                        [this]() { rocketWeightCallback(); });
+        map.emplace(std::make_pair(rocketWeight.get(), info));
     }
 
     if (oxTankWeight)

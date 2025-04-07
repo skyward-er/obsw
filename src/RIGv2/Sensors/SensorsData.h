@@ -69,6 +69,16 @@ struct OxVesselWeightData : Boardcore::LoadCellData
     OxVesselWeightData() {}
 };
 
+struct RocketWeightData : Boardcore::LoadCellData
+{
+    explicit RocketWeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RocketWeightData() {}
+};
+
 struct OxTankWeightData : Boardcore::LoadCellData
 {
     explicit OxTankWeightData(const Boardcore::LoadCellData& data)

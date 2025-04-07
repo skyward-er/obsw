@@ -27,6 +27,7 @@
 #include <sensors/MAX31856/MAX31856.h>
 #include <units/Frequency.h>
 
+#include <chrono>
 #include <cstdint>
 
 namespace RIGv2
@@ -38,6 +39,7 @@ namespace Config
 namespace Sensors
 {
 
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 namespace ADS131M08
@@ -71,7 +73,7 @@ constexpr auto N2_VESSEL_1_PT_CHANNEL = Channel::CHANNEL_2;
 constexpr auto N2_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_3;
 constexpr auto SERVO_CURRENT_CHANNEL  = Channel::CHANNEL_4;
 constexpr auto OX_VESSEL_LC_CHANNEL   = Channel::CHANNEL_5;
-constexpr auto OX_TANK_LC_CHANNEL     = Channel::CHANNEL_6;
+constexpr auto ROCKET_LC_CHANNEL      = Channel::CHANNEL_6;
 constexpr auto N2_FILLING_PT_CHANNEL  = Channel::CHANNEL_7;
 
 constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
@@ -124,17 +126,14 @@ constexpr float N2_TANK_MAX_PRESSURE    = 250;  // bar
 
 namespace LoadCell
 {
-constexpr unsigned int CALIBRATE_SAMPLE_COUNT  = 10;
-constexpr unsigned int CALIBRATE_SAMPLE_PERIOD = 40;
+constexpr auto CALIBRATE_SAMPLE_COUNT  = 10;
+constexpr auto CALIBRATE_SAMPLE_PERIOD = 40ms;
 
-// LC Tank sensor calibration data
-// - 1.866kg V: 0.000941
-// - 5.050kg V: 0.002550
-// - 6.916kg V: 0.003559
-constexpr float TANK_P0_VOLTAGE = 0.000941;
-constexpr float TANK_P0_MASS    = 1.866;
-constexpr float TANK_P1_VOLTAGE = 0.003559;
-constexpr float TANK_P1_MASS    = 6.916;
+// Rocket ramp loadcell calibration data
+constexpr float ROCKET_P0_VOLTAGE = -0.0004273;
+constexpr float ROCKET_P0_MASS    = 10.005;
+constexpr float ROCKET_P1_VOLTAGE = -0.0018125;
+constexpr float ROCKET_P1_MASS    = 40.290;
 
 /* OLD CALIBRATION DATA (before 07/09/2024, before new flipping)
 // LC Vessel sensor calibration data

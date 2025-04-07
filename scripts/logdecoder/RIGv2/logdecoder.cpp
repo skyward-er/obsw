@@ -57,6 +57,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<ADC2Data>();
     ds.registerType<TC1Data>();
     ds.registerType<OxVesselWeightData>();
+    ds.registerType<RocketWeightData>();
     ds.registerType<OxTankWeightData>();
     ds.registerType<OxVesselPressureData>();
     ds.registerType<OxFillingPressureData>();
