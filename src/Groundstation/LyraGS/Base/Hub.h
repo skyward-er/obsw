@@ -25,7 +25,7 @@
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationBase
