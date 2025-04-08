@@ -26,7 +26,7 @@
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Rovie/Ports/Ethernet.h>
 #include <Groundstation/Rovie/Radio/Radio.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace GroundstationRovie

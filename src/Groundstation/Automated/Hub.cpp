@@ -30,7 +30,7 @@
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/Events.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
 

@@ -33,7 +33,7 @@
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <Groundstation/LyraGS/Radio/RadioData.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>

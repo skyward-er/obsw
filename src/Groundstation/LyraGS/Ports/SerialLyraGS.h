@@ -27,7 +27,7 @@
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Buses.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>

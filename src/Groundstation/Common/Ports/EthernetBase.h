@@ -25,7 +25,7 @@
 #include <ActiveObject.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/EthernetSniffer.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <utils/DependencyManager/DependencyManager.h>
