@@ -565,6 +565,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             // Sensors
             tm.rocket_mass    = sensors->getRocketWeight().load;
+            tm.ox_tank_mass   = sensors->getOxTankWeight().load;
             tm.ox_vessel_mass = sensors->getOxVesselWeight().load;
 
             tm.ox_vessel_pressure   = sensors->getOxVesselPressure().pressure;
