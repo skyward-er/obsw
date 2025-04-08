@@ -251,12 +251,13 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
     // In case the message is spoofed from ethernet by another groundstation
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
-        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM ||
+        msg.msgid == MAVLINK_MSG_ID_PAYLOAD_FLIGHT_TM ||
+        msg.msgid == MAVLINK_MSG_ID_PAYLOAD_STATS_TM)
     {
         TRACE(
-            "[info][SNIFFING] Hub: A MAIN packet was received from ground "
-            "packet "
-            "(ethernet probably and NOT radio)\n");
+            "[info][SNIFFING] Hub: A MAIN/PAYLOAD packet was received from "
+            "ground packet (ethernet probably and NOT radio)\n");
         /* The message received by ethernet (outgoing) in reality is not a
          * command but the telemetry spoofed, therefore is then used as incoming
          */
