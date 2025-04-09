@@ -376,19 +376,29 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 mavlink_msg_payload_flight_tm_get_nas_bias_y(&msg),
                 mavlink_msg_payload_flight_tm_get_nas_bias_z(&msg))};
 
-        GPSData gpsState;
-        gpsState.gpsTimestamp =
-            mavlink_msg_payload_flight_tm_get_timestamp(&msg);
-        gpsState.latitude  = mavlink_msg_payload_flight_tm_get_gps_lat(&msg);
-        gpsState.longitude = mavlink_msg_payload_flight_tm_get_gps_lon(&msg);
-        gpsState.height    = mavlink_msg_payload_flight_tm_get_gps_alt(&msg);
-        gpsState.fix       = mavlink_msg_payload_flight_tm_get_gps_fix(&msg);
-
         // Set the rocket NAS
         setRocketNasState(nasState);
-        setRocketOrigin(gpsState);
 
         Logger::getInstance().log(nasState);
+    }
+    else if (msg.msgid == MAVLINK_MSG_ID_PAYLOAD_STATS_TM)
+    {
+        mavlink_payload_stats_tm_t payloadST;
+        mavlink_msg_payload_stats_tm_decode(&msg, &payloadST);
+
+        // TODO: The origin should have its own struct since only timestamp and
+        // [lat, lon, alt] are needed
+        GPSData gpsState;
+        getRocketOrigin(gpsState);
+        gpsState.gpsTimestamp = payloadST.timestamp;
+        gpsState.latitude     = payloadST.ref_lat;
+        gpsState.longitude    = payloadST.ref_lon;
+        gpsState.height       = payloadST.ref_alt;
+        gpsState.fix          = 3;
+
+        setRocketOrigin(gpsState);
+
+        // Logger::getInstance().log(rocketST);
         Logger::getInstance().log(gpsState);
     }
 
