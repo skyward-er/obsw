@@ -52,6 +52,8 @@
 #include <logger/LogTypes.h>
 #include <logger/Logger.h>
 #include <tscpp/stream.h>
+#include <Groundstation/Automated/LogSniffing.h>
+
 
 #include <chrono>
 #include <filesystem>
@@ -144,6 +146,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Antennas::SMAStatus>();
     ds.registerType<Antennas::PinChangeData>();
     ds.registerType<LyraGS::MainRadioLog>();
+    ds.registerType<Antennas::LogSniffing();
 }
 
 // cppcheck-suppress passedByValue

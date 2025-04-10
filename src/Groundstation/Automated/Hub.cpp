@@ -254,6 +254,8 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
          * command but the telemetry spoofed, therefore is then used as incoming
          */
         dispatchIncomingMsg(msg);
+        LogSniffing sniffing = {TimestampTimer::getTimestamp(),1};
+        Logger::getInstance().log(sniffing);
     }
 }
 
@@ -271,7 +273,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     {
         mavlink_rocket_flight_tm_t rocketTM;
         mavlink_msg_rocket_flight_tm_decode(&msg, &rocketTM);
-        uint64_t timestamp = mavlink_msg_rocket_flight_tm_get_timestamp(&msg);
+        uint64_t timestamp =  rocketTM.timestamp;
         TRACE(
             "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet was "
             "received "
