@@ -33,6 +33,7 @@
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>
+#include <Groundstation/Automated/LogSniffing.h>
 
 namespace LyraGS
 {

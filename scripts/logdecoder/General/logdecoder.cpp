@@ -49,6 +49,8 @@
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
+#include <Groundstation/Automated/LogSniffing.h>
+
 
 #include <fstream>
 #include <iostream>
@@ -140,6 +142,7 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Antennas::SMAStatus>();
     ds.registerType<Antennas::PinChangeData>();
     ds.registerType<LyraGS::MainRadioLog>();
+    ds.registerType<Antennas::LogSniffing();
 }
 
 void showUsage(const string& cmdName)
