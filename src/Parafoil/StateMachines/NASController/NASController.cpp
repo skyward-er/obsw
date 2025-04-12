@@ -282,7 +282,8 @@ void NASController::update()
     // Perform initial NAS prediction
     nas.predictGyro(imu);
     nas.predictAcc(imu);
-    nas.correctMag(imu);
+    // Disable Magnetometer as it works terribly! DO NOT USE
+    // nas.correctMag(imu);
 
     if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
         accLength < Config::NAS::DISABLE_GPS_ACCELERATION_THRESHOLD)
