@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,39 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <units/Frequency.h>
+
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
 
 namespace RIGv2
 {
-
 namespace Config
 {
-
-namespace Scheduler
+namespace TARS3
 {
+/* linter off */ using namespace std::chrono;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-// Used for TARS1/TARS3 task scheduler/FSM
-static const miosix::Priority TARS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
+constexpr Hertz SAMPLE_PERIOD         = 100_hz;
+constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-// Used for GMM FSM
-static const miosix::Priority GMM_PRIORITY = miosix::PRIORITY_MAX - 1;
+// Account for ~300ms of servo movement time
+constexpr auto WAIT_BETWEEN_CYCLES = 1500ms;
 
-static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 1;
+// Cold refueling parameters
+constexpr float PRESSURE_TARGET = 35.4f;  // [bar]
+constexpr float MASS_TARGET     = 6.5f;   // [kg]
+// Threshold to determine if the pressure is near the target
+constexpr float NEAR_TARGET_PRESSURE_THRESHOLD = 5.0f;  // [bar]
 
-}  // namespace Scheduler
+constexpr auto FILLING_TIME = 2000ms;
+constexpr auto VENTING_TIME = 1000ms;
 
+constexpr auto FILLING_TIME_NEAR = 1000ms;
+constexpr auto VENTING_TIME_NEAR = 500ms;
+
+}  // namespace TARS3
 }  // namespace Config
-
 }  // namespace RIGv2

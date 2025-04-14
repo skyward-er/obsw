@@ -29,6 +29,7 @@
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
+#include <RIGv2/StateMachines/TARS3/TARS3.h>
 #include <common/Events.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/StackLogger.h>
@@ -60,6 +61,7 @@ int main()
     CanHandler* canHandler = new CanHandler();
     GroundModeManager* gmm = new GroundModeManager();
     TARS1* tars1           = new TARS1();
+    TARS3* tars3           = new TARS3();
     Radio* radio           = new Radio();
 
     Logger& sdLogger    = Logger::getInstance();
@@ -83,7 +85,8 @@ int main()
                       manager.insert<CanHandler>(canHandler) &&
                       manager.insert<Registry>(registry) &&
                       manager.insert<GroundModeManager>(gmm) &&
-                      manager.insert<TARS1>(tars1) && manager.inject();
+                      manager.insert<TARS1>(tars1) &&
+                      manager.insert<TARS3>(tars3) && manager.inject();
 
     if (!initResult)
     {
@@ -170,6 +173,13 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start TARS1 ***" << std::endl;
+    }
+
+    std::cout << "Starting TARS3" << std::endl;
+    if (!tars3->start())
+    {
+        initResult = false;
+        std::cout << "*** Failed to start TARS3 ***" << std::endl;
     }
 
     std::cout << "Starting BoardScheduler" << std::endl;

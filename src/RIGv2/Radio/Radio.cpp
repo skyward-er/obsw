@@ -636,9 +636,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.chamber_valve_state = actuators->isChamberOpen();
 
             // Internal states
-            tm.gmm_state    = getModule<GroundModeManager>()->getState();
+            tm.gmm_state = getModule<GroundModeManager>()->getState();
+            // TODO: rename to tars1 and tars3
             tm.tars3_state  = getModule<TARS1>()->isRefueling();
-            tm.tars3m_state = 0;  // TODO
+            tm.tars3m_state = (uint8_t)getModule<TARS3>()->getLastAction();
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
                               GroundModeManagerState::ARMED;
 
@@ -1029,11 +1030,18 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        // TODO: tars3
+        // TODO: rename buttons to tars1 and tars3 (remove tars3m)
         if (BUTTON_PRESSED(tars3_btn))
         {
-            // The TARS switch was pressed
-            EventBroker::getInstance().post(MOTOR_START_TARS, TOPIC_TARS);
+            // The TARS lever was put in the TARS1 position
+            EventBroker::getInstance().post(MOTOR_START_TARS1, TOPIC_TMTC);
+            lastManualActuation = currentTime;
+        }
+
+        if (BUTTON_PRESSED(tars3m_btn))
+        {
+            // The TARS lever was put in the TARS3 position
+            EventBroker::getInstance().post(MOTOR_START_TARS3, TOPIC_TMTC);
             lastManualActuation = currentTime;
         }
 
@@ -1052,6 +1060,14 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             getModule<Actuators>()->set3wayValveState(state.n2_3way_btn);
             lastManualActuation = currentTime;
         }
+    }
+
+    if ((lastConrigState.tars3_btn == 1 && state.tars3_btn == 0) ||
+        (lastConrigState.tars3m_btn == 1 && state.tars3m_btn == 0))
+    {
+        // The TARS lever was put in the OFF position
+        EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
+        lastManualActuation = currentTime;
     }
 
     // Special case for disarming, that can be done bypassing the timeout

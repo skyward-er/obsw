@@ -26,8 +26,8 @@
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Configs/TARS1Config.h>
 #include <RIGv2/Sensors/Sensors.h>
-#include <RIGv2/StateMachines/TARS1/MedianFilter.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
+#include <common/MedianFilter.h>
 #include <events/FSM.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
@@ -53,7 +53,7 @@ private:
     void state_ready(const Boardcore::Event& event);
     void state_refueling(const Boardcore::Event& event);
 
-    void logAction(TarsActionType action);
+    void logAction(Tars1ActionType action);
     void logSample(float pressure, float mass);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();

@@ -24,6 +24,7 @@
 #include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
+#include <RIGv2/StateMachines/TARS3/TARS3Data.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -68,8 +69,10 @@ void registerTypes(Deserializer& ds)
     ds.registerType<N2TankPressureData>();
     ds.registerType<ActuatorsData>();
     ds.registerType<GroundModeManagerData>();
-    ds.registerType<TarsActionData>();
-    ds.registerType<TarsSampleData>();
+    ds.registerType<RIGv2::Tars1ActionData>();
+    ds.registerType<RIGv2::Tars1SampleData>();
+    ds.registerType<RIGv2::Tars3ActionData>();
+    ds.registerType<RIGv2::Tars3SampleData>();
     ds.registerType<VoltageData>();
 }
 

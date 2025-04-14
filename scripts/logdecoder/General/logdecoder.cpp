@@ -43,6 +43,7 @@
 #include <RIGv2/Sensors/SensorsData.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManagerData.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
+#include <RIGv2/StateMachines/TARS3/TARS3Data.h>
 #include <algorithms/MEA/MEAData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
@@ -124,8 +125,10 @@ void registerTypes(Deserializer& ds)
     ds.registerType<RIGv2::N2TankPressureData>();
     ds.registerType<RIGv2::ActuatorsData>();
     ds.registerType<RIGv2::GroundModeManagerData>();
-    ds.registerType<RIGv2::TarsActionData>();
-    ds.registerType<RIGv2::TarsSampleData>();
+    ds.registerType<RIGv2::Tars1ActionData>();
+    ds.registerType<RIGv2::Tars1SampleData>();
+    ds.registerType<RIGv2::Tars3ActionData>();
+    ds.registerType<RIGv2::Tars3SampleData>();
 
     // Groundstation (ARP)
     ds.registerType<Antennas::StepperXData>();

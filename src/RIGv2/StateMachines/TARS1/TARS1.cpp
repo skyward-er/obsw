@@ -34,7 +34,7 @@ using namespace miosix;
 
 TARS1::TARS1()
     : FSM(&TARS1::state_ready, miosix::STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::TARS1_PRIORITY)
+          Config::Scheduler::TARS_PRIORITY)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
@@ -70,11 +70,11 @@ void TARS1::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            logAction(TarsActionType::READY);
+            logAction(Tars1ActionType::READY);
             break;
         }
 
-        case MOTOR_START_TARS:
+        case MOTOR_START_TARS1:
         {
             transition(&TARS1::state_refueling);
             break;
@@ -101,7 +101,7 @@ void TARS1::state_refueling(const Event& event)
             actuators->closeAllServos();
 
             LOG_INFO(logger, "TARS start washing");
-            logAction(TarsActionType::WASHING);
+            logAction(Tars1ActionType::WASHING);
 
             // Start washing
             actuators->openServoWithTime(ServosList::OX_VENTING_VALVE,
@@ -124,7 +124,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_WASHING_DONE:
         {
             LOG_INFO(logger, "TARS washing done");
-            logAction(TarsActionType::OPEN_FILLING);
+            logAction(Tars1ActionType::OPEN_FILLING);
 
             // Open the filling for a long time
             actuators->openServoWithTime(ServosList::OX_FILLING_VALVE,
@@ -140,7 +140,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_PRESSURE_STABILIZED:
         {
             LOG_INFO(logger, "TARS check mass");
-            logAction(TarsActionType::CHECK_MASS);
+            logAction(Tars1ActionType::CHECK_MASS);
 
             // Lock in a new mass value
             {
@@ -173,7 +173,7 @@ void TARS1::state_refueling(const Event& event)
             }
 
             LOG_INFO(logger, "TARS open venting");
-            logAction(TarsActionType::OPEN_VENTING);
+            logAction(Tars1ActionType::OPEN_VENTING);
 
             // Open the venting and check for pressure stabilization
             actuators->openServo(ServosList::OX_VENTING_VALVE);
@@ -191,7 +191,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_CHECK_PRESSURE_STABILIZE:
         {
             LOG_INFO(logger, "TARS check pressure");
-            logAction(TarsActionType::CHECK_PRESSURE);
+            logAction(Tars1ActionType::CHECK_PRESSURE);
 
             {
                 Lock<FastMutex> lock(sampleMutex);
@@ -221,7 +221,7 @@ void TARS1::state_refueling(const Event& event)
         case TARS_FILLING_DONE:
         {
             LOG_INFO(logger, "TARS filling done");
-            logAction(TarsActionType::AUTOMATIC_STOP);
+            logAction(Tars1ActionType::AUTOMATIC_STOP);
 
             actuators->closeAllServos();
             transition(&TARS1::state_ready);
@@ -231,7 +231,7 @@ void TARS1::state_refueling(const Event& event)
         case MOTOR_MANUAL_ACTION:
         {
             LOG_INFO(logger, "TARS manual stop");
-            logAction(TarsActionType::MANUAL_STOP);
+            logAction(Tars1ActionType::MANUAL_STOP);
 
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
@@ -239,16 +239,17 @@ void TARS1::state_refueling(const Event& event)
             break;
         }
 
-        case MOTOR_START_TARS:
+        case MOTOR_STOP_TARS:
         {
             LOG_INFO(logger, "TARS manual stop");
-            logAction(TarsActionType::MANUAL_STOP);
+            logAction(Tars1ActionType::MANUAL_STOP);
 
             // The user requested that we stop
             getModule<Actuators>()->closeAllServos();
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
             transition(&TARS1::state_ready);
+            break;
         }
     }
 }
@@ -277,14 +278,14 @@ void TARS1::sample()
     }
 }
 
-void TARS1::logAction(TarsActionType action)
+void TARS1::logAction(Tars1ActionType action)
 {
-    TarsActionData data = {TimestampTimer::getTimestamp(), action};
+    Tars1ActionData data = {TimestampTimer::getTimestamp(), action};
     sdLogger.log(data);
 }
 
 void TARS1::logSample(float pressure, float mass)
 {
-    TarsSampleData data = {TimestampTimer::getTimestamp(), pressure, mass};
+    Tars1SampleData data = {TimestampTimer::getTimestamp(), pressure, mass};
     sdLogger.log(data);
 }

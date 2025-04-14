@@ -33,16 +33,16 @@ class BoardScheduler : public Boardcore::Injectable
 {
 public:
     BoardScheduler()
-        : tars1(Config::Scheduler::TARS1_PRIORITY),
+        : tars(Config::Scheduler::TARS_PRIORITY),
           sensors(Config::Scheduler::SENSORS_PRIORITY)
     {
     }
 
     [[nodiscard]] bool start()
     {
-        if (!tars1.start())
+        if (!tars.start())
         {
-            LOG_ERR(logger, "Failed to start TARS1 scheduler");
+            LOG_ERR(logger, "Failed to start TARS scheduler");
             return false;
         }
 
@@ -58,7 +58,9 @@ public:
 
     bool isStarted() { return started; }
 
-    Boardcore::TaskScheduler& getTars1Scheduler() { return tars1; }
+    Boardcore::TaskScheduler& getTars1Scheduler() { return tars; }
+
+    Boardcore::TaskScheduler& getTars3Scheduler() { return tars; }
 
     Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
@@ -72,7 +74,7 @@ private:
 
     std::atomic<bool> started{false};
 
-    Boardcore::TaskScheduler tars1;
+    Boardcore::TaskScheduler tars;
     Boardcore::TaskScheduler sensors;
 };
 

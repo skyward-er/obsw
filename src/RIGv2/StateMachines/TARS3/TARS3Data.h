@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,50 +29,59 @@
 namespace RIGv2
 {
 
-enum class Tars1ActionType : uint8_t
+enum class Tars3Action : uint32_t
 {
     READY = 0,
-    WASHING,
-    OPEN_FILLING,
-    OPEN_VENTING,
-    CHECK_PRESSURE,
-    CHECK_MASS,
-    AUTOMATIC_STOP,
+    START,
+    WAITING,
+    FILLING,
+    VENTING,
     MANUAL_STOP,
+    MANUAL_ACTION_STOP,
 };
 
-struct Tars1ActionData
+inline std::string to_string(Tars3Action action)
 {
-    uint64_t timestamp;
-    Tars1ActionType action;
-
-    Tars1ActionData() : timestamp{0}, action{Tars1ActionType::READY} {}
-
-    Tars1ActionData(uint64_t timestamp, Tars1ActionType action)
-        : timestamp{timestamp}, action{action}
+    switch (action)
     {
+        case Tars3Action::READY:
+            return "READY";
+        case Tars3Action::START:
+            return "START";
+        case Tars3Action::WAITING:
+            return "WAITING";
+        case Tars3Action::FILLING:
+            return "FILLING";
+        case Tars3Action::VENTING:
+            return "VENTING";
+        case Tars3Action::MANUAL_STOP:
+            return "MANUAL_STOP";
+        case Tars3Action::MANUAL_ACTION_STOP:
+            return "MANUAL_ACTION_STOP";
+        default:
+            return "UNKNOWN";
     }
+}
 
-    static std::string header() { return "timestamp,action\n"; }
+struct Tars3ActionData
+{
+    uint64_t timestamp = 0;
+    Tars3Action action = Tars3Action::READY;
+
+    static std::string header() { return "timestamp,action,actionName\n"; }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << (int)action << "\n";
+        os << timestamp << "," << (int)action << "," << to_string(action)
+           << "\n";
     }
 };
 
-struct Tars1SampleData
+struct Tars3SampleData
 {
-    uint64_t timestamp;
-    float pressure;
-    float mass;
-
-    Tars1SampleData() : timestamp{0}, pressure{0}, mass{0} {}
-
-    Tars1SampleData(uint64_t timestamp, float pressure, float mass)
-        : timestamp{timestamp}, pressure{pressure}, mass{mass}
-    {
-    }
+    uint64_t timestamp = 0;
+    float pressure     = 0;
+    float mass         = 0;
 
     static std::string header() { return "timestamp,pressure,mass\n"; }
 
