@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,36 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <units/Frequency.h>
+
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
 
 namespace RIGv2
 {
-
 namespace Config
 {
-
-namespace Scheduler
+namespace TARS3
 {
+/* linter off */ using namespace std::chrono;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-// Used for TARS1/TARS3 task scheduler/FSM
-static const miosix::Priority TARS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
+constexpr Hertz SAMPLE_PERIOD         = 100_hz;
+constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-// Used for GMM FSM
-static const miosix::Priority GMM_PRIORITY = miosix::PRIORITY_MAX - 1;
+constexpr auto WAIT_BETWEEN_CYCLES = 1000ms;
 
-static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 1;
+constexpr float PRESSURE_CHANGE_TOLERANCE   = 0.035;  // [bar]
+constexpr auto PRESSURE_STABILIZE_WAIT_TIME = 1000ms;
 
-}  // namespace Scheduler
+// Cold refueling parameters
+constexpr float PRESSURE_LOWER_RANGE = 17;  // [bar]
+constexpr float PRESSURE_UPPER_RANGE = 20;  // [bar]
 
+constexpr auto FILLING_TIME = 3000ms;
+constexpr auto VENTING_TIME = 3000ms;
+
+}  // namespace TARS3
 }  // namespace Config
-
 }  // namespace RIGv2

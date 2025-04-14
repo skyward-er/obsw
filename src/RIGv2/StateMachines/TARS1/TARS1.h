@@ -53,7 +53,7 @@ private:
     void state_ready(const Boardcore::Event& event);
     void state_refueling(const Boardcore::Event& event);
 
-    void logAction(TarsActionType action);
+    void logAction(Tars1ActionType action);
     void logSample(float pressure, float mass);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();

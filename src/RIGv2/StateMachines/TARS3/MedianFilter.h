@@ -22,29 +22,36 @@
 
 #pragma once
 
-#include <miosix.h>
+#include <algorithm>
+#include <array>
+#include <memory>
 
 namespace RIGv2
 {
 
-namespace Config
+template <typename T, size_t Max>
+class MedianFilter
 {
+public:
+    MedianFilter() {}
 
-namespace Scheduler
-{
+    void reset() { idx = 0; }
 
-// Used for TARS1/TARS3 task scheduler/FSM
-static const miosix::Priority TARS_PRIORITY = miosix::PRIORITY_MAX - 1;
-// Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
+    void add(T value)
+    {
+        values[idx] = value;
+        idx         = (idx + 1) % Max;
+    }
 
-// Used for GMM FSM
-static const miosix::Priority GMM_PRIORITY = miosix::PRIORITY_MAX - 1;
+    T calcMedian()
+    {
+        std::sort(values.begin(), values.end());
+        return values[idx / 2];
+    }
 
-static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 1;
-
-}  // namespace Scheduler
-
-}  // namespace Config
+private:
+    size_t idx                = 0;
+    std::array<T, Max> values = {0};
+};
 
 }  // namespace RIGv2

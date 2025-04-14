@@ -29,7 +29,7 @@
 namespace RIGv2
 {
 
-enum class TarsActionType : uint8_t
+enum class Tars1ActionType : uint8_t
 {
     READY = 0,
     WASHING,
@@ -41,14 +41,14 @@ enum class TarsActionType : uint8_t
     MANUAL_STOP,
 };
 
-struct TarsActionData
+struct Tars1ActionData
 {
     uint64_t timestamp;
-    TarsActionType action;
+    Tars1ActionType action;
 
-    TarsActionData() : timestamp{0}, action{TarsActionType::READY} {}
+    Tars1ActionData() : timestamp{0}, action{Tars1ActionType::READY} {}
 
-    TarsActionData(uint64_t timestamp, TarsActionType action)
+    Tars1ActionData(uint64_t timestamp, Tars1ActionType action)
         : timestamp{timestamp}, action{action}
     {
     }
@@ -61,15 +61,15 @@ struct TarsActionData
     }
 };
 
-struct TarsSampleData
+struct Tars1SampleData
 {
     uint64_t timestamp;
     float pressure;
     float mass;
 
-    TarsSampleData() : timestamp{0}, pressure{0}, mass{0} {}
+    Tars1SampleData() : timestamp{0}, pressure{0}, mass{0} {}
 
-    TarsSampleData(uint64_t timestamp, float pressure, float mass)
+    Tars1SampleData(uint64_t timestamp, float pressure, float mass)
         : timestamp{timestamp}, pressure{pressure}, mass{mass}
     {
     }
