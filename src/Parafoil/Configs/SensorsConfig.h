@@ -87,7 +87,7 @@ constexpr auto ODR           = Boardcore::LPS22DF::ODR_100;
 namespace UBXGPS
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 10_khz;
+constexpr auto SAMPLING_RATE = 10_hz;
 }  // namespace UBXGPS
 
 namespace ADS131M08

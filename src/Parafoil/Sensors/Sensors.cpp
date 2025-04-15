@@ -345,7 +345,7 @@ void Sensors::ubxGpsInit()
 
     ubxgps = std::make_unique<UBXGPSSpi>(
         getModule<Buses>()->spi1, hwmap::ubxgps::cs::getPin(), spiConfig,
-        Kilohertz{config::UBXGPS::SAMPLING_RATE}.value());
+        Hertz{config::UBXGPS::SAMPLING_RATE}.value());
 
     LOG_INFO(logger, "UBXGPS initialized!");
 }
