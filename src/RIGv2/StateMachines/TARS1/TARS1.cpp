@@ -74,7 +74,7 @@ void TARS1::state_ready(const Event& event)
             break;
         }
 
-        case MOTOR_START_TARS:
+        case MOTOR_START_TARS1:
         {
             transition(&TARS1::state_refueling);
             break;
@@ -239,7 +239,7 @@ void TARS1::state_refueling(const Event& event)
             break;
         }
 
-        case MOTOR_START_TARS:
+        case MOTOR_STOP_TARS:
         {
             LOG_INFO(logger, "TARS manual stop");
             logAction(Tars1ActionType::MANUAL_STOP);
@@ -249,6 +249,7 @@ void TARS1::state_refueling(const Event& event)
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
             transition(&TARS1::state_ready);
+            break;
         }
     }
 }

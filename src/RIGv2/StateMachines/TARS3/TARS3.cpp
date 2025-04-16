@@ -116,7 +116,7 @@ State TARS3::Ready(const Event& event)
             return HANDLED;
         }
 
-        case MOTOR_START_TARS:
+        case MOTOR_START_TARS3:
         {
             return transition(&TARS3::Refueling);
         }
@@ -173,12 +173,12 @@ State TARS3::Refueling(const Event& event)
             LOG_INFO(logger, "TARS3 stopped because of manual stop");
             logAction(Tars3Action::MANUAL_STOP);
 
+            actuators->closeAllServos();
             return transition(&TARS3::Ready);
         }
 
         case EV_EXIT:
         {
-            actuators->closeAllServos();
             EventBroker::getInstance().removeDelayed(delayedEventId);
 
             return HANDLED;

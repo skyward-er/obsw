@@ -223,6 +223,24 @@ State GroundModeManager::state_disarmed(const Event& event)
             return HANDLED;
         }
 
+        case MOTOR_START_TARS1:
+        {
+            EventBroker::getInstance().post(MOTOR_START_TARS1, TOPIC_TARS);
+            return HANDLED;
+        }
+
+        case MOTOR_START_TARS3:
+        {
+            EventBroker::getInstance().post(MOTOR_START_TARS3, TOPIC_TARS);
+            return HANDLED;
+        }
+
+        case MOTOR_START_TARS3M:
+        {
+            EventBroker::getInstance().post(MOTOR_START_TARS3M, TOPIC_TARS);
+            return HANDLED;
+        }
+
         default:
         {
             return UNHANDLED;
