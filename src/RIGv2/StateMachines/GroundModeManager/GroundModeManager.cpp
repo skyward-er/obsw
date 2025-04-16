@@ -322,6 +322,7 @@ State GroundModeManager::state_firing(const Event& event)
         }
 
         case TMTC_OPEN_NITROGEN:
+        case MOTOR_OPEN_CHAMBER:
         {
             // Open nitrogen
             uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
@@ -330,7 +331,15 @@ State GroundModeManager::state_firing(const Event& event)
 
             getModule<Actuators>()->openChamberWithTime(chamberTime);
 
-            return transition(&GroundModeManager::state_disarmed);
+            if (event == TMTC_OPEN_NITROGEN)
+            {
+                // Nitrogen TMTC causes automatic disarm
+                return transition(&GroundModeManager::state_disarmed);
+            }
+            else
+            {
+                return HANDLED;
+            }
         }
 
         case MOTOR_COOLING_TIMEOUT:  // Normal firing end
@@ -433,15 +442,8 @@ State GroundModeManager::state_oxidizer(const Event& event)
             return HANDLED;
         }
 
-        case MOTOR_OPEN_CHAMBER:
+        case MOTOR_MAIN_CLOSE:
         {
-            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
-                CONFIG_ID_CHAMBER_TIME,
-                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
-
-            // Open the chamber valve
-            getModule<Actuators>()->openChamberWithTime(chamberTime);
-
             return transition(&GroundModeManager::state_cooling);
         }
 
@@ -459,6 +461,9 @@ State GroundModeManager::state_cooling(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(GroundModeManagerState::COOLING);
+
+            // Stop pressurizing the OX after the firing is over
+            getModule<Actuators>()->closeServo(ServosList::NITROGEN_VALVE);
 
             return HANDLED;
         }

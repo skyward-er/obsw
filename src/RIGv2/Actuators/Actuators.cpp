@@ -420,7 +420,7 @@ void Actuators::updatePositionsTask()
     long long currentTime = getTime();
 
     // Iterate over all servos
-    for (uint8_t idx = 0; idx < 10; idx++)
+    for (uint8_t idx = 0; idx < infos.size(); idx++)
     {
         if (currentTime < infos[idx].closeTs)
         {
