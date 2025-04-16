@@ -94,10 +94,12 @@ void TARS3::sample()
 
 void TARS3::logAction(Tars3Action action, float data)
 {
-    auto data = Tars3ActionData{.timestamp = TimestampTimer::getTimestamp(),
-                                .action    = action,
-                                .data      = data};
-    sdLogger.log(data);
+    auto actionData = Tars3ActionData{
+        .timestamp = TimestampTimer::getTimestamp(),
+        .action    = action,
+        .data      = data,
+    };
+    sdLogger.log(actionData);
 }
 
 void TARS3::logSample(float pressure, float mass)
@@ -408,3 +410,5 @@ State TARS3::RefuelingVenting(const Event& event)
         }
     }
 }
+
+}  // namespace RIGv2

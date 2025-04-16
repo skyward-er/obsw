@@ -22,10 +22,13 @@
 
 #pragma once
 
+#include <RIGv2/Configs/TARS3Config.h>
+#include <common/MedianFilter.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-#include "MedianFilter.h"
+#include <chrono>
+
 #include "TARS3Data.h"
 
 namespace RIGv2
@@ -87,8 +90,8 @@ private:
     void logAction(Tars3Action action, float data = 0);
     void logSample(float pressure, float mass);
 
-    std::chrono::milliseconds fillingTime = 0ms;
-    std::chrono::milliseconds ventingTime = 0ms;
+    std::chrono::milliseconds fillingTime{0};
+    std::chrono::milliseconds ventingTime{0};
 
     float previousPressure = 0;
     float currentPressure  = 0;

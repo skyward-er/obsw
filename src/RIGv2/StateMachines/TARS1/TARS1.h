@@ -26,7 +26,7 @@
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Configs/TARS1Config.h>
 #include <RIGv2/Sensors/Sensors.h>
-#include <RIGv2/StateMachines/TARS1/MedianFilter.h>
+#include <common/MedianFilter.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <events/FSM.h>
 #include <miosix.h>
