@@ -297,6 +297,21 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_RAW_EVENT_TC:
+        {
+            uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);
+            uint8_t eventId = mavlink_msg_raw_event_tc_get_event_id(&msg);
+
+            bool disarmed = getModule<GroundModeManager>()->getState() ==
+                            GroundModeManagerState::DISARMED;
+            // Raw events are allowed in the disarmed state
+            if (!disarmed)
+                return enqueueNack(msg, 0);
+
+            EventBroker::getInstance().post(eventId, topicId);
+            return enqueueAck(msg);
+        }
+
         default:
         {
             // Unrecognized packet
