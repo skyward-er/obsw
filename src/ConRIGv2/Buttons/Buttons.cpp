@@ -27,10 +27,39 @@
 #include <ConRIGv2/Radio/Radio.h>
 #include <interfaces-impl/hwmapping.h>
 
+#include <iomanip>
+#include <iostream>
+
 using namespace std;
 using namespace miosix;
 using namespace Boardcore;
 using namespace ConRIGv2;
+
+void printStateDiff(const mavlink_conrig_state_tc_t& oldState,
+                    const mavlink_conrig_state_tc_t& state)
+{
+#define BUTTON(btn)                                                        \
+    std::setw(8) << std::right << (state.btn != oldState.btn ? "*  " : "") \
+                 << std::setw(20) << std::left << #btn << std::setw(4)     \
+                 << std::left << (state.btn ? "On" : "Off")
+
+    std::cout << "Button state changed: \n"
+              << BUTTON(arm_switch) << "\n"
+              << BUTTON(ox_filling_btn) << "\n"
+              << BUTTON(ox_release_btn) << "\n"
+              << BUTTON(ox_detach_btn) << "\n"
+              << BUTTON(ox_venting_btn) << "\n"
+              << BUTTON(n2_filling_btn) << "\n"
+              << BUTTON(n2_release_btn) << "\n"
+              << BUTTON(n2_detach_btn) << "\n"
+              << BUTTON(n2_quenching_btn) << "\n"
+              << BUTTON(n2_3way_btn) << "\n"
+              << BUTTON(tars3_btn) << "\n"
+              << BUTTON(tars3m_btn) << "\n"
+              << BUTTON(nitrogen_btn) << "\n"
+              << BUTTON(ignition_btn) << "\n";
+#undef BUTTON
+}
 
 bool Buttons::start()
 {
@@ -45,6 +74,9 @@ mavlink_conrig_state_tc_t Buttons::getState() { return state; }
 
 void Buttons::periodicStatusCheck()
 {
+    auto oldState = state;
+    (void)oldState;  // Avoid unused variable warning, only used in debug mode
+
 #define CHECK_BUTTON(cond, btn)                           \
     if (cond)                                             \
     {                                                     \
@@ -52,7 +84,6 @@ void Buttons::periodicStatusCheck()
         {                                                 \
             guard.btn = 0;                                \
             state.btn = true;                             \
-            LOG_DEBUG(logger, #btn " button pressed");    \
         }                                                 \
         else                                              \
         {                                                 \
@@ -65,10 +96,17 @@ void Buttons::periodicStatusCheck()
         state.btn = false;                                \
     }
 
+    // Handle switches (levers)
     state.arm_switch  = btns::arm::value();
     state.n2_3way_btn = btns::n2_3way::value();
+    // The tars lever has 2 position that close the circuit on a different pin
+    // Exclude the case where both are pressed
+    state.tars3_btn  = btns::tars3::value() && !btns::tars3m::value();
+    state.tars3m_btn = btns::tars3m::value() && !btns::tars3::value();
 
+    // The ignition button is considered only if the arm switch is active
     CHECK_BUTTON(!btns::ignition::value() && state.arm_switch, ignition_btn);
+
     CHECK_BUTTON(btns::ox_filling::value(), ox_filling_btn);
     CHECK_BUTTON(btns::ox_release::value(), ox_release_btn);
     CHECK_BUTTON(btns::ox_detach::value(), ox_detach_btn);
@@ -78,13 +116,17 @@ void Buttons::periodicStatusCheck()
     CHECK_BUTTON(btns::n2_detach::value(), n2_detach_btn);
     CHECK_BUTTON(btns::n2_quenching::value(), n2_quenching_btn);
     CHECK_BUTTON(btns::nitrogen::value(), nitrogen_btn);
-    CHECK_BUTTON(btns::tars3::value(), tars3_btn);
-    CHECK_BUTTON(btns::tars3m::value(), tars3m_btn);
 
 #undef CHECK_BUTTON
 
     // Set the internal button state in Radio module
     getModule<Radio>()->updateButtonState(state);
+
+#ifndef NDEBUG
+    // Debug print
+    if (std::memcmp(&oldState, &state, sizeof(state)) != 0)
+        printStateDiff(oldState, state);
+#endif
 }
 
 void Buttons::enableIgnition() { ui::armedLed::high(); }
