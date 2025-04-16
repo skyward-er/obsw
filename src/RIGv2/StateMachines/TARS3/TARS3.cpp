@@ -112,6 +112,11 @@ State TARS3::Ready(const Event& event)
 {
     switch (event)
     {
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+
         case EV_ENTRY:
         {
             logAction(Tars3Action::READY);
@@ -126,6 +131,11 @@ State TARS3::Ready(const Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&TARS3::state_top);
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
         }
 
         default:
@@ -264,6 +274,12 @@ State TARS3::RefuelingWaitAfterCycle(const Event& event)
             }
         }
 
+        case EV_INIT:
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&TARS3::Refueling);
@@ -301,6 +317,12 @@ State TARS3::RefuelingFilling(const Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&TARS3::Refueling);
+        }
+
+        case EV_INIT:
+        case EV_EXIT:
+        {
+            return HANDLED;
         }
 
         default:
@@ -370,6 +392,12 @@ State TARS3::RefuelingWaitAfterFilling(const Event& event)
             return tranSuper(&TARS3::Refueling);
         }
 
+        case EV_INIT:
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
         default:
         {
             return UNHANDLED;
@@ -402,6 +430,12 @@ State TARS3::RefuelingVenting(const Event& event)
         case EV_EMPTY:
         {
             return tranSuper(&TARS3::Refueling);
+        }
+
+        case EV_INIT:
+        case EV_EXIT:
+        {
+            return HANDLED;
         }
 
         default:
