@@ -147,16 +147,7 @@ int main()
         led2On();
     }
 
-    std::cout << "Starting CanHandler" << std::endl;
-    if (!canHandler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start CanHandler ***" << std::endl;
-    }
-    else
-    {
-        led3On();
-    }
+    std::cout << "Skipping CanHandler" << std::endl;
 
     std::cout << "Starting GroundModeManager" << std::endl;
     if (!gmm->start())
@@ -202,7 +193,7 @@ int main()
     }
     else
     {
-        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
+        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
         std::cout << "*** Init failure ***" << std::endl;
     }
 

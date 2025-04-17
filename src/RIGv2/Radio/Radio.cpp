@@ -53,9 +53,9 @@ void setIRQRadio(SX1278Lora* radio)
     gRadio = radio;
 }
 
-void __attribute__((used)) MIOSIX_RADIO_DIO0_IRQ() { handleDioIRQ(); }
-void __attribute__((used)) MIOSIX_RADIO_DIO1_IRQ() { handleDioIRQ(); }
-void __attribute__((used)) MIOSIX_RADIO_DIO3_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO1_DIO0_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO1_DIO1_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO1_DIO3_IRQ() { handleDioIRQ(); }
 
 bool Radio::isStarted() { return started; }
 
@@ -63,8 +63,8 @@ bool Radio::start()
 {
     // Setup the frontend
     std::unique_ptr<SX1278::ISX1278Frontend> frontend =
-        std::make_unique<EbyteFrontend>(radio::txEn::getPin(),
-                                        radio::rxEn::getPin());
+        std::make_unique<EbyteFrontend>(radio::txen::getPin(),
+                                        radio::rxen::getPin());
 
     // Setup transceiver
     radio = std::make_unique<SX1278Lora>(

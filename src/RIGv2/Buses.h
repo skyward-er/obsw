@@ -41,7 +41,7 @@ public:
     Boardcore::SPIBus& getADS131M08_2() { return spi3; }
     Boardcore::SPIBus& getMAX31856_1() { return spi3; }
     Boardcore::SPIBus& getMAX31856_2() { return spi1; }
-    Boardcore::SPIBus& getRadio() { return spi6; }
+    Boardcore::SPIBus& getRadio() { return spi1; }
 
 private:
     Boardcore::SPIBus spi1;

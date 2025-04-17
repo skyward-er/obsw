@@ -37,9 +37,12 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
+    started = true;
+    return true;
+    
     if (Config::Sensors::InternalADC::ENABLED)
-        internalAdcInit();
-
+    internalAdcInit();
+    
     if (Config::Sensors::ADC_1::ENABLED)
     {
         adc1Init();
@@ -52,23 +55,23 @@ bool Sensors::start()
         rocketWeightInit();
         oxTankWeightInit();
     }
-
+    
     if (Config::Sensors::ADC_2::ENABLED)
     {
         adc2Init();
         oxTankBottomPressureInit();
         n2TankPressureInit();
     }
-
+    
     if (Config::Sensors::MAX31856::ENABLED)
-        tc1Init();
-
+    tc1Init();
+    
     if (!sensorManagerInit())
     {
         LOG_ERR(logger, "Failed to init SensorManager");
         return false;
     }
-
+    
     started = true;
     return true;
 }
@@ -428,9 +431,6 @@ void Sensors::adc1Init()
          .offset  = 0,
          .gain    = 1.0};
 
-    adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_1(),
-                                       sensors::ADS131_1::cs::getPin(),
-                                       spiConfig, config);
 }
 
 void Sensors::adc1Callback() { sdLogger.log(ADC1Data{getADC1LastSample()}); }
@@ -464,9 +464,6 @@ void Sensors::adc2Init()
         .offset  = 0,
         .gain    = 1.0};
 
-    adc2 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_2(),
-                                       sensors::ADS131_2::cs::getPin(),
-                                       spiConfig, config);
 }
 
 void Sensors::adc2Callback() { sdLogger.log(ADC2Data{getADC2LastSample()}); }
@@ -476,9 +473,6 @@ void Sensors::tc1Init()
     SPIBusConfig spiConfig = MAX31856::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
-    tc1 = std::make_unique<MAX31856>(
-        getModule<Buses>()->getMAX31856_1(), sensors::MAX31856_1::cs::getPin(),
-        spiConfig, MAX31856::ThermocoupleType::K_TYPE);
 }
 
 void Sensors::tc1Callback() { sdLogger.log(TC1Data{getTc1LastSample()}); }

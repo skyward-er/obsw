@@ -81,72 +81,42 @@ private:
     };
 
 public:
-    Actuators();
+    [[nodiscard]] bool start() { return true; }
 
-    [[nodiscard]] bool start();
+    bool isStarted() { return true; }
 
-    bool isStarted();
-
-    bool wiggleServo(ServosList servo);
-    bool toggleServo(ServosList servo);
-    bool openServo(ServosList servo);
-    bool openServoWithTime(ServosList servo, uint32_t time);
-    bool closeServo(ServosList servo);
-    void closeAllServos();
-    bool setMaxAperture(ServosList servo, float aperture);
-    bool setOpeningTime(ServosList servo, uint32_t time);
-    bool isServoOpen(ServosList servo);
-    bool isCanServoOpen(ServosList servo);
+    bool wiggleServo(ServosList servo) { return true; }
+    bool toggleServo(ServosList servo) { return true; }
+    bool openServo(ServosList servo) { return true; }
+    bool openServoWithTime(ServosList servo, uint32_t time) { return true; }
+    bool closeServo(ServosList servo) { return true; }
+    void closeAllServos() {}
+    bool setMaxAperture(ServosList servo, float aperture) { return true; }
+    bool setOpeningTime(ServosList servo, uint32_t time) { return true; }
+    bool isServoOpen(ServosList servo) { return false; }
+    bool isCanServoOpen(ServosList servo) { return false; }
 
     // N2 3-way valve control
-    void set3wayValveState(bool state);
-    bool get3wayValveState();
+    void set3wayValveState(bool state) {}
+    bool get3wayValveState() { return false; }
 
     // Chamber valve control
-    void openChamberWithTime(uint32_t time);
-    void closeChamber();
-    bool isChamberOpen();
+    void openChamberWithTime(uint32_t time) {}
+    void closeChamber() {}
+    bool isChamberOpen() { return false; }
 
-    uint32_t getServoOpeningTime(ServosList servo);
-    float getServoMaxAperture(ServosList servo);
+    uint32_t getServoOpeningTime(ServosList servo) { return 0; }
+    float getServoMaxAperture(ServosList servo) { return 0.f; }
 
-    void armLightOn();
-    void armLightOff();
+    void armLightOn() {}
+    void armLightOff() {}
 
-    void igniterOn();
-    void igniterOff();
+    void igniterOn() {}
+    void igniterOff() {}
 
-    void setCanServoOpen(ServosList servo, bool open);
+    void setCanServoOpen(ServosList servo, bool open) {}
 
-    void inject(Boardcore::DependencyInjector& injector) override;
-
-private:
-    ServoInfo* getServo(ServosList servo);
-
-    void unsafeSetServoPosition(uint8_t idx, float position);
-    void unsafeOpenChamber();
-    void unsafeCloseChamber();
-
-    void updatePositionsTask();
-
-    std::atomic<bool> started{false};
-
-    miosix::FastMutex infosMutex;
-    std::array<ServoInfo, 10> infos;
-    ServoInfo n2_3wayValveInfo;
-    std::atomic<bool> n2_3wayValveState{false};
-
-    long long chamberCloseTs =
-        0;  ///< Timestamp to close the chamber (0 if closed)
-    long long chamberLastActionTs = 0;  ///< Timestamp of last chamber action
-
-    bool canMainOpen        = false;
-    bool canNitrogenOpen    = false;
-    bool canOxVentingOpen   = false;
-    bool canN2QuenchingOpen = false;
-
-    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
+    void inject(Boardcore::DependencyInjector& injector) override {}
 };
 
 }  // namespace RIGv2
