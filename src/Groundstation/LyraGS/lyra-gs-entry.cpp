@@ -61,6 +61,17 @@ struct DipStatusLyraGS
     uint8_t ipConfig;
 };
 
+/**
+ * Dipswitch configuration
+ *  arp mb  pb  mtx ptx ip3 ip2 ip1
+ * | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+ * ---------------------------------
+ * | I | I | I | I | I | I | I | I |
+ * | O | O | O | O | O | O | O | O |
+ * ---------------------------------
+ * | H | G | F | E | D | C | B | A |
+ */
+
 DipStatusLyraGS getDipStatus(uint8_t read)
 {
     DipStatusLyraGS dipRead;
@@ -130,6 +141,14 @@ int main()
 
     DipSwitch dip(sh, clk, qh, std::chrono::microseconds(microSecClk));
     DipStatusLyraGS dipRead = getDipStatus(dip.read());
+
+    std::cout << "Dipswitch state:"
+              << "\n\t Is ARP: " << dipRead.isARP
+              << "\n\t Main radio backup: " << dipRead.mainHasBackup
+              << "\n\t Payload radio backup: " << dipRead.payloadHasBackup
+              << "\n\t Main TX: " << dipRead.mainTXenable
+              << "\n\t Main TX: " << dipRead.payloadTXenable 
+              << "\n\t Ip offset: " << (int)dipRead.ipConfig << "\n";
 
     DependencyManager manager;
     PrintLogger logger = Logging::getLogger("lyra_gs");
