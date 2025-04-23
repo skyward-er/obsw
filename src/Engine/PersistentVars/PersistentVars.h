@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace Motor
+namespace Engine
 {
 
 namespace PersistentVars
@@ -34,4 +34,4 @@ bool getHilMode();
 
 }  // namespace PersistentVars
 
-}  // namespace Motor
+}  // namespace Engine

@@ -26,7 +26,7 @@
 #include <drivers/usart/USART.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace Motor
+namespace Engine
 {
 
 class Buses : public Boardcore::Injectable
@@ -50,4 +50,4 @@ private:
     Boardcore::USART usart4{UART4, 256000, 1024};
 };
 
-}  // namespace Motor
+}  // namespace Engine

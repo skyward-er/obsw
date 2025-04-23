@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#include <Motor/HIL/HIL.h>
+#include <Engine/HIL/HIL.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -30,12 +30,12 @@
 
 #include "Sensors.h"
 
-namespace Motor
+namespace Engine
 {
 
 class HILSensors
     : public Boardcore::InjectableWithDeps<Boardcore::InjectableBase<Sensors>,
-                                           MotorHIL>
+                                           EngineHIL>
 {
 public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
@@ -56,10 +56,10 @@ private:
     int getSampleCounter(int nData)
     {
         auto ts           = miosix::getTime();
-        auto tsSensorData = getModule<MotorHIL>()->getTimestampSimulatorData();
+        auto tsSensorData = getModule<EngineHIL>()->getTimestampSimulatorData();
         long long simulationPeriod =
             static_cast<long long>(
-                getModule<MotorHIL>()->getSimulationPeriod()) *
+                getModule<EngineHIL>()->getSimulationPeriod()) *
             1e6;
 
         assert(ts >= tsSensorData &&
@@ -88,7 +88,7 @@ private:
     {
         Boardcore::PressureData data;
 
-        auto* sensorData = getModule<MotorHIL>()->getSensorData();
+        auto* sensorData = getModule<EngineHIL>()->getSensorData();
 
         int iCC = getSampleCounter(sensorData->pressureChamber.NDATA);
 
@@ -101,4 +101,4 @@ private:
     bool enableHw;
 };
 
-}  // namespace Motor
+}  // namespace Engine

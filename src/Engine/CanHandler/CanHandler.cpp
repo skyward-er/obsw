@@ -22,14 +22,14 @@
 
 #include "CanHandler.h"
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/Configs/CanHandlerConfig.h>
-#include <Motor/Configs/SchedulerConfig.h>
+#include <Engine/Actuators/Actuators.h>
+#include <Engine/Configs/CanHandlerConfig.h>
+#include <Engine/Configs/SchedulerConfig.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventData.h>
 
-using namespace Motor;
+using namespace Engine;
 using namespace Boardcore;
 using namespace Canbus;
 using namespace Common;

@@ -22,24 +22,24 @@
 
 #include "HIL.h"
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/Buses.h>
-#include <Motor/Configs/HILSimulationConfig.h>
+#include <Engine/Actuators/Actuators.h>
+#include <Engine/Buses.h>
+#include <Engine/Configs/HILSimulationConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
 
 #include "HILData.h"
 
-namespace Motor
+namespace Engine
 {
 
-MotorHILPhasesManager::MotorHILPhasesManager(
+EngineHILPhasesManager::EngineHILPhasesManager(
     std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
-    : Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
+    : Boardcore::HILPhasesManager<EngineFlightPhases, SimulatorData,
                                   ActuatorData>(getCurrentPosition)
 {
-    flagsFlightPhases = {{MotorFlightPhases::SIMULATION_STARTED, false}};
+    flagsFlightPhases = {{EngineFlightPhases::SIMULATION_STARTED, false}};
 
     prev_flagsFlightPhases = flagsFlightPhases;
 
@@ -59,9 +59,9 @@ MotorHILPhasesManager::MotorHILPhasesManager(
     eventBroker.subscribe(this, Common::TOPIC_ALT);
 }
 
-void MotorHILPhasesManager::processFlagsImpl(
+void EngineHILPhasesManager::processFlagsImpl(
     const SimulatorData& simulatorData,
-    std::vector<MotorFlightPhases>& changed_flags)
+    std::vector<EngineFlightPhases>& changed_flags)
 {
     if (simulatorData.signal ==
         static_cast<float>(HILSignal::SIMULATION_STARTED))
@@ -77,24 +77,24 @@ void MotorHILPhasesManager::processFlagsImpl(
     }
 
     // set true when the first packet from the simulator arrives
-    if (isSetTrue(MotorFlightPhases::SIMULATION_STARTED))
+    if (isSetTrue(EngineFlightPhases::SIMULATION_STARTED))
     {
         t_start = Boardcore::TimestampTimer::getTimestamp();
 
         printf("[HIL] ------- SIMULATION STARTED ! ------- \n");
-        changed_flags.push_back(MotorFlightPhases::SIMULATION_STARTED);
+        changed_flags.push_back(EngineFlightPhases::SIMULATION_STARTED);
     }
 }
 
-void MotorHILPhasesManager::printOutcomes()
+void EngineHILPhasesManager::printOutcomes()
 {
     printf("OUTCOMES: (times dt from liftoff)\n\n");
     printf("Simulation time: %.3f [sec]\n\n",
            (double)(t_stop - t_start) / 1000000.0f);
 }
 
-void MotorHILPhasesManager::handleEventImpl(
-    const Boardcore::Event& e, std::vector<MotorFlightPhases>& changed_flags)
+void EngineHILPhasesManager::handleEventImpl(
+    const Boardcore::Event& e, std::vector<EngineFlightPhases>& changed_flags)
 {
     switch (e)
     {
@@ -103,18 +103,18 @@ void MotorHILPhasesManager::handleEventImpl(
     }
 }
 
-MotorHIL::MotorHIL()
-    : Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>(
+EngineHIL::EngineHIL()
+    : Boardcore::HIL<EngineFlightPhases, SimulatorData, ActuatorData>(
           nullptr, nullptr, [this]() { return updateActuatorData(); },
           1000 / Config::HIL::SIMULATION_RATE.value())
 {
 }
 
-bool MotorHIL::start()
+bool EngineHIL::start()
 {
     auto& hilUsart = getModule<Buses>()->getHILUart();
 
-    hilPhasesManager = new MotorHILPhasesManager(
+    hilPhasesManager = new EngineHILPhasesManager(
         [&]()
         {
             Boardcore::TimedTrajectoryPoint timedTrajectoryPoint;
@@ -122,13 +122,13 @@ bool MotorHIL::start()
             return timedTrajectoryPoint;
         });
 
-    hilTransceiver = new MotorHILTransceiver(hilUsart, hilPhasesManager);
+    hilTransceiver = new EngineHILTransceiver(hilUsart, hilPhasesManager);
 
-    return Boardcore::HIL<MotorFlightPhases, SimulatorData,
+    return Boardcore::HIL<EngineFlightPhases, SimulatorData,
                           ActuatorData>::start();
 }
 
-ActuatorData MotorHIL::updateActuatorData()
+ActuatorData EngineHIL::updateActuatorData()
 {
     auto actuators = getModule<Actuators>();
 
@@ -143,4 +143,4 @@ ActuatorData MotorHIL::updateActuatorData()
     return ActuatorData{actuatorsStateHIL};
 }
 
-}  // namespace Motor
+}  // namespace Engine

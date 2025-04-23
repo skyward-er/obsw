@@ -23,7 +23,7 @@
 #pragma once
 
 #include <sensors/SensorData.h>
-namespace Motor
+namespace Engine
 {
 
 struct OxTopTankPressureData : Boardcore::PressureData
@@ -66,4 +66,4 @@ struct CCPressureData : Boardcore::PressureData
     CCPressureData() {}
 };
 
-}  // namespace Motor
+}  // namespace Engine

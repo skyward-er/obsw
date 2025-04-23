@@ -31,7 +31,7 @@
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-namespace Motor
+namespace Engine
 {
 namespace Config
 {
@@ -51,4 +51,4 @@ static_assert(N_DATA_BARO_CHAMBER * SIMULATION_RATE >= Sensors::ADS131M08::RATE,
 
 }  // namespace HIL
 }  // namespace Config
-}  // namespace Motor
+}  // namespace Engine

@@ -20,8 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include <Motor/Actuators/ActuatorsData.h>
-#include <Motor/Sensors/SensorsData.h>
+#include <Engine/Actuators/ActuatorsData.h>
+#include <Engine/Sensors/SensorsData.h>
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
@@ -43,7 +43,7 @@
 
 using namespace tscpp;
 using namespace Boardcore;
-using namespace Motor;
+using namespace Engine;
 
 void registerTypes(Deserializer& ds)
 {

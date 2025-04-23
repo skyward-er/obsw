@@ -49,12 +49,12 @@ set(GROUNDSTATION_COMMON
     src/Groundstation/Common/HubBase.cpp
 )
 
-set(MOTOR_SOURCES
-    src/Motor/PersistentVars/PersistentVars.cpp
-    src/Motor/HIL/HIL.cpp
-    src/Motor/Actuators/Actuators.cpp
-    src/Motor/Sensors/Sensors.cpp
-    src/Motor/CanHandler/CanHandler.cpp
+set(ENGINE_SOURCES
+    src/Engine/PersistentVars/PersistentVars.cpp
+    src/Engine/HIL/HIL.cpp
+    src/Engine/Actuators/Actuators.cpp
+    src/Engine/Sensors/Sensors.cpp
+    src/Engine/CanHandler/CanHandler.cpp
 )
 
 set(RIG_V2_COMPUTER

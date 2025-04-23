@@ -20,14 +20,14 @@
  * THE SOFTWARE.
  */
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/BoardScheduler.h>
-#include <Motor/Buses.h>
-#include <Motor/CanHandler/CanHandler.h>
-#include <Motor/HIL/HIL.h>
-#include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/HILSensors.h>
-#include <Motor/Sensors/Sensors.h>
+#include <Engine/Actuators/Actuators.h>
+#include <Engine/BoardScheduler.h>
+#include <Engine/Buses.h>
+#include <Engine/CanHandler/CanHandler.h>
+#include <Engine/HIL/HIL.h>
+#include <Engine/PersistentVars/PersistentVars.h>
+#include <Engine/Sensors/HILSensors.h>
+#include <Engine/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <diagnostic/PrintLogger.h>
 #include <interfaces-impl/hwmapping.h>
@@ -38,7 +38,7 @@
 #include <iostream>
 
 using namespace Boardcore;
-using namespace Motor;
+using namespace Engine;
 using namespace miosix;
 
 int main()
@@ -61,10 +61,10 @@ int main()
     Logger& sdLogger = Logger::getInstance();
 
     // HIL
-    MotorHIL* hil = nullptr;
+    EngineHIL* hil = nullptr;
     if (PersistentVars::getHilMode())
     {
-        hil = new MotorHIL();
+        hil = new EngineHIL();
 
         initResult = initResult && manager.insert(hil);
     }

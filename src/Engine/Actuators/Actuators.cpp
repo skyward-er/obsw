@@ -22,13 +22,13 @@
 
 #include "Actuators.h"
 
-#include <Motor/Actuators/ActuatorsData.h>
-#include <Motor/Configs/ActuatorsConfig.h>
+#include <Engine/Actuators/ActuatorsData.h>
+#include <Engine/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace miosix;
 using namespace Boardcore;
-using namespace Motor;
+using namespace Engine;
 
 void Actuators::ServoInfo::openServoWithTime(uint32_t time)
 {

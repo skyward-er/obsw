@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <ostream>
 
-namespace Motor
+namespace Engine
 {
 struct ActuatorsData
 {
@@ -53,4 +53,4 @@ struct ActuatorsData
     }
 };
 
-}  // namespace Motor
+}  // namespace Engine

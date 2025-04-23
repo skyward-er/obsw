@@ -25,7 +25,7 @@
 #include <interfaces-impl/hwmapping.h>
 #include <units/Frequency.h>
 
-namespace Motor
+namespace Engine
 {
 
 namespace Config
@@ -64,4 +64,4 @@ constexpr bool N2_QUENCHING_FLIPPED = true;
 }  // namespace Servos
 
 }  // namespace Config
-}  // namespace Motor
+}  // namespace Engine

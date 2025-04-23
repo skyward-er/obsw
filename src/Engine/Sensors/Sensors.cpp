@@ -22,12 +22,12 @@
 
 #include "Sensors.h"
 
-#include <Motor/Buses.h>
-#include <Motor/Configs/SensorsConfig.h>
-#include <Motor/Sensors/SensorsData.h>
+#include <Engine/Buses.h>
+#include <Engine/Configs/SensorsConfig.h>
+#include <Engine/Sensors/SensorsData.h>
 #include <interfaces-impl/hwmapping.h>
 
-using namespace Motor;
+using namespace Engine;
 using namespace Boardcore;
 using namespace miosix;
 

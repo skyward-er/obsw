@@ -26,7 +26,7 @@
 
 #include <chrono>
 
-namespace Motor
+namespace Engine
 {
 
 namespace Config
@@ -50,4 +50,4 @@ constexpr Hertz TEMPERATURE_PERIOD = 10_hz;
 
 }  // namespace Config
 
-}  // namespace Motor
+}  // namespace Engine

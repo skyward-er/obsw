@@ -22,16 +22,16 @@
 
 #pragma once
 
-#include <Motor/BoardScheduler.h>
-#include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/Sensors.h>
+#include <Engine/BoardScheduler.h>
+#include <Engine/PersistentVars/PersistentVars.h>
+#include <Engine/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
 
-namespace Motor
+namespace Engine
 {
 
 class Actuators;
@@ -67,4 +67,4 @@ private:
     Boardcore::Canbus::CanProtocol protocol;
 };
 
-}  // namespace Motor
+}  // namespace Engine

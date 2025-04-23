@@ -24,7 +24,7 @@
 
 #include <miosix.h>
 
-namespace Motor
+namespace Engine
 {
 
 namespace Config
@@ -43,4 +43,4 @@ static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 1;
 
 }  // namespace Config
 
-}  // namespace Motor
+}  // namespace Engine

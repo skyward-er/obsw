@@ -30,8 +30,8 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
-#include <Motor/Actuators/ActuatorsData.h>
-#include <Motor/Sensors/SensorsData.h>
+#include <Engine/Actuators/ActuatorsData.h>
+#include <Engine/Sensors/SensorsData.h>
 #include <Payload/PinHandler/PinData.h>
 #include <Payload/Sensors/SensorData.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManagerData.h>
@@ -90,11 +90,11 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Main::CalibrationData>();
 
     // Engine
-    ds.registerType<Motor::OxTopTankPressureData>();
-    ds.registerType<Motor::OxBottomTankPressureData>();
-    ds.registerType<Motor::N2TankPressureData>();
-    ds.registerType<Motor::CCPressureData>();
-    ds.registerType<Motor::ActuatorsData>();
+    ds.registerType<Engine::OxTopTankPressureData>();
+    ds.registerType<Engine::OxBottomTankPressureData>();
+    ds.registerType<Engine::N2TankPressureData>();
+    ds.registerType<Engine::CCPressureData>();
+    ds.registerType<Engine::ActuatorsData>();
 
     // Payload
     ds.registerType<Payload::FlightModeManagerStatus>();

@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include <Motor/Sensors/SensorsData.h>
+#include <Engine/Sensors/SensorsData.h>
 #include <sensors/Sensor.h>
 
 #include <functional>
 
-namespace Motor
+namespace Engine
 {
 
 class KuliteThermocouple : public Boardcore::Sensor<Boardcore::TemperatureData>
@@ -61,4 +61,4 @@ private:
     const float offset;
 };
 
-}  // namespace Motor
+}  // namespace Engine

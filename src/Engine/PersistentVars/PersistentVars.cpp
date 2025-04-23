@@ -29,7 +29,7 @@ using namespace miosix;
 
 static bool PRESERVE hilMode = false;
 
-namespace Motor
+namespace Engine
 {
 
 namespace PersistentVars
@@ -45,4 +45,4 @@ bool getHilMode() { return hilMode; }
 
 }  // namespace PersistentVars
 
-}  // namespace Motor
+}  // namespace Engine

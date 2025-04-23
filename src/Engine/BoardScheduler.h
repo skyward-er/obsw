@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include <Motor/Configs/SchedulerConfig.h>
+#include <Engine/Configs/SchedulerConfig.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace Motor
+namespace Engine
 {
 
 class BoardScheduler : public Boardcore::Injectable
@@ -69,4 +69,4 @@ private:
     Boardcore::TaskScheduler actuators;
 };
 
-}  // namespace Motor
+}  // namespace Engine

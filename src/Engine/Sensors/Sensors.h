@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Motor/BoardScheduler.h>
-#include <Motor/Buses.h>
-#include <Motor/Sensors/KuliteThermocouple.h>
+#include <Engine/BoardScheduler.h>
+#include <Engine/Buses.h>
+#include <Engine/Sensors/KuliteThermocouple.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -39,7 +39,7 @@
 #include <memory>
 #include <vector>
 
-namespace Motor
+namespace Engine
 {
 
 class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
@@ -135,4 +135,4 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
 
-}  // namespace Motor
+}  // namespace Engine

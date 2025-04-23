@@ -22,13 +22,13 @@
 
 #pragma once
 
-#include <Motor/BoardScheduler.h>
-#include <Motor/CanHandler/CanHandler.h>
+#include <Engine/BoardScheduler.h>
+#include <Engine/CanHandler/CanHandler.h>
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkOrion.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace Motor
+namespace Engine
 {
 
 class Actuators
@@ -79,4 +79,4 @@ private:
     std::array<ServoInfo, 4> infos;
 };
 
-}  // namespace Motor
+}  // namespace Engine

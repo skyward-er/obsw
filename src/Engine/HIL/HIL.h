@@ -22,57 +22,57 @@
 
 #pragma once
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/Buses.h>
-#include <Motor/Configs/HILSimulationConfig.h>
+#include <Engine/Actuators/Actuators.h>
+#include <Engine/Buses.h>
+#include <Engine/Configs/HILSimulationConfig.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
 
 #include "HILData.h"
 
-namespace Motor
+namespace Engine
 {
 
-class MotorHILTransceiver
-    : public Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
+class EngineHILTransceiver
+    : public Boardcore::HILTransceiver<EngineFlightPhases, SimulatorData,
                                        ActuatorData>
 {
-    using Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
+    using Boardcore::HILTransceiver<EngineFlightPhases, SimulatorData,
                                     ActuatorData>::HILTransceiver;
 };
 
-class MotorHILPhasesManager
-    : public Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
+class EngineHILPhasesManager
+    : public Boardcore::HILPhasesManager<EngineFlightPhases, SimulatorData,
                                          ActuatorData>
 {
 public:
-    explicit MotorHILPhasesManager(
+    explicit EngineHILPhasesManager(
         std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition);
 
     void processFlagsImpl(
         const SimulatorData& simulatorData,
-        std::vector<MotorFlightPhases>& changed_flags) override;
+        std::vector<EngineFlightPhases>& changed_flags) override;
 
     void printOutcomes();
 
 private:
     void handleEventImpl(
         const Boardcore::Event& e,
-        std::vector<MotorFlightPhases>& changed_flags) override;
+        std::vector<EngineFlightPhases>& changed_flags) override;
 };
 
-class MotorHIL
-    : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
+class EngineHIL
+    : public Boardcore::HIL<EngineFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<Buses, Actuators>
 
 {
 public:
-    MotorHIL();
+    EngineHIL();
 
     bool start() override;
 
 private:
     ActuatorData updateActuatorData();
 };
-}  // namespace Motor
+}  // namespace Engine

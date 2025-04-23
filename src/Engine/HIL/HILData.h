@@ -22,14 +22,14 @@
 
 #pragma once
 
-#include <Motor/Configs/HILSimulationConfig.h>
+#include <Engine/Configs/HILSimulationConfig.h>
 #include <sensors/HILSimulatorData.h>
 
-namespace Motor
+namespace Engine
 {
 
 // Sensors Data
-using MotorHILChamberBarometerData =
+using EngineHILChamberBarometerData =
     Boardcore::BarometerSimulatorData<Config::HIL::N_DATA_BARO_CHAMBER>;
 
 enum class HILSignal : int
@@ -39,7 +39,7 @@ enum class HILSignal : int
     SIMULATION_FORCE_LAUNCH = 3
 };
 
-enum class MotorFlightPhases
+enum class EngineFlightPhases
 {
     SIMULATION_STARTED
 };
@@ -88,7 +88,7 @@ struct ActuatorsStateHIL
  */
 struct SimulatorData
 {
-    MotorHILChamberBarometerData pressureChamber;
+    EngineHILChamberBarometerData pressureChamber;
     float signal;
 };
 
@@ -109,4 +109,4 @@ struct ActuatorData
     void print() { actuatorsState.print(); }
 };
 
-}  // namespace Motor
+}  // namespace Engine

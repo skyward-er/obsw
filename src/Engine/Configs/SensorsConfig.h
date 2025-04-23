@@ -29,7 +29,7 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <units/Units.h>
 
-namespace Motor
+namespace Engine
 {
 
 namespace Config
@@ -188,4 +188,4 @@ constexpr bool ENABLED = true;
 
 }  // namespace Config
 
-}  // namespace Motor
+}  // namespace Engine
