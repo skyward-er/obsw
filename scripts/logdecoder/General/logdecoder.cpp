@@ -89,9 +89,10 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Main::LIS2MDLExternalData>();
     ds.registerType<Main::CalibrationData>();
 
-    // Motor
-    ds.registerType<Motor::TopTankPressureData>();
-    ds.registerType<Motor::BottomTankPressureData>();
+    // Engine
+    ds.registerType<Motor::OxTopTankPressureData>();
+    ds.registerType<Motor::OxBottomTankPressureData>();
+    ds.registerType<Motor::N2TankPressureData>();
     ds.registerType<Motor::CCPressureData>();
     ds.registerType<Motor::ActuatorsData>();
 

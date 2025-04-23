@@ -51,8 +51,9 @@ void registerTypes(Deserializer& ds)
     LogTypes::registerTypes(ds);
 
     // Custom types
-    ds.registerType<TopTankPressureData>();
-    ds.registerType<BottomTankPressureData>();
+    ds.registerType<OxTopTankPressureData>();
+    ds.registerType<OxBottomTankPressureData>();
+    ds.registerType<N2TankPressureData>();
     ds.registerType<CCPressureData>();
     ds.registerType<ActuatorsData>();
 }
