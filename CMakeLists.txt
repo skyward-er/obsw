@@ -151,12 +151,17 @@ sbs_target(parafoil-t-approach-milano stm32f429zi_death_stack_v2)
 
 add_executable(parafoil-t-approach-dynamic src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-t-approach-dynamic PRIVATE ${OBSW_INCLUDE_DIRS})
-    target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
+target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
     ALGORITHM_EARLY_MANEUVER DYNAMIC_TARGET
     DYNAMIC_TARGET_LATITUDE_OFFSET=35
     DYNAMIC_TARGET_LONGITUDE_OFFSET=-156
 )
 sbs_target(parafoil-t-approach-dynamic stm32f429zi_death_stack_v2)
+
+add_executable(parafoil-ground-test src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-ground-test PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-ground-test PRIVATE ALGORITHM_PROGRESSIVE_ROTATION MILANO DISABLE_LANDING_FLARE)
+sbs_target(parafoil-ground-test stm32f429zi_death_stack_v2)
 
 add_executable(mockup-main src/MockupMain/mockup-entry.cpp ${MOCKUP_MAIN_COMPUTER})
 target_include_directories(mockup-main PRIVATE ${OBSW_INCLUDE_DIRS})

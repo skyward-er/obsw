@@ -204,6 +204,16 @@ private:
     void stopAlgorithm();
 
     /**
+     * @brief Pauses the currently selected algorithm.
+     */
+    void pauseAlgorithm();
+
+    /**
+     * @brief Resumes the currently selected algorithm.
+     */
+    void resumeAlgorithm();
+
+    /**
      * @brief Update early maneuver guidance points (EMC, M1, M2) based on the
      * current position and the target position.
      */

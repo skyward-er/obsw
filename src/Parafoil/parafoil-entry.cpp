@@ -121,9 +121,17 @@ int main()
     auto radio = new Radio();
     initResult &= depman.insert(radio);
 
+    // Landing flare activation
+    namespace LandingFlareConfig             = Config::Wing::LandingFlare;
+    AltitudeTriggerConfig landingFlareConfig = {
+        .threshold  = LandingFlareConfig::FLARE_ALTITUDE,
+        .confidence = LandingFlareConfig::CONFIDENCE,
+        .updateRate = LandingFlareConfig::UPDATE_RATE,
+    };
+    auto landingFlare = new AltitudeTrigger(landingFlareConfig);
+    initResult &= depman.insert(landingFlare);
+
     // Flight algorithms
-    auto altitudeTrigger = new AltitudeTrigger();
-    initResult &= depman.insert(altitudeTrigger);
     auto wingController = new WingController();
     initResult &= depman.insert(wingController);
     auto windEstimation = new WindEstimation();
@@ -152,7 +160,7 @@ int main()
     START_MODULE(radio);
     START_MODULE(nasController);
     START_MODULE(flightModeManager);
-    START_MODULE(altitudeTrigger);
+    START_MODULE(landingFlare);
     START_MODULE(windEstimation);
     START_MODULE(wingController);
     START_MODULE(actuators);

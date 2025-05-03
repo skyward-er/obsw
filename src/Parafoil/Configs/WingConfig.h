@@ -135,17 +135,24 @@ constexpr auto TARGET_ALTITUDE_THRESHOLD = 50_m;
 
 }  // namespace Guidance
 
-}  // namespace Wing
-
-namespace AltitudeTrigger
+namespace LandingFlare
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Length;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 300_m;
-constexpr auto CONFIDENCE          = 10;  // [samples]
-constexpr auto UPDATE_RATE         = 10_hz;
-}  // namespace AltitudeTrigger
+#ifdef DISABLE_LANDING_FLARE
+constexpr auto ENABLED = false;
+#else
+constexpr auto ENABLED = true;
+#endif
+
+constexpr auto FLARE_ALTITUDE = 15_m;
+constexpr auto CONFIDENCE     = 10;  // [samples]
+constexpr auto UPDATE_RATE    = 10_hz;
+constexpr auto FLARE_DURATION = 5_s;
+}  // namespace LandingFlare
+
+}  // namespace Wing
 
 }  // namespace Config
 }  // namespace Parafoil

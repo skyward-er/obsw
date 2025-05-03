@@ -205,6 +205,8 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
 State WingController::FlyingControlledDescent(const Boardcore::Event& event)
 {
+    static uint16_t flareTimeoutEventId;
+
     switch (event)
     {
         case EV_ENTRY:  // start automatic algorithms
@@ -222,9 +224,30 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         {
             return transition(&WingController::OnGround);
         }
+        case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
+        {
+            pauseAlgorithm();
+            flareWing();
+
+            flareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_FLARE_STOP, TOPIC_FLIGHT,
+                Millisecond{Config::Wing::LandingFlare::FLARE_DURATION}
+                    .value());
+
+            return HANDLED;
+        }
+        case DPL_FLARE_STOP:
+        {
+            resetWing();
+            resumeAlgorithm();
+
+            return HANDLED;
+        }
         case EV_EXIT:
         {
             stopAlgorithm();
+
+            EventBroker::getInstance().removeDelayed(flareTimeoutEventId);
 
             getModule<WindEstimation>()->stopAlgorithm();
             getModule<WindEstimation>()->stopCalibration();
@@ -566,6 +589,9 @@ void WingController::stopAlgorithm()
         getCurrentAlgorithm().end();
     }
 }
+
+void WingController::pauseAlgorithm() { running = false; }
+void WingController::resumeAlgorithm() { running = true; }
 
 void WingController::updateEarlyManeuverPoints()
 {

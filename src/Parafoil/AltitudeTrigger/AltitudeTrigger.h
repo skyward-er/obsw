@@ -28,6 +28,8 @@
 #include <atomic>
 #include <utils/ModuleManager/ModuleManager.hpp>
 
+#include "AltitudeTriggerConfig.h"
+
 namespace Parafoil
 {
 class BoardScheduler;
@@ -37,6 +39,11 @@ class AltitudeTrigger
     : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
 {
 public:
+    /**
+     * @brief Constructor
+     */
+    AltitudeTrigger(AltitudeTriggerConfig config);
+
     /**
      * @brief Adds the update() task to the task scheduler.
      */
@@ -68,6 +75,8 @@ public:
     void setDeploymentAltitude(Boardcore::Units::Length::Meter altitude);
 
 private:
+    AltitudeTriggerConfig config;
+
     // Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
     // altitude is reached
     void update();
@@ -79,9 +88,7 @@ private:
     // altitude
     int confidence = 0;
 
-    std::atomic<float> targetAltitude{Boardcore::Units::Length::Meter{
-        Config::AltitudeTrigger::DEPLOYMENT_ALTITUDE}
-                                          .value()};
+    std::atomic<float> thresholdAltitude{0};
 };
 
 }  // namespace Parafoil

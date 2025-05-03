@@ -31,17 +31,20 @@
 using namespace Boardcore;
 using namespace Boardcore::Units::Length;
 using namespace Common;
-namespace config = Parafoil::Config;
 
 namespace Parafoil
 {
+
+AltitudeTrigger::AltitudeTrigger(AltitudeTriggerConfig config) : config(config)
+{
+    this->thresholdAltitude = config.threshold.value();
+}
 
 bool AltitudeTrigger::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->altitudeTrigger();
 
-    auto task = scheduler.addTask([this] { update(); },
-                                  config::AltitudeTrigger::UPDATE_RATE);
+    auto task = scheduler.addTask([this] { update(); }, config.updateRate);
 
     if (task == 0)
         return false;
@@ -67,7 +70,7 @@ bool AltitudeTrigger::isEnabled() { return running; }
 
 void AltitudeTrigger::setDeploymentAltitude(Meter altitude)
 {
-    targetAltitude = altitude.value();
+    thresholdAltitude = altitude.value();
 }
 
 void AltitudeTrigger::update()
@@ -79,12 +82,12 @@ void AltitudeTrigger::update()
     auto nasState  = getModule<NASController>()->getNasState();
     float altitude = -nasState.d;
 
-    if (altitude < targetAltitude)
+    if (altitude < thresholdAltitude)
         confidence++;
     else
         confidence = 0;
 
-    if (confidence >= config::AltitudeTrigger::CONFIDENCE)
+    if (confidence >= config.confidence)
     {
         confidence = 0;
         EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
