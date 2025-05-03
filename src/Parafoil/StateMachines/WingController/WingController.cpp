@@ -21,6 +21,7 @@
  */
 #include "WingController.h"
 
+#include <Parafoil/AltitudeTrigger/LandingFlare.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/ActuatorsConfig.h>
 #include <Parafoil/Configs/WESConfig.h>
@@ -214,6 +215,10 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             updateState(WingControllerState::FLYING_CONTROLLED_DESCENT);
 
             startAlgorithm();
+
+            // Enable the landing flare altitude trigger
+            getModule<LandingFlare>()->enable();
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -231,8 +236,7 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
 
             flareTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_FLARE_STOP, TOPIC_FLIGHT,
-                Millisecond{Config::Wing::LandingFlare::FLARE_DURATION}
-                    .value());
+                Millisecond{Config::Wing::LandingFlare::DURATION}.value());
 
             return HANDLED;
         }
@@ -251,6 +255,7 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
 
             getModule<WindEstimation>()->stopAlgorithm();
             getModule<WindEstimation>()->stopCalibration();
+            getModule<LandingFlare>()->disable();
 
             return HANDLED;
         }

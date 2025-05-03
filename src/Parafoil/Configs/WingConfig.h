@@ -146,10 +146,10 @@ constexpr auto ENABLED = false;
 constexpr auto ENABLED = true;
 #endif
 
-constexpr auto FLARE_ALTITUDE = 15_m;
-constexpr auto CONFIDENCE     = 10;  // [samples]
-constexpr auto UPDATE_RATE    = 10_hz;
-constexpr auto FLARE_DURATION = 5_s;
+constexpr auto ALTITUDE    = 15_m;
+constexpr auto CONFIDENCE  = 10;  // [samples]
+constexpr auto UPDATE_RATE = 10_hz;
+constexpr auto DURATION    = 5_s;
 }  // namespace LandingFlare
 
 }  // namespace Wing

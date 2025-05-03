@@ -21,7 +21,7 @@
  */
 
 #include <Parafoil/Actuators/Actuators.h>
-#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
+#include <Parafoil/AltitudeTrigger/LandingFlare.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
@@ -121,17 +121,9 @@ int main()
     auto radio = new Radio();
     initResult &= depman.insert(radio);
 
-    // Landing flare activation
-    namespace LandingFlareConfig             = Config::Wing::LandingFlare;
-    AltitudeTriggerConfig landingFlareConfig = {
-        .threshold  = LandingFlareConfig::FLARE_ALTITUDE,
-        .confidence = LandingFlareConfig::CONFIDENCE,
-        .updateRate = LandingFlareConfig::UPDATE_RATE,
-    };
-    auto landingFlare = new AltitudeTrigger(landingFlareConfig);
-    initResult &= depman.insert(landingFlare);
-
     // Flight algorithms
+    auto landingFlare = new LandingFlare();
+    initResult &= depman.insert(landingFlare);
     auto wingController = new WingController();
     initResult &= depman.insert(wingController);
     auto windEstimation = new WindEstimation();

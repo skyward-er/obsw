@@ -66,6 +66,7 @@ class NASController;
 class FlightStatsRecorder;
 class WindEstimation;
 class Sensors;
+class LandingFlare;
 
 /**
  * State machine that manages the wings of the Parafoil.
@@ -82,9 +83,9 @@ class Sensors;
  */
 class WingController
     : public Boardcore::HSM<WingController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, FlightStatsRecorder,
-                                           WindEstimation, Sensors>
+      public Boardcore::InjectableWithDeps<
+          BoardScheduler, Actuators, NASController, FlightStatsRecorder,
+          WindEstimation, Sensors, LandingFlare>
 {
 public:
     /**
