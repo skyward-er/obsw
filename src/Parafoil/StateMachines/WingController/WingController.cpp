@@ -57,6 +57,7 @@ WingController::WingController()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
+    EventBroker::getInstance().subscribe(this, TOPIC_ALT);
 
     loadAlgorithms();
 }
@@ -235,12 +236,12 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             flareWing();
 
             flareTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_FLARE_STOP, TOPIC_FLIGHT,
+                FLIGHT_LANDING_FLARE_STOP, TOPIC_FLIGHT,
                 Millisecond{Config::Wing::LandingFlare::DURATION}.value());
 
             return HANDLED;
         }
-        case DPL_FLARE_STOP:
+        case FLIGHT_LANDING_FLARE_STOP:
         {
             resetWing();
             resumeAlgorithm();
