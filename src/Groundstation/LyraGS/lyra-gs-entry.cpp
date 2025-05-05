@@ -147,7 +147,7 @@ int main()
               << "\n\t Main radio backup: " << dipRead.mainHasBackup
               << "\n\t Payload radio backup: " << dipRead.payloadHasBackup
               << "\n\t Main TX: " << dipRead.mainTXenable
-              << "\n\t Main TX: " << dipRead.payloadTXenable 
+              << "\n\t Main TX: " << dipRead.payloadTXenable
               << "\n\t Ip offset: " << (int)dipRead.ipConfig << "\n";
 
     DependencyManager manager;

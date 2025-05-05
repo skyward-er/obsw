@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Groundstation/Automated/LogSniffing.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
@@ -33,7 +34,6 @@
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>
-#include <Groundstation/Automated/LogSniffing.h>
 
 namespace LyraGS
 {
