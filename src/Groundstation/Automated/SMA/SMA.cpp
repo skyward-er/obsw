@@ -328,13 +328,19 @@ State SMA::state_feedback(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FEEDBACK);
-            getModule<Leds>()->setOn(LedColor::YELLOW);
+            getModule<Leds>()->setOn(LedColor::RED);
+
+            // Set the gains for the no feedback phase
+            if (!follower.setMaxGain(SMAConfig::YAW_GAIN_F,
+                                     SMAConfig::PITCH_GAIN_F))
+                LOG_ERR(logger, "Follower gain set failed!\n");
+
             return HANDLED;
         }
         case EV_EXIT:
         {
             getModule<Actuators>()->disarm();
-            getModule<Leds>()->setOff(LedColor::YELLOW);
+            getModule<Leds>()->setOff(LedColor::RED);
             return HANDLED;
         }
         case EV_EMPTY:
@@ -364,13 +370,19 @@ State SMA::state_no_feedback(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::NO_FEEDBACK);
-            getModule<Leds>()->setOn(LedColor::YELLOW);
+            getModule<Leds>()->setOn(LedColor::RED);
+
+            // Set the gains for the no feedback phase
+            if (!follower.setMaxGain(SMAConfig::YAW_GAIN_NF,
+                                     SMAConfig::PITCH_GAIN_NF))
+                LOG_ERR(logger, "Follower gain set failed!\n");
+
             return HANDLED;
         }
         case EV_EXIT:
         {
             getModule<Actuators>()->disarm();
-            getModule<Leds>()->setOff(LedColor::YELLOW);
+            getModule<Leds>()->setOff(LedColor::RED);
             return HANDLED;
         }
         case EV_EMPTY:
