@@ -678,10 +678,10 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
             auto canStatus = parent.getModule<CanHandler>()->getCanStatus();
             tm.main_board_state  = canStatus.mainState;
-            tm.motor_board_state = canStatus.motorState;
+            tm.motor_board_state = canStatus.engineState;
 
             tm.main_can_status  = canStatus.isMainConnected();
-            tm.motor_can_status = canStatus.isMotorConnected();
+            tm.motor_can_status = canStatus.isEngineConnected();
             tm.rig_can_status   = canStatus.isRigConnected();
 
             tm.hil_state = PersistentVars::getHilMode();
@@ -732,11 +732,11 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.combustion_chamber_pressure = -1.0f;
             tm.tank_temperature            = -1.0f;
             tm.battery_voltage             = -1.0f;
-            tm.log_good                    = canStatus.motorLogGood;
-            tm.log_number                  = canStatus.motorLogNumber;
+            tm.log_good                    = canStatus.engineLogGood;
+            tm.log_number                  = canStatus.engineLogNumber;
             tm.main_valve_state            = 255;
             tm.venting_valve_state         = 255;
-            tm.hil_state                   = canStatus.motorHil;
+            tm.hil_state                   = canStatus.engineHil;
 
             mavlink_msg_motor_tm_encode(config::Mavlink::SYSTEM_ID,
                                         config::Mavlink::COMPONENT_ID, &msg,

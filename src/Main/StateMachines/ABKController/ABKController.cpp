@@ -148,9 +148,9 @@ void ABKController::state_armed(const Event& event)
             break;
         }
 
-        case FLIGHT_MOTOR_SHUTDOWN:
+        case FLIGHT_ENGINE_SHUTDOWN:
         {
-            // Enable only after motor shutdown
+            // Enable only after engine shutdown
             transition(&ABKController::state_shadow_mode);
             break;
         }

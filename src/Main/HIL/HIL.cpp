@@ -76,7 +76,7 @@ MainHILPhasesManager::MainHILPhasesManager(
     eventBroker.subscribe(this, Common::TOPIC_FSR);
     eventBroker.subscribe(this, Common::TOPIC_NAS);
     eventBroker.subscribe(this, Common::TOPIC_TMTC);
-    eventBroker.subscribe(this, Common::TOPIC_MOTOR);
+    eventBroker.subscribe(this, Common::TOPIC_ENGINE);
     eventBroker.subscribe(this, Common::TOPIC_TARS);
     eventBroker.subscribe(this, Common::TOPIC_ALT);
 }
@@ -134,7 +134,7 @@ void MainHILPhasesManager::printOutcomes()
     printf("Simulation time: %.3f [sec]\n\n",
            (double)(t_stop - t_start) / 1000000.0f);
 
-    printf("Motor stopped burning (simulation flag): \n");
+    printf("Engine stopped burning (simulation flag): \n");
     outcomes[MainFlightPhases::SIM_BURNING].print(t_liftoff);
 
     printf("Airbrakes exit shadowmode: \n");
@@ -193,7 +193,7 @@ void MainHILPhasesManager::handleEventImpl(
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::LIFTOFF);
             break;
-        case Common::Events::FLIGHT_MOTOR_SHUTDOWN:
+        case Common::Events::FLIGHT_ENGINE_SHUTDOWN:
             printf("[HIL] ------- SHUTDOWN -------: %f, %f \n",
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::SHUTDOWN);

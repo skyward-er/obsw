@@ -104,7 +104,7 @@ public:
     Boardcore::PressureData getCanBottomTankPressLastSample();
     Boardcore::PressureData getCanCCPressLastSample();
     Boardcore::TemperatureData getCanTankTempLastSample();
-    Boardcore::VoltageData getCanMotorBatteryVoltageLastSample();
+    Boardcore::VoltageData getCanEngineBatteryVoltageLastSample();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -115,7 +115,7 @@ public:
     void setCanBottomTankPress(Boardcore::PressureData data);
     void setCanCCPress(Boardcore::PressureData data);
     void setCanTankTemp(Boardcore::TemperatureData data);
-    void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
+    void setCanEngineBatteryVoltage(Boardcore::VoltageData data);
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
@@ -132,7 +132,7 @@ protected:
     Boardcore::PressureData canTopTankPressure;
     Boardcore::PressureData canBottomTankPressure;
     Boardcore::TemperatureData canTankTemperature;
-    Boardcore::VoltageData canMotorBatteryVoltage;
+    Boardcore::VoltageData canEngineBatteryVoltage;
 
     // Digital sensors
     std::unique_ptr<Boardcore::LPS22DF> lps22df;

@@ -608,7 +608,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         {
             updateAndLogStatus(FlightModeManagerState::UNPOWERED_ASCENT);
 
-            EventBroker::getInstance().post(FLIGHT_MOTOR_SHUTDOWN,
+            EventBroker::getInstance().post(FLIGHT_ENGINE_SHUTDOWN,
                                             TOPIC_FLIGHT);
 
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(

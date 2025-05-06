@@ -54,7 +54,7 @@ EngineHILPhasesManager::EngineHILPhasesManager(
     eventBroker.subscribe(this, Common::TOPIC_FSR);
     eventBroker.subscribe(this, Common::TOPIC_NAS);
     eventBroker.subscribe(this, Common::TOPIC_TMTC);
-    eventBroker.subscribe(this, Common::TOPIC_MOTOR);
+    eventBroker.subscribe(this, Common::TOPIC_ENGINE);
     eventBroker.subscribe(this, Common::TOPIC_TARS);
     eventBroker.subscribe(this, Common::TOPIC_ALT);
 }

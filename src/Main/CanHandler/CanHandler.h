@@ -46,18 +46,18 @@ public:
     {
         long long rigLastStatus     = 0;
         long long payloadLastStatus = 0;
-        long long motorLastStatus   = 0;
+        long long engineLastStatus   = 0;
 
         uint8_t rigState     = 0;
         uint8_t payloadState = 0;
-        uint8_t motorState   = 0;
+        uint8_t engineState   = 0;
 
         bool rigArmed     = false;
         bool payloadArmed = false;
 
-        uint16_t motorLogNumber = 0;
-        bool motorLogGood       = true;
-        bool motorHil           = false;
+        uint16_t engineLogNumber = 0;
+        bool engineLogGood       = true;
+        bool engineHil           = false;
 
         bool isRigConnected()
         {
@@ -70,23 +70,23 @@ public:
                    (payloadLastStatus +
                     Config::CanHandler::STATUS_TIMEOUT.count());
         }
-        bool isMotorConnected()
+        bool isEngineConnected()
         {
             return miosix::getTime() <=
-                   (motorLastStatus +
+                   (engineLastStatus +
                     Config::CanHandler::STATUS_TIMEOUT.count());
         }
 
         uint8_t getRigState() { return rigState; }
         uint8_t getPayloadState() { return payloadState; }
-        uint8_t getMotorState() { return motorState; }
+        uint8_t getEngineState() { return engineState; }
 
         bool isRigArmed() { return rigArmed; }
         bool isPayloadArmed() { return payloadArmed; }
 
-        uint16_t getMotorLogNumber() { return motorLogNumber; }
-        bool isMotorLogGood() { return motorLogGood; }
-        bool isMotorHil() { return motorHil; }
+        uint16_t getEngineLogNumber() { return engineLogNumber; }
+        bool isEngineLogGood() { return engineLogGood; }
+        bool isEngineHil() { return engineHil; }
     };
 
     CanHandler();

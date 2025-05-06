@@ -53,10 +53,10 @@ bool CanStatus::isRigConnected()
            rigLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
 }
 
-bool CanStatus::isMotorConnected()
+bool CanStatus::isEngineConnected()
 {
     return miosix::getTime() <=
-           motorLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
+           engineLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
 }
 
 bool CanHandler::start()
@@ -91,12 +91,12 @@ bool CanHandler::start()
         return false;
     }
 
-    // Add MOTOR filter
-    filterAdded = protocol->addFilter(static_cast<uint8_t>(Board::MOTOR),
+    // Add ENGINE filter
+    filterAdded = protocol->addFilter(static_cast<uint8_t>(Board::ENGINE),
                                       static_cast<uint8_t>(Board::BROADCAST));
     if (!filterAdded)
     {
-        LOG_ERR(logger, "Failed to add MOTOR filter");
+        LOG_ERR(logger, "Failed to add ENGINE filter");
         return false;
     }
 
@@ -281,14 +281,14 @@ void CanHandler::handleStatus(const CanMessage& msg)
             break;
         }
 
-        case Board::MOTOR:
+        case Board::ENGINE:
         {
-            status.motorLastStatus = miosix::getTime();
-            status.motorState      = deviceStatus.state;
+            status.engineLastStatus = miosix::getTime();
+            status.engineState      = deviceStatus.state;
 
-            status.motorLogNumber = deviceStatus.logNumber;
-            status.motorLogGood   = deviceStatus.logGood;
-            status.motorHil       = deviceStatus.hil;
+            status.engineLogNumber = deviceStatus.logNumber;
+            status.engineLogGood   = deviceStatus.logGood;
+            status.engineHil       = deviceStatus.hil;
             break;
         }
 

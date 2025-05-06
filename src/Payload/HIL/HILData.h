@@ -67,7 +67,7 @@ enum class PayloadFlightPhases
     ARMED,
     LIFTOFF_PIN_DETACHED,
     LIFTOFF,
-    MOTOR_SHUTDOWN,
+    ENGINE_SHUTDOWN,
     AEROBRAKES,
     APOGEE,
     PARA1,

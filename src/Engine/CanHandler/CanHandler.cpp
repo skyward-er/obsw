@@ -63,7 +63,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
                 static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00,
                 DeviceStatus{
                     TimestampTimer::getTimestamp(),
@@ -90,7 +90,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::CC_PRESSURE),
                 static_cast<PressureData>(sensors->getCCPressLastSample()));
@@ -98,7 +98,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::OX_TOP_TANK_PRESSURE),
                 static_cast<PressureData>(
@@ -107,7 +107,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(
                     CanConfig::SensorId::OX_BOTTOM_TANK_PRESSURE_0),
@@ -117,7 +117,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(
                     CanConfig::SensorId::OX_BOTTOM_TANK_PRESSURE_1),
@@ -127,7 +127,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::N2_TANK_PRESSURE),
                 static_cast<PressureData>(sensors->getN2TankPressLastSample()));
@@ -148,7 +148,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::TANK_TEMPERATURE),
                 static_cast<TemperatureData>(sensors->getTankTempLastSample()));
@@ -156,9 +156,9 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_VOLTAGE),
+                static_cast<uint8_t>(CanConfig::SensorId::ENGINE_BOARD_VOLTAGE),
                 static_cast<VoltageData>(
                     sensors->getBatteryVoltageLastSample()));
         },
@@ -178,7 +178,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(ServosList::MAIN_VALVE),
                 ServoFeedback{
@@ -189,7 +189,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(ServosList::OX_VENTING_VALVE),
                 ServoFeedback{
@@ -200,7 +200,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(ServosList::NITROGEN_VALVE),
                 ServoFeedback{
@@ -211,7 +211,7 @@ bool CanHandler::start()
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::ENGINE),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(ServosList::N2_QUENCHING_VALVE),
                 ServoFeedback{

@@ -38,22 +38,22 @@ struct CanStatus
 {
     int64_t mainLastStatus  = 0;  ///< Timestamp of last main status message
     int64_t rigLastStatus   = 0;  ///< Timestamp of last rig status message
-    int64_t motorLastStatus = 0;  ///< Timestamp of last motor status message
+    int64_t engineLastStatus = 0;  ///< Timestamp of last engine status message
 
     uint8_t mainState  = 0;
     uint8_t rigState   = 0;
-    uint8_t motorState = 0;
+    uint8_t engineState = 0;
 
     bool mainArmed = false;
     bool rigArmed  = false;
 
-    int16_t motorLogNumber = -1;
-    bool motorLogGood      = false;
-    bool motorHil          = false;
+    int16_t engineLogNumber = -1;
+    bool engineLogGood      = false;
+    bool engineHil          = false;
 
     bool isMainConnected();
     bool isRigConnected();
-    bool isMotorConnected();
+    bool isEngineConnected();
 };
 
 class CanHandler

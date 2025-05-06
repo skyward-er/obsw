@@ -418,10 +418,10 @@ TemperatureData Sensors::getCanTankTempLastSample()
     return canTankTemperature;
 }
 
-VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
+VoltageData Sensors::getCanEngineBatteryVoltageLastSample()
 {
     Lock<FastMutex> lock{canMutex};
-    return canMotorBatteryVoltage;
+    return canEngineBatteryVoltage;
 }
 
 void Sensors::setCanPitotDynamicPress(PressureData data)
@@ -460,10 +460,10 @@ void Sensors::setCanTankTemp(TemperatureData data)
     canTankTemperature = data;
 }
 
-void Sensors::setCanMotorBatteryVoltage(VoltageData data)
+void Sensors::setCanEngineBatteryVoltage(VoltageData data)
 {
     Lock<FastMutex> lock{canMutex};
-    canMotorBatteryVoltage = data;
+    canEngineBatteryVoltage = data;
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()

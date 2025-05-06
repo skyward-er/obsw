@@ -53,7 +53,7 @@ PayloadHILPhasesManager::PayloadHILPhasesManager(
                          {PayloadFlightPhases::ARMED, false},
                          {PayloadFlightPhases::LIFTOFF_PIN_DETACHED, false},
                          {PayloadFlightPhases::LIFTOFF, false},
-                         {PayloadFlightPhases::MOTOR_SHUTDOWN, false},
+                         {PayloadFlightPhases::ENGINE_SHUTDOWN, false},
                          {PayloadFlightPhases::AEROBRAKES, false},
                          {PayloadFlightPhases::APOGEE, false},
                          {PayloadFlightPhases::PARA1, false},
@@ -73,7 +73,7 @@ PayloadHILPhasesManager::PayloadHILPhasesManager(
     eventBroker.subscribe(this, Common::TOPIC_FSR);
     eventBroker.subscribe(this, Common::TOPIC_NAS);
     eventBroker.subscribe(this, Common::TOPIC_TMTC);
-    eventBroker.subscribe(this, Common::TOPIC_MOTOR);
+    eventBroker.subscribe(this, Common::TOPIC_ENGINE);
     eventBroker.subscribe(this, Common::TOPIC_TARS);
     eventBroker.subscribe(this, Common::TOPIC_ALT);
 }
@@ -121,8 +121,8 @@ void PayloadHILPhasesManager::printOutcomes()
     printf("Simulation time: %.3f [sec]\n\n",
            (double)(t_stop - t_start) / 1000000.0f);
 
-    printf("Motor shutdown: \n");
-    outcomes[PayloadFlightPhases::MOTOR_SHUTDOWN].print(t_liftoff);
+    printf("Engine shutdown: \n");
+    outcomes[PayloadFlightPhases::ENGINE_SHUTDOWN].print(t_liftoff);
 
     printf("Apogee: \n");
     outcomes[PayloadFlightPhases::APOGEE].print(t_liftoff);
@@ -179,12 +179,12 @@ void PayloadHILPhasesManager::handleEventImpl(
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(PayloadFlightPhases::LIFTOFF);
             break;
-        case Common::Events::FLIGHT_MOTOR_SHUTDOWN:
-            setFlagFlightPhase(PayloadFlightPhases::MOTOR_SHUTDOWN, true);
-            registerOutcomes(PayloadFlightPhases::MOTOR_SHUTDOWN);
-            printf("[HIL] ------- MOTOR SHUTDOWN ! ------- %f, %f \n",
+        case Common::Events::FLIGHT_ENGINE_SHUTDOWN:
+            setFlagFlightPhase(PayloadFlightPhases::ENGINE_SHUTDOWN, true);
+            registerOutcomes(PayloadFlightPhases::ENGINE_SHUTDOWN);
+            printf("[HIL] ------- ENGINE SHUTDOWN ! ------- %f, %f \n",
                    getCurrentPosition().z, getCurrentPosition().vz);
-            changed_flags.push_back(PayloadFlightPhases::MOTOR_SHUTDOWN);
+            changed_flags.push_back(PayloadFlightPhases::ENGINE_SHUTDOWN);
             break;
         case Common::Events::FLIGHT_APOGEE_DETECTED:
         case Common::Events::CAN_APOGEE_DETECTED:

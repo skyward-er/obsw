@@ -838,10 +838,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             CanHandler::CanStatus canStatus =
                 getModule<CanHandler>()->getCanStatus();
             tm.payload_board_state = canStatus.getPayloadState();
-            tm.motor_board_state   = canStatus.getMotorState();
+            tm.motor_board_state   = canStatus.getEngineState();
 
             tm.payload_can_status = canStatus.isPayloadConnected() ? 1 : 0;
-            tm.motor_can_status   = canStatus.isMotorConnected() ? 1 : 0;
+            tm.motor_can_status   = canStatus.isEngineConnected() ? 1 : 0;
             tm.rig_can_status     = canStatus.isRigConnected() ? 1 : 0;
 
             tm.hil_state = PersistentVars::getHilMode() ? 1 : 0;
@@ -873,7 +873,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.tank_temperature =
                 sensors->getCanTankTempLastSample().temperature;
             tm.battery_voltage =
-                sensors->getCanMotorBatteryVoltageLastSample().voltage;
+                sensors->getCanEngineBatteryVoltageLastSample().voltage;
 
             // Valve states
             tm.main_valve_state =
@@ -885,9 +885,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             CanHandler::CanStatus canStatus =
                 getModule<CanHandler>()->getCanStatus();
 
-            tm.log_number = canStatus.getMotorLogNumber();
-            tm.log_good   = canStatus.isMotorLogGood() ? 1 : 0;
-            tm.hil_state  = canStatus.isMotorHil() ? 1 : 0;
+            tm.log_number = canStatus.getEngineLogNumber();
+            tm.log_good   = canStatus.isEngineLogGood() ? 1 : 0;
+            tm.hil_state  = canStatus.isEngineHil() ? 1 : 0;
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,

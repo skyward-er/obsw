@@ -42,7 +42,7 @@ CanHandler::CanHandler()
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
-    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::MOTOR),
+    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::ENGINE),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
 }
 
@@ -244,11 +244,11 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
+        case CanConfig::SensorId::ENGINE_BOARD_VOLTAGE:
         {
             CanVoltageData data = voltageDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanMotorBatteryVoltage(data);
+            sensors->setCanEngineBatteryVoltage(data);
             break;
         }
 
@@ -293,14 +293,14 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::Board::MOTOR:
+        case CanConfig::Board::ENGINE:
         {
-            status.motorLastStatus = getTime();
-            status.motorState      = deviceStatus.state;
+            status.engineLastStatus = getTime();
+            status.engineState      = deviceStatus.state;
 
-            status.motorLogNumber = deviceStatus.logNumber;
-            status.motorLogGood   = deviceStatus.logGood;
-            status.motorHil       = deviceStatus.hil;
+            status.engineLogNumber = deviceStatus.logNumber;
+            status.engineLogGood   = deviceStatus.logGood;
+            status.engineHil       = deviceStatus.hil;
             break;
         }
 

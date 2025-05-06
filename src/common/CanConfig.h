@@ -67,7 +67,7 @@ enum class Board : uint8_t
     RIG,
     MAIN,
     PAYLOAD,
-    MOTOR
+    ENGINE
 };
 
 enum class SensorId : uint8_t
@@ -82,10 +82,10 @@ enum class SensorId : uint8_t
     OX_TOP_TANK_PRESSURE,
     N2_TANK_PRESSURE,
     TANK_TEMPERATURE,
-    MOTOR_ACTUATORS_CURRENT,
+    ENGINE_ACTUATORS_CURRENT,
     MAIN_BOARD_CURRENT,
     PAYLOAD_BOARD_CURRENT,
-    MOTOR_BOARD_VOLTAGE
+    ENGINE_BOARD_VOLTAGE
 };
 
 enum class EventId : uint8_t

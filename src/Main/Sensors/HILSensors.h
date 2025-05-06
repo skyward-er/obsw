@@ -67,7 +67,7 @@ private:
         if (!Config::HIL::IS_FULL_HIL)
         {
             // Adding to sensorManager's scheduler a task to "sample" the
-            // combustion chamber pressure coming from motor
+            // combustion chamber pressure coming from engine
             getSensorsScheduler().addTask([this]()
                                           { setCanCCPress(updateCCData()); },
                                           Config::HIL::BARO_CHAMBER_RATE);

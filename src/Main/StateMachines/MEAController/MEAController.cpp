@@ -298,7 +298,7 @@ void MEAController::state_shadow_mode(const Event& event)
             break;
         }
 
-        case FLIGHT_MOTOR_SHUTDOWN:
+        case FLIGHT_ENGINE_SHUTDOWN:
         {
             transition(&MEAController::state_active_unpowered);
             break;
@@ -328,7 +328,7 @@ void MEAController::state_active(const Event& event)
             break;
         }
 
-        case FLIGHT_MOTOR_SHUTDOWN:
+        case FLIGHT_ENGINE_SHUTDOWN:
         {
             transition(&MEAController::state_active_unpowered);
             break;
