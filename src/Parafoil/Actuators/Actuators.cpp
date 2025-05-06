@@ -72,8 +72,8 @@ bool Actuators::setServoPosition(ServosList servoId, float position)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    Logger::getInstance().log(actuator->servo->getState());
     actuator->servo->setPosition(position);
+    Logger::getInstance().log(actuator->servo->getState());
 
     return true;
 }
@@ -86,9 +86,9 @@ bool Actuators::setServoAngle(ServosList servoId, Degree angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    Logger::getInstance().log(actuator->servo->getState());
     actuator->servo->setPosition(angle.value() /
                                  actuator->fullRangeAngle.value());
+    Logger::getInstance().log(actuator->servo->getState());
 
     return true;
 }
