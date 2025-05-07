@@ -178,24 +178,25 @@ void Radio::updateButtonState(const mavlink_conrig_state_tc_t& state)
     buttonState.nitrogen_btn |= state.nitrogen_btn;
     buttonState.ox_detach_btn |= state.ox_detach_btn;
     buttonState.n2_quenching_btn |= state.n2_quenching_btn;
-    buttonState.tars3_btn |= state.tars3_btn;
-    buttonState.tars3m_btn |= state.tars3m_btn;
     buttonState.ignition_btn |= state.ignition_btn;
 
     // Don't merge lever states
-    buttonState.n2_3way_btn = state.n2_3way_btn;
-    buttonState.arm_switch  = state.arm_switch;
+    buttonState.n2_3way_switch = state.n2_3way_switch;
+    buttonState.tars_switch    = state.tars_switch;
+    buttonState.arm_switch     = state.arm_switch;
 }
 
 void Radio::resetButtonState()
 {
     Lock<FastMutex> lock{buttonsMutex};
     // Save and restore lever states
-    auto n2_3way_btn        = buttonState.n2_3way_btn;
-    auto arm_switch         = buttonState.arm_switch;
-    buttonState             = {};
-    buttonState.n2_3way_btn = n2_3way_btn;
-    buttonState.arm_switch  = arm_switch;
+    auto n2_3way_switch        = buttonState.n2_3way_switch;
+    auto tars_switch           = buttonState.tars_switch;
+    auto arm_switch            = buttonState.arm_switch;
+    buttonState                = {};
+    buttonState.n2_3way_switch = n2_3way_switch;
+    buttonState.tars_switch    = tars_switch;
+    buttonState.arm_switch     = arm_switch;
 }
 
 bool Radio::start()

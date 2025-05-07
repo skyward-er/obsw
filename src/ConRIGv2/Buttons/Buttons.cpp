@@ -40,8 +40,9 @@ void printStateDiff(const mavlink_conrig_state_tc_t& oldState,
 {
 #define BUTTON(btn)                                                        \
     std::setw(8) << std::right << (state.btn != oldState.btn ? "*  " : "") \
-                 << std::setw(20) << std::left << #btn << std::setw(4)     \
-                 << std::left << (state.btn ? "On" : "Off")
+                 << std::setw(20) << std::left << #btn << std::setw(5)     \
+                 << std::left << (state.btn ? "On" : "Off") << std::left   \
+                 << "(" << (int)state.btn << ")"
 
     std::cout << "Button state changed: \n"
               << BUTTON(arm_switch) << "\n"
@@ -53,9 +54,8 @@ void printStateDiff(const mavlink_conrig_state_tc_t& oldState,
               << BUTTON(n2_release_btn) << "\n"
               << BUTTON(n2_detach_btn) << "\n"
               << BUTTON(n2_quenching_btn) << "\n"
-              << BUTTON(n2_3way_btn) << "\n"
-              << BUTTON(tars3_btn) << "\n"
-              << BUTTON(tars3m_btn) << "\n"
+              << BUTTON(n2_3way_switch) << "\n"
+              << BUTTON(tars_switch) << "\n"
               << BUTTON(nitrogen_btn) << "\n"
               << BUTTON(ignition_btn) << "\n";
 #undef BUTTON
@@ -75,7 +75,7 @@ mavlink_conrig_state_tc_t Buttons::getState() { return state; }
 void Buttons::periodicStatusCheck()
 {
     auto oldState = state;
-    (void)oldState;  // Avoid unused variable warning, only used in debug mode
+    (void)oldState;  // Avoid unused variable warning
 
 #define CHECK_BUTTON(cond, btn)                           \
     if (cond)                                             \
@@ -97,12 +97,22 @@ void Buttons::periodicStatusCheck()
     }
 
     // Handle switches (levers)
-    state.arm_switch  = btns::arm::value();
-    state.n2_3way_btn = btns::n2_3way::value();
-    // The tars lever has 2 position that close the circuit on a different pin
-    // Exclude the case where both are pressed
-    state.tars3_btn  = btns::tars3::value() && !btns::tars3m::value();
-    state.tars3m_btn = btns::tars3m::value() && !btns::tars3::value();
+    state.arm_switch     = btns::arm::value();
+    state.n2_3way_switch = btns::n2_3way::value();
+    // The tars switch has 2 position that close the circuit on different pins
+    // We still want to ensure only one can be active at any time via software
+    // If for some reason both TARS pins are high, reuse the old state because
+    // in the case of TARS running, setting it to OFF would stop it
+    // By keeping the old state we ensure that TARS is not stopped in case of
+    // interference on the buttons (rare case anyway)
+    if (btns::tars1::value() && btns::tars3::value())
+        state.tars_switch = oldState.tars_switch;
+    else if (btns::tars1::value())
+        state.tars_switch = TARSList::TARS_1;
+    else if (btns::tars3::value())
+        state.tars_switch = TARSList::TARS_3;
+    else
+        state.tars_switch = TARSList::TARS_OFF;
 
     // The ignition button is considered only if the arm switch is active
     CHECK_BUTTON(!btns::ignition::value() && state.arm_switch, ignition_btn);

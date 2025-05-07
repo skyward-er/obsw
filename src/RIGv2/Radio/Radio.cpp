@@ -626,8 +626,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::N2_DETACH_SERVO);
             tm.n2_quenching_valve_state =
                 actuators->isServoOpen(ServosList::N2_QUENCHING_VALVE);
-            tm.n2_3way_valve_state =
-                actuators->isServoOpen(ServosList::N2_3WAY_VALVE);
+            tm.n2_3way_valve_state = actuators->get3wayValveState();
 
             tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE);
@@ -636,10 +635,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.chamber_valve_state = actuators->isChamberOpen();
 
             // Internal states
-            tm.gmm_state = getModule<GroundModeManager>()->getState();
-            // TODO: rename to tars1 and tars3
-            tm.tars3_state  = getModule<TARS1>()->isRefueling();
-            tm.tars3m_state = (uint8_t)getModule<TARS3>()->getLastAction();
+            tm.gmm_state    = getModule<GroundModeManager>()->getState();
+            tm.tars1_state  = getModule<TARS1>()->isRefueling();
+            tm.tars3_state  = (uint8_t)getModule<TARS3>()->getLastAction();
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
                               GroundModeManagerState::ARMED;
 
@@ -940,7 +938,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     mavlink_msg_conrig_state_tc_decode(&msg, &state);
 
 #define BUTTON_PRESSED(btn) (lastConrigState.btn == 0 && state.btn == 1)
-#define BUTTON_CHANGED(btn) (lastConrigState.btn != state.btn)
+#define SWITCH_CHANGED(sw) (lastConrigState.sw != state.sw)
 
     // Use a debounce time to prevent updates too close to each other
     // that may be caused by interference on the buttons
@@ -1030,18 +1028,31 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        // TODO: rename buttons to tars1 and tars3 (remove tars3m)
-        if (BUTTON_PRESSED(tars3_btn))
+        if (SWITCH_CHANGED(tars_switch))
         {
-            // The TARS lever was put in the TARS1 position
-            EventBroker::getInstance().post(MOTOR_START_TARS1, TOPIC_TMTC);
-            lastManualActuation = currentTime;
-        }
+            // The TARS switch changed state
+            switch (state.tars_switch)
+            {
+                case TARSList::TARS_OFF:
+                    EventBroker::getInstance().post(MOTOR_STOP_TARS,
+                                                    TOPIC_TARS);
+                    break;
 
-        if (BUTTON_PRESSED(tars3m_btn))
-        {
-            // The TARS lever was put in the TARS3 position
-            EventBroker::getInstance().post(MOTOR_START_TARS3, TOPIC_TMTC);
+                case TARSList::TARS_1:
+                    EventBroker::getInstance().post(MOTOR_STOP_TARS,
+                                                    TOPIC_TARS);
+                    EventBroker::getInstance().post(MOTOR_START_TARS1,
+                                                    TOPIC_TARS);
+                    break;
+
+                case TARSList::TARS_3:
+                    EventBroker::getInstance().post(MOTOR_STOP_TARS,
+                                                    TOPIC_TARS);
+                    EventBroker::getInstance().post(MOTOR_START_TARS3,
+                                                    TOPIC_TARS);
+                    break;
+            }
+
             lastManualActuation = currentTime;
         }
 
@@ -1053,21 +1064,13 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_CHANGED(n2_3way_btn))
+        if (SWITCH_CHANGED(n2_3way_switch))
         {
             // The 3-way valve switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->set3wayValveState(state.n2_3way_btn);
+            getModule<Actuators>()->set3wayValveState(state.n2_3way_switch);
             lastManualActuation = currentTime;
         }
-    }
-
-    if ((lastConrigState.tars3_btn == 1 && state.tars3_btn == 0) ||
-        (lastConrigState.tars3m_btn == 1 && state.tars3m_btn == 0))
-    {
-        // The TARS lever was put in the OFF position
-        EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
-        lastManualActuation = currentTime;
     }
 
     // Special case for disarming, that can be done bypassing the timeout
