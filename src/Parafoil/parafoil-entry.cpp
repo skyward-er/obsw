@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#define DEFAULT_STDOUT_LOG_LEVEL LOGL_INFO
+
 #include <Parafoil/Actuators/Actuators.h>
 #include <Parafoil/AltitudeTrigger/LandingFlare.h>
 #include <Parafoil/BoardScheduler.h>

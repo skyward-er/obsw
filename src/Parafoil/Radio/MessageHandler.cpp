@@ -21,7 +21,7 @@
  */
 
 #include <Parafoil/Actuators/Actuators.h>
-#include <Parafoil/AltitudeTrigger/AltitudeTrigger.h>
+#include <Parafoil/AltitudeTrigger/LandingFlare.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Configs/RadioConfig.h>
 #include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
@@ -240,7 +240,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             float altitude =
                 mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
 
-            parent.getModule<AltitudeTrigger>()->setDeploymentAltitude(
+            parent.getModule<LandingFlare>()->setDeploymentAltitude(
                 Meter{altitude});
 
             if (altitude < 200 || altitude > 450)

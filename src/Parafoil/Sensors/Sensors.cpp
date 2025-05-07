@@ -105,6 +105,9 @@ bool Sensors::isStarted() { return started; }
 
 void Sensors::calibrate()
 {
+    if (!bmx160WithCorrection)
+        return;
+
     bmx160WithCorrection->startCalibration();
 
     miosix::Thread::sleep(
@@ -378,15 +381,17 @@ void Sensors::internalADCInit()
 
 void Sensors::bmx160Callback()
 {
-    auto fifoSize = bmx160->getLastFifoSize();
-    auto& fifo    = bmx160->getLastFifo();
+    if (!bmx160)
+        return;
 
-    Logger::getInstance().log(bmx160->getTemperature());
+    // We can skip logging the last sample since we are logging the fifo
+    auto& logger = Logger::getInstance();
+    uint16_t lastFifoSize;
+    const auto lastFifo = bmx160->getLastFifo(lastFifoSize);
 
-    for (auto i = 0; i < fifoSize; i++)
-        Logger::getInstance().log(fifo.at(i));
-
-    Logger::getInstance().log(bmx160->getFifoStats());
+    // For every instance inside the fifo log the sample
+    for (uint16_t i = 0; i < lastFifoSize; i++)
+        logger.log(lastFifo.at(i));
 }
 
 void Sensors::bmx160WithCorrectionCallback()
