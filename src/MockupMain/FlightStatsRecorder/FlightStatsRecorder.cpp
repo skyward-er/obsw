@@ -57,13 +57,6 @@ void FlightStatsRecorder::dropDetected(uint64_t ts)
     stats.dropTs = ts;
 }
 
-void FlightStatsRecorder::deploymentDetected(uint64_t ts, Meter alt)
-{
-    Lock<FastMutex> lock{statsMutex};
-    stats.dplTs  = ts;
-    stats.dplAlt = alt;
-}
-
 void FlightStatsRecorder::updateAcc(const AccelerometerData& data)
 {
     auto fmmState = getModule<FlightModeManager>()->getState();
@@ -75,23 +68,10 @@ void FlightStatsRecorder::updateAcc(const AccelerometerData& data)
     auto acc = MeterPerSecondSquared{static_cast<Vector3f>(data).norm()};
     Lock<FastMutex> lock{statsMutex};
 
-    if (fmmState != FlightModeManagerState::FLYING_DROGUE_DESCENT)
+    if (acc > stats.dropMaxAcc)
     {
-        // Record this event only after drop, before deployment
-        if (acc > stats.dropMaxAcc)
-        {
-            stats.dropMaxAcc   = acc;
-            stats.dropMaxAccTs = data.accelerationTimestamp;
-        }
-    }
-    else
-    {
-        // Record this event only after deployment
-        if (acc > stats.dplMaxAcc)
-        {
-            stats.dplMaxAcc   = acc;
-            stats.dplMaxAccTs = data.accelerationTimestamp;
-        }
+        stats.dropMaxAcc   = acc;
+        stats.dropMaxAccTs = data.accelerationTimestamp;
     }
 }
 

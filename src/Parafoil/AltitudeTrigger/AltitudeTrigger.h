@@ -42,7 +42,7 @@ public:
     /**
      * @brief Constructor
      */
-    AltitudeTrigger(AltitudeTriggerConfig config);
+    explicit AltitudeTrigger(AltitudeTriggerConfig config);
 
     /**
      * @brief Adds the update() task to the task scheduler.

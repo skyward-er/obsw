@@ -45,7 +45,7 @@ public:
         // Drop
         uint64_t dropTs = 0;
 
-        // Maximum acceleration after drop, before deployment
+        // Maximum acceleration after drop
         uint64_t dropMaxAccTs = 0;
         Boardcore::Units::Acceleration::MeterPerSecondSquared dropMaxAcc{0};
 
@@ -53,14 +53,6 @@ public:
         uint64_t maxSpeedTs = 0;
         Boardcore::Units::Speed::MeterPerSecond maxSpeed{0};
         Boardcore::Units::Length::Meter maxSpeedAlt{0};
-
-        // Deployment
-        uint64_t dplTs = 0;
-        Boardcore::Units::Length::Meter dplAlt{0};
-
-        // Maximum acceleration after deployment
-        uint64_t dplMaxAccTs = 0;
-        Boardcore::Units::Acceleration::MeterPerSecondSquared dplMaxAcc{0};
     };
 
     void reset();
@@ -68,7 +60,6 @@ public:
     Stats getStats();
 
     void dropDetected(uint64_t ts);
-    void deploymentDetected(uint64_t ts, Boardcore::Units::Length::Meter alt);
 
     void updateAcc(const Boardcore::AccelerometerData& data);
     void updateNas(const Boardcore::NASState& data, float refTemperature);
