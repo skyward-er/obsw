@@ -38,16 +38,17 @@ struct HubData
     uint16_t groundRx  = 0;
     uint16_t rocketRx  = 0;
     uint16_t sniffedRx = 0;
+    float cpuMean      = 0;
 
     static std::string header()
     {
-        return "timestamp,groundRx,rocketRx,sniffedRx\n";
+        return "timestamp,groundRx,rocketRx,sniffedRx,cpuMean\n";
     }
 
     void print(std::ostream& os) const
     {
         os << timestamp << "," << groundRx << "," << rocketRx << ","
-           << sniffedRx << "\n";
+           << sniffedRx << "," << cpuMean << "\n";
     }
 };
 }  // namespace Antennas
