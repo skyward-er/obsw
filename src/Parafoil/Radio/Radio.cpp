@@ -24,9 +24,9 @@
 
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
+#include <Parafoil/Radio/Radio.h>
 #include <common/Radio.h>
-#include <radio/Xbee/APIFramesLog.h>
-#include <radio/Xbee/ATCommands.h>
+#include <radio/SX1278/SX1278Frontends.h>
 
 using namespace Boardcore;
 using namespace Boardcore::Units::Time;
@@ -37,18 +37,19 @@ namespace
 {
 
 // Static radio instance that will handle the radio interrupts
-std::atomic<Xbee::Xbee*> staticTransceiver{nullptr};
+std::atomic<SX1278Fsk*> staticTransceiver{nullptr};
 inline void handleDioIRQ()
 {
     auto transceiver = staticTransceiver.load();
     if (transceiver)
-        transceiver->handleATTNInterrupt();
+        transceiver->handleDioIRQ();
 }
 
 }  // namespace
 
-void __attribute__((used)) EXTI1_IRQHandlerImpl() { handleDioIRQ(); }
-
+void __attribute__((used)) MIOSIX_RADIO_DIO0_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO_DIO1_IRQ() { handleDioIRQ(); }
+void __attribute__((used)) MIOSIX_RADIO_DIO3_IRQ() { handleDioIRQ(); }
 namespace Parafoil
 {
 
@@ -62,17 +63,21 @@ bool Radio::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->radio();
 
-    SPIBusConfig config{};
-    config.clockDivider = SPI::ClockDivider::DIV_16;
+    // Initialize the radio
+    auto frontend = std::make_unique<Skyward433Frontend>();
 
-    transceiver = std::make_unique<Xbee::Xbee>(
-        getModule<Buses>()->spi2, config, miosix::xbee::cs::getPin(),
-        miosix::xbee::attn::getPin(), miosix::xbee::reset::getPin());
-    transceiver->setOnFrameReceivedListener([this](Xbee::APIFrame& frame)
-                                            { handleXbeeFrame(frame); });
+    transceiver = std::make_unique<SX1278Fsk>(
+        getModule<Buses>()->radio(), miosix::radio::cs::getPin(),
+        miosix::radio::dio0::getPin(), miosix::radio::dio1::getPin(),
+        miosix::radio::dio3::getPin(), SPI::ClockDivider::DIV_128,
+        std::move(frontend));
 
-    Xbee::setDataRate(*transceiver, Config::Radio::Xbee::ENABLE_80KPS_DATA_RATE,
-                      Millisecond{Config::Radio::Xbee::TIMEOUT}.value());
+    // Configure the radio
+    if (transceiver->init(PAYLOAD_RADIO_CONFIG) != SX1278Fsk::Error::NONE)
+    {
+        LOG_ERR(logger, "Failed to initialize the radio");
+        return false;
+    }
 
     // Set the static instance for handling radio interrupts
     staticTransceiver = transceiver.get();
@@ -117,73 +122,38 @@ bool Radio::start()
 
 bool Radio::isStarted() { return started; }
 
-void Radio::handleXbeeFrame(Boardcore::Xbee::APIFrame& frame)
+void Radio::initMavlinkOverSerial()
 {
-    using namespace Xbee;
-    bool logged = false;
-    switch (frame.frameType)
-    {
-        case FTYPE_AT_COMMAND:
-        {
-            ATCommandFrameLog dest;
-            logged = ATCommandFrameLog::toFrameType(frame, &dest);
-            if (logged)
-                Logger::getInstance().log(dest);
-            break;
-        }
-        case FTYPE_AT_COMMAND_RESPONSE:
-        {
-            ATCommandResponseFrameLog dest;
-            logged = ATCommandResponseFrameLog::toFrameType(frame, &dest);
-            if (logged)
-                Logger::getInstance().log(dest);
-            break;
-        }
-        case FTYPE_MODEM_STATUS:
-        {
-            ModemStatusFrameLog dest;
-            logged = ModemStatusFrameLog::toFrameType(frame, &dest);
-            if (logged)
-                Logger::getInstance().log(dest);
-            break;
-        }
-        case FTYPE_TX_REQUEST:
-        {
-            TXRequestFrameLog dest;
-            logged = TXRequestFrameLog::toFrameType(frame, &dest);
-            if (logged)
-                Logger::getInstance().log(dest);
-            break;
-        }
-        case FTYPE_TX_STATUS:
-        {
-            TXStatusFrameLog dest;
-            logged = TXStatusFrameLog::toFrameType(frame, &dest);
-            if (logged)
-                Logger::getInstance().log(dest);
-            break;
-        }
-        case FTYPE_RX_PACKET_FRAME:
-        {
-            RXPacketFrameLog dest;
-            logged = RXPacketFrameLog::toFrameType(frame, &dest);
-            if (logged)
-                Logger::getInstance().log(dest);
-            break;
-        }
-    }
+    serialTransceiver =
+        std::make_unique<SerialTransceiver>(getModule<Buses>()->HILUart());
 
-    if (!logged)
+    serialMavlink.driver = std::make_unique<MavDriver>(
+        serialTransceiver.get(),
+        [this](MavDriver*, const mavlink_message_t& msg)
+        { handleSerialMessage(msg); },
+        Millisecond{config::MavlinkDriver::SLEEP_AFTER_SEND}.value(),
+        Millisecond{config::MavlinkDriver::MAX_PKT_AGE}.value());
+
+    if (!serialMavlink.driver->start())
     {
-        APIFrameLog api;
-        APIFrameLog::fromAPIFrame(frame, &api);
-        Logger::getInstance().log(api);
+        LOG_ERR(logger,
+                "Failed to initialize mavlink driver over HIL serial, "
+                "continuing without it");
+
+        serialMavlink.driver.reset();
+        serialTransceiver.reset();
     }
 }
 
 void Radio::handleRadioMessage(const mavlink_message_t& msg)
 {
     radioMavlink.handleMessage(msg);
+}
+
+void Radio::handleSerialMessage(const mavlink_message_t& msg)
+{
+    serialMavlink.handleMessage(msg);
+    serialMavlink.flushQueue();
 }
 
 void Radio::enqueueHighRateTelemetry()

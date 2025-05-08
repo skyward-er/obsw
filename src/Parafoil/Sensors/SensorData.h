@@ -1,5 +1,6 @@
+
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,26 +28,59 @@
 namespace Parafoil
 {
 
+// Wrappers to differentiate static and dynamic pressure for logging
+
+struct StaticPressureData : public Boardcore::PressureData
+{
+    StaticPressureData() = default;
+
+    explicit StaticPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+};
+
+struct DynamicPressureData : public Boardcore::PressureData
+{
+    DynamicPressureData() = default;
+
+    explicit DynamicPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+};
+
 struct SensorCalibrationData
 {
-    uint64_t timestamp = 0;
-    float magBiasX     = 0.0f;
-    float magBiasY     = 0.0f;
-    float magBiasZ     = 0.0f;
-    float magScaleX    = 0.0f;
-    float magScaleY    = 0.0f;
-    float magScaleZ    = 0.0f;
+    uint64_t timestamp      = 0;
+    float gyroBiasX         = 0.0f;
+    float gyroBiasY         = 0.0f;
+    float gyroBiasZ         = 0.0f;
+    float magBiasX          = 0.0f;
+    float magBiasY          = 0.0f;
+    float magBiasZ          = 0.0f;
+    float magScaleX         = 0.0f;
+    float magScaleY         = 0.0f;
+    float magScaleZ         = 0.0f;
+    float staticPressBias   = 0.0f;
+    float staticPressScale  = 0.0f;
+    float dynamicPressBias  = 0.0f;
+    float dynamicPressScale = 0.0f;
 
     static std::string header()
     {
-        return "timestamp,magBiasX,magBiasY,magBiasZ,magScaleX,magScaleY,"
-               "magScaleZ\n";
+        return "timestamp,gyroBiasX,gyroBiasY,gyroBiasZ,magBiasX,magBiasY,"
+               "magBiasZ,magScaleX,magScaleY,magScaleZ,staticPressBias,"
+               "staticPressScale,dynamicPressBias,dynamicPressScale\n";
     }
 
     void print(std::ostream& os) const
     {
-        os << timestamp << "," << magBiasX << "," << magBiasY << "," << magBiasZ
-           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << "\n";
+        os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
+           << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ
+           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << ","
+           << staticPressBias << "," << staticPressScale << ","
+           << dynamicPressBias << "," << dynamicPressScale << "\n";
     }
 };
 

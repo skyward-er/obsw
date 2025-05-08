@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,11 @@
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
-
-#include <chrono>
+#include <common/ReferenceConfig.h>
+#include <interfaces-impl/hwmapping.h>
+#include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
 using namespace Boardcore;
-using namespace Boardcore::Units::Frequency;
 namespace config = Parafoil::Config::Sensors;
 namespace hwmap  = miosix::sensors;
 
@@ -38,30 +38,43 @@ namespace Parafoil
 
 bool Sensors::start()
 {
-    if (config::BMX160::ENABLED)
+    // Read the magnetometer calibration data from file
+    magCalibration.fromFile(config::MagCalibration::CALIBRATION_PATH);
+
+    if (Config::Sensors::LPS22DF::ENABLED)
+        lps22dfInit();
+
+    if (Config::Sensors::LPS28DFW::ENABLED)
+        lps28dfwInit();
+
+    if (Config::Sensors::H3LIS331DL::ENABLED)
+        h3lis331dlInit();
+
+    if (Config::Sensors::LIS2MDL::ENABLED)
+        lis2mdlInit();
+
+    if (Config::Sensors::UBXGPS::ENABLED)
+        ubxgpsInit();
+
+    if (Config::Sensors::LSM6DSRX::ENABLED)
+        lsm6dsrxInit();
+
+    if (Config::Sensors::ADS131M08::ENABLED)
     {
-        bmx160Init();
-        bmx160WithCorrectionInit();
+        ads131m08Init();
+        if (Config::Sensors::StaticPressure::ENABLED)
+            staticPressureInit();
+        if (Config::Sensors::DynamicPressure::ENABLED)
+            dynamicPressureInit();
     }
 
-    if (config::LIS3MDL::ENABLED)
-        lis3mdlInit();
+    if (Config::Sensors::InternalADC::ENABLED)
+        internalAdcInit();
 
-    if (config::H3LIS331DL::ENABLED)
-        h3lisInit();
+    if (Config::Sensors::RotatedIMU::ENABLED)
+        rotatedImuInit();
 
-    if (config::LPS22DF::ENABLED)
-        lps22Init();
-
-    if (config::UBXGPS::ENABLED)
-        ubxGpsInit();
-
-    if (config::ADS131M08::ENABLED)
-        ads131Init();
-
-    if (config::InternalADC::ENABLED)
-        internalADCInit();
-
+    // Return immediately if the hook fails as we cannot know what the hook does
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Sensors post-creation hook failed");
@@ -70,7 +83,7 @@ bool Sensors::start()
 
     if (!sensorManagerInit())
     {
-        LOG_ERR(logger, "Failed to initialize sensor manager");
+        LOG_ERR(logger, "Failed to initialize SensorManager");
         return false;
     }
 
@@ -79,7 +92,7 @@ bool Sensors::start()
     magCalibrationTaskId = scheduler.addTask(
         [this]()
         {
-            auto mag = getLIS3MDLLastSample();
+            auto mag = getLIS2MDLLastSample();
 
             miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
             magCalibrator.feed(mag);
@@ -88,13 +101,11 @@ bool Sensors::start()
 
     if (magCalibrationTaskId == 0)
     {
-        LOG_ERR(logger, "Failed to add magnetometer calibration task");
+        LOG_ERR(logger, "Failed to add mag calibration task");
         return false;
     }
 
-    // Immediately disable the task, so that is enabled only when needed
-    // from FlightModeManager. It is calibrated during the pre-flight
-    // initialization phase.
+    // Immediately disable the task
     scheduler.disableTask(magCalibrationTaskId);
 
     started = true;
@@ -105,30 +116,84 @@ bool Sensors::isStarted() { return started; }
 
 void Sensors::calibrate()
 {
-    if (!bmx160WithCorrection)
-        return;
+    BiasCalibration gyroCalibrator{};
+    float staticPressureSum  = 0.0f;
+    float dynamicPressureSum = 0.0f;
+    float lps28dfwSum        = 0.0f;
 
-    bmx160WithCorrection->startCalibration();
+    using namespace std::chrono;
+    auto start = steady_clock::now();
 
-    miosix::Thread::sleep(
-        std::chrono::milliseconds{config::BMX160::CALIBRATION_DURATION}
-            .count());
+    // Accumulate samples
+    for (int i = 0; i < config::Calibration::SAMPLE_COUNT; i++)
+    {
+        auto lsm6dsrx        = getLSM6DSRXLastSample();
+        auto staticPressure  = getStaticPressureLastSample();
+        auto dynamicPressure = getDynamicPressureLastSample();
+        auto lps28dfw        = getLPS28DFWLastSample();
 
-    bmx160WithCorrection->stopCalibration();
+        gyroCalibrator.feed(static_cast<GyroscopeData>(lsm6dsrx));
+        staticPressureSum += staticPressure.pressure;
+        dynamicPressureSum += dynamicPressure.pressure;
+        lps28dfwSum += lps28dfw.pressure;
+
+        auto wakeup = start + config::Calibration::SAMPLE_PERIOD;
+        miosix::Thread::nanoSleepUntil(wakeup.time_since_epoch().count());
+    }
+
+    float staticPressureMean =
+        staticPressureSum / config::Calibration::SAMPLE_COUNT;
+    float dynamicPressureMean =
+        dynamicPressureSum / config::Calibration::SAMPLE_COUNT;
+    float lps28dfwAvg = lps28dfwSum / config::Calibration::SAMPLE_COUNT;
+
+    // Calibrate all analog pressure sensors against the LPS28DFW or the
+    // telemetry reference
+    float reference = 0;
+    {
+        miosix::Lock<miosix::FastMutex> lock{baroCalibrationMutex};
+        reference = useBaroCalibrationReference ? baroCalibrationReference
+                                                : lps28dfwAvg;
+    }
+
+    if (reference > config::Calibration::ATMOS_THRESHOLD)
+    {
+        // Apply the offset only if reference is valid
+        // LPS28DFW might be disabled or unresponsive
+        staticPressure->updateOffset(staticPressureMean - reference);
+    }
+    dynamicPressure->updateOffset(dynamicPressureMean);
+
+    {
+        miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
+        gyroCalibration = gyroCalibrator.computeResult();
+    }
+
+    // Log the offsets
+    auto data = getCalibrationData();
+    Logger::getInstance().log(data);
 }
 
 SensorCalibrationData Sensors::getCalibrationData()
 {
-    miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
+    miosix::Lock<miosix::FastMutex> magLock{magCalibrationMutex};
+    miosix::Lock<miosix::FastMutex> gyroLock{gyroCalibrationMutex};
 
     return SensorCalibrationData{
-        .timestamp = TimestampTimer::getTimestamp(),
-        .magBiasX  = magCalibration.getb().x(),
-        .magBiasY  = magCalibration.getb().y(),
-        .magBiasZ  = magCalibration.getb().z(),
-        .magScaleX = magCalibration.getA().x(),
-        .magScaleY = magCalibration.getA().y(),
-        .magScaleZ = magCalibration.getA().z(),
+        .timestamp         = TimestampTimer::getTimestamp(),
+        .gyroBiasX         = gyroCalibration.getb().x(),
+        .gyroBiasY         = gyroCalibration.getb().y(),
+        .gyroBiasZ         = gyroCalibration.getb().z(),
+        .magBiasX          = magCalibration.getb().x(),
+        .magBiasY          = magCalibration.getb().y(),
+        .magBiasZ          = magCalibration.getb().z(),
+        .magScaleX         = magCalibration.getA().x(),
+        .magScaleY         = magCalibration.getA().y(),
+        .magScaleZ         = magCalibration.getA().z(),
+        .staticPressBias   = staticPressure->getOffset(),
+        .staticPressScale  = 1.0f,
+        .dynamicPressBias  = dynamicPressure->getOffset(),
+        .dynamicPressScale = 1.0f,
     };
 }
 
@@ -172,25 +237,18 @@ bool Sensors::saveMagCalibration()
     }
 }
 
-BMX160Data Sensors::getBMX160LastSample()
+void Sensors::setBaroCalibrationReference(float reference)
 {
-    return bmx160 ? bmx160->getLastSample() : BMX160Data{};
+    miosix::Lock<miosix::FastMutex> lock{baroCalibrationMutex};
+    baroCalibrationReference    = reference;
+    useBaroCalibrationReference = true;
 }
 
-BMX160WithCorrectionData Sensors::getBMX160WithCorrectionLastSample()
+void Sensors::resetBaroCalibrationReference()
 {
-    return bmx160WithCorrection ? bmx160WithCorrection->getLastSample()
-                                : BMX160WithCorrectionData{};
-}
-
-LIS3MDLData Sensors::getLIS3MDLLastSample()
-{
-    return lis3mdl ? lis3mdl->getLastSample() : LIS3MDLData{};
-}
-
-H3LIS331DLData Sensors::getH3LISLastSample()
-{
-    return h3lis331dl ? h3lis331dl->getLastSample() : H3LIS331DLData{};
+    miosix::Lock<miosix::FastMutex> lock{baroCalibrationMutex};
+    baroCalibrationReference    = 0.0f;
+    useBaroCalibrationReference = false;
 }
 
 LPS22DFData Sensors::getLPS22DFLastSample()
@@ -198,12 +256,32 @@ LPS22DFData Sensors::getLPS22DFLastSample()
     return lps22df ? lps22df->getLastSample() : LPS22DFData{};
 }
 
+LPS28DFWData Sensors::getLPS28DFWLastSample()
+{
+    return lps28dfw ? lps28dfw->getLastSample() : LPS28DFWData{};
+}
+
+H3LIS331DLData Sensors::getH3LIS331DLLastSample()
+{
+    return h3lis331dl ? h3lis331dl->getLastSample() : H3LIS331DLData{};
+}
+
+LIS2MDLData Sensors::getLIS2MDLLastSample()
+{
+    return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
+}
+
 UBXGPSData Sensors::getUBXGPSLastSample()
 {
     return ubxgps ? ubxgps->getLastSample() : UBXGPSData{};
 }
 
-ADS131M08Data Sensors::getADS131LastSample()
+LSM6DSRXData Sensors::getLSM6DSRXLastSample()
+{
+    return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
+}
+
+ADS131M08Data Sensors::getADS131M08LastSample()
 {
     return ads131m08 ? ads131m08->getLastSample() : ADS131M08Data{};
 }
@@ -211,6 +289,24 @@ ADS131M08Data Sensors::getADS131LastSample()
 InternalADCData Sensors::getInternalADCLastSample()
 {
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
+}
+
+StaticPressureData Sensors::getStaticPressureLastSample()
+{
+    return staticPressure ? StaticPressureData(staticPressure->getLastSample())
+                          : StaticPressureData{};
+}
+
+DynamicPressureData Sensors::getDynamicPressureLastSample()
+{
+    return dynamicPressure
+               ? DynamicPressureData(dynamicPressure->getLastSample())
+               : DynamicPressureData{};
+}
+
+IMUData Sensors::getIMULastSample()
+{
+    return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
 }
 
 BatteryVoltageSensorData Sensors::getBatteryVoltage()
@@ -222,9 +318,55 @@ BatteryVoltageSensorData Sensors::getBatteryVoltage()
     data.channelId        = static_cast<uint8_t>(config::InternalADC::VBAT_CH);
     data.voltage          = sample.voltage[config::InternalADC::VBAT_CH];
     data.batVoltage       = sample.voltage[config::InternalADC::VBAT_CH] *
-                      config::InternalADC::VBAT_COEFF;
+                      config::InternalADC::VBAT_SCALE;
 
     return data;
+}
+
+BatteryVoltageSensorData Sensors::getCamBatteryVoltage()
+{
+    auto sample = getInternalADCLastSample();
+
+    BatteryVoltageSensorData data;
+    data.voltageTimestamp = sample.timestamp;
+    data.channelId        = config::InternalADC::CAM_VBAT_CH;
+    data.voltage          = sample.voltage[config::InternalADC::CAM_VBAT_CH];
+    data.batVoltage       = sample.voltage[config::InternalADC::CAM_VBAT_CH] *
+                      config::InternalADC::CAM_VBAT_SCALE;
+
+    return data;
+}
+
+LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
+{
+    auto sample = getLIS2MDLLastSample();
+
+    {
+        miosix::Lock<miosix::FastMutex> lock{magCalibrationMutex};
+        auto corrected =
+            magCalibration.correct(static_cast<MagnetometerData>(sample));
+        sample.magneticFieldX = corrected.x();
+        sample.magneticFieldY = corrected.y();
+        sample.magneticFieldZ = corrected.z();
+    }
+
+    return sample;
+}
+
+LSM6DSRXData Sensors::getCalibratedLSM6DSRXLastSample()
+{
+    auto sample = getLSM6DSRXLastSample();
+
+    {
+        miosix::Lock<miosix::FastMutex> lock{gyroCalibrationMutex};
+        auto corrected =
+            gyroCalibration.correct(static_cast<GyroscopeData>(sample));
+        sample.angularSpeedX = corrected.x();
+        sample.angularSpeedY = corrected.y();
+        sample.angularSpeedZ = corrected.z();
+    }
+
+    return sample;
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfo()
@@ -240,14 +382,17 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
         infos.push_back(                                         \
             SensorInfo { #name, config::name::SAMPLING_RATE, nullptr, false })
 
-        PUSH_SENSOR_INFO(bmx160, BMX160);
-        PUSH_SENSOR_INFO(bmx160WithCorrection, BMX160);
-        PUSH_SENSOR_INFO(h3lis331dl, H3LIS331DL);
-        PUSH_SENSOR_INFO(lis3mdl, LIS3MDL);
         PUSH_SENSOR_INFO(lps22df, LPS22DF);
+        PUSH_SENSOR_INFO(lps28dfw, LPS28DFW);
+        PUSH_SENSOR_INFO(h3lis331dl, H3LIS331DL);
+        PUSH_SENSOR_INFO(lis2mdl, LIS2MDL);
         PUSH_SENSOR_INFO(ubxgps, UBXGPS);
+        PUSH_SENSOR_INFO(lsm6dsrx, LSM6DSRX);
         PUSH_SENSOR_INFO(ads131m08, ADS131M08);
         PUSH_SENSOR_INFO(internalAdc, InternalADC);
+        PUSH_SENSOR_INFO(staticPressure, StaticPressure);
+        PUSH_SENSOR_INFO(dynamicPressure, DynamicPressure);
+        PUSH_SENSOR_INFO(rotatedImu, RotatedIMU);
 
 #undef PUSH_SENSOR_INFO
 
@@ -257,247 +402,369 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
     {
         return {};
     }
-}
+}  // namespace Parafoil
 
-void Sensors::bmx160Init()
-{
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_4;
-
-    BMX160Config config;
-    config.fifoMode      = BMX160Config::FifoMode::DISABLED;
-    config.fifoWatermark = config::BMX160::FIFO_WATERMARK;
-    config.fifoInterrupt = BMX160Config::FifoInterruptPin::PIN_INT1;
-
-    config.temperatureDivider = config::BMX160::TEMP_DIVIDER;
-
-    config.accelerometerRange = config::BMX160::ACC_FSR;
-    config.gyroscopeRange     = config::BMX160::GYRO_FSR;
-
-    config.accelerometerDataRate = config::BMX160::ACC_GYRO_ODR;
-    config.gyroscopeDataRate     = config::BMX160::ACC_GYRO_ODR;
-    config.magnetometerRate      = config::BMX160::MAG_ODR;
-
-    config.gyroscopeUnit = BMX160Config::GyroscopeMeasureUnit::RAD;
-
-    bmx160 = std::make_unique<BMX160>(getModule<Buses>()->spi1,
-                                      hwmap::bmx160::cs::getPin(), config,
-                                      spiConfig);
-
-    LOG_INFO(logger, "BMX160 initialized!");
-}
-
-void Sensors::bmx160WithCorrectionInit()
-{
-    bmx160WithCorrection = std::make_unique<BMX160WithCorrection>(
-        bmx160.get(), config::BMX160::AXIS_ORIENTATION);
-
-    LOG_INFO(logger, "BMX160WithCorrection initialized!");
-}
-
-void Sensors::h3lisInit()
-{
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
-
-    h3lis331dl = std::make_unique<H3LIS331DL>(
-        getModule<Buses>()->spi1, hwmap::h3lis331dl::cs::getPin(), spiConfig,
-        config::H3LIS331DL::ODR, config::H3LIS331DL::BDU,
-        config::H3LIS331DL::FSR);
-
-    LOG_INFO(logger, "H3LIS331DL initialized!");
-}
-
-void Sensors::lis3mdlInit()
-{
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
-
-    LIS3MDL::Config config;
-    config.odr                = config::LIS3MDL::ODR;
-    config.scale              = config::LIS3MDL::FSR;
-    config.temperatureDivider = 1;
-
-    lis3mdl = std::make_unique<LIS3MDL>(getModule<Buses>()->spi1,
-                                        hwmap::lis3mdl::cs::getPin(), spiConfig,
-                                        config);
-
-    LOG_INFO(logger, "LIS3MDL initialized!");
-}
-
-void Sensors::lps22Init()
+void Sensors::lps22dfInit()
 {
     auto spiConfig         = LPS22DF::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
 
-    LPS22DF::Config config;
-    config.avg = config::LPS22DF::AVG;
-    config.odr = config::LPS22DF::ODR;
+    auto sensorConfig = LPS22DF::Config{
+        .odr = config::LPS22DF::ODR,
+        .avg = config::LPS22DF::AVG,
+    };
 
-    lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->spi1,
-                                        hwmap::lps22df::cs::getPin(), spiConfig,
-                                        config);
-
-    LOG_INFO(logger, "LPS22DF initialized!");
+    lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->LPS22DF(),
+                                        hwmap::LPS22DF::cs::getPin(), spiConfig,
+                                        sensorConfig);
 }
 
-void Sensors::ubxGpsInit()
+void Sensors::lps22dfCallback()
+{
+    auto sample = getLPS22DFLastSample();
+    Logger::getInstance().log(sample);
+}
+
+void Sensors::lps28dfwInit()
+{
+    auto config = LPS28DFW::SensorConfig{
+        .sa0  = true,
+        .fsr  = config::LPS28DFW::FSR,
+        .avg  = config::LPS28DFW::AVG,
+        .odr  = config::LPS28DFW::ODR,
+        .drdy = false,
+    };
+
+    lps28dfw =
+        std::make_unique<LPS28DFW>(getModule<Buses>()->LPS28DFW(), config);
+}
+
+void Sensors::lps28dfwCallback()
+{
+    auto sample = getLPS28DFWLastSample();
+    // Update pressure stats
+    getModule<FlightStatsRecorder>()->updatePressure(sample);
+    Logger::getInstance().log(sample);
+};
+
+void Sensors::h3lis331dlInit()
+{
+    auto spiConfig         = H3LIS331DL::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    h3lis331dl = std::make_unique<H3LIS331DL>(
+        getModule<Buses>()->H3LIS331DL(), hwmap::H3LIS331DL::cs::getPin(),
+        spiConfig, config::H3LIS331DL::ODR, config::H3LIS331DL::BDU,
+        config::H3LIS331DL::FSR);
+}
+
+void Sensors::h3lis331dlCallback()
+{
+    auto sample = getH3LIS331DLLastSample();
+    // Update acceleration stats
+    getModule<FlightStatsRecorder>()->updateAcc(sample);
+    Logger::getInstance().log(sample);
+}
+
+void Sensors::lis2mdlInit()
+{
+    auto spiConfig         = LIS2MDL::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    auto sensorConfig = LIS2MDL::Config{
+        .odr                = config::LIS2MDL::ODR,
+        .deviceMode         = LIS2MDL::MD_CONTINUOUS,
+        .temperatureDivider = config::LIS2MDL::TEMPERATURE_DIVIDER,
+    };
+
+    lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->LIS2MDL(),
+                                        hwmap::LIS2MDL::cs::getPin(), spiConfig,
+                                        sensorConfig);
+}
+
+void Sensors::lis2mdlCallback()
+{
+    auto sample = getLIS2MDLLastSample();
+    Logger::getInstance().log(sample);
+}
+
+void Sensors::ubxgpsInit()
 {
     auto spiConfig         = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ubxgps = std::make_unique<UBXGPSSpi>(
-        getModule<Buses>()->spi1, hwmap::ubxgps::cs::getPin(), spiConfig,
-        Hertz{config::UBXGPS::SAMPLING_RATE}.value());
-
-    LOG_INFO(logger, "UBXGPS initialized!");
+    ubxgps =
+        std::make_unique<UBXGPSSpi>(getModule<Buses>()->UBXGPS(),
+                                    hwmap::UBXGps::cs::getPin(), spiConfig, 5);
 }
 
-void Sensors::ads131Init()
+void Sensors::ubxgpsCallback()
 {
-    SPIBusConfig spiConfig;
+    auto sample = getUBXGPSLastSample();
+    Logger::getInstance().log(sample);
+}
+
+void Sensors::lsm6dsrxInit()
+{
+    auto spiConfig         = SPIBusConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+    spiConfig.mode         = SPI::Mode::MODE_0;
 
-    ADS131M08::Config config;
-    config.oversamplingRatio     = config::ADS131M08::OVERSAMPLING_RATIO;
-    config.globalChopModeEnabled = config::ADS131M08::GLOBAL_CHOP_MODE;
+    auto sensorConfig = LSM6DSRXConfig{
+        .bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE,
+        // Accelerometer
+        .odrAcc    = config::LSM6DSRX::ACC_ODR,
+        .opModeAcc = config::LSM6DSRX::OP_MODE,
+        .fsAcc     = config::LSM6DSRX::ACC_FS,
+        // Gyroscope
+        .odrGyr    = config::LSM6DSRX::GYR_ODR,
+        .opModeGyr = config::LSM6DSRX::OP_MODE,
+        .fsGyr     = config::LSM6DSRX::GYR_FS,
+        // Fifo
+        .fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS,
+        .fifoTimestampDecimation =
+            LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1,
+        .fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED,
+        // Disable interrupts
+        .int1InterruptSelection = LSM6DSRXConfig::INTERRUPT::NOTHING,
+        .int2InterruptSelection = LSM6DSRXConfig::INTERRUPT::NOTHING,
+        // Fifo watermark is unused in continuous mode without interrupts
+        .fifoWatermark = 0,
+    };
 
-    ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->spi1,
-                                            hwmap::ads131m08::cs::getPin(),
-                                            spiConfig, config);
-
-    LOG_INFO(logger, "ADS131M08 initialized!");
+    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->LSM6DSRX(),
+                                          hwmap::LSM6DSRX::cs::getPin(),
+                                          spiConfig, sensorConfig);
 }
 
-void Sensors::internalADCInit()
+void Sensors::lsm6dsrxCallback()
 {
-    internalAdc = std::make_unique<InternalADC>(ADC3);
-    internalAdc->enableChannel(config::InternalADC::VBAT_CH);
-    internalAdc->enableTemperature();
-    internalAdc->enableVbat();
-
-    LOG_INFO(logger, "InternalADC initialized!");
-}
-
-void Sensors::bmx160Callback()
-{
-    if (!bmx160)
+    if (!lsm6dsrx)
         return;
 
     // We can skip logging the last sample since we are logging the fifo
     auto& logger = Logger::getInstance();
     uint16_t lastFifoSize;
-    const auto lastFifo = bmx160->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx->getLastFifo(lastFifoSize);
 
     // For every instance inside the fifo log the sample
     for (uint16_t i = 0; i < lastFifoSize; i++)
         logger.log(lastFifo.at(i));
 }
 
-void Sensors::bmx160WithCorrectionCallback()
+void Sensors::ads131m08Init()
 {
-    BMX160WithCorrectionData lastSample = bmx160WithCorrection->getLastSample();
+    auto spiConfig         = SPIBusConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
-    // Update acceleration stats
-    getModule<FlightStatsRecorder>()->updateAcc(lastSample);
+    auto sensorConfig = ADS131M08::Config{
+        .channelsConfig        = {},
+        .oversamplingRatio     = config::ADS131M08::OVERSAMPLING_RATIO,
+        .globalChopModeEnabled = config::ADS131M08::GLOBAL_CHOP_MODE,
+    };
+    auto& channels = sensorConfig.channelsConfig;
 
-    Logger::getInstance().log(lastSample);
+    // Disable all channels
+    for (auto& channel : channels)
+        channel.enabled = false;
+    // Enable required channels
+    channels[(int)config::StaticPressure::ADC_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    channels[(int)config::DynamicPressure::ADC_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->ADS131M08(),
+                                            hwmap::ADS131M08::cs::getPin(),
+                                            spiConfig, sensorConfig);
 }
 
-void Sensors::h3lisCallback()
+void Sensors::ads131m08Callback()
 {
-    H3LIS331DLData lastSample = h3lis331dl->getLastSample();
-    Logger::getInstance().log(lastSample);
+    auto sample = getADS131M08LastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::lis3mdlCallback()
+void Sensors::internalAdcInit()
 {
-    LIS3MDLData lastSample = lis3mdl->getLastSample();
-    Logger::getInstance().log(lastSample);
+    internalAdc = std::make_unique<InternalADC>(ADC2);
+    internalAdc->enableChannel(config::InternalADC::VBAT_CH);
+    internalAdc->enableChannel(config::InternalADC::CAM_VBAT_CH);
+    internalAdc->enableTemperature();
+    internalAdc->enableVbat();
 }
 
-void Sensors::lps22Callback()
+void Sensors::internalAdcCallback()
 {
-    LPS22DFData lastSample = lps22df->getLastSample();
-    Logger::getInstance().log(lastSample);
+    auto sample = getInternalADCLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::ubxGpsCallback()
+void Sensors::staticPressureInit()
 {
-    UBXGPSData lastSample = ubxgps->getLastSample();
-    Logger::getInstance().log(lastSample);
+    auto readVoltage = [this]
+    {
+        auto sample  = getADS131M08LastSample();
+        auto voltage = sample.getVoltage(config::StaticPressure::ADC_CH);
+        voltage.voltage *= config::StaticPressure::SCALE;
+
+        return voltage;
+    };
+
+    staticPressure = std::make_unique<MPXH6115A>(readVoltage);
 }
 
-void Sensors::ads131Callback()
+void Sensors::staticPressureCallback()
 {
-    ADS131M08Data lastSample = ads131m08->getLastSample();
-    Logger::getInstance().log(lastSample);
+    auto sample = getStaticPressureLastSample();
+    Logger::getInstance().log(sample);
 }
 
-void Sensors::internalADCCallback()
+void Sensors::dynamicPressureInit()
 {
-    InternalADCData lastSample = internalAdc->getLastSample();
-    Logger::getInstance().log(lastSample);
+    auto readVoltage = [this]
+    {
+        auto sample  = getADS131M08LastSample();
+        auto voltage = sample.getVoltage(config::DynamicPressure::ADC_CH);
+        voltage.voltage *= config::DynamicPressure::SCALE;
+
+        return voltage;
+    };
+
+    dynamicPressure = std::make_unique<MPX5010>(readVoltage);
+}
+
+void Sensors::dynamicPressureCallback()
+{
+    auto sample = getDynamicPressureLastSample();
+    Logger::getInstance().log(sample);
+}
+
+void Sensors::rotatedImuInit()
+{
+    rotatedImu = std::make_unique<RotatedIMU>(
+        [this]
+        {
+            auto imu6 = Config::Sensors::RotatedIMU::USE_CALIBRATED_LSM6DSRX
+                            ? getCalibratedLSM6DSRXLastSample()
+                            : getLSM6DSRXLastSample();
+            auto mag  = Config::Sensors::RotatedIMU::USE_CALIBRATED_LIS2MDL
+                            ? getCalibratedLIS2MDLLastSample()
+                            : getLIS2MDLLastSample();
+
+            return IMUData{imu6, imu6, mag};
+        });
+
+    // Accelerometer
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundX(+90));
+    // Gyroscope
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
+    // Invert the Y axis on the magnetometer
+    Eigen::Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    rotatedImu->addMagTransformation(m);
+    // Magnetometer
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(+90));
+    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
+}
+
+void Sensors::rotatedImuCallback()
+{
+    auto sample = getIMULastSample();
+    Logger::getInstance().log(sample);
 }
 
 bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
 
-    if (bmx160)
+    if (lps22df)
     {
-        SensorInfo info{"BMX160", config::BMX160::SAMPLING_RATE,
-                        [this]() { bmx160Callback(); }};
-        map.emplace(bmx160.get(), info);
+        SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::SAMPLING_RATE,
+                        [this]() { lps22dfCallback(); }};
+        map.emplace(lps22df.get(), info);
     }
 
-    if (bmx160WithCorrection)
+    if (lps28dfw)
     {
-        SensorInfo info{"BMX160WithCorrection", config::BMX160::SAMPLING_RATE,
-                        [this]() { bmx160WithCorrectionCallback(); }};
-        map.emplace(bmx160WithCorrection.get(), info);
+        SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::SAMPLING_RATE,
+                        [this]() { lps28dfwCallback(); }};
+        map.emplace(lps28dfw.get(), info);
     }
 
     if (h3lis331dl)
     {
-        SensorInfo info{"H3LIS331DL", config::H3LIS331DL::SAMPLING_RATE,
-                        [this]() { h3lisCallback(); }};
+        SensorInfo info{"H3LIS331DL",
+                        Config::Sensors::H3LIS331DL::SAMPLING_RATE,
+                        [this]() { h3lis331dlCallback(); }};
         map.emplace(h3lis331dl.get(), info);
     }
 
-    if (lis3mdl)
+    if (lis2mdl)
     {
-        SensorInfo info{"LIS3MDL", config::LIS3MDL::SAMPLING_RATE,
-                        [this]() { lis3mdlCallback(); }};
-        map.emplace(lis3mdl.get(), info);
-    }
-
-    if (lps22df)
-    {
-        SensorInfo info{"LPS22DF", config::LPS22DF::SAMPLING_RATE,
-                        [this]() { lps22Callback(); }};
-        map.emplace(lps22df.get(), info);
+        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::SAMPLING_RATE,
+                        [this]() { lis2mdlCallback(); }};
+        map.emplace(lis2mdl.get(), info);
     }
 
     if (ubxgps)
     {
-        SensorInfo info{"UBXGPS", config::UBXGPS::SAMPLING_RATE,
-                        [this]() { ubxGpsCallback(); }};
+        SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::SAMPLING_RATE,
+                        [this]() { ubxgpsCallback(); }};
         map.emplace(ubxgps.get(), info);
+    }
+
+    if (lsm6dsrx)
+    {
+        SensorInfo info{"LSM6DSRX", Config::Sensors::LSM6DSRX::SAMPLING_RATE,
+                        [this]() { lsm6dsrxCallback(); }};
+        map.emplace(lsm6dsrx.get(), info);
     }
 
     if (ads131m08)
     {
-        SensorInfo info{"ADS131M08", config::ADS131M08::SAMPLING_RATE,
-                        [this]() { ads131Callback(); }};
+        SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::SAMPLING_RATE,
+                        [this]() { ads131m08Callback(); }};
         map.emplace(ads131m08.get(), info);
+    }
+
+    if (staticPressure)
+    {
+        SensorInfo info{"StaticPressure",
+                        Config::Sensors::ADS131M08::SAMPLING_RATE,
+                        [this]() { staticPressureCallback(); }};
+        map.emplace(staticPressure.get(), info);
+    }
+
+    if (dynamicPressure)
+    {
+        SensorInfo info{"DynamicPressure",
+                        Config::Sensors::ADS131M08::SAMPLING_RATE,
+                        [this]() { dynamicPressureCallback(); }};
+        map.emplace(dynamicPressure.get(), info);
     }
 
     if (internalAdc)
     {
-        SensorInfo info{"InternalADC", config::InternalADC::SAMPLING_RATE,
-                        [this]() { internalADCCallback(); }};
+        SensorInfo info{"InternalADC",
+                        Config::Sensors::InternalADC::SAMPLING_RATE,
+                        [this]() { internalAdcCallback(); }};
         map.emplace(internalAdc.get(), info);
+    }
+
+    if (rotatedImu)
+    {
+        SensorInfo info{"RotatedIMU",
+                        Config::Sensors::RotatedIMU::SAMPLING_RATE,
+                        [this]() { rotatedImuCallback(); }};
+        map.emplace(rotatedImu.get(), info);
     }
 
     auto& scheduler = getModule<BoardScheduler>()->sensors();

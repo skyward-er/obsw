@@ -92,11 +92,13 @@ private:
     int acc1gSamplesCount = 0;
     bool acc1g            = false;
 
-    uint64_t lastGyroTimestamp = 0;
-    uint64_t lastAccTimestamp  = 0;
-    uint64_t lastMagTimestamp  = 0;
-    uint64_t lastGpsTimestamp  = 0;
-    uint64_t lastBaroTimestamp = 0;
+    uint64_t lastGyroTimestamp     = 0;
+    uint64_t lastAccTimestamp      = 0;
+    uint64_t lastMagTimestamp      = 0;
+    uint64_t lastGpsTimestamp      = 0;
+    uint64_t lastBaroTimestamp     = 0;
+    uint64_t staticPitotTimestamp  = 0;
+    uint64_t dynamicPitotTimestamp = 0;
 
     std::atomic<bool> started{false};
 

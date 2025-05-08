@@ -119,17 +119,17 @@ sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
 add_executable(parafoil-progressive-rotation src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-progressive-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-progressive-rotation PRIVATE ALGORITHM_PROGRESSIVE_ROTATION MILANO)
-sbs_target(parafoil-progressive-rotation stm32f429zi_death_stack_v2)
+sbs_target(parafoil-progressive-rotation stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-milano src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-milano PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-guided-milano PRIVATE ALGORITHM_CLOSED_LOOP MILANO)
-sbs_target(parafoil-guided-milano stm32f429zi_death_stack_v2)
+sbs_target(parafoil-guided-milano stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-guided-jesolo PRIVATE ALGORITHM_CLOSED_LOOP JESOLO)
-sbs_target(parafoil-guided-jesolo stm32f429zi_death_stack_v2)
+sbs_target(parafoil-guided-jesolo stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-dynamic src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-dynamic PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -137,17 +137,17 @@ target_compile_definitions(parafoil-guided-dynamic PRIVATE ALGORITHM_CLOSED_LOOP
     DYNAMIC_TARGET_LATITUDE_OFFSET=35
     DYNAMIC_TARGET_LONGITUDE_OFFSET=-156
 )
-sbs_target(parafoil-guided-dynamic stm32f429zi_death_stack_v2)
+sbs_target(parafoil-guided-dynamic stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-t-approach-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-t-approach-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-t-approach-jesolo PRIVATE ALGORITHM_EARLY_MANEUVER JESOLO)
-sbs_target(parafoil-t-approach-jesolo stm32f429zi_death_stack_v2)
+sbs_target(parafoil-t-approach-jesolo stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-t-approach-milano src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-t-approach-milano PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-t-approach-milano PRIVATE ALGORITHM_EARLY_MANEUVER MILANO)
-sbs_target(parafoil-t-approach-milano stm32f429zi_death_stack_v2)
+sbs_target(parafoil-t-approach-milano stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-t-approach-dynamic src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-t-approach-dynamic PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -156,13 +156,13 @@ target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
     DYNAMIC_TARGET_LATITUDE_OFFSET=35
     DYNAMIC_TARGET_LONGITUDE_OFFSET=-156
 )
-sbs_target(parafoil-t-approach-dynamic stm32f429zi_death_stack_v2)
+sbs_target(parafoil-t-approach-dynamic stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-ground-test src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-ground-test PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-ground-test PRIVATE ALGORITHM_PROGRESSIVE_ROTATION MILANO DISABLE_LANDING_FLARE)
-sbs_target(parafoil-ground-test stm32f429zi_death_stack_v2)
+sbs_target(parafoil-ground-test stm32f767zi_lyra_biscotto)
 
 add_executable(mockup-main src/MockupMain/mockup-entry.cpp ${MOCKUP_MAIN_COMPUTER})
 target_include_directories(mockup-main PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(mockup-main stm32f429zi_death_stack_v2)
+sbs_target(mockup-main stm32f767zi_lyra_biscotto)

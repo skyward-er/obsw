@@ -22,8 +22,10 @@
 
 #pragma once
 
+#include <drivers/i2c/I2C.h>
 #include <drivers/spi/SPIBus.h>
 #include <drivers/usart/USART.h>
+#include <interfaces-impl/hwmapping.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Parafoil
@@ -36,18 +38,27 @@ namespace Parafoil
 class Buses : public Boardcore::Injectable
 {
 public:
-    Boardcore::USART usart1;
-    Boardcore::USART usart2;
-    Boardcore::USART usart3;
-    Boardcore::USART uart4;
+    Boardcore::SPIBus& LPS22DF() { return spi1; }
+    Boardcore::SPIBus& H3LIS331DL() { return spi1; }
+    Boardcore::SPIBus& LIS2MDL() { return spi3; }
+    Boardcore::SPIBus& LSM6DSRX() { return spi3; }
+    Boardcore::SPIBus& UBXGPS() { return spi3; }
+    Boardcore::SPIBus& ADS131M08() { return spi4; }
+    Boardcore::SPIBus& radio() { return spi6; }
 
-    Boardcore::SPIBus spi1;
-    Boardcore::SPIBus spi2;
+    Boardcore::USART& HILUart() { return usart4; }
 
-    Buses()
-        : usart1(USART1, 115200), usart2(USART2, 115200),
-          usart3(USART3, 115200), uart4(UART4, 115200), spi1(SPI1), spi2(SPI2)
-    {
-    }
+    Boardcore::I2C& LPS28DFW() { return i2c1; }
+
+private:
+    Boardcore::SPIBus spi1{SPI1};
+    Boardcore::SPIBus spi3{SPI3};
+    Boardcore::SPIBus spi4{SPI4};
+    Boardcore::SPIBus spi6{SPI6};
+
+    Boardcore::USART usart4{UART4, 256000, 1024};
+
+    Boardcore::I2C i2c1{I2C1, miosix::interfaces::i2c1::scl::getPin(),
+                        miosix::interfaces::i2c1::sda::getPin()};
 };
 }  // namespace Parafoil

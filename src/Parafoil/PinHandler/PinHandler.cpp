@@ -35,7 +35,7 @@
 using namespace Boardcore;
 using namespace Common;
 namespace config = Parafoil::Config::PinHandler;
-namespace hwmap  = miosix::inputs;
+namespace hwmap  = miosix::sense;
 
 namespace Parafoil
 {
@@ -54,7 +54,7 @@ bool PinHandler::start()
         scheduler, milliseconds{config::PinObserver::PERIOD}.count());
 
     bool expulsionPinDetachResult = pinObserver->registerPinCallback(
-        hwmap::expulsion::getPin(),
+        hwmap::detachPayload::getPin(),
         [this](auto t) { onExpulsionPinTransition(t); },
         config::Expulsion::DETECTION_THRESHOLD);
 
@@ -76,7 +76,7 @@ PinData PinHandler::getPinData(PinList pin)
     switch (pin)
     {
         case PinList::NOSECONE_PIN:
-            return pinObserver->getPinData(hwmap::expulsion::getPin());
+            return pinObserver->getPinData(hwmap::detachPayload::getPin());
         default:
             return PinData{};
     }
