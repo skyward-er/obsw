@@ -328,7 +328,7 @@ State SMA::state_feedback(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::FEEDBACK);
-            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setOff(LedColor::RED);
 
             // Set the gains for the no feedback phase
             if (!follower.setMaxGain(SMAConfig::YAW_GAIN_F,
