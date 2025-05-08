@@ -165,4 +165,4 @@ sbs_target(parafoil-ground-test stm32f767zi_lyra_biscotto)
 
 add_executable(mockup-main src/MockupMain/mockup-entry.cpp ${MOCKUP_MAIN_COMPUTER})
 target_include_directories(mockup-main PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(mockup-main stm32f767zi_lyra_biscotto)
+sbs_target(mockup-main stm32f429zi_death_stack_v2)
