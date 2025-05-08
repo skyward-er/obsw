@@ -499,10 +499,10 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.wing_algorithm       = 0;
 
             // Deployment stats
-            tm.dpl_ts         = stats.dplTs;
-            tm.dpl_max_acc_ts = stats.dplMaxAccTs;
-            tm.dpl_alt        = Meter{stats.dplAlt}.value();
-            tm.dpl_max_acc    = MeterPerSecondSquared{stats.dplMaxAcc}.value();
+            tm.dpl_ts         = -1;
+            tm.dpl_max_acc_ts = -1;
+            tm.dpl_alt        = -1.0f;
+            tm.dpl_max_acc    = -1.0f;
 
             // NAS reference values
             tm.ref_lat = ref.refLatitude;
