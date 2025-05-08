@@ -62,6 +62,9 @@ public:
         // Maximum acceleration after deployment
         uint64_t dplMaxAccTs = 0;
         Boardcore::Units::Acceleration::MeterPerSecondSquared dplMaxAcc{0};
+
+        // Pressure
+        Boardcore::Units::Pressure::Pascal minPressure{0};
     };
 
     void reset();

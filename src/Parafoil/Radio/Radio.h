@@ -25,14 +25,13 @@
 #include <Parafoil/Configs/RadioConfig.h>
 #include <common/MavlinkOrion.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
+#include <radio/SX1278/SX1278Fsk.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>
-#include <radio/Xbee/Xbee.h>
 #include <utils/DependencyManager/DependencyManager.h>
-
 namespace Parafoil
 {
 using MavDriver =
-    Boardcore::MavlinkDriver<Config::Radio::MavlinkDriver::PKT_LENGTH,
+    Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                              Config::Radio::MavlinkDriver::PKT_QUEUE_SIZE,
                              Config::Radio::MavlinkDriver::MSG_LENGTH>;
 
@@ -45,13 +44,14 @@ class NASController;
 class WingController;
 class LandingFlare;
 class PinHandler;
-class WindEstimation;
+class CanHandler;
 class FlightStatsRecorder;
+class WindEstimation;
 
 class Radio : public Boardcore::InjectableWithDeps<
                   BoardScheduler, Sensors, Buses, FlightModeManager, Actuators,
-                  NASController, WingController, PinHandler, WindEstimation,
-                  FlightStatsRecorder, LandingFlare>
+                  NASController, WingController, LandingFlare, PinHandler,
+                  CanHandler, FlightStatsRecorder, WindEstimation>
 {
 public:
     /**
@@ -105,15 +105,19 @@ private:
         void logStatus();
     };
 
-    void handleXbeeFrame(Boardcore::Xbee::APIFrame& frame);
+    void initMavlinkOverSerial();
 
     void handleRadioMessage(const mavlink_message_t& msg);
+    void handleSerialMessage(const mavlink_message_t& msg);
 
     void enqueueHighRateTelemetry();
     void enqueueLowRateTelemetry();
 
-    std::unique_ptr<Boardcore::Xbee::Xbee> transceiver;
+    std::unique_ptr<Boardcore::SX1278Fsk> transceiver;
     MavlinkBackend radioMavlink{.parent = *this};
+
+    std::unique_ptr<Boardcore::SerialTransceiver> serialTransceiver;
+    MavlinkBackend serialMavlink{.parent = *this};
 
     std::atomic<bool> started{false};
 

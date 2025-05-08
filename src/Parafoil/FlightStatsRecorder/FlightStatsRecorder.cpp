@@ -126,4 +126,27 @@ void FlightStatsRecorder::updateNas(const NASState& data, float refTemperature)
     }
 }
 
+void FlightStatsRecorder::updatePressure(const PressureData& data)
+{
+    auto fmmState = getModule<FlightModeManager>()->getState();
+    auto wcState  = getModule<WingController>()->getState();
+
+    // Do nothing if it was not dropped yet
+    if (fmmState != FlightModeManagerState::FLYING_WING_DESCENT)
+        return;
+
+    Lock<FastMutex> lock{statsMutex};
+
+    if (wcState == WingControllerState::IDLE ||
+        wcState == WingControllerState::FLYING_DEPLOYMENT ||
+        wcState == WingControllerState::FLYING_CONTROLLED_DESCENT)
+    {
+        // Record this event only during flight
+        if (stats.minPressure.value() == 0)
+            stats.minPressure = Pascal{data.pressure};
+        else if (Pascal{data.pressure} < stats.minPressure)
+            stats.minPressure = Pascal{data.pressure};
+    }
+}
+
 }  // namespace Parafoil

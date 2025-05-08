@@ -214,13 +214,14 @@ void NASController::calibrate()
 
     for (int i = 0; i < config::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        BMX160Data imu    = sensors->getBMX160WithCorrectionLastSample();
-        PressureData baro = sensors->getLPS22DFLastSample();
+        IMUData imu       = sensors->getIMULastSample();
+        PressureData baro = sensors->getLPS28DFWLastSample();
 
-        accSum +=
-            Vector3f{imu.accelerationX, imu.accelerationY, imu.accelerationZ};
-        magSum += Vector3f{imu.magneticFieldX, imu.magneticFieldY,
-                           imu.magneticFieldZ};
+        Vector3f acc = static_cast<AccelerometerData>(imu);
+        Vector3f mag = static_cast<MagnetometerData>(imu);
+
+        accSum += acc;
+        magSum += mag;
 
         baroSum += baro.pressure;
 
@@ -269,10 +270,11 @@ void NASController::update()
 
     auto* sensors = getModule<Sensors>();
 
-    auto imu  = sensors->getBMX160WithCorrectionLastSample();
-    auto gps  = sensors->getUBXGPSLastSample();
-    auto baro = sensors->getLPS22DFLastSample();
-
+    auto imu          = sensors->getIMULastSample();
+    auto gps          = sensors->getUBXGPSLastSample();
+    auto baro         = sensors->getLPS28DFWLastSample();
+    auto staticPitot  = sensors->getStaticPressureLastSample();
+    auto dynamicPitot = sensors->getDynamicPressureLastSample();
     // Calculate acceleration
     Vector3f acc   = static_cast<AccelerometerData>(imu);
     auto accLength = MeterPerSecondSquared{acc.norm()};
@@ -315,11 +317,13 @@ void NASController::update()
         acc1g             = false;
     }
 
-    lastGyroTimestamp = imu.angularSpeedTimestamp;
-    lastAccTimestamp  = imu.accelerationTimestamp;
-    lastMagTimestamp  = imu.magneticFieldTimestamp;
-    lastGpsTimestamp  = gps.gpsTimestamp;
-    lastBaroTimestamp = baro.pressureTimestamp;
+    lastGyroTimestamp     = imu.angularSpeedTimestamp;
+    lastAccTimestamp      = imu.accelerationTimestamp;
+    lastMagTimestamp      = imu.magneticFieldTimestamp;
+    lastGpsTimestamp      = gps.gpsTimestamp;
+    lastBaroTimestamp     = baro.pressureTimestamp;
+    staticPitotTimestamp  = staticPitot.pressureTimestamp;
+    dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
 
     auto state = nas.getState();
     auto ref   = nas.getReferenceValues();

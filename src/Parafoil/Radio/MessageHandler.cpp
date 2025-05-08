@@ -504,21 +504,27 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto* nas     = parent.getModule<NASController>();
             auto* fmm     = parent.getModule<FlightModeManager>();
 
-            auto imu      = sensors->getBMX160WithCorrectionLastSample();
-            auto gps      = sensors->getUBXGPSLastSample();
-            auto lps22df  = sensors->getLPS22DFLastSample();
-            auto nasState = nas->getNasState();
-            // auto ref      = nas->getReferenceValues();
+            auto imu          = sensors->getIMULastSample();
+            auto gps          = sensors->getUBXGPSLastSample();
+            auto pressDigi    = sensors->getLPS28DFWLastSample();
+            auto pressStatic  = sensors->getStaticPressureLastSample();
+            auto pressDynamic = sensors->getDynamicPressureLastSample();
+            auto nasState     = nas->getNasState();
+            auto ref          = nas->getReferenceValues();
 
-            tm.timestamp = TimestampTimer::getTimestamp();
-            // No digital pressure sensor, use static
-            tm.pressure_digi   = lps22df.pressure;
-            tm.pressure_static = lps22df.pressure;
-            // No dynamic pressure sensor
-            tm.pressure_dynamic = -1.f;
-            // Not present on parafoil board
-            tm.airspeed_pitot = 0;
-            tm.altitude_agl   = -nasState.d;
+            float airspeedPitot =
+                (pressDynamic.pressure > 0
+                     ? Aeroutils::computePitotAirspeed(
+                           pressStatic.pressure + pressDynamic.pressure,
+                           pressStatic.pressure, nasState.d, ref.refTemperature)
+                     : 0);
+
+            tm.timestamp        = TimestampTimer::getTimestamp();
+            tm.pressure_digi    = pressDigi.pressure;
+            tm.pressure_static  = pressStatic.pressure;
+            tm.pressure_dynamic = pressDynamic.pressure;
+            tm.airspeed_pitot   = airspeedPitot;
+            tm.altitude_agl     = -nasState.d;
 
             // Sensors
             tm.acc_x   = imu.accelerationX;
@@ -566,10 +572,9 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.wes_n = MeterPerSecond{wind.vn}.value();
             tm.wes_e = MeterPerSecond{wind.ve}.value();
 
-            tm.battery_voltage = sensors->getBatteryVoltage().batVoltage;
-            // No integrated camera
-            tm.cam_battery_voltage = -1.f;
-            tm.temperature         = lps22df.temperature;
+            tm.battery_voltage     = sensors->getBatteryVoltage().batVoltage;
+            tm.cam_battery_voltage = sensors->getCamBatteryVoltage().batVoltage;
+            tm.temperature         = pressDigi.temperature;
 
             // State machines
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
@@ -824,75 +829,12 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             return true;
         }
 
-        case SensorsTMList::MAV_BMX160_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_imu_tm_t tm;
-
-            auto imuData = parent.getModule<Sensors>()
-                               ->getBMX160WithCorrectionLastSample();
-
-            strcpy(tm.sensor_name, "BMX160");
-            tm.acc_x     = imuData.accelerationX;
-            tm.acc_y     = imuData.accelerationY;
-            tm.acc_z     = imuData.accelerationZ;
-            tm.gyro_x    = imuData.angularSpeedX;
-            tm.gyro_y    = imuData.angularSpeedY;
-            tm.gyro_z    = imuData.angularSpeedZ;
-            tm.mag_x     = imuData.magneticFieldX;
-            tm.mag_y     = imuData.magneticFieldY;
-            tm.mag_z     = imuData.magneticFieldZ;
-            tm.timestamp = imuData.accelerationTimestamp;
-
-            mavlink_msg_imu_tm_encode(config::Mavlink::SYSTEM_ID,
-                                      config::Mavlink::COMPONENT_ID, &msg, &tm);
-
-            return true;
-        }
-
-        case SensorsTMList::MAV_LPS22DF_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_pressure_tm_t tm;
-
-            auto pressureData =
-                parent.getModule<Sensors>()->getLPS22DFLastSample();
-
-            tm.timestamp = pressureData.pressureTimestamp;
-            strcpy(tm.sensor_name, "LPS22");
-            tm.pressure = pressureData.pressure;
-
-            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
-                                           config::Mavlink::COMPONENT_ID, &msg,
-                                           &tm);
-
-            return true;
-        }
-
-        case MAV_BATTERY_VOLTAGE_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_voltage_tm_t tm;
-
-            auto data = parent.getModule<Sensors>()->getBatteryVoltage();
-
-            tm.voltage   = data.voltage;
-            tm.timestamp = data.voltageTimestamp;
-            strcpy(tm.sensor_name, "BatteryVoltage");
-
-            mavlink_msg_voltage_tm_encode(config::Mavlink::SYSTEM_ID,
-                                          config::Mavlink::COMPONENT_ID, &msg,
-                                          &tm);
-            enqueueMessage(msg);
-            return true;
-        }
-
         case MAV_ADS131M08_ID:
         {
             mavlink_message_t msg;
             mavlink_adc_tm_t tm;
 
-            auto sample = parent.getModule<Sensors>()->getADS131LastSample();
+            auto sample = parent.getModule<Sensors>()->getADS131M08LastSample();
 
             tm.channel_0 =
                 sample.getVoltage(ADS131M08Defs::Channel::CHANNEL_0).voltage;
@@ -919,12 +861,66 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             return true;
         }
 
-        case MAV_LIS3MDL_ID:
+        case MAV_BATTERY_VOLTAGE_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_voltage_tm_t tm;
+
+            auto data = parent.getModule<Sensors>()->getBatteryVoltage();
+
+            tm.voltage   = data.voltage;
+            tm.timestamp = data.voltageTimestamp;
+            strcpy(tm.sensor_name, "BatteryVoltage");
+
+            mavlink_msg_voltage_tm_encode(config::Mavlink::SYSTEM_ID,
+                                          config::Mavlink::COMPONENT_ID, &msg,
+                                          &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_LPS28DFW_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            auto sample = parent.getModule<Sensors>()->getLPS28DFWLastSample();
+
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "LPS28DFW");
+
+            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
+                                           config::Mavlink::COMPONENT_ID, &msg,
+                                           &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_LPS22DF_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            auto sample = parent.getModule<Sensors>()->getLPS22DFLastSample();
+
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "LPS22DF");
+
+            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
+                                           config::Mavlink::COMPONENT_ID, &msg,
+                                           &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_LIS2MDL_ID:
         {
             mavlink_message_t msg;
             mavlink_imu_tm_t tm;
 
-            auto sample = parent.getModule<Sensors>()->getLIS3MDLLastSample();
+            auto sample = parent.getModule<Sensors>()->getLIS2MDLLastSample();
 
             tm.acc_x     = 0;
             tm.acc_y     = 0;
@@ -936,7 +932,32 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             tm.mag_y     = sample.magneticFieldY;
             tm.mag_z     = sample.magneticFieldZ;
             tm.timestamp = sample.magneticFieldTimestamp;
-            strcpy(tm.sensor_name, "LIS3MDL");
+            strcpy(tm.sensor_name, "LIS2MDL");
+
+            mavlink_msg_imu_tm_encode(config::Mavlink::SYSTEM_ID,
+                                      config::Mavlink::COMPONENT_ID, &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_LSM6DSRX_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_imu_tm_t tm;
+
+            auto sample = parent.getModule<Sensors>()->getLSM6DSRXLastSample();
+
+            tm.mag_x     = 0;
+            tm.mag_y     = 0;
+            tm.mag_z     = 0;
+            tm.acc_x     = sample.accelerationX;
+            tm.acc_y     = sample.accelerationY;
+            tm.acc_z     = sample.accelerationZ;
+            tm.gyro_x    = sample.angularSpeedX;
+            tm.gyro_y    = sample.angularSpeedY;
+            tm.gyro_z    = sample.angularSpeedZ;
+            tm.timestamp = sample.accelerationTimestamp;
+            strcpy(tm.sensor_name, "LSM6DSRX");
 
             mavlink_msg_imu_tm_encode(config::Mavlink::SYSTEM_ID,
                                       config::Mavlink::COMPONENT_ID, &msg, &tm);
@@ -949,7 +970,8 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_imu_tm_t tm;
 
-            auto sample = parent.getModule<Sensors>()->getH3LISLastSample();
+            auto sample =
+                parent.getModule<Sensors>()->getH3LIS331DLLastSample();
 
             tm.mag_x     = 0;
             tm.mag_y     = 0;
@@ -965,6 +987,93 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
 
             mavlink_msg_imu_tm_encode(config::Mavlink::SYSTEM_ID,
                                       config::Mavlink::COMPONENT_ID, &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_ROTATED_IMU_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_imu_tm_t tm;
+
+            auto sample = parent.getModule<Sensors>()->getIMULastSample();
+
+            tm.mag_x     = sample.magneticFieldX;
+            tm.mag_y     = sample.magneticFieldY;
+            tm.mag_z     = sample.magneticFieldZ;
+            tm.acc_x     = sample.accelerationX;
+            tm.acc_y     = sample.accelerationY;
+            tm.acc_z     = sample.accelerationZ;
+            tm.gyro_x    = sample.angularSpeedX;
+            tm.gyro_y    = sample.angularSpeedY;
+            tm.gyro_z    = sample.angularSpeedZ;
+            tm.timestamp = sample.accelerationTimestamp;
+            strcpy(tm.sensor_name, "RotatedIMU");
+
+            mavlink_msg_imu_tm_encode(config::Mavlink::SYSTEM_ID,
+                                      config::Mavlink::COMPONENT_ID, &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_STATIC_PITOT_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            auto sample =
+                parent.getModule<Sensors>()->getStaticPressureLastSample();
+
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "PitotStatic");
+
+            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
+                                           config::Mavlink::COMPONENT_ID, &msg,
+                                           &tm);
+
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_TOTAL_PITOT_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            auto staticSample =
+                parent.getModule<Sensors>()->getStaticPressureLastSample();
+            auto dynamicSample =
+                parent.getModule<Sensors>()->getDynamicPressureLastSample();
+
+            tm.pressure  = staticSample.pressure + dynamicSample.pressure;
+            tm.timestamp = TimestampTimer::getTimestamp();
+            strcpy(tm.sensor_name, "PitotTotal");
+
+            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
+                                           config::Mavlink::COMPONENT_ID, &msg,
+                                           &tm);
+
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_DYNAMIC_PITOT_PRESS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            auto sample =
+                parent.getModule<Sensors>()->getDynamicPressureLastSample();
+
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "PitotDynamic");
+
+            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
+                                           config::Mavlink::COMPONENT_ID, &msg,
+                                           &tm);
+
             enqueueMessage(msg);
             return true;
         }

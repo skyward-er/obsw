@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Basso
+ * Author: Niccolò Betto, Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,17 @@
 #include <Parafoil/Configs/SensorsConfig.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
-#include <sensors/BMX160/BMX160.h>
-#include <sensors/BMX160/BMX160WithCorrection.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
-#include <sensors/LIS3MDL/LIS3MDL.h>
+#include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
+#include <sensors/LPS28DFW/LPS28DFW.h>
+#include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
-#include <sensors/analog/BatteryVoltageSensor.h>
+#include <sensors/analog/BatteryVoltageSensorData.h>
+#include <sensors/analog/pressure/nxp/MPX5010.h>
+#include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -45,7 +48,7 @@ class Buses;
 class FlightStatsRecorder;
 
 /**
- * @brief Manages all the sensors of the parafoil board.
+ * @brief Manages all the sensors of the Parafoil board.
  */
 class Sensors : public Boardcore::InjectableWithDeps<BoardScheduler, Buses,
                                                      FlightStatsRecorder>
@@ -95,16 +98,27 @@ public:
      */
     bool saveMagCalibration();
 
-    Boardcore::BMX160Data getBMX160LastSample();
-    Boardcore::BMX160WithCorrectionData getBMX160WithCorrectionLastSample();
-    Boardcore::H3LIS331DLData getH3LISLastSample();
-    Boardcore::LIS3MDLData getLIS3MDLLastSample();
+    void setBaroCalibrationReference(float reference);
+    void resetBaroCalibrationReference();
+
     Boardcore::LPS22DFData getLPS22DFLastSample();
+    Boardcore::LPS28DFWData getLPS28DFWLastSample();
+    Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
-    Boardcore::ADS131M08Data getADS131LastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
+    StaticPressureData getStaticPressureLastSample();
+    DynamicPressureData getDynamicPressureLastSample();
+
+    Boardcore::IMUData getIMULastSample();
+
     Boardcore::BatteryVoltageSensorData getBatteryVoltage();
+    Boardcore::BatteryVoltageSensorData getCamBatteryVoltage();
+    Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRXLastSample();
 
     /**
      * @brief Returns information about all sensors managed by this class
@@ -125,54 +139,75 @@ protected:
      */
     virtual bool postSensorCreationHook() { return true; }
 
-    std::unique_ptr<Boardcore::BMX160> bmx160;
-    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
-    std::unique_ptr<Boardcore::LIS3MDL> lis3mdl;
+    virtual void lsm6dsrxCallback();
+
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
+    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
+    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
-    std::unique_ptr<Boardcore::BMX160WithCorrection> bmx160WithCorrection;
+    std::unique_ptr<Boardcore::MPXH6115A> staticPressure;
+    std::unique_ptr<Boardcore::MPX5010> dynamicPressure;
+    std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
     /**
-     * Sensors initialization and callback functions.
+     * Sensor creation and insertion need to happen separately to allow
+     * integration with the HIL framework, which needs to intercept the sensors
+     * after they are created but before they are inserted into the manager.
      */
 
-    void bmx160Init();
-    void bmx160Callback();
+    void lps22dfInit();
+    void lps22dfCallback();
 
-    void bmx160WithCorrectionInit();
-    void bmx160WithCorrectionCallback();
+    void lps28dfwInit();
+    void lps28dfwCallback();
 
-    void h3lisInit();
-    void h3lisCallback();
+    void h3lis331dlInit();
+    void h3lis331dlCallback();
 
-    void lis3mdlInit();
-    void lis3mdlCallback();
+    void lis2mdlInit();
+    void lis2mdlCallback();
 
-    void lps22Init();
-    void lps22Callback();
+    void ubxgpsInit();
+    void ubxgpsCallback();
 
-    void ubxGpsInit();
-    void ubxGpsCallback();
+    void lsm6dsrxInit();
 
-    void ads131Init();
-    void ads131Callback();
+    void ads131m08Init();
+    void ads131m08Callback();
 
-    void internalADCInit();
-    void internalADCCallback();
+    void internalAdcInit();
+    void internalAdcCallback();
+
+    void staticPressureInit();
+    void staticPressureCallback();
+
+    void dynamicPressureInit();
+    void dynamicPressureCallback();
+
+    void rotatedImuInit();
+    void rotatedImuCallback();
 
     bool sensorManagerInit();
 
-    // Live calibration of the magnetomer
+    miosix::FastMutex baroCalibrationMutex;
+    float baroCalibrationReference   = 0;
+    bool useBaroCalibrationReference = false;
+
     miosix::FastMutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
     size_t magCalibrationTaskId = 0;
+
+    miosix::FastMutex gyroCalibrationMutex;
+    Boardcore::BiasCorrector gyroCalibration;
 
     std::atomic<bool> started{false};
 
