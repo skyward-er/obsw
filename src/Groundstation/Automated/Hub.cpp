@@ -31,6 +31,7 @@
 #include <algorithms/NAS/NASState.h>
 #include <common/Events.h>
 #include <common/MavlinkLyra.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
 
@@ -46,6 +47,8 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     logHubData.timestamp = TimestampTimer::getTimestamp();
     logHubData.groundRx  = logHubData.groundRx + 1;
+    logHubData.cpuMean   = CpuMeter::getCpuStats().mean;
+
     Logger::getInstance().log(logHubData);
 
     TRACE("[info] Hub: Packet arrived from outgoing messages!!!\n");
@@ -263,6 +266,8 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
         logHubData.timestamp = TimestampTimer::getTimestamp();
         logHubData.sniffedRx = logHubData.sniffedRx + 1;
+        logHubData.cpuMean   = CpuMeter::getCpuStats().mean;
+
         Logger::getInstance().log(logHubData);
     }
 }
@@ -278,6 +283,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 
     logHubData.timestamp = TimestampTimer::getTimestamp();
     logHubData.rocketRx  = logHubData.rocketRx + 1;
+    logHubData.cpuMean   = CpuMeter::getCpuStats().mean;
+
     Logger::getInstance().log(logHubData);
 
     // Extracting NAS rocket state
