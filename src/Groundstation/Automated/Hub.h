@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Groundstation/Automated/HubData.h>
 #include <Groundstation/Automated/LogSniffing.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/HubBase.h>
@@ -112,6 +113,8 @@ private:
     bool hasNewNasSet              = false;
     uint64_t lastFlightTMTimestamp = 0;
     uint64_t lastStatsTMTimestamp  = 0;
+
+    HubData logHubData;  // Data for logging
 };
 
 }  // namespace Antennas

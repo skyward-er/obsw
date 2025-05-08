@@ -21,6 +21,8 @@
  */
 
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
+#include <Groundstation/Automated/HubData.h>
+#include <Groundstation/Automated/LogSniffing.h>
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <Groundstation/Automated/SMA/SMAData.h>
 #include <Groundstation/LyraGS/Radio/RadioData.h>
@@ -49,8 +51,6 @@
 #include <logger/Deserializer.h>
 #include <logger/LogTypes.h>
 #include <tscpp/stream.h>
-#include <Groundstation/Automated/LogSniffing.h>
-
 
 #include <fstream>
 #include <iostream>
@@ -142,7 +142,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Antennas::SMAStatus>();
     ds.registerType<Antennas::PinChangeData>();
     ds.registerType<LyraGS::MainRadioLog>();
-    ds.registerType<Antennas::LogSniffing();
+    ds.registerType<Antennas::LogSniffing>();
+    ds.registerType<Antennas::HubData>();
 }
 
 void showUsage(const string& cmdName)
