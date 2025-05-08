@@ -21,6 +21,8 @@
  */
 
 #include <Groundstation/Automated/Actuators/ActuatorsData.h>
+#include <Groundstation/Automated/HubData.h>
+#include <Groundstation/Automated/LogSniffing.h>
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <Groundstation/Automated/SMA/SMAData.h>
 #include <Groundstation/LyraGS/Radio/RadioData.h>
@@ -52,8 +54,6 @@
 #include <logger/LogTypes.h>
 #include <logger/Logger.h>
 #include <tscpp/stream.h>
-#include <Groundstation/Automated/LogSniffing.h>
-
 
 #include <chrono>
 #include <filesystem>
@@ -146,7 +146,8 @@ void registerTypes(Deserializer& ds)
     ds.registerType<Antennas::SMAStatus>();
     ds.registerType<Antennas::PinChangeData>();
     ds.registerType<LyraGS::MainRadioLog>();
-    ds.registerType<Antennas::LogSniffing();
+    ds.registerType<Antennas::LogSniffing>();
+    ds.registerType<Antennas::HubData>();
 }
 
 // cppcheck-suppress passedByValue

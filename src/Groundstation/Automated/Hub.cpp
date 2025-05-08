@@ -44,6 +44,10 @@ using namespace miosix;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
+    logHubData.timestamp = TimestampTimer::getTimestamp();
+    logHubData.groundRx  = logHubData.groundRx + 1;
+    Logger::getInstance().log(logHubData);
+
     TRACE("[info] Hub: Packet arrived from outgoing messages!!!\n");
     LyraGS::BoardStatus* status  = getModule<LyraGS::BoardStatus>();
     LyraGS::RadioMain* radioMain = getModule<LyraGS::RadioMain>();
@@ -256,6 +260,10 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
         dispatchIncomingMsg(msg);
         LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
         Logger::getInstance().log(sniffing);
+
+        logHubData.timestamp = TimestampTimer::getTimestamp();
+        logHubData.sniffedRx = logHubData.sniffedRx + 1;
+        Logger::getInstance().log(logHubData);
     }
 }
 
@@ -267,6 +275,10 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 #else
     (void)serial;
 #endif
+
+    logHubData.timestamp = TimestampTimer::getTimestamp();
+    logHubData.rocketRx  = logHubData.rocketRx + 1;
+    Logger::getInstance().log(logHubData);
 
     // Extracting NAS rocket state
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM)
