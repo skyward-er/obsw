@@ -55,7 +55,7 @@ constexpr auto ACC_GYRO_ODR = Boardcore::BMX160Config::OutputDataRate::HZ_100;
 constexpr auto MAG_ODR      = Boardcore::BMX160Config::OutputDataRate::HZ_100;
 
 static const Boardcore::AxisOrthoOrientation AXIS_ORIENTATION = {
-    Boardcore::Direction::POSITIVE_Z, Boardcore::Direction::POSITIVE_Y};
+    Boardcore::Direction::NEGATIVE_Z, Boardcore::Direction::POSITIVE_Y};
 
 constexpr auto TEMP_DIVIDER   = 0;
 constexpr auto FIFO_WATERMARK = 40;
@@ -69,7 +69,7 @@ constexpr auto MAG_DATA_SIZE    = 8;
 namespace H3LIS331DL
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 800_hz;
+constexpr auto SAMPLING_RATE = 400_hz;
 constexpr auto ODR = Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_1000;
 constexpr auto BDU =
     Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
@@ -87,7 +87,7 @@ constexpr auto ODR           = Boardcore::LPS22DF::ODR_50;
 namespace UBXGPS
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 10_hz;
+constexpr auto SAMPLING_RATE = 6_hz;
 }  // namespace UBXGPS
 
 namespace ADS131M08
@@ -103,14 +103,14 @@ namespace LIS3MDL
 {
 constexpr auto ENABLED       = true;
 constexpr auto SAMPLING_RATE = 100_hz;
-constexpr auto ODR           = Boardcore::LIS3MDL::ODR_155_HZ;
+constexpr auto ODR           = Boardcore::LIS3MDL::ODR_10_HZ;
 constexpr auto FSR           = Boardcore::LIS3MDL::FS_4_GAUSS;
 }  // namespace LIS3MDL
 
 namespace InternalADC
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 100_hz;
+constexpr auto SAMPLING_RATE = 1_hz;
 constexpr auto VBAT_CH       = Boardcore::InternalADC::Channel::CH5;
 constexpr auto VBAT_COEFF    = (150 + 40.2) / 40.2;
 }  // namespace InternalADC
@@ -118,7 +118,7 @@ constexpr auto VBAT_COEFF    = (150 + 40.2) / 40.2;
 namespace LoadCell
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = InternalADC::SAMPLING_RATE;
+constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
 constexpr auto ADC_CHANNEL   = Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 
 namespace Calibration

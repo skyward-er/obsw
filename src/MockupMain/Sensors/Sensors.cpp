@@ -62,6 +62,9 @@ bool Sensors::start()
     if (config::InternalADC::ENABLED)
         internalADCInit();
 
+    if (config::LoadCell::ENABLED)
+        loadCellInit();
+
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Sensors post-creation hook failed");
@@ -525,6 +528,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"InternalADC", config::InternalADC::SAMPLING_RATE,
                         [this]() { internalADCCallback(); }};
         map.emplace(internalAdc.get(), info);
+    }
+
+    if (loadCell)
+    {
+        SensorInfo info{"LoadCell", config::LoadCell::SAMPLING_RATE,
+                        [this]() { loadCellCallback(); }};
+        map.emplace(loadCell.get(), info);
     }
 
     auto& scheduler = getModule<BoardScheduler>()->sensors();

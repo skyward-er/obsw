@@ -134,7 +134,7 @@ int main()
 
     START_MODULE(pinHandler);
     START_MODULE(radio);
-    START_MODULE(nasController);
+    // START_MODULE(nasController);
     START_MODULE(flightModeManager);
 
     START_MODULE(scheduler);
