@@ -463,6 +463,15 @@ void Sensors::adc2Init()
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
+    // Testing channels with filters, unnamed for now
+    config.channelsConfig[3] = {.enabled = true,
+                                .pga     = ADS131M08Defs::PGA::PGA_32,
+                                .offset  = 0,
+                                .gain    = 1.0};
+    config.channelsConfig[5] = {.enabled = true,
+                                .pga     = ADS131M08Defs::PGA::PGA_32,
+                                .offset  = 0,
+                                .gain    = 1.0};
 
     adc2 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_2(),
                                        sensors::ADS131_2::cs::getPin(),
