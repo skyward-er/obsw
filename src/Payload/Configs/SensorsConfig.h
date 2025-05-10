@@ -82,7 +82,7 @@ constexpr auto TEMPERATURE_DIVIDER = 10U;
 namespace UBXGPS
 {
 constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 10_khz;
+constexpr auto SAMPLING_RATE = 10_hz;
 }  // namespace UBXGPS
 
 namespace LSM6DSRX

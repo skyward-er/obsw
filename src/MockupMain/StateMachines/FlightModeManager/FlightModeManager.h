@@ -30,7 +30,6 @@
 namespace MockupMain
 {
 class Sensors;
-class Actuators;
 class FlightStatsRecorder;
 
 /**
@@ -55,8 +54,7 @@ class FlightStatsRecorder;
  */
 class FlightModeManager
     : public Boardcore::HSM<FlightModeManager>,
-      public Boardcore::InjectableWithDeps<Sensors, Actuators,
-                                           FlightStatsRecorder>
+      public Boardcore::InjectableWithDeps<Sensors, FlightStatsRecorder>
 {
 public:
     FlightModeManager();
