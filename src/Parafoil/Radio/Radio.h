@@ -44,14 +44,13 @@ class NASController;
 class WingController;
 class LandingFlare;
 class PinHandler;
-class CanHandler;
 class FlightStatsRecorder;
 class WindEstimation;
 
 class Radio : public Boardcore::InjectableWithDeps<
                   BoardScheduler, Sensors, Buses, FlightModeManager, Actuators,
                   NASController, WingController, LandingFlare, PinHandler,
-                  CanHandler, FlightStatsRecorder, WindEstimation>
+                  FlightStatsRecorder, WindEstimation>
 {
 public:
     /**
