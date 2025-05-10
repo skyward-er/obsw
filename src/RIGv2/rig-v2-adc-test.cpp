@@ -55,36 +55,11 @@ int main()
     Buses* buses              = new Buses();
     BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors* sensors       = new Sensors();
-    Actuators* actuators   = new Actuators();
-    Registry* registry     = new Registry();
-    CanHandler* canHandler = new CanHandler();
-    GroundModeManager* gmm = new GroundModeManager();
-    TARS1* tars1           = new TARS1();
-    Radio* radio           = new Radio();
+    Sensors* sensors = new Sensors();
 
-    Logger& sdLogger    = Logger::getInstance();
-    EventBroker& broker = EventBroker::getInstance();
-
-    // Setup event sniffer
-    EventSniffer sniffer(broker,
-                         [&](uint8_t event, uint8_t topic)
-                         {
-                             EventData data{TimestampTimer::getTimestamp(),
-                                            event, topic};
-                             sdLogger.log(data);
-                         });
-
-    // Insert modules
     bool initResult = manager.insert<Buses>(buses) &&
                       manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Actuators>(actuators) &&
-                      manager.insert<Sensors>(sensors) &&
-                      manager.insert<Radio>(radio) &&
-                      manager.insert<CanHandler>(canHandler) &&
-                      manager.insert<Registry>(registry) &&
-                      manager.insert<GroundModeManager>(gmm) &&
-                      manager.insert<TARS1>(tars1) && manager.inject();
+                      manager.insert<Sensors>(sensors) && manager.inject();
 
     if (!initResult)
     {
@@ -94,37 +69,7 @@ int main()
 
     // Status led indicators
     // led1: Sensors ok
-    // led2: Radio ok
-    // led3: CanBus ok
     // led4: Everything ok
-
-    // Start modules
-    std::cout << "Starting EventBroker" << std::endl;
-    if (!broker.start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start EventBroker ***" << std::endl;
-    }
-
-    std::cout << "Starting Registry" << std::endl;
-    if (!registry->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Registry ***" << std::endl;
-    }
-
-    // Perform an initial registry load
-    std::cout << "Loading backed registry" << std::endl;
-    if (registry->load() != RegistryError::OK)
-        std::cout << "* Warning: could not load a saved registry *"
-                  << std::endl;
-
-    std::cout << "Starting Actuators" << std::endl;
-    if (!actuators->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Actuators ***" << std::endl;
-    }
 
     std::cout << "Starting Sensors" << std::endl;
     if (!sensors->start())
@@ -137,42 +82,6 @@ int main()
         led1On();
     }
 
-    std::cout << "Starting Radio" << std::endl;
-    if (!radio->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Radio ***" << std::endl;
-    }
-    else
-    {
-        led2On();
-    }
-
-    std::cout << "Starting CanHandler" << std::endl;
-    if (!canHandler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start CanHandler ***" << std::endl;
-    }
-    else
-    {
-        led3On();
-    }
-
-    std::cout << "Starting GroundModeManager" << std::endl;
-    if (!gmm->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start GroundModeManager ***" << std::endl;
-    }
-
-    std::cout << "Starting TARS1" << std::endl;
-    if (!tars1->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start TARS1 ***" << std::endl;
-    }
-
     std::cout << "Starting BoardScheduler" << std::endl;
     if (!scheduler->start())
     {
@@ -180,30 +89,13 @@ int main()
         std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
     }
 
-    // Start logging when system boots
-    std::cout << "Starting Logger" << std::endl;
-    if (!sdLogger.start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Logger ***" << std::endl;
-    }
-    else
-    {
-        sdLogger.resetStats();
-        std::cout << "Logger Ok!\n"
-                  << "\tLog number: " << sdLogger.getStats().logNumber
-                  << std::endl;
-    }
-
     if (initResult)
     {
-        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
         std::cout << "All good!" << std::endl;
         led4On();
     }
     else
     {
-        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
         std::cout << "*** Init failure ***" << std::endl;
     }
 
@@ -219,56 +111,29 @@ int main()
                   << statusStr << std::endl;
     }
 
-    ADS131M08Data avg{};
-    size_t count = 0;
-
-    std::atomic<bool> reset{false};
-
-    std::thread inputHandler = std::thread(
-        [&]()
-        {
-            while (true)
-            {
-                char command{};
-                std::cin >> command;
-
-                if (command == 'r')
-                    reset = true;
-            }
-        });
-
+    /*
+     * Print ADC data to stdout (serial port)
+     *
+     * Data format:
+     * - ASCII mode
+     * - Column delimiter: space
+     * - Prefix: $ (filter by prefix)
+     */
     while (true)
     {
-        Thread::sleep(10);
+        miosix::Thread::sleep(50);
 
-        // Choose the ADC to sample here
-        auto sample = sensors->getADC1LastSample();
+        auto sample1 = sensors->getADC1LastSample();
+        auto sample2 = sensors->getADC2LastSample();
 
-        if (reset == true)
-        {
-            avg   = {};
-            count = 0;
-            reset = false;
-            std::cout << "*** Resetting moving average ***\n";
-        }
-
-        // Perform moving average
-        count++;
+        // Data frame marker
+        std::cout << "$";
+        // Print as millivolts
         for (int i = 0; i < 8; i++)
-            avg.voltage[i] += (sample.voltage[i] - avg.voltage[i]) / count;
-
-        if (count % 100 != 0)
-            continue;
-
-        std::cout << std::setw(7) << count;
+            std::cout << sample1.voltage[i] * 1000.f << " ";
         for (int i = 0; i < 8; i++)
-        {
-            auto millivolts = avg.voltage[i] * 1000.0f;
-
-            std::cout << "| CH " << i << ": " << std::setw(10) << std::fixed
-                      << millivolts << "mV ";
-        }
-        std::cout << '\n';
+            std::cout << sample2.voltage[i] * 1000.f << " ";
+        std::cout << "\n";
     }
 
     return 0;
