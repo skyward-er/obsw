@@ -28,6 +28,7 @@
 #include <radio/SX1278/SX1278Fsk.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
 namespace Parafoil
 {
 using MavDriver =

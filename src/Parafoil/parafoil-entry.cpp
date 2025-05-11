@@ -151,8 +151,7 @@ int main()
     START_SINGLETON(EventBroker);
 
     START_MODULE(pinHandler);
-    START_MODULE(radio);
-    START_MODULE(nasController);
+    START_MODULE(radio) { miosix::led2On(); }
     START_MODULE(flightModeManager);
     START_MODULE(landingFlare);
     START_MODULE(windEstimation);
@@ -167,7 +166,7 @@ int main()
     {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         // Turn on the initialization led on the CU
-        miosix::ledOn();
+        miosix::led4On();
         std::cout << "Parafoil initialization Ok!" << std::endl;
     }
     else
