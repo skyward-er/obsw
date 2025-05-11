@@ -123,10 +123,10 @@ constexpr auto ADC_CHANNEL   = Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
 
 namespace Calibration
 {
-constexpr float P0_VOLTAGE = -488.47e-6;
-constexpr float P0_MASS    = 3.272;
-constexpr float P1_VOLTAGE = -2.24e-6;
-constexpr float P1_MASS    = 30.233;
+constexpr float P0_VOLTAGE = -2.4790e-04;
+constexpr float P0_MASS    = 0.0;
+constexpr float P1_VOLTAGE = -8.4680e-05;
+constexpr float P1_MASS    = 25.0;
 }  // namespace Calibration
 
 }  // namespace LoadCell
