@@ -300,7 +300,11 @@ bool Actuators::isCanServoOpen(ServosList servo)
         return false;
 }
 
-void Actuators::set3wayValveState(bool state) { n2_3wayValveState = state; }
+void Actuators::set3wayValveState(bool state)
+{
+    n2_3wayValveState        = state;
+    n2_3wayValveStateChanged = true;
+}
 
 bool Actuators::get3wayValveState() { return n2_3wayValveState; }
 
@@ -426,8 +430,7 @@ void Actuators::updatePositionsTask()
         {
             // The valve should be open
             if (currentTime < infos[idx].lastActionTs +
-                                  (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                   Constants::NS_IN_MS))
+                                  msToNs(Config::Servos::SERVO_CONFIDENCE_TIME))
             {
                 // We should open the valve all the way
                 unsafeSetServoPosition(idx, infos[idx].getMaxAperture());
@@ -450,8 +453,7 @@ void Actuators::updatePositionsTask()
             }
 
             if (currentTime < infos[idx].lastActionTs +
-                                  (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                   Constants::NS_IN_MS))
+                                  msToNs(Config::Servos::SERVO_CONFIDENCE_TIME))
             {
                 // We should close the valve all the way
                 unsafeSetServoPosition(idx, 0.0);
@@ -479,6 +481,32 @@ void Actuators::updatePositionsTask()
     }
 
     // Handle the 3-way valve
-    auto position = n2_3wayValveState ? 1.0f : 0.0f;
-    n2_3wayValveInfo.unsafeSetServoPosition(position);
+    if (n2_3wayValveStateChanged)
+    {
+        if (n2_3wayValveState)
+        {
+            // Open servo method called for logging only
+            n2_3wayValveInfo.openServoWithTime(0);
+            n2_3wayValveInfo.unsafeSetServoPosition(1.0f);
+        }
+        else
+        {
+            // Close servo method called for logging only
+            n2_3wayValveInfo.closeServo();
+            n2_3wayValveInfo.unsafeSetServoPosition(0.0f);
+        }
+
+        n2_3wayValveStateChanged = false;
+    }
+
+    if (currentTime > n2_3wayValveInfo.lastActionTs +
+                          msToNs(Config::Servos::SERVO_CONFIDENCE_TIME))
+    {
+        auto wiggledPosition = n2_3wayValveState
+                                   ? 1.0f - Config::Servos::SERVO_CONFIDENCE
+                                   : 0.0f + Config::Servos::SERVO_CONFIDENCE;
+        n2_3wayValveInfo.unsafeSetServoPosition(wiggledPosition);
+    }
+
+    // Wiggle the valve a little
 }

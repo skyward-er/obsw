@@ -135,6 +135,7 @@ private:
     std::array<ServoInfo, 10> infos;
     ServoInfo n2_3wayValveInfo;
     std::atomic<bool> n2_3wayValveState{false};
+    std::atomic<bool> n2_3wayValveStateChanged{true};
 
     long long chamberCloseTs =
         0;  ///< Timestamp to close the chamber (0 if closed)
