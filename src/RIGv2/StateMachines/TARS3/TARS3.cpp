@@ -180,6 +180,8 @@ State TARS3::Refueling(const Event& event)
             LOG_INFO(logger, "TARS3 stopped because of manual valve action");
             updateAndLogAction(Tars3Action::MANUAL_ACTION_STOP);
 
+            // Close the filling valve as safety measure on manual action
+            getModule<Actuators>()->closeServo(ServosList::OX_FILLING_VALVE);
             return transition(&TARS3::Ready);
         }
 
