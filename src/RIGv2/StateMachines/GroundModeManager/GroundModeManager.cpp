@@ -223,14 +223,24 @@ State GroundModeManager::state_disarmed(const Event& event)
             return HANDLED;
         }
 
+        case MOTOR_STOP_TARS:
+        {
+            EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
+            return HANDLED;
+        }
+
         case MOTOR_START_TARS1:
         {
+            // Stop any running TARS
+            EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
             EventBroker::getInstance().post(MOTOR_START_TARS1, TOPIC_TARS);
             return HANDLED;
         }
 
         case MOTOR_START_TARS3:
         {
+            // Stop any running TARS
+            EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
             EventBroker::getInstance().post(MOTOR_START_TARS3, TOPIC_TARS);
             return HANDLED;
         }
@@ -249,11 +259,17 @@ State GroundModeManager::state_armed(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(GroundModeManagerState::ARMED);
+
             getModule<Registry>()->arm();
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
-            getModule<Actuators>()->armLightOn();
+
             getModule<Actuators>()->closeAllServos();
             getModule<Actuators>()->closeChamber();
+            EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
+
+            // Power on the arm light last to indicate that the system is armed
+            getModule<Actuators>()->armLightOn();
+
             return HANDLED;
         }
 

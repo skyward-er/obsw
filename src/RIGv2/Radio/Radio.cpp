@@ -1035,21 +1035,17 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             {
                 case TARSList::TARS_OFF:
                     EventBroker::getInstance().post(MOTOR_STOP_TARS,
-                                                    TOPIC_TARS);
+                                                    TOPIC_TMTC);
                     break;
 
                 case TARSList::TARS_1:
-                    EventBroker::getInstance().post(MOTOR_STOP_TARS,
-                                                    TOPIC_TARS);
                     EventBroker::getInstance().post(MOTOR_START_TARS1,
-                                                    TOPIC_TARS);
+                                                    TOPIC_TMTC);
                     break;
 
                 case TARSList::TARS_3:
-                    EventBroker::getInstance().post(MOTOR_STOP_TARS,
-                                                    TOPIC_TARS);
                     EventBroker::getInstance().post(MOTOR_START_TARS3,
-                                                    TOPIC_TARS);
+                                                    TOPIC_TMTC);
                     break;
             }
 

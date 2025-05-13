@@ -235,6 +235,8 @@ void TARS1::state_refueling(const Event& event)
 
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
+            // Close the filling valve as safety measure on manual action
+            getModule<Actuators>()->closeServo(ServosList::OX_FILLING_VALVE);
             transition(&TARS1::state_ready);
             break;
         }
