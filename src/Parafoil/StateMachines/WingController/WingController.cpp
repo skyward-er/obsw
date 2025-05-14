@@ -175,12 +175,12 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         }
         case DPL_FLARE_START:
         {
-            pumpCount--;
             if (pumpCount == 0)
             {
                 EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
                 return HANDLED;
             }
+            pumpCount--;
 
             auto pump = Wing::Deployment::PUMPS.at(pumpCount);
 
