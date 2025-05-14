@@ -175,11 +175,6 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         }
         case DPL_FLARE_START:
         {
-            if (pumpCount == 0)
-            {
-                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
-                return HANDLED;
-            }
             pumpCount--;
 
             auto pump = Wing::Deployment::PUMPS.at(pumpCount);
@@ -194,6 +189,13 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             auto pump = Wing::Deployment::PUMPS.at(pumpCount);
 
             resetWing();
+
+            if (pumpCount - 1 == 0)
+            {
+                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+                return HANDLED;
+            }
+
             flareTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_FLARE_START, TOPIC_DPL,
                 Millisecond{pump.resetTime}.value());
