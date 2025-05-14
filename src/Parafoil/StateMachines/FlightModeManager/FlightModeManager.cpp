@@ -438,17 +438,13 @@ State FlightModeManager::Flying(const Event& event)
 
 State FlightModeManager::FlyingWingDescent(const Event& event)
 {
-    static uint16_t controlDelayId;
-
     switch (event)
     {
         case EV_ENTRY:
         {
             updateState(FlightModeManagerState::FLYING_WING_DESCENT);
             // Send the event to the WingController
-            controlDelayId = EventBroker::getInstance().postDelayed(
-                FLIGHT_WING_DESCENT, TOPIC_FLIGHT,
-                Millisecond{config::CONTROL_DELAY}.value());
+            EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
 
             getModule<FlightStatsRecorder>()->dropDetected(
                 TimestampTimer::getTimestamp());
@@ -458,7 +454,6 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
 
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(controlDelayId);
             return HANDLED;
         }
 

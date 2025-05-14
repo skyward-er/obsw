@@ -127,7 +127,11 @@ State WingController::Flying(const Event& event)
 
 State WingController::FlyingDeployment(const Boardcore::Event& event)
 {
+    static uint16_t flareTimeoutEventId;
+    static uint16_t resetTimeoutEventId;
     static uint16_t calibrationTimeoutEventId;
+
+    static uint16_t pumpCount = Wing::Deployment::PUMPS.size();
 
     switch (event)
     {
@@ -140,9 +144,16 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             getModule<FlightStatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
 
-            flareWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_SERVO_ACTUATION_DETECTED, TOPIC_DPL, 2000);
+            if (pumpCount > 0)  // If there is at least one pump specified
+            {
+                flareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                    DPL_FLARE_START, TOPIC_DPL,
+                    Millisecond{Wing::Deployment::PUMP_DELAY}.value());
+            }
+            else
+            {
+                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+            }
 
             if (Config::Wing::DynamicTarget::ENABLED)
                 initDynamicTarget(
@@ -153,6 +164,8 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         }
         case EV_EXIT:
         {
+            EventBroker::getInstance().removeDelayed(flareTimeoutEventId);
+            EventBroker::getInstance().removeDelayed(resetTimeoutEventId);
             EventBroker::getInstance().removeDelayed(calibrationTimeoutEventId);
             return HANDLED;
         }
@@ -160,42 +173,52 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         {
             return tranSuper(&WingController::Flying);
         }
-        case DPL_SERVO_ACTUATION_DETECTED:
+        case DPL_FLARE_START:
         {
-            resetWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_WIGGLE, TOPIC_DPL, 1000);
+            pumpCount--;
+            if (pumpCount == 0)
+            {
+                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+                return HANDLED;
+            }
 
-            return HANDLED;
-        }
-        case DPL_WIGGLE:
-        {
+            auto pump = Wing::Deployment::PUMPS.at(pumpCount);
+
             flareWing();
-            calibrationTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_NC_OPEN, TOPIC_DPL, 2000);
-
+            resetTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_FLARE_STOP, TOPIC_DPL, Millisecond{pump.flareTime}.value());
             return HANDLED;
         }
-        case DPL_NC_OPEN:
+        case DPL_FLARE_STOP:
         {
+            auto pump = Wing::Deployment::PUMPS.at(pumpCount);
+
             resetWing();
+            flareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_FLARE_START, TOPIC_DPL,
+                Millisecond{pump.resetTime}.value());
+            return HANDLED;
+        }
+        case DPL_DONE:
+        {
             if (WES::CALIBRATE)
             {
                 calibrationTimeoutEventId =
                     EventBroker::getInstance().postDelayed(
                         DPL_WES_CAL_DONE, TOPIC_DPL,
                         Millisecond{WES::CALIBRATION_TIMEOUT}.value());
-                getModule<WindEstimation>()->startAlgorithm();
-
+                getModule<WindEstimation>()->startCalibration();
                 getModule<Actuators>()->startTwirl();
+                return HANDLED;
             }
 
             return transition(&WingController::FlyingControlledDescent);
         }
         case DPL_WES_CAL_DONE:
         {
+            getModule<WindEstimation>()->stopCalibration();
             getModule<Actuators>()->stopTwirl();
-
+            EventBroker::getInstance().removeDelayed(calibrationTimeoutEventId);
             return transition(&WingController::FlyingControlledDescent);
         }
         default:

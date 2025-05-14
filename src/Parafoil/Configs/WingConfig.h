@@ -28,6 +28,8 @@
 #include <units/Time.h>
 #include <utils/Constants.h>
 
+#include <array>
+
 namespace Parafoil
 {
 namespace Config
@@ -134,6 +136,26 @@ constexpr auto M2_ALTITUDE_THRESHOLD     = 150_m;
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50_m;
 
 }  // namespace Guidance
+
+namespace Deployment
+{
+/* linter off */ using namespace Boardcore::Units::Time;
+
+constexpr auto PUMP_DELAY = 2_s;
+
+struct Pump
+{
+    Second flareTime;
+    Second resetTime;
+};
+
+constexpr std::array<Pump, 3> PUMPS = {
+    Pump{.flareTime = 2_s, .resetTime = 1_s},
+    Pump{.flareTime = 2_s, .resetTime = 1_s},
+    Pump{.flareTime = 1_s, .resetTime = 0.5_s},
+};
+
+}  // namespace Deployment
 
 namespace LandingFlare
 {

@@ -39,7 +39,8 @@ namespace WES
 
 /* linter-off */ using namespace Boardcore::Units::Time;
 
-constexpr auto CALIBRATE = false;
+constexpr auto CALIBRATE = false;  // FIXME: Wind Estimation implementation is
+                                   // not finished yet
 
 constexpr auto CALIBRATION_TIMEOUT = 5_s;  // time needed for the first loop
 constexpr auto ROTATION_PERIOD     = 10_s;

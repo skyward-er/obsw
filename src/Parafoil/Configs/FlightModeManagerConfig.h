@@ -36,7 +36,6 @@ namespace FlightModeManager
 /* linter-off */ using namespace Boardcore::Units::Time;
 
 constexpr auto LOGGING_DELAY = 5_s;
-constexpr auto CONTROL_DELAY = 2_s;
 
 }  // namespace FlightModeManager
 }  // namespace Config
