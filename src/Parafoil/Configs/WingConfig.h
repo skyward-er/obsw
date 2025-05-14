@@ -65,8 +65,8 @@ enum class AlgorithmId : size_t
 namespace Default
 {
 #if defined(JESOLO)
-constexpr auto TARGET_LAT = 45.565264f;
-constexpr auto TARGET_LON = 12.577050f;
+constexpr auto TARGET_LAT = 45.565652923793806f;
+constexpr auto TARGET_LON = 12.57763990872353f;
 #else  // Milan
 constexpr auto TARGET_LAT = 45.5013853;
 constexpr auto TARGET_LON = 9.1544219;
@@ -120,8 +120,8 @@ constexpr auto LONGITUDE_OFFSET = 0_m;
 
 namespace PI
 {
-constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
-constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI;
+constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 0.65;
+constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 0.65;
 
 constexpr auto KP = 0.9f;
 constexpr auto KI = 0.05f;
@@ -168,7 +168,7 @@ constexpr auto ENABLED = false;
 constexpr auto ENABLED = true;
 #endif
 
-constexpr auto ALTITUDE    = 15_m;
+constexpr auto ALTITUDE    = 10_m;
 constexpr auto CONFIDENCE  = 10;  // [samples]
 constexpr auto UPDATE_RATE = 10_hz;
 constexpr auto DURATION    = 5_s;
