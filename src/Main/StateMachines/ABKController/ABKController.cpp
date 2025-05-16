@@ -37,7 +37,8 @@ using namespace Common;
 ABKController::ABKController()
     : FSM{&ABKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::ABK_PRIORITY},
-      abk{[this]() {
+      abk{[this]()
+          {
               return TimedTrajectoryPoint{
                   getModule<NASController>()->getNASState()};
           },

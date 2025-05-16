@@ -24,6 +24,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Antennas
@@ -40,15 +41,11 @@ struct HubData
     uint16_t sniffedRx = 0;
     float cpuMean      = 0;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "timestamp,groundRx,rocketRx,sniffedRx,cpuMean\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << groundRx << "," << rocketRx << ","
-           << sniffedRx << "," << cpuMean << "\n";
+        return STRUCT_DEF(HubData, FIELD_DEF(timestamp) FIELD_DEF(groundRx)
+                                       FIELD_DEF(rocketRx) FIELD_DEF(sniffedRx)
+                                           FIELD_DEF(cpuMean));
     }
 };
 }  // namespace Antennas

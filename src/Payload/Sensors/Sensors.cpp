@@ -378,7 +378,7 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(                                         \
-            SensorInfo { #name, config::name::SAMPLING_RATE, nullptr, false })
+            SensorInfo{#name, config::name::SAMPLING_RATE, nullptr, false})
 
         PUSH_SENSOR_INFO(lps22df, LPS22DF);
         PUSH_SENSOR_INFO(lps28dfw, LPS28DFW);
