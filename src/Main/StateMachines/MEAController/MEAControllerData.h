@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Main
@@ -45,11 +46,10 @@ struct MEAControllerStatus
     uint64_t timestamp       = 0;
     MEAControllerState state = MEAControllerState::INIT;
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << static_cast<int>(state) << "\n";
+        return STRUCT_DEF(MEAControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 

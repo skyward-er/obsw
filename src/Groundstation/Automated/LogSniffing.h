@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Antennas
@@ -35,11 +36,9 @@ struct LogSniffing
     uint64_t timestamp;
     uint8_t sniffed;
 
-    static std::string header() { return "timestamp,sniffed\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << sniffed << "\n";
+        return STRUCT_DEF(LogSniffing, FIELD_DEF(timestamp) FIELD_DEF(sniffed));
     }
 };
 

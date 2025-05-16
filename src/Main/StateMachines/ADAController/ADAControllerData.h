@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Main
@@ -47,11 +48,10 @@ struct ADAControllerStatus
     uint64_t timestamp       = 0;
     ADAControllerState state = ADAControllerState::INIT;
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << static_cast<int>(state) << "\n";
+        return STRUCT_DEF(ADAControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 
@@ -62,15 +62,11 @@ struct ADAControllerSampleData
     unsigned int detectedDeployments = 0;
     ADAControllerState state         = ADAControllerState::INIT;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "timestamp,detectedApogees,detectedDeployments,state\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << detectedApogees << "," << detectedDeployments
-           << "," << static_cast<int>(state) << "\n";
+        return STRUCT_DEF(ADAControllerSampleData,
+                          FIELD_DEF(timestamp) FIELD_DEF(detectedApogees)
+                              FIELD_DEF(detectedDeployments) FIELD_DEF(state));
     }
 };
 

@@ -37,6 +37,12 @@ struct StaticPressure0Data : public Boardcore::PressureData
     }
 
     StaticPressure0Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(StaticPressure0Data,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct StaticPressure1Data : Boardcore::PressureData
@@ -47,6 +53,12 @@ struct StaticPressure1Data : Boardcore::PressureData
     }
 
     StaticPressure1Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(StaticPressure1Data,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct StaticPressure2Data : Boardcore::PressureData
@@ -57,6 +69,12 @@ struct StaticPressure2Data : Boardcore::PressureData
     }
 
     StaticPressure2Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(StaticPressure2Data,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct DplBayPressureData : Boardcore::PressureData
@@ -67,6 +85,12 @@ struct DplBayPressureData : Boardcore::PressureData
     }
 
     DplBayPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(DplBayPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct LSM6DSRX0Data : Boardcore::LSM6DSRXData
@@ -77,6 +101,11 @@ struct LSM6DSRX0Data : Boardcore::LSM6DSRXData
     }
 
     LSM6DSRX0Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(LSM6DSRX0Data, EXTEND_DEF(Boardcore::LSM6DSRXData));
+    }
 };
 
 struct LSM6DSRX1Data : Boardcore::LSM6DSRXData
@@ -87,6 +116,11 @@ struct LSM6DSRX1Data : Boardcore::LSM6DSRXData
     }
 
     LSM6DSRX1Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(LSM6DSRX1Data, EXTEND_DEF(Boardcore::LSM6DSRXData));
+    }
 };
 
 struct LIS2MDLExternalData : Boardcore::LIS2MDLData
@@ -97,6 +131,12 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
     }
 
     LIS2MDLExternalData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(LIS2MDLExternalData,
+                          EXTEND_DEF(Boardcore::LIS2MDLData));
+    }
 };
 
 struct CalibrationData
@@ -112,17 +152,14 @@ struct CalibrationData
     float magScaleY    = 0.0f;
     float magScaleZ    = 0.0f;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "timestamp,gyroBiasX,gyroBiasY,gyroBiasZ,magBiasX,magBiasY,"
-               "magBiasZ,magScaleX,magScaleY,magScaleZ\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
-           << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ
-           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << "\n";
+        return STRUCT_DEF(
+            CalibrationData,
+            FIELD_DEF(timestamp) FIELD_DEF(gyroBiasX) FIELD_DEF(gyroBiasY)
+                FIELD_DEF(gyroBiasZ) FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
+                    FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
+                        FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
     }
 };
 
