@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace RIGv2
@@ -53,11 +54,10 @@ struct Tars1ActionData
     {
     }
 
-    static std::string header() { return "timestamp,action\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)action << "\n";
+        return STRUCT_DEF(Tars1ActionData,
+                          FIELD_DEF(timestamp) FIELD_DEF(action));
     }
 };
 
@@ -74,11 +74,10 @@ struct Tars1SampleData
     {
     }
 
-    static std::string header() { return "timestamp,pressure,mass\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << pressure << "," << mass << "\n";
+        return STRUCT_DEF(Tars1SampleData, FIELD_DEF(timestamp) FIELD_DEF(
+                                               pressure) FIELD_DEF(mass));
     }
 };
 
