@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace RIGv2
@@ -57,11 +58,10 @@ struct GroundModeManagerData
     {
     }
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)state << "\n";
+        return STRUCT_DEF(GroundModeManagerData,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 

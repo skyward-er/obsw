@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Antennas
@@ -70,11 +71,9 @@ struct SMAStatus
     uint64_t timestamp = 0;
     SMAState state     = SMAState::INVALID;
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)state << "\n";
+        return STRUCT_DEF(SMAStatus, FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 
