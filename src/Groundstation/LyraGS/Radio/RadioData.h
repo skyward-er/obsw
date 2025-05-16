@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 /**
@@ -44,19 +45,15 @@ struct MainRadioLog
     uint32_t main_rx_bitrate              = 0;
     float main_rx_rssi                    = 0;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "timestamp,main_packet_tx_error_count,main_tx_bitrate,main_"
-               "packet_rx_success_count,main_packet_rx_drop_count,main_rx_"
-               "bitrate,main_rx_rssi\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << main_packet_tx_error_count << ","
-           << main_tx_bitrate << "," << main_tx_bitrate << ","
-           << main_packet_rx_success_count << "," << main_packet_rx_drop_count
-           << "," << main_rx_bitrate << "," << main_rx_rssi << "\n";
+        return STRUCT_DEF(
+            MainRadioLog,
+            FIELD_DEF(timestamp) FIELD_DEF(main_packet_tx_error_count)
+                FIELD_DEF(main_tx_bitrate)
+                    FIELD_DEF(main_packet_rx_success_count)
+                        FIELD_DEF(main_packet_rx_drop_count)
+                            FIELD_DEF(main_rx_bitrate) FIELD_DEF(main_rx_rssi));
     }
 };
 }  // namespace LyraGS

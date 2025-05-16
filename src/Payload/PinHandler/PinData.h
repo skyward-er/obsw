@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <reflect.hpp>
 
 namespace Payload
 {
@@ -35,15 +36,11 @@ struct PinChangeData
     bool lastState        = false;
     uint32_t changesCount = 0;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "timestamp,pinId,lastState,changesCount\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << static_cast<int>(pinId) << ","
-           << static_cast<int>(lastState) << "," << changesCount << "\n";
+        return STRUCT_DEF(PinChangeData,
+                          FIELD_DEF(timestamp) FIELD_DEF(pinId)
+                              FIELD_DEF(lastState) FIELD_DEF(changesCount));
     }
 };
 

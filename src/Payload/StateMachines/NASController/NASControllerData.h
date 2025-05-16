@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Payload
@@ -43,11 +44,10 @@ struct NASControllerStatus
     uint64_t timestamp       = 0;
     NASControllerState state = NASControllerState::INIT;
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)state << "\n";
+        return STRUCT_DEF(NASControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 

@@ -42,6 +42,11 @@ struct StepperXData : Boardcore::StepperData
         : Boardcore::StepperData(data)
     {
     }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(StepperXData, EXTEND_DEF(StepperData));
+    }
 };
 
 struct StepperYData : Boardcore::StepperData
@@ -51,6 +56,11 @@ struct StepperYData : Boardcore::StepperData
     explicit StepperYData(const Boardcore::StepperData& data)
         : Boardcore::StepperData(data)
     {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(StepperYData, EXTEND_DEF(StepperData));
     }
 };
 

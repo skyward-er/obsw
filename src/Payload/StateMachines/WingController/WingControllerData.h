@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Payload
@@ -42,11 +43,10 @@ struct WingControllerStatus
     uint64_t timestamp        = 0;
     WingControllerState state = WingControllerState::IDLE;
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)state << "\n";
+        return STRUCT_DEF(WingControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 
@@ -55,11 +55,10 @@ struct WingControllerAlgorithmData
     uint64_t timestamp = 0;
     uint8_t algorithm  = 0;
 
-    static std::string header() { return "timestamp,algorithm\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)algorithm << "\n";
+        return STRUCT_DEF(WingControllerAlgorithmData,
+                          FIELD_DEF(timestamp) FIELD_DEF(algorithm));
     }
 };
 

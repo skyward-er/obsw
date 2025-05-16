@@ -25,6 +25,8 @@
 
 #include <sensors/SensorData.h>
 
+#include <reflect.hpp>
+
 namespace Payload
 {
 
@@ -38,6 +40,12 @@ struct StaticPressureData : public Boardcore::PressureData
         : Boardcore::PressureData(data)
     {
     }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(StaticPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct DynamicPressureData : public Boardcore::PressureData
@@ -47,6 +55,12 @@ struct DynamicPressureData : public Boardcore::PressureData
     explicit DynamicPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(DynamicPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
     }
 };
 
@@ -67,20 +81,18 @@ struct SensorCalibrationData
     float dynamicPressBias  = 0.0f;
     float dynamicPressScale = 0.0f;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "timestamp,gyroBiasX,gyroBiasY,gyroBiasZ,magBiasX,magBiasY,"
-               "magBiasZ,magScaleX,magScaleY,magScaleZ,staticPressBias,"
-               "staticPressScale,dynamicPressBias,dynamicPressScale\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << gyroBiasX << "," << gyroBiasY << ","
-           << gyroBiasZ << "," << magBiasX << "," << magBiasY << "," << magBiasZ
-           << "," << magScaleX << "," << magScaleY << "," << magScaleZ << ","
-           << staticPressBias << "," << staticPressScale << ","
-           << dynamicPressBias << "," << dynamicPressScale << "\n";
+        return STRUCT_DEF(
+            SensorCalibrationData,
+            FIELD_DEF(timestamp) FIELD_DEF(gyroBiasX) FIELD_DEF(gyroBiasY)
+                FIELD_DEF(gyroBiasZ) FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
+                    FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
+                        FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ)
+                            FIELD_DEF(staticPressBias)
+                                FIELD_DEF(staticPressScale)
+                                    FIELD_DEF(dynamicPressBias)
+                                        FIELD_DEF(dynamicPressScale));
     }
 };
 

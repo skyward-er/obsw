@@ -218,7 +218,8 @@ void ADAController::calibrate()
     ada.setReferenceValues(ref);
 
     // TODO: Should this be calculated by ADA at the moment?
-    ada.setKalmanConfig(computeADAKalmanConfig(ref.refPressure));
+    auto kalmanConfig = computeADAKalmanConfig(ref.refPressure);
+    ada.setKalmanConfig(kalmanConfig);
     ada.update(ref.refPressure);
 
     EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);

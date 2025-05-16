@@ -23,6 +23,9 @@
 #pragma once
 
 #include <sensors/SensorData.h>
+
+#include <reflect.hpp>
+
 namespace Motor
 {
 
@@ -34,6 +37,12 @@ struct TopTankPressureData : Boardcore::PressureData
     }
 
     TopTankPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(TopTankPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct BottomTankPressureData : Boardcore::PressureData
@@ -44,6 +53,12 @@ struct BottomTankPressureData : Boardcore::PressureData
     }
 
     BottomTankPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(BottomTankPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct CCPressureData : Boardcore::PressureData
@@ -54,6 +69,11 @@ struct CCPressureData : Boardcore::PressureData
     }
 
     CCPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(CCPressureData, EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 }  // namespace Motor

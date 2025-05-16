@@ -26,6 +26,8 @@
 #include <sensors/MAX31856/MAX31856Data.h>
 #include <sensors/SensorData.h>
 
+#include <reflect.hpp>
+
 namespace RIGv2
 {
 
@@ -37,6 +39,11 @@ struct ADC1Data : Boardcore::ADS131M08Data
     }
 
     ADC1Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADC1Data, EXTEND_DEF(Boardcore::ADS131M08Data));
+    }
 };
 
 struct ADC2Data : Boardcore::ADS131M08Data
@@ -47,6 +54,11 @@ struct ADC2Data : Boardcore::ADS131M08Data
     }
 
     ADC2Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADC2Data, EXTEND_DEF(Boardcore::ADS131M08Data));
+    }
 };
 
 struct TC1Data : Boardcore::MAX31856Data
@@ -57,6 +69,11 @@ struct TC1Data : Boardcore::MAX31856Data
     }
 
     TC1Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(TC1Data, EXTEND_DEF(Boardcore::MAX31856Data));
+    }
 };
 
 struct OxVesselWeightData : Boardcore::LoadCellData
@@ -67,6 +84,12 @@ struct OxVesselWeightData : Boardcore::LoadCellData
     }
 
     OxVesselWeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxVesselWeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
 };
 
 struct RocketWeightData : Boardcore::LoadCellData
@@ -77,6 +100,12 @@ struct RocketWeightData : Boardcore::LoadCellData
     }
 
     RocketWeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RocketWeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
 };
 
 struct OxTankWeightData : Boardcore::LoadCellData
@@ -87,6 +116,12 @@ struct OxTankWeightData : Boardcore::LoadCellData
     }
 
     OxTankWeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxTankWeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
 };
 
 struct OxVesselPressureData : Boardcore::PressureData
@@ -97,6 +132,12 @@ struct OxVesselPressureData : Boardcore::PressureData
     }
 
     OxVesselPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxVesselPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct OxFillingPressureData : Boardcore::PressureData
@@ -107,6 +148,12 @@ struct OxFillingPressureData : Boardcore::PressureData
     }
 
     OxFillingPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxFillingPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct N2Vessel1PressureData : Boardcore::PressureData
@@ -117,6 +164,12 @@ struct N2Vessel1PressureData : Boardcore::PressureData
     }
 
     N2Vessel1PressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(N2Vessel1PressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct N2Vessel2PressureData : Boardcore::PressureData
@@ -127,6 +180,12 @@ struct N2Vessel2PressureData : Boardcore::PressureData
     }
 
     N2Vessel2PressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(N2Vessel2PressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct N2FillingPressureData : Boardcore::PressureData
@@ -137,6 +196,12 @@ struct N2FillingPressureData : Boardcore::PressureData
     }
 
     N2FillingPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(N2FillingPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct OxTankPressureData : Boardcore::PressureData
@@ -147,6 +212,12 @@ struct OxTankPressureData : Boardcore::PressureData
     }
 
     OxTankPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxTankPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 struct N2TankPressureData : Boardcore::PressureData
@@ -157,6 +228,12 @@ struct N2TankPressureData : Boardcore::PressureData
     }
 
     N2TankPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(N2TankPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
 };
 
 }  // namespace RIGv2

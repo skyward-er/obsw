@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <iostream>
+#include <reflect.hpp>
 
 namespace Antennas
 {
@@ -35,19 +36,10 @@ struct PinChangeData
     uint8_t pinID         = 0;
     uint32_t changesCount = 0;
 
-    PinChangeData(uint64_t timestamp, uint8_t pinID, uint32_t changesCount)
-        : timestamp(timestamp), pinID(pinID), changesCount(changesCount)
+    static constexpr auto reflect()
     {
-    }
-
-    PinChangeData() : PinChangeData{0, 0, 0} {}
-
-    static std::string header() { return "timestamp,pinID,changesCount\n"; }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << (int)pinID << "," << (int)changesCount
-           << "\n";
+        return STRUCT_DEF(PinChangeData, FIELD_DEF(timestamp) FIELD_DEF(pinID)
+                                             FIELD_DEF(changesCount));
     }
 };
 

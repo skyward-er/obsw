@@ -22,6 +22,8 @@
 #pragma once
 #include <sensors/SensorData.h>
 
+#include <reflect.hpp>
+
 namespace Payload
 {
 /**
@@ -41,17 +43,14 @@ struct WingAlgorithmData
     float error         = 0;
     float pidOutput     = 0;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "WingAlgorithmTimestamp,servo1Angle,servo2Angle,targetAngle,"
-               "velocityAngle,targetX,targetY,error,pidOutput\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << timestamp << "," << servo1Angle << "," << servo2Angle << ","
-           << targetAngle << "," << velocityAngle << "," << targetX << ","
-           << targetY << "," << error << "," << pidOutput << "\n";
+        return STRUCT_DEF(WingAlgorithmData,
+                          FIELD_DEF(timestamp) FIELD_DEF(servo1Angle)
+                              FIELD_DEF(servo2Angle) FIELD_DEF(targetAngle)
+                                  FIELD_DEF(velocityAngle) FIELD_DEF(targetX)
+                                      FIELD_DEF(targetY) FIELD_DEF(error)
+                                          FIELD_DEF(pidOutput));
     }
 };
 }  // namespace Payload

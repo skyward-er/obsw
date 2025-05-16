@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <reflect.hpp>
 
 namespace Motor
 {
@@ -45,11 +46,10 @@ struct ActuatorsData
     {
     }
 
-    static std::string header() { return "timestamp,servoIdx,position\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)servoIdx << "," << position << "\n";
+        return STRUCT_DEF(ActuatorsData, FIELD_DEF(timestamp) FIELD_DEF(
+                                             servoIdx) FIELD_DEF(position));
     }
 };
 

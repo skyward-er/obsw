@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Payload
@@ -51,11 +52,10 @@ struct FlightModeManagerStatus
     uint64_t timestamp           = 0;
     FlightModeManagerState state = FlightModeManagerState::ON_GROUND;
 
-    static std::string header() { return "timestamp,state\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)state << "\n";
+        return STRUCT_DEF(FlightModeManagerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
     }
 };
 
