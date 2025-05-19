@@ -34,7 +34,8 @@ using namespace miosix;
 WizIp Groundstation::genNewRandomIp()
 {
     WizIp ip = IP_BASE;
-    ip.d     = (rand() % 253) + 1;  // Generate in range 1-254
+    ip.c     = (rand() % 254) + 1;  // Generate C in range 1‑254
+    ip.d     = (rand() % 254) + 1;  // Generate D in range 1‑254
 
     return ip;
 }
@@ -42,8 +43,8 @@ WizIp Groundstation::genNewRandomIp()
 WizMac Groundstation::genNewRandomMac()
 {
     WizMac mac = MAC_BASE;
-    mac.e      = (rand() % 253) + 1;  // Generate in range 1-254
-    mac.f      = (rand() % 253) + 1;  // Generate in range 1-254
+    mac.e      = (rand() % 254) + 1;  // Generate in range 1-254
+    mac.f      = (rand() % 254) + 1;  // Generate in range 1-254
 
     return mac;
 }
