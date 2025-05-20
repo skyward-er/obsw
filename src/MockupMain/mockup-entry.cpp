@@ -87,7 +87,7 @@ int main()
               << " by Skyward Experimental Rocketry" << std::endl;
 
     // cppcheck-suppress unreadVariable
-    auto logger = Logging::getLogger("Parafoil");
+    auto logger = Logging::getLogger("MockupMain");
     DependencyManager depman{};
 
     std::cout << "Instantiating modules" << std::endl;
@@ -146,12 +146,12 @@ int main()
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         // Turn on the initialization led on the CU
         miosix::ledOn();
-        std::cout << "Parafoil initialization Ok!" << std::endl;
+        std::cout << "MockupMain initialization Ok!" << std::endl;
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        std::cerr << "*** Parafoil initialization error ***" << std::endl;
+        std::cerr << "*** MockupMain initialization error ***" << std::endl;
     }
 
     std::cout << "Sensors status:" << std::endl;
