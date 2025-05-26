@@ -45,9 +45,8 @@ constexpr unsigned int DETACH_MAX_PULSE = 2100;
 
 constexpr unsigned int FREQUENCY = 333;
 
-constexpr Hertz SERVO_TIMINGS_CHECK_PERIOD = 10_hz;
-constexpr long long SERVO_CONFIDENCE_TIME  = 500;   // 0.5s
-constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
+constexpr auto SERVO_BACKSTEP_DELAY   = 500ms;
+constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
 constexpr uint32_t DEFAULT_OX_FIL_OPENING_TIME = 15000;
 constexpr uint32_t DEFAULT_OX_REL_OPENING_TIME = 10000;

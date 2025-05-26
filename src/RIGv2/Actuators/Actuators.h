@@ -28,6 +28,7 @@
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkOrion.h>
 #include <miosix.h>
+#include <scheduler/SignaledDeadlineTask.h>
 #include <scheduler/TaskScheduler.h>
 
 #include <memory>
@@ -36,9 +37,13 @@ namespace RIGv2
 {
 
 class Actuators
-    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>,
+      public Boardcore::SignaledDeadlineTask
 {
 private:
+    // Sentinel value for the valve closed state
+    static const TimePoint ValveClosed;
+
     struct ServoInfo : public Boardcore::InjectableWithDeps<Registry>
     {
         struct ServoConfig
@@ -67,8 +72,10 @@ private:
         std::unique_ptr<Boardcore::Servo> servo;
         ServoConfig config;
 
-        long long closeTs = 0;  ///< Timestamp to close the servo (0 if closed)
-        long long lastActionTs = 0;  ///< Timestamp of last servo action
+        // Time when the valve should close, 0 if currently closed
+        TimePoint closeTs = ValveClosed;
+        // Time when to backstep the valve to avoid straining the servo
+        TimePoint backstepTs = ValveClosed;
 
         void openServoWithTime(uint32_t time);
         void closeServo();
@@ -127,19 +134,21 @@ private:
     void unsafeOpenChamber();
     void unsafeCloseChamber();
 
-    void updatePositionsTask();
+    TimePoint nextTaskDeadline() override;
+    void task() override;
 
     std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
     std::array<ServoInfo, 10> infos;
+
+    // N2 3-way valve info
     ServoInfo n2_3wayValveInfo;
     std::atomic<bool> n2_3wayValveState{false};
     std::atomic<bool> n2_3wayValveStateChanged{true};
 
-    long long chamberCloseTs =
-        0;  ///< Timestamp to close the chamber (0 if closed)
-    long long chamberLastActionTs = 0;  ///< Timestamp of last chamber action
+    // Time when the chamber valve should close, 0 if currently closed
+    TimePoint chamberCloseTs = ValveClosed;
 
     bool canMainOpen        = false;
     bool canNitrogenOpen    = false;
