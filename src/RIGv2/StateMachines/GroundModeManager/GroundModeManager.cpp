@@ -352,7 +352,7 @@ State GroundModeManager::state_firing(const Event& event)
         case TMTC_OPEN_CHAMBER:
         case MOTOR_OPEN_CHAMBER:
         {
-            // Open nitrogen
+            // Open chamber
             uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
                 CONFIG_ID_CHAMBER_TIME,
                 Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
@@ -492,6 +492,8 @@ State GroundModeManager::state_cooling(const Event& event)
 
             // Stop pressurizing the OX after the firing is over
             getModule<Actuators>()->closeServo(ServosList::NITROGEN_VALVE);
+            // Open the quenching valve
+            getModule<Actuators>()->openServo(ServosList::N2_QUENCHING_VALVE);
 
             return HANDLED;
         }
