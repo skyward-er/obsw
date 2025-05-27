@@ -129,11 +129,23 @@ namespace LoadCell
 constexpr auto CALIBRATE_SAMPLE_COUNT  = 10;
 constexpr auto CALIBRATE_SAMPLE_PERIOD = 40ms;
 
+/*
 // Rocket ramp loadcell calibration data
 constexpr float ROCKET_P0_VOLTAGE = -0.0004273;
 constexpr float ROCKET_P0_MASS    = 10.005;
 constexpr float ROCKET_P1_VOLTAGE = -0.0018125;
 constexpr float ROCKET_P1_MASS    = 40.290;
+*/
+
+// Static fire teststand loadcell calibration data
+// - 0 kg       V: -0.000275
+// - 5.072 kg   V: -0.0029
+// - 15.249 kg  V: -0.00816
+// - 25.300 kg  V: -0.013327
+constexpr float ROCKET_P0_VOLTAGE = -0.0029;
+constexpr float ROCKET_P0_MASS    = 5.072;
+constexpr float ROCKET_P1_VOLTAGE = -0.013327;
+constexpr float ROCKET_P1_MASS    = 25.300;
 
 /* OLD CALIBRATION DATA (before 07/09/2024, before new flipping)
 // LC Vessel sensor calibration data
