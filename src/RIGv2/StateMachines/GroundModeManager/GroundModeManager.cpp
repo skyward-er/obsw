@@ -202,7 +202,7 @@ State GroundModeManager::state_disarmed(const Event& event)
             return HANDLED;
         }
 
-        case TMTC_OPEN_NITROGEN:
+        case TMTC_OPEN_CHAMBER:
         {
             uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
                 CONFIG_ID_CHAMBER_TIME,
@@ -288,14 +288,14 @@ State GroundModeManager::state_armed(const Event& event)
             return HANDLED;
         }
 
-        case TMTC_OPEN_NITROGEN:
+        case TMTC_OPEN_CHAMBER:
         {
             uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
                 CONFIG_ID_CHAMBER_TIME,
                 Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
             getModule<Actuators>()->openChamberWithTime(chamberTime);
 
-            // Nitrogen causes automatic disarm
+            // Chamber causes automatic disarm
             return transition(&GroundModeManager::state_disarmed);
         }
 
@@ -349,7 +349,7 @@ State GroundModeManager::state_firing(const Event& event)
             return transition(&GroundModeManager::state_igniting);
         }
 
-        case TMTC_OPEN_NITROGEN:
+        case TMTC_OPEN_CHAMBER:
         case MOTOR_OPEN_CHAMBER:
         {
             // Open nitrogen
@@ -359,9 +359,9 @@ State GroundModeManager::state_firing(const Event& event)
 
             getModule<Actuators>()->openChamberWithTime(chamberTime);
 
-            if (event == TMTC_OPEN_NITROGEN)
+            if (event == TMTC_OPEN_CHAMBER)
             {
-                // Nitrogen TMTC causes automatic disarm
+                // Chamber TMTC causes automatic disarm
                 return transition(&GroundModeManager::state_disarmed);
             }
             else

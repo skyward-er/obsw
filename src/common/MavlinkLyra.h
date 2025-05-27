@@ -78,7 +78,7 @@ inline Events mavCmdToEvent(uint8_t id)
         case MAV_CMD_STOP_RECORDING:
             return TMTC_STOP_RECORDING;
         case MAV_CMD_OPEN_NITROGEN:
-            return TMTC_OPEN_NITROGEN;
+            return TMTC_OPEN_CHAMBER;
         default:
             return LAST_EVENT;
     }

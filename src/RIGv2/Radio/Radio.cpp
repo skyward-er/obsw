@@ -277,10 +277,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
-        case MAVLINK_MSG_ID_SET_NITROGEN_TIME_TC:
+        case MAVLINK_MSG_ID_SET_CHAMBER_TIME_TC:
         {
             // Chamber valve opening time
-            uint32_t timing = mavlink_msg_set_nitrogen_time_tc_get_timing(&msg);
+            uint32_t timing = mavlink_msg_set_chamber_time_tc_get_timing(&msg);
             getModule<GroundModeManager>()->setChamberTime(timing);
 
             enqueueAck(msg);
