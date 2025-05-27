@@ -29,6 +29,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
+#include <utils/Registry/RegistryFrontend.h>
 
 #include <atomic>
 #include <unordered_map>
@@ -292,6 +293,31 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             // Chamber valve delay after main valve opening
             uint32_t timing = mavlink_msg_set_cooling_time_tc_get_timing(&msg);
             getModule<GroundModeManager>()->setChamberDelay(timing);
+
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_TARS3_PARAMS_TC:
+        {
+            mavlink_set_tars3_params_tc_t params;
+            mavlink_msg_set_tars3_params_tc_decode(&msg, &params);
+
+            auto error = getModule<Registry>()->setUnsafe(
+                CONFIG_ID_TARS3_MASS_TARGET, params.mass_target);
+            if (error != RegistryError::OK)
+            {
+                enqueueNack(msg, 0);
+                break;
+            }
+
+            error = getModule<Registry>()->setUnsafe(
+                CONFIG_ID_TARS3_PRESSURE_TARGET, params.pressure_target);
+            if (error != RegistryError::OK)
+            {
+                enqueueNack(msg, 0);
+                break;
+            }
 
             enqueueAck(msg);
             break;

@@ -74,6 +74,10 @@ enum ConfigurationKeys
     CONFIG_ID_CHAMBER_TIME,   // Time the chamber valve stays open
     CONFIG_ID_CHAMBER_DELAY,  // Delay of opening the chamber valve after
                               // opening the main valve
+
+    // TARS3 parameters
+    CONFIG_ID_TARS3_MASS_TARGET,
+    CONFIG_ID_TARS3_PRESSURE_TARGET,
 };
 
 const char* configurationIdToName(Boardcore::ConfigurationId id);

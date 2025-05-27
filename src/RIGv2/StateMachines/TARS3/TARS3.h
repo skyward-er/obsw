@@ -37,10 +37,11 @@ namespace RIGv2
 class Sensors;
 class Actuators;
 class BoardScheduler;
+class Registry;
 
-class TARS3
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>,
-      public Boardcore::HSM<TARS3>
+class TARS3 : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                                   Actuators, Registry>,
+              public Boardcore::HSM<TARS3>
 {
 public:
     TARS3();
@@ -88,10 +89,7 @@ private:
 
     std::atomic<Tars3Action> lastAction{Tars3Action::READY};
 
-    std::chrono::milliseconds fillingTime{0};
-    std::chrono::milliseconds ventingTime{0};
-
-    //!< Ensure pressure and mass are updated atomically for consistency
+    // Ensure pressure and mass are updated atomically for consistency
     miosix::FastMutex sampleMutex;
     float currentPressure = 0;
     float currentMass     = 0;

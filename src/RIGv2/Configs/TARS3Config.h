@@ -41,19 +41,11 @@ constexpr Hertz SAMPLE_PERIOD         = 100_hz;
 constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
 // Account for ~300ms of servo movement time
-constexpr auto WAIT_BETWEEN_CYCLES = 1500ms;
+constexpr auto WAIT_BETWEEN_CYCLES = 2000ms;
 
-// Cold refueling parameters
-constexpr float PRESSURE_TARGET = 35.4f;  // [bar]
-constexpr float MASS_TARGET     = 6.5f;   // [kg]
-// Threshold to determine if the pressure is near the target
-constexpr float NEAR_TARGET_PRESSURE_THRESHOLD = 5.0f;  // [bar]
-
-constexpr auto FILLING_TIME = 2000ms;
-constexpr auto VENTING_TIME = 1000ms;
-
-constexpr auto FILLING_TIME_NEAR = 1000ms;
-constexpr auto VENTING_TIME_NEAR = 500ms;
+// Default cold refueling parameters
+constexpr float DEFAULT_PRESSURE_TARGET = 35.4f;  // [bar]
+constexpr float DEFAULT_MASS_TARGET     = 6.5f;   // [kg]
 
 }  // namespace TARS3
 }  // namespace Config

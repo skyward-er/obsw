@@ -83,6 +83,10 @@ const char* RIGv2::configurationIdToName(ConfigurationId id)
             return "CHAMBER_TIME";
         case CONFIG_ID_CHAMBER_DELAY:
             return "CHAMBER_DELAY";
+        case CONFIG_ID_TARS3_MASS_TARGET:
+            return "TARS3_MASS_TARGET";
+        case CONFIG_ID_TARS3_PRESSURE_TARGET:
+            return "TARS3_PRESSURE_TARGET";
 
         default:
             return "<invalid>";

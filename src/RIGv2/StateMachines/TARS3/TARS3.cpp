@@ -30,6 +30,7 @@
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <utils/Registry/RegistryFrontend.h>
 
 using namespace std::chrono;
 using namespace Boardcore;
@@ -158,8 +159,6 @@ State TARS3::Refueling(const Event& event)
         {
             currentPressure = 0.0f;
             currentMass     = 0.0f;
-            fillingTime     = Config::TARS3::FILLING_TIME;
-            ventingTime     = Config::TARS3::VENTING_TIME;
 
             // Initialize the valves to a known closed state
             getModule<Actuators>()->closeAllServos();
@@ -239,26 +238,19 @@ State TARS3::RefuelingWait(const Event& event)
 
         case TARS_PRESSURE_STABILIZED:
         {
-            bool nearTargetPressure =
-                std::abs(pressure - Config::TARS3::PRESSURE_TARGET) <
-                Config::TARS3::NEAR_TARGET_PRESSURE_THRESHOLD;
+            auto* registry = getModule<Registry>();
 
-            // Reduce filling and venting time if pressure is near target
-            if (nearTargetPressure)
-            {
-                fillingTime = Config::TARS3::FILLING_TIME_NEAR;
-                ventingTime = Config::TARS3::VENTING_TIME_NEAR;
-            }
-            else
-            {
-                fillingTime = Config::TARS3::FILLING_TIME;
-                ventingTime = Config::TARS3::VENTING_TIME;
-            }
+            float massTarget = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_TARS3_MASS_TARGET,
+                Config::TARS3::DEFAULT_MASS_TARGET);
+            float pressureTarget = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_TARS3_PRESSURE_TARGET,
+                Config::TARS3::DEFAULT_PRESSURE_TARGET);
 
             // OX below target temperature
-            bool coldEnough = pressure <= Config::TARS3::PRESSURE_TARGET;
+            bool coldEnough = pressure <= pressureTarget;
             // Mass target reached
-            bool massTargetReached = mass >= Config::TARS3::MASS_TARGET;
+            bool massTargetReached = mass >= massTarget;
 
             LOG_INFO(logger,
                      "Pressure: {} bar, Mass: {} kg, Cold enough: {}, Mass "
@@ -311,11 +303,10 @@ State TARS3::RefuelingFilling(const Event& event)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(logger, "Filling for {} ms", fillingTime.count());
+            LOG_INFO(logger, "Filling");
             updateAndLogAction(Tars3Action::FILLING);
 
-            getModule<Actuators>()->openServoWithTime(
-                ServosList::OX_FILLING_VALVE, fillingTime.count());
+            getModule<Actuators>()->openServo(ServosList::OX_FILLING_VALVE);
 
             return HANDLED;
         }
@@ -351,11 +342,10 @@ State TARS3::RefuelingVenting(const Event& event)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(logger, "Venting for {} ms", ventingTime.count());
+            LOG_INFO(logger, "Venting");
             updateAndLogAction(Tars3Action::VENTING);
 
-            getModule<Actuators>()->openServoWithTime(
-                ServosList::OX_VENTING_VALVE, ventingTime.count());
+            getModule<Actuators>()->openServo(ServosList::OX_VENTING_VALVE);
 
             return HANDLED;
         }
