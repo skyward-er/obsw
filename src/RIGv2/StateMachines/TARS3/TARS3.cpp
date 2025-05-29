@@ -167,7 +167,8 @@ State TARS3::Refueling(const Event& event)
                 actuators->getServoOpeningTime(ServosList::OX_VENTING_VALVE)};
 
             // Initialize the valves to a known closed state
-            actuators->closeAllServos();
+            actuators->closeServo(ServosList::OX_FILLING_VALVE);
+            actuators->closeServo(ServosList::OX_VENTING_VALVE);
 
             LOG_INFO(logger, "TARS3 cold refueling start");
             updateAndLogAction(Tars3Action::START);
@@ -195,7 +196,8 @@ State TARS3::Refueling(const Event& event)
             LOG_INFO(logger, "TARS3 stopped because of stop command");
             updateAndLogAction(Tars3Action::MANUAL_STOP);
 
-            getModule<Actuators>()->closeAllServos();
+            getModule<Actuators>()->closeServo(ServosList::OX_FILLING_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::OX_VENTING_VALVE);
             return transition(&TARS3::Ready);
         }
 
