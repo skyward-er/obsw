@@ -34,9 +34,12 @@ namespace GroundModeManager
 constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 3700;  // [ms]
 
 /// Delay between the main valve opening and the chamber valve opening
-constexpr uint32_t DEFAULT_CHAMBER_VALVE_DELAY = 500;
+constexpr uint32_t DEFAULT_CHAMBER_VALVE_DELAY = 6200;  // [ms]
 // Time the chamber valve stays open
-constexpr uint32_t DEFAULT_CHAMBER_VALVE_TIME = 6000;
+constexpr uint32_t DEFAULT_CHAMBER_VALVE_TIME = 6000;  // [ms]
+
+// Delay of cooling procedure after end of firing
+constexpr uint32_t DEFAULT_COOLING_DELAY = 200;  // [ms]
 
 }  // namespace GroundModeManager
 }  // namespace Config

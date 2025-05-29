@@ -290,9 +290,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_COOLING_TIME_TC:
         {
-            // Chamber valve delay after main valve opening
+            // Cooling procedure delay
             uint32_t timing = mavlink_msg_set_cooling_time_tc_get_timing(&msg);
-            getModule<GroundModeManager>()->setChamberDelay(timing);
+            getModule<GroundModeManager>()->setCoolingDelay(timing);
 
             enqueueAck(msg);
             break;

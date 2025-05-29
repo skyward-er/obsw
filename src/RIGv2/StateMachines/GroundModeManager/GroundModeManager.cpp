@@ -57,6 +57,11 @@ void GroundModeManager::setChamberDelay(uint32_t time)
     getModule<Registry>()->setUnsafe(CONFIG_ID_CHAMBER_DELAY, time);
 }
 
+void GroundModeManager::setCoolingDelay(uint32_t time)
+{
+    getModule<Registry>()->setUnsafe(CONFIG_ID_COOLING_DELAY, time);
+}
+
 State GroundModeManager::state_idle(const Event& event)
 {
     switch (event)
@@ -492,6 +497,20 @@ State GroundModeManager::state_cooling(const Event& event)
 
             // Stop pressurizing the OX after the firing is over
             getModule<Actuators>()->closeServo(ServosList::NITROGEN_VALVE);
+
+            uint32_t coolingDelay =
+                getModule<Registry>()->getOrSetDefaultUnsafe(
+                    CONFIG_ID_COOLING_DELAY,
+                    Config::GroundModeManager::DEFAULT_COOLING_DELAY);
+
+            EventBroker::getInstance().postDelayed(MOTOR_START_COOLING,
+                                                   TOPIC_MOTOR, coolingDelay);
+
+            return HANDLED;
+        }
+
+        case MOTOR_START_COOLING:
+        {
             // Open the quenching valve
             getModule<Actuators>()->openServo(ServosList::N2_QUENCHING_VALVE);
 
