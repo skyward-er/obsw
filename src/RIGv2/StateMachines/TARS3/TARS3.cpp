@@ -157,11 +157,17 @@ State TARS3::Refueling(const Event& event)
     {
         case EV_INIT:
         {
+            auto* actuators = getModule<Actuators>();
+
             currentPressure = 0.0f;
             currentMass     = 0.0f;
+            fillingTime     = milliseconds{
+                actuators->getServoOpeningTime(ServosList::OX_FILLING_VALVE)};
+            ventingTime = milliseconds{
+                actuators->getServoOpeningTime(ServosList::OX_VENTING_VALVE)};
 
             // Initialize the valves to a known closed state
-            getModule<Actuators>()->closeAllServos();
+            actuators->closeAllServos();
 
             LOG_INFO(logger, "TARS3 cold refueling start");
             updateAndLogAction(Tars3Action::START);
@@ -303,10 +309,11 @@ State TARS3::RefuelingFilling(const Event& event)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(logger, "Filling");
+            LOG_INFO(logger, "Filling for {} ms", fillingTime.count());
             updateAndLogAction(Tars3Action::FILLING);
 
-            getModule<Actuators>()->openServo(ServosList::OX_FILLING_VALVE);
+            getModule<Actuators>()->openServoWithTime(
+                ServosList::OX_FILLING_VALVE, fillingTime.count());
 
             return HANDLED;
         }
@@ -342,10 +349,11 @@ State TARS3::RefuelingVenting(const Event& event)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(logger, "Venting");
+            LOG_INFO(logger, "Venting for {} ms", ventingTime.count());
             updateAndLogAction(Tars3Action::VENTING);
 
-            getModule<Actuators>()->openServo(ServosList::OX_VENTING_VALVE);
+            getModule<Actuators>()->openServoWithTime(
+                ServosList::OX_VENTING_VALVE, ventingTime.count());
 
             return HANDLED;
         }
