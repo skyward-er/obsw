@@ -98,7 +98,8 @@ void TARS1::state_refueling(const Event& event)
             currentPressure   = 0.0f;
 
             // First close all valves
-            actuators->closeAllServos();
+            actuators->closeServo(ServosList::OX_FILLING_VALVE);
+            actuators->closeServo(ServosList::OX_VENTING_VALVE);
 
             LOG_INFO(logger, "TARS start washing");
             logAction(Tars1ActionType::WASHING);
@@ -223,7 +224,8 @@ void TARS1::state_refueling(const Event& event)
             LOG_INFO(logger, "TARS filling done");
             logAction(Tars1ActionType::AUTOMATIC_STOP);
 
-            actuators->closeAllServos();
+            actuators->closeServo(ServosList::OX_FILLING_VALVE);
+            actuators->closeServo(ServosList::OX_VENTING_VALVE);
             transition(&TARS1::state_ready);
             break;
         }
@@ -247,7 +249,8 @@ void TARS1::state_refueling(const Event& event)
             logAction(Tars1ActionType::MANUAL_STOP);
 
             // The user requested that we stop
-            getModule<Actuators>()->closeAllServos();
+            getModule<Actuators>()->closeServo(ServosList::OX_FILLING_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::OX_VENTING_VALVE);
             // Disable next event
             EventBroker::getInstance().removeDelayed(nextDelayedEventId);
             transition(&TARS1::state_ready);
