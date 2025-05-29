@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,48 +22,83 @@
 
 #pragma once
 
-#include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Configs/TARS1Config.h>
-#include <RIGv2/Sensors/Sensors.h>
-#include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <common/MedianFilter.h>
-#include <events/FSM.h>
-#include <miosix.h>
-#include <scheduler/TaskScheduler.h>
+#include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include <chrono>
+
+#include "TARS1Data.h"
 
 namespace RIGv2
 {
 
+class Sensors;
+class Actuators;
+class BoardScheduler;
+
 class TARS1
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>,
-      public Boardcore::FSM<TARS1>
+      public Boardcore::HSM<TARS1>
 {
 public:
     TARS1();
 
     [[nodiscard]] bool start();
 
-    bool isRefueling();
+    Tars1Action getLastAction() const { return lastAction; }
 
 private:
     void sample();
 
-    void state_ready(const Boardcore::Event& event);
-    void state_refueling(const Boardcore::Event& event);
+    // HSM states
 
-    void logAction(Tars1ActionType action);
+    /**
+     * @brief TARS1 is ready and waiting for the user to start refueling.
+     */
+    Boardcore::State Ready(const Boardcore::Event& event);
+
+    /**
+     * @brief Super state for when TARS1 is refueling.
+     */
+    Boardcore::State Refueling(const Boardcore::Event& event);
+
+    /**
+     * @brief TARS1 is washing the OX tank.
+     * Super state: Refueling
+     *
+     * Opens both the venting and filling valves to wash the OX tank.
+     */
+    Boardcore::State RefuelingWashing(const Boardcore::Event& event);
+
+    /**
+     * @brief TARS1 is filling the OX tank and waiting for the system to
+     * stabilize.
+     * Super state: Refueling
+     */
+    Boardcore::State RefuelingFilling(const Boardcore::Event& event);
+
+    /**
+     * @brief TARS1 is venting the OX tank.
+     * Super state: Refueling
+     */
+    Boardcore::State RefuelingVenting(const Boardcore::Event& event);
+
+    void updateAndLogAction(Tars1Action action);
     void logSample(float pressure, float mass);
 
-    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tars1");
+    std::atomic<Tars1Action> lastAction{Tars1Action::READY};
+
+    std::chrono::milliseconds ventingTime{0};
 
     float previousMass = 0;
     float currentMass  = 0;
 
     float previousPressure = 0;
     float currentPressure  = 0;
+
+    int massStableCounter = 0;
 
     int medianSamples = 0;
     MedianFilter<float, Config::TARS1::MEDIAN_SAMPLE_NUMBER> massFilter;
@@ -73,8 +108,10 @@ private:
     float massSample     = 0;
     float pressureSample = 0;
 
-    int massStableCounter       = 0;
-    uint16_t nextDelayedEventId = 0;
+    uint16_t delayedEventId = 0;
+
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("tars1");
 };
 
 }  // namespace RIGv2
