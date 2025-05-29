@@ -41,7 +41,7 @@ static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for GMM FSM
 static const miosix::Priority GMM_PRIORITY = miosix::PRIORITY_MAX - 1;
 
-static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 1;
+static const miosix::Priority CAN_PRIORITY = miosix::PRIORITY_MAX - 2;
 
 }  // namespace Scheduler
 
