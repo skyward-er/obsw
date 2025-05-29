@@ -29,29 +29,22 @@
 namespace RIGv2
 {
 
-enum class Tars1ActionType : uint8_t
+enum class Tars1Action : uint8_t
 {
     READY = 0,
+    START,
     WASHING,
-    OPEN_FILLING,
-    OPEN_VENTING,
-    CHECK_PRESSURE,
-    CHECK_MASS,
+    FILLING,
+    VENTING,
     AUTOMATIC_STOP,
     MANUAL_STOP,
+    MANUAL_ACTION_STOP,
 };
 
 struct Tars1ActionData
 {
-    uint64_t timestamp;
-    Tars1ActionType action;
-
-    Tars1ActionData() : timestamp{0}, action{Tars1ActionType::READY} {}
-
-    Tars1ActionData(uint64_t timestamp, Tars1ActionType action)
-        : timestamp{timestamp}, action{action}
-    {
-    }
+    uint64_t timestamp = 0;
+    Tars1Action action = Tars1Action::READY;
 
     static std::string header() { return "timestamp,action\n"; }
 
@@ -63,16 +56,9 @@ struct Tars1ActionData
 
 struct Tars1SampleData
 {
-    uint64_t timestamp;
-    float pressure;
-    float mass;
-
-    Tars1SampleData() : timestamp{0}, pressure{0}, mass{0} {}
-
-    Tars1SampleData(uint64_t timestamp, float pressure, float mass)
-        : timestamp{timestamp}, pressure{pressure}, mass{mass}
-    {
-    }
+    uint64_t timestamp = 0;
+    float pressure     = 0.0f;
+    float mass         = 0.0f;
 
     static std::string header() { return "timestamp,pressure,mass\n"; }
 

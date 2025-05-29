@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include <units/Frequency.h>
 
-#include <cstddef>
+#include <chrono>
 #include <cstdint>
 
 namespace RIGv2
@@ -34,15 +34,22 @@ namespace Config
 namespace TARS1
 {
 
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz SAMPLE_PERIOD         = 100_hz;
 constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-constexpr uint32_t WASHING_OPENING_TIME         = 5000;
-constexpr uint32_t WASHING_TIME_DELAY           = 1000;
-constexpr uint32_t FILLING_OPENING_TIME         = 900000;
-constexpr uint32_t PRESSURE_STABILIZE_WAIT_TIME = 1000;
+// Washing procedure parameters
+constexpr auto WASHING_OPENING_TIME = 5000ms;
+constexpr auto WASHING_TIME_DELAY   = 1000ms;
+
+// Open the filling valve for a long time
+constexpr auto FILLING_OPENING_TIME = 600000ms;
+// Time to wait after opening the filling valve
+constexpr auto FILLING_STABILIZE_WAIT_TIME = 5000ms;
+// Time to wait between pressure stabilization checks
+constexpr auto PRESSURE_STABILIZE_WAIT_TIME = 2000ms;
 
 constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
 
