@@ -23,7 +23,7 @@
 #include "CanHandler.h"
 
 #include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/Configs/SchedulerConfig.h>
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -40,7 +40,7 @@ CanHandler::CanHandler()
     : driver(CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING),
       protocol(
           &driver, [this](const CanMessage& msg) { handleMessage(msg); },
-          Config::Scheduler::CAN_PRIORITY)
+          BoardScheduler::canHandlerPriority())
 {
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::MAIN),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
@@ -56,8 +56,7 @@ bool CanHandler::start()
 {
     driver.init();
 
-    TaskScheduler& scheduler =
-        getModule<BoardScheduler>()->getCanBusScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->canHandler();
 
     uint8_t result = scheduler.addTask(
         [this]()

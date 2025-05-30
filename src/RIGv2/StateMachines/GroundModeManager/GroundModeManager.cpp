@@ -22,7 +22,6 @@
 
 #include "GroundModeManager.h"
 
-#include <RIGv2/Configs/SchedulerConfig.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -34,7 +33,7 @@ using namespace miosix;
 
 GroundModeManager::GroundModeManager()
     : HSM(&GroundModeManager::state_idle, STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::GMM_PRIORITY)
+          BoardScheduler::groundModeManagerPriority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);

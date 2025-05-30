@@ -24,7 +24,6 @@
 
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/BoardScheduler.h>
-#include <RIGv2/Configs/SchedulerConfig.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/TARS1/TARS1Data.h>
 #include <common/Events.h>
@@ -39,7 +38,7 @@ using namespace Common;
 
 TARS1::TARS1()
     : HSM(&TARS1::Ready, miosix::STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::TARS_PRIORITY)
+          BoardScheduler::tars1Priority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
@@ -47,7 +46,7 @@ TARS1::TARS1()
 
 bool TARS1::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getTars1Scheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->tars1();
 
     uint8_t result =
         scheduler.addTask([this]() { sample(); }, Config::TARS1::SAMPLE_PERIOD);

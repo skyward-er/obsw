@@ -31,11 +31,11 @@
 #include <sensors/SensorManager.h>
 #include <sensors/analog/TrafagPressureSensor.h>
 #include <sensors/analog/TwoPointAnalogLoadCell.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <utils/ModuleManager/ModuleManager.hpp>
 #include <vector>
 
 namespace RIGv2
