@@ -64,7 +64,8 @@ bool Radio::start()
     auto& scheduler = getModule<BoardScheduler>()->radio();
 
     // Initialize the radio
-    auto frontend = std::make_unique<Skyward433Frontend>();
+    auto frontend = std::make_unique<EbyteFrontend>(
+        miosix::radio::txEn::getPin(), miosix::radio::rxEn::getPin());
 
     transceiver = std::make_unique<SX1278Fsk>(
         getModule<Buses>()->radio(), miosix::radio::cs::getPin(),
