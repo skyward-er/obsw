@@ -41,7 +41,7 @@ namespace RIGv2
 
 TARS3::TARS3()
     : HSM(&TARS3::Ready, miosix::STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::TARS_PRIORITY)
+          BoardScheduler::tars3Priority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_TARS);
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
@@ -49,7 +49,7 @@ TARS3::TARS3()
 
 bool TARS3::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getTars1Scheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->tars3();
 
     uint8_t result =
         scheduler.addTask([this]() { sample(); }, Config::TARS3::SAMPLE_PERIOD);

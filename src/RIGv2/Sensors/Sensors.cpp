@@ -692,8 +692,7 @@ void Sensors::oxTankWeightCallback()
 
 bool Sensors::sensorManagerInit()
 {
-    TaskScheduler& scheduler =
-        getModule<BoardScheduler>()->getSensorsScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->sensors();
 
     SensorManager::SensorMap_t map;
 
