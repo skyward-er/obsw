@@ -129,7 +129,7 @@ constexpr auto SCALE         = 4.21662235677003f;
 
 namespace DynamicPressure
 {
-constexpr auto ENABLED       = false;  //< Disabled on Parafoil
+constexpr auto ENABLED       = true;  // Reads nothing on Parafoil
 constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
 constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
 constexpr auto SCALE         = 4.21662235677003f;
