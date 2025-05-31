@@ -14,6 +14,7 @@
             "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common/CMSIS/Include",
             "${workspaceFolder}/skyward-boardcore/libs/mxgui",
             "${workspaceFolder}/skyward-boardcore/libs/tscpp",
+            "${workspaceFolder}/skyward-boardcore/libs/socrate/include",
             "${workspaceFolder}/skyward-boardcore/src/shared",
             "${workspaceFolder}/skyward-boardcore/src/tests",
             "${workspaceFolder}/src/boards",

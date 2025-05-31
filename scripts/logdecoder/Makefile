@@ -11,6 +11,7 @@ all:
 	 				-I$(BOARDCORE)libs/mavlink-skyward-lib \
 	 				-I$(BOARDCORE)libs/eigen \
 	 				-I$(BOARDCORE)libs/tscpp \
+	 				-I$(BOARDCORE)libs/socrate/include \
 	 				-I$(BOARDCORE)libs/fmt/include \
 	 				-I$(BOARDCORE)src/shared \
 					-I$(OBSW)
