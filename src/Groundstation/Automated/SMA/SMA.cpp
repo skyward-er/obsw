@@ -102,7 +102,11 @@ ActuationStatus SMA::moveStepperDeg(StepperList stepperId, float angle)
     }
     else
     {
-        return getModule<Actuators>()->moveDeg(stepperId, angle);
+        auto steppers = getModule<Actuators>();
+
+        const auto* config = steppers->getStepperConfig(stepperId);
+        steppers->setSpeed(stepperId, config->MAX_SPEED);
+        return steppers->moveDeg(stepperId, angle);
     }
 }
 

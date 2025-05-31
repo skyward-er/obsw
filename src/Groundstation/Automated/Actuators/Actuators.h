@@ -126,6 +126,20 @@ public:
         }
     }
 
+    const StepperConfig* getStepperConfig(StepperList stepper) const
+    {
+        switch (stepper)
+        {
+            case StepperList::STEPPER_X:
+                return &Antennas::Config::stepperXConfig;
+            case StepperList::STEPPER_Y:
+                return &Antennas::Config::stepperYConfig;
+            default:
+                assert(false && "Non existent stepperConfig");
+                return nullptr;
+        }
+    };
+
 private:
     Boardcore::StepperPWM* getStepper(StepperList stepper)
     {
@@ -137,20 +151,6 @@ private:
                 return &stepperY;
             default:
                 assert(false && "Non existent stepper");
-                return nullptr;
-        }
-    };
-
-    const StepperConfig* getStepperConfig(StepperList stepper) const
-    {
-        switch (stepper)
-        {
-            case StepperList::STEPPER_X:
-                return &Antennas::Config::stepperXConfig;
-            case StepperList::STEPPER_Y:
-                return &Antennas::Config::stepperYConfig;
-            default:
-                assert(false && "Non existent stepperConfig");
                 return nullptr;
         }
     };

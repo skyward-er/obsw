@@ -300,8 +300,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
             timestamp);
         /* Messages older and within the discard interval are treated as old
          * messages*/
-        if (timestamp <= lastFlightTMTimestamp &&
-            timestamp > lastFlightTMTimestamp - DISCARD_MSG_DELAY)
+        if (timestamp > lastFlightTMTimestamp - DISCARD_MSG_DELAY &&
+            timestamp <= lastFlightTMTimestamp)
             return;
         TRACE(
             "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet is valid "
@@ -332,8 +332,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
             rocketST.timestamp);
         /* Messages older and within the discard interval are treated as old
          * messages*/
-        if (rocketST.timestamp <= lastStatsTMTimestamp &&
-            lastStatsTMTimestamp > rocketST.timestamp + DISCARD_MSG_DELAY)
+        if (rocketST.timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY &&
+            rocketST.timestamp <= lastStatsTMTimestamp)
             return;
         TRACE(
             "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet is valid, "
