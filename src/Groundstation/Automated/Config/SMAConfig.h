@@ -41,6 +41,7 @@ static constexpr float PITCH_GAIN_NF =
     1.0;  ///< Pitch gain for the no feedback states
 
 // Feedback gains for the Follower
+// Note that the Follower applies another limitation to avoid gains over 1
 static constexpr float YAW_GAIN_F = 0.1;  ///< Yaw gain for the feedback states
 static constexpr float PITCH_GAIN_F =
     1.0;  ///< Pitch gain for the feedback states
