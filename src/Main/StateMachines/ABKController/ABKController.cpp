@@ -94,8 +94,23 @@ void ABKController::update()
 
     if (curState == ABKControllerState::ACTIVE)
     {
-        // Normal update
-        abk.update();
+        NASState nas        = getModule<NASController>()->getNASState();
+        ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+        float mslAltitude   = ref.refAltitude - nas.d;
+        float verticalSpeed = nas.vd;
+        float mach          = Aeroutils::computeMach(mslAltitude, verticalSpeed,
+                                                     Constants::MSL_TEMPERATURE);
+
+        if (mach <= Config::ABK::MACH_LIMIT)
+        {
+            // Normal update
+            abk.update();
+        }
+        else
+        {
+            // Close the aerobrakes
+            getModule<Actuators>()->setAbkPosition(0.0f);
+        }
     }
 }
 

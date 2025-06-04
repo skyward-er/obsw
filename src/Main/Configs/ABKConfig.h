@@ -39,6 +39,8 @@ namespace ABK
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz UPDATE_RATE = 10_hz;
+// Mach number below which AirBrakes can be opened
+constexpr float MACH_LIMIT = 0.8f;  // [-]
 
 #ifdef ROCCARASO
 
