@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
@@ -37,7 +38,8 @@ namespace Main
 class ABKController
     : public Boardcore::FSM<ABKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, MEAController>
+                                           NASController, MEAController,
+                                           AlgoReference>
 {
 public:
     ABKController();
