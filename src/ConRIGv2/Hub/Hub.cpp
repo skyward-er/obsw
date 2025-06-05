@@ -23,6 +23,7 @@
 #include "Hub.h"
 
 #include <ConRIGv2/Buses.h>
+#include <ConRIGv2/Configs/HubConfig.h>
 #include <ConRIGv2/Radio/Radio.h>
 #include <Groundstation/Common/Config/EthernetConfig.h>
 #include <interfaces-impl/hwmapping.h>
@@ -66,42 +67,73 @@ bool Hub::start()
 {
     auto* buses = getModule<Buses>();
 
-    serial2 = std::make_unique<SerialTransceiver>(buses->getUsart2());
-    serial4 = std::make_unique<SerialTransceiver>(buses->getUsart4());
-
-    mavDriver2 = std::make_unique<SerialMavDriver>(
-        serial2.get(), [this](auto channel, const mavlink_message_t& msg)
-        { dispatchToRIG(msg); }, 0, 10);
-
-    mavDriver4 = std::make_unique<SerialMavDriver>(
-        serial4.get(), [this](auto channel, const mavlink_message_t& msg)
-        { dispatchToRIG(msg); }, 0, 10);
-
-    if (!mavDriver2->start())
+    if (Config::Hub::USART2_ENABLED)
     {
-        LOG_ERR(logger, "Error starting the MAVLink driver for USART2");
-        return false;
+        serial2 = std::make_unique<SerialTransceiver>(buses->getUsart2());
+
+        mavDriver2 = std::make_unique<SerialMavDriver>(
+            serial2.get(), [this](auto channel, const mavlink_message_t& msg)
+            { dispatchToRIG(msg); }, 0, 10);
+
+        if (!mavDriver2->start())
+        {
+            LOG_ERR(logger, "Error starting the MAVLink driver for USART2");
+            return false;
+        }
+    }
+    else
+    {
+        LOG_WARN(logger,
+                 "Skipping USART2 initialization as it is disabled in the "
+                 "configuration");
     }
 
-    if (!mavDriver4->start())
+    if (Config::Hub::USART4_ENABLED)
     {
-        LOG_ERR(logger, "Error starting the MAVLink driver for USART4");
-        return false;
+        serial4 = std::make_unique<SerialTransceiver>(buses->getUsart4());
+
+        mavDriver4 = std::make_unique<SerialMavDriver>(
+            serial4.get(), [this](auto channel, const mavlink_message_t& msg)
+            { dispatchToRIG(msg); }, 0, 10);
+
+        if (!mavDriver4->start())
+        {
+            LOG_ERR(logger, "Error starting the MAVLink driver for USART4");
+            return false;
+        }
+    }
+    else
+    {
+        LOG_WARN(logger,
+                 "Skipping USART4 initialization as it is disabled in the "
+                 "configuration");
     }
 
-    if (!initEthernet())
+    if (Config::Hub::ETHERNET_ENABLED)
     {
-        LOG_ERR(logger, "Error starting the Ethernet driver");
-        return false;
+        if (!initEthernet())
+        {
+            LOG_ERR(logger, "Error starting the Ethernet driver");
+            return false;
+        }
+
+        mavDriverEth = std::make_unique<EthernetMavDriver>(
+            ethernet.get(),
+            [this](EthernetMavDriver* channel, const mavlink_message_t& msg)
+            { dispatchToRIG(msg); }, 0, 10);
+
+        if (!mavDriverEth->start())
+        {
+            LOG_ERR(logger, "Error starting MAVLink driver for Ethernet");
+            return false;
+        }
     }
-
-    mavDriverEth = std::make_unique<EthernetMavDriver>(
-        ethernet.get(),
-        [this](EthernetMavDriver* channel, const mavlink_message_t& msg)
-        { dispatchToRIG(msg); }, 0, 10);
-
-    if (!mavDriverEth->start())
-        return false;
+    else
+    {
+        LOG_WARN(logger,
+                 "Skipping Ethernet initialization as it is disabled in the "
+                 "configuration");
+    }
 
     return true;
 }
