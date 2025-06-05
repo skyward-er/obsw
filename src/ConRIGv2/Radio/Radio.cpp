@@ -30,8 +30,10 @@
 #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
+#include <chrono>
 #include <thread>
 
+using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
 using namespace ConRIGv2;
@@ -91,6 +93,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             {
                 // Reset the internal button state
                 resetButtonState();
+
+                if (pingThread)
+                    pingThread->wakeup();
             }
 
             break;
@@ -242,14 +247,26 @@ bool Radio::start()
         return false;
     }
 
-    auto& radioSched = getModule<BoardScheduler>()->radio();
-    if (radioSched.addTask([this]() { sendPeriodicPing(); },
-                           Config::Radio::PING_GSE_PERIOD,
-                           TaskScheduler::Policy::RECOVER) == 0)
-    {
-        LOG_ERR(logger, "Failed to add ping task");
-        return false;
-    }
+    // Periodic telemetry ping thread
+    pingThread = Thread::create(
+        [](void* pRadio)
+        {
+            auto* radio = static_cast<Radio*>(pRadio);
+
+            while (true)
+            {
+                radio->sendPeriodicPing();
+
+                auto wakeup = steady_clock::now() + Config::Radio::PING_TIMEOUT;
+
+                // Wait until signaled (ack received) or timeout
+                Thread::getCurrentThread()->timedWait(
+                    wakeup.time_since_epoch().count());
+            }
+        },
+        miosix::STACK_DEFAULT_FOR_PTHREAD,
+        getModule<BoardScheduler>()->radioPriority(), this,
+        miosix::Thread::DEFAULT);
 
     auto& buzzzerSched = getModule<BoardScheduler>()->buzzer();
     buzzzerSched.addTask([this]() { buzzerTask(); }, 20_hz,

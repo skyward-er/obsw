@@ -40,8 +40,8 @@ constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
 constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
 constexpr unsigned int CIRCULAR_BUFFER_SIZE = 30;
-// Measured empirically, used to determine how many packets to send in a flush
-constexpr unsigned int BITRATE = 4000;  // [bits/s]
+// Maximum bytes to flush at once, consider a bitrate of 3500 bps
+constexpr unsigned int MAX_FLUSH_SIZE = 250;  // [bytes]
 
 constexpr uint8_t MAV_SYSTEM_ID    = MAV_SYSID_RIG;
 constexpr uint8_t MAV_COMPONENT_ID = 0;
