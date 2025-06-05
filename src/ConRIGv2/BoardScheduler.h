@@ -34,37 +34,68 @@ namespace ConRIGv2
 class BoardScheduler : public Boardcore::Injectable
 {
 public:
-    BoardScheduler()
-        : radio{miosix::PRIORITY_MAX - 1}, buttons{miosix::PRIORITY_MAX - 2}
+    /**
+     * @brief Enclosing struct to avoid polluting the BoardScheduler namespace.
+     */
+    struct Priority
     {
-    }
+        /**
+         * @brief Priority levels for the board schedulers.
+         */
+        enum PriorityLevel
+        {
+            LOW      = miosix::PRIORITY_MAX - 4,
+            MEDIUM   = miosix::PRIORITY_MAX - 3,
+            HIGH     = miosix::PRIORITY_MAX - 2,
+            CRITICAL = miosix::PRIORITY_MAX - 1,
+        };
+    };
 
+
+    Boardcore::TaskScheduler& radio() { return high; }
+    Boardcore::TaskScheduler& buttons() { return critical; }
+    Boardcore::TaskScheduler& buzzer() { return medium; }
+
+    /**
+     * @brief Starts all the schedulers
+     */
     [[nodiscard]] bool start()
     {
-        if (!radio.start())
+        if (!critical.start())
         {
-            LOG_ERR(logger, "Failed to start radio scheduler");
+            LOG_ERR(logger, "Critical priority scheduler failed to start");
             return false;
         }
 
-        if (!buttons.start())
+        if (!high.start())
         {
-            LOG_ERR(logger, "Failed to start buttons scheduler");
+            LOG_ERR(logger, "High priority scheduler failed to start");
             return false;
         }
 
+        if (!medium.start())
+        {
+            LOG_ERR(logger, "Medium priority scheduler failed to start");
+            return false;
+        }
+
+        started = true;
         return true;
     }
 
-    Boardcore::TaskScheduler& getRadioScheduler() { return radio; }
-
-    Boardcore::TaskScheduler& getButtonsScheduler() { return buttons; }
+    /**
+     * @brief Returns if all the schedulers are up and running
+     */
+    bool isStarted() { return started; }
 
 private:
+    Boardcore::TaskScheduler critical{Priority::CRITICAL};
+    Boardcore::TaskScheduler high{Priority::HIGH};
+    Boardcore::TaskScheduler medium{Priority::MEDIUM};
+
+    std::atomic<bool> started{false};
+
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("boardscheduler");
-
-    Boardcore::TaskScheduler radio;
-    Boardcore::TaskScheduler buttons;
 };
 }  // namespace ConRIGv2

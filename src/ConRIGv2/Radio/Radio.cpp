@@ -36,6 +36,7 @@ using namespace miosix;
 using namespace Boardcore;
 using namespace ConRIGv2;
 using namespace Common;
+using namespace Boardcore::Units::Frequency;
 
 SX1278Lora* gRadio{nullptr};
 
@@ -241,18 +242,18 @@ bool Radio::start()
         return false;
     }
 
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
-
-    if (scheduler.addTask([this]() { sendPeriodicPing(); },
-                          Config::Radio::PING_GSE_PERIOD,
-                          TaskScheduler::Policy::RECOVER) == 0)
+    auto& radioSched = getModule<BoardScheduler>()->radio();
+    if (radioSched.addTask([this]() { sendPeriodicPing(); },
+                           Config::Radio::PING_GSE_PERIOD,
+                           TaskScheduler::Policy::RECOVER) == 0)
     {
         LOG_ERR(logger, "Failed to add ping task");
         return false;
     }
 
-    scheduler.addTask([this]() { buzzerTask(); }, 50,
-                      TaskScheduler::Policy::RECOVER);
+    auto& buzzzerSched = getModule<BoardScheduler>()->buzzer();
+    buzzzerSched.addTask([this]() { buzzerTask(); }, 20_hz,
+                         TaskScheduler::Policy::RECOVER);
 
     return true;
 }

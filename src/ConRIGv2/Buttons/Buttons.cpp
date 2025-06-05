@@ -63,8 +63,7 @@ void printStateDiff(const mavlink_conrig_state_tc_t& oldState,
 
 bool Buttons::start()
 {
-    TaskScheduler& scheduler =
-        getModule<BoardScheduler>()->getButtonsScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->buttons();
 
     return scheduler.addTask([this]() { periodicStatusCheck(); },
                              Config::Buttons::BUTTON_SAMPLE_PERIOD) != 0;
