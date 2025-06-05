@@ -25,6 +25,8 @@
 #include <common/MavlinkOrion.h>
 #include <units/Frequency.h>
 
+#include <chrono>
+
 namespace ConRIGv2
 {
 
@@ -33,6 +35,7 @@ namespace Config
 namespace Radio
 {
 
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
@@ -47,8 +50,8 @@ constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 constexpr uint8_t MAV_SYSTEM_ID    = 171;
 constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-// Periodic telemetries frequency
-constexpr Hertz PING_GSE_PERIOD = 2_hz;
+// Time to wait after no messages is received before sending a new periodic ping
+constexpr auto PING_TIMEOUT = 1000ms;
 
 // Audio feedback message threshold
 constexpr auto AUDIO_FEEDBACK_THRESHOLD = 10;

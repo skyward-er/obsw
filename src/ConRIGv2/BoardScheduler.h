@@ -51,10 +51,14 @@ public:
         };
     };
 
-
     Boardcore::TaskScheduler& radio() { return high; }
     Boardcore::TaskScheduler& buttons() { return critical; }
     Boardcore::TaskScheduler& buzzer() { return medium; }
+
+    static Priority::PriorityLevel radioPriority()
+    {
+        return Priority::HIGH;  // Max priority for valve control
+    }
 
     /**
      * @brief Starts all the schedulers

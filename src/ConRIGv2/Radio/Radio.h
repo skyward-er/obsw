@@ -88,6 +88,9 @@ private:
     miosix::FastMutex buttonsMutex;
     mavlink_conrig_state_tc_t buttonState{};
 
+    // Thread for periodic pings
+    miosix::Thread* pingThread = nullptr;
+
     std::atomic<uint8_t> messagesReceived{
         Config::Radio::AUDIO_FEEDBACK_RESET_VALUE};
     std::atomic<bool> isArmed{false};

@@ -107,12 +107,6 @@ void Radio::enqueueMessage(const mavlink_message_t& msg)
 
 void Radio::flushMessages()
 {
-    // Flush the maximum number of packets according to the bitrate
-    constexpr auto sendSlotDuration =
-        1.0f / ConRIGv2::Config::Radio::PING_GSE_PERIOD.value();  // [s]
-    constexpr auto maxFlushSize =
-        static_cast<size_t>(Config::Radio::BITRATE / 8 * sendSlotDuration);
-
     try
     {
         size_t bytesSent = 0;
@@ -121,7 +115,7 @@ void Radio::flushMessages()
         {
             auto& message      = queuedMessages.get();
             auto messageLength = mavlink_msg_get_send_buffer_length(&message);
-            if (bytesSent + messageLength > maxFlushSize)
+            if (bytesSent + messageLength > Config::Radio::MAX_FLUSH_SIZE)
                 break;
 
             bool enqueued = mavDriver->enqueueMsg(message);
