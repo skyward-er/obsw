@@ -290,8 +290,8 @@ struct ActuatorsStateHIL
  */
 struct SimulatorData
 {
-    MainAccelerometerSimulatorData accelerometer;
-    MainGyroscopeSimulatorData gyro;
+    MainAccelerometerSimulatorData accelerometer1, accelerometer2;
+    MainGyroscopeSimulatorData gyro1, gyro2;
     MainMagnetometerSimulatorData magnetometer;
     MainGPSSimulatorData gps;
     MainBarometerSimulatorData barometer1, barometer2, barometer3;
