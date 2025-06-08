@@ -94,23 +94,8 @@ void ABKController::update()
 
     if (curState == ABKControllerState::ACTIVE)
     {
-        NASState nas        = getModule<NASController>()->getNASState();
-        ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
-        float mslAltitude   = ref.refAltitude - nas.d;
-        float verticalSpeed = nas.vd;
-        float mach          = Aeroutils::computeMach(mslAltitude, verticalSpeed,
-                                                     Constants::MSL_TEMPERATURE);
-
-        if (mach <= Config::ABK::MACH_LIMIT)
-        {
-            // Normal update
-            abk.update();
-        }
-        else
-        {
-            // Close the aerobrakes
-            getModule<Actuators>()->setAbkPosition(0.0f);
-        }
+        // Normal update
+        abk.update();
     }
 }
 
@@ -194,7 +179,16 @@ void ABKController::state_shadow_mode(const Event& event)
 
         case ABK_SHADOW_MODE_TIMEOUT:
         {
-            transition(&ABKController::state_active);
+            NASState nas = getModule<NASController>()->getNASState();
+            ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+            float mslAltitude = ref.refAltitude - nas.d;
+            float verticalSpeed = nas.vd;
+            float mach = Aeroutils::computeMach(mslAltitude, verticalSpeed, Constants::MSL_TEMPERATURE);
+
+            if(mach <= Config::ABK::MACH_LIMIT)
+            {
+                transition(&ABKController::state_active);
+            }
             break;
         }
 
