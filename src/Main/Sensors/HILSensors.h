@@ -94,9 +94,9 @@ private:
         hillificator<>(ubxgps, enableHw,
                        [this]() { return updateUBXGPSData(); });
         hillificator<>(lsm6dsrx_0, enableHw,
-                       [this]() { return updateLSM6DSRXData(); });
+                       [this]() { return updateLSM6DSRXData_0(); });
         hillificator<>(lsm6dsrx_1, enableHw,
-                       [this]() { return updateLSM6DSRXData(); });
+                       [this]() { return updateLSM6DSRXData_1(); });
         hillificator<>(nd015a_0, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015a_1, enableHw,
@@ -163,12 +163,12 @@ private:
 
         auto* sensorData = getModule<MainHIL>()->getSensorData();
 
-        int iAcc = getSampleCounter(sensorData->accelerometer.NDATA);
+        int iAcc = getSampleCounter(sensorData->accelerometer1.NDATA);
 
         data.accelerationTimestamp = Boardcore::TimestampTimer::getTimestamp();
-        data.accelerationX = sensorData->accelerometer.measures[iAcc][0];
-        data.accelerationY = sensorData->accelerometer.measures[iAcc][1];
-        data.accelerationZ = sensorData->accelerometer.measures[iAcc][2];
+        data.accelerationX = sensorData->accelerometer1.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer1.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer1.measures[iAcc][2];
 
         return data;
     };
@@ -217,25 +217,48 @@ private:
         return data;
     };
 
-    Boardcore::LSM6DSRXData updateLSM6DSRXData()
+    Boardcore::LSM6DSRXData updateLSM6DSRXData_0()
     {
         Boardcore::LSM6DSRXData data;
 
         auto* sensorData = getModule<MainHIL>()->getSensorData();
 
-        int iAcc  = getSampleCounter(sensorData->accelerometer.NDATA);
-        int iGyro = getSampleCounter(sensorData->gyro.NDATA);
+        int iAcc  = getSampleCounter(sensorData->accelerometer1.NDATA);
+        int iGyro = getSampleCounter(sensorData->gyro1.NDATA);
 
         data.accelerationTimestamp = data.angularSpeedTimestamp =
             Boardcore::TimestampTimer::getTimestamp();
 
-        data.accelerationX = sensorData->accelerometer.measures[iAcc][0];
-        data.accelerationY = sensorData->accelerometer.measures[iAcc][1];
-        data.accelerationZ = sensorData->accelerometer.measures[iAcc][2];
+        data.accelerationX = sensorData->accelerometer1.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer1.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer1.measures[iAcc][2];
 
-        data.angularSpeedX = sensorData->gyro.measures[iGyro][0];
-        data.angularSpeedY = sensorData->gyro.measures[iGyro][1];
-        data.angularSpeedZ = sensorData->gyro.measures[iGyro][2];
+        data.angularSpeedX = sensorData->gyro1.measures[iGyro][0];
+        data.angularSpeedY = sensorData->gyro1.measures[iGyro][1];
+        data.angularSpeedZ = sensorData->gyro1.measures[iGyro][2];
+
+        return data;
+    };
+
+    Boardcore::LSM6DSRXData updateLSM6DSRXData_1()
+    {
+        Boardcore::LSM6DSRXData data;
+
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
+
+        int iAcc  = getSampleCounter(sensorData->accelerometer2.NDATA);
+        int iGyro = getSampleCounter(sensorData->gyro2.NDATA);
+
+        data.accelerationTimestamp = data.angularSpeedTimestamp =
+            Boardcore::TimestampTimer::getTimestamp();
+
+        data.accelerationX = sensorData->accelerometer2.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer2.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer2.measures[iAcc][2];
+
+        data.angularSpeedX = sensorData->gyro2.measures[iGyro][0];
+        data.angularSpeedY = sensorData->gyro2.measures[iGyro][1];
+        data.angularSpeedZ = sensorData->gyro2.measures[iGyro][2];
 
         return data;
     };
