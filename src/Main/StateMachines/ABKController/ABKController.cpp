@@ -78,18 +78,17 @@ void ABKController::update()
 {
     ABKControllerState curState = state;
 
-    if (!abk.isRunning() && curState == ABKControllerState::ACTIVE)
+    if (state == ABKControllerState::WAITING_MACH)
     {
-        // We transitioned into ACTIVE, start up the algorithm
-        abk.begin(getModule<MEAController>()->getMEAState().estimatedMass);
-    }
+        // We are waiting for the vertical speed to be below the mach limit
+        auto nas          = getModule<NASController>()->getNASState();
+        auto ref          = getModule<AlgoReference>()->getReferenceValues();
+        float mslAltitude = ref.refAltitude - nas.d;
+        float mach        = Aeroutils::computeMach(mslAltitude, nas.vd,
+                                                   Constants::MSL_TEMPERATURE);
 
-    if (abk.isRunning() && curState == ABKControllerState::END)
-    {
-        // We transitioned into END, shut down the algorithm
-        abk.end();
-        // Close the aerobrakes
-        getModule<Actuators>()->setAbkPosition(0.0f);
+        if (mach <= Config::ABK::MACH_LIMIT)
+            EventBroker::getInstance().post(ABK_MACH_BELOW_LIMIT, TOPIC_ABK);
     }
 
     if (curState == ABKControllerState::ACTIVE)
@@ -179,16 +178,32 @@ void ABKController::state_shadow_mode(const Event& event)
 
         case ABK_SHADOW_MODE_TIMEOUT:
         {
-            NASState nas = getModule<NASController>()->getNASState();
-            ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
-            float mslAltitude = ref.refAltitude - nas.d;
-            float verticalSpeed = nas.vd;
-            float mach = Aeroutils::computeMach(mslAltitude, verticalSpeed, Constants::MSL_TEMPERATURE);
+            transition(&ABKController::state_waiting_mach);
+            break;
+        }
 
-            if(mach <= Config::ABK::MACH_LIMIT)
-            {
-                transition(&ABKController::state_active);
-            }
+        case FLIGHT_APOGEE_DETECTED:
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&ABKController::state_end);
+            break;
+        }
+    }
+}
+
+void ABKController::state_waiting_mach(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ABKControllerState::WAITING_MACH);
+            break;
+        }
+
+        case ABK_MACH_BELOW_LIMIT:
+        {
+            transition(&ABKController::state_active);
             break;
         }
 
@@ -208,6 +223,8 @@ void ABKController::state_active(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ABKControllerState::ACTIVE);
+            // Start the algorithm
+            abk.begin(getModule<MEAController>()->getMEAState().estimatedMass);
             break;
         }
 
@@ -227,6 +244,10 @@ void ABKController::state_end(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ABKControllerState::END);
+            // Stop the algorithm
+            abk.end();
+            // Close the airbrakes
+            getModule<Actuators>()->setAbkPosition(0.0f);
             break;
         }
     }
