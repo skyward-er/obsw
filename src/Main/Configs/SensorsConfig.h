@@ -90,7 +90,7 @@ constexpr Hertz RATE   = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace UBXGPS
 
-namespace LSM6DSRX
+namespace LSM6DSRX_0
 {
 constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
     Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
@@ -108,7 +108,27 @@ constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
 
 constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
-}  // namespace LSM6DSRX
+}  // namespace LSM6DSRX_0
+
+namespace LSM6DSRX_1
+{
+constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
+    Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G4;
+constexpr Boardcore::LSM6DSRXConfig::ACC_ODR ACC_ODR =
+    Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_104;
+constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
+constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
+    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_1000;
+constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
+    Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_104;
+constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace LSM6DSRX_1
 
 namespace VN100
 {

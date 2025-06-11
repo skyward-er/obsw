@@ -58,11 +58,11 @@ bool Sensors::start()
     if (Config::Sensors::UBXGPS::ENABLED)
         ubxgpsInit();
 
-    if (Config::Sensors::LSM6DSRX::ENABLED)
-    {
+    if (Config::Sensors::LSM6DSRX_0::ENABLED)
         lsm6dsrx0Init();
+
+    if (Config::Sensors::LSM6DSRX_1::ENABLED)
         lsm6dsrx1Init();
-    }
 
     if (Config::Sensors::VN100::ENABLED)
         vn100Init();
@@ -600,13 +600,13 @@ void Sensors::lsm6dsrx0Init()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_0::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_0::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_0::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_0::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_0::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_0::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
@@ -639,13 +639,13 @@ void Sensors::lsm6dsrx1Init()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_1::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_1::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_1::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_1::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_1::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_1::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
@@ -828,14 +828,14 @@ bool Sensors::sensorManagerInit()
 
     if (lsm6dsrx_0)
     {
-        SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX::RATE,
+        SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
                         [this]() { lsm6dsrx0Callback(); }};
         map.emplace(lsm6dsrx_0.get(), info);
     }
 
     if (lsm6dsrx_1)
     {
-        SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX::RATE,
+        SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
                         [this]() { lsm6dsrx1Callback(); }};
         map.emplace(lsm6dsrx_1.get(), info);
     }
