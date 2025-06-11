@@ -35,6 +35,7 @@ enum class ABKControllerState : uint8_t
     READY,
     ARMED,
     SHADOW_MODE,
+    WAITING_MACH,
     ACTIVE,
     END
 };

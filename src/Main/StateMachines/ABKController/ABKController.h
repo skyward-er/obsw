@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/Actuators/Actuators.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
@@ -37,7 +38,8 @@ namespace Main
 class ABKController
     : public Boardcore::FSM<ABKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, MEAController>
+                                           NASController, MEAController,
+                                           AlgoReference>
 {
 public:
     ABKController();
@@ -54,6 +56,7 @@ private:
     void state_ready(const Boardcore::Event& event);
     void state_armed(const Boardcore::Event& event);
     void state_shadow_mode(const Boardcore::Event& event);
+    void state_waiting_mach(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
