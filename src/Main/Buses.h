@@ -53,7 +53,7 @@ private:
     Boardcore::SPIBus spi4{SPI4};
     Boardcore::SPIBus spi6{SPI6};
 
-    Boardcore::USART usart4{UART4, 256000, 1024};
+    Boardcore::USART usart4{UART4, 230400, 1024};
 };
 
 }  // namespace Main
