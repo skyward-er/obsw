@@ -165,70 +165,109 @@ void MainHILPhasesManager::handleEventImpl(
     switch (e)
     {
         case Common::Events::FMM_INIT_ERROR:
+        {
             printf("[HIL] ------- INIT FAILED ! ------- \n");
+            break;
+        }
+
         case Common::Events::FMM_INIT_OK:
+        {
             setFlagFlightPhase(MainFlightPhases::CALIBRATION, true);
             printf("[HIL] ------- CALIBRATION ! ------- \n");
             changed_flags.push_back(MainFlightPhases::CALIBRATION);
             break;
+        }
+
         case Common::Events::FLIGHT_DISARMED:
+        {
             setFlagFlightPhase(MainFlightPhases::CALIBRATION_OK, true);
             printf("[HIL] CALIBRATION OK!\n");
             changed_flags.push_back(MainFlightPhases::CALIBRATION_OK);
             break;
+        }
+
         case Common::Events::FLIGHT_ARMED:
+        {
             setFlagFlightPhase(MainFlightPhases::ARMED, true);
             printf("[HIL] ------- READY TO LAUNCH ! ------- \n");
             changed_flags.push_back(MainFlightPhases::ARMED);
             break;
+        }
+
         case Common::Events::FLIGHT_LAUNCH_PIN_DETACHED:
+        {
             setFlagFlightPhase(MainFlightPhases::LIFTOFF_PIN_DETACHED, true);
             printf("[HIL] ------- LIFTOFF PIN DETACHED ! ------- \n");
             changed_flags.push_back(MainFlightPhases::LIFTOFF_PIN_DETACHED);
             break;
+        }
+
         case Common::Events::FLIGHT_LIFTOFF:
         case Common::Events::TMTC_FORCE_LAUNCH:
+        {
             t_liftoff = Boardcore::TimestampTimer::getTimestamp();
             printf("[HIL] ------- LIFTOFF -------: %f, %f \n",
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::LIFTOFF);
             break;
+        }
+
         case Common::Events::FLIGHT_MOTOR_SHUTDOWN:
+        {
             printf("[HIL] ------- SHUTDOWN -------: %f, %f \n",
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::SHUTDOWN);
+            break;
+        }
+
         case Common::Events::ABK_SHADOW_MODE_TIMEOUT:
+        {
             setFlagFlightPhase(MainFlightPhases::AEROBRAKES, true);
             registerOutcomes(MainFlightPhases::AEROBRAKES);
             printf("[HIL] ABK shadow mode timeout\n");
             changed_flags.push_back(MainFlightPhases::AEROBRAKES);
             break;
+        }
+
         case Common::Events::ADA_SHADOW_MODE_TIMEOUT:
+        {
             printf("[HIL] ADA shadow mode timeout\n");
             break;
+        }
+
         case Common::Events::ABK_DISABLE:
+        {
             setFlagFlightPhase(MainFlightPhases::AEROBRAKES, false);
             printf("[HIL] ABK disabled\n");
             break;
+        }
+
         case Common::Events::FLIGHT_APOGEE_DETECTED:
         case Common::Events::CAN_APOGEE_DETECTED:
+        {
             setFlagFlightPhase(MainFlightPhases::AEROBRAKES, false);
             registerOutcomes(MainFlightPhases::APOGEE);
             printf("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::APOGEE);
             break;
+        }
+
         case Common::Events::FLIGHT_DROGUE_DESCENT:
         case Common::Events::TMTC_FORCE_EXPULSION:
+        {
             setFlagFlightPhase(MainFlightPhases::PARA1, true);
             registerOutcomes(MainFlightPhases::PARA1);
-            printf("[HIL] ------- PARA1 ! -------%f, %f \n",
+            printf("[HIL] ------- PARA1 ! ------- %f, %f \n",
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::PARA1);
             break;
+        }
+
         case Common::Events::FLIGHT_WING_DESCENT:
         case Common::Events::FLIGHT_DPL_ALT_DETECTED:
         case Common::Events::TMTC_FORCE_DEPLOYMENT:
+        {
             setFlagFlightPhase(MainFlightPhases::PARA1, false);
             setFlagFlightPhase(MainFlightPhases::PARA2, true);
             registerOutcomes(MainFlightPhases::PARA2);
@@ -236,8 +275,11 @@ void MainHILPhasesManager::handleEventImpl(
                    getCurrentPosition().z, getCurrentPosition().vz);
             changed_flags.push_back(MainFlightPhases::PARA2);
             break;
+        }
+
         case Common::Events::FLIGHT_LANDING_DETECTED:
         case Common::Events::TMTC_FORCE_LANDING:
+        {
             t_stop = Boardcore::TimestampTimer::getTimestamp();
             setFlagFlightPhase(MainFlightPhases::PARA2, false);
             setFlagFlightPhase(MainFlightPhases::SIMULATION_STOPPED, true);
@@ -247,8 +289,13 @@ void MainHILPhasesManager::handleEventImpl(
                    (double)t_stop / 1000000.0f);
             printOutcomes();
             break;
+        }
+
         default:
+        {
             printf("%s event\n", Common::getEventString(e).c_str());
+            break;
+        }
     }
 }
 
