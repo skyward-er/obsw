@@ -126,8 +126,6 @@ int main()
                  manager.insert<ABKController>(abk) &&
                  manager.insert<StatsRecorder>(recorder) && manager.inject();
 
-    manager.graphviz(std::cout);
-
     if (!initResult)
     {
         std::cout << "Failed to inject dependencies" << std::endl;
