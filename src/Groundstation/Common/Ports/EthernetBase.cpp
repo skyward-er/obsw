@@ -33,11 +33,20 @@ using namespace miosix;
 
 WizIp Groundstation::genNewRandomIp()
 {
-    WizIp ip = IP_BASE;
-    ip.c     = (rand() % 254) + 1;  // Generate C in range 1‑254
-    ip.d     = (rand() % 254) + 1;  // Generate D in range 1‑254
+    uint32_t mask      = static_cast<uint32_t>(SUBNET);
+    uint32_t network   = static_cast<uint32_t>(IP_BASE) & mask;
+    uint32_t broadcast = network | ~mask;
 
-    return ip;
+    uint32_t rangeStart = network + 1;    // Start after the network address
+    uint32_t rangeEnd   = broadcast - 1;  // End before the broadcast address
+
+    // If the range is invalid, return the base IP
+    if (rangeEnd <= rangeStart)
+        return WizIp(rangeStart);
+
+    uint32_t ip = rangeStart + (rand() % (rangeEnd - rangeStart + 1));
+
+    return WizIp(ip);
 }
 
 WizMac Groundstation::genNewRandomMac()
