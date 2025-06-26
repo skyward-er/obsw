@@ -91,9 +91,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             // we assume this ack is about the last sent message
             if (id == MAVLINK_MSG_ID_CONRIG_STATE_TC)
             {
-                // Reset the internal button state
-                resetButtonState();
-
                 if (pingThread)
                     pingThread->wakeup();
             }
@@ -121,13 +118,15 @@ bool Radio::enqueueMessage(const mavlink_message_t& msg)
 
 void Radio::sendPeriodicPing()
 {
-    mavlink_message_t msg;
+    mavlink_message_t conrigStateMsg = {};
 
     {
         Lock<FastMutex> lock{buttonsMutex};
         mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
                                            Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &buttonState);
+                                           &conrigStateMsg, &buttonState);
+        // Reset the button state after sending the ping
+        resetButtonState(lock);
     }
 
     // Flush the queue
@@ -148,7 +147,7 @@ void Radio::sendPeriodicPing()
     }
 
     // Finally make sure we always send the periodic ping
-    mavDriver->enqueueMsg(msg);
+    mavDriver->enqueueMsg(conrigStateMsg);
 }
 
 void Radio::buzzerOn()
@@ -198,9 +197,8 @@ void Radio::updateButtonState(const mavlink_conrig_state_tc_t& state)
     buttonState.arm_switch     = state.arm_switch;
 }
 
-void Radio::resetButtonState()
+void Radio::resetButtonState(const Lock<FastMutex>& /*lock*/)
 {
-    Lock<FastMutex> lock{buttonsMutex};
     // Save and restore lever states
     auto n2_3way_switch        = buttonState.n2_3way_switch;
     auto tars_switch           = buttonState.tars_switch;

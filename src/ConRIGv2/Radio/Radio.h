@@ -61,11 +61,17 @@ public:
     bool enqueueMessage(const mavlink_message_t& msg);
 
 private:
+    /**
+     * @brief Send ConRIG state to the RIG and all pending messages.
+     *
+     * @note Button state is reset after sending the state.
+     */
     void sendPeriodicPing();
+
     void buzzerTask();
     void handleMessage(const mavlink_message_t& msg);
 
-    void resetButtonState();
+    void resetButtonState(const Lock<FastMutex>& /*lock*/);
 
     std::unique_ptr<Boardcore::SX1278Lora> radio;
     std::unique_ptr<MavDriver> mavDriver;
@@ -76,7 +82,6 @@ private:
     Boardcore::PWM buzzer;
 
     std::atomic<uint32_t> buzzerCounter{0};
-    std::atomic<uint32_t> buzzerOverflow{100};
 
     Boardcore::CircularBuffer<mavlink_message_t,
                               Config::Radio::CIRCULAR_BUFFER_SIZE>

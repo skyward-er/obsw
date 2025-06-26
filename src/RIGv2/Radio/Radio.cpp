@@ -130,7 +130,7 @@ void Radio::flushMessages()
     catch (std::range_error& e)
     {
         // This shouldn't happen, but still try to prevent it
-        LOG_ERR(logger, "Error while flushing packets: %s", e.what());
+        LOG_ERR(logger, "Error while flushing packets: {}", e.what());
     }
 }
 
@@ -945,11 +945,11 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
 void Radio::handleConrigState(const mavlink_message_t& msg)
 {
-    // Acknowledge the state
-    enqueueAck(msg);
     // Send GSE and motor telemetry
     enqueueSystemTm(MAV_GSE_ID);
     enqueueSystemTm(MAV_MOTOR_ID);
+    // Acknowledge the state
+    enqueueAck(msg);
 
     // Flush all pending packets
     flushMessages();
