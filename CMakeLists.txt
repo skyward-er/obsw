@@ -109,3 +109,7 @@ add_executable(lyra-gs-entry
 )
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
+
+add_executable(biliquid-valve-slave src/Biliquid/biliquid-valve-slave.cpp ${BILIQUID_VALVE_SLAVE})
+target_include_directories(biliquid-valve-slave PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(biliquid-valve-slave stm32f429zi_stm32f4discovery)
