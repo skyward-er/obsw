@@ -126,3 +126,9 @@ set (LYRA_GS
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
     src/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
 )
+
+set (BILIQUID_VALVE_SLAVE
+    src/Biliquid/Actuators/Actuators.cpp
+    src/Biliquid/Control/SequenceManager.cpp
+    src/Biliquid/Control/Sequences.cpp
+)
