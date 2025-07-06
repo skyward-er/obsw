@@ -57,10 +57,15 @@ struct ADAControllerStatus
 
 struct ADAControllerSampleData
 {
-    uint64_t timestamp           = 0;
-    uint32_t detectedApogees     = 0;
-    uint32_t detectedDeployments = 0;
-    ADAControllerState state     = ADAControllerState::INIT;
+    uint64_t timestamp               = 0;
+    uint32_t ada0DetectedApogees     = 0;
+    uint32_t ada2DetectedApogees     = 0;
+    uint32_t ada1DetectedApogees     = 0;
+    uint32_t ada0DetectedDeployments = 0;
+    uint32_t ada1DetectedDeployments = 0;
+    uint32_t ada2DetectedDeployments = 0;
+
+    ADAControllerState state = ADAControllerState::INIT;
 
     static constexpr auto reflect()
     {

@@ -74,11 +74,21 @@ private:
     uint16_t shadowModeTimeoutEvent = 0;
 
     miosix::FastMutex adaMutex;
-    Boardcore::ADA ada;
+    Boardcore::ADA ada0;
+    Boardcore::ADA ada1;
+    Boardcore::ADA ada2;
 
-    uint64_t lastBaroTimestamp       = 0;
-    unsigned int detectedApogees     = 0;
-    unsigned int detectedDeployments = 0;
+    uint64_t lastBaro0Timestamp = 0;
+    uint64_t lastBaro1Timestamp = 0;
+    uint64_t lastBaro2Timestamp = 0;
+
+    unsigned int ada0DetectedApogees = 0;
+    unsigned int ada1DetectedApogees = 0;
+    unsigned int ada2DetectedApogees = 0;
+
+    unsigned int ada0DetectedDeployments = 0;
+    unsigned int ada1DetectedDeployments = 0;
+    unsigned int ada2DetectedDeployments = 0;
 };
 
 }  // namespace Main
