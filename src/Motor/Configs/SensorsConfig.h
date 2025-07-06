@@ -173,6 +173,12 @@ constexpr float TANK_P1_TEMP    = 34.0f;
 
 }  // namespace Kulite
 
+namespace MAX31856
+{
+constexpr Hertz PERIOD = 10_hz;
+constexpr bool ENABLED = true;
+}  // namespace MAX31856
+
 namespace InternalADC
 {
 constexpr Boardcore::InternalADC::Channel VBAT_CH =

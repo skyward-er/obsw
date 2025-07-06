@@ -39,6 +39,7 @@ public:
     Boardcore::SPIBus& getLIS2MDL() { return spi3; }
     Boardcore::SPIBus& getLSM6DSRX() { return spi3; }
     Boardcore::SPIBus& getADS131M08() { return spi4; }
+    Boardcore::SPIBus& getThermocouple() { return spi1; }
 
     Boardcore::USART& getHILUart() { return usart4; }
 
