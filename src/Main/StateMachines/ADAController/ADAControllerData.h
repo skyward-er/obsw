@@ -57,10 +57,15 @@ struct ADAControllerStatus
 
 struct ADAControllerSampleData
 {
-    uint64_t timestamp               = 0;
-    unsigned int detectedApogees     = 0;
-    unsigned int detectedDeployments = 0;
-    ADAControllerState state         = ADAControllerState::INIT;
+    uint64_t timestamp                   = 0;
+    unsigned int ada0DetectedApogees     = 0;
+    unsigned int ada1DetectedApogees     = 0;
+    unsigned int ada2DetectedApogees     = 0;
+    unsigned int ada0DetectedDeployments = 0;
+    unsigned int ada1DetectedDeployments = 0;
+    unsigned int ada2DetectedDeployments = 0;
+
+    ADAControllerState state = ADAControllerState::INIT;
 
     static std::string header()
     {
