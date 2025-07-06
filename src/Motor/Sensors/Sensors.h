@@ -32,6 +32,7 @@
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
+#include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
 #include <sensors/analog/TrafagPressureSensor.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -64,6 +65,7 @@ public:
     Boardcore::PressureData getCCPressLastSample();
     Boardcore::TemperatureData getTankTempLastSample();
     Boardcore::VoltageData getBatteryVoltageLastSample();
+    Boardcore::TemperatureData getThermocoupleLastSample();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -80,6 +82,7 @@ protected:
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx1;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
+    std::unique_ptr<Boardcore::MAX31856> thermocouple;
 
     // Analog sensors
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTopTankPressure;
@@ -111,6 +114,9 @@ private:
 
     void internalAdcInit();
     void internalAdcCallback();
+
+    void thermocoupleInit();
+    void thermocoupleCallback();
 
     void oxTopTankPressureInit();
     void oxTopTankPressureCallback();

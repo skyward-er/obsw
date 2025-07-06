@@ -55,6 +55,9 @@ bool Sensors::start()
         tankTempInit();
     }
 
+    if (Config::Sensors::MAX31856::ENABLED)
+        thermocoupleInit();
+
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
@@ -141,6 +144,11 @@ TemperatureData Sensors::getTankTempLastSample()
     return tankTemp ? tankTemp->getLastSample() : TemperatureData{};
 }
 
+TemperatureData Sensors::getThermocoupleLastSample()
+{
+    return thermocouple ? thermocouple->getLastSample() : TemperatureData{};
+}
+
 VoltageData Sensors::getBatteryVoltageLastSample()
 {
     auto sample   = getInternalADCLastSample();
@@ -195,6 +203,9 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 
         if (tankTemp)
             infos.push_back(manager->getSensorInfo(tankTemp.get()));
+
+        if (thermocouple)
+            infos.push_back(manager->getSensorInfo(thermocouple.get()));
 
         return infos;
     }
@@ -507,6 +518,25 @@ void Sensors::tankTempInit()
 
 void Sensors::tankTempCallback() { sdLogger.log(getTankTempLastSample()); }
 
+void Sensors::thermocoupleInit()
+{
+    SPIBusConfig spiConfig = MAX31856::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    thermocouple = std::make_unique<MAX31856>(
+        getModule<Buses>()->getThermocouple(),
+        sensors::thermocouple::cs::getPin(), spiConfig,
+        MAX31856::ThermocoupleType::K_TYPE);  // TODO: verify the type
+}
+
+void Sensors::thermocoupleCallback()
+{
+    if (!thermocouple)
+        return;
+
+    sdLogger.log(getThermocoupleLastSample());
+}
+
 bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
@@ -604,6 +634,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"TankTemp", Config::Sensors::ADS131M08::RATE,
                         [this]() { tankTempCallback(); }};
         map.emplace(std::make_pair(tankTemp.get(), info));
+    }
+
+    if (thermocouple)
+    {
+        SensorInfo info("MAX31856", Config::Sensors::MAX31856::PERIOD,
+                        [this]() { thermocoupleCallback(); });
+        map.emplace(std::make_pair(thermocouple.get(), info));
     }
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
