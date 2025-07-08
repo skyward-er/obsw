@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace Payload
@@ -41,17 +42,14 @@ struct WingTargetPositionData
     float m2N       = 0;
     float m2E       = 0;
 
-    static std::string header()
+    static constexpr auto reflect()
     {
-        return "targetLat, "
-               "targetLon,targetN,targetE,EMCN,EMCE,M1N,M1E,M2N,M2E\n";
-    }
-
-    void print(std::ostream& os) const
-    {
-        os << targetLat << "," << targetLon << "," << targetN << "," << targetE
-           << "," << emcN << "," << emcE << "," << m1N << "," << m1E << ","
-           << m2N << "," << m2E << "\n";
+        return STRUCT_DEF(WingTargetPositionData,
+                          FIELD_DEF(targetLat) FIELD_DEF(targetLon)
+                              FIELD_DEF(targetN) FIELD_DEF(targetE)
+                                  FIELD_DEF(emcN) FIELD_DEF(emcE) FIELD_DEF(m1N)
+                                      FIELD_DEF(m1E) FIELD_DEF(m2N)
+                                          FIELD_DEF(m2E));
     }
 };
 
@@ -61,11 +59,11 @@ struct EarlyManeuversActiveTargetData
     uint32_t target    = 0;  ///< Active target enumeration
     float altitude     = 0;  ///< Altitude when the target was changed
 
-    static std::string header() { return "timestamp,target,altitude\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << target << "," << altitude << "\n";
+        return STRUCT_DEF(EarlyManeuversActiveTargetData,
+                          FIELD_DEF(timestamp) FIELD_DEF(target)
+                              FIELD_DEF(altitude));
     }
 };
 

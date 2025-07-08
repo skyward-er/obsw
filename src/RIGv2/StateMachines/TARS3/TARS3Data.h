@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <reflect.hpp>
 #include <string>
 
 namespace RIGv2
@@ -68,12 +69,10 @@ struct Tars3ActionData
     uint64_t timestamp = 0;
     Tars3Action action = Tars3Action::READY;
 
-    static std::string header() { return "timestamp,action,actionName\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << (int)action << "," << to_string(action)
-           << "\n";
+        return STRUCT_DEF(Tars3ActionData,
+                          FIELD_DEF(timestamp) FIELD_DEF(action));
     }
 };
 
@@ -83,12 +82,12 @@ struct Tars3SampleData
     float pressure     = 0;
     float mass         = 0;
 
-    static std::string header() { return "timestamp,pressure,mass\n"; }
-
-    void print(std::ostream& os) const
+    static constexpr auto reflect()
     {
-        os << timestamp << "," << pressure << "," << mass << "\n";
+        return STRUCT_DEF(Tars3SampleData, FIELD_DEF(timestamp) FIELD_DEF(
+                                               pressure) FIELD_DEF(mass));
     }
 };
 
 }  // namespace RIGv2
+
