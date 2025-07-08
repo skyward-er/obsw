@@ -112,11 +112,26 @@ bool ADAController::start()
     return true;
 }
 
-// Either make this return all of the ada states or make a function for each ADA
-ADAState ADAController::getADAState()
+ADAState ADAController::getADAState(adaNumber num)
 {
     Lock<FastMutex> lock{adaMutex};
-    return ada.getState();
+    switch (num)
+    {
+        case adaNumber::ADA0:
+        {
+            return ada0.getState();
+        }
+
+        case adaNumber::ADA1:
+        {
+            return ada1.getState();
+        }
+
+        case adaNumber::ADA2:
+        {
+            return ada2.getState();
+        }
+    }
 }
 
 float ADAController::getDeploymentAltitude()
@@ -295,9 +310,10 @@ void ADAController::update()
     sdLogger.log(data);
 
     // this might cause a problem because we are logging the same structure
-    sdLogger.log(ada0.getState());
-    sdLogger.log(ada1.getState());
-    sdLogger.log(ada2.getState());
+
+    sdLogger.log(ADA0State(ada0.getState()));
+    sdLogger.log(ADA1State(ada1.getState()));
+    sdLogger.log(ADA2State(ada2.getState()));
 }
 
 void ADAController::calibrate()
@@ -310,9 +326,10 @@ void ADAController::calibrate()
     ada2.setReferenceValues(ref);
 
     // TODO: Should this be calculated by ADA at the moment?
-    ada0.setKalmanConfig(computeADAKalmanConfig(ref.refPressure));
-    ada1.setKalmanConfig(computeADAKalmanConfig(ref.refPressure));
-    ada2.setKalmanConfig(computeADAKalmanConfig(ref.refPressure));
+    auto kalmanConfig = computeADAKalmanConfig(ref.refPressure);
+    ada0.setKalmanConfig(kalmanConfig);
+    ada1.setKalmanConfig(kalmanConfig);
+    ada2.setKalmanConfig(kalmanConfig);
 
     ada0.update(ref.refPressure);
     ada1.update(ref.refPressure);

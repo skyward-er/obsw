@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <algorithms/ADA/ADAData.h>
+
 #include <cstdint>
 #include <ostream>
 #include <reflect.hpp>
@@ -70,8 +72,44 @@ struct ADAControllerSampleData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ADAControllerSampleData,
-                          FIELD_DEF(timestamp) FIELD_DEF(detectedApogees)
-                              FIELD_DEF(detectedDeployments) FIELD_DEF(state));
+                          FIELD_DEF(timestamp) FIELD_DEF(ada0DetectedApogees)
+                              FIELD_DEF(ada1DetectedApogees)
+                                  FIELD_DEF(ada2DetectedApogees)
+                                      FIELD_DEF(ada0DetectedDeployments)
+                                          FIELD_DEF(ada1DetectedDeployments)
+                                              FIELD_DEF(ada2DetectedDeployments)
+                                                  FIELD_DEF(state));
+    }
+};
+
+// A collection of the states of the three ada algorithms
+struct ADA0State : Boardcore::ADAState
+{
+    ADA0State(Boardcore::ADAState state) : Boardcore::ADAState(state) {};
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADA0State, EXTEND_DEF(Boardcore::ADAState));
+    }
+};
+
+struct ADA1State : Boardcore::ADAState
+{
+    ADA1State(Boardcore::ADAState state) : Boardcore::ADAState(state) {};
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADA1State, EXTEND_DEF(Boardcore::ADAState));
+    }
+};
+
+struct ADA2State : Boardcore::ADAState
+{
+    ADA2State(Boardcore::ADAState state) : Boardcore::ADAState(state) {};
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADA2State, EXTEND_DEF(Boardcore::ADAState));
     }
 };
 
