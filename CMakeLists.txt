@@ -57,12 +57,12 @@ sbs_target(main-airbrakes-demo stm32f767zi_orion_biscotto)
 
 add_executable(payload-entry src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(payload-entry stm32f767zi_lyra_biscotto)
+sbs_target(payload-entry stm32f767zi_orion_biscotto)
 
 add_executable(payload-entry-roccaraso src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(payload-entry-roccaraso PRIVATE ROCCARASO)
-sbs_target(payload-entry-roccaraso stm32f767zi_lyra_biscotto)
+sbs_target(payload-entry-roccaraso stm32f767zi_orion_biscotto)
 
 add_executable(payload-entry-euroc src/Payload/payload-entry.cpp ${PAYLOAD_COMPUTER})
 target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})

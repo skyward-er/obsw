@@ -238,7 +238,7 @@ int main()
     }
 
     std::cout << "Sensors status:" << std::endl;
-    auto sensorInfo = sensors->getSensorInfo();
+    auto sensorInfo = sensors->getSensorInfos();
     for (const auto& info : sensorInfo)
     {
         std::cout << "\t" << std::setw(16) << std::left << info.id << " "
