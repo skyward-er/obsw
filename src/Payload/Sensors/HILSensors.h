@@ -46,7 +46,8 @@ private:
         if (!lsm6dsrx_0)
             return;
 
-        Boardcore::Logger::getInstance().log(Main::LSM6DSRX0Data{lsm6dsrx_0->getLastSample()});
+        Boardcore::Logger::getInstance().log(
+            Main::LSM6DSRX0Data{lsm6dsrx_0->getLastSample()});
     }
 
     void lsm6dsrx1Callback() override
@@ -73,7 +74,7 @@ private:
         hillificator<>(lsm6dsrx_0, enableHw,
                        [this]() { return updateLSM6DSRXData_0(); });
         hillificator<>(lsm6dsrx_1, enableHw,
-                       [this]() {return updateLSM6DSRXData_1(); });
+                       [this]() { return updateLSM6DSRXData_1(); });
         hillificator<>(nd015a_payload, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015d_payload, enableHw,

@@ -154,7 +154,7 @@ constexpr bool ENABLED = true;
 
 namespace ND015D
 {
-constexpr Boardcore::ND015D::FullScaleRange FSR = 
+constexpr Boardcore::ND015D::FullScaleRange FSR =
     Boardcore::ND015D::FullScaleRange::FS_10;
 constexpr Boardcore::ND015D::IOWatchdogEnable IOW =
     Boardcore::ND015D::IOWatchdogEnable::DISABLED;
@@ -167,7 +167,7 @@ constexpr uint8_t ODR = 0x1C;
 
 constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
-}
+}  // namespace ND015D
 
 namespace InternalADC
 {

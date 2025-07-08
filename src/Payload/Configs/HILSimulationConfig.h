@@ -54,23 +54,23 @@ constexpr int N_DATA_TEMP        = 1;   // #samples
 
 // clang-format off
 // Checking if the data coming from simulator is enough
-static_assert(N_DATA_ACCEL * SIMULATION_RATE >= Sensors::LSM6DSRX::SAMPLING_RATE,
+static_assert(N_DATA_ACCEL * SIMULATION_RATE >= Sensors::LSM6DSRX_0::RATE,
               "N_DATA_ACCEL not enough");
-static_assert(N_DATA_GYRO * SIMULATION_RATE >= Sensors::LSM6DSRX::SAMPLING_RATE,
+static_assert(N_DATA_GYRO * SIMULATION_RATE >= Sensors::LSM6DSRX_0::RATE,
               "N_DATA_GYRO not enough");
-static_assert(N_DATA_MAGNETO * SIMULATION_RATE >= Sensors::LIS2MDL::SAMPLING_RATE,
+static_assert(N_DATA_ACCEL * SIMULATION_RATE >= Sensors::LSM6DSRX_1::RATE,
+              "N_DATA_ACCEL not enough");
+static_assert(N_DATA_GYRO * SIMULATION_RATE >= Sensors::LSM6DSRX_1::RATE,
+              "N_DATA_GYRO not enough");
+static_assert(N_DATA_MAGNETO * SIMULATION_RATE >= Sensors::LIS2MDL::RATE,
               "N_DATA_MAGNETO not enough");
-static_assert(N_DATA_GPS * SIMULATION_RATE >= Sensors::UBXGPS::SAMPLING_RATE,
+static_assert(N_DATA_GPS * SIMULATION_RATE >= Sensors::UBXGPS::RATE,
               "N_DATA_GPS not enough");
-static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::ADS131M08::SAMPLING_RATE,
+static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::LPS22DF::RATE,
               "N_DATA_BARO_STATIC not enough");
-static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::LPS22DF::SAMPLING_RATE,
-              "N_DATA_BARO_STATIC not enough");
-static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::LPS28DFW::SAMPLING_RATE,
-              "N_DATA_BARO_STATIC not enough");
-static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::StaticPressure::SAMPLING_RATE,
+static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::ND015A::RATE,
               "N_DATA_BARO_PITOT not enough");
-static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::DynamicPressure::SAMPLING_RATE,
+static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::ND015D::RATE,
               "N_DATA_BARO_PITOT not enough");
 // clang-format on
 

@@ -251,17 +251,17 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             float press =
                 mavlink_msg_set_calibration_pressure_tc_get_pressure(&msg);
 
-                // TODO
+            // TODO
             if (press == 0)
             {
-                //parent.getModule<Sensors>()->resetBaroCalibrationReference();
+                // parent.getModule<Sensors>()->resetBaroCalibrationReference();
                 EventBroker::getInstance().post(TMTC_SET_CALIBRATION_PRESSURE,
                                                 TOPIC_TMTC);
                 return enqueueAck(msg);
             }
             else
             {
-                //parent.getModule<Sensors>()->setBaroCalibrationReference(press);
+                // parent.getModule<Sensors>()->setBaroCalibrationReference(press);
                 EventBroker::getInstance().post(TMTC_SET_CALIBRATION_PRESSURE,
                                                 TOPIC_TMTC);
 
@@ -581,9 +581,10 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.wes_n      = -1.0f;
             tm.wes_e      = -1.0f;
 
-            tm.battery_voltage     = sensors->getBatteryVoltageLastSample().voltage;
-            tm.cam_battery_voltage = sensors->getCamBatteryVoltageLastSample().voltage;
-            tm.temperature         = pressDigi.temperature;
+            tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
+            tm.cam_battery_voltage =
+                sensors->getCamBatteryVoltageLastSample().voltage;
+            tm.temperature = pressDigi.temperature;
 
             // State machines
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
@@ -842,7 +843,8 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             mavlink_message_t msg;
             mavlink_voltage_tm_t tm;
 
-            auto data = parent.getModule<Sensors>()->getBatteryVoltageLastSample();
+            auto data =
+                parent.getModule<Sensors>()->getBatteryVoltageLastSample();
 
             tm.voltage   = data.voltage;
             tm.timestamp = data.voltageTimestamp;
@@ -898,7 +900,7 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             return true;
         }
 
-        // TODO: Add new LSM6DSRX 1
+            // TODO: Add new LSM6DSRX 1
 
         case MAV_LSM6DSRX_ID:
         {

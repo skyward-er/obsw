@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+ * Authors: Niccolò Betto, Tommaso Lamon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +21,13 @@
  */
 
 #include "Sensors.h"
+#include "SensorData.h"
 
 #include <Payload/BoardScheduler.h>
 #include <Payload/Buses.h>
+#include <Payload/Configs/SensorsConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <common/ReferenceConfig.h>
-#include <interfaces-impl/hwmapping.h>
-#include <sensors/calibration/BiasCalibration/BiasCalibration.h>
-
-
-//1659; 1481; 1244; 1122; 1023; 821
-
-
-#include "Sensors.h"
-
-#include <Main/Configs/SensorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
@@ -45,11 +37,11 @@ using namespace std::chrono;
 using namespace miosix;
 using namespace Eigen;
 using namespace Boardcore;
-using namespace Main;
 
-namespace Payload {
+namespace Payload
+{
 
-    bool Sensors::isStarted() { return started; }
+bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
@@ -79,13 +71,11 @@ bool Sensors::start()
     if (Config::Sensors::LSM6DSRX_1::ENABLED)
         lsm6dsrx1Init();
 
-    if (Config::Sensors::ND015A::ENABLED) {
+    if (Config::Sensors::ND015A::ENABLED)
         nd015aPayloadInit();
-    }
 
-    if (Config::Sensors::ND015D::ENABLED) {
+    if (Config::Sensors::ND015D::ENABLED)
         nd015dPayloadInit();
-    }
 
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
@@ -93,6 +83,7 @@ bool Sensors::start()
     if (Config::Sensors::IMU::ENABLED)
         rotatedImuInit();
 
+    // Return immediately if the hook fails as we cannot know what the hook does
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Failed to call postSensorCreationHook");
@@ -146,16 +137,16 @@ void Sensors::calibrate()
         gyroCalibration = gyroCalibrator.computeResult();
     }
 
-    CalibrationData calibration = getCalibration();
+    SensorCalibrationData calibration = getCalibration();
     sdLogger.log(calibration);
 }
 
-CalibrationData Sensors::getCalibration()
+SensorCalibrationData Sensors::getCalibration()
 {
     Lock<FastMutex> lock1{magCalibrationMutex};
     Lock<FastMutex> lock2{gyroCalibrationMutex};
 
-    CalibrationData data;
+    SensorCalibrationData data;
     data.timestamp = TimestampTimer::getTimestamp();
 
     data.gyroBiasX = gyroCalibration.getb().x();
@@ -268,11 +259,13 @@ VoltageData Sensors::getCamBatteryVoltageLastSample()
     return {sample.timestamp, voltage};
 }
 
-ND015XData Sensors::getStaticPressureLastSample() {
+ND015XData Sensors::getStaticPressureLastSample()
+{
     return nd015a_payload ? nd015a_payload->getLastSample() : ND015XData{};
 }
 
-ND015XData Sensors::getDynamicPressureLastSample() {
+ND015XData Sensors::getDynamicPressureLastSample()
+{
     return nd015d_payload ? nd015d_payload->getLastSample() : ND015XData{};
 }
 
@@ -358,8 +351,6 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     {
         std::vector<SensorInfo> infos{};
 
-        //Chiedi cosa fare di questa
-
 #define PUSH_SENSOR_INFO(instance, name)                         \
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
@@ -369,6 +360,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(lps22df, "LPS22DF");
         PUSH_SENSOR_INFO(lis2mdl_ext, "LIS2MDL_EXT");
         PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
+        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
         PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
         PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
@@ -568,7 +560,8 @@ void Sensors::internalAdcCallback()
     sdLogger.log(getInternalADCLastSample());
 }
 
-void Sensors::nd015aPayloadInit() {
+void Sensors::nd015aPayloadInit()
+{
     SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
 
     nd015a_payload = std::make_unique<ND015A>(
@@ -579,22 +572,23 @@ void Sensors::nd015aPayloadInit() {
 
 void Sensors::nd015aPayloadCallback()
 {
-    sdLogger.log(StaticPressure0Data{getStaticPressureLastSample()});
+    sdLogger.log(StaticPressureData{getStaticPressureLastSample()});
 }
 
-void Sensors::nd015dPayloadInit() {
+void Sensors::nd015dPayloadInit()
+{
     SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
 
     nd015d_payload = std::make_unique<ND015D>(
         getModule<Buses>()->getND015X(), sensors::ND015A_2::cs::getPin(),
-        spiConfig, Config::Sensors::ND015D::FSR, Config::Sensors::ND015D::IOW, 
-        Config::Sensors::ND015D::BWL,
-        Config::Sensors::ND015D::NTC, Config::Sensors::ND015D::ODR);
+        spiConfig, Config::Sensors::ND015D::FSR, Config::Sensors::ND015D::IOW,
+        Config::Sensors::ND015D::BWL, Config::Sensors::ND015D::NTC,
+        Config::Sensors::ND015D::ODR);
 }
 
 void Sensors::nd015dPayloadCallback()
 {
-    sdLogger.log(StaticPressure1Data{getDynamicPressureLastSample()});
+    sdLogger.log(DynamicPressureData{getDynamicPressureLastSample()});
 }
 
 void Sensors::rotatedImuInit()
@@ -688,15 +682,17 @@ bool Sensors::sensorManagerInit()
         map.emplace(internalAdc.get(), info);
     }
 
-    if (nd015a_payload) {
+    if (nd015a_payload)
+    {
         SensorInfo info{"StaticPressure", Config::Sensors::ND015A::RATE,
-        [this]() { nd015aPayloadCallback(); }};
+                        [this]() { nd015aPayloadCallback(); }};
         map.emplace(nd015a_payload.get(), info);
     }
 
-    if (nd015a_payload) {
+    if (nd015a_payload)
+    {
         SensorInfo info{"DynamicPressure", Config::Sensors::ND015D::RATE,
-        [this]() { nd015dPayloadCallback(); }};
+                        [this]() { nd015dPayloadCallback(); }};
         map.emplace(nd015d_payload.get(), info);
     }
 
@@ -711,4 +707,4 @@ bool Sensors::sensorManagerInit()
     return manager->start();
 }
 
-}
+}  // namespace Payload

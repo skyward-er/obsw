@@ -51,9 +51,9 @@ class BoardScheduler;
 class Buses;
 class FlightStatsRecorder;
 
-//266; 328; 366; Commented out vn100 methods
-class Sensors
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, FlightStatsRecorder>
+// 266; 328; 366; Commented out vn100 methods
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                     FlightStatsRecorder>
 {
 public:
     Sensors() {}
@@ -64,7 +64,7 @@ public:
 
     void calibrate();
 
-    Main::CalibrationData getCalibration();
+    SensorCalibrationData getCalibration();
 
     void resetMagCalibrator();
     void enableMagCalibrator();
@@ -195,4 +195,4 @@ private:
     std::atomic<bool> started{false};
 };
 
-}
+}  // namespace Payload
