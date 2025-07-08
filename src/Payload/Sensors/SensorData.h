@@ -64,6 +64,52 @@ struct DynamicPressureData : public Boardcore::PressureData
     }
 };
 
+struct LSM6DSRX0Data : Boardcore::LSM6DSRXData
+{
+    explicit LSM6DSRX0Data(const Boardcore::LSM6DSRXData& data)
+        : Boardcore::LSM6DSRXData(data)
+    {
+    }
+
+    LSM6DSRX0Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(LSM6DSRX0Data, EXTEND_DEF(Boardcore::LSM6DSRXData));
+    }
+};
+
+struct LSM6DSRX1Data : Boardcore::LSM6DSRXData
+{
+    explicit LSM6DSRX1Data(const Boardcore::LSM6DSRXData& data)
+        : Boardcore::LSM6DSRXData(data)
+    {
+    }
+
+    LSM6DSRX1Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(LSM6DSRX1Data, EXTEND_DEF(Boardcore::LSM6DSRXData));
+    }
+};
+
+struct LIS2MDLExternalData : Boardcore::LIS2MDLData
+{
+    explicit LIS2MDLExternalData(const Boardcore::LIS2MDLData& data)
+        : Boardcore::LIS2MDLData(data)
+    {
+    }
+
+    LIS2MDLExternalData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(LIS2MDLExternalData,
+                          EXTEND_DEF(Boardcore::LIS2MDLData));
+    }
+};
+
 struct SensorCalibrationData
 {
     uint64_t timestamp      = 0;

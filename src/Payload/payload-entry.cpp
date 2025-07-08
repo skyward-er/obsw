@@ -48,6 +48,7 @@
 #include <events/utils/EventSniffer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 
@@ -83,22 +84,7 @@
     }                                                                       \
     else
 
-// Build type string for printing during startup
-#if defined(DEBUG)
-#define BUILD_TYPE "Debug"
-#else
-#define BUILD_TYPE "Release"
-#endif
-
-// Build flavor string for printing during startup
-#if defined(EUROC)
-#define FLAVOR "EUROC"
-#elif defined(ROCCARASO)
-#define FLAVOR "ROCCARASO"
-#else
-#define FLAVOR "MILAN"
-#endif
-
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Payload;
 using namespace Common;
@@ -106,9 +92,6 @@ using namespace Common;
 int main()
 {
     miosix::ledOff();
-    std::cout << "Payload " << FLAVOR << " Entrypoint "
-              << "(" << BUILD_TYPE << ")"
-              << " by Skyward Experimental Rocketry" << std::endl;
 
     // Unused but needed to set the log level properly
     auto logger = Logging::getLogger("Payload");
@@ -237,14 +220,27 @@ int main()
         std::cerr << "*** Payload initialization error ***" << std::endl;
     }
 
-    std::cout << "Sensors status:" << std::endl;
-    auto sensorInfo = sensors->getSensorInfo();
-    for (const auto& info : sensorInfo)
+    std::string sensorConfig;
+    if (Config::Sensors::USING_DUAL_MAGNETOMETER)
+        sensorConfig = "LIS2MDL IN + LIS2MDL EXT";
+    else
+        sensorConfig = "LPS22DF + LIS2MDL IN/EXT";
+
+    std::cout << "Sensor status (config: " << sensorConfig << "):" << std::endl;
+    for (auto info : sensors->getSensorInfos())
     {
-        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
-                  << (info.isInitialized ? "Ok" : "Error") << "\n";
+        // The period being 0 means the sensor is disabled
+        auto statusStr = info.period == 0ns   ? "Disabled"
+                         : info.isInitialized ? "Ok"
+                                              : "Error";
+
+        std::cout << "\t" << std::setw(20) << std::left << info.id << " "
+                  << statusStr << std::endl;
     }
-    std::cout.flush();
+
+    std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
+              << sensors->getBatteryVoltageLastSample().voltage << " V"
+              << std::endl;
 
     auto& sdLogger = Logger::getInstance();
 

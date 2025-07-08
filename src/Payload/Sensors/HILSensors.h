@@ -41,12 +41,22 @@ public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
 
 private:
-    void lsm6dsrxCallback() override
+    void lsm6dsrx0Callback() override
     {
-        if (!lsm6dsrx)
+        if (!lsm6dsrx_0)
             return;
 
-        Boardcore::Logger::getInstance().log(lsm6dsrx->getLastSample());
+        Boardcore::Logger::getInstance().log(
+            Main::LSM6DSRX0Data{lsm6dsrx_0->getLastSample()});
+    }
+
+    void lsm6dsrx1Callback() override
+    {
+        if (!lsm6dsrx_1)
+            return;
+
+        Boardcore::Logger::getInstance().log(
+            Main::LSM6DSRX1Data{lsm6dsrx_1->getLastSample()});
     }
 
     bool postSensorCreationHook() override
@@ -55,19 +65,19 @@ private:
 
         hillificator<>(lps22df, enableHw,
                        [this]() { return updateLPS22DFData(); });
-        hillificator<>(lps28dfw, enableHw,
-                       [this]() { return updateLPS28DFWData(); });
         hillificator<>(h3lis331dl, enableHw,
                        [this]() { return updateH3LIS331DLData(); });
         hillificator<>(lis2mdl, enableHw,
                        [this]() { return updateLIS2MDLData(); });
         hillificator<>(ubxgps, enableHw,
                        [this]() { return updateUBXGPSData(); });
-        hillificator<>(lsm6dsrx, enableHw,
-                       [this]() { return updateLSM6DSRXData(); });
-        hillificator<>(staticPressure, enableHw,
+        hillificator<>(lsm6dsrx_0, enableHw,
+                       [this]() { return updateLSM6DSRXData_0(); });
+        hillificator<>(lsm6dsrx_1, enableHw,
+                       [this]() { return updateLSM6DSRXData_1(); });
+        hillificator<>(nd015a, enableHw,
                        [this]() { return updateStaticPressureData(); });
-        hillificator<>(dynamicPressure, enableHw,
+        hillificator<>(nd015d, enableHw,
                        [this]() { return updateDynamicPressureData(); });
         hillificator<>(rotatedImu, enableHw,
                        [this]() { return updateIMUData(); });
@@ -147,12 +157,12 @@ private:
 
         auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
-        int iAcc = getSampleCounter(sensorData->accelerometer.NDATA);
+        int iAcc = getSampleCounter(sensorData->accelerometer1.NDATA);
 
         data.accelerationTimestamp = Boardcore::TimestampTimer::getTimestamp();
-        data.accelerationX = sensorData->accelerometer.measures[iAcc][0];
-        data.accelerationY = sensorData->accelerometer.measures[iAcc][1];
-        data.accelerationZ = sensorData->accelerometer.measures[iAcc][2];
+        data.accelerationX = sensorData->accelerometer1.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer1.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer1.measures[iAcc][2];
 
         return data;
     };
@@ -201,32 +211,54 @@ private:
         return data;
     };
 
-    Boardcore::LSM6DSRXData updateLSM6DSRXData()
+    Boardcore::LSM6DSRXData updateLSM6DSRXData_0()
     {
         Boardcore::LSM6DSRXData data;
 
         auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
-        int iAcc  = getSampleCounter(sensorData->accelerometer.NDATA);
-        int iGyro = getSampleCounter(sensorData->gyro.NDATA);
+        int iAcc  = getSampleCounter(sensorData->accelerometer1.NDATA);
+        int iGyro = getSampleCounter(sensorData->gyro1.NDATA);
 
         data.accelerationTimestamp = data.angularSpeedTimestamp =
             Boardcore::TimestampTimer::getTimestamp();
 
-        data.accelerationX = sensorData->accelerometer.measures[iAcc][0];
-        data.accelerationY = sensorData->accelerometer.measures[iAcc][1];
-        data.accelerationZ = sensorData->accelerometer.measures[iAcc][2];
+        data.accelerationX = sensorData->accelerometer1.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer1.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer1.measures[iAcc][2];
 
-        data.angularSpeedX = sensorData->gyro.measures[iGyro][0];
-        data.angularSpeedY = sensorData->gyro.measures[iGyro][1];
-        data.angularSpeedZ = sensorData->gyro.measures[iGyro][2];
+        data.angularSpeedX = sensorData->gyro1.measures[iGyro][0];
+        data.angularSpeedY = sensorData->gyro1.measures[iGyro][1];
+        data.angularSpeedZ = sensorData->gyro1.measures[iGyro][2];
 
         return data;
     };
 
-    Boardcore::MPXH6115AData updateStaticPressureData()
+    Boardcore::LSM6DSRXData updateLSM6DSRXData_1()
     {
-        Boardcore::MPXH6115AData data;
+        Boardcore::LSM6DSRXData data;
+
+        auto* sensorData = getModule<PayloadHIL>()->getSensorData();
+
+        int iAcc  = getSampleCounter(sensorData->accelerometer2.NDATA);
+        int iGyro = getSampleCounter(sensorData->gyro2.NDATA);
+
+        data.accelerationTimestamp = data.angularSpeedTimestamp =
+            Boardcore::TimestampTimer::getTimestamp();
+
+        data.accelerationX = sensorData->accelerometer2.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer2.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer2.measures[iAcc][2];
+
+        data.angularSpeedX = sensorData->gyro2.measures[iGyro][0];
+        data.angularSpeedY = sensorData->gyro2.measures[iGyro][1];
+        data.angularSpeedZ = sensorData->gyro2.measures[iGyro][2];
+        return data;
+    };
+
+    Boardcore::ND015XData updateStaticPressureData()
+    {
+        Boardcore::ND015XData data;
 
         auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
@@ -238,9 +270,9 @@ private:
         return data;
     };
 
-    Boardcore::MPX5010Data updateDynamicPressureData()
+    Boardcore::ND015XData updateDynamicPressureData()
     {
-        Boardcore::MPX5010Data data;
+        Boardcore::ND015XData data;
 
         auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
@@ -254,8 +286,8 @@ private:
 
     Boardcore::IMUData updateIMUData()
     {
-        return Boardcore::IMUData{getLSM6DSRXLastSample(),
-                                  getLSM6DSRXLastSample(),
+        return Boardcore::IMUData{getLSM6DSRX0LastSample(),
+                                  getLSM6DSRX0LastSample(),
                                   getCalibratedLIS2MDLLastSample()};
     };
 

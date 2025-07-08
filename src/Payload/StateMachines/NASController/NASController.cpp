@@ -223,7 +223,7 @@ void NASController::calibrate()
     for (int i = 0; i < config::CALIBRATION_SAMPLES_COUNT; i++)
     {
         IMUData imu       = sensors->getIMULastSample();
-        PressureData baro = sensors->getLPS28DFWLastSample();
+        PressureData baro = sensors->getLPS22DFLastSample();
 
         Vector3f acc = static_cast<AccelerometerData>(imu);
         Vector3f mag = static_cast<MagnetometerData>(imu);
@@ -280,7 +280,7 @@ void NASController::update()
 
     auto imu          = sensors->getIMULastSample();
     auto gps          = sensors->getUBXGPSLastSample();
-    auto baro         = sensors->getLPS28DFWLastSample();
+    auto baro         = sensors->getLPS22DFLastSample();
     auto staticPitot  = sensors->getStaticPressureLastSample();
     auto dynamicPitot = sensors->getDynamicPressureLastSample();
 

@@ -198,8 +198,8 @@ struct GuidanceDataHIL
  */
 struct SimulatorData
 {
-    PayloadAccelerometerSimulatorData accelerometer;
-    PayloadGyroscopeSimulatorData gyro;
+    PayloadAccelerometerSimulatorData accelerometer1, accelerometer2;
+    PayloadGyroscopeSimulatorData gyro1, gyro2;
     PayloadMagnetometerSimulatorData magnetometer;
     PayloadGPSSimulatorData gps;
     PayloadDigitalBarometerSimulatorData barometer1, barometer2, barometer3;

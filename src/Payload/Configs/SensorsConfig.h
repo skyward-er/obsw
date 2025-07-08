@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+ * Authors: Davide Mor, Pietro Bortolus, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,141 +23,151 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
-#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
-#include <sensors/UBXGPS/UBXGPSSpi.h>
+#include <sensors/ND015X/ND015A.h>
+#include <sensors/ND015X/ND015D.h>
 #include <units/Frequency.h>
 
 #include <chrono>
+#include <string>
 
 namespace Payload
 {
+
 namespace Config
 {
+
 namespace Sensors
 {
-
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
-/* linter off */ using namespace std::chrono_literals;
+
+// Switches between LPS22DF + LIS2MDL IN/EXT configuration and the dual
+// magnetometer configuration, LIS2MDL IN + LIS2MDL EXT.
+// The dual mag configuration is used during testing to compare magnetometer
+// positioning.
+// NOTE: Ensure the configuration pins on the board are soldered accordingly.
+constexpr auto USING_DUAL_MAGNETOMETER = false;
+
+constexpr auto CALIBRATION_SAMPLES_COUNT = 20;
+constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
+
+constexpr auto MAG_CALIBRATION_RATE = 50_hz;
+static const std::string MAG_CALIBRATION_FILENAME{"/sd/magCalibration.csv"};
 
 namespace LPS22DF
 {
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 50_hz;
-constexpr auto AVG           = Boardcore::LPS22DF::AVG_4;
-constexpr auto ODR           = Boardcore::LPS22DF::ODR_100;
-}  // namespace LPS22DF
+constexpr auto AVG = Boardcore::LPS22DF::AVG_4;
+constexpr auto ODR = Boardcore::LPS22DF::ODR_100;
 
-namespace LPS28DFW
-{
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 100_hz;
-constexpr auto AVG           = Boardcore::LPS28DFW::AVG_4;
-constexpr auto ODR           = Boardcore::LPS28DFW::ODR_200;
-constexpr auto FSR           = Boardcore::LPS28DFW::FS_1260;
-}  // namespace LPS28DFW
+constexpr auto RATE    = 50_hz;
+constexpr auto ENABLED = true;
+}  // namespace LPS22DF
 
 namespace H3LIS331DL
 {
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 100_hz;
 constexpr auto ODR = Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
-constexpr auto BDU =
-    Boardcore::H3LIS331DLDefs::BlockDataUpdate::BDU_CONTINUOS_UPDATE;
-constexpr auto FSR = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
 }  // namespace H3LIS331DL
 
 namespace LIS2MDL
 {
-constexpr auto ENABLED             = true;
-constexpr auto SAMPLING_RATE       = 100_hz;
-constexpr auto ODR                 = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr auto TEMPERATURE_DIVIDER = 10U;
+constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
+constexpr auto TEMP_DIVIDER = 10U;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
 }  // namespace LIS2MDL
 
 namespace UBXGPS
 {
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 10_hz;
+constexpr auto RATE    = 10_hz;
+constexpr auto ENABLED = true;
 }  // namespace UBXGPS
 
-namespace LSM6DSRX
+namespace LSM6DSRX_0
 {
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 100_hz;
-constexpr auto OP_MODE =
-    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
 constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
+constexpr auto ACC_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
 constexpr auto GYR_FS  = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
 constexpr auto GYR_ODR = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
-}  // namespace LSM6DSRX
+constexpr auto GYR_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-namespace ADS131M08
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace LSM6DSRX_0
+
+namespace LSM6DSRX_1
 {
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = 100_hz;
-constexpr auto OVERSAMPLING_RATIO =
-    Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
-constexpr bool GLOBAL_CHOP_MODE = true;
-}  // namespace ADS131M08
+constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G4;
+constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_104;
+constexpr auto ACC_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
+constexpr auto GYR_FS  = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_1000;
+constexpr auto GYR_ODR = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_104;
+constexpr auto GYR_OP_MODE =
+    Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace LSM6DSRX_1
+
+namespace ND015A
+{
+constexpr auto IOW = Boardcore::ND015A::IOWatchdogEnable::DISABLED;
+constexpr auto BWL = Boardcore::ND015A::BWLimitFilter::BWL_200;
+constexpr auto NTC = Boardcore::ND015A::NotchEnable::DISABLED;
+
+constexpr uint8_t ODR = 0x1C;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace ND015A
+
+namespace ND015D
+{
+constexpr auto FSR = Boardcore::ND015D::FullScaleRange::FS_10;
+constexpr auto IOW = Boardcore::ND015D::IOWatchdogEnable::DISABLED;
+constexpr auto BWL = Boardcore::ND015D::BWLimitFilter::BWL_200;
+constexpr auto NTC = Boardcore::ND015D::NotchEnable::DISABLED;
+
+constexpr uint8_t ODR = 0x1C;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace ND015D
 
 namespace InternalADC
 {
-constexpr auto ENABLED        = true;
-constexpr auto SAMPLING_RATE  = 10_hz;
-constexpr auto VBAT_CH        = Boardcore::InternalADC::Channel::CH8;
-constexpr auto CAM_VBAT_CH    = Boardcore::InternalADC::Channel::CH9;
+constexpr auto VBAT_CH     = Boardcore::InternalADC::Channel::CH8;
+constexpr auto CAM_VBAT_CH = Boardcore::InternalADC::Channel::CH9;
+
 constexpr auto VBAT_SCALE     = 7500.0f / 2400.0f;
 constexpr auto CAM_VBAT_SCALE = 7500.0f / 2400.0f;
+
+constexpr auto RATE    = 10_hz;
+constexpr auto ENABLED = true;
 }  // namespace InternalADC
 
-// Scale values for analog pressure sensors have been calibrated via vacuum
-// chamber, by looking at LPS28DFW output and analog sensor output
-
-namespace StaticPressure
-{
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
-constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
-constexpr auto SCALE         = 4.21662235677003f;
-}  // namespace StaticPressure
-
-namespace DynamicPressure
-{
-constexpr auto ENABLED       = true;
-constexpr auto SAMPLING_RATE = ADS131M08::SAMPLING_RATE;
-constexpr auto ADC_CH        = Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
-constexpr auto SCALE         = 4.21662235677003f;
-}  // namespace DynamicPressure
-
-namespace RotatedIMU
+namespace IMU
 {
 constexpr auto USE_CALIBRATED_LIS2MDL  = true;
 constexpr auto USE_CALIBRATED_LSM6DSRX = true;
-constexpr auto ENABLED                 = true;
-constexpr auto SAMPLING_RATE           = 100_hz;
-}  // namespace RotatedIMU
 
-namespace Calibration
-{
-constexpr auto SAMPLE_COUNT  = 20;
-constexpr auto SAMPLE_PERIOD = 100ms;
-// Threshold value of the LP28DFW in order to consider the measure valid to use
-// as reference for the calibration of the analog sensors
-constexpr auto ATMOS_THRESHOLD = 50'000.0f;  // [Pa]
-}  // namespace Calibration
-
-namespace MagCalibration
-{
-constexpr auto FILE_ENABLED     = true;  ///< Load calibration data from SD card
-constexpr auto SAMPLING_RATE    = 50_hz;
-constexpr auto CALIBRATION_PATH = "/sd/magCalibration.csv";
-}  // namespace MagCalibration
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace IMU
 
 }  // namespace Sensors
 }  // namespace Config
