@@ -22,10 +22,13 @@
 
 #pragma once
 
-#include <Biliquid/hwmapping.h>
-#include <miosix.h>
+#include <events/EventHandler.h>
+#include <utils/collections/IRQCircularBuffer.h>
 
 #include <array>
+#include <atomic>
+#include <chrono>
+#include <csetjmp>
 
 #include "Sequence.h"
 
@@ -33,36 +36,35 @@ namespace Biliquid
 {
 class Actuators;
 
-class SequenceManager
+class SequenceManager : public Boardcore::EventHandlerBase,
+                        public Boardcore::ActiveObject
 {
 public:
     SequenceManager(Actuators& actuators);
-    ~SequenceManager();
+    virtual ~SequenceManager() noexcept;
 
-    void IRQsetPending(ControlSequence sequence, bool state);
+    void postEvent(const Boardcore::Event& ev) override;
+    void IRQpostEvent(Boardcore::Event ev);
 
-    Sequence* getSequence(ControlSequence sequence)
-    {
-        return sequences[static_cast<size_t>(sequence)];
-    }
+    void run() override;
 
-    void enable(ControlSequence sequence)
-    {
-        getSequence(sequence)->masked = false;
-    }
+    /**
+     * @brief Waits asynchronously for the given duration.
+     *
+     * @note Waits CANNOT be nested, intermediate waits will be lost!
+     */
+    void waitFor(std::chrono::nanoseconds duration);
 
-    void disable(ControlSequence sequence)
-    {
-        getSequence(sequence)->masked = true;
-    }
+    void handleEvent(Boardcore::Event ev);
 
 private:
-    void handlerThread();
-
     Actuators& actuators;
-    std::array<Sequence*, 3> sequences;
 
-    miosix::Thread* thread = nullptr;  ///< Sequence runner thread
-    miosix::Semaphore semaphore;       ///< Semaphore for thread synchronization
+    std::atomic<ControlSequence> activeSequence = {ControlSequence::NONE};
+
+    Boardcore::IRQCircularBuffer<Boardcore::Event, 32>
+        eventQueue;  ///< Event queue for the sequences
+
+    std::jmp_buf eventLoop;
 };
 }  // namespace Biliquid

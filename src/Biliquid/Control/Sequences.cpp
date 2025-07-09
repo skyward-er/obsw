@@ -24,7 +24,6 @@
 
 #include <chrono>
 
-#include "Sequence.h"
 #include "SequenceManager.h"
 
 using namespace std::chrono;
@@ -32,19 +31,24 @@ using namespace std::chrono;
 namespace Biliquid
 {
 
-void Sequence1::activate()
+namespace Sequence1
+{
+void start(SequenceManager& manager, Actuators& actuators)
 {
     actuators.openValve(Valve::MAIN_OX, 0.20f);
     actuators.openValve(Valve::MAIN_FUEL, 0.20f);
 }
 
-void Sequence1::deactivate() { actuators.closeAll(); }
-
-void Sequence2::activate()
+void stop(SequenceManager& manager, Actuators& actuators)
 {
-    // Disable sequence 1 when this sequence is active
-    manager.disable(ControlSequence::SEQUENCE_1);
+    actuators.closeAll();
+}
+}  // namespace Sequence1
 
+namespace Sequence2
+{
+void start(SequenceManager& manager, Actuators& actuators)
+{
     constexpr auto DT = 1s;
 
     // TODO: animate valve opening based on time
@@ -52,13 +56,15 @@ void Sequence2::activate()
     actuators.openValve(Valve::MAIN_FUEL, 1.0f);
 }
 
-void Sequence2::deactivate()
+void stop(SequenceManager& manager, Actuators& actuators)
 {
     actuators.closeAll();
-    manager.enable(ControlSequence::SEQUENCE_1);
 }
+}  // namespace Sequence2
 
-void Sequence3::activate()
+namespace Sequence3
+{
+void start(SequenceManager& manager, Actuators& actuators)
 {
     constexpr int N   = 5;
     constexpr auto DT = 5s;
@@ -69,7 +75,7 @@ void Sequence3::activate()
         actuators.openValve(Valve::MAIN_OX, position);
         actuators.openValve(Valve::MAIN_FUEL, position);
 
-        miosix::Thread::nanoSleep(duration_cast<nanoseconds>(DT).count());
+        manager.waitFor(DT);
     }
 
     // Close the valves after the sequence
@@ -77,6 +83,9 @@ void Sequence3::activate()
     actuators.closeValve(Valve::MAIN_FUEL);
 }
 
-void Sequence3::deactivate() { actuators.closeAll(); }
-
+void stop(SequenceManager& manager, Actuators& actuators)
+{
+    actuators.closeAll();
+}
+}  // namespace Sequence3
 }  // namespace Biliquid

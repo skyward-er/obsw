@@ -22,62 +22,39 @@
 
 #pragma once
 
+#include <events/Event.h>
+
+#include <chrono>
+
 namespace Biliquid
 {
-class Actuators;
 class SequenceManager;
+class Actuators;
 
 enum class ControlSequence
 {
     SEQUENCE_1 = 0,
     SEQUENCE_2,
     SEQUENCE_3,
+    NONE,  //!< No sequence is active
 };
 
-struct Sequence
+namespace Sequence1
 {
-    Sequence(Actuators& actuators, SequenceManager& manager)
-        : actuators(actuators), manager(manager)
-    {
-    }
+void start(SequenceManager& manager, Actuators& actuators);
+void stop(SequenceManager& manager, Actuators& actuators);
+}  // namespace Sequence1
 
-    virtual void activate()   = 0;
-    virtual void deactivate() = 0;
-
-    bool pending = false;  //!< whether the sequence is pending execution
-    bool state   = false;  //!< line state at the time of the last interrupt
-    bool masked  = false;  //!< whether the sequence is masked (disabled)
-
-    void setPending(bool state)
-    {
-        pending = true;
-        this->state   = state;
-    }
-
-protected:
-    Actuators& actuators;
-    SequenceManager& manager;
-};
-
-struct Sequence1 : public Sequence
+namespace Sequence2
 {
-    using Sequence::Sequence;
-    void activate() override;
-    void deactivate() override;
-};
+void start(SequenceManager& manager, Actuators& actuators);
+void stop(SequenceManager& manager, Actuators& actuators);
+}  // namespace Sequence2
 
-struct Sequence2 : public Sequence
+namespace Sequence3
 {
-    using Sequence::Sequence;
-    void activate() override;
-    void deactivate() override;
-};
-
-struct Sequence3 : public Sequence
-{
-    using Sequence::Sequence;
-    void activate() override;
-    void deactivate() override;
-};
+void start(SequenceManager& manager, Actuators& actuators);
+void stop(SequenceManager& manager, Actuators& actuators);
+}  // namespace Sequence3
 
 }  // namespace Biliquid

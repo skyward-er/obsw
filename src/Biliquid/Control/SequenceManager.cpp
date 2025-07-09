@@ -22,13 +22,24 @@
 
 #include "SequenceManager.h"
 
+#include <Biliquid/Control/Events.h>
 #include <Biliquid/hwmapping.h>
 #include <drivers/interrupt/external_interrupts.h>
-#include <kernel/scheduler/scheduler.h>
+#include <events/EventBroker.h>
 
+#include <iostream>
+
+#ifdef DEBUG
+#include <fmt/format.h>
+#define PRINT_DEBUG(str, ...) fmt::print(str __VA_OPT__(, ) __VA_ARGS__)
+#else
+#define PRINT_DEBUG(...)
+#endif
+
+using Boardcore::Event;
 using namespace Biliquid;
 
-SequenceManager* manager = nullptr;
+static SequenceManager* manager = nullptr;
 
 IRQ_HANDLER DEWESOFT_INTERRUPT_1()
 {
@@ -38,7 +49,10 @@ IRQ_HANDLER DEWESOFT_INTERRUPT_1()
     hwmapping::IrqLed::high();
 
     int state = hwmapping::DewesoftInterrupt1::value();
-    manager->IRQsetPending(ControlSequence::SEQUENCE_1, state);
+    if (state)
+        manager->IRQpostEvent(Events::START_SEQUENCE_1);
+    else
+        manager->IRQpostEvent(Events::STOP_SEQUENCE_1);
 }
 
 IRQ_HANDLER DEWESOFT_INTERRUPT_2()
@@ -49,7 +63,10 @@ IRQ_HANDLER DEWESOFT_INTERRUPT_2()
     hwmapping::IrqLed::high();
 
     int state = hwmapping::DewesoftInterrupt2::value();
-    manager->IRQsetPending(ControlSequence::SEQUENCE_2, state);
+    if (state)
+        manager->IRQpostEvent(Events::START_SEQUENCE_2);
+    else
+        manager->IRQpostEvent(Events::STOP_SEQUENCE_2);
 }
 
 IRQ_HANDLER DEWESOFT_INTERRUPT_3()
@@ -60,23 +77,18 @@ IRQ_HANDLER DEWESOFT_INTERRUPT_3()
     hwmapping::IrqLed::high();
 
     int state = hwmapping::DewesoftInterrupt3::value();
-    manager->IRQsetPending(ControlSequence::SEQUENCE_3, state);
+    if (state)
+        manager->IRQpostEvent(Events::START_SEQUENCE_3);
+    else
+        manager->IRQpostEvent(Events::STOP_SEQUENCE_3);
 }
 
 namespace Biliquid
 {
 SequenceManager::SequenceManager(Actuators& actuators)
-    : actuators(actuators), sequences({new Sequence1(actuators, *this),
-                                       new Sequence2(actuators, *this),
-                                       new Sequence3(actuators, *this)}),
-      semaphore(0)
+    : ActiveObject(miosix::STACK_DEFAULT_FOR_PTHREAD, miosix::PRIORITY_MAX - 2),
+      actuators(actuators)
 {
-    thread = miosix::Thread::create(
-        [](void* instance)
-        { static_cast<SequenceManager*>(instance)->handlerThread(); },
-        miosix::STACK_DEFAULT_FOR_PTHREAD, miosix::PRIORITY_MAX - 2, this,
-        miosix::Thread::DEFAULT);
-
     manager = this;
 
     // Initialize interrupts
@@ -86,41 +98,95 @@ SequenceManager::SequenceManager(Actuators& actuators)
                             InterruptTrigger::RISING_FALLING_EDGE);
     enableExternalInterrupt(hwmapping::DewesoftInterrupt3::getPin(),
                             InterruptTrigger::RISING_FALLING_EDGE);
+
+    Boardcore::EventBroker::getInstance().subscribe(this,
+                                                    Topics::CONTROL_SEQUENCE);
 }
 
-SequenceManager::~SequenceManager() { manager = nullptr; }
-
-void SequenceManager::IRQsetPending(ControlSequence sequence, bool state)
+SequenceManager::~SequenceManager()
 {
-    getSequence(sequence)->setPending(state);
-    semaphore.IRQsignal();
+    manager = nullptr;
+    stop();
 }
 
-void SequenceManager::handlerThread()
+void SequenceManager::postEvent(const Boardcore::Event& ev)
 {
-    while (true)
+    eventQueue.put(ev);
+}
+
+void SequenceManager::IRQpostEvent(Boardcore::Event ev)
+{
+    eventQueue.IRQput(ev);
+}
+
+void SequenceManager::run()
+{
+    setjmp(eventLoop);
+
+    while (!shouldStop())
     {
-        semaphore.wait();  // Wait for a signal to run sequences
-
-        // Run any sequence that is pending
-        for (auto sequence : sequences)
-        {
-            // Ignore non-pending sequences
-            if (!sequence->pending)
-                continue;
-
-            sequence->pending = false;  // Reset pending state
-            hwmapping::IrqLed::low();
-
-            // Skip masked sequences
-            if (sequence->masked)
-                continue;
-
-            if (sequence->state)
-                sequence->activate();
-            else
-                sequence->deactivate();
-        }
+        eventQueue.waitUntilNotEmpty();
+        auto e = eventQueue.pop();
+        handleEvent(e);
     }
+}
+
+void SequenceManager::waitFor(std::chrono::nanoseconds duration)
+{
+    Boardcore::EventBroker::getInstance().postDelayed(
+        Events::CONTINUE_SEQUENCE, duration.count(), Topics::CONTROL_SEQUENCE);
+
+    while (!shouldStop())
+    {
+        eventQueue.waitUntilNotEmpty();
+        auto e = eventQueue.pop();
+
+        // Return to the waiter context if the continue event is received
+        if (e == Events::CONTINUE_SEQUENCE)
+            return;
+
+        handleEvent(e);
+    }
+}
+
+void SequenceManager::handleEvent(Boardcore::Event ev)
+{
+    bool handled = true;
+
+#define CASE_SEQUENCE(seq)                                            \
+    case Events::START_SEQUENCE_##seq:                                \
+        PRINT_DEBUG("START sequence " #seq "\n");                     \
+        activeSequence = ControlSequence::SEQUENCE_##seq;             \
+        Sequence##seq::start(*this, actuators);                       \
+        break;                                                        \
+    case Events::STOP_SEQUENCE_##seq:                                 \
+        if (activeSequence.load() != ControlSequence::SEQUENCE_##seq) \
+        {                                                             \
+            PRINT_DEBUG("Sequence " #seq                              \
+                        " is not active, ignoring STOP "              \
+                        "event\n");                                   \
+            return;                                                   \
+        }                                                             \
+        PRINT_DEBUG("STOP sequence " #seq "\n");                      \
+        Sequence##seq::stop(*this, actuators);                        \
+        activeSequence = ControlSequence::NONE;                       \
+        /* Return to the main run loop context to exit any waits */   \
+        longjmp(eventLoop, 1);                                        \
+        break
+
+    switch (ev)
+    {
+        CASE_SEQUENCE(1);
+        CASE_SEQUENCE(2);
+        CASE_SEQUENCE(3);
+
+        default:
+            std::cerr << "*** Unhandled event: " << ev << std::endl;
+            handled = false;
+            break;
+    }
+
+    if (handled)
+        hwmapping::IrqLed::low();
 }
 }  // namespace Biliquid

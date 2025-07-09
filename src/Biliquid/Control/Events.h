@@ -20,44 +20,26 @@
  * THE SOFTWARE.
  */
 
-#include <Biliquid/Actuators/Actuators.h>
-#include <Biliquid/Control/SequenceManager.h>
-#include <Biliquid/hwmapping.h>
-#include <events/EventBroker.h>
+#pragma once
 
-#include <iostream>
+#include <events/Event.h>
 
-using namespace miosix;
-using namespace Boardcore;
-using namespace Biliquid;
-
-int main()
+namespace Biliquid
 {
-    std::cout << "Initializing hardware" << std::endl;
-    // Since this is a temporary board, we didn't bother creating a proper BSP
-    hwmapping::init();
+enum Events : Boardcore::Event
+{
+    START_SEQUENCE_1 = Boardcore::BasicEvent::EV_FIRST_CUSTOM,
+    START_SEQUENCE_2,
+    START_SEQUENCE_3,
+    STOP_SEQUENCE_1,
+    STOP_SEQUENCE_2,
+    STOP_SEQUENCE_3,
+    CONTINUE_SEQUENCE,
+};
 
-    std::cout << "Initializing Event Broker" << std::endl;
-    EventBroker& broker = EventBroker::getInstance();
-    broker.start();
+enum Topics : uint8_t
+{
+    CONTROL_SEQUENCE,
+};
 
-    std::cout << "Initializing Actuators" << std::endl;
-    Actuators* actuators = new Actuators();
-    actuators->start();
-
-    std::cout << "Initializing Sequence Manager" << std::endl;
-    SequenceManager* manager = new SequenceManager(*actuators);
-    manager->start();
-
-    std::cout << "Initialization OK!" << std::endl;
-
-    while (true)
-    {
-        hwmapping::StatusLed::high();
-        miosix::Thread::sleep(1000);
-        hwmapping::StatusLed::low();
-        miosix::Thread::sleep(1000);
-    }
-
-    return 0;
-}
+}  // namespace Biliquid
