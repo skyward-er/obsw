@@ -23,6 +23,7 @@
 #include "Actuators.h"
 
 #include <Biliquid/Configs/ActuatorsConfig.h>
+#include <Biliquid/Debug.h>
 #include <Biliquid/hwmapping.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -75,8 +76,8 @@ void Actuators::ValveInfo::backstep()
 
 void Actuators::ValveInfo::move()
 {
-    fmt::print("\tMoving valve {} to position {:.02} ({} deg)\n", config.id,
-               currentPosition, toDegrees(currentPosition));
+    PRINT_DEBUG("\tMoving valve {} to position {:.02} ({} deg)\n", config.id,
+                currentPosition, toDegrees(currentPosition));
     servo->setPosition(scalePosition(currentPosition));
 }
 

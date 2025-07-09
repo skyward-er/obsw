@@ -20,43 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include <Biliquid/Actuators/Actuators.h>
-#include <Biliquid/Control/SequenceManager.h>
-#include <Biliquid/hwmapping.h>
-#include <events/EventBroker.h>
+#pragma once
+
+#ifdef DEBUG
 #include <fmt/format.h>
-
-using namespace miosix;
-using namespace Boardcore;
-using namespace Biliquid;
-
-int main()
-{
-    fmt::print("Initializing hardware\n");
-    // Since this is a temporary board, we didn't bother creating a proper BSP
-    hwmapping::init();
-
-    fmt::print("Initializing Event Broker\n");
-    EventBroker& broker = EventBroker::getInstance();
-    broker.start();
-
-    fmt::print("Initializing Actuators\n");
-    Actuators* actuators = new Actuators();
-    actuators->start();
-
-    fmt::print("Initializing Sequence Manager\n");
-    SequenceManager* manager = new SequenceManager(*actuators);
-    manager->start();
-
-    fmt::print("Initialization OK!\n");
-
-    while (true)
-    {
-        hwmapping::StatusLed::high();
-        miosix::Thread::sleep(1000);
-        hwmapping::StatusLed::low();
-        miosix::Thread::sleep(1000);
-    }
-
-    return 0;
-}
+#define PRINT_DEBUG(str, ...) fmt::print(str __VA_OPT__(, ) __VA_ARGS__)
+#else
+#define PRINT_DEBUG(...)
+#endif

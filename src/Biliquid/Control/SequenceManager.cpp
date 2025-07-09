@@ -23,18 +23,11 @@
 #include "SequenceManager.h"
 
 #include <Biliquid/Control/Events.h>
+#include <Biliquid/Debug.h>
 #include <Biliquid/hwmapping.h>
 #include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
-
-#include <iostream>
-
-#ifdef DEBUG
 #include <fmt/format.h>
-#define PRINT_DEBUG(str, ...) fmt::print(str __VA_OPT__(, ) __VA_ARGS__)
-#else
-#define PRINT_DEBUG(...)
-#endif
 
 using Boardcore::Event;
 using namespace Biliquid;
@@ -181,7 +174,7 @@ void SequenceManager::handleEvent(Boardcore::Event ev)
         CASE_SEQUENCE(3);
 
         default:
-            std::cerr << "*** Unhandled event: " << ev << std::endl;
+            fmt::print("*** Unhandled event: {}", (int)ev);
             handled = false;
             break;
     }
