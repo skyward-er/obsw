@@ -131,6 +131,11 @@ ADAState ADAController::getADAState(adaNumber num)
         {
             return ada2.getState();
         }
+
+        default:
+        {
+            return ada0.getState();
+        }
     }
 }
 
@@ -244,20 +249,35 @@ void ADAController::update()
             // Throw events only in ACTIVE_ASCENT
             // We check if at least two out of the three ADA algorithms have
             // detected more than 5 consecutive apogees
-            if ((ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES &&
-                 ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES) ||
-                (ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES &&
-                 ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES) ||
-                (ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES &&
-                 ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES))
+
+            int numberOfConsensuses = 0;
+            float aglSum            = 0;
+
+            if (ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
             {
-                auto gps = getModule<Sensors>()->getUBXGPSLastSample();
+                numberOfConsensuses++;
+                aglSum += ada0.getState().aglAltitude;
+            }
+            if (ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
+            {
+                numberOfConsensuses++;
+                aglSum += ada1.getState().aglAltitude;
+            }
+            if (ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
+            {
+                numberOfConsensuses++;
+                aglSum += ada2.getState().aglAltitude;
+            }
+
+            if (numberOfConsensuses >= 2)
+            {
+                auto gps          = getModule<Sensors>()->getUBXGPSLastSample();
+                float aglAltitude = aglSum / numberOfConsensuses;
 
                 // Notify stats recorder
                 getModule<StatsRecorder>()->apogeeDetected(
                     TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                    ada0.getState().aglAltitude, ada2.getState().aglAltitude,
-                    ada2.getState().aglAltitude);
+                    aglAltitude);
 
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
             }
@@ -281,17 +301,31 @@ void ADAController::update()
         else
             ada2DetectedDeployments = 0;
 
-        if ((ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
-            (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
-            (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES))
+        int numberOfConsensuses = 0;
+        float mslSum            = 0;
+
+        if (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
         {
+            numberOfConsensuses++;
+            mslSum += ada0.getState().mslAltitude;
+        }
+        if (ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
+        {
+            numberOfConsensuses++;
+            mslSum += ada1.getState().mslAltitude;
+        }
+        if (ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
+        {
+            numberOfConsensuses++;
+            mslSum += ada2.getState().mslAltitude;
+        }
+
+        if (numberOfConsensuses >= 2)
+        {
+            float mslAltitude = mslSum / numberOfConsensuses;
             // Notify stats recorder
             getModule<StatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), ada0.getState().mslAltitude,
-                ada1.getState().mslAltitude, ada2.getState().mslAltitude);
+                TimestampTimer::getTimestamp(), mslAltitude);
 
             EventBroker::getInstance().post(ADA_DEPLOY_ALTITUDE_DETECTED,
                                             TOPIC_ADA);
