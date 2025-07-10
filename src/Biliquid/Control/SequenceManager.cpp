@@ -30,6 +30,7 @@
 #include <fmt/format.h>
 
 using Boardcore::Event;
+using namespace Boardcore;
 using namespace Biliquid;
 
 static SequenceManager* manager = nullptr;
@@ -84,16 +85,7 @@ SequenceManager::SequenceManager(Actuators& actuators)
 {
     manager = this;
 
-    // Initialize interrupts
-    enableExternalInterrupt(hwmapping::DewesoftInterrupt1::getPin(),
-                            InterruptTrigger::RISING_FALLING_EDGE);
-    enableExternalInterrupt(hwmapping::DewesoftInterrupt2::getPin(),
-                            InterruptTrigger::RISING_FALLING_EDGE);
-    enableExternalInterrupt(hwmapping::DewesoftInterrupt3::getPin(),
-                            InterruptTrigger::RISING_FALLING_EDGE);
-
-    Boardcore::EventBroker::getInstance().subscribe(this,
-                                                    Topics::CONTROL_SEQUENCE);
+    EventBroker::getInstance().subscribe(this, Topics::CONTROL_SEQUENCE);
 }
 
 SequenceManager::~SequenceManager()
@@ -102,15 +94,9 @@ SequenceManager::~SequenceManager()
     stop();
 }
 
-void SequenceManager::postEvent(const Boardcore::Event& ev)
-{
-    eventQueue.put(ev);
-}
+void SequenceManager::postEvent(const Event& ev) { eventQueue.put(ev); }
 
-void SequenceManager::IRQpostEvent(Boardcore::Event ev)
-{
-    eventQueue.IRQput(ev);
-}
+void SequenceManager::IRQpostEvent(Event ev) { eventQueue.IRQput(ev); }
 
 void SequenceManager::run()
 {
@@ -142,7 +128,7 @@ void SequenceManager::waitFor(std::chrono::nanoseconds duration)
     }
 }
 
-void SequenceManager::handleEvent(Boardcore::Event ev)
+void SequenceManager::handleEvent(Event ev)
 {
     bool handled = true;
 

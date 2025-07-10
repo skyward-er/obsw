@@ -22,9 +22,12 @@
 
 #include <Biliquid/Actuators/Actuators.h>
 #include <Biliquid/Control/SequenceManager.h>
+#include <Biliquid/PinObserver/PinObserver.h>
 #include <Biliquid/hwmapping.h>
 #include <events/EventBroker.h>
 #include <fmt/format.h>
+#include <scheduler/TaskScheduler.h>
+#include <utils/PinObserver/PinObserver.h>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -32,21 +35,27 @@ using namespace Biliquid;
 
 int main()
 {
-    fmt::print("Initializing hardware\n");
+    fmt::print("Initializing hardware...\n");
     // Since this is a temporary board, we didn't bother creating a proper BSP
     hwmapping::init();
 
-    fmt::print("Initializing Event Broker\n");
-    EventBroker& broker = EventBroker::getInstance();
+    fmt::print("Initializing Event Broker...\n");
+    auto& broker = EventBroker::getInstance();
     broker.start();
 
-    fmt::print("Initializing Actuators\n");
-    Actuators* actuators = new Actuators();
+    fmt::print("Initializing Actuators...\n");
+    auto actuators = new Actuators();
     actuators->start();
 
-    fmt::print("Initializing Sequence Manager\n");
-    SequenceManager* manager = new SequenceManager(*actuators);
+    fmt::print("Initializing Sequence Manager...\n");
+    auto manager = new SequenceManager(*actuators);
     manager->start();
+
+    fmt::print("Initializing Pin Observer...\n");
+    auto pinScheduler = new TaskScheduler(PRIORITY_MAX - 3);
+    auto pinObserver  = new PinObserver(*pinScheduler, 20);
+    Pins::registerPins(*pinObserver);
+    pinScheduler->start();
 
     fmt::print("Initialization OK!\n");
 

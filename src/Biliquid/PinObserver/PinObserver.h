@@ -22,50 +22,13 @@
 
 #pragma once
 
-#include <events/EventHandler.h>
-#include <utils/collections/IRQCircularBuffer.h>
-
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <csetjmp>
-
-#include "Sequence.h"
+#include <Biliquid/hwmapping.h>
+#include <utils/PinObserver/PinObserver.h>
 
 namespace Biliquid
 {
-class Actuators;
-
-class SequenceManager : public Boardcore::EventHandlerBase,
-                        public Boardcore::ActiveObject
+namespace Pins
 {
-public:
-    SequenceManager(Actuators& actuators);
-    virtual ~SequenceManager() noexcept;
-
-    void postEvent(const Boardcore::Event& ev) override;
-    void IRQpostEvent(Boardcore::Event ev);
-
-    void run() override;
-
-    /**
-     * @brief Waits asynchronously for the given duration.
-     *
-     * @note Waits CANNOT be nested, intermediate waits will be lost!
-     */
-    void waitFor(std::chrono::nanoseconds duration);
-
-    void handleEvent(Boardcore::Event ev);
-
-private:
-    Actuators& actuators;
-
-    std::atomic<ControlSequence> activeSequence = {ControlSequence::NONE};
-
-    Boardcore::IRQCircularBuffer<Boardcore::Event, 32>
-        eventQueue;  ///< Event queue for the sequences
-
-    std::jmp_buf eventLoop;
-    int32_t waitEvent = -1;
-};
+void registerPins(Boardcore::PinObserver& pinObserver);
+}
 }  // namespace Biliquid

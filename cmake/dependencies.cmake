@@ -131,4 +131,5 @@ set (BILIQUID_VALVE_SLAVE
     src/Biliquid/Actuators/Actuators.cpp
     src/Biliquid/Control/SequenceManager.cpp
     src/Biliquid/Control/Sequences.cpp
+    src/Biliquid/PinObserver/PinObserver.cpp
 )
