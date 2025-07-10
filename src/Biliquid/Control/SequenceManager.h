@@ -53,7 +53,7 @@ public:
      *
      * @note Waits CANNOT be nested, intermediate waits will be lost!
      */
-    void waitFor(std::chrono::nanoseconds duration);
+    void waitFor(Boardcore::Event ev, std::chrono::nanoseconds duration);
 
     void handleEvent(Boardcore::Event ev);
 
@@ -67,5 +67,16 @@ private:
 
     std::jmp_buf eventLoop;
     int32_t waitEvent = -1;
+};
+
+struct SequenceContext
+{
+    SequenceManager& manager;        ///< Reference to the SequenceManager
+    Boardcore::Event continueEvent;  ///< Event to continue the sequence
+
+    void waitFor(std::chrono::nanoseconds duration)
+    {
+        manager.waitFor(continueEvent, duration);
+    }
 };
 }  // namespace Biliquid

@@ -34,8 +34,37 @@ enum Events : Boardcore::Event
     STOP_SEQUENCE_1,
     STOP_SEQUENCE_2,
     STOP_SEQUENCE_3,
-    CONTINUE_SEQUENCE,
+    CONTINUE_SEQUENCE_1,
+    CONTINUE_SEQUENCE_2,
+    CONTINUE_SEQUENCE_3,
 };
+
+inline const char* eventToString(Boardcore::Event ev)
+{
+    switch (ev)
+    {
+        case Events::START_SEQUENCE_1:
+            return "START_SEQUENCE_1";
+        case Events::START_SEQUENCE_2:
+            return "START_SEQUENCE_2";
+        case Events::START_SEQUENCE_3:
+            return "START_SEQUENCE_3";
+        case Events::STOP_SEQUENCE_1:
+            return "STOP_SEQUENCE_1";
+        case Events::STOP_SEQUENCE_2:
+            return "STOP_SEQUENCE_2";
+        case Events::STOP_SEQUENCE_3:
+            return "STOP_SEQUENCE_3";
+        case Events::CONTINUE_SEQUENCE_1:
+            return "CONTINUE_SEQUENCE_1";
+        case Events::CONTINUE_SEQUENCE_2:
+            return "CONTINUE_SEQUENCE_2";
+        case Events::CONTINUE_SEQUENCE_3:
+            return "CONTINUE_SEQUENCE_3";
+        default:
+            return "UNKNOWN_EVENT";
+    }
+}
 
 enum Topics : uint8_t
 {

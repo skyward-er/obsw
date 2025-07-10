@@ -28,7 +28,7 @@
 
 namespace Biliquid
 {
-class SequenceManager;
+class SequenceContext;
 class Actuators;
 
 enum class ControlSequence
@@ -41,20 +41,20 @@ enum class ControlSequence
 
 namespace Sequence1
 {
-void start(SequenceManager& manager, Actuators& actuators);
-void stop(SequenceManager& manager, Actuators& actuators);
+void start(SequenceContext& context, Actuators& actuators);
+void stop(SequenceContext& context, Actuators& actuators);
 }  // namespace Sequence1
 
 namespace Sequence2
 {
-void start(SequenceManager& manager, Actuators& actuators);
-void stop(SequenceManager& manager, Actuators& actuators);
+void start(SequenceContext& context, Actuators& actuators);
+void stop(SequenceContext& context, Actuators& actuators);
 }  // namespace Sequence2
 
 namespace Sequence3
 {
-void start(SequenceManager& manager, Actuators& actuators);
-void stop(SequenceManager& manager, Actuators& actuators);
+void start(SequenceContext& context, Actuators& actuators);
+void stop(SequenceContext& context, Actuators& actuators);
 }  // namespace Sequence3
 
 }  // namespace Biliquid

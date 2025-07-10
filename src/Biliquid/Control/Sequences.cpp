@@ -33,16 +33,16 @@ namespace Biliquid
 
 namespace Sequence1
 {
-void start(SequenceManager& manager, Actuators& actuators)
+void start(SequenceContext& context, Actuators& actuators)
 {
     actuators.openValve(Valve::MAIN_OX, 1.0f);
     actuators.openValve(Valve::MAIN_FUEL, 1.0f);
 
-    manager.waitFor(1s);
+    context.waitFor(1s);
     actuators.closeAll();
 }
 
-void stop(SequenceManager& manager, Actuators& actuators)
+void stop(SequenceContext& context, Actuators& actuators)
 {
     actuators.closeAll();
 }
@@ -50,17 +50,17 @@ void stop(SequenceManager& manager, Actuators& actuators)
 
 namespace Sequence2
 {
-void start(SequenceManager& manager, Actuators& actuators)
+void start(SequenceContext& context, Actuators& actuators)
 {
     actuators.openValve(Valve::MAIN_FUEL, 1.0f);
-    manager.waitFor(100ms);
+    context.waitFor(100ms);
     actuators.openValve(Valve::MAIN_OX, 1.0f);
-    manager.waitFor(900ms);
+    context.waitFor(900ms);
 
     actuators.closeAll();
 }
 
-void stop(SequenceManager& manager, Actuators& actuators)
+void stop(SequenceContext& context, Actuators& actuators)
 {
     actuators.closeAll();
 }
@@ -68,7 +68,7 @@ void stop(SequenceManager& manager, Actuators& actuators)
 
 namespace Sequence3
 {
-void start(SequenceManager& manager, Actuators& actuators)
+void start(SequenceContext& context, Actuators& actuators)
 {
     constexpr float Positions[] = {0.09f,  0.154f, 0.193f, 0.252f, 0.3f,
                                    0.345f, 0.39f,  0.437f, 0.484f};
@@ -79,7 +79,7 @@ void start(SequenceManager& manager, Actuators& actuators)
         actuators.openValve(Valve::MAIN_OX, pos);
         actuators.openValve(Valve::MAIN_FUEL, pos);
 
-        manager.waitFor(DT);
+        context.waitFor(DT);
     }
 
     // Close the valves after the sequence
@@ -87,7 +87,7 @@ void start(SequenceManager& manager, Actuators& actuators)
     actuators.closeValve(Valve::MAIN_FUEL);
 }
 
-void stop(SequenceManager& manager, Actuators& actuators)
+void stop(SequenceContext& context, Actuators& actuators)
 {
     actuators.closeAll();
 }

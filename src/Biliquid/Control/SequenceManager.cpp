@@ -118,20 +118,26 @@ void SequenceManager::run()
     }
 }
 
-void SequenceManager::waitFor(std::chrono::nanoseconds duration)
+void SequenceManager::waitFor(Boardcore::Event ev,
+                              std::chrono::nanoseconds duration)
 {
-    waitEvent = EventBroker::getInstance().postDelayed(
-        Events::CONTINUE_SEQUENCE, Topics::CONTROL_SEQUENCE,
+    // Post the continue event at the given time, simulating a wait
+    EventBroker::getInstance().postDelayed(
+        ev, Topics::CONTROL_SEQUENCE,
         duration_cast<milliseconds>(duration).count());
 
+    // Keep handling events until the continue event is received
     while (!shouldStop())
     {
         eventQueue.waitUntilNotEmpty();
         auto e = eventQueue.pop();
 
-        // Return to the waiter context if the continue event is received
-        if (e == Events::CONTINUE_SEQUENCE)
+        // Return to the waiter if the continue event is received
+        if (e == ev)
+        {
+            PRINT_DEBUG("Returning from wait after {}\n", eventToString(ev));
             return;
+        }
 
         handleEvent(e);
     }
@@ -139,26 +145,37 @@ void SequenceManager::waitFor(std::chrono::nanoseconds duration)
 
 void SequenceManager::handleEvent(Event ev)
 {
+    PRINT_DEBUG("Handling event: {}\n", eventToString(ev));
+
     bool handled = true;
 
-#define CASE_SEQUENCE(seq)                                                 \
-    case Events::START_SEQUENCE_##seq:                                     \
-        PRINT_DEBUG("START sequence " #seq "\n");                          \
-        activeSequence = ControlSequence::SEQUENCE_##seq;                  \
-        Sequence##seq::start(*this, actuators);                            \
-        break;                                                             \
-    case Events::STOP_SEQUENCE_##seq:                                      \
-        if (activeSequence.load() != ControlSequence::SEQUENCE_##seq)      \
-        {                                                                  \
-            PRINT_DEBUG("Ignoring STOP for inactive sequence " #seq "\n"); \
-            return;                                                        \
-        }                                                                  \
-        PRINT_DEBUG("STOP sequence " #seq "\n");                           \
-        Sequence##seq::stop(*this, actuators);                             \
-        activeSequence = ControlSequence::NONE;                            \
-        /* Return to the main run loop context to exit any waits */        \
-        longjmp(eventLoop, 1);                                             \
-        break
+#define CASE_SEQUENCE(seq)                                                   \
+    case Events::START_SEQUENCE_##seq:                                       \
+    {                                                                        \
+        activeSequence = ControlSequence::SEQUENCE_##seq;                    \
+        auto context =                                                       \
+            SequenceContext{*this, Events::CONTINUE_SEQUENCE_##seq};         \
+        Sequence##seq::start(context, actuators);                            \
+        /* Return to main event loop to cancel waits from other sequences */ \
+        longjmp(eventLoop, 1);                                               \
+    }                                                                        \
+    break;                                                                   \
+    case Events::STOP_SEQUENCE_##seq:                                        \
+    {                                                                        \
+        if (activeSequence.load() != ControlSequence::SEQUENCE_##seq)        \
+        {                                                                    \
+            PRINT_DEBUG("\tIgnoring STOP event for inactive sequence " #seq  \
+                        "\n");                                               \
+            return;                                                          \
+        }                                                                    \
+        auto context =                                                       \
+            SequenceContext{*this, Events::CONTINUE_SEQUENCE_##seq};         \
+        Sequence##seq::stop(context, actuators);                             \
+        activeSequence = ControlSequence::NONE;                              \
+        /* Return to main event loop to cancel waits from other sequences */ \
+        longjmp(eventLoop, 1);                                               \
+    }                                                                        \
+    break
 
     switch (ev)
     {
@@ -166,12 +183,14 @@ void SequenceManager::handleEvent(Event ev)
         CASE_SEQUENCE(2);
         CASE_SEQUENCE(3);
 
-        case Events::CONTINUE_SEQUENCE:
-            PRINT_DEBUG("Ignoring CONTINUE event\n");
+        case Events::CONTINUE_SEQUENCE_1:
+        case Events::CONTINUE_SEQUENCE_2:
+        case Events::CONTINUE_SEQUENCE_3:
+            PRINT_DEBUG("\tIgnoring CONTINUE event for inactive sequence\n");
             break;
 
         default:
-            fmt::print("*** Unhandled event: {}\n", (int)ev);
+            fmt::print("\t*** Unhandled event: {}\n", eventToString(ev));
             handled = false;
             break;
     }
