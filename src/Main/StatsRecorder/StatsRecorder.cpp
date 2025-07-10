@@ -57,20 +57,26 @@ void StatsRecorder::shutdownDetected(uint64_t ts, float alt)
     stats.shutdownAlt = alt;
 }
 
-void StatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon, float alt)
+void StatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon,
+                                   float alt0, float alt1, float alt2)
 {
     Lock<FastMutex> lock{statsMutex};
-    stats.apogeeTs  = ts;
-    stats.apogeeLat = lat;
-    stats.apogeeLon = lon;
-    stats.apogeeAlt = alt;
+    stats.apogeeTs   = ts;
+    stats.apogeeLat  = lat;
+    stats.apogeeLon  = lon;
+    stats.apogeeAlt0 = alt0;
+    stats.apogeeAlt1 = alt1;
+    stats.apogeeAlt2 = alt2;
 }
 
-void StatsRecorder::deploymentDetected(uint64_t ts, float alt)
+void StatsRecorder::deploymentDetected(uint64_t ts, float alt0, float alt1,
+                                       float alt2)
 {
     Lock<FastMutex> lock{statsMutex};
-    stats.dplTs  = ts;
-    stats.dplAlt = alt;
+    stats.dplTs   = ts;
+    stats.dplAlt0 = alt0;
+    stats.dplAlt1 = alt1;
+    stats.dplAlt2 = alt2;
 }
 
 void StatsRecorder::updateAcc(const AccelerometerData& data)
