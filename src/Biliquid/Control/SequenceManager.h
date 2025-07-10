@@ -40,7 +40,7 @@ class SequenceManager : public Boardcore::EventHandlerBase,
                         public Boardcore::ActiveObject
 {
 public:
-    SequenceManager(Actuators& actuators);
+    explicit SequenceManager(Actuators& actuators);
     virtual ~SequenceManager() noexcept;
 
     void postEvent(const Boardcore::Event& ev) override;

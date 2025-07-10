@@ -38,7 +38,8 @@ constexpr unsigned int MAX_PULSE = 2440;
 
 constexpr unsigned int FREQUENCY = 333;
 
-constexpr auto SERVO_BACKSTEP_DELAY   = 500ms;
+// Time for the servo to move across its full range
+constexpr auto SERVO_FULL_RANGE_TIME  = 500ms;
 constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
 constexpr float MAIN_OX_MAX_APERTURE   = 1.0;

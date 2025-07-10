@@ -71,7 +71,7 @@ private:
         std::unique_ptr<Boardcore::Servo> servo;
         ValveConfig config;
 
-        float currentPosition;
+        float currentPosition = 0.0f;  ///< Current position in range [0, 1]
         enum class Direction
         {
             CLOSE,

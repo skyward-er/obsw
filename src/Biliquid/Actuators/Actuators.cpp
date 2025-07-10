@@ -42,19 +42,25 @@ const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
 
 void Actuators::ValveInfo::open(float position)
 {
+    float delta        = std::abs(position - currentPosition);
+    auto backstepDelay = milliseconds{static_cast<int>(
+        Config::Servos::SERVO_FULL_RANGE_TIME.count() * delta)};
+
     currentPosition = position;
-    backstepTs =
-        Clock::now() + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+    backstepTs      = Clock::now() + backstepDelay;
     direction =
         position >= currentPosition ? Direction::OPEN : Direction::CLOSE;
 }
 
 void Actuators::ValveInfo::close()
 {
+    float delta        = currentPosition;
+    auto backstepDelay = milliseconds{static_cast<int>(
+        Config::Servos::SERVO_FULL_RANGE_TIME.count() * delta)};
+
     currentPosition = 0.0f;
-    backstepTs =
-        Clock::now() + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
-    direction = Direction::CLOSE;
+    backstepTs      = Clock::now() + backstepDelay;
+    direction       = Direction::CLOSE;
 }
 
 void Actuators::ValveInfo::backstep()
@@ -79,8 +85,8 @@ void Actuators::ValveInfo::backstep()
 
 void Actuators::ValveInfo::move()
 {
-    PRINT_DEBUG("\tMoving valve {} to position {:.02} ({} deg)\n", config.id,
-                currentPosition, toDegrees(currentPosition));
+    PRINT_DEBUG("\tMoving valve {} to position {:05.3f} ({:05.3f} deg)\n",
+                config.id, currentPosition, toDegrees(currentPosition));
     servo->setPosition(scalePosition(currentPosition));
 }
 
@@ -189,15 +195,14 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
 {
     Lock<FastMutex> lock(valveMutex);
 
-    // Start with the maximum value
-    auto nextDeadline = TimePoint::max();
-
     // Get the closest deadline from all valves
-    for (auto& valve : valves)
-        if (valve.backstepTs != ValveClosed && valve.backstepTs < nextDeadline)
-            nextDeadline = valve.backstepTs;
-
-    return nextDeadline;
+    return std::accumulate(valves.cbegin(), valves.cend(), TimePoint::max(),
+                           [](TimePoint acc, const auto& valve)
+                           {
+                               return valve.backstepTs != ValveClosed
+                                          ? std::min(acc, valve.backstepTs)
+                                          : acc;
+                           });
 }
 
 void Actuators::task()
