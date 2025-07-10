@@ -39,6 +39,7 @@ void registerPins(Boardcore::PinObserver& pinObserver)
         hwmapping::DewesoftInterrupt1::getPin(),
         [&broker = EventBroker::getInstance()](PinTransition transition)
         {
+            hwmapping::ActionLed::high();
             switch (transition)
             {
                 case PinTransition::RISING_EDGE:
@@ -57,6 +58,7 @@ void registerPins(Boardcore::PinObserver& pinObserver)
         hwmapping::DewesoftInterrupt2::getPin(),
         [&broker = EventBroker::getInstance()](PinTransition transition)
         {
+            hwmapping::ActionLed::high();
             switch (transition)
             {
                 case PinTransition::RISING_EDGE:
@@ -75,6 +77,7 @@ void registerPins(Boardcore::PinObserver& pinObserver)
         hwmapping::DewesoftInterrupt3::getPin(),
         [&broker = EventBroker::getInstance()](PinTransition transition)
         {
+            hwmapping::ActionLed::high();
             switch (transition)
             {
                 case PinTransition::RISING_EDGE:

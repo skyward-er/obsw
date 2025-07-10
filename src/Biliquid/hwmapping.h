@@ -42,7 +42,7 @@
 namespace hwmapping
 {
 using StatusLed = miosix::Gpio<GPIOG_BASE, 13>;
-using IrqLed    = miosix::Gpio<GPIOG_BASE, 14>;
+using ActionLed = miosix::Gpio<GPIOG_BASE, 14>;
 
 using MainOxTimer   = miosix::Gpio<GPIOA_BASE, 7>;   // TIM3_CH2
 using MainFuelTimer = miosix::Gpio<GPIOD_BASE, 13>;  // TIM4_CH2
@@ -55,8 +55,8 @@ inline void init()
 {
     StatusLed::mode(miosix::Mode::OUTPUT);
     StatusLed::low();
-    IrqLed::mode(miosix::Mode::OUTPUT);
-    IrqLed::low();
+    ActionLed::mode(miosix::Mode::OUTPUT);
+    ActionLed::low();
 
     MainOxTimer::alternateFunction(2);
     MainOxTimer::mode(miosix::Mode::ALTERNATE);

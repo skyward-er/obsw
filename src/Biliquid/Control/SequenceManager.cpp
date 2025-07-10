@@ -25,7 +25,6 @@
 #include <Biliquid/Control/Events.h>
 #include <Biliquid/Debug.h>
 #include <Biliquid/hwmapping.h>
-#include <drivers/interrupt/external_interrupts.h>
 #include <events/EventBroker.h>
 #include <fmt/format.h>
 
@@ -33,66 +32,16 @@ using namespace std::chrono;
 using namespace Boardcore;
 using namespace Biliquid;
 
-static SequenceManager* manager = nullptr;
-
-IRQ_HANDLER DEWESOFT_INTERRUPT_1()
-{
-    if (!manager)
-        return;
-
-    hwmapping::IrqLed::high();
-
-    int state = hwmapping::DewesoftInterrupt1::value();
-    if (state)
-        manager->IRQpostEvent(Events::START_SEQUENCE_1);
-    else
-        manager->IRQpostEvent(Events::STOP_SEQUENCE_1);
-}
-
-IRQ_HANDLER DEWESOFT_INTERRUPT_2()
-{
-    if (!manager)
-        return;
-
-    hwmapping::IrqLed::high();
-
-    int state = hwmapping::DewesoftInterrupt2::value();
-    if (state)
-        manager->IRQpostEvent(Events::START_SEQUENCE_2);
-    else
-        manager->IRQpostEvent(Events::STOP_SEQUENCE_2);
-}
-
-IRQ_HANDLER DEWESOFT_INTERRUPT_3()
-{
-    if (!manager)
-        return;
-
-    hwmapping::IrqLed::high();
-
-    int state = hwmapping::DewesoftInterrupt3::value();
-    if (state)
-        manager->IRQpostEvent(Events::START_SEQUENCE_3);
-    else
-        manager->IRQpostEvent(Events::STOP_SEQUENCE_3);
-}
-
 namespace Biliquid
 {
 SequenceManager::SequenceManager(Actuators& actuators)
     : ActiveObject(miosix::STACK_DEFAULT_FOR_PTHREAD, miosix::PRIORITY_MAX - 2),
       actuators(actuators)
 {
-    manager = this;
-
     EventBroker::getInstance().subscribe(this, Topics::CONTROL_SEQUENCE);
 }
 
-SequenceManager::~SequenceManager()
-{
-    manager = nullptr;
-    stop();
-}
+SequenceManager::~SequenceManager() { stop(); }
 
 void SequenceManager::postEvent(const Event& ev) { eventQueue.put(ev); }
 
@@ -147,8 +96,6 @@ void SequenceManager::handleEvent(Event ev)
 {
     PRINT_DEBUG("Handling event: {}\n", eventToString(ev));
 
-    bool handled = true;
-
 #define CASE_SEQUENCE(seq)                                                   \
     case Events::START_SEQUENCE_##seq:                                       \
     {                                                                        \
@@ -156,6 +103,7 @@ void SequenceManager::handleEvent(Event ev)
         auto context =                                                       \
             SequenceContext{*this, Events::CONTINUE_SEQUENCE_##seq};         \
         Sequence##seq::start(context, actuators);                            \
+        hwmapping::ActionLed::low();                                         \
         /* Return to main event loop to cancel waits from other sequences */ \
         longjmp(eventLoop, 1);                                               \
     }                                                                        \
@@ -172,6 +120,7 @@ void SequenceManager::handleEvent(Event ev)
             SequenceContext{*this, Events::CONTINUE_SEQUENCE_##seq};         \
         Sequence##seq::stop(context, actuators);                             \
         activeSequence = ControlSequence::NONE;                              \
+        hwmapping::ActionLed::low();                                         \
         /* Return to main event loop to cancel waits from other sequences */ \
         longjmp(eventLoop, 1);                                               \
     }                                                                        \
@@ -187,15 +136,12 @@ void SequenceManager::handleEvent(Event ev)
         case Events::CONTINUE_SEQUENCE_2:
         case Events::CONTINUE_SEQUENCE_3:
             PRINT_DEBUG("\tIgnoring CONTINUE event for inactive sequence\n");
+            hwmapping::ActionLed::low();
             break;
 
         default:
             fmt::print("\t*** Unhandled event: {}\n", eventToString(ev));
-            handled = false;
             break;
     }
-
-    if (handled)
-        hwmapping::IrqLed::low();
 }
 }  // namespace Biliquid

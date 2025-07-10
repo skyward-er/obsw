@@ -98,8 +98,8 @@ void Actuators::ValveInfo::backstep()
 
 void Actuators::ValveInfo::move()
 {
-    PRINT_DEBUG("\tMoving valve {} to position {:05.3f} ({:05.3f} deg)\n",
-                config.id, currentPosition, toDegrees(currentPosition));
+    fmt::print("\tMoving valve {} to position {:05.3f} ({:05.3f} deg)\n",
+               config.id, currentPosition, toDegrees(currentPosition));
     servo->setPosition(scalePosition(currentPosition));
 }
 
