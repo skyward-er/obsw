@@ -482,6 +482,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(lps22df, "LPS22DF");
         PUSH_SENSOR_INFO(lis2mdl_ext, "LIS2MDL_EXT");
         PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
+        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
         PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
         PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
