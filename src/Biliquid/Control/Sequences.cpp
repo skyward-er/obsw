@@ -35,8 +35,11 @@ namespace Sequence1
 {
 void start(SequenceManager& manager, Actuators& actuators)
 {
-    actuators.openValve(Valve::MAIN_OX, 0.20f);
-    actuators.openValve(Valve::MAIN_FUEL, 0.20f);
+    actuators.openValve(Valve::MAIN_OX, 1.0f);
+    actuators.openValve(Valve::MAIN_FUEL, 1.0f);
+
+    manager.waitFor(1s);
+    actuators.closeAll();
 }
 
 void stop(SequenceManager& manager, Actuators& actuators)
@@ -49,11 +52,12 @@ namespace Sequence2
 {
 void start(SequenceManager& manager, Actuators& actuators)
 {
-    constexpr auto DT = 1s;
-
-    // TODO: animate valve opening based on time
-    actuators.openValve(Valve::MAIN_OX, 1.0f);
     actuators.openValve(Valve::MAIN_FUEL, 1.0f);
+    manager.waitFor(100ms);
+    actuators.openValve(Valve::MAIN_OX, 1.0f);
+    manager.waitFor(900ms);
+
+    actuators.closeAll();
 }
 
 void stop(SequenceManager& manager, Actuators& actuators)
@@ -66,14 +70,14 @@ namespace Sequence3
 {
 void start(SequenceManager& manager, Actuators& actuators)
 {
-    constexpr int N   = 5;
-    constexpr auto DT = 5s;
+    constexpr float Positions[] = {0.09f,  0.154f, 0.193f, 0.252f, 0.3f,
+                                   0.345f, 0.39f,  0.437f, 0.484f};
+    constexpr auto DT           = 2s;
 
-    for (int i = 0; i < N; i++)
+    for (auto pos : Positions)
     {
-        float position = i * (1.0f / N);
-        actuators.openValve(Valve::MAIN_OX, position);
-        actuators.openValve(Valve::MAIN_FUEL, position);
+        actuators.openValve(Valve::MAIN_OX, pos);
+        actuators.openValve(Valve::MAIN_FUEL, pos);
 
         manager.waitFor(DT);
     }
