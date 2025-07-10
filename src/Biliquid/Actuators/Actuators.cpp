@@ -42,14 +42,29 @@ const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
 
 void Actuators::ValveInfo::open(float position)
 {
+    direction =
+        position >= currentPosition ? Direction::OPEN : Direction::CLOSE;
+
+    // Account for the backstep amount, which will be applied later
+    switch (direction)
+    {
+        case Direction::OPEN:
+            position += Config::Servos::SERVO_BACKSTEP_AMOUNT;
+            break;
+        case Direction::CLOSE:
+            position -= Config::Servos::SERVO_BACKSTEP_AMOUNT;
+            break;
+    }
+
+    // Clamp the position to the [0, 1] range
+    position = std::min(1.0f, std::max(0.0f, position));
+
     float delta        = std::abs(position - currentPosition);
     auto backstepDelay = milliseconds{static_cast<int>(
         Config::Servos::SERVO_FULL_RANGE_TIME.count() * delta)};
 
     currentPosition = position;
     backstepTs      = Clock::now() + backstepDelay;
-    direction =
-        position >= currentPosition ? Direction::OPEN : Direction::CLOSE;
 }
 
 void Actuators::ValveInfo::close()
