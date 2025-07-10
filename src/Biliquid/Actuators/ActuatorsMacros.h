@@ -66,9 +66,7 @@
             ValveInfo::ValveConfig                                    \
         {                                                             \
             .id = Valve::name, .limit = Config::Servos::name##_LIMIT, \
-            .flipped      = Config::Servos::name##_FLIPPED,           \
-            .maxAperture  = Config::Servos::name##_MAX_APERTURE,      \
-            .openingEvent = Common::MOTOR_##name##_OPEN,              \
-            .closingEvent = Common::MOTOR_##name##_CLOSE,             \
+            .flipped     = Config::Servos::name##_FLIPPED,            \
+            .maxAperture = Config::Servos::name##_MAX_APERTURE,       \
         }                                                             \
     }

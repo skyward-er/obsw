@@ -25,17 +25,15 @@
 #include <Biliquid/Configs/ActuatorsConfig.h>
 #include <Biliquid/Debug.h>
 #include <Biliquid/hwmapping.h>
-#include <common/Events.h>
-#include <drivers/timer/TimestampTimer.h>
-#include <events/EventBroker.h>
+#include <fmt/format.h>
 
-#include "ActuatorsData.h"
+#include <numeric>
+
 #include "ActuatorsMacros.h"
 
 using namespace std::chrono;
 using namespace Boardcore;
 using namespace miosix;
-using namespace Common;
 using namespace Biliquid;
 
 const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
@@ -132,7 +130,7 @@ bool Actuators::start()
 {
     if (!SignaledDeadlineTask::start())
     {
-        LOG_ERR(logger, "Failed to start Actuators task");
+        fmt::print("Failed to start Actuators task");
         return false;
     }
 

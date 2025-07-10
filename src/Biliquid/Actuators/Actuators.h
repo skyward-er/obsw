@@ -22,14 +22,8 @@
 
 #pragma once
 
-#include <RIGv2/BoardScheduler.h>
-#include <RIGv2/CanHandler/CanHandler.h>
-#include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkOrion.h>
-#include <miosix.h>
 #include <scheduler/SignaledDeadlineTask.h>
-#include <scheduler/TaskScheduler.h>
 
 #include <memory>
 
@@ -57,9 +51,6 @@ private:
             float limit       = 1.0;    ///< Movement range limit
             bool flipped      = false;  ///< Whether the servo is flipped
             float maxAperture = 1.0;    // Max aperture
-
-            uint8_t openingEvent = 0;  ///< Event to fire after opening
-            uint8_t closingEvent = 0;  ///< Event to fire after closing
         };
 
         ValveInfo(std::unique_ptr<Boardcore::Servo> servo,
@@ -114,8 +105,6 @@ private:
 
     miosix::FastMutex valveMutex;
     std::array<ValveInfo, 2> valves;
-
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 };
 
 }  // namespace Biliquid
