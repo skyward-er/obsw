@@ -70,6 +70,9 @@ void Actuators::ValveInfo::backstep()
             break;
     }
 
+    // Clamp the position to the [0, 1] range
+    currentPosition = std::min(1.0f, std::max(0.0f, currentPosition));
+
     move();
     backstepTs = ValveClosed;  // Reset backstep time
 }
@@ -203,7 +206,7 @@ void Actuators::task()
 
     auto currentTime = Clock::now();
 
-    fmt::print(
+    PRINT_DEBUG(
         "Actuators task @ {}ms:\n",
         duration_cast<milliseconds>(currentTime.time_since_epoch()).count());
 
