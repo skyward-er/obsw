@@ -126,7 +126,8 @@ void Sensors::calibrate()
 
         gyroCalibrator.feed(static_cast<GyroscopeData>(lsm6dsrx));
 
-        Thread::sleep(Config::Sensors::CALIBRATION_SLEEP_TIME);
+        Thread::sleep(
+            milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
     }
 
     {
