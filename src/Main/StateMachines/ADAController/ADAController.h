@@ -39,7 +39,7 @@ class ADAController
       public Boardcore::FSM<ADAController>
 {
 public:
-    enum class adaNumber : uint8_t
+    enum class ADANumber : uint8_t
     {
         ADA0 = 0,
         ADA1 = 1,
@@ -50,7 +50,7 @@ public:
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::ADAState getADAState(adaNumber num);
+    Boardcore::ADAState getADAState(ADANumber num);
 
     float getDeploymentAltitude();
 

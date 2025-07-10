@@ -112,24 +112,28 @@ bool ADAController::start()
     return true;
 }
 
-ADAState ADAController::getADAState(adaNumber num)
+ADAState ADAController::getADAState(ADANumber num)
 {
     Lock<FastMutex> lock{adaMutex};
     switch (num)
     {
-        case adaNumber::ADA0:
+        case ADANumber::ADA0:
         {
             return ada0.getState();
         }
 
-        case adaNumber::ADA1:
+        case ADANumber::ADA1:
         {
             return ada1.getState();
         }
 
-        case adaNumber::ADA2:
+        case ADANumber::ADA2:
         {
             return ada2.getState();
+        }
+        default:
+        {
+            return ada0.getState();
         }
     }
 }
