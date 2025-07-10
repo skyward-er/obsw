@@ -611,7 +611,7 @@ void Sensors::lsm6dsrx0Init()
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
-    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
     lsm6dsrx_0 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
                                             sensors::LSM6DSRX_0::cs::getPin(),
@@ -650,7 +650,7 @@ void Sensors::lsm6dsrx1Init()
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
-    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::DISABLED;
+    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
     lsm6dsrx_1 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
                                             sensors::LSM6DSRX_1::cs::getPin(),
