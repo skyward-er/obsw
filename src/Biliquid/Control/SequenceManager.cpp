@@ -29,7 +29,7 @@
 #include <events/EventBroker.h>
 #include <fmt/format.h>
 
-using Boardcore::Event;
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Biliquid;
 
@@ -100,7 +100,15 @@ void SequenceManager::IRQpostEvent(Event ev) { eventQueue.IRQput(ev); }
 
 void SequenceManager::run()
 {
-    setjmp(eventLoop);
+    // Save the current context to return to it when a wait is interrupted
+    if (setjmp(eventLoop) > 0)
+    {
+        if (waitEvent != -1)
+        {
+            EventBroker::getInstance().removeDelayed(waitEvent);
+            waitEvent = -1;
+        }
+    }
 
     while (!shouldStop())
     {
@@ -112,8 +120,9 @@ void SequenceManager::run()
 
 void SequenceManager::waitFor(std::chrono::nanoseconds duration)
 {
-    Boardcore::EventBroker::getInstance().postDelayed(
-        Events::CONTINUE_SEQUENCE, duration.count(), Topics::CONTROL_SEQUENCE);
+    waitEvent = EventBroker::getInstance().postDelayed(
+        Events::CONTINUE_SEQUENCE, Topics::CONTROL_SEQUENCE,
+        duration_cast<milliseconds>(duration).count());
 
     while (!shouldStop())
     {
@@ -132,25 +141,23 @@ void SequenceManager::handleEvent(Event ev)
 {
     bool handled = true;
 
-#define CASE_SEQUENCE(seq)                                            \
-    case Events::START_SEQUENCE_##seq:                                \
-        PRINT_DEBUG("START sequence " #seq "\n");                     \
-        activeSequence = ControlSequence::SEQUENCE_##seq;             \
-        Sequence##seq::start(*this, actuators);                       \
-        break;                                                        \
-    case Events::STOP_SEQUENCE_##seq:                                 \
-        if (activeSequence.load() != ControlSequence::SEQUENCE_##seq) \
-        {                                                             \
-            PRINT_DEBUG("Sequence " #seq                              \
-                        " is not active, ignoring STOP "              \
-                        "event\n");                                   \
-            return;                                                   \
-        }                                                             \
-        PRINT_DEBUG("STOP sequence " #seq "\n");                      \
-        Sequence##seq::stop(*this, actuators);                        \
-        activeSequence = ControlSequence::NONE;                       \
-        /* Return to the main run loop context to exit any waits */   \
-        longjmp(eventLoop, 1);                                        \
+#define CASE_SEQUENCE(seq)                                                 \
+    case Events::START_SEQUENCE_##seq:                                     \
+        PRINT_DEBUG("START sequence " #seq "\n");                          \
+        activeSequence = ControlSequence::SEQUENCE_##seq;                  \
+        Sequence##seq::start(*this, actuators);                            \
+        break;                                                             \
+    case Events::STOP_SEQUENCE_##seq:                                      \
+        if (activeSequence.load() != ControlSequence::SEQUENCE_##seq)      \
+        {                                                                  \
+            PRINT_DEBUG("Ignoring STOP for inactive sequence " #seq "\n"); \
+            return;                                                        \
+        }                                                                  \
+        PRINT_DEBUG("STOP sequence " #seq "\n");                           \
+        Sequence##seq::stop(*this, actuators);                             \
+        activeSequence = ControlSequence::NONE;                            \
+        /* Return to the main run loop context to exit any waits */        \
+        longjmp(eventLoop, 1);                                             \
         break
 
     switch (ev)
@@ -159,8 +166,12 @@ void SequenceManager::handleEvent(Event ev)
         CASE_SEQUENCE(2);
         CASE_SEQUENCE(3);
 
+        case Events::CONTINUE_SEQUENCE:
+            PRINT_DEBUG("Ignoring CONTINUE event\n");
+            break;
+
         default:
-            fmt::print("*** Unhandled event: {}", (int)ev);
+            fmt::print("*** Unhandled event: {}\n", (int)ev);
             handled = false;
             break;
     }
