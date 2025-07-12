@@ -310,6 +310,10 @@ int main()
                   << statusStr << std::endl;
     }
 
+    std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
+              << sensors->getBatteryVoltageLastSample().voltage << " V"
+              << std::endl;
+
     while (true)
     {
         sdLogger.log(sdLogger.getStats());
