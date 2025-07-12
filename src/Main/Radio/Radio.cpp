@@ -1141,39 +1141,67 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         }
 
         case MAV_STATIC_PRESS_ID:
-        {
-            mavlink_message_t msg;
-
-            auto sample = getModule<Sensors>()->getND015A0LastSample();
-
-            mavlink_pressure_tm_t tm;
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "ND015A_0");
-
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueuePacket(msg);
-
-            return true;
-        }
-
         case MAV_BACKUP_STATIC_PRESS_ID:
         {
-            mavlink_message_t msg;
+            {
+                auto sample = getModule<Sensors>()->getND015A0LastSample();
 
-            auto sample = getModule<Sensors>()->getND015A0LastSample();
+                mavlink_message_t msg;
+                mavlink_pressure_tm_t tm;
+                tm.pressure  = sample.pressure;
+                tm.timestamp = sample.pressureTimestamp;
+                strcpy(tm.sensor_name, "ND015A_0");
 
-            mavlink_pressure_tm_t tm;
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "ND015A_1");
+                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+                enqueuePacket(msg);
+            }
 
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueuePacket(msg);
+            {
+                auto sample = getModule<Sensors>()->getND015A1LastSample();
+
+                mavlink_message_t msg;
+                mavlink_pressure_tm_t tm;
+                tm.pressure  = sample.pressure;
+                tm.timestamp = sample.pressureTimestamp;
+                strcpy(tm.sensor_name, "ND015A_1");
+
+                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+                enqueuePacket(msg);
+            }
+
+            {
+                auto sample = getModule<Sensors>()->getND015A2LastSample();
+
+                mavlink_message_t msg;
+                mavlink_pressure_tm_t tm;
+                tm.pressure  = sample.pressure;
+                tm.timestamp = sample.pressureTimestamp;
+                strcpy(tm.sensor_name, "ND015A_2");
+
+                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+                enqueuePacket(msg);
+            }
+
+            {
+                auto sample = getModule<Sensors>()->getND015A3LastSample();
+
+                mavlink_message_t msg;
+                mavlink_pressure_tm_t tm;
+                tm.pressure  = sample.pressure;
+                tm.timestamp = sample.pressureTimestamp;
+                strcpy(tm.sensor_name, "ND015A_3");
+
+                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+                enqueuePacket(msg);
+            }
 
             return true;
         }
