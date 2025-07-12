@@ -659,6 +659,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto vn100        = sensors->getVN100LastSample();
             auto temperature  = sensors->getTemperatureLastSample();
             auto pressStatic  = sensors->getAtmosPressureLastSample();
+            auto pressDigi    = sensors->getLPS22DFLastSample();
             auto pressDpl     = sensors->getDplBayPressureLastSample();
             auto pitotStatic  = sensors->getCanPitotStaticPressLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressLastSample();
@@ -682,7 +683,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.mea_apogee     = meaState.estimatedApogee;
 
             // Sensors
-            tm.pressure_digi   = -1.0f;  // TODO: rmeove in mavlink
+            tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
 
