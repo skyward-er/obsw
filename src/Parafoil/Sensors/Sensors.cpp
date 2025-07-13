@@ -246,7 +246,8 @@ std::vector<SensorInfo> Sensors::getSensorInfo()
         PUSH_SENSOR_INFO(lis3mdl, LIS3MDL);
         PUSH_SENSOR_INFO(lps22df, LPS22DF);
         PUSH_SENSOR_INFO(ubxgps, UBXGPS);
-        PUSH_SENSOR_INFO(ads131m08, ADS131M08);
+        // PUSH_SENSOR_INFO(ads131m08, ADS131M08); NOTICE: disabled due to
+        // broken sensor
         PUSH_SENSOR_INFO(internalAdc, InternalADC);
 
 #undef PUSH_SENSOR_INFO

@@ -92,7 +92,7 @@ constexpr auto SAMPLING_RATE = 10_hz;
 
 namespace ADS131M08
 {
-constexpr auto ENABLED       = true;
+constexpr auto ENABLED       = false;  // NOTICE: disabled due to broken sensor
 constexpr auto SAMPLING_RATE = 100_hz;
 constexpr auto OVERSAMPLING_RATIO =
     Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
