@@ -291,8 +291,9 @@ void NASController::update()
         nas.correctGPS(gps);
     }
 
-    if (lastBaroTimestamp < baro.pressureTimestamp)
-        nas.correctBaro(baro.pressure);
+    // NOTICE: Barometer correction disabled due to broken sensor
+    // if (lastBaroTimestamp < baro.pressureTimestamp)
+    //     nas.correctBaro(baro.pressure);
 
     // Correct with accelerometer if the acceleration is in specs
     if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
