@@ -276,21 +276,21 @@ void ADAController::update()
             ada0DetectedDeployments = 0;
 
         if (ada1.getState().aglAltitude < getDeploymentAltitude())
-            ada0DetectedDeployments++;
+            ada1DetectedDeployments++;
         else
             ada1DetectedDeployments = 0;
 
         if (ada2.getState().aglAltitude < getDeploymentAltitude())
-            ada0DetectedDeployments++;
+            ada2DetectedDeployments++;
         else
             ada2DetectedDeployments = 0;
 
         if ((ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
+             ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
             (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
-            (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES))
+             ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
+            (ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
+             ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES))
         {
             // Notify stats recorder
             getModule<StatsRecorder>()->deploymentDetected(
@@ -313,8 +313,8 @@ void ADAController::update()
                                     curState};
     sdLogger.log(data);
 
-    // this might cause a problem because we are logging the same structure
-
+    // we use a support struct to differentiate between the three ADAs in the
+    // logs
     sdLogger.log(ADA0State(ada0.getState()));
     sdLogger.log(ADA1State(ada1.getState()));
     sdLogger.log(ADA2State(ada2.getState()));
