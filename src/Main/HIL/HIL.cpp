@@ -325,8 +325,9 @@ ActuatorData MainHIL::updateActuatorData()
 {
     auto actuators = getModule<Actuators>();
 
-    ADAStateHIL adaStateHIL{getModule<ADAController>()->getADAState(),
-                            getModule<ADAController>()->getState()};
+    ADAStateHIL adaStateHIL{
+        getModule<ADAController>()->getADAState(ADAController::ADANumber::ADA0),
+        getModule<ADAController>()->getState()};
 
     NASStateHIL nasStateHIL{getModule<NASController>()->getNASState(),
                             getModule<NASController>()->getState()};
