@@ -133,9 +133,9 @@ int main()
     }
 
     // Status led indicators
-    // led1: Sensors ok
-    // led2: Radio ok
-    // led3: CanBus ok
+    // led1: Sensors error
+    // led2: Radio error
+    // led3: CanBus error
     // led4: Everything ok
 
     // Start modules
@@ -158,9 +158,6 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start Radio ***" << std::endl;
-    }
-    else
-    {
         led2On();
     }
 
@@ -169,9 +166,6 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start CanHandler ***" << std::endl;
-    }
-    else
-    {
         led3On();
     }
 
@@ -274,9 +268,6 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start Sensors ***" << std::endl;
-    }
-    else
-    {
         led1On();
     }
 
