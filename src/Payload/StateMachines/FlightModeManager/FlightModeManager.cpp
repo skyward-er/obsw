@@ -203,6 +203,7 @@ State FlightModeManager::OnGroundInitError(const Event& event)
         case EV_ENTRY:
         {
             updateState(FlightModeManagerState::ON_GROUND_INIT_ERROR);
+            getModule<Actuators>()->setStatusError();
             return HANDLED;
         }
 
@@ -241,6 +242,7 @@ State FlightModeManager::OnGroundInitDone(const Event& event)
         case EV_ENTRY:
         {
             updateState(FlightModeManagerState::ON_GROUND_INIT_DONE);
+            getModule<Actuators>()->setStatusOk();
             EventBroker::getInstance().post(FMM_CALIBRATE, TOPIC_FMM);
             return HANDLED;
         }

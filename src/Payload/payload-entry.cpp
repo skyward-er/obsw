@@ -54,17 +54,21 @@
 
 /**
  * @brief Starts a module and checks if it started correctly.
+ *
+ * Optionally takes an expression to run when failing to start.
  * Must be followed by a semicolon or a block of code.
  * The block of code will be executed only if the module started correctly.
  *
- * @example START_MODULE(sensors) { miosix::ledOn(); }
+ * @example START_MODULE(sensors) { onSuccess(); }
+ * @example START_MODULE(radio, miosix::led2On())
  */
-#define START_MODULE(module)                                             \
+#define START_MODULE(module, ...)                                        \
     std::cout << "Starting " #module << std::endl;                       \
     if (!module->start())                                                \
     {                                                                    \
         initResult = false;                                              \
         std::cerr << "*** Failed to start " #module " ***" << std::endl; \
+        __VA_ARGS__;                                                     \
     }                                                                    \
     else
 
@@ -73,7 +77,7 @@
  * Must be followed by a semicolon or a block of code.
  * The block of code will be executed only if the singleton started correctly.
  *
- * @example `START_SINGLETON(Logger) { miosix::ledOn(); }`
+ * @example `START_SINGLETON(Logger) { onSuccess(); }`
  */
 #define START_SINGLETON(singleton)                                          \
     std::cout << "Starting " #singleton << std::endl;                       \
@@ -157,9 +161,9 @@ int main()
     initResult &= depman.inject();
 
     /* Status led indicators
-    led1: Sensors ok
-    led2: Radio ok
-    led3: CanBus ok
+    led1: Sensors error
+    led2: Radio error
+    led3: CanBus error
     led4: Everything ok */
 
     // Start global modules
@@ -173,8 +177,8 @@ int main()
 
     // Start module instances
     START_MODULE(pinHandler);
-    START_MODULE(radio) { miosix::led2On(); }
-    START_MODULE(canHandler) { miosix::led3On(); }
+    START_MODULE(radio, miosix::led2On());
+    START_MODULE(canHandler, miosix::led3On());
     START_MODULE(flightModeManager);
     START_MODULE(nasController);
     START_MODULE(altitudeTrigger);
@@ -203,21 +207,19 @@ int main()
 
     // Wait for simulation start before starting sensors to avoid initializing
     // them with invalid data
-    START_MODULE(sensors) { miosix::led1On(); }
+    START_MODULE(sensors, miosix::led1On())
 
     if (initResult)
     {
         EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
         // Turn on the initialization led on the CU
         miosix::led4On();
-        actuators->setStatusOk();
-        std::cout << "Payload initialization Ok!" << std::endl;
+        std::cout << "All good!" << std::endl;
     }
     else
     {
         EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        actuators->setStatusError();
-        std::cerr << "*** Payload initialization error ***" << std::endl;
+        std::cout << "*** Init failure ***" << std::endl;
     }
 
     std::string sensorConfig;
