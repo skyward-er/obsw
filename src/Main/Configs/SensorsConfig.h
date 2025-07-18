@@ -28,7 +28,6 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/ND015X/ND015A.h>
-#include <sensors/ND015X/ND015D.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -140,23 +139,6 @@ constexpr uint8_t ODR = 0x1C;
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace ND015A
-
-namespace ND015D
-{
-constexpr Boardcore::ND015D::FullScaleRange FSR =
-    Boardcore::ND015D::FullScaleRange::FS_10;
-constexpr Boardcore::ND015D::IOWatchdogEnable IOW =
-    Boardcore::ND015D::IOWatchdogEnable::DISABLED;
-constexpr Boardcore::ND015D::BWLimitFilter BWL =
-    Boardcore::ND015D::BWLimitFilter::BWL_200;
-constexpr Boardcore::ND015D::NotchEnable NTC =
-    Boardcore::ND015D::NotchEnable::DISABLED;
-
-constexpr uint8_t ODR = 0x1C;
-
-constexpr Hertz RATE   = 100_hz;
-constexpr bool ENABLED = true;
-}  // namespace ND015D
 
 namespace InternalADC
 {
