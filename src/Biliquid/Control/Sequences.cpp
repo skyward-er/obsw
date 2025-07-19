@@ -35,10 +35,11 @@ namespace Sequence1
 {
 void start(SequenceContext& context, Actuators& actuators)
 {
-    actuators.openValve(Valve::MAIN_OX, 1.0f);
-    actuators.openValve(Valve::MAIN_FUEL, 1.0f);
+    actuators.openValve(Valve::MAIN_FUEL, 0.19184f);
+    context.waitFor(100ms);
+    actuators.openValve(Valve::MAIN_OX, 0.21439f);
 
-    context.waitFor(1s);
+    context.waitFor(2500ms);
     actuators.closeAll();
 }
 
@@ -52,11 +53,12 @@ namespace Sequence2
 {
 void start(SequenceContext& context, Actuators& actuators)
 {
-    actuators.openValve(Valve::MAIN_FUEL, 1.0f);
-    context.waitFor(100ms);
-    actuators.openValve(Valve::MAIN_OX, 1.0f);
-    context.waitFor(900ms);
+    constexpr auto DT = 1s;
 
+    actuators.openAnimateValve(Valve::MAIN_OX, 1.0f, DT);
+    actuators.openAnimateValve(Valve::MAIN_FUEL, 1.0f, DT);
+
+    context.waitFor(DT + 1000ms);
     actuators.closeAll();
 }
 
@@ -70,8 +72,8 @@ namespace Sequence3
 {
 void start(SequenceContext& context, Actuators& actuators)
 {
-    constexpr float Positions[] = {0.09f,  0.154f, 0.193f, 0.252f, 0.3f,
-                                   0.345f, 0.39f,  0.437f, 0.484f};
+    constexpr float Positions[] = {0.14388f, 0.16786f, 0.19184f,
+                                   0.21439f, 0.23694f, 0.25883f};
     constexpr auto DT           = 2s;
 
     for (auto pos : Positions)
