@@ -28,12 +28,15 @@
 
 #include <cstdint>
 #include <map>
+#include <chrono>
 
 namespace Common
 {
 
 namespace CanConfig
 {
+
+/* linter off */ using namespace std::chrono;
 
 constexpr uint32_t BAUD_RATE = 250 * 1000;
 constexpr float SAMPLE_POINT = 87.5f / 100.0f;
@@ -42,6 +45,8 @@ constexpr Boardcore::Canbus::CanbusDriver::AutoBitTiming BIT_TIMING = {
     .baudRate = BAUD_RATE, .samplePoint = SAMPLE_POINT};
 
 constexpr Boardcore::Canbus::CanbusDriver::CanbusConfig CONFIG;
+
+constexpr auto CAN_SYNC_TIMEOUT = 5s;
 
 enum class Priority : uint8_t
 {

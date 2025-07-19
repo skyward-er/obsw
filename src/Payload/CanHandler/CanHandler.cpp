@@ -101,8 +101,12 @@ bool CanHandler::start()
     }
 
     // Initialize CanbusDriver
-    LOG_DEBUG(logger, "Initializing CanbusDriver, this may take a while...");
-    driver->init();
+    LOG_DEBUG(logger, "Initializing CanbusDriver");
+    if (!driver->init(Common::CanConfig::CAN_SYNC_TIMEOUT))
+    {
+        LOG_ERR(logger, "Failed to initialize CanbusDriver");
+        return false;
+    }
 
     // Add the status task
     auto statusTask = scheduler.addTask(
