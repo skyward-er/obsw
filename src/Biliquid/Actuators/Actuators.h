@@ -69,10 +69,16 @@ private:
             OPEN,
         } direction = Direction::CLOSE;  ///< Direction of the last valve move
 
+        float animationStep      = 0.0f;  ///< Amount of one animation step
+        TimePoint animationEndTs = ValveClosed;  ///< End time of last animation
+
         // Time when to backstep the valve to avoid straining the servo
         TimePoint backstepTs = ValveClosed;
+        // Time when the valve position should be updated
+        TimePoint updateTs = ValveClosed;
 
         void open(float position);
+        void animateOpen(float position, std::chrono::milliseconds time);
         void close();
 
         void move();
@@ -90,6 +96,9 @@ public:
     bool isStarted();
 
     bool openValve(Valve valveId, float position);
+
+    bool openAnimateValve(Valve valveId, float position,
+                          std::chrono::milliseconds time);
 
     bool closeValve(Valve valveId);
 

@@ -42,6 +42,8 @@ constexpr unsigned int FREQUENCY = 333;
 constexpr auto SERVO_FULL_RANGE_TIME  = 500ms;
 constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
+constexpr auto ANIMATION_UPDATE_PERIOD = 10ms;
+
 constexpr float MAIN_OX_MAX_APERTURE   = 1.0;
 constexpr float MAIN_FUEL_MAX_APERTURE = 1.0;
 

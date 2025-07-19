@@ -63,6 +63,48 @@ void Actuators::ValveInfo::open(float position)
 
     currentPosition = position;
     backstepTs      = Clock::now() + backstepDelay;
+
+    // Reset animation in case it was interrupted
+    animationEndTs = ValveClosed;
+    updateTs       = ValveClosed;
+}
+
+void Actuators::ValveInfo::animateOpen(float position,
+                                       std::chrono::milliseconds time)
+{
+    // Nothing to animate
+    if (currentPosition == position)
+        return;
+
+    direction =
+        position >= currentPosition ? Direction::OPEN : Direction::CLOSE;
+
+    // Account for the backstep amount, which will be applied later
+    switch (direction)
+    {
+        case Direction::OPEN:
+            position += Config::Servos::SERVO_BACKSTEP_AMOUNT;
+            break;
+        case Direction::CLOSE:
+            position -= Config::Servos::SERVO_BACKSTEP_AMOUNT;
+            break;
+    }
+
+    // Clamp the position to the [0, 1] range
+    position = std::min(1.0f, std::max(0.0f, position));
+
+    float delta        = position - currentPosition;
+    auto backstepDelay = milliseconds{static_cast<int>(
+        Config::Servos::SERVO_FULL_RANGE_TIME.count() * std::abs(delta))};
+
+    auto now       = Clock::now();
+    animationEndTs = now + time;
+    updateTs       = now + Config::Servos::ANIMATION_UPDATE_PERIOD;
+    backstepTs     = now + time + backstepDelay;
+
+    auto stepCount = static_cast<float>(time.count()) /
+                     Config::Servos::ANIMATION_UPDATE_PERIOD.count();
+    animationStep = delta / stepCount;
 }
 
 void Actuators::ValveInfo::close()
@@ -74,6 +116,10 @@ void Actuators::ValveInfo::close()
     currentPosition = 0.0f;
     backstepTs      = Clock::now() + backstepDelay;
     direction       = Direction::CLOSE;
+
+    // Reset animation in case it was interrupted
+    animationEndTs = ValveClosed;
+    updateTs       = ValveClosed;
 }
 
 void Actuators::ValveInfo::backstep()
@@ -98,8 +144,28 @@ void Actuators::ValveInfo::backstep()
 
 void Actuators::ValveInfo::move()
 {
-    fmt::print("\tMoving valve {} to position {:05.3f} ({:05.3f} deg)\n",
-               config.id, currentPosition, toDegrees(currentPosition));
+    // If an animation is in progress, advance it
+    if (animationEndTs != ValveClosed)
+    {
+        if (Clock::now() <= animationEndTs)
+        {
+            // Update the servo position
+            currentPosition += animationStep;
+            // Schedule the next update
+            updateTs += Config::Servos::ANIMATION_UPDATE_PERIOD;
+        }
+        else
+        {
+            // If the animation is done, reset animation times
+            animationEndTs = ValveClosed;
+            updateTs       = ValveClosed;
+        }
+    }
+    else
+    {
+        fmt::print("\tMoving valve {} to position {:05.3f} ({:05.3f} deg)\n",
+                   config.id, currentPosition, toDegrees(currentPosition));
+    }
     servo->setPosition(scalePosition(currentPosition));
 }
 
@@ -164,6 +230,22 @@ bool Actuators::openValve(Valve valveId, float position)
     return true;
 }
 
+bool Actuators::openAnimateValve(Valve valveId, float position,
+                                 std::chrono::milliseconds time)
+{
+    ValveInfo* valve = getValve(valveId);
+    if (!valve)
+        return false;
+
+    {
+        Lock<FastMutex> lock(valveMutex);
+        valve->animateOpen(position, time);
+    }
+
+    signalTask();
+    return true;
+}
+
 bool Actuators::closeValve(Valve valveId)
 {
     ValveInfo* valve = getValve(valveId);
@@ -212,22 +294,25 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     return std::accumulate(valves.cbegin(), valves.cend(), TimePoint::max(),
                            [](TimePoint acc, const auto& valve)
                            {
-                               return valve.backstepTs != ValveClosed
-                                          ? std::min(acc, valve.backstepTs)
-                                          : acc;
+                               if (valve.backstepTs != ValveClosed)
+                                   acc = std::min(acc, valve.backstepTs);
+
+                               if (valve.updateTs != ValveClosed)
+                                   acc = std::min(acc, valve.updateTs);
+
+                               return acc;
                            });
 }
 
 void Actuators::task()
 {
-    Lock<FastMutex> lock(valveMutex);
-
     auto currentTime = Clock::now();
 
     PRINT_DEBUG(
         "Actuators task @ {}ms:\n",
         duration_cast<milliseconds>(currentTime.time_since_epoch()).count());
 
+    Lock<FastMutex> lock(valveMutex);
     for (auto& valve : valves)
     {
         if (currentTime < valve.backstepTs)
