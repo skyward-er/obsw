@@ -71,7 +71,7 @@ void SequenceManager::waitFor(Boardcore::Event ev,
                               std::chrono::nanoseconds duration)
 {
     // Post the continue event at the given time, simulating a wait
-    EventBroker::getInstance().postDelayed(
+    waitEvent = EventBroker::getInstance().postDelayed(
         ev, Topics::CONTROL_SEQUENCE,
         duration_cast<milliseconds>(duration).count());
 
