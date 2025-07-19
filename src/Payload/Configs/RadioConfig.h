@@ -53,7 +53,7 @@ namespace MavlinkDriver
 constexpr auto PKT_LENGTH       = 255;
 constexpr auto PKT_QUEUE_SIZE   = 20;
 constexpr auto MSG_LENGTH       = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
-constexpr auto SLEEP_AFTER_SEND = 0ms;
+constexpr auto SLEEP_AFTER_SEND = 2ms;
 constexpr auto MAX_PKT_AGE      = 10ms;
 }  // namespace MavlinkDriver
 
