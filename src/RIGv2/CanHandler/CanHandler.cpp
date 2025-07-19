@@ -54,7 +54,11 @@ bool CanHandler::isStarted() { return started; }
 
 bool CanHandler::start()
 {
-    driver.init();
+    if (!driver.init(Common::CanConfig::CAN_SYNC_TIMEOUT))
+    {
+        LOG_ERR(logger, "Failed to initialize CanbusDriver");
+        return false;
+    }
 
     TaskScheduler& scheduler = getModule<BoardScheduler>()->canHandler();
 

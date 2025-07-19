@@ -38,13 +38,11 @@ namespace CanHandler
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr std::chrono::nanoseconds STATUS_PERIOD = 1000ms;
+constexpr auto STATUS_PERIOD = 1000ms;
 
-constexpr Hertz PRESSURE_PERIOD = 50_hz;
-
-constexpr Hertz ACTUATORS_PERIOD = 50_hz;
-
-constexpr Hertz TEMPERATURE_PERIOD = 10_hz;
+constexpr auto PRESSURE_PERIOD    = 50_hz;
+constexpr auto ACTUATORS_PERIOD   = 50_hz;
+constexpr auto TEMPERATURE_PERIOD = 10_hz;
 
 }  // namespace CanHandler
 
