@@ -41,6 +41,7 @@
 #include <sensors/Vectornav/VN100/VN100Spi.h>
 #include <sensors/analog/pressure/nxp/MPXH6115A.h>
 #include <sensors/calibration/SoftAndHardIronCalibration/SoftAndHardIronCalibration.h>
+#include <sensors/correction/TwelveParametersCorrector/TwelveParametersCorrector.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
@@ -188,8 +189,13 @@ private:
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
-    miosix::FastMutex gyroCalibrationMutex;
-    Boardcore::BiasCorrector gyroCalibration;
+    miosix::FastMutex lsm6Calibration0Mutex;
+    Boardcore::TwelveParametersCorrector accCalibration0;
+    Boardcore::TwelveParametersCorrector gyroCalibration0;
+
+    miosix::FastMutex lsm6Calibration1Mutex;
+    Boardcore::TwelveParametersCorrector accCalibration1;
+    Boardcore::TwelveParametersCorrector gyroCalibration1;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");

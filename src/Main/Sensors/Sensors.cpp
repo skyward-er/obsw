@@ -41,6 +41,16 @@ bool Sensors::start()
     // Read the magnetometer calibration from predefined file
     magCalibration.fromFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
 
+    accCalibration0.fromFile(
+        Config::Sensors::LSM6DSRX_0::ACC_CALIBRATION_FILENAME);
+    gyroCalibration0.fromFile(
+        Config::Sensors::LSM6DSRX_0::GYRO_CALIBRATION_FILENAME);
+
+    accCalibration1.fromFile(
+        Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
+    gyroCalibration1.fromFile(
+        Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
+
     if (Config::Sensors::LPS22DF::ENABLED &&
         !Config::Sensors::USING_DUAL_MAGNETOMETER)
         lps22dfInit();
@@ -116,40 +126,16 @@ bool Sensors::start()
     return true;
 }
 
-void Sensors::calibrate()
-{
-    BiasCalibration gyroCalibrator{};
-
-    for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
-    {
-        auto lsm6dsrx = getLSM6DSRX0LastSample();
-
-        gyroCalibrator.feed(static_cast<GyroscopeData>(lsm6dsrx));
-
-        Thread::sleep(
-            milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
-    }
-
-    {
-        Lock<FastMutex> lock{gyroCalibrationMutex};
-        gyroCalibration = gyroCalibrator.computeResult();
-    }
-
-    CalibrationData calibration = getCalibration();
-    sdLogger.log(calibration);
-}
+void Sensors::calibrate() {}
 
 CalibrationData Sensors::getCalibration()
 {
+    // TODO Modify Mavlink messages for ZVK calibration parameters
     Lock<FastMutex> lock1{magCalibrationMutex};
-    Lock<FastMutex> lock2{gyroCalibrationMutex};
 
     CalibrationData data;
     data.timestamp = TimestampTimer::getTimestamp();
 
-    data.gyroBiasX = gyroCalibration.getb().x();
-    data.gyroBiasY = gyroCalibration.getb().y();
-    data.gyroBiasZ = gyroCalibration.getb().z();
     data.magBiasX  = magCalibration.getb().x();
     data.magBiasY  = magCalibration.getb().y();
     data.magBiasZ  = magCalibration.getb().z();
@@ -317,16 +303,19 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
 {
     auto sample = getLSM6DSRX0LastSample();
+    Lock<FastMutex> lock{lsm6Calibration0Mutex};
 
-    {
-        // This is for my boy Giuseppe <3
-        Lock<FastMutex> lock{gyroCalibrationMutex};
-        auto corrected =
-            gyroCalibration.correct(static_cast<GyroscopeData>(sample));
-        sample.angularSpeedX = corrected.x();
-        sample.angularSpeedY = corrected.y();
-        sample.angularSpeedZ = corrected.z();
-    }
+    auto correctedAcc =
+        accCalibration0.correct(static_cast<AccelerometerData>(sample));
+    sample.accelerationX = correctedAcc.x();
+    sample.accelerationY = correctedAcc.y();
+    sample.accelerationZ = correctedAcc.z();
+
+    auto correctedGyro =
+        gyroCalibration0.correct(static_cast<GyroscopeData>(sample));
+    sample.angularSpeedX = correctedGyro.x();
+    sample.angularSpeedY = correctedGyro.y();
+    sample.angularSpeedZ = correctedGyro.z();
 
     return sample;
 }
@@ -334,16 +323,19 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
 LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
 {
     auto sample = getLSM6DSRX1LastSample();
+    Lock<FastMutex> lock{lsm6Calibration1Mutex};
 
-    {
-        // This is for my boy Giuseppe <3
-        Lock<FastMutex> lock{gyroCalibrationMutex};
-        auto corrected =
-            gyroCalibration.correct(static_cast<GyroscopeData>(sample));
-        sample.angularSpeedX = corrected.x();
-        sample.angularSpeedY = corrected.y();
-        sample.angularSpeedZ = corrected.z();
-    }
+    auto correctedAcc =
+        accCalibration1.correct(static_cast<AccelerometerData>(sample));
+    sample.accelerationX = correctedAcc.x();
+    sample.accelerationY = correctedAcc.y();
+    sample.accelerationZ = correctedAcc.z();
+
+    auto correctedGyro =
+        gyroCalibration1.correct(static_cast<GyroscopeData>(sample));
+    sample.angularSpeedX = correctedGyro.x();
+    sample.angularSpeedY = correctedGyro.y();
+    sample.angularSpeedZ = correctedGyro.z();
 
     return sample;
 }
