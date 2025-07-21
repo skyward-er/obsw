@@ -125,7 +125,7 @@ constexpr auto ENABLED = true;
 namespace VN100
 {
 constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
+constexpr auto ENABLED = false;
 }  // namespace VN100
 
 namespace ND015A
