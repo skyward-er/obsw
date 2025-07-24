@@ -35,13 +35,13 @@ namespace Servos
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace std::chrono;
 
-// Pulse width for all servos
+// Pulse width for normal (74 kg) servos
 constexpr unsigned int MIN_PULSE = 500;
 constexpr unsigned int MAX_PULSE = 2440;
 
-// Pulse width for detach servos
-constexpr unsigned int DETACH_MIN_PULSE = 900;
-constexpr unsigned int DETACH_MAX_PULSE = 2100;
+// Pulse width for small (16 kg) servos
+constexpr unsigned int SMALL_MIN_PULSE = 900;
+constexpr unsigned int SMALL_MAX_PULSE = 2100;
 
 constexpr unsigned int FREQUENCY = 333;
 
@@ -74,7 +74,7 @@ constexpr float OX_FIL_LIMIT = 0.9;
 constexpr float OX_REL_LIMIT = 0.5;
 constexpr float OX_DET_LIMIT = 1.0;
 constexpr float N2_3W_LIMIT  = 1.0;
-constexpr float N2_FIL_LIMIT = 0.9;
+constexpr float N2_FIL_LIMIT = 1.0;
 constexpr float N2_REL_LIMIT = 0.5;
 constexpr float N2_DET_LIMIT = 1.0;
 constexpr float NITR_LIMIT   = 0.9;
@@ -86,12 +86,12 @@ constexpr bool OX_FIL_FLIPPED = true;
 constexpr bool OX_REL_FLIPPED = true;
 constexpr bool OX_DET_FLIPPED = false;
 constexpr bool N2_3W_FLIPPED  = true;
-constexpr bool N2_FIL_FLIPPED = true;
-constexpr bool N2_REL_FLIPPED = true;
+constexpr bool N2_FIL_FLIPPED = false;
+constexpr bool N2_REL_FLIPPED = false;
 constexpr bool N2_DET_FLIPPED = false;
 constexpr bool NITR_FLIPPED   = true;
 constexpr bool OX_VEN_FLIPPED = true;
-constexpr bool N2_QUE_FLIPPED = true;
+constexpr bool N2_QUE_FLIPPED = false;
 constexpr bool MAIN_FLIPPED   = true;
 
 }  // namespace Servos

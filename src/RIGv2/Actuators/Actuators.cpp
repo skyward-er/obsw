@@ -123,10 +123,11 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      infos{MAKE_SERVO(OX_FIL), MAKE_SERVO(OX_REL), MAKE_DETACH_SERVO(OX_DET),
-            MAKE_SERVO(N2_FIL), MAKE_SERVO(N2_REL), MAKE_DETACH_SERVO(N2_DET),
-            MAKE_SERVO(NITR),   MAKE_SERVO(OX_VEN), MAKE_SERVO(N2_QUE),
-            MAKE_SERVO(MAIN)},
+      infos{MAKE_SERVO(OX_FIL),       MAKE_SERVO(OX_REL),
+            MAKE_SMALL_SERVO(OX_DET), MAKE_SMALL_SERVO(N2_FIL),
+            MAKE_SMALL_SERVO(N2_REL), MAKE_SMALL_SERVO(N2_DET),
+            MAKE_SERVO(NITR),         MAKE_SERVO(OX_VEN),
+            MAKE_SMALL_SERVO(N2_QUE), MAKE_SERVO(MAIN)},
       n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
 {
     for (auto& servo : infos)
