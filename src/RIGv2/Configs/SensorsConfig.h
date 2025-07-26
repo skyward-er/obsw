@@ -117,11 +117,11 @@ constexpr float MAX_CURRENT = 20;
 
 constexpr float OX_VESSEL_MAX_PRESSURE  = 100;  // bar
 constexpr float OX_FILLING_MAX_PRESSURE = 100;  // bar
-constexpr float N2_VESSEL1_MAX_PRESSURE = 100;  // bar
-constexpr float N2_VESSEL2_MAX_PRESSURE = 100;  // bar
-constexpr float N2_FILLING_MAX_PRESSURE = 100;  // bar
+constexpr float N2_VESSEL1_MAX_PRESSURE = 400;  // bar
+constexpr float N2_VESSEL2_MAX_PRESSURE = 400;  // bar
+constexpr float N2_FILLING_MAX_PRESSURE = 400;  // bar
 constexpr float OX_TANK_MAX_PRESSURE    = 100;  // bar
-constexpr float N2_TANK_MAX_PRESSURE    = 250;  // bar
+constexpr float N2_TANK_MAX_PRESSURE    = 400;  // bar
 }  // namespace Trafag
 
 namespace LoadCell
