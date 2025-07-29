@@ -34,9 +34,11 @@
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Motor;
 using namespace miosix;
@@ -75,8 +77,6 @@ int main()
                  manager.insert<Actuators>(actuators) &&
                  manager.insert<CanHandler>(canHandler) && manager.inject();
 
-    manager.graphviz(std::cout);
-
     if (!initResult)
     {
         std::cout << "Failed to inject dependencies" << std::endl;
@@ -84,9 +84,9 @@ int main()
     }
 
     // Status led indicators
-    // led1: Sensors ok
-    // led2: Actuators ok
-    // led3: CanBus ok
+    // led1: Sensors error
+    // led2: Actuators error
+    // led3: CanBus error
     // led4: Everything ok
 
     // Start modules
@@ -95,9 +95,6 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start Actuators ***" << std::endl;
-    }
-    else
-    {
         led2On();
     }
 
@@ -106,9 +103,6 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start CanHandler ***" << std::endl;
-    }
-    else
-    {
         led3On();
     }
 
@@ -139,7 +133,7 @@ int main()
         if (!hil->start())
         {
             initResult = false;
-            std::cout << "Error failed to start HIL" << std::endl;
+            std::cout << "*** Error failed to start HIL ***" << std::endl;
         }
 
         // Waiting for start of simulation
@@ -151,9 +145,6 @@ int main()
     {
         initResult = false;
         std::cout << "*** Failed to start Sensors ***" << std::endl;
-    }
-    else
-    {
         led1On();
     }
 
@@ -172,12 +163,18 @@ int main()
     std::cout << "Sensor status:" << std::endl;
     for (auto info : sensors->getSensorInfos())
     {
-        std::cout << "\t" << std::setw(16) << std::left << info.id << " "
-                  << (info.isInitialized ? "Ok" : "Error") << std::endl;
+        // The period being 0 means the sensor is disabled
+        auto statusStr = info.period == 0ns   ? "Disabled"
+                         : info.isInitialized ? "Ok"
+                                              : "Error";
+
+        std::cout << "\t" << std::setw(24) << std::left << info.id << " "
+                  << statusStr << std::endl;
     }
 
-    std::cout << "Battery voltage: "
-              << sensors->getBatteryVoltageLastSample().voltage << std::endl;
+    std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
+              << sensors->getBatteryVoltageLastSample().voltage << " V"
+              << std::endl;
 
     while (true)
     {

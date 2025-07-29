@@ -27,6 +27,9 @@
 #include <Motor/Sensors/SensorsData.h>
 #include <interfaces-impl/hwmapping.h>
 
+#include <chrono>
+
+using namespace std::chrono;
 using namespace Motor;
 using namespace Boardcore;
 using namespace miosix;
@@ -163,49 +166,26 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     {
         std::vector<SensorInfo> infos{};
 
-        if (lps22df)
-            infos.push_back(manager->getSensorInfo(lps22df.get()));
+#define PUSH_SENSOR_INFO(instance, name)                         \
+    if (instance)                                                \
+        infos.push_back(manager->getSensorInfo(instance.get())); \
+    else                                                         \
+        infos.push_back(SensorInfo{name, 0ns, nullptr, false})
 
-        if (h3lis331dl)
-            infos.push_back(manager->getSensorInfo(h3lis331dl.get()));
-
-        if (lis2mdl)
-            infos.push_back(manager->getSensorInfo(lis2mdl.get()));
-
-        if (lsm6dsrx0)
-            infos.push_back(manager->getSensorInfo(lsm6dsrx0.get()));
-
-        if (lsm6dsrx1)
-            infos.push_back(manager->getSensorInfo(lsm6dsrx1.get()));
-
-        if (ads131m08)
-            infos.push_back(manager->getSensorInfo(ads131m08.get()));
-
-        if (internalAdc)
-            infos.push_back(manager->getSensorInfo(internalAdc.get()));
-
-        if (oxTopTankPressure)
-            infos.push_back(manager->getSensorInfo(oxTopTankPressure.get()));
-
-        if (oxBottomTankPressure0)
-            infos.push_back(
-                manager->getSensorInfo(oxBottomTankPressure0.get()));
-
-        if (oxBottomTankPressure1)
-            infos.push_back(
-                manager->getSensorInfo(oxBottomTankPressure1.get()));
-
-        if (n2TankPressure)
-            infos.push_back(manager->getSensorInfo(n2TankPressure.get()));
-
-        if (ccPressure)
-            infos.push_back(manager->getSensorInfo(ccPressure.get()));
-
-        if (tankTemp)
-            infos.push_back(manager->getSensorInfo(tankTemp.get()));
-
-        if (thermocouple)
-            infos.push_back(manager->getSensorInfo(thermocouple.get()));
+        PUSH_SENSOR_INFO(lps22df, "LPS22DF");
+        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
+        PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
+        PUSH_SENSOR_INFO(lsm6dsrx0, "LSM6DSRX0");
+        PUSH_SENSOR_INFO(lsm6dsrx1, "LSM6DSRX1");
+        PUSH_SENSOR_INFO(ads131m08, "ADS131M08");
+        PUSH_SENSOR_INFO(internalAdc, "InternalADC");
+        PUSH_SENSOR_INFO(oxTopTankPressure, "OxTopTankPressure");
+        PUSH_SENSOR_INFO(oxBottomTankPressure0, "OxBottomTankPressure0");
+        PUSH_SENSOR_INFO(oxBottomTankPressure1, "OxBottomTankPressure1");
+        PUSH_SENSOR_INFO(n2TankPressure, "N2TankPressure");
+        PUSH_SENSOR_INFO(ccPressure, "CCPressure");
+        PUSH_SENSOR_INFO(tankTemp, "TankTemp");
+        PUSH_SENSOR_INFO(thermocouple, "Thermocouple");
 
         return infos;
     }
