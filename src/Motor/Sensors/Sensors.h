@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Fabrizio Monti, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
-#include <Motor/Sensors/KuliteThermocouple.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -58,14 +57,15 @@ public:
     Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
     Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
 
-    Boardcore::PressureData getOxTopTankPressLastSample();
-    Boardcore::PressureData getOxBottomTankPress0LastSample();
-    Boardcore::PressureData getOxBottomTankPress1LastSample();
-    Boardcore::PressureData getN2TankPressLastSample();
-    Boardcore::PressureData getCCPressLastSample();
-    Boardcore::TemperatureData getTankTempLastSample();
-    Boardcore::VoltageData getBatteryVoltageLastSample();
-    Boardcore::TemperatureData getThermocoupleLastSample();
+    Boardcore::PressureData getRegulatorOutPressure();
+    Boardcore::PressureData getOxTankTopPressure();
+    Boardcore::PressureData getOxTankBottom0Pressure();
+    Boardcore::PressureData getOxTankBottom1Pressure();
+    Boardcore::PressureData getN2TankPressure();
+    Boardcore::PressureData getCCPressure();
+    Boardcore::TemperatureData getTankTemperature();
+    Boardcore::VoltageData getBatteryVoltage();
+    Boardcore::TemperatureData getThermocoupleTemperature();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -85,12 +85,12 @@ protected:
     std::unique_ptr<Boardcore::MAX31856> thermocouple;
 
     // Analog sensors
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTopTankPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxBottomTankPressure0;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxBottomTankPressure1;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> regulatorOutPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankTopPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottom0Pressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottom1Pressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
-    std::unique_ptr<KuliteThermocouple> tankTemp;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 
@@ -118,22 +118,22 @@ private:
     void thermocoupleInit();
     void thermocoupleCallback();
 
-    void oxTopTankPressureInit();
-    void oxTopTankPressureCallback();
+    void regulatorOutPressureInit();
+    void regulatorOutPressureCallback();
+
+    void oxTankTopPressureInit();
+    void oxTankTopPressureCallback();
 
     /// @brief Initialize both ox bottom pressure sensors.
-    void oxBottomTankPressureInit();
-    void oxBottomTankPressure0Callback();
-    void oxBottomTankPressure1Callback();
+    void oxTankBottomPressureInit();
+    void oxTankBottom0PressureCallback();
+    void oxTankBottom1PressureCallback();
 
     void n2TankPressureInit();
     void n2TankPressureCallback();
 
     void ccPressureInit();
     void ccPressureCallback();
-
-    void tankTempInit();
-    void tankTempCallback();
 
     bool sensorManagerInit();
 

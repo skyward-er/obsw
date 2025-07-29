@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -173,8 +173,7 @@ int main()
     }
 
     std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
-              << sensors->getBatteryVoltageLastSample().voltage << " V"
-              << std::endl;
+              << sensors->getBatteryVoltage().voltage << " V" << std::endl;
 
     while (true)
     {

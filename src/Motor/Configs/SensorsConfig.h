@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto, Fabrizio Monti
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,56 +41,49 @@ namespace Sensors
 
 namespace LPS22DF
 {
-constexpr Boardcore::LPS22DF::AVG AVG = Boardcore::LPS22DF::AVG_4;
-constexpr Boardcore::LPS22DF::ODR ODR = Boardcore::LPS22DF::ODR_100;
+constexpr auto AVG = Boardcore::LPS22DF::AVG_4;
+constexpr auto ODR = Boardcore::LPS22DF::ODR_100;
 
-constexpr Hertz RATE   = 50_hz;  // [ms] 50Hz
+constexpr auto RATE    = 50_hz;  // [ms] 50Hz
 constexpr bool ENABLED = true;
 }  // namespace LPS22DF
 
 namespace H3LIS331DL
 {
-constexpr Boardcore::H3LIS331DLDefs::OutputDataRate ODR =
-    Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
-constexpr Boardcore::H3LIS331DLDefs::FullScaleRange FS =
-    Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
-constexpr Hertz RATE   = 100_hz;
+constexpr auto ODR     = Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
+constexpr auto FS      = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+constexpr auto RATE    = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace H3LIS331DL
 
 namespace LIS2MDL
 {
-constexpr Boardcore::LIS2MDL::ODR ODR = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr unsigned int TEMP_DIVIDER   = 10;
+constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
+constexpr auto TEMP_DIVIDER = 10;
 
-constexpr Hertz RATE   = 100_hz;
+constexpr auto RATE    = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LIS2MDL
 
 namespace LSM6DSRX
 {
-constexpr Boardcore::LSM6DSRXConfig::ACC_FULLSCALE ACC_FS =
-    Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
-constexpr Boardcore::LSM6DSRXConfig::ACC_ODR ACC_ODR =
-    Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
-constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE ACC_OP_MODE =
+constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
+constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_416;
+constexpr auto ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr Boardcore::LSM6DSRXConfig::GYR_FULLSCALE GYR_FS =
-    Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
-constexpr Boardcore::LSM6DSRXConfig::GYR_ODR GYR_ODR =
-    Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
-constexpr Boardcore::LSM6DSRXConfig::OPERATING_MODE GYR_OP_MODE =
+constexpr auto GYR_FS  = Boardcore::LSM6DSRXConfig::GYR_FULLSCALE::DPS_2000;
+constexpr auto GYR_ODR = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_416;
+constexpr auto GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr Hertz RATE   = 100_hz;
+constexpr auto RATE    = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace LSM6DSRX
 
 namespace ADS131M08
 {
-constexpr Boardcore::ADS131M08Defs::OversamplingRatio OSR =
-    Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 /*
@@ -112,51 +105,47 @@ Channel 4 - 29.65ohm
 0.5911V 20mA    29.55ohm
 */
 
-// TODO: calibrate ch0 and ch1
+// TODO: calibrate channels
 constexpr float CH0_SHUNT_RESISTANCE = 29.0;
 constexpr float CH1_SHUNT_RESISTANCE = 29.0;
+constexpr float CH2_SHUNT_RESISTANCE = 29.0;
+constexpr float CH3_SHUNT_RESISTANCE = 29.0;
+constexpr float CH4_SHUNT_RESISTANCE = 29.0;
+constexpr float CH5_SHUNT_RESISTANCE = 29.0;
 
-constexpr float CH4_SHUNT_RESISTANCE = 29.79;
-constexpr float CH5_SHUNT_RESISTANCE = 29.7;
-constexpr float CH6_SHUNT_RESISTANCE = 29.65;
+using namespace Boardcore::ADS131M08Defs;
 
-// TODO: check if the selected channels are fine
-constexpr Boardcore::ADS131M08Defs::Channel TANK_TC_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_3;
-constexpr Boardcore::ADS131M08Defs::Channel OX_TANK_TOP_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_5;
-constexpr Boardcore::ADS131M08Defs::Channel OX_TANK_BOTTOM_0_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_6;
-constexpr Boardcore::ADS131M08Defs::Channel OX_TANK_BOTTOM_1_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_0;
-constexpr Boardcore::ADS131M08Defs::Channel N2_TANK_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_1;
-constexpr Boardcore::ADS131M08Defs::Channel ENGINE_PT_CHANNEL =
-    Boardcore::ADS131M08Defs::Channel::CHANNEL_4;
+constexpr auto N2_TANK_PT_CHANNEL          = Channel::CHANNEL_4;
+constexpr auto REGULATOR_OUT_PT_CHANNEL    = Channel::CHANNEL_5;
+constexpr auto OX_TANK_TOP_PT_CHANNEL      = Channel::CHANNEL_2;
+constexpr auto OX_TANK_BOTTOM_0_PT_CHANNEL = Channel::CHANNEL_1;
+constexpr auto OX_TANK_BOTTOM_1_PT_CHANNEL = Channel::CHANNEL_0;
+constexpr auto CC_PT_CHANNEL               = Channel::CHANNEL_3;
 
-constexpr Hertz RATE   = 100_hz;
+constexpr auto RATE    = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace ADS131M08
 
 namespace Trafag
 {
-constexpr float OX_TANK_TOP_SHUNT_RESISTANCE = ADS131M08::CH5_SHUNT_RESISTANCE;
-constexpr float OX_TANK_BOTTOM_0_SHUNT_RESISTANCE =
-    ADS131M08::CH6_SHUNT_RESISTANCE;
-constexpr float OX_TANK_BOTTOM_1_SHUNT_RESISTANCE =
-    ADS131M08::CH0_SHUNT_RESISTANCE;
-constexpr float N2_TANK_SHUNT_RESISTANCE = ADS131M08::CH1_SHUNT_RESISTANCE;
-constexpr float ENGINE_SHUNT_RESISTANCE  = ADS131M08::CH4_SHUNT_RESISTANCE;
+using namespace ADS131M08;
+
+constexpr float N2_TANK_SHUNT_RESISTANCE          = CH4_SHUNT_RESISTANCE;
+constexpr float REGULATOR_OUT_SHUNT_RESISTANCE    = CH5_SHUNT_RESISTANCE;
+constexpr float OX_TANK_TOP_SHUNT_RESISTANCE      = CH2_SHUNT_RESISTANCE;
+constexpr float OX_TANK_BOTTOM_0_SHUNT_RESISTANCE = CH1_SHUNT_RESISTANCE;
+constexpr float OX_TANK_BOTTOM_1_SHUNT_RESISTANCE = CH0_SHUNT_RESISTANCE;
+constexpr float CC_SHUNT_RESISTANCE               = CH3_SHUNT_RESISTANCE;
 
 constexpr float MIN_CURRENT = 4;
 constexpr float MAX_CURRENT = 20;
 
-// TODO: check these values
+constexpr float N2_TANK_MAX_PRESSURE          = 400;  // bar
+constexpr float REGULATOR_OUT_MAX_PRESSURE    = 100;  // bar
 constexpr float OX_TANK_TOP_MAX_PRESSURE      = 100;  // bar
 constexpr float OX_TANK_BOTTOM_0_MAX_PRESSURE = 100;  // bar
 constexpr float OX_TANK_BOTTOM_1_MAX_PRESSURE = 100;  // bar
-constexpr float N2_TANK_MAX_PRESSURE          = 100;  // TODO: CHECK
-constexpr float ENGINE_MAX_PRESSURE           = 40;   // bar
+constexpr float CC_MAX_PRESSURE               = 40;   // bar
 }  // namespace Trafag
 
 namespace Kulite
@@ -175,18 +164,17 @@ constexpr float TANK_P1_TEMP    = 34.0f;
 
 namespace MAX31856
 {
-constexpr Hertz PERIOD = 10_hz;
+constexpr auto PERIOD  = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace MAX31856
 
 namespace InternalADC
 {
-constexpr Boardcore::InternalADC::Channel VBAT_CH =
-    Boardcore::InternalADC::Channel::CH14;
+constexpr auto VBAT_CH = Boardcore::InternalADC::Channel::CH14;
 
 constexpr float VBAT_SCALE = 9040.0f / 3000.0f;
 
-constexpr Hertz RATE   = 10_hz;
+constexpr auto RATE    = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 

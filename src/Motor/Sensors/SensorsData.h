@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Fabrizio Monti, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,34 +29,66 @@
 namespace Motor
 {
 
-struct OxTopTankPressureData : Boardcore::PressureData
+struct RegulatorOutPressureData : Boardcore::PressureData
 {
-    explicit OxTopTankPressureData(const Boardcore::PressureData& data)
+    explicit RegulatorOutPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    OxTopTankPressureData() {}
+    RegulatorOutPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(OxTopTankPressureData,
+        return STRUCT_DEF(RegulatorOutPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
 
-struct OxBottomTankPressureData : Boardcore::PressureData
+struct OxTankTopPressureData : Boardcore::PressureData
 {
-    explicit OxBottomTankPressureData(const Boardcore::PressureData& data)
+    explicit OxTankTopPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    OxBottomTankPressureData() {}
+    OxTankTopPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(OxBottomTankPressureData,
+        return STRUCT_DEF(OxTankTopPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct OxTankBottom0PressureData : Boardcore::PressureData
+{
+    explicit OxTankBottom0PressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData{data}
+    {
+    }
+
+    OxTankBottom0PressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxTankBottom0PressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct OxTankBottom1PressureData : Boardcore::PressureData
+{
+    explicit OxTankBottom1PressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData{data}
+    {
+    }
+
+    OxTankBottom1PressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxTankBottom1PressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };

@@ -97,7 +97,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::CC_PRESSURE),
-                static_cast<PressureData>(sensors->getCCPressLastSample()));
+                static_cast<PressureData>(sensors->getCCPressure()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -105,8 +105,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::OX_TOP_TANK_PRESSURE),
-                static_cast<PressureData>(
-                    sensors->getOxTopTankPressLastSample()));
+                static_cast<PressureData>(sensors->getOxTankTopPressure()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -115,8 +114,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(
                     CanConfig::SensorId::OX_BOTTOM_TANK_PRESSURE_0),
-                static_cast<PressureData>(
-                    sensors->getOxBottomTankPress0LastSample()));
+                static_cast<PressureData>(sensors->getOxTankBottom0Pressure()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -125,8 +123,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(
                     CanConfig::SensorId::OX_BOTTOM_TANK_PRESSURE_1),
-                static_cast<PressureData>(
-                    sensors->getOxBottomTankPress1LastSample()));
+                static_cast<PressureData>(sensors->getOxTankBottom1Pressure()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -134,7 +131,16 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::N2_TANK_PRESSURE),
-                static_cast<PressureData>(sensors->getN2TankPressLastSample()));
+                static_cast<PressureData>(sensors->getN2TankPressure()));
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(
+                    CanConfig::SensorId::REGULATOR_OUT_PRESSURE),
+                static_cast<PressureData>(sensors->getRegulatorOutPressure()));
         },
         Config::CanHandler::PRESSURE_PERIOD);
 
@@ -154,8 +160,9 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::SensorId::TANK_TEMPERATURE),
-                static_cast<TemperatureData>(sensors->getTankTempLastSample()));
+                static_cast<uint8_t>(CanConfig::SensorId::THERMOCOUPLE),
+                static_cast<TemperatureData>(
+                    sensors->getThermocoupleTemperature()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
@@ -163,8 +170,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_VOLTAGE),
-                static_cast<VoltageData>(
-                    sensors->getBatteryVoltageLastSample()));
+                static_cast<VoltageData>(sensors->getBatteryVoltage()));
         },
         Config::CanHandler::TEMPERATURE_PERIOD);
 
