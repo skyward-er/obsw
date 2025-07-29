@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,43 +25,43 @@
 #include <interfaces-impl/hwmapping.h>
 #include <units/Frequency.h>
 
+#include <chrono>
+
 namespace Motor
 {
-
 namespace Config
 {
-
 namespace Servos
 {
-
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-// Generic pulse width for all servos
+// Pulse width for normal (74 kg) servos
 constexpr unsigned int MIN_PULSE = 500;
 constexpr unsigned int MAX_PULSE = 2440;
 
+// Pulse width for small (16 kg) servos
+constexpr unsigned int SMALL_MIN_PULSE = 900;
+constexpr unsigned int SMALL_MAX_PULSE = 2100;
+
 constexpr unsigned int FREQUENCY = 333;
 
-constexpr Hertz SERVO_TIMINGS_CHECK_PERIOD = 10_hz;
-constexpr long long SERVO_CONFIDENCE_TIME  = 500;   // 0.5s
-constexpr float SERVO_CONFIDENCE           = 0.02;  // 2%
+constexpr auto SERVO_BACKSTEP_DELAY   = 500ms;
+constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
-// Timeout is currently set at 2h
-constexpr long long SERVO_ACTION_TIMEOUT = 2 * 60 * 60 * 1000;
+constexpr auto SAFETY_VENTING_TIMEOUT  = 2h;
+constexpr auto SAFETY_VENTING_DURATION = 10min;  // How long to vent
 
-// TODO: check this values
-constexpr float OX_VENTING_LIMIT   = 0.90f;
-constexpr float MAIN_LIMIT         = 0.90f;
-constexpr float NITROGEN_LIMIT     = 0.90f;
-constexpr float N2_QUENCHING_LIMIT = 0.90f;
+constexpr float OX_VENTING_LIMIT   = 0.9f;
+constexpr float MAIN_LIMIT         = 0.9f;
+constexpr float NITROGEN_LIMIT     = 0.9f;
+constexpr float N2_QUENCHING_LIMIT = 1.0f;
 
-// TODO: check this values
 constexpr bool OX_VENTING_FLIPPED   = true;
 constexpr bool MAIN_FLIPPED         = true;
 constexpr bool NITROGEN_FLIPPED     = true;
-constexpr bool N2_QUENCHING_FLIPPED = true;
+constexpr bool N2_QUENCHING_FLIPPED = false;
 
 }  // namespace Servos
-
 }  // namespace Config
 }  // namespace Motor

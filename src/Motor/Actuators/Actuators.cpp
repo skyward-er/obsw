@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,27 @@
 #include <Motor/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
+#include <chrono>
+
+using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
 using namespace Motor;
 
+const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
+
 void Actuators::ServoInfo::openServoWithTime(uint32_t time)
 {
-    long long currentTime = getTime();
+    auto currentTime = Clock::now();
 
-    closeTs      = currentTime + (time * Constants::NS_IN_MS);
-    lastActionTs = currentTime;
+    closeTs    = currentTime + milliseconds{time};
+    backstepTs = currentTime + Config::Servos::SERVO_BACKSTEP_DELAY;
 }
 
 void Actuators::ServoInfo::closeServo()
 {
-    closeTs      = 0;
-    lastActionTs = getTime();
+    closeTs    = ValveClosed;
+    backstepTs = Clock::now() + Config::Servos::SERVO_BACKSTEP_DELAY;
 }
 
 void Actuators::ServoInfo::unsafeSetServoPosition(float position)
@@ -72,6 +77,8 @@ float Actuators::ServoInfo::getServoPosition()
 }
 
 Actuators::Actuators()
+    : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
+                           BoardScheduler::actuatorsPriority())
 {
     infos[0].servo = std::make_unique<Servo>(
         MIOSIX_SERVOS_0_TIM, TimerUtils::Channel::MIOSIX_SERVOS_0_CHANNEL,
@@ -114,20 +121,16 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->actuators();
-
+    // Enable all servos
     for (size_t i = 0; i < infos.size(); ++i)
         infos[i].servo->enable();
 
-    // Reset all actions
-    lastActionTs = getTime();
-    uint8_t result =
-        scheduler.addTask([this]() { updatePositionsTask(); },
-                          Config::Servos::SERVO_TIMINGS_CHECK_PERIOD);
+    // Reset the safety venting timestamp
+    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
 
-    if (result == 0)
+    if (!SignaledDeadlineTask::start())
     {
-        LOG_ERR(logger, "Failed to add updatePositionsTask");
+        LOG_ERR(logger, "Failed to start Actuators task");
         return false;
     }
 
@@ -141,8 +144,9 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
     if (info == nullptr)
         return false;
 
-    lastActionTs = getTime();
+    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
     info->openServoWithTime(time);
+    signalTask();
     return true;
 }
 
@@ -153,8 +157,9 @@ bool Actuators::closeServo(ServosList servo)
     if (info == nullptr)
         return false;
 
-    lastActionTs = getTime();
+    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
     info->closeServo();
+    signalTask();
     return true;
 }
 
@@ -175,7 +180,7 @@ bool Actuators::isServoOpen(ServosList servo)
     if (info == nullptr)
         return false;
 
-    return info->closeTs != 0;
+    return info->closeTs != ValveClosed;
 }
 
 Actuators::ServoInfo* Actuators::getServo(ServosList servo)
@@ -210,69 +215,93 @@ void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
     sdLogger.log(data);
 }
 
-void Actuators::updatePositionsTask()
+SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
 {
-    long long currentTime = getTime();
-    bool shouldVent       = false;
+    Lock<FastMutex> lock(infosMutex);
 
+    // Start with the maximum value
+    auto nextDeadline = TimePoint::max();
+
+    // Get the closest deadline from all valves
+    for (uint8_t idx = 0; idx < infos.size(); idx++)
     {
-        Lock<FastMutex> lock(infosMutex);
+        if (infos[idx].closeTs != ValveClosed)
+            nextDeadline = std::min(nextDeadline, infos[idx].closeTs);
 
-        // Iterate over all servos
-        for (uint8_t idx = 0; idx < 2; idx++)
+        if (infos[idx].backstepTs != ValveClosed)
+            nextDeadline = std::min(nextDeadline, infos[idx].backstepTs);
+    }
+
+    if (safetyVentingTs < nextDeadline)
+        nextDeadline = safetyVentingTs;
+
+    return nextDeadline;
+}
+
+void Actuators::task()
+{
+    Lock<FastMutex> lock(infosMutex);
+
+    auto currentTime = Clock::now();
+
+    // Iterate over all servos
+    for (uint8_t idx = 0; idx < infos.size(); idx++)
+    {
+        if (currentTime < infos[idx].closeTs)
         {
-            if (currentTime < infos[idx].closeTs)
+            // The valve should be open
+            if (currentTime < infos[idx].backstepTs)
             {
-                // The valve should be open
-                if (currentTime < infos[idx].lastActionTs +
-                                      (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                       Constants::NS_IN_MS))
-                {
-                    // We should open the valve all the way
-                    unsafeSetServoPosition(idx, 1.0f);
-                }
-                else
-                {
-                    // Time to wiggle the valve a little
-                    unsafeSetServoPosition(
-                        idx, 1.0 - Config::Servos::SERVO_CONFIDENCE);
-                }
+                // We should open the valve all the way
+                unsafeSetServoPosition(idx, 1.0f);
             }
             else
             {
-                // Ok the valve should be closed
-                if (infos[idx].closeTs != 0)
-                {
-                    // Perform the servo closing
-                    infos[idx].closeServo();
-                }
+                // Backstep the valve a little to avoid strain
+                unsafeSetServoPosition(
+                    idx, 1.0 - Config::Servos::SERVO_BACKSTEP_AMOUNT);
 
-                if (currentTime < infos[idx].lastActionTs +
-                                      (Config::Servos::SERVO_CONFIDENCE_TIME *
-                                       Constants::NS_IN_MS))
-                {
-                    // We should close the valve all the way
-                    unsafeSetServoPosition(idx, 0.0);
-                }
-                else
-                {
-                    // Time to wiggle the valve a little
-                    unsafeSetServoPosition(idx,
-                                           Config::Servos::SERVO_CONFIDENCE);
-                }
+                infos[idx].backstepTs = ValveClosed;  // Reset backstep time
             }
         }
+        else
+        {
+            // Ok the valve should be closed
+            if (infos[idx].closeTs != ValveClosed)
+            {
+                // Perform the servo closing
+                infos[idx].closeServo();
+            }
 
-        // Detect if we reached timeout and should vent
-        shouldVent =
-            currentTime > lastActionTs + (Config::Servos::SERVO_ACTION_TIMEOUT *
-                                          Constants::NS_IN_MS);
+            if (currentTime < infos[idx].backstepTs)
+            {
+                // We should close the valve all the way
+                unsafeSetServoPosition(idx, 0.0);
+            }
+            else
+            {
+                // Backstep the valve a little to avoid strain
+                unsafeSetServoPosition(idx,
+                                       Config::Servos::SERVO_BACKSTEP_AMOUNT);
+
+                infos[idx].backstepTs = ValveClosed;  // Reset backstep time
+            }
+        }
     }
 
-    if (shouldVent)
+    // Check if we reached the inactivity timeout and should vent
+    if (currentTime > safetyVentingTs)
     {
-        // Open for at least timeout time
-        openServoWithTime(ServosList::OX_VENTING_VALVE,
-                          Config::Servos::SERVO_ACTION_TIMEOUT + 1000);
+        getServo(ServosList::OX_VENTING_VALVE)
+            ->openServoWithTime(
+                milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
+
+        getServo(ServosList::NITROGEN_VALVE)
+            ->openServoWithTime(
+                milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
+
+        // Reset the safety venting timestamp
+        safetyVentingTs = currentTime + Config::Servos::SAFETY_VENTING_TIMEOUT;
     }
 }
+

@@ -55,7 +55,6 @@ public:
 
     Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
-    Boardcore::TaskScheduler& actuators() { return critical; }
 
     static Priority::PriorityLevel actuatorsPriority()
     {
