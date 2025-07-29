@@ -38,7 +38,7 @@ CanHandler::CanHandler()
     : driver(CAN1, CanConfig::CONFIG, CanConfig::BIT_TIMING),
       protocol(
           &driver, [this](const CanMessage& msg) { handleMessage(msg); },
-          Config::Scheduler::CAN_PRIORITY)
+          getModule<BoardScheduler>()->canHandlerPriority())
 {
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
@@ -56,8 +56,7 @@ bool CanHandler::start()
         return false;
     }
 
-    TaskScheduler& scheduler =
-        getModule<BoardScheduler>()->getCanBusScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->canHandler();
 
     uint8_t result = scheduler.addTask(
         [this]()

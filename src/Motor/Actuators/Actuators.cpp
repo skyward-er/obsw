@@ -114,8 +114,7 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
-    TaskScheduler& scheduler =
-        getModule<BoardScheduler>()->getActuatorsScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->actuators();
 
     for (size_t i = 0; i < infos.size(); ++i)
         infos[i].servo->enable();

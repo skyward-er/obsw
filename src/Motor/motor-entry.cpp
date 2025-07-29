@@ -175,22 +175,19 @@ int main()
     std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
               << sensors->getBatteryVoltage().voltage << " V" << std::endl;
 
+    // From here on main thread will do non-critical stuff, set lowest priority
+    Thread::setPriority(BoardScheduler::Priority::LOW);
+
     while (true)
     {
-        // Log CpuMeter
+        // Log logger and CPU stats
         sdLogger.log(sdLogger.getStats());
         sdLogger.log(CpuMeter::getCpuStats());
         CpuMeter::resetCpuStats();
 
-        gpios::boardLed::high();
-        Thread::sleep(1000);
-
-        // Log CpuMeter
-        sdLogger.log(sdLogger.getStats());
-        sdLogger.log(CpuMeter::getCpuStats());
-        CpuMeter::resetCpuStats();
-
-        gpios::boardLed::low();
+        // Toggle LED
+        gpios::boardLed::value() ? gpios::boardLed::low()
+                                 : gpios::boardLed::high();
         Thread::sleep(1000);
     }
 
