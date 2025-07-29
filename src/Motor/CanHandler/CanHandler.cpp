@@ -24,7 +24,6 @@
 
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Configs/CanHandlerConfig.h>
-#include <Motor/Configs/SchedulerConfig.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventData.h>

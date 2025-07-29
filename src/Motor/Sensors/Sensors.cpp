@@ -198,7 +198,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 
 TaskScheduler& Sensors::getSensorsScheduler()
 {
-    return getModule<BoardScheduler>()->getSensorsScheduler();
+    return getModule<BoardScheduler>()->sensors();
 }
 
 void Sensors::lps22dfInit()
