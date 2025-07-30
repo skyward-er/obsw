@@ -42,7 +42,10 @@
 namespace Motor
 {
 
-class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
+class Actuators;
+
+class Sensors
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Actuators>
 {
 public:
     Sensors() {}

@@ -22,6 +22,7 @@
 
 #include "Sensors.h"
 
+#include <Motor/Actuators/Actuators.h>
 #include <Motor/Buses.h>
 #include <Motor/Configs/SensorsConfig.h>
 #include <Motor/Sensors/SensorsData.h>
@@ -417,7 +418,27 @@ void Sensors::oxTankTopPressureInit()
 
 void Sensors::oxTankTopPressureCallback()
 {
-    sdLogger.log(OxTankTopPressureData{getOxTankTopPressure()});
+    static uint32_t confidence = 0;
+
+    auto sample = getOxTankTopPressure();
+
+    if (sample.pressure > 64.f)
+        confidence++;
+    else
+        confidence = 0;
+
+    if (confidence > 100)
+    {
+        auto actuators = getModule<Actuators>();
+
+        bool alreadyOpen = actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
+        if (!alreadyOpen)
+            actuators->openServoWithTime(ServosList::OX_VENTING_VALVE, 1000);
+
+        confidence = 0;
+    }
+
+    sdLogger.log(OxTankTopPressureData{sample});
 }
 
 void Sensors::oxTankBottomPressureInit()
