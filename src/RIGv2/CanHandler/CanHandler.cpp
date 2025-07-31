@@ -204,7 +204,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
     Sensors* sensors = getModule<Sensors>();
     switch (sensor)
     {
-        case CanConfig::SensorId::CC_PRESSURE:
+        case CanConfig::SensorId::COMBUSTION_CHAMBER_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
@@ -212,7 +212,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::SensorId::TOP_TANK_PRESSURE:
+        case CanConfig::SensorId::OX_TANK_TOP_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
@@ -220,7 +220,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
+        case CanConfig::SensorId::OX_TANK_BOTTOM_0_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
@@ -228,7 +228,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::SensorId::TANK_TEMPERATURE:
+        case CanConfig::SensorId::THERMOCOUPLE_TEMPERATURE:
         {
             CanTemperatureData data = temperatureDataFromCanMessage(msg);
             sdLogger.log(data);

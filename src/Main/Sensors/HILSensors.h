@@ -24,6 +24,7 @@
 #include <Main/HIL/HIL.h>
 #include <common/CanConfig.h>
 #include <common/ReferenceConfig.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <sensors/HILSensor.h>
 #include <sensors/Sensor.h>
@@ -35,7 +36,7 @@ namespace Main
 
 class HILSensors
     : public Boardcore::InjectableWithDeps<Boardcore::InjectableBase<Sensors>,
-                                           MainHIL>
+                                           MainHIL, Common::MotorStatus>
 {
 public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
@@ -68,20 +69,25 @@ private:
         {
             // Adding to sensorManager's scheduler a task to "sample" the
             // combustion chamber pressure coming from motor
-            getSensorsScheduler().addTask([this]()
-                                          { setCanCCPress(updateCCData()); },
-                                          Config::HIL::BARO_CHAMBER_RATE);
+            getSensorsScheduler().addTask(
+                [this]()
+                {
+                    getModule<Common::MotorStatus>()
+                        ->lockData()
+                        ->combustionChamberPressure = updateCCData();
+                },
+                Config::HIL::BARO_CHAMBER_RATE);
 
             // Adding to sensorManager's scheduler a task to "sample" the
             // pitot static and dynamic pressure coming from payload
             getSensorsScheduler().addTask(
                 [this]()
-                { setCanPitotStaticPress(updateStaticPressurePitot()); },
+                { setCanPitotStaticPressure(updateStaticPressurePitot()); },
                 Config::HIL::BARO_PITOT_RATE);
 
             getSensorsScheduler().addTask(
                 [this]()
-                { setCanPitotDynamicPress(updateDynamicPressurePitot()); },
+                { setCanPitotDynamicPressure(updateDynamicPressurePitot()); },
                 Config::HIL::BARO_PITOT_RATE);
         }
 

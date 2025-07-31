@@ -25,6 +25,7 @@ set(OBSW_INCLUDE_DIRS
 )
 
 set(MAIN_COMPUTER
+    src/common/canbus/MotorStatus.cpp
     src/Main/Data/ABKTrajectorySet.cxx
     src/Main/PersistentVars/PersistentVars.cpp
     src/Main/HIL/HIL.cpp

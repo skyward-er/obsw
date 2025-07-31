@@ -31,6 +31,7 @@
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/MEA/MEA.h>
+#include <common/canbus/MotorStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -42,7 +43,7 @@ class MEAController
     : public Boardcore::FSM<MEAController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
                                            NASController, StatsRecorder,
-                                           AlgoReference>
+                                           AlgoReference, Common::MotorStatus>
 {
 public:
     MEAController();

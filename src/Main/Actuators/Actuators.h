@@ -52,7 +52,6 @@ public:
     float getServoPosition(ServosList servo);
 
     void wiggleCanServo(ServosList servo);
-    bool isCanServoOpen(ServosList servo);
 
     void camOn();
     void camOff();
@@ -69,9 +68,6 @@ public:
     void setStatusOff();
     void setStatusErr();
     void setStatusOk();
-
-    // Methods for CanHandler
-    void setCanServoOpen(ServosList servo, bool open);
 
 private:
     void unsafeSetServoPosition(Boardcore::Servo* servo, float position);
@@ -102,10 +98,6 @@ private:
 
     std::atomic<uint32_t> statusCounter{0};
     std::atomic<uint32_t> statusOverflow{0};
-
-    miosix::FastMutex canServosMutex;
-    bool canMainOpen    = false;
-    bool canVentingOpen = false;
 };
 
 }  // namespace Main

@@ -84,4 +84,31 @@ inline Events mavCmdToEvent(uint8_t id)
     }
 }
 
+inline const char* servoToString(ServosList servo)
+{
+    switch (servo)
+    {
+        case ServosList::AIR_BRAKES_SERVO:
+            return "AIR_BRAKES_SERVO";
+        case ServosList::EXPULSION_SERVO:
+            return "EXPULSION_SERVO";
+        case ServosList::PARAFOIL_LEFT_SERVO:
+            return "PARAFOIL_LEFT_SERVO";
+        case ServosList::PARAFOIL_RIGHT_SERVO:
+            return "PARAFOIL_RIGHT_SERVO";
+        case ServosList::MAIN_VALVE:
+            return "MAIN_VALVE";
+        case ServosList::VENTING_VALVE:
+            return "VENTING_VALVE";
+        case ServosList::RELEASE_VALVE:
+            return "RELEASE_VALVE";
+        case ServosList::FILLING_VALVE:
+            return "FILLING_VALVE";
+        case ServosList::DISCONNECT_SERVO:
+            return "DISCONNECT_SERVO";
+        default:
+            return "UNKNOWN_SERVO";
+    }
+}
+
 }  // namespace Common

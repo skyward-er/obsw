@@ -661,8 +661,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressStatic  = sensors->getAtmosPressureLastSample();
             auto pressDigi    = sensors->getLPS22DFLastSample();
             auto pressDpl     = sensors->getDplBayPressureLastSample();
-            auto pitotStatic  = sensors->getCanPitotStaticPressLastSample();
-            auto pitotDynamic = sensors->getCanPitotDynamicPressLastSample();
+            auto pitotStatic  = sensors->getCanPitotStaticPressure();
+            auto pitotDynamic = sensors->getCanPitotDynamicPressure();
             auto adaState     = ada->getADAState();
             auto nasState     = nas->getNASState();
             auto meaState     = mea->getMEAState();
@@ -758,6 +758,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             ABKController* abk      = getModule<ABKController>();
             Actuators* actuators    = getModule<Actuators>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
+            MotorStatus* motor      = getModule<MotorStatus>();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -839,10 +840,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             CanHandler::CanStatus canStatus =
                 getModule<CanHandler>()->getCanStatus();
             tm.payload_board_state = canStatus.getPayloadState();
-            tm.motor_board_state   = canStatus.getMotorState();
+            tm.motor_board_state   = motor->getState();
 
             tm.payload_can_status = canStatus.isPayloadConnected() ? 1 : 0;
-            tm.motor_can_status   = canStatus.isMotorConnected() ? 1 : 0;
+            tm.motor_can_status   = motor->connected();
             tm.rig_can_status     = canStatus.isRigConnected() ? 1 : 0;
 
             tm.hil_state = PersistentVars::getHilMode() ? 1 : 0;
@@ -859,43 +860,34 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_motor_tm_t tm;
 
-            Sensors* sensors     = getModule<Sensors>();
-            Actuators* actuators = getModule<Actuators>();
-
             tm.timestamp = TimestampTimer::getTimestamp();
+            // Lock the motor data in the smallest scope possible
+            {
+                auto motor = getModule<MotorStatus>()->lockData();
 
-            // Sensors (either CAN or local)
-            tm.top_tank_pressure =
-                sensors->getCanTopTankPressLastSample().pressure;
-            tm.bottom_tank_pressure =
-                sensors->getCanBottomTankPressLastSample().pressure;
-            tm.combustion_chamber_pressure =
-                sensors->getCanCCPressLastSample().pressure;
-            tm.tank_temperature =
-                sensors->getCanTankTempLastSample().temperature;
-            tm.battery_voltage =
-                sensors->getCanMotorBatteryVoltageLastSample().voltage;
+                // Sensors
+                tm.top_tank_pressure    = motor->n2TankPressure.pressure;
+                tm.bottom_tank_pressure = motor->oxTankBottom0Pressure.pressure;
+                tm.combustion_chamber_pressure =
+                    motor->combustionChamberPressure.pressure;
+                tm.tank_temperature =
+                    motor->thermocoupleTemperature.temperature;
+                tm.battery_voltage = motor->batteryVoltage.voltage;
 
-            // Valve states
-            tm.main_valve_state =
-                actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1 : 0;
-            tm.venting_valve_state =
-                actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1 : 0;
+                // Valve states
+                tm.main_valve_state    = motor->mainValveOpen;
+                tm.venting_valve_state = motor->oxVentingValveOpen;
 
-            // Can data
-            CanHandler::CanStatus canStatus =
-                getModule<CanHandler>()->getCanStatus();
-
-            tm.log_number = canStatus.getMotorLogNumber();
-            tm.log_good   = canStatus.isMotorLogGood() ? 1 : 0;
-            tm.hil_state  = canStatus.isMotorHil() ? 1 : 0;
+                // Device state
+                tm.log_number = motor->device.logNumber;
+                tm.log_good   = motor->device.logGood;
+                tm.hil_state  = motor->device.hil;
+            }
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
                                         &tm);
             enqueuePacket(msg);
-            return true;
-
             return true;
         }
         default:
@@ -1228,12 +1220,14 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_TANK_TOP_PRESS_ID:
         {
             mavlink_message_t msg;
-
-            auto sample = getModule<Sensors>()->getCanTopTankPressLastSample();
-
             mavlink_pressure_tm_t tm;
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
+
+            {
+                auto motor   = getModule<MotorStatus>()->lockData();
+                auto sample  = motor->oxTankTopPressure;
+                tm.pressure  = sample.pressure;
+                tm.timestamp = sample.pressureTimestamp;
+            }
             strcpy(tm.sensor_name, "TopTankPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -1246,20 +1240,41 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
         case MAV_TANK_BOTTOM_PRESS_ID:
         {
-            mavlink_message_t msg;
+            PressureData bottom0;
+            PressureData bottom1;
 
-            auto sample =
-                getModule<Sensors>()->getCanBottomTankPressLastSample();
+            {
+                auto motor = getModule<MotorStatus>()->lockData();
+                bottom0    = motor->oxTankBottom0Pressure;
+                bottom1    = motor->oxTankBottom1Pressure;
+            }
 
-            mavlink_pressure_tm_t tm;
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "BottomTankPressure");
+            {
+                mavlink_message_t msg;
+                mavlink_pressure_tm_t tm;
 
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueuePacket(msg);
+                tm.pressure  = bottom0.pressure;
+                tm.timestamp = bottom0.pressureTimestamp;
+                strcpy(tm.sensor_name, "TankBottom0Pressure");
+
+                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+                enqueuePacket(msg);
+            }
+            {
+                mavlink_message_t msg;
+                mavlink_pressure_tm_t tm;
+
+                tm.pressure  = bottom1.pressure;
+                tm.timestamp = bottom1.pressureTimestamp;
+                strcpy(tm.sensor_name, "TankBottom1Pressure");
+
+                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+                enqueuePacket(msg);
+            }
 
             return true;
         }
@@ -1267,12 +1282,14 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         case MAV_COMBUSTION_PRESS_ID:
         {
             mavlink_message_t msg;
-
-            auto sample = getModule<Sensors>()->getCanCCPressLastSample();
-
             mavlink_pressure_tm_t tm;
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
+
+            {
+                auto motor   = getModule<MotorStatus>()->lockData();
+                auto sample  = motor->combustionChamberPressure;
+                tm.pressure  = sample.pressure;
+                tm.timestamp = sample.pressureTimestamp;
+            }
             strcpy(tm.sensor_name, "CCPressure");
 
             mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,

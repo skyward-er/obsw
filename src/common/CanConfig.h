@@ -47,6 +47,10 @@ constexpr Boardcore::Canbus::CanbusDriver::AutoBitTiming BIT_TIMING = {
 constexpr Boardcore::Canbus::CanbusDriver::CanbusConfig CONFIG;
 
 constexpr auto CAN_SYNC_TIMEOUT = 5s;
+// Timeout after which a board is considered disconnected
+constexpr auto STATUS_TIMEOUT = 2s;
+// Period at which the status message is sent
+constexpr auto STATUS_SEND_PERIOD = 1s;
 
 enum class Priority : uint8_t
 {
@@ -77,20 +81,18 @@ enum class Board : uint8_t
 
 enum class SensorId : uint8_t
 {
-    PITOT,
     PITOT_DYNAMIC_PRESSURE,
     PITOT_STATIC_PRESSURE,
     PITOT_TOTAL_PRESSURE,
-    CC_PRESSURE,
-    OX_BOTTOM_TANK_PRESSURE_0,
-    OX_BOTTOM_TANK_PRESSURE_1,
-    OX_TOP_TANK_PRESSURE,
     N2_TANK_PRESSURE,
     REGULATOR_OUT_PRESSURE,
-    THERMOCOUPLE,
+    OX_TANK_TOP_PRESSURE,
+    OX_TANK_BOTTOM_0_PRESSURE,
+    OX_TANK_BOTTOM_1_PRESSURE,
+    COMBUSTION_CHAMBER_PRESSURE,
+    THERMOCOUPLE_TEMPERATURE,
     MOTOR_ACTUATORS_CURRENT,
     MAIN_BOARD_CURRENT,
-    PAYLOAD_BOARD_CURRENT,
     MOTOR_BOARD_VOLTAGE
 };
 

@@ -81,7 +81,7 @@ bool CanHandler::start()
                     stats.lastWriteError == 0,
                 });
         },
-        Config::CanHandler::STATUS_RATE);
+        CanConfig::STATUS_SEND_PERIOD);
 
     if (result == 0)
     {
@@ -138,6 +138,11 @@ CanHandler::CanStatus CanHandler::getCanStatus()
 
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
+    // Handle motor messages
+    auto source = static_cast<CanConfig::Board>(msg.getSource());
+    if (source == CanConfig::Board::MOTOR)
+        return getModule<MotorStatus>()->handleCanMessage(msg);
+
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
 
@@ -204,7 +209,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanPitotDynamicPress(data);
+            sensors->setCanPitotDynamicPressure(data);
             break;
         }
 
@@ -212,47 +217,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanPitotStaticPress(data);
-            break;
-        }
-
-        case CanConfig::SensorId::CC_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanCCPress(data);
-            break;
-        }
-
-        case CanConfig::SensorId::TOP_TANK_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanTopTankPress(data);
-            break;
-        }
-
-        case CanConfig::SensorId::BOTTOM_TANK_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanBottomTankPress(data);
-            break;
-        }
-
-        case CanConfig::SensorId::TANK_TEMPERATURE:
-        {
-            CanTemperatureData data = temperatureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanTankTemp(data);
-            break;
-        }
-
-        case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
-        {
-            CanVoltageData data = voltageDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanMotorBatteryVoltage(data);
+            sensors->setCanPitotStaticPressure(data);
             break;
         }
 
@@ -265,11 +230,8 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 
 void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
-    ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
     CanServoFeedback data = servoFeedbackFromCanMessage(msg);
     sdLogger.log(data);
-
-    getModule<Actuators>()->setCanServoOpen(servo, data.open);
 }
 
 void CanHandler::handleStatus(const Canbus::CanMessage& msg)
@@ -294,17 +256,6 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             status.payloadLastStatus = getTime();
             status.payloadArmed      = deviceStatus.armed;
             status.payloadState      = deviceStatus.state;
-            break;
-        }
-
-        case CanConfig::Board::MOTOR:
-        {
-            status.motorLastStatus = getTime();
-            status.motorState      = deviceStatus.state;
-
-            status.motorLogNumber = deviceStatus.logNumber;
-            status.motorLogGood   = deviceStatus.logGood;
-            status.motorHil       = deviceStatus.hil;
             break;
         }
 

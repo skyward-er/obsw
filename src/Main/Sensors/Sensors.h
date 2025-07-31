@@ -98,24 +98,14 @@ public:
     Boardcore::PressureData getDplBayPressureLastSample();
     Boardcore::TemperatureData getTemperatureLastSample();
 
-    Boardcore::PressureData getCanPitotDynamicPressLastSample();
-    Boardcore::PressureData getCanPitotStaticPressLastSample();
-    Boardcore::PressureData getCanTopTankPressLastSample();
-    Boardcore::PressureData getCanBottomTankPressLastSample();
-    Boardcore::PressureData getCanCCPressLastSample();
-    Boardcore::TemperatureData getCanTankTempLastSample();
-    Boardcore::VoltageData getCanMotorBatteryVoltageLastSample();
+    Boardcore::PressureData getCanPitotDynamicPressure();
+    Boardcore::PressureData getCanPitotStaticPressure();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
     // Methods for CanHandler
-    void setCanPitotDynamicPress(Boardcore::PressureData data);
-    void setCanPitotStaticPress(Boardcore::PressureData data);
-    void setCanTopTankPress(Boardcore::PressureData data);
-    void setCanBottomTankPress(Boardcore::PressureData data);
-    void setCanCCPress(Boardcore::PressureData data);
-    void setCanTankTemp(Boardcore::TemperatureData data);
-    void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
+    void setCanPitotDynamicPressure(Boardcore::PressureData data);
+    void setCanPitotStaticPressure(Boardcore::PressureData data);
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
@@ -126,13 +116,9 @@ protected:
     Boardcore::TaskScheduler& getSensorsScheduler();
 
     miosix::FastMutex canMutex;
+    // Payload
     Boardcore::PressureData canPitotDynamicPressure;
     Boardcore::PressureData canPitotStaticPressure;
-    Boardcore::PressureData canCCPressure;
-    Boardcore::PressureData canTopTankPressure;
-    Boardcore::PressureData canBottomTankPressure;
-    Boardcore::TemperatureData canTankTemperature;
-    Boardcore::VoltageData canMotorBatteryVoltage;
 
     // Digital sensors
     std::unique_ptr<Boardcore::LPS22DF> lps22df;

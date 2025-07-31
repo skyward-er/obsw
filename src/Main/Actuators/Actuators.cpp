@@ -129,17 +129,6 @@ float Actuators::getServoPosition(ServosList servo)
     return info ? info->getPosition() : 0.0f;
 }
 
-bool Actuators::isCanServoOpen(ServosList servo)
-{
-    Lock<FastMutex> lock{canServosMutex};
-    if (servo == ServosList::MAIN_VALVE)
-        return canMainOpen;
-    else if (servo == ServosList::VENTING_VALVE)
-        return canVentingOpen;
-    else
-        return false;
-}
-
 void Actuators::setStatusOff() { statusOverflow = 0; }
 
 void Actuators::setStatusOk()
@@ -162,15 +151,6 @@ void Actuators::setBuzzerArmed()
 void Actuators::setBuzzerLand()
 {
     buzzerOverflow = Config::Actuators::BUZZER_LAND_RATE;
-}
-
-void Actuators::setCanServoOpen(ServosList servo, bool open)
-{
-    Lock<FastMutex> lock{canServosMutex};
-    if (servo == ServosList::MAIN_VALVE)
-        canMainOpen = open;
-    else if (servo == ServosList::VENTING_VALVE)
-        canVentingOpen = open;
 }
 
 void Actuators::camOn() { gpios::camEnable::high(); }

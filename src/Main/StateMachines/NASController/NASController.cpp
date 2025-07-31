@@ -118,12 +118,11 @@ void NASController::update()
     {
         Sensors* sensors = getModule<Sensors>();
 
-        IMUData imu              = sensors->getIMULastSample();
-        UBXGPSData gps           = sensors->getUBXGPSLastSample();
-        PressureData baro        = sensors->getAtmosPressureLastSample();
-        PressureData staticPitot = sensors->getCanPitotStaticPressLastSample();
-        PressureData dynamicPitot =
-            sensors->getCanPitotDynamicPressLastSample();
+        IMUData imu               = sensors->getIMULastSample();
+        UBXGPSData gps            = sensors->getUBXGPSLastSample();
+        PressureData baro         = sensors->getAtmosPressureLastSample();
+        PressureData staticPitot  = sensors->getCanPitotStaticPressure();
+        PressureData dynamicPitot = sensors->getCanPitotDynamicPressure();
 
         // Calculate acceleration
         Vector3f acc    = static_cast<AccelerometerData>(imu);

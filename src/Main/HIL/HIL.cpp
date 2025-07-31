@@ -336,11 +336,13 @@ ActuatorData MainHIL::updateActuatorData()
     MEAStateHIL meaStateHIL{getModule<MEAController>()->getMEAState(),
                             getModule<MEAController>()->getState()};
 
+    auto motor = getModule<Common::MotorStatus>()->lockData();
+
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
         actuators->getServoPosition(ServosList::EXPULSION_SERVO),
-        (actuators->isCanServoOpen(ServosList::MAIN_VALVE) ? 1.f : 0.f),
-        (actuators->isCanServoOpen(ServosList::VENTING_VALVE) ? 1.f : 0.f),
+        (motor->mainValveOpen ? 1.f : 0.f),
+        (motor->oxVentingValveOpen ? 1.f : 0.f),
         static_cast<float>(miosix::gpios::mainDeploy::value())};
 
     // Returning the feedback for the simulator

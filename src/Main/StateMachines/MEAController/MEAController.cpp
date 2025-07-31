@@ -136,19 +136,22 @@ void MEAController::update()
         curState == MEAControllerState::ACTIVE_UNPOWERED)
     {
         // Perform updates only during this phases
-
-        PressureData baro   = getModule<Sensors>()->getCanCCPressLastSample();
+        PressureData baro;
         IMUData imu         = getModule<Sensors>()->getIMULastSample();
         NASState nas        = getModule<NASController>()->getNASState();
         ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
 
         float mslAltitude = ref.refAltitude - nas.d;
-
         // TODO: Is this even correct?
-        float aperture =
-            getModule<Actuators>()->isCanServoOpen(ServosList::MAIN_VALVE)
-                ? 1.0f
-                : 0.0f;
+        float aperture = 0;
+
+        // Get data from the motor in the smallest scope possible
+        // to avoid holding the mutex for too long
+        {
+            auto motor = getModule<Common::MotorStatus>()->lockData();
+            baro       = motor->combustionChamberPressure;
+            aperture   = motor->mainValveOpen ? 1.0f : 0.0f;
+        }
 
         if (baro.pressure > Config::MEA::CC_PRESSURE_THRESHOLD)
         {

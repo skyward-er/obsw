@@ -32,6 +32,7 @@
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
+#include <common/canbus/MotorStatus.h>
 #include <hil/HIL.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -67,9 +68,9 @@ private:
 
 class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
-      public Boardcore::InjectableWithDeps<Buses, Actuators, FlightModeManager,
-                                           ADAController, NASController,
-                                           MEAController, ABKController>
+      public Boardcore::InjectableWithDeps<
+          Buses, Actuators, FlightModeManager, ADAController, NASController,
+          MEAController, ABKController, Common::MotorStatus>
 {
 public:
     MainHIL();

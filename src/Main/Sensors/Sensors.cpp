@@ -383,88 +383,28 @@ TemperatureData Sensors::getTemperatureLastSample()
     return getLSM6DSRX0LastSample();
 }
 
-PressureData Sensors::getCanPitotDynamicPressLastSample()
+PressureData Sensors::getCanPitotDynamicPressure()
 {
     Lock<FastMutex> lock{canMutex};
     return canPitotDynamicPressure;
 }
 
-PressureData Sensors::getCanPitotStaticPressLastSample()
+PressureData Sensors::getCanPitotStaticPressure()
 {
     Lock<FastMutex> lock{canMutex};
     return canPitotStaticPressure;
 }
 
-PressureData Sensors::getCanTopTankPressLastSample()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canTopTankPressure;
-}
-
-PressureData Sensors::getCanBottomTankPressLastSample()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canBottomTankPressure;
-}
-
-PressureData Sensors::getCanCCPressLastSample()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canCCPressure;
-}
-
-TemperatureData Sensors::getCanTankTempLastSample()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canTankTemperature;
-}
-
-VoltageData Sensors::getCanMotorBatteryVoltageLastSample()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canMotorBatteryVoltage;
-}
-
-void Sensors::setCanPitotDynamicPress(PressureData data)
+void Sensors::setCanPitotDynamicPressure(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canPitotDynamicPressure = data;
 }
 
-void Sensors::setCanPitotStaticPress(PressureData data)
+void Sensors::setCanPitotStaticPressure(PressureData data)
 {
     Lock<FastMutex> lock{canMutex};
     canPitotStaticPressure = data;
-}
-
-void Sensors::setCanTopTankPress(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canTopTankPressure = data;
-}
-
-void Sensors::setCanBottomTankPress(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canBottomTankPressure = data;
-}
-
-void Sensors::setCanCCPress(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canCCPressure = data;
-}
-
-void Sensors::setCanTankTemp(TemperatureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canTankTemperature = data;
-}
-
-void Sensors::setCanMotorBatteryVoltage(VoltageData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canMotorBatteryVoltage = data;
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()

@@ -38,6 +38,7 @@
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <actuators/Servo/Servo.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -69,18 +70,19 @@ int main()
     BoardScheduler* scheduler = new BoardScheduler();
 
     Sensors* sensors;
-    Actuators* actuators    = new Actuators();
-    Radio* radio            = new Radio();
-    CanHandler* canHandler  = new CanHandler();
-    PinHandler* pinHandler  = new PinHandler();
-    FlightModeManager* fmm  = new FlightModeManager();
-    AlgoReference* ref      = new AlgoReference();
-    ADAController* ada      = new ADAController();
-    NASController* nas      = new NASController();
-    MEAController* mea      = new MEAController();
-    ABKController* abk      = new ABKController();
-    StatsRecorder* recorder = new StatsRecorder();
-    MainHIL* hil            = nullptr;
+    Actuators* actuators     = new Actuators();
+    Radio* radio             = new Radio();
+    CanHandler* canHandler   = new CanHandler();
+    PinHandler* pinHandler   = new PinHandler();
+    FlightModeManager* fmm   = new FlightModeManager();
+    AlgoReference* ref       = new AlgoReference();
+    ADAController* ada       = new ADAController();
+    NASController* nas       = new NASController();
+    MEAController* mea       = new MEAController();
+    ABKController* abk       = new ABKController();
+    StatsRecorder* recorder  = new StatsRecorder();
+    MainHIL* hil             = nullptr;
+    MotorStatus* motorStatus = new MotorStatus();
 
     // HIL
     if (PersistentVars::getHilMode())
@@ -124,7 +126,8 @@ int main()
                  manager.insert<NASController>(nas) &&
                  manager.insert<MEAController>(mea) &&
                  manager.insert<ABKController>(abk) &&
-                 manager.insert<StatsRecorder>(recorder) && manager.inject();
+                 manager.insert<StatsRecorder>(recorder) &&
+                 manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
     if (!initResult)
     {
@@ -241,23 +244,23 @@ int main()
         if (!Config::HIL::IS_FULL_HIL)
         {
             hil->registerToFlightPhase(
-                MainFlightPhases::SHUTDOWN, [&]()
-                { actuators->setCanServoOpen(ServosList::MAIN_VALVE, false); });
+                MainFlightPhases::SHUTDOWN,
+                [&]() { motorStatus->lockData()->mainValveOpen = false; });
         }
 
         // If we are in hil mode, there won't be the rig to send the ignition
         // command. The Main will do it when receives the LIFTOFF command
-        hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
-                                   [&]()
-                                   {
-                                       std::cout << "LIFTOFF!" << std::endl;
-                                       if (Config::HIL::IS_FULL_HIL)
-                                           canHandler->sendServoOpenCommand(
-                                               ServosList::MAIN_VALVE, 7000);
-                                       else
-                                           actuators->setCanServoOpen(
-                                               ServosList::MAIN_VALVE, true);
-                                   });
+        hil->registerToFlightPhase(
+            MainFlightPhases::LIFTOFF,
+            [&]()
+            {
+                std::cout << "LIFTOFF!" << std::endl;
+                if (Config::HIL::IS_FULL_HIL)
+                    canHandler->sendServoOpenCommand(ServosList::MAIN_VALVE,
+                                                     7000);
+                else
+                    motorStatus->lockData()->mainValveOpen = true;
+            });
 
         std::cout << "Waiting start simulation" << std::endl;
         hil->waitStartSimulation();
