@@ -156,10 +156,22 @@ TemperatureData Sensors::getThermocoupleTemperature()
 
 VoltageData Sensors::getBatteryVoltage()
 {
+    using namespace Config::Sensors::InternalADC;
+
     auto sample   = getInternalADCLastSample();
-    float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
-                    Config::Sensors::InternalADC::VBAT_SCALE;
+    float voltage = sample.voltage[(int)VBAT_CH] * VBAT_SCALE;
     return {sample.timestamp, voltage};
+}
+
+CurrentData Sensors::getActuatorsCurrent()
+{
+    using namespace Config::Sensors::InternalADC;
+
+    auto sample   = getInternalADCLastSample();
+    float current = sample.voltage[(int)ACTUATORS_CURRENT_CH] * CURRENT_SCALE +
+                    CURRENT_OFFSET;
+
+    return {sample.timestamp, current};
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()

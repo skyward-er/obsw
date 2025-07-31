@@ -169,6 +169,15 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_VOLTAGE),
                 static_cast<VoltageData>(sensors->getBatteryVoltage()));
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(
+                    CanConfig::SensorId::MOTOR_ACTUATORS_CURRENT),
+                static_cast<CurrentData>(sensors->getActuatorsCurrent()));
         },
         Config::CanHandler::TEMPERATURE_PERIOD);
 

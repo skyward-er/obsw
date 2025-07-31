@@ -66,9 +66,10 @@ public:
     Boardcore::PressureData getOxTankBottom1Pressure();
     Boardcore::PressureData getN2TankPressure();
     Boardcore::PressureData getCCPressure();
-    Boardcore::TemperatureData getTankTemperature();
-    Boardcore::VoltageData getBatteryVoltage();
     Boardcore::TemperatureData getThermocoupleTemperature();
+
+    Boardcore::VoltageData getBatteryVoltage();
+    Boardcore::CurrentData getActuatorsCurrent();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -88,11 +89,11 @@ protected:
     std::unique_ptr<Boardcore::MAX31856> thermocouple;
 
     // Analog sensors
+    std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> regulatorOutPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankTopPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottom0Pressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottom1Pressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
