@@ -85,11 +85,11 @@ Actuators::Actuators()
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[1].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_1_TIM, TimerUtils::Channel::MIOSIX_SERVOS_1_CHANNEL,
+        MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[2].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_2_TIM, TimerUtils::Channel::MIOSIX_SERVOS_2_CHANNEL,
+        MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
         Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
         Config::Servos::FREQUENCY);
     infos[3].servo = std::make_unique<Servo>(
@@ -188,13 +188,13 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
     switch (servo)
     {
         case OX_VENTING_VALVE:
-            return &infos[0];
+            return &infos[0];  // Servo 0
         case MAIN_VALVE:
-            return &infos[1];
+            return &infos[1];  // Servo 5
         case NITROGEN_VALVE:
-            return &infos[2];
+            return &infos[2];  // Servo 4
         case N2_QUENCHING_VALVE:
-            return &infos[3];
+            return &infos[3];  // Servo 3
 
         default:
             // Oh FUCK
