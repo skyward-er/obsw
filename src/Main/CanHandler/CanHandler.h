@@ -26,7 +26,7 @@
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/CanConfig.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>

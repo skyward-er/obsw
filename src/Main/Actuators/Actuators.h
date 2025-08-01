@@ -24,7 +24,7 @@
 
 #include <Main/BoardScheduler.h>
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

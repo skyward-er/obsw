@@ -664,7 +664,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             // Vent the tank
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::VENTING_VALVE, 600000);
+                ServosList::OX_VENTING_VALVE, 600000);
 
             return HANDLED;
         }

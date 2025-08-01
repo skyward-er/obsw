@@ -82,4 +82,43 @@ inline Events mavCmdToEvent(uint8_t id)
     }
 }
 
+inline const char* servoToString(ServosList servo)
+{
+    switch (servo)
+    {
+        case ServosList::AIR_BRAKES_SERVO:
+            return "AIR_BRAKES_SERVO";
+        case ServosList::EXPULSION_SERVO:
+            return "EXPULSION_SERVO";
+        case ServosList::PARAFOIL_LEFT_SERVO:
+            return "PARAFOIL_LEFT_SERVO";
+        case ServosList::PARAFOIL_RIGHT_SERVO:
+            return "PARAFOIL_RIGHT_SERVO";
+        case ServosList::OX_FILLING_VALVE:
+            return "OX_FILLING_VALVE";
+        case ServosList::OX_RELEASE_VALVE:
+            return "OX_RELEASE_VALVE";
+        case ServosList::OX_DETACH_SERVO:
+            return "OX_DETACH_SERVO";
+        case ServosList::OX_VENTING_VALVE:
+            return "OX_VENTING_VALVE";
+        case ServosList::N2_FILLING_VALVE:
+            return "N2_FILLING_VALVE";
+        case ServosList::N2_RELEASE_VALVE:
+            return "N2_RELEASE_VALVE";
+        case ServosList::N2_DETACH_SERVO:
+            return "N2_DETACH_SERVO";
+        case ServosList::N2_QUENCHING_VALVE:
+            return "N2_QUENCHING_VALVE";
+        case ServosList::N2_3WAY_VALVE:
+            return "N2_3WAY_VALVE";
+        case ServosList::MAIN_VALVE:
+            return "MAIN_VALVE";
+        case ServosList::NITROGEN_VALVE:
+            return "NITROGEN_VALVE";
+        default:
+            return "UNKNOWN_SERVO";
+    }
+}
+
 }  // namespace Common

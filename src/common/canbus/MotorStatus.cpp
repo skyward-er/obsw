@@ -23,7 +23,7 @@
 #include "MotorStatus.h"
 
 #include <common/CanConfig.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <miosix.h>
 
 using namespace Boardcore;
@@ -130,12 +130,20 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
 
     switch (valve)
     {
-        case ServosList::VENTING_VALVE:
+        case ServosList::OX_VENTING_VALVE:
             data.oxVentingValveOpen = valveData.open;
             break;
 
         case ServosList::MAIN_VALVE:
             data.mainValveOpen = valveData.open;
+            break;
+
+        case ServosList::NITROGEN_VALVE:
+            data.nitrogenValveOpen = valveData.open;
+            break;
+
+        case ServosList::N2_QUENCHING_VALVE:
+            data.n2QuenchingValveOpen = valveData.open;
             break;
 
         default:

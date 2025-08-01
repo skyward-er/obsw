@@ -866,17 +866,20 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 auto motor = getModule<MotorStatus>()->lockData();
 
                 // Sensors
-                tm.top_tank_pressure    = motor->n2TankPressure.pressure;
-                tm.bottom_tank_pressure = motor->oxTankBottom0Pressure.pressure;
+                tm.n2_tank_pressure     = motor->n2TankPressure.pressure;
+                tm.ox_tank_top_pressure = motor->n2TankPressure.pressure;
+                tm.ox_tank_bot_pressure = motor->oxTankBottom0Pressure.pressure;
                 tm.combustion_chamber_pressure =
                     motor->combustionChamberPressure.pressure;
-                tm.tank_temperature =
+                tm.ox_tank_temperature =
                     motor->thermocoupleTemperature.temperature;
                 tm.battery_voltage = motor->batteryVoltage.voltage;
 
                 // Valve states
-                tm.main_valve_state    = motor->mainValveOpen;
-                tm.venting_valve_state = motor->oxVentingValveOpen;
+                tm.main_valve_state         = motor->mainValveOpen;
+                tm.nitrogen_valve_state     = motor->nitrogenValveOpen;
+                tm.ox_venting_valve_state   = motor->oxVentingValveOpen;
+                tm.n2_quenching_valve_state = motor->n2QuenchingValveOpen;
 
                 // Device state
                 tm.log_number = motor->device.logNumber;
