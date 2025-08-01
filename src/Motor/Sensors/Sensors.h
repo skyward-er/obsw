@@ -57,8 +57,7 @@ public:
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
 
     Boardcore::PressureData getRegulatorOutPressure();
     Boardcore::PressureData getOxTankTopPressure();
@@ -82,8 +81,7 @@ protected:
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx0;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx1;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
     std::unique_ptr<Boardcore::MAX31856> thermocouple;
@@ -110,8 +108,7 @@ private:
 
     /// @brief Initialize both lsm6dsrx sensors.
     void lsm6dsrxInit();
-    void lsm6dsrx0Callback();
-    void lsm6dsrx1Callback();
+    void lsm6dsrxCallback();
 
     void ads131m08Init();
     void ads131m08Callback();

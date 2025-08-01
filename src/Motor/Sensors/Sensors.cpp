@@ -105,14 +105,9 @@ LIS2MDLData Sensors::getLIS2MDLLastSample()
     return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRX0LastSample()
+LSM6DSRXData Sensors::getLSM6DSRXLastSample()
 {
-    return lsm6dsrx0 ? lsm6dsrx0->getLastSample() : LSM6DSRXData{};
-}
-
-LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
-{
-    return lsm6dsrx1 ? lsm6dsrx1->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx ? lsm6dsrx->getLastSample() : LSM6DSRXData{};
 }
 
 PressureData Sensors::getRegulatorOutPressure()
@@ -189,8 +184,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(lps22df, "LPS22DF");
         PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
         PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
-        PUSH_SENSOR_INFO(lsm6dsrx0, "LSM6DSRX0");
-        PUSH_SENSOR_INFO(lsm6dsrx1, "LSM6DSRX1");
+        PUSH_SENSOR_INFO(lsm6dsrx, "LSM6DSRX");
         PUSH_SENSOR_INFO(ads131m08, "ADS131M08");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(regulatorOutPressure, "RegulatorOutPressure");
@@ -283,34 +277,18 @@ void Sensors::lsm6dsrxInit()
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
-    lsm6dsrx0 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                           sensors::LSM6DSRX0::cs::getPin(),
-                                           spiConfig, config);
-    lsm6dsrx1 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                           sensors::LSM6DSRX1::cs::getPin(),
-                                           spiConfig, config);
+    lsm6dsrx = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
+                                          sensors::LSM6DSRX0::cs::getPin(),
+                                          spiConfig, config);
 }
 
-void Sensors::lsm6dsrx0Callback()
+void Sensors::lsm6dsrxCallback()
 {
-    if (!lsm6dsrx0)
+    if (!lsm6dsrx)
         return;
 
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx0->getLastFifo(lastFifoSize);
-
-    // For every instance inside the fifo log the sample
-    for (uint16_t i = 0; i < lastFifoSize; i++)
-        sdLogger.log(lastFifo.at(i));
-}
-
-void Sensors::lsm6dsrx1Callback()
-{
-    if (!lsm6dsrx1)
-        return;
-
-    uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx1->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx->getLastFifo(lastFifoSize);
 
     // For every instance inside the fifo log the sample
     for (uint16_t i = 0; i < lastFifoSize; i++)
@@ -574,18 +552,11 @@ bool Sensors::sensorManagerInit()
         map.emplace(lis2mdl.get(), lis2mdlInfo);
     }
 
-    if (lsm6dsrx0)
+    if (lsm6dsrx)
     {
-        SensorInfo lsm6dsrxInfo{"LSM6DSRX0", Config::Sensors::LSM6DSRX::RATE,
-                                [this]() { lsm6dsrx0Callback(); }};
-        map.emplace(lsm6dsrx0.get(), lsm6dsrxInfo);
-    }
-
-    if (lsm6dsrx1)
-    {
-        SensorInfo lsm6dsrxInfo{"LSM6DSRX1", Config::Sensors::LSM6DSRX::RATE,
-                                [this]() { lsm6dsrx1Callback(); }};
-        map.emplace(lsm6dsrx1.get(), lsm6dsrxInfo);
+        SensorInfo lsm6dsrxInfo{"LSM6DSRX", Config::Sensors::LSM6DSRX::RATE,
+                                [this]() { lsm6dsrxCallback(); }};
+        map.emplace(lsm6dsrx.get(), lsm6dsrxInfo);
     }
 
     if (ads131m08)
