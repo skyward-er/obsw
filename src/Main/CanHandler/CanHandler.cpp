@@ -245,7 +245,7 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
     {
         case CanConfig::Board::RIG:
         {
-            status.rigLastStatus = getTime();
+            status.rigLastStatus = Clock::now();
             status.rigArmed      = deviceStatus.armed;
             status.rigState      = deviceStatus.state;
             break;
@@ -253,7 +253,7 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
 
         case CanConfig::Board::PAYLOAD:
         {
-            status.payloadLastStatus = getTime();
+            status.payloadLastStatus = Clock::now();
             status.payloadArmed      = deviceStatus.armed;
             status.payloadState      = deviceStatus.state;
             break;

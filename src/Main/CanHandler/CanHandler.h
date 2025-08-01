@@ -31,6 +31,8 @@
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
+
 namespace Main
 {
 
@@ -42,33 +44,30 @@ class CanHandler
                                            FlightModeManager,
                                            Common::MotorStatus>
 {
+    using Clock     = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+
 public:
     struct CanStatus
     {
-        long long rigLastStatus     = 0;
-        long long payloadLastStatus = 0;
-        long long motorLastStatus   = 0;
+        TimePoint rigLastStatus     = {};
+        TimePoint payloadLastStatus = {};
 
         uint8_t rigState     = 0;
         uint8_t payloadState = 0;
-        uint8_t motorState   = 0;
 
         bool rigArmed     = false;
         bool payloadArmed = false;
 
         bool isRigConnected()
         {
-            return miosix::getTime() <=
-                   (rigLastStatus +
-                    std::chrono::milliseconds{Common::CanConfig::STATUS_TIMEOUT}
-                        .count());
+            return Clock::now() <=
+                   rigLastStatus + Common::CanConfig::STATUS_TIMEOUT;
         }
         bool isPayloadConnected()
         {
-            return miosix::getTime() <=
-                   (payloadLastStatus +
-                    std::chrono::milliseconds{Common::CanConfig::STATUS_TIMEOUT}
-                        .count());
+            return Clock::now() <=
+                   payloadLastStatus + Common::CanConfig::STATUS_TIMEOUT;
         }
 
         uint8_t getRigState() { return rigState; }
