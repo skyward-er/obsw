@@ -91,10 +91,10 @@ bool RadioMain::start()
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    getModule<LyraGS::BoardStatus>()->setMainRadioPresent(present);
-
     if (present)
     {
+        getModule<LyraGS::BoardStatus>()->setRadio433Present(hasBackup);
+
         // Configure the radio
         if (sx1278->configure(Common::MAIN_RADIO_CONFIG) !=
             SX1278Fsk::Error::NONE)
@@ -130,10 +130,10 @@ bool RadioPayload::start()
     // First check if the device is even connected
     bool present = sx1278->checkVersion();
 
-    getModule<LyraGS::BoardStatus>()->setPayloadRadioPresent(present);
-
     if (present)
     {
+        getModule<LyraGS::BoardStatus>()->setRadio868Present(hasBackup);
+
         // Configure the radio
         if (sx1278->configure(Common::PAYLOAD_RADIO_CONFIG) !=
             SX1278Fsk::Error::NONE)

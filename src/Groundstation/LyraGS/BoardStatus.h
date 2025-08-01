@@ -33,7 +33,7 @@
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <Groundstation/LyraGS/Radio/RadioData.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
@@ -89,7 +89,14 @@ class BoardStatus
       private Boardcore::ActiveObject
 {
 public:
-    explicit BoardStatus(bool isArp) : isArp{isArp} {}
+    explicit BoardStatus(bool isArp) : isArp{isArp}
+    {
+        if (isArp)
+        {
+            systemId    = Groundstation::ARP_SYSTEM_ID;
+            componentId = Groundstation::ARP_COMPONENT_ID;
+        }
+    }
 
     bool start();
 
@@ -108,13 +115,13 @@ public:
      */
     bool isEthernetPresent();
 
-    void setMainRadioPresent(bool present);
-    void setPayloadRadioPresent(bool present);
+    void setRadio433Present(bool backup);
+    void setRadio868Present(bool backup);
     void setEthernetPresent(bool present);
 
 private:
-    void arpRoutine();
-    void GSRoutine();
+    void sendArpTm();
+    void sendRadioLinkTm();
     void run() override;
 
     Groundstation::RadioStats last_main_stats    = {0};
@@ -133,10 +140,13 @@ private:
                       Groundstation::RADIO_STATUS_PERIOD>
         payload_rx_bitrate;
 
-    bool main_radio_present    = false;
-    bool payload_radio_present = false;
-    bool ethernet_present      = false;
-    bool isArp                 = false;
+    uint8_t systemId    = Groundstation::GS_SYSTEM_ID;
+    uint8_t componentId = Groundstation::GS_COMPONENT_ID;
+
+    uint8_t radio_433_type = RADIO_433_TYPE_NONE;
+    uint8_t radio_868_type = RADIO_868_TYPE_NONE;
+    bool ethernet_present  = false;
+    bool isArp             = false;
 };
 
 }  // namespace LyraGS
