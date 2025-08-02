@@ -106,13 +106,6 @@ int main()
         led3On();
     }
 
-    std::cout << "Starting BoardScheduler" << std::endl;
-    if (!scheduler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
-    }
-
     // Start logging when system boots
     std::cout << "Starting Logger" << std::endl;
     if (!sdLogger.start())
@@ -146,6 +139,13 @@ int main()
         initResult = false;
         std::cout << "*** Failed to start Sensors ***" << std::endl;
         led1On();
+    }
+
+    std::cout << "Starting BoardScheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
     }
 
     if (initResult)
