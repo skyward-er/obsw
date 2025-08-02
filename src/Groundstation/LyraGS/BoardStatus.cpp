@@ -120,7 +120,7 @@ void BoardStatus::sendRadioLinkTm()
     if (radio_433_type)
     {
         tm.radio_433_type = radio_433_type;
-        // tm.main_frequency = Common::MAIN_RADIO_CONFIG::freq_rf;
+        tm.main_frequency = Common::MAIN_RADIO_CONFIG.freq_rf;
 
         auto stats               = getModule<RadioMain>()->getStats();
         tm.main_rx_success_count = stats.packet_rx_success_count;
@@ -133,8 +133,8 @@ void BoardStatus::sendRadioLinkTm()
 
     if (radio_868_type)
     {
-        tm.radio_868_type = radio_868_type;
-        // tm.payload_frequency = Common::PAYLOAD_RADIO_CONFIG::freq_rf;
+        tm.radio_868_type    = radio_868_type;
+        tm.payload_frequency = Common::PAYLOAD_RADIO_CONFIG.freq_rf;
 
         auto stats                  = getModule<RadioPayload>()->getStats();
         tm.payload_rx_success_count = stats.packet_rx_success_count;
