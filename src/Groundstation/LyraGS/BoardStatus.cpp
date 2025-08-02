@@ -24,9 +24,19 @@
 
 #include <common/Radio.h>
 
+#include <limits>
+
 using namespace Boardcore;
 using namespace Groundstation;
 using namespace LyraGS;
+
+static constexpr int8_t clampRssi(float rssi)
+{
+    constexpr float min = std::numeric_limits<int8_t>::min();
+    constexpr float max = std::numeric_limits<int8_t>::max();
+
+    return std::min(max, std::max(min, rssi));
+}
 
 bool BoardStatus::isMainRadioPresent() { return radio_433_type; }
 bool BoardStatus::isPayloadRadioPresent() { return radio_868_type; }
@@ -116,7 +126,7 @@ void BoardStatus::sendRadioLinkTm()
         tm.main_rx_success_count = stats.packet_rx_success_count;
         tm.main_rx_drop_count    = stats.packet_rx_drop_count;
         tm.main_bitrate          = main_rx_bitrate.update(stats.bits_rx_count);
-        tm.main_rssi             = stats.rx_rssi;
+        tm.main_rssi             = clampRssi(stats.rx_rssi);
 
         last_main_stats = stats;
     }
@@ -130,7 +140,7 @@ void BoardStatus::sendRadioLinkTm()
         tm.payload_rx_success_count = stats.packet_rx_success_count;
         tm.payload_rx_drop_count    = stats.packet_rx_drop_count;
         tm.payload_bitrate = payload_rx_bitrate.update(stats.bits_rx_count);
-        tm.payload_rssi    = stats.rx_rssi;
+        tm.payload_rssi    = clampRssi(stats.rx_rssi);
 
         last_payload_stats = stats;
     }
