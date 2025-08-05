@@ -164,6 +164,9 @@ void Actuators::armLightOff() { relays::armLight::high(); }
 void Actuators::igniterOn() { relays::ignition::low(); }
 void Actuators::igniterOff() { relays::ignition::high(); }
 
+void Actuators::clacsonOn() { relays::clacson::low(); }
+void Actuators::clacsonOff() { relays::clacson::high(); }
+
 bool Actuators::wiggleServo(ServosList servo)
 {
     // Special handling for the 3-way valve

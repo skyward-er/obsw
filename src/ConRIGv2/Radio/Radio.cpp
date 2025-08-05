@@ -195,18 +195,23 @@ void Radio::updateButtonState(const mavlink_conrig_state_tc_t& state)
     buttonState.n2_3way_switch = state.n2_3way_switch;
     buttonState.tars_switch    = state.tars_switch;
     buttonState.arm_switch     = state.arm_switch;
+    buttonState.clacson_switch = state.clacson_switch;
 }
 
 void Radio::resetButtonState(const Lock<FastMutex>& /*lock*/)
 {
-    // Save and restore lever states
-    auto n2_3way_switch        = buttonState.n2_3way_switch;
-    auto tars_switch           = buttonState.tars_switch;
-    auto arm_switch            = buttonState.arm_switch;
-    buttonState                = {};
+    // Save lever states
+    auto n2_3way_switch = buttonState.n2_3way_switch;
+    auto tars_switch    = buttonState.tars_switch;
+    auto arm_switch     = buttonState.arm_switch;
+    auto clacson_switch = buttonState.clacson_switch;
+    // Reset button state
+    buttonState = {};
+    // Restore lever states
     buttonState.n2_3way_switch = n2_3way_switch;
     buttonState.tars_switch    = tars_switch;
     buttonState.arm_switch     = arm_switch;
+    buttonState.clacson_switch = clacson_switch;
 }
 
 bool Radio::start()

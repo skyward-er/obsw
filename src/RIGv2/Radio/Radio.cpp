@@ -299,7 +299,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             ServosList valveId = static_cast<ServosList>(
                 mavlink_msg_get_valve_info_tc_get_servo_id(&msg));
             enqueueValveInfoTm(valveId);
-            
+
             enqueueAck(msg);
             break;
         }
@@ -1128,6 +1128,12 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
 
         lastManualActuation = currentTime;
     }
+
+    // Special case for clacson, bypass the timeout
+    if (state.clacson_switch == 1)
+        getModule<Actuators>()->clacsonOn();
+    else
+        getModule<Actuators>()->clacsonOff();
 
     // Send GSE and motor telemetry
     enqueueSystemTm(MAV_GSE_ID);

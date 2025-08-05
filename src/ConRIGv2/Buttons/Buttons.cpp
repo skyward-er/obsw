@@ -98,6 +98,7 @@ void Buttons::periodicStatusCheck()
     // Handle switches (levers)
     state.arm_switch     = btns::arm::value();
     state.n2_3way_switch = btns::n2_3way::value();
+    state.clacson_switch = btns::clacson::value();
     // The tars switch has 2 position that close the circuit on different pins
     // We still want to ensure only one can be active at any time via software
     // If for some reason both TARS pins are high, reuse the old state because

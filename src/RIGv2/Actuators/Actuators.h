@@ -133,6 +133,9 @@ public:
     void igniterOn();
     void igniterOff();
 
+    void clacsonOn();
+    void clacsonOff();
+
     void setCanServoOpen(ServosList servo, bool open);
 
     void inject(Boardcore::DependencyInjector& injector) override;
