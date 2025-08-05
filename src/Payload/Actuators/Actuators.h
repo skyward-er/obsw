@@ -23,7 +23,7 @@
 #pragma once
 
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Payload

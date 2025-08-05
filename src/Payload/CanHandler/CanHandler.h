@@ -23,7 +23,7 @@
 #pragma once
 
 #include <common/CanConfig.h>
-#include <common/MavlinkLyra.h>
+#include <common/MavlinkOrion.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

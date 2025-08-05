@@ -728,17 +728,10 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto canStatus = parent.getModule<CanHandler>()->getCanStatus();
 
             // Some values are not available to the payload board
-            tm.timestamp                   = TimestampTimer::getTimestamp();
-            tm.top_tank_pressure           = -1.0f;
-            tm.bottom_tank_pressure        = -1.0f;
-            tm.combustion_chamber_pressure = -1.0f;
-            tm.tank_temperature            = -1.0f;
-            tm.battery_voltage             = -1.0f;
-            tm.log_good                    = canStatus.motorLogGood;
-            tm.log_number                  = canStatus.motorLogNumber;
-            tm.main_valve_state            = 255;
-            tm.venting_valve_state         = 255;
-            tm.hil_state                   = canStatus.motorHil;
+            tm.timestamp  = TimestampTimer::getTimestamp();
+            tm.log_good   = canStatus.motorLogGood;
+            tm.log_number = canStatus.motorLogNumber;
+            tm.hil_state  = canStatus.motorHil;
 
             mavlink_msg_motor_tm_encode(config::Mavlink::SYSTEM_ID,
                                         config::Mavlink::COMPONENT_ID, &msg,
