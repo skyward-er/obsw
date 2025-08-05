@@ -32,8 +32,10 @@
 #include <utils/Registry/RegistryFrontend.h>
 
 #include <atomic>
+#include <chrono>
 #include <unordered_map>
 
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace miosix;
 using namespace Common;
@@ -292,6 +294,16 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_GET_VALVE_INFO_TC:
+        {
+            ServosList valveId = static_cast<ServosList>(
+                mavlink_msg_get_valve_info_tc_get_servo_id(&msg));
+            enqueueValveInfoTm(valveId);
+            
+            enqueueAck(msg);
+            break;
+        }
+
         case MAVLINK_MSG_ID_SET_TARS3_PARAMS_TC:
         {
             mavlink_set_tars3_params_tc_t params;
@@ -479,6 +491,25 @@ void Radio::enqueueRegistry()
 
             enqueueMessage(msg);
         });
+}
+
+void Radio::enqueueValveInfoTm(ServosList valveId)
+{
+    mavlink_message_t msg;
+    mavlink_valve_info_tm_t tm;
+
+    auto valveInfo = getModule<Actuators>()->getValveInfo(valveId);
+
+    tm.servo_id      = valveId;
+    tm.state         = valveInfo.state;
+    tm.timing        = milliseconds{valveInfo.timing}.count();
+    tm.time_to_close = milliseconds{valveInfo.timeToClose}.count();
+    tm.aperture      = valveInfo.aperture * 100;  // Convert to percentage
+
+    mavlink_msg_valve_info_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                     Config::Radio::MAV_COMPONENT_ID, &msg,
+                                     &tm);
+    enqueueMessage(msg);
 }
 
 bool Radio::enqueueSystemTm(uint8_t tmId)
@@ -690,13 +721,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             // Sensors (either CAN or local)
             tm.n2_tank_pressure = sensors->getN2TankPressure().pressure;
-            tm.ox_tank_bot_pressure =
+            tm.ox_tank_bot_0_pressure =
+                sensors->getOxTankBottomPressure().pressure;
+            tm.ox_tank_bot_1_pressure =
                 sensors->getOxTankBottomPressure().pressure;
             tm.ox_tank_top_pressure =
                 sensors->getCanOxTankTopPressure().pressure;
             tm.combustion_chamber_pressure =
                 sensors->getCombustionChamberPressure().pressure;
-            tm.ox_tank_temperature =
+            tm.thermocouple_temperature =
                 sensors->getOxTankTemperature().temperature;
             tm.battery_voltage = sensors->getMotorBatteryVoltage().voltage;
 
@@ -945,15 +978,6 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
 
 void Radio::handleConrigState(const mavlink_message_t& msg)
 {
-    // Send GSE and motor telemetry
-    enqueueSystemTm(MAV_GSE_ID);
-    enqueueSystemTm(MAV_MOTOR_ID);
-    // Acknowledge the state
-    enqueueAck(msg);
-
-    // Flush all pending packets
-    flushMessages();
-
     mavlink_conrig_state_tc_t state;
     mavlink_msg_conrig_state_tc_decode(&msg, &state);
 
@@ -990,6 +1014,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::OX_FILLING_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::OX_FILLING_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_release_btn))
@@ -998,6 +1023,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::OX_RELEASE_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::OX_RELEASE_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_detach_btn))
@@ -1014,6 +1040,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::OX_VENTING_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::OX_VENTING_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_filling_btn))
@@ -1022,6 +1049,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2_FILLING_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::N2_FILLING_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_release_btn))
@@ -1030,6 +1058,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2_RELEASE_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::N2_RELEASE_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_detach_btn))
@@ -1046,6 +1075,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::N2_QUENCHING_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::N2_QUENCHING_VALVE);
         }
 
         if (SWITCH_CHANGED(tars_switch))
@@ -1078,6 +1108,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::NITROGEN_VALVE);
         }
 
         if (SWITCH_CHANGED(n2_3way_switch))
@@ -1097,6 +1128,15 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
 
         lastManualActuation = currentTime;
     }
+
+    // Send GSE and motor telemetry
+    enqueueSystemTm(MAV_GSE_ID);
+    enqueueSystemTm(MAV_MOTOR_ID);
+    // Acknowledge the state
+    enqueueAck(msg);
+
+    // Flush all pending packets
+    flushMessages();
 
     lastConrigState = state;
 }

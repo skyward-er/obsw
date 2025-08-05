@@ -72,6 +72,7 @@ private:
     void handleConrigState(const mavlink_message_t& msg);
 
     void enqueueRegistry();
+    void enqueueValveInfoTm(ServosList valveId);
 
     bool enqueueSystemTm(uint8_t tmId);
     bool enqueueSensorTm(uint8_t tmId);

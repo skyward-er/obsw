@@ -100,6 +100,8 @@ uint32_t Actuators::ServoInfo::getOpeningTime()
         config.openingTimeRegKey, config.defaultOpeningTime);
 }
 
+bool Actuators::ServoInfo::isServoOpen() { return closeTs != ValveClosed; }
+
 bool Actuators::ServoInfo::setMaxAperture(float aperture)
 {
     if (aperture >= 0.0 && aperture <= 1.0)
@@ -287,7 +289,7 @@ bool Actuators::isServoOpen(ServosList servo)
     if (info == nullptr)
         return false;
 
-    return info->closeTs != ValveClosed;
+    return info->isServoOpen();
 }
 
 bool Actuators::isCanServoOpen(ServosList servo)
@@ -304,6 +306,31 @@ bool Actuators::isCanServoOpen(ServosList servo)
         return canN2QuenchingOpen;
     else
         return false;
+}
+
+Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+
+    ServoInfo* info = getServo(servo);
+    if (info == nullptr)
+        return {};
+
+    auto timeToClose = 0ms;
+    if (info->closeTs != ValveClosed)
+    {
+        // Subtract 400ms to account for radio latency (empirically tested)
+        auto diff = info->closeTs - Clock::now() - 400ms;
+        if (diff > 0ms)
+            timeToClose = duration_cast<milliseconds>(diff);
+    }
+
+    return ValveInfo{
+        .state       = info->isServoOpen(),
+        .timing      = milliseconds{info->getOpeningTime()},
+        .timeToClose = timeToClose,
+        .aperture    = info->getMaxAperture(),
+    };
 }
 
 void Actuators::set3wayValveState(bool state)

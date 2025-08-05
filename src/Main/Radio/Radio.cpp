@@ -867,13 +867,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
                 // Sensors
                 tm.n2_tank_pressure     = motor->n2TankPressure.pressure;
+                tm.reg_out_pressure     = motor->regulatorOutPressure.pressure;
                 tm.ox_tank_top_pressure = motor->n2TankPressure.pressure;
-                tm.ox_tank_bot_pressure = motor->oxTankBottom0Pressure.pressure;
+                tm.ox_tank_bot_0_pressure =
+                    motor->oxTankBottom0Pressure.pressure;
+                tm.ox_tank_bot_1_pressure =
+                    motor->oxTankBottom1Pressure.pressure;
                 tm.combustion_chamber_pressure =
                     motor->combustionChamberPressure.pressure;
-                tm.ox_tank_temperature =
+                tm.thermocouple_temperature =
                     motor->thermocoupleTemperature.temperature;
-                tm.battery_voltage = motor->batteryVoltage.voltage;
+                tm.battery_voltage     = motor->batteryVoltage.voltage;
+                tm.current_consumption = motor->actuatorsCurrent.current;
 
                 // Valve states
                 tm.main_valve_state         = motor->mainValveOpen;

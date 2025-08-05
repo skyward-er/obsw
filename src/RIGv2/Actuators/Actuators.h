@@ -80,11 +80,20 @@ private:
         void openServoWithTime(uint32_t time);
         void closeServo();
         void unsafeSetServoPosition(float position);
+        bool isServoOpen();
         float getServoPosition();
         float getMaxAperture();
         uint32_t getOpeningTime();
         bool setMaxAperture(float aperture);
         bool setOpeningTime(uint32_t time);
+    };
+
+    struct ValveInfo
+    {
+        bool state = {};  ///< Whether the valve is open or closed
+        std::chrono::milliseconds timing      = {};  ///< Opening time
+        std::chrono::milliseconds timeToClose = {};  ///< Time until valve close
+        float aperture                        = {};  ///< Max valve aperture
     };
 
 public:
@@ -104,6 +113,10 @@ public:
     bool setOpeningTime(ServosList servo, uint32_t time);
     bool isServoOpen(ServosList servo);
     bool isCanServoOpen(ServosList servo);
+    uint32_t getServoOpeningTime(ServosList servo);
+    float getServoMaxAperture(ServosList servo);
+
+    ValveInfo getValveInfo(ServosList servo);
 
     // N2 3-way valve control
     void set3wayValveState(bool state);
@@ -113,9 +126,6 @@ public:
     void openChamberWithTime(uint32_t time);
     void closeChamber();
     bool isChamberOpen();
-
-    uint32_t getServoOpeningTime(ServosList servo);
-    float getServoMaxAperture(ServosList servo);
 
     void armLightOn();
     void armLightOff();
