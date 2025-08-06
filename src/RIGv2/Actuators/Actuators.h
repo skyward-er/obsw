@@ -90,10 +90,11 @@ private:
 
     struct ValveInfo
     {
-        bool state = {};  ///< Whether the valve is open or closed
+        bool valid = false;  ///< Whether the data in this struct is valid
+        bool state = false;  ///< Whether the valve is open or closed
         std::chrono::milliseconds timing      = {};  ///< Opening time
         std::chrono::milliseconds timeToClose = {};  ///< Time until valve close
-        float aperture                        = {};  ///< Max valve aperture
+        float aperture                        = 0;   ///< Max valve aperture
     };
 
 public:

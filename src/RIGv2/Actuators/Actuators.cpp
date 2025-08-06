@@ -319,8 +319,10 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
     if (info == nullptr)
         return {};
 
+    bool isOpen      = info->isServoOpen();
     auto timeToClose = 0ms;
-    if (info->closeTs != ValveClosed)
+
+    if (isOpen)
     {
         // Subtract 400ms to account for radio latency (empirically tested)
         auto diff = info->closeTs - Clock::now() - 400ms;
@@ -329,7 +331,8 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
     }
 
     return ValveInfo{
-        .state       = info->isServoOpen(),
+        .valid       = true,
+        .state       = isOpen,
         .timing      = milliseconds{info->getOpeningTime()},
         .timeToClose = timeToClose,
         .aperture    = info->getMaxAperture(),

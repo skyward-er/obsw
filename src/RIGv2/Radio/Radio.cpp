@@ -298,9 +298,13 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         {
             ServosList valveId = static_cast<ServosList>(
                 mavlink_msg_get_valve_info_tc_get_servo_id(&msg));
-            enqueueValveInfoTm(valveId);
 
-            enqueueAck(msg);
+            bool result = enqueueValveInfoTm(valveId);
+            if (result)
+                enqueueAck(msg);
+            else
+                enqueueNack(msg, 0);
+
             break;
         }
 
@@ -493,12 +497,15 @@ void Radio::enqueueRegistry()
         });
 }
 
-void Radio::enqueueValveInfoTm(ServosList valveId)
+bool Radio::enqueueValveInfoTm(ServosList valveId)
 {
     mavlink_message_t msg;
     mavlink_valve_info_tm_t tm;
 
     auto valveInfo = getModule<Actuators>()->getValveInfo(valveId);
+
+    if (!valveInfo.valid)
+        return false;
 
     tm.servo_id      = valveId;
     tm.state         = valveInfo.state;
@@ -510,6 +517,7 @@ void Radio::enqueueValveInfoTm(ServosList valveId)
                                      Config::Radio::MAV_COMPONENT_ID, &msg,
                                      &tm);
     enqueueMessage(msg);
+    return true;
 }
 
 bool Radio::enqueueSystemTm(uint8_t tmId)
