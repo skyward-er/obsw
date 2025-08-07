@@ -75,6 +75,15 @@ Boardcore::Wiz5500::PhyState EthernetBase::getState()
     return wiz5500->getPhyState();
 }
 
+void EthernetBase::printIpConfig(std::ostream& os) const
+{
+    os << "Ethernet state:"
+       << "\n\tIP address:  " << currentIp
+       << "\n\tSubnet mask: " << Groundstation::SUBNET
+       << "\n\tGateway:     " << Groundstation::GATEWAY
+       << "\n\tMAC address: " << currentMac << std::endl;
+}
+
 bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 {
     this->wiz5500 = wiz5500;
@@ -91,7 +100,9 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
     {
         WizIp ip = IP_BASE;
         ip.d = 1 + ipOffset;  // Add to the ip the offset set on the dipswitch
+        currentIp = ip;
         this->wiz5500->setSourceIp(ip);
+
         WizMac mac = MAC_BASE;
         // Add to the mac address the offset set on the dipswitch
         mac.c += 1 + ipOffset;
@@ -106,16 +117,27 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
             mac.e += 1;
             mac.f += 1;
         }
+        currentMac = mac;
         this->wiz5500->setSourceMac(mac);
     }
     else
     {
-        this->wiz5500->setSourceIp(genNewRandomIp());
-        this->wiz5500->setSourceMac(genNewRandomMac());
+        currentIp  = genNewRandomIp();
+        currentMac = genNewRandomMac();
+        this->wiz5500->setSourceIp(currentIp);
+        this->wiz5500->setSourceMac(currentMac);
     }
 
     this->wiz5500->setOnIpConflict(
-        [this]() { this->wiz5500->setSourceIp(genNewRandomIp()); });
+        [this]()
+        {
+            currentIp = genNewRandomIp();
+            this->wiz5500->setSourceIp(currentIp);
+
+            // Print the new configuration
+            std::cout << "Ethernet IP configuration changed\n";
+            this->printIpConfig(std::cout);
+        });
 
     // Ok now open the UDP socket
     if (!this->wiz5500->openUdp(0, RECV_PORT, {255, 255, 255, 255}, SEND_PORT,
