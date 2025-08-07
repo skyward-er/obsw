@@ -68,15 +68,15 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST), 0x00,
                 DeviceStatus{
-                    TimestampTimer::getTimestamp(),
-                    static_cast<int16_t>(stats.logNumber),
-                    static_cast<uint8_t>(initStatus.load()),
-                    false,
-                    PersistentVars::getHilMode(),
-                    stats.lastWriteError == 0,
+                    .timestamp = TimestampTimer::getTimestamp(),
+                    .logNumber = static_cast<int16_t>(stats.logNumber),
+                    .state     = static_cast<uint8_t>(initStatus.load()),
+                    .armed     = false,
+                    .hil       = PersistentVars::getHilMode(),
+                    .logGood   = stats.lastWriteError == 0,
                 });
         },
-        Config::CanHandler::STATUS_PERIOD);
+        CanConfig::STATUS_SEND_PERIOD);
 
     if (result == 0)
     {
@@ -88,31 +88,6 @@ bool CanHandler::start()
         [this]()
         {
             Sensors* sensors = getModule<Sensors>();
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::SensorId::N2_TANK_PRESSURE),
-                static_cast<PressureData>(sensors->getN2TankPressure()));
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(
-                    CanConfig::SensorId::REGULATOR_OUT_PRESSURE),
-                static_cast<PressureData>(sensors->getRegulatorOutPressure()));
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::SensorId::OX_TANK_TOP_PRESSURE),
-                static_cast<PressureData>(sensors->getOxTankTopPressure()));
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -141,7 +116,45 @@ bool CanHandler::start()
                     CanConfig::SensorId::COMBUSTION_CHAMBER_PRESSURE),
                 static_cast<PressureData>(sensors->getCCPressure()));
         },
-        Config::CanHandler::PRESSURE_PERIOD);
+        Config::CanHandler::CRITICAL_PRESSURE_SEND_RATE);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to insert pressure update");
+        return false;
+    }
+
+    result = scheduler.addTask(
+        [this]()
+        {
+            Sensors* sensors = getModule<Sensors>();
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(CanConfig::SensorId::N2_TANK_PRESSURE),
+                static_cast<PressureData>(sensors->getN2TankPressure()));
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(
+                    CanConfig::SensorId::REGULATOR_OUT_PRESSURE),
+                static_cast<PressureData>(sensors->getRegulatorOutPressure()));
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(CanConfig::SensorId::OX_TANK_TOP_PRESSURE),
+                static_cast<PressureData>(sensors->getOxTankTopPressure()));
+        },
+        Config::CanHandler::SECONDARY_PRESSURE_SEND_RATE);
 
     if (result == 0)
     {
@@ -181,7 +194,7 @@ bool CanHandler::start()
                     CanConfig::SensorId::MOTOR_ACTUATORS_CURRENT),
                 static_cast<CurrentData>(sensors->getActuatorsCurrent()));
         },
-        Config::CanHandler::TEMPERATURE_PERIOD);
+        Config::CanHandler::SENSORS_SEND_RATE);
 
     if (result == 0)
     {
@@ -238,7 +251,7 @@ bool CanHandler::start()
                     actuators->getServoPosition(ServosList::N2_QUENCHING_VALVE),
                     actuators->isServoOpen(ServosList::N2_QUENCHING_VALVE)});
         },
-        Config::CanHandler::ACTUATORS_PERIOD);
+        Config::CanHandler::VALVE_STATE_SEND_RATE);
 
     if (result == 0)
     {

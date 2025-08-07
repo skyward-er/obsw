@@ -38,11 +38,10 @@ namespace CanHandler
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto STATUS_PERIOD = 1000ms;
-
-constexpr auto PRESSURE_PERIOD    = 50_hz;
-constexpr auto ACTUATORS_PERIOD   = 50_hz;
-constexpr auto TEMPERATURE_PERIOD = 10_hz;
+constexpr auto CRITICAL_PRESSURE_SEND_RATE  = 50_hz;
+constexpr auto SECONDARY_PRESSURE_SEND_RATE = 8_hz;
+constexpr auto VALVE_STATE_SEND_RATE        = 4_hz;
+constexpr auto SENSORS_SEND_RATE            = 1_hz;
 
 }  // namespace CanHandler
 
