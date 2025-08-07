@@ -59,6 +59,11 @@ public:
 
     Boardcore::Wiz5500::PhyState getState();
 
+    Boardcore::WizIp getCurrentIp() { return currentIp; }
+    Boardcore::WizMac getCurrentMac() { return currentMac; }
+
+    void printIpConfig(std::ostream& os) const;
+
 protected:
     bool start(std::shared_ptr<Boardcore::Wiz5500> wiz5500);
     std::shared_ptr<Boardcore::Wiz5500> wiz5500;
@@ -75,8 +80,12 @@ private:
 
     bool started = false;
     std::unique_ptr<EthernetMavDriver> mav_driver;
-    bool randomIp     = true;
-    uint8_t ipOffset  = 0;
+    bool randomIp    = true;
+    uint8_t ipOffset = 0;
+
+    Boardcore::WizIp currentIp   = {};
+    Boardcore::WizMac currentMac = {};
+
     bool sniffOtherGs = false;
     bool firstPort    = true;
 };

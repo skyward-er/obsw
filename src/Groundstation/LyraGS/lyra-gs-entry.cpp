@@ -59,6 +59,17 @@ struct DipStatusLyraGS
     bool mainTXenable;
     bool payloadTXenable;
     uint8_t ipConfig;
+
+    void print(std::ostream& os) const
+    {
+        os << "Dipswitch state:"
+           << "\n\tARP mode:             " << isARP
+           << "\n\tMain backup radio:    " << mainHasBackup
+           << "\n\tPayload backup radio: " << payloadHasBackup
+           << "\n\tMain TX enabled:      " << mainTXenable
+           << "\n\tPayload TX enabled:   " << payloadTXenable
+           << "\n\tIP offset:            " << (int)ipConfig << std::endl;
+    }
 };
 
 /**
@@ -141,14 +152,7 @@ int main()
 
     DipSwitch dip(sh, clk, qh, std::chrono::microseconds(microSecClk));
     DipStatusLyraGS dipRead = getDipStatus(dip.read());
-
-    std::cout << "Dipswitch state:"
-              << "\n\t Is ARP: " << dipRead.isARP
-              << "\n\t Main radio backup: " << dipRead.mainHasBackup
-              << "\n\t Payload radio backup: " << dipRead.payloadHasBackup
-              << "\n\t Main TX: " << dipRead.mainTXenable
-              << "\n\t Main TX: " << dipRead.payloadTXenable
-              << "\n\t Ip offset: " << (int)dipRead.ipConfig << "\n";
+    dipRead.print(std::cout);
 
     DependencyManager manager;
     PrintLogger logger = Logging::getLogger("lyra_gs");
@@ -229,9 +233,6 @@ int main()
         errorLoop();
     }
 
-    // Print out the graph of dependencies
-    manager.graphviz(std::cout);
-
     // Start the modules
 
     ledOn();
@@ -298,6 +299,10 @@ int main()
     {
         std::cout << "[error] Failed to start ethernet!" << std::endl;
         ok = false;
+    }
+    else
+    {
+        ethernet->printIpConfig(std::cout);
     }
 
     LOG_DEBUG(logger, "DEBUG: board_status starting...\n");
