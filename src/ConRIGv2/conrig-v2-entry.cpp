@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Ettore Pane
+ * Authors: Ettore Pane, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,18 +23,13 @@
 #include <ConRIGv2/BoardScheduler.h>
 #include <ConRIGv2/Buses.h>
 #include <ConRIGv2/Buttons/Buttons.h>
-#include <ConRIGv2/Configs/ButtonsConfig.h>
 #include <ConRIGv2/Hub/Hub.h>
 #include <ConRIGv2/Radio/Radio.h>
-#include <diagnostic/CpuMeter/CpuMeter.h>
-#include <diagnostic/PrintLogger.h>
-#include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <iostream>
-#include <thread>
 
 using namespace miosix;
 using namespace Boardcore;
@@ -42,68 +37,86 @@ using namespace ConRIGv2;
 
 int main()
 {
-    PrintLogger logger = Logging::getLogger("main");
+    bool initResult = true;
+
     DependencyManager manager;
 
-    Buses* buses              = new Buses();
-    BoardScheduler* scheduler = new BoardScheduler();
-    Radio* radio              = new Radio();
-    Buttons* buttons          = new Buttons();
-    Hub* hub                  = new Hub();
+    auto buses     = new Buses();
+    auto scheduler = new BoardScheduler();
+    auto radio     = new Radio();
+    auto buttons   = new Buttons();
+    auto hub       = new Hub();
 
-    bool initResult = manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Buses>(buses) &&
-                      manager.insert<Radio>(radio) &&
-                      manager.insert<Hub>(hub) &&
-                      manager.insert<Buttons>(buttons) && manager.inject();
-
-    manager.graphviz(std::cout);
+    initResult &= manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<Buses>(buses) &&
+                  manager.insert<Radio>(radio) && manager.insert<Hub>(hub) &&
+                  manager.insert<Buttons>(buttons) && manager.inject();
 
     if (!initResult)
     {
-        LOG_ERR(logger, "Failed to inject dependencies");
-        return 0;
+        std::cerr << "*** Failed to inject dependencies ***" << std::endl;
+        return -1;
     }
 
-    if (!radio->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the radio");
-    }
+    // Status led indicators
+    // led1: Buttons init/error
+    // led2: Radio init/error
+    // led3: Hub init/error
+    // led4: Everything ok
 
-    if (!hub->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the mavlink dispatcher hub");
-    }
-
+    std::cout << "Starting Buttons" << std::endl;
+    led1On();
     if (!buttons->start())
     {
         initResult = false;
-        LOG_ERR(logger, "Error starting the buttons");
-    }
-
-    if (!scheduler->start())
-    {
-        initResult = false;
-        LOG_ERR(logger, "Error starting the General Purpose Scheduler");
-    }
-
-    if (!initResult)
-    {
-        LOG_ERR(logger, "Init failure!");
-        led2On();  // Led RED
+        std::cerr << "*** Failed to start Buttons ***" << std::endl;
     }
     else
     {
-        LOG_INFO(logger, "All good!");
-        led4On();  // Led GREEN
+        led1Off();
     }
 
-    // Periodical statistics
-    while (true)
+    std::cout << "Starting Radio" << std::endl;
+    led2On();
+    if (!radio->start())
     {
-        Thread::sleep(1000);
-        CpuMeter::resetCpuStats();
+        initResult = false;
+        std::cerr << "*** Failed to start Radio ***" << std::endl;
     }
+    else
+    {
+        led2Off();
+    }
+
+    std::cout << "Starting Hub" << std::endl;
+    led3On();
+    if (!hub->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Hub ***" << std::endl;
+    }
+    else
+    {
+        led3Off();
+    }
+
+    std::cout << "Starting BoardScheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
+    }
+
+    if (initResult)
+    {
+        std::cout << "*** All good! ***" << std::endl;
+        led4On();
+    }
+    else
+    {
+        std::cerr << "*** Init failure ***" << std::endl;
+    }
+
+    while (true)
+        Thread::wait();
 }

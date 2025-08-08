@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,6 @@
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <RIGv2/StateMachines/TARS3/TARS3.h>
-#include <common/Events.h>
-#include <diagnostic/CpuMeter/CpuMeter.h>
-#include <diagnostic/StackLogger.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -50,22 +46,26 @@ using namespace miosix;
 
 int main()
 {
+    ledOff();
+
+    bool initResult = true;
+
     DependencyManager manager;
 
-    Buses* buses              = new Buses();
-    BoardScheduler* scheduler = new BoardScheduler();
+    auto buses     = new Buses();
+    auto scheduler = new BoardScheduler();
 
-    Sensors* sensors       = new Sensors();
-    Actuators* actuators   = new Actuators();
-    Registry* registry     = new Registry();
-    CanHandler* canHandler = new CanHandler();
-    GroundModeManager* gmm = new GroundModeManager();
-    TARS1* tars1           = new TARS1();
-    TARS3* tars3           = new TARS3();
-    Radio* radio           = new Radio();
+    auto sensors    = new Sensors();
+    auto actuators  = new Actuators();
+    auto registry   = new Registry();
+    auto canHandler = new CanHandler();
+    auto gmm        = new GroundModeManager();
+    auto tars1      = new TARS1();
+    auto tars3      = new TARS3();
+    auto radio      = new Radio();
 
-    Logger& sdLogger    = Logger::getInstance();
-    EventBroker& broker = EventBroker::getInstance();
+    auto& sdLogger = Logger::getInstance();
+    auto& broker   = EventBroker::getInstance();
 
     // Setup event sniffer
     EventSniffer sniffer(broker,
@@ -77,42 +77,63 @@ int main()
                          });
 
     // Insert modules
-    bool initResult = manager.insert<Buses>(buses) &&
-                      manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Actuators>(actuators) &&
-                      manager.insert<Sensors>(sensors) &&
-                      manager.insert<Radio>(radio) &&
-                      manager.insert<CanHandler>(canHandler) &&
-                      manager.insert<Registry>(registry) &&
-                      manager.insert<GroundModeManager>(gmm) &&
-                      manager.insert<TARS1>(tars1) &&
-                      manager.insert<TARS3>(tars3) && manager.inject();
+    initResult &= manager.insert<Buses>(buses) &&
+                  manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<Actuators>(actuators) &&
+                  manager.insert<Sensors>(sensors) &&
+                  manager.insert<Radio>(radio) &&
+                  manager.insert<CanHandler>(canHandler) &&
+                  manager.insert<Registry>(registry) &&
+                  manager.insert<GroundModeManager>(gmm) &&
+                  manager.insert<TARS1>(tars1) &&
+                  manager.insert<TARS3>(tars3) && manager.inject();
 
     if (!initResult)
     {
-        std::cout << "Failed to inject dependencies" << std::endl;
-        return 0;
+        std::cerr << "*** Failed to inject dependencies ***" << std::endl;
+        return -1;
     }
 
     // Status led indicators
-    // led1: Sensors ok
-    // led2: Radio ok
-    // led3: CanBus ok
+    // led1: Sensors init/error
+    // led2: Radio init/error
+    // led3: CanBus init/error
     // led4: Everything ok
+
+    // Start logging when system boots
+    std::cout << "Starting Logger" << std::endl;
+    if (!sdLogger.start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Logger ***" << std::endl;
+
+        if (!sdLogger.testSDCard())
+            std::cerr << "\tReason: SD card not present or not writable"
+                      << std::endl;
+        else
+            std::cerr << "\tReason: Logger initialization error" << std::endl;
+    }
+    else
+    {
+        sdLogger.resetStats();
+        std::cout << "Logger Ok!\n"
+                  << "\tLog number: " << sdLogger.getStats().logNumber
+                  << std::endl;
+    }
 
     // Start modules
     std::cout << "Starting EventBroker" << std::endl;
     if (!broker.start())
     {
         initResult = false;
-        std::cout << "*** Failed to start EventBroker ***" << std::endl;
+        std::cerr << "*** Failed to start EventBroker ***" << std::endl;
     }
 
     std::cout << "Starting Registry" << std::endl;
     if (!registry->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Registry ***" << std::endl;
+        std::cerr << "*** Failed to start Registry ***" << std::endl;
     }
 
     // Perform an initial registry load
@@ -125,83 +146,71 @@ int main()
     if (!actuators->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Actuators ***" << std::endl;
+        std::cerr << "*** Failed to start Actuators ***" << std::endl;
     }
 
     std::cout << "Starting Sensors" << std::endl;
+    led1On();
     if (!sensors->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Sensors ***" << std::endl;
+        std::cerr << "*** Failed to start Sensors ***" << std::endl;
     }
     else
     {
-        led1On();
+        led1Off();
     }
 
     std::cout << "Starting Radio" << std::endl;
+    led2On();
     if (!radio->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Radio ***" << std::endl;
+        std::cerr << "*** Failed to start Radio ***" << std::endl;
     }
     else
     {
-        led2On();
+        led2Off();
     }
 
     std::cout << "Starting CanHandler" << std::endl;
+    led3On();
     if (!canHandler->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start CanHandler ***" << std::endl;
+        std::cerr << "*** Failed to start CanHandler ***" << std::endl;
     }
     else
     {
-        led3On();
+        led3Off();
     }
 
     std::cout << "Starting GroundModeManager" << std::endl;
     if (!gmm->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start GroundModeManager ***" << std::endl;
+        std::cerr << "*** Failed to start GroundModeManager ***" << std::endl;
     }
 
     std::cout << "Starting TARS1" << std::endl;
     if (!tars1->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start TARS1 ***" << std::endl;
+        std::cerr << "*** Failed to start TARS1 ***" << std::endl;
     }
 
     std::cout << "Starting TARS3" << std::endl;
     if (!tars3->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start TARS3 ***" << std::endl;
+        std::cerr << "*** Failed to start TARS3 ***" << std::endl;
     }
 
     std::cout << "Starting BoardScheduler" << std::endl;
     if (!scheduler->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
-    }
-
-    // Start logging when system boots
-    std::cout << "Starting Logger" << std::endl;
-    if (!sdLogger.start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Logger ***" << std::endl;
-    }
-    else
-    {
-        sdLogger.resetStats();
-        std::cout << "Logger Ok!\n"
-                  << "\tLog number: " << sdLogger.getStats().logNumber
-                  << std::endl;
+        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
     }
 
     if (initResult)
@@ -213,7 +222,7 @@ int main()
     else
     {
         broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
-        std::cout << "*** Init failure ***" << std::endl;
+        std::cerr << "*** Init failure ***" << std::endl;
     }
 
     std::cout << "Sensor status:" << std::endl;

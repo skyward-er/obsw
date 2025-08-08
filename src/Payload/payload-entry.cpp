@@ -20,8 +20,6 @@
  * THE SOFTWARE.
  */
 
-#define DEFAULT_STDOUT_LOG_LEVEL LOGL_INFO
-
 #include <Payload/Actuators/Actuators.h>
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
@@ -37,12 +35,6 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
-#include <common/Events.h>
-#include <common/Topics.h>
-#include <diagnostic/CpuMeter/CpuMeter.h>
-#include <diagnostic/PrintLogger.h>
-#include <diagnostic/StackLogger.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -52,181 +44,231 @@
 #include <iomanip>
 #include <iostream>
 
-/**
- * @brief Starts a module and checks if it started correctly.
- *
- * Optionally takes an expression to run when failing to start.
- * Must be followed by a semicolon or a block of code.
- * The block of code will be executed only if the module started correctly.
- *
- * @example START_MODULE(sensors) { onSuccess(); }
- * @example START_MODULE(radio, miosix::led2On())
- */
-#define START_MODULE(module, ...)                                        \
-    std::cout << "Starting " #module << std::endl;                       \
-    if (!module->start())                                                \
-    {                                                                    \
-        initResult = false;                                              \
-        std::cerr << "*** Failed to start " #module " ***" << std::endl; \
-        __VA_ARGS__;                                                     \
-    }                                                                    \
-    else
-
-/**
- * @brief Starts a singleton and checks if it started correctly.
- * Must be followed by a semicolon or a block of code.
- * The block of code will be executed only if the singleton started correctly.
- *
- * @example `START_SINGLETON(Logger) { onSuccess(); }`
- */
-#define START_SINGLETON(singleton)                                          \
-    std::cout << "Starting " #singleton << std::endl;                       \
-    if (!singleton::getInstance().start())                                  \
-    {                                                                       \
-        initResult = false;                                                 \
-        std::cerr << "*** Failed to start " #singleton " ***" << std::endl; \
-    }                                                                       \
-    else
-
 using namespace std::chrono;
+using namespace miosix;
 using namespace Boardcore;
 using namespace Payload;
 using namespace Common;
 
 int main()
 {
-    miosix::ledOff();
+    ledOff();
 
-    // Unused but needed to set the log level properly
-    auto logger = Logging::getLogger("Payload");
-    DependencyManager depman{};
-
-    std::cout << "Instantiating modules" << std::endl;
     bool initResult = true;
 
-    // Core components
-    auto buses = new Buses();
-    initResult &= depman.insert(buses);
+    DependencyManager manager;
+
+    auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
-    initResult &= depman.insert(scheduler);
 
-    // Global state machine
+    Sensors* sensors;
     auto flightModeManager = new FlightModeManager();
-    initResult &= depman.insert(flightModeManager);
-
-    // Attitude estimation
-    auto nasController = new NASController();
-    initResult &= depman.insert(nasController);
-
-    // Sensors
-    auto sensors =
-        (PersistentVars::getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
-                                      : new Sensors());
-    initResult &= depman.insert(sensors);
-    auto pinHandler = new PinHandler();
-    initResult &= depman.insert(pinHandler);
-
-    // Radio and CAN
-    auto radio = new Radio();
-    initResult &= depman.insert(radio);
-    auto canHandler = new CanHandler();
-    initResult &= depman.insert(canHandler);
-
-    // Flight algorithms
-    auto altitudeTrigger = new AltitudeTrigger();
-    initResult &= depman.insert(altitudeTrigger);
-    auto wingController = new WingController();
-    initResult &= depman.insert(wingController);
-
-    // Actuators
-    auto actuators = new Actuators();
-    initResult &= depman.insert(actuators);
-
-    // Statistics
-    auto statsRecorder = new FlightStatsRecorder();
-    initResult &= depman.insert(statsRecorder);
+    auto nasController     = new NASController();
+    auto pinHandler        = new PinHandler();
+    auto radio             = new Radio();
+    auto canHandler        = new CanHandler();
+    auto altitudeTrigger   = new AltitudeTrigger();
+    auto wingController    = new WingController();
+    auto actuators         = new Actuators();
+    auto statsRecorder     = new FlightStatsRecorder();
+    PayloadHIL* hil        = nullptr;
 
     // HIL
-    PayloadHIL* hil = nullptr;
     if (PersistentVars::getHilMode())
     {
         std::cout << "PAYLOAD SimulatorData: " << sizeof(SimulatorData)
                   << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
 
         hil = new PayloadHIL();
-        initResult &= depman.insert(hil);
+        initResult &= manager.insert<PayloadHIL>(hil);
+        sensors = new HILSensors(Config::HIL::ENABLE_HW);
+    }
+    else
+    {
+        sensors = new Sensors();
     }
 
-    std::cout << "Injecting module dependencies" << std::endl;
-    initResult &= depman.inject();
+    auto& sdLogger = Logger::getInstance();
+    auto& broker   = EventBroker::getInstance();
+
+    // Setup event sniffer
+    EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
+                         [&](uint8_t event, uint8_t topic)
+                         {
+                             EventData data{TimestampTimer::getTimestamp(),
+                                            event, topic};
+                             sdLogger.log(data);
+                         });
+
+    // Insert modules
+    initResult &= manager.insert<Buses>(buses) &&
+                  manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<Sensors>(sensors) &&
+                  manager.insert<FlightModeManager>(flightModeManager) &&
+                  manager.insert<NASController>(nasController) &&
+                  manager.insert<PinHandler>(pinHandler) &&
+                  manager.insert<Radio>(radio) &&
+                  manager.insert<CanHandler>(canHandler) &&
+                  manager.insert<AltitudeTrigger>(altitudeTrigger) &&
+                  manager.insert<WingController>(wingController) &&
+                  manager.insert<Actuators>(actuators) &&
+                  manager.insert<FlightStatsRecorder>(statsRecorder) &&
+                  manager.inject();
+
+    if (!initResult)
+    {
+        std::cerr << "*** Failed to inject dependencies ***" << std::endl;
+        return -1;
+    }
 
     /* Status led indicators
-    led1: Sensors error
-    led2: Radio error
-    led3: CanBus error
+    led1: Sensors init/error
+    led2: Radio init/error
+    led3: CanBus init/error
     led4: Everything ok */
 
-    // Start global modules
-    START_SINGLETON(Logger)
+    // Start logging when system boots
+    std::cout << "Starting Logger" << std::endl;
+    if (!sdLogger.start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Logger ***" << std::endl;
+
+        if (!sdLogger.testSDCard())
+            std::cerr << "\tReason: SD card not present or not writable"
+                      << std::endl;
+        else
+            std::cerr << "\tReason: Logger initialization error" << std::endl;
+    }
+    else
     {
         std::cout << "Logger Ok!\n"
-                  << "\tLog number: "
-                  << Logger::getInstance().getCurrentLogNumber() << std::endl;
+                  << "\tLog number: " << sdLogger.getCurrentLogNumber()
+                  << std::endl;
     }
-    START_SINGLETON(EventBroker);
 
-    // Start module instances
-    START_MODULE(pinHandler);
-    START_MODULE(radio, miosix::led2On());
-    START_MODULE(canHandler, miosix::led3On());
-    START_MODULE(flightModeManager);
-    START_MODULE(nasController);
-    START_MODULE(altitudeTrigger);
-    START_MODULE(wingController);
-    START_MODULE(actuators);
+    std::cout << "Starting EventBroker" << std::endl;
+    if (!broker.start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start EventBroker ***" << std::endl;
+    }
 
-    START_MODULE(scheduler);
+    std::cout << "Starting PinHandler" << std::endl;
+    if (!pinHandler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start PinHandler ***" << std::endl;
+    }
 
-    // Log all posted events
-    std::cout << "Starting event sniffer" << std::endl;
-    EventSniffer sniffer(EventBroker::getInstance(), TOPICS_LIST,
-                         [](uint8_t event, uint8_t topic)
-                         {
-                             EventData ev{TimestampTimer::getTimestamp(), event,
-                                          topic};
-                             Logger::getInstance().log(ev);
-                         });
+    std::cout << "Starting Radio" << std::endl;
+    led2On();
+    if (!radio->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Radio ***" << std::endl;
+    }
+    else
+    {
+        led2Off();
+    }
+
+    std::cout << "Starting CanHandler" << std::endl;
+    led3On();
+    if (!canHandler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start CanHandler ***" << std::endl;
+    }
+    else
+    {
+        led3Off();
+    }
+
+    std::cout << "Starting FlightModeManager" << std::endl;
+    if (!flightModeManager->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start FlightModeManager ***" << std::endl;
+    }
+
+    std::cout << "Starting NasController" << std::endl;
+    if (!nasController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start NasController ***" << std::endl;
+    }
+
+    std::cout << "Starting AltitudeTrigger" << std::endl;
+    if (!altitudeTrigger->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start AltitudeTrigger ***" << std::endl;
+    }
+
+    std::cout << "Starting WingController" << std::endl;
+    if (!wingController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start WingController ***" << std::endl;
+    }
+
+    std::cout << "Starting Actuators" << std::endl;
+    if (!actuators->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Actuators ***" << std::endl;
+    }
+
+    std::cout << "Starting Scheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Scheduler ***" << std::endl;
+    }
 
     if (hil)
     {
-        START_MODULE(hil);
+        std::cout << "Starting HIL" << std::endl;
+        if (!hil->start())
+        {
+            initResult = false;
+            std::cerr << "*** Failed to start HIL ***" << std::endl;
+        }
 
-        std::cout << "Waiting start simulation" << std::endl;
+        std::cout << "Waiting simulation start..." << std::endl;
         hil->waitStartSimulation();
     }
 
     // Wait for simulation start before starting sensors to avoid initializing
     // them with invalid data
-    START_MODULE(sensors, miosix::led1On())
+    std::cout << "Starting Sensors" << std::endl;
+    led1On();
+    if (!sensors->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Sensors ***" << std::endl;
+    }
+    else
+    {
+        led1Off();
+    }
 
     if (initResult)
     {
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
-        // Turn on the initialization led on the CU
-        miosix::led4On();
+        broker.post(FMM_INIT_OK, TOPIC_FMM);
         std::cout << "All good!" << std::endl;
+        led4On();
     }
     else
     {
-        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        std::cout << "*** Init failure ***" << std::endl;
+        broker.post(FMM_INIT_ERROR, TOPIC_FMM);
+        std::cerr << "*** Init failure ***" << std::endl;
     }
 
-    std::string sensorConfig;
-    if (Config::Sensors::USING_DUAL_MAGNETOMETER)
-        sensorConfig = "LIS2MDL IN + LIS2MDL EXT";
-    else
-        sensorConfig = "LPS22DF + LIS2MDL IN/EXT";
+    auto sensorConfig = Config::Sensors::USING_DUAL_MAGNETOMETER
+                            ? "LIS2MDL IN + LIS2MDL EXT"
+                            : "LPS22DF + LIS2MDL IN/EXT";
 
     std::cout << "Sensor status (config: " << sensorConfig << "):" << std::endl;
     for (auto info : sensors->getSensorInfos())
@@ -244,13 +286,14 @@ int main()
               << sensors->getBatteryVoltageLastSample().voltage << " V"
               << std::endl;
 
-    auto& sdLogger = Logger::getInstance();
-
     // Collect stack usage statistics
     while (true)
     {
         sdLogger.log(sdLogger.getStats());
-        StackLogger::getInstance().log();
+
+        // Toggle LED
+        gpios::boardLed::value() ? gpios::boardLed::low()
+                                 : gpios::boardLed::high();
         Thread::sleep(1000);
     }
 

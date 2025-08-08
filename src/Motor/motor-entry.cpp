@@ -29,7 +29,6 @@
 #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
-#include <diagnostic/PrintLogger.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -54,71 +53,55 @@ int main()
     Buses* buses              = new Buses();
     BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors* sensors =
-        (PersistentVars::getHilMode() ? new HILSensors(Config::HIL::ENABLE_HW)
-                                      : new Sensors());
-    Actuators* actuators   = new Actuators();
-    CanHandler* canHandler = new CanHandler();
+    Sensors* sensors = nullptr;
+    auto actuators   = new Actuators();
+    auto canHandler  = new CanHandler();
 
-    Logger& sdLogger = Logger::getInstance();
+    auto& sdLogger = Logger::getInstance();
 
     // HIL
     MotorHIL* hil = nullptr;
     if (PersistentVars::getHilMode())
     {
         hil = new MotorHIL();
-
-        initResult = initResult && manager.insert(hil);
+        initResult &= manager.insert<MotorHIL>(hil);
+        sensors = new HILSensors(Config::HIL::ENABLE_HW);
+    }
+    else
+    {
+        sensors = new Sensors();
     }
 
-    initResult = initResult && manager.insert<Buses>(buses) &&
-                 manager.insert<BoardScheduler>(scheduler) &&
-                 manager.insert<Sensors>(sensors) &&
-                 manager.insert<Actuators>(actuators) &&
-                 manager.insert<CanHandler>(canHandler) && manager.inject();
+    initResult &= manager.insert<Buses>(buses) &&
+                  manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<Sensors>(sensors) &&
+                  manager.insert<Actuators>(actuators) &&
+                  manager.insert<CanHandler>(canHandler) && manager.inject();
 
     if (!initResult)
     {
-        std::cout << "Failed to inject dependencies" << std::endl;
+        std::cerr << "*** Failed to inject dependencies ***" << std::endl;
         return -1;
     }
 
     // Status led indicators
-    // led1: Sensors error
-    // led2: Actuators error
-    // led3: CanBus error
+    // led1: Sensors init/error
+    // led2: Actuators init/error
+    // led3: CanBus init/error
     // led4: Everything ok
-
-    // Start modules
-    std::cout << "Starting Actuators" << std::endl;
-    if (!actuators->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Actuators ***" << std::endl;
-        led2On();
-    }
-
-    std::cout << "Starting CanHandler" << std::endl;
-    if (!canHandler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start CanHandler ***" << std::endl;
-        led3On();
-    }
-
-    std::cout << "Starting BoardScheduler" << std::endl;
-    if (!scheduler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
-    }
 
     // Start logging when system boots
     std::cout << "Starting Logger" << std::endl;
     if (!sdLogger.start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Logger ***" << std::endl;
+        std::cerr << "*** Failed to start Logger ***" << std::endl;
+
+        if (!sdLogger.testSDCard())
+            std::cerr << "\tReason: SD card not present or not writable"
+                      << std::endl;
+        else
+            std::cerr << "\tReason: Logger initialization error" << std::endl;
     }
     else
     {
@@ -128,12 +111,44 @@ int main()
                   << std::endl;
     }
 
-    if (PersistentVars::getHilMode())
+    // Start modules
+    std::cout << "Starting Actuators" << std::endl;
+    led2On();
+    if (!actuators->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Actuators ***" << std::endl;
+    }
+    else
+    {
+        led2Off();
+    }
+
+    std::cout << "Starting CanHandler" << std::endl;
+    led3On();
+    if (!canHandler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start CanHandler ***" << std::endl;
+    }
+    else
+    {
+        led3Off();
+    }
+
+    std::cout << "Starting BoardScheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
+    }
+
+    if (hil)
     {
         if (!hil->start())
         {
             initResult = false;
-            std::cout << "*** Error failed to start HIL ***" << std::endl;
+            std::cerr << "*** Error failed to start HIL ***" << std::endl;
         }
 
         // Waiting for start of simulation
@@ -141,11 +156,15 @@ int main()
     }
 
     std::cout << "Starting Sensors" << std::endl;
+    led1On();
     if (!sensors->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Sensors ***" << std::endl;
-        led1On();
+        std::cerr << "*** Failed to start Sensors ***" << std::endl;
+    }
+    else
+    {
+        led1Off();
     }
 
     if (initResult)
@@ -157,7 +176,7 @@ int main()
     else
     {
         canHandler->setInitStatus(InitStatus::INIT_ERR);
-        std::cout << "*** Init failure ***" << std::endl;
+        std::cerr << "*** Init failure ***" << std::endl;
     }
 
     std::cout << "Sensor status:" << std::endl;

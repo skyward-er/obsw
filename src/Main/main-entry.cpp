@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,14 +37,10 @@
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <actuators/Servo/Servo.h>
 #include <common/canbus/MotorStatus.h>
-#include <drivers/timer/PWM.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
-#include <hil/HIL.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 
@@ -62,37 +58,36 @@ int main()
 {
     ledOff();
 
-    DependencyManager manager;
-
     bool initResult = true;
 
-    Buses* buses              = new Buses();
-    BoardScheduler* scheduler = new BoardScheduler();
+    DependencyManager manager;
 
-    Sensors* sensors;
-    Actuators* actuators     = new Actuators();
-    Radio* radio             = new Radio();
-    CanHandler* canHandler   = new CanHandler();
-    PinHandler* pinHandler   = new PinHandler();
-    FlightModeManager* fmm   = new FlightModeManager();
-    AlgoReference* ref       = new AlgoReference();
-    ADAController* ada       = new ADAController();
-    NASController* nas       = new NASController();
-    MEAController* mea       = new MEAController();
-    ABKController* abk       = new ABKController();
-    StatsRecorder* recorder  = new StatsRecorder();
-    MainHIL* hil             = nullptr;
-    MotorStatus* motorStatus = new MotorStatus();
+    auto buses     = new Buses();
+    auto scheduler = new BoardScheduler();
+
+    Sensors* sensors = nullptr;
+    auto actuators   = new Actuators();
+    auto radio       = new Radio();
+    auto canHandler  = new CanHandler();
+    auto pinHandler  = new PinHandler();
+    auto fmm         = new FlightModeManager();
+    auto ref         = new AlgoReference();
+    auto ada         = new ADAController();
+    auto nas         = new NASController();
+    auto mea         = new MEAController();
+    auto abk         = new ABKController();
+    auto recorder    = new StatsRecorder();
+    auto motorStatus = new MotorStatus();
+    MainHIL* hil     = nullptr;
 
     // HIL
     if (PersistentVars::getHilMode())
     {
         std::cout << "MAIN SimulatorData: " << sizeof(SimulatorData)
                   << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
+
         hil = new MainHIL();
-
         initResult &= manager.insert<MainHIL>(hil);
-
         sensors = new HILSensors(Config::HIL::ENABLE_HW);
     }
     else
@@ -100,8 +95,8 @@ int main()
         sensors = new Sensors();
     }
 
-    Logger& sdLogger    = Logger::getInstance();
-    EventBroker& broker = EventBroker::getInstance();
+    auto& sdLogger = Logger::getInstance();
+    auto& broker   = EventBroker::getInstance();
 
     // Setup event sniffer
     EventSniffer sniffer(broker,
@@ -113,25 +108,25 @@ int main()
                          });
 
     // Insert modules
-    initResult = initResult && manager.insert<Buses>(buses) &&
-                 manager.insert<BoardScheduler>(scheduler) &&
-                 manager.insert<Sensors>(sensors) &&
-                 manager.insert<Radio>(radio) &&
-                 manager.insert<Actuators>(actuators) &&
-                 manager.insert<CanHandler>(canHandler) &&
-                 manager.insert<PinHandler>(pinHandler) &&
-                 manager.insert<FlightModeManager>(fmm) &&
-                 manager.insert<AlgoReference>(ref) &&
-                 manager.insert<ADAController>(ada) &&
-                 manager.insert<NASController>(nas) &&
-                 manager.insert<MEAController>(mea) &&
-                 manager.insert<ABKController>(abk) &&
-                 manager.insert<StatsRecorder>(recorder) &&
-                 manager.insert<MotorStatus>(motorStatus) && manager.inject();
+    initResult &= manager.insert<Buses>(buses) &&
+                  manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<Sensors>(sensors) &&
+                  manager.insert<Radio>(radio) &&
+                  manager.insert<Actuators>(actuators) &&
+                  manager.insert<CanHandler>(canHandler) &&
+                  manager.insert<PinHandler>(pinHandler) &&
+                  manager.insert<FlightModeManager>(fmm) &&
+                  manager.insert<AlgoReference>(ref) &&
+                  manager.insert<ADAController>(ada) &&
+                  manager.insert<NASController>(nas) &&
+                  manager.insert<MEAController>(mea) &&
+                  manager.insert<ABKController>(abk) &&
+                  manager.insert<StatsRecorder>(recorder) &&
+                  manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
     if (!initResult)
     {
-        std::cout << "Failed to inject dependencies" << std::endl;
+        std::cerr << "*** Failed to inject dependencies ***" << std::endl;
         return -1;
     }
 
@@ -141,92 +136,18 @@ int main()
     // led3: CanBus error
     // led4: Everything ok
 
-    // Start modules
-    std::cout << "Starting EventBroker" << std::endl;
-    if (!broker.start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start EventBroker ***" << std::endl;
-    }
-
-    std::cout << "Starting Actuators" << std::endl;
-    if (!actuators->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Actuators ***" << std::endl;
-    }
-
-    std::cout << "Starting Radio" << std::endl;
-    if (!radio->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start Radio ***" << std::endl;
-        led2On();
-    }
-
-    std::cout << "Starting CanHandler" << std::endl;
-    if (!canHandler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start CanHandler ***" << std::endl;
-        led3On();
-    }
-
-    std::cout << "Starting PinHandler" << std::endl;
-    if (!pinHandler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start PinHandler ***" << std::endl;
-    }
-
-    std::cout << "Starting BoardScheduler" << std::endl;
-    if (!scheduler->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start BoardScheduler ***" << std::endl;
-    }
-
-    std::cout << "Starting ADAController" << std::endl;
-    if (!ada->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start ADAController ***" << std::endl;
-    }
-
-    std::cout << "Starting NASController" << std::endl;
-    if (!nas->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start NASController ***" << std::endl;
-    }
-
-    std::cout << "Starting MEAController" << std::endl;
-    if (!mea->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start MEAController ***" << std::endl;
-    }
-
-    std::cout << "Starting ABKController" << std::endl;
-    if (!abk->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start ABKController ***" << std::endl;
-    }
-
-    std::cout << "Starting FlightModeManager" << std::endl;
-    if (!fmm->start())
-    {
-        initResult = false;
-        std::cout << "*** Failed to start FlightModeManager ***" << std::endl;
-    }
-
     // Start logging when system boots
     std::cout << "Starting Logger" << std::endl;
     if (!sdLogger.start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Logger ***" << std::endl;
+        std::cerr << "*** Failed to start Logger ***" << std::endl;
+
+        if (!sdLogger.testSDCard())
+            std::cerr << "\tReason: SD card not present or not writable"
+                      << std::endl;
+        else
+            std::cerr << "\tReason: Logger initialization error" << std::endl;
     }
     else
     {
@@ -236,7 +157,95 @@ int main()
                   << std::endl;
     }
 
-    if (PersistentVars::getHilMode())
+    // Start modules
+    std::cout << "Starting EventBroker" << std::endl;
+    if (!broker.start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start EventBroker ***" << std::endl;
+    }
+
+    std::cout << "Starting Actuators" << std::endl;
+    if (!actuators->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Actuators ***" << std::endl;
+    }
+
+    std::cout << "Starting Radio" << std::endl;
+    led2On();
+    if (!radio->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Radio ***" << std::endl;
+    }
+    else
+    {
+        led2Off();
+    }
+
+    std::cout << "Starting CanHandler" << std::endl;
+    led3On();
+    if (!canHandler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start CanHandler ***" << std::endl;
+    }
+    else
+    {
+        led3Off();
+    }
+
+    std::cout << "Starting PinHandler" << std::endl;
+    if (!pinHandler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start PinHandler ***" << std::endl;
+    }
+
+    std::cout << "Starting BoardScheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
+    }
+
+    std::cout << "Starting ADAController" << std::endl;
+    if (!ada->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ADAController ***" << std::endl;
+    }
+
+    std::cout << "Starting NASController" << std::endl;
+    if (!nas->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start NASController ***" << std::endl;
+    }
+
+    std::cout << "Starting MEAController" << std::endl;
+    if (!mea->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start MEAController ***" << std::endl;
+    }
+
+    std::cout << "Starting ABKController" << std::endl;
+    if (!abk->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ABKController ***" << std::endl;
+    }
+
+    std::cout << "Starting FlightModeManager" << std::endl;
+    if (!fmm->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start FlightModeManager ***" << std::endl;
+    }
+
+    if (hil)
     {
         std::cout << "Starting HIL" << std::endl;
         hil->start();
@@ -262,35 +271,37 @@ int main()
                     motorStatus->lockData()->mainValveOpen = true;
             });
 
-        std::cout << "Waiting start simulation" << std::endl;
+        std::cout << "Waiting simulation start..." << std::endl;
         hil->waitStartSimulation();
     }
 
     std::cout << "Starting Sensors" << std::endl;
+    led1On();
     if (!sensors->start())
     {
         initResult = false;
-        std::cout << "*** Failed to start Sensors ***" << std::endl;
-        led1On();
+        std::cerr << "*** Failed to start Sensors ***" << std::endl;
+    }
+    else
+    {
+        led1Off();
     }
 
     if (initResult)
     {
-        EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FMM);
+        broker.post(FMM_INIT_OK, TOPIC_FMM);
         std::cout << "All good!" << std::endl;
         led4On();
     }
     else
     {
-        EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FMM);
-        std::cout << "*** Init failure ***" << std::endl;
+        broker.post(FMM_INIT_ERROR, TOPIC_FMM);
+        std::cerr << "*** Init failure ***" << std::endl;
     }
 
-    std::string sensorConfig;
-    if (Config::Sensors::USING_DUAL_MAGNETOMETER)
-        sensorConfig = "LIS2MDL IN + LIS2MDL EXT";
-    else
-        sensorConfig = "LPS22DF + LIS2MDL IN/EXT";
+    auto sensorConfig = Config::Sensors::USING_DUAL_MAGNETOMETER
+                            ? "LIS2MDL IN + LIS2MDL EXT"
+                            : "LPS22DF + LIS2MDL IN/EXT";
 
     std::cout << "Sensor status (config: " << sensorConfig << "):" << std::endl;
     for (auto info : sensors->getSensorInfos())
@@ -312,12 +323,9 @@ int main()
     {
         sdLogger.log(sdLogger.getStats());
 
-        gpios::boardLed::low();
-        Thread::sleep(1000);
-
-        sdLogger.log(sdLogger.getStats());
-
-        gpios::boardLed::high();
+        // Toggle LED
+        gpios::boardLed::value() ? gpios::boardLed::low()
+                                 : gpios::boardLed::high();
         Thread::sleep(1000);
     }
 
