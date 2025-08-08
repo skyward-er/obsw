@@ -16,6 +16,7 @@
             "${workspaceFolder}/skyward-boardcore/libs/socrate/include",
             "${workspaceFolder}/skyward-boardcore/src/shared",
             "${workspaceFolder}/skyward-boardcore/src/tests",
+            "${workspaceFolder}/skyward-boardcore/version",
             "${workspaceFolder}/src"
         ]
     },
