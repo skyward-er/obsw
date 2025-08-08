@@ -158,13 +158,13 @@ VoltageData Sensors::getBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-CurrentData Sensors::getActuatorsCurrent()
+CurrentData Sensors::getCurrentConsumption()
 {
     using namespace Config::Sensors::InternalADC;
 
-    auto sample   = getInternalADCLastSample();
-    float current = sample.voltage[(int)ACTUATORS_CURRENT_CH] * CURRENT_SCALE +
-                    CURRENT_OFFSET;
+    auto sample = getInternalADCLastSample();
+    float current =
+        sample.voltage[(int)CURRENT_CH] * CURRENT_SCALE + CURRENT_OFFSET;
 
     return {sample.timestamp, current};
 }
@@ -361,6 +361,7 @@ void Sensors::ads131m08Callback() { sdLogger.log(getADS131M08LastSample()); }
 void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC2);
+    internalAdc->enableChannel(Config::Sensors::InternalADC::CURRENT_CH);
     internalAdc->enableChannel(Config::Sensors::InternalADC::VBAT_CH);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();

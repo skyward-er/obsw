@@ -170,11 +170,11 @@ constexpr bool ENABLED = true;
 
 namespace InternalADC
 {
-constexpr auto ACTUATORS_CURRENT_CH = Boardcore::InternalADC::Channel::CH9;
-constexpr auto VBAT_CH              = Boardcore::InternalADC::Channel::CH14;
+constexpr auto CURRENT_CH = Boardcore::InternalADC::Channel::CH9;
+constexpr auto VBAT_CH    = Boardcore::InternalADC::Channel::CH14;
 
 // Voltage divider with an offset: (R1 + R2) / R1 * 5
-constexpr float CURRENT_SCALE  = (7500.0 + 5100.0 / 7500.0) * 5.0;
+constexpr float CURRENT_SCALE  = (7500.0 + 5100.0) / 7500.0 * 5.0;
 constexpr float CURRENT_OFFSET = -0.5 * 5.0;
 
 constexpr float VBAT_SCALE = 9040.0 / 3000.0;

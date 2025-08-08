@@ -106,7 +106,7 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::SensorId::MOTOR_ACTUATORS_CURRENT:
+        case CanConfig::SensorId::MOTOR_BOARD_CURRENT:
         {
             auto currentData      = currentDataFromCanMessage(msg);
             data.actuatorsCurrent = currentData;

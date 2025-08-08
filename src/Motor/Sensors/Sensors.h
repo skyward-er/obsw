@@ -68,7 +68,7 @@ public:
     Boardcore::TemperatureData getThermocoupleTemperature();
 
     Boardcore::VoltageData getBatteryVoltage();
-    Boardcore::CurrentData getActuatorsCurrent();
+    Boardcore::CurrentData getCurrentConsumption();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 

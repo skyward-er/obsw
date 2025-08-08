@@ -190,9 +190,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(
-                    CanConfig::SensorId::MOTOR_ACTUATORS_CURRENT),
-                static_cast<CurrentData>(sensors->getActuatorsCurrent()));
+                static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_CURRENT),
+                static_cast<CurrentData>(sensors->getCurrentConsumption()));
         },
         Config::CanHandler::SENSORS_SEND_RATE);
 
