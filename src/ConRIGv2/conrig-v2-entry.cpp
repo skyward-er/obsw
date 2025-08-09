@@ -98,6 +98,7 @@ int main()
     else
     {
         led3Off();
+        hub->printIpConfig(std::cout);
     }
 
     std::cout << "Starting BoardScheduler" << std::endl;
