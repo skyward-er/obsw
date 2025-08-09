@@ -47,6 +47,7 @@ set(GROUNDSTATION_COMMON
     src/Groundstation/Common/Radio/RadioBase.cpp
     src/Groundstation/Common/Ports/EthernetBase.cpp
     src/Groundstation/Common/Ports/EthernetSniffer.cpp
+    src/Groundstation/Common/Ports/EthernetUtils.cpp
     src/Groundstation/Common/Ports/Serial.cpp
     src/Groundstation/Common/HubBase.cpp
 )
@@ -78,6 +79,7 @@ set(CON_RIG_COMPUTER
 )
 
 set(CONRIG_V2_COMPUTER
+    src/Groundstation/Common/Ports/EthernetUtils.cpp
     src/ConRIGv2/Buttons/Buttons.cpp
     src/ConRIGv2/Radio/Radio.cpp
     src/ConRIGv2/Hub/Hub.cpp

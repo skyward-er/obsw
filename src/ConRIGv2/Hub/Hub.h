@@ -61,6 +61,11 @@ public:
 
     Boardcore::Wiz5500::PhyState getEthernetState();
 
+    Boardcore::WizIp getCurrentIp() { return currentIp; }
+    Boardcore::WizMac getCurrentMac() { return currentMac; }
+
+    void printIpConfig(std::ostream& os) const;
+
 private:
     bool initEthernet();
 
@@ -73,6 +78,8 @@ private:
     std::shared_ptr<Boardcore::Wiz5500> wiz5500;
     std::unique_ptr<Boardcore::UdpTransceiver> ethernet;
     std::unique_ptr<EthernetMavDriver> mavDriverEth;
+    Boardcore::WizIp currentIp   = {};
+    Boardcore::WizMac currentMac = {};
 
     bool started = false;
 

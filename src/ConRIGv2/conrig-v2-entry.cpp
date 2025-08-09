@@ -101,6 +101,7 @@ int main()
     else
     {
         led3Off();
+        hub->printIpConfig(std::cout);
     }
 
     std::cout << "Initializing Board Status monitor" << std::endl;
