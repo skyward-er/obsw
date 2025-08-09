@@ -38,9 +38,6 @@ namespace Groundstation
 // Timeout for the port receive
 static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 500;
 
-Boardcore::WizIp genNewRandomIp();
-Boardcore::WizMac genNewRandomMac();
-
 using EthernetMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 

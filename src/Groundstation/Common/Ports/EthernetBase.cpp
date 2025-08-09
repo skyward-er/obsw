@@ -25,38 +25,11 @@
 #include <Groundstation/Common/Config/EthernetConfig.h>
 #include <Groundstation/Common/HubBase.h>
 
-#include <random>
+#include "EthernetUtils.h"
 
 using namespace Groundstation;
 using namespace Boardcore;
 using namespace miosix;
-
-WizIp Groundstation::genNewRandomIp()
-{
-    uint32_t mask      = static_cast<uint32_t>(SUBNET);
-    uint32_t network   = static_cast<uint32_t>(IP_BASE) & mask;
-    uint32_t broadcast = network | ~mask;
-
-    uint32_t rangeStart = network + 1;    // Start after the network address
-    uint32_t rangeEnd   = broadcast - 1;  // End before the broadcast address
-
-    // If the range is invalid, return the base IP
-    if (rangeEnd <= rangeStart)
-        return WizIp(rangeStart);
-
-    uint32_t ip = rangeStart + (rand() % (rangeEnd - rangeStart + 1));
-
-    return WizIp(ip);
-}
-
-WizMac Groundstation::genNewRandomMac()
-{
-    WizMac mac = MAC_BASE;
-    mac.e      = (rand() % 254) + 1;  // Generate in range 1-254
-    mac.f      = (rand() % 254) + 1;  // Generate in range 1-254
-
-    return mac;
-}
 
 void EthernetBase::handleINTn()
 {
@@ -122,8 +95,8 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
     }
     else
     {
-        currentIp  = genNewRandomIp();
-        currentMac = genNewRandomMac();
+        currentIp  = generateRandomIpAddress(IP_BASE, SUBNET);
+        currentMac = generateRandomMacAddress(MAC_BASE);
         this->wiz5500->setSourceIp(currentIp);
         this->wiz5500->setSourceMac(currentMac);
     }
@@ -131,7 +104,7 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
     this->wiz5500->setOnIpConflict(
         [this]()
         {
-            currentIp = genNewRandomIp();
+            currentIp = generateRandomIpAddress(IP_BASE, SUBNET);
             this->wiz5500->setSourceIp(currentIp);
 
             // Print the new configuration
