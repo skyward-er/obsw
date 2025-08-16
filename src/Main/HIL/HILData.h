@@ -35,7 +35,7 @@
 
 // ABK
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
-#include <algorithms/AirBrakes/AirBrakesInterp.h>
+#include <algorithms/AirBrakes/AirBrakesInterPID.h>
 
 // MEA
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
