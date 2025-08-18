@@ -23,6 +23,7 @@
 #pragma once
 
 #include <common/CanConfig.h>
+#include <common/MavlinkOrion.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <logger/Logger.h>
 #include <miosix.h>
@@ -54,7 +55,7 @@ struct MotorStatus : public Boardcore::Injectable
         Boardcore::PressureData combustionChamberPressure;
         Boardcore::TemperatureData thermocoupleTemperature;
         Boardcore::VoltageData batteryVoltage;
-        Boardcore::CurrentData actuatorsCurrent;
+        Boardcore::CurrentData currentConsumption;
 
         bool oxVentingValveOpen   = false;
         bool nitrogenValveOpen    = false;
@@ -87,6 +88,15 @@ struct MotorStatus : public Boardcore::Injectable
      */
     LockedData lockData() { return LockedData(data, mutex); }
 
+    /**
+     * @brief Returns whether the motor board was detected on the CAN bus at
+     * any point in time.
+     */
+    bool detected() const { return lastStatus.load() != TimePoint{}; }
+
+    /**
+     * @brief Returns whether the motor board is currently connected.
+     */
     bool connected() const
     {
         return Clock::now() <=
@@ -105,6 +115,8 @@ struct MotorStatus : public Boardcore::Injectable
      * @return True if the message was handled, false otherwise.
      */
     void handleCanMessage(const Boardcore::Canbus::CanMessage& msg);
+
+    mavlink_motor_tm_t getMotorTelemetry();
 
 private:
     using Clock     = std::chrono::steady_clock;

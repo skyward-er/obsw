@@ -295,22 +295,6 @@ bool Actuators::isServoOpen(ServosList servo)
     return info->isServoOpen();
 }
 
-bool Actuators::isCanServoOpen(ServosList servo)
-{
-    Lock<FastMutex> lock(infosMutex);
-
-    if (servo == ServosList::MAIN_VALVE)
-        return canMainOpen;
-    else if (servo == ServosList::NITROGEN_VALVE)
-        return canNitrogenOpen;
-    else if (servo == ServosList::OX_VENTING_VALVE)
-        return canOxVentingOpen;
-    else if (servo == ServosList::N2_QUENCHING_VALVE)
-        return canN2QuenchingOpen;
-    else
-        return false;
-}
-
 Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
@@ -386,19 +370,6 @@ float Actuators::getServoMaxAperture(ServosList servo)
         return 0;
 
     return info->getMaxAperture();
-}
-
-void Actuators::setCanServoOpen(ServosList servo, bool open)
-{
-    Lock<FastMutex> lock(infosMutex);
-    if (servo == ServosList::MAIN_VALVE)
-        canMainOpen = open;
-    else if (servo == ServosList::NITROGEN_VALVE)
-        canNitrogenOpen = open;
-    else if (servo == ServosList::OX_VENTING_VALVE)
-        canOxVentingOpen = open;
-    else if (servo == ServosList::N2_QUENCHING_VALVE)
-        canN2QuenchingOpen = open;
 }
 
 void Actuators::inject(DependencyInjector& injector)

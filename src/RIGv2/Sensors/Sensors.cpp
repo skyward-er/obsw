@@ -23,6 +23,7 @@
 #include "Sensors.h"
 
 #include <RIGv2/Configs/SensorsConfig.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <interfaces-impl/hwmapping.h>
 
@@ -125,44 +126,18 @@ PressureData Sensors::getN2FillingPressure()
 
 PressureData Sensors::getOxTankBottomPressure()
 {
-    if (useCanData)
-    {
-        return getCanOxTankBottomPressure();
-    }
-    else
-    {
-        return oxTankBottomPressure ? oxTankBottomPressure->getLastSample()
-                                    : PressureData{};
-    }
+    return oxTankBottomPressure ? oxTankBottomPressure->getLastSample()
+                                : PressureData{};
 }
 
 PressureData Sensors::getN2TankPressure()
 {
-    if (useCanData)
-    {
-        return getCanN2TankPressure();
-    }
-    else
-    {
-        return n2TankPressure ? n2TankPressure->getLastSample()
-                              : PressureData{};
-    }
+    return n2TankPressure ? n2TankPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getCombustionChamberPressure()
+TemperatureData Sensors::getThermocoupleTemperature()
 {
-    if (useCanData)
-        return getCanCombustionChamberPressure();
-    else
-        return PressureData{};
-}
-
-TemperatureData Sensors::getOxTankTemperature()
-{
-    if (useCanData)
-        return getCanTankTemperature();
-    else
-        return getTc1LastSample();
+    return getTc1LastSample();
 }
 
 LoadCellData Sensors::getOxVesselWeight()
@@ -209,87 +184,20 @@ VoltageData Sensors::getBatteryVoltage()
     return {sample.timestamp, voltage};
 }
 
-VoltageData Sensors::getMotorBatteryVoltage()
+PressureData Sensors::getOxTankBottomPressureDirectOrCan()
 {
-    if (useCanData)
-        return getCanMotorBatteryVoltage();
+    auto motor = getModule<Common::MotorStatus>();
+
+    if (motor->detected())
+    {
+        auto data = motor->lockData();
+        return data->oxTankBottom0Pressure;
+    }
     else
-        return VoltageData{};
+    {
+        return getOxTankBottomPressure();
+    }
 }
-
-PressureData Sensors::getCanN2TankPressure()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canN2TankPressure;
-}
-
-PressureData Sensors::getCanOxTankBottomPressure()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canOxTankBottomPressure;
-}
-
-PressureData Sensors::getCanOxTankTopPressure()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canOxTankTopPressure;
-}
-
-PressureData Sensors::getCanCombustionChamberPressure()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canCombustionChamberPressure;
-}
-
-TemperatureData Sensors::getCanTankTemperature()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canOxTankTemperature;
-}
-
-VoltageData Sensors::getCanMotorBatteryVoltage()
-{
-    Lock<FastMutex> lock{canMutex};
-    return canMotorBatteryVoltage;
-}
-
-void Sensors::setCanOxTankBottomPressure(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canOxTankBottomPressure = data;
-}
-
-void Sensors::setCanOxTankTopPressure(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canOxTankTopPressure = data;
-}
-
-void Sensors::setCanN2TankPressure(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canN2TankPressure = data;
-}
-
-void Sensors::setCanCombustionChamberPressure(PressureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canCombustionChamberPressure = data;
-}
-
-void Sensors::setCanOxTankTemperature(TemperatureData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canOxTankTemperature = data;
-}
-
-void Sensors::setCanMotorBatteryVoltage(VoltageData data)
-{
-    Lock<FastMutex> lock{canMutex};
-    canMotorBatteryVoltage = data;
-}
-
-void Sensors::switchToCanSensors() { useCanData = true; }
 
 void Sensors::calibrate()
 {

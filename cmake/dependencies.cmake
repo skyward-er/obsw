@@ -60,6 +60,7 @@ set(MOTOR_SOURCES
 )
 
 set(RIG_V2_COMPUTER
+    src/common/canbus/MotorStatus.cpp
     src/RIGv2/Radio/Radio.cpp
     src/RIGv2/Sensors/Sensors.cpp
     src/RIGv2/Actuators/Actuators.cpp

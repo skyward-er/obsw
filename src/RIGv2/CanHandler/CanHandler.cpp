@@ -84,7 +84,7 @@ bool CanHandler::start()
                     stats.lastWriteError == 0,
                 });
         },
-        Config::CanHandler::STATUS_PERIOD);
+        Common::CanConfig::STATUS_SEND_PERIOD);
 
     if (result == 0)
     {
@@ -141,6 +141,11 @@ CanHandler::CanStatus CanHandler::getCanStatus()
 
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
+    // Handle motor messages
+    auto source = static_cast<CanConfig::Board>(msg.getSource());
+    if (source == CanConfig::Board::MOTOR)
+        return getModule<MotorStatus>()->handleCanMessage(msg);
+
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
 
@@ -201,49 +206,8 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
     CanConfig::SensorId sensor =
         static_cast<CanConfig::SensorId>(msg.getSecondaryType());
 
-    Sensors* sensors = getModule<Sensors>();
     switch (sensor)
     {
-        case CanConfig::SensorId::COMBUSTION_CHAMBER_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanCombustionChamberPressure(data);
-            break;
-        }
-
-        case CanConfig::SensorId::OX_TANK_TOP_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanOxTankTopPressure(data);
-            break;
-        }
-
-        case CanConfig::SensorId::OX_TANK_BOTTOM_0_PRESSURE:
-        {
-            CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanOxTankBottomPressure(data);
-            break;
-        }
-
-        case CanConfig::SensorId::THERMOCOUPLE_TEMPERATURE:
-        {
-            CanTemperatureData data = temperatureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanOxTankTemperature(data);
-            break;
-        }
-
-        case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
-        {
-            CanVoltageData data = voltageDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanMotorBatteryVoltage(data);
-            break;
-        }
-
         default:
         {
             LOG_WARN(logger, "Received unsupported sensor data: {}", sensor);
@@ -253,11 +217,8 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 
 void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
-    ServosList servo      = static_cast<ServosList>(msg.getSecondaryType());
     CanServoFeedback data = servoFeedbackFromCanMessage(msg);
     sdLogger.log(data);
-
-    getModule<Actuators>()->setCanServoOpen(servo, data.open);
 }
 
 void CanHandler::handleStatus(const Canbus::CanMessage& msg)
@@ -282,20 +243,6 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             status.payloadLastStatus = getTime();
             status.payloadArmed      = deviceStatus.armed;
             status.payloadState      = deviceStatus.state;
-            break;
-        }
-
-        case CanConfig::Board::MOTOR:
-        {
-            status.motorLastStatus = getTime();
-            status.motorState      = deviceStatus.state;
-
-            status.motorLogNumber = deviceStatus.logNumber;
-            status.motorLogGood   = deviceStatus.logGood;
-            status.motorHil       = deviceStatus.hil;
-
-            // Tell sensors module to switch to can sensors
-            getModule<Sensors>()->switchToCanSensors();
             break;
         }
 

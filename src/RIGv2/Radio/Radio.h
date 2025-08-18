@@ -38,6 +38,7 @@
 #include <radio/SX1278/SX1278Lora.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
+#include <common/canbus/MotorStatus.h>
 
 namespace RIGv2
 {
@@ -46,9 +47,9 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
 class Radio
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Registry,
-                                           Actuators, Sensors, CanHandler,
-                                           GroundModeManager, TARS1, TARS3>
+    : public Boardcore::InjectableWithDeps<
+          Buses, BoardScheduler, Registry, Actuators, Sensors, CanHandler,
+          GroundModeManager, TARS1, TARS3, Common::MotorStatus>
 {
 public:
     Radio() {}

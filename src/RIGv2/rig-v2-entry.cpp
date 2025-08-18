@@ -55,14 +55,15 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
-    auto sensors    = new Sensors();
-    auto actuators  = new Actuators();
-    auto registry   = new Registry();
-    auto canHandler = new CanHandler();
-    auto gmm        = new GroundModeManager();
-    auto tars1      = new TARS1();
-    auto tars3      = new TARS3();
-    auto radio      = new Radio();
+    auto sensors     = new Sensors();
+    auto actuators   = new Actuators();
+    auto registry    = new Registry();
+    auto canHandler  = new CanHandler();
+    auto gmm         = new GroundModeManager();
+    auto tars1       = new TARS1();
+    auto tars3       = new TARS3();
+    auto radio       = new Radio();
+    auto motorStatus = new MotorStatus();
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();
@@ -77,16 +78,16 @@ int main()
                          });
 
     // Insert modules
-    initResult &= manager.insert<Buses>(buses) &&
-                  manager.insert<BoardScheduler>(scheduler) &&
-                  manager.insert<Actuators>(actuators) &&
-                  manager.insert<Sensors>(sensors) &&
-                  manager.insert<Radio>(radio) &&
-                  manager.insert<CanHandler>(canHandler) &&
-                  manager.insert<Registry>(registry) &&
-                  manager.insert<GroundModeManager>(gmm) &&
-                  manager.insert<TARS1>(tars1) &&
-                  manager.insert<TARS3>(tars3) && manager.inject();
+    initResult &=
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
+        manager.insert<CanHandler>(canHandler) &&
+        manager.insert<Registry>(registry) &&
+        manager.insert<GroundModeManager>(gmm) &&
+        manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
+        manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
     if (!initResult)
     {
