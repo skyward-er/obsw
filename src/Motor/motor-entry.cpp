@@ -36,6 +36,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <thread>
 
 using namespace std::chrono;
 using namespace Boardcore;
@@ -193,6 +194,43 @@ int main()
 
     std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
               << sensors->getBatteryVoltage().voltage << " V" << std::endl;
+
+    std::thread(
+        [sensors]
+        {
+            while (true)
+            {
+                auto sample  = sensors->getADS131M08LastSample();
+                auto battery = sensors->getBatteryVoltage().voltage;
+
+                // Data frame marker
+                std::cout << "$";
+                // Print as millivolts
+                for (int i = 0; i < 8; i++)
+                    std::cout << sample.voltage[i] * 1000.f << " ";
+                std::cout << battery << "\n";
+
+                std::this_thread::sleep_for(100ms);
+            }
+        })
+        .detach();
+
+    std::thread(
+        [actuators]
+        {
+            while (true)
+            {
+                actuators->openServoWithTime(ServosList::MAIN_VALVE, 2000);
+                actuators->openServoWithTime(ServosList::OX_VENTING_VALVE,
+                                             2000);
+                actuators->openServoWithTime(ServosList::N2_QUENCHING_VALVE,
+                                             2000);
+                actuators->openServoWithTime(ServosList::NITROGEN_VALVE, 2000);
+
+                std::this_thread::sleep_for(4s);
+            }
+        })
+        .detach();
 
     // From here on main thread will do non-critical stuff, set lowest priority
     Thread::setPriority(BoardScheduler::Priority::LOW);
