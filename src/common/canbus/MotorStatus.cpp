@@ -23,7 +23,7 @@
 #include "MotorStatus.h"
 
 #include <common/CanConfig.h>
-#include <common/MavlinkOrion.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
 
 using namespace Boardcore;
@@ -108,8 +108,8 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
 
         case CanConfig::SensorId::MOTOR_BOARD_CURRENT:
         {
-            auto currentData      = currentDataFromCanMessage(msg);
-            data.actuatorsCurrent = currentData;
+            auto currentData        = currentDataFromCanMessage(msg);
+            data.currentConsumption = currentData;
             sdLogger.log(currentData);
             break;
         }
@@ -155,4 +155,30 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
         }
     }
 }
+
+mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
+{
+    miosix::Lock<miosix::FastMutex> lock(mutex);
+
+    return {
+        .timestamp                   = TimestampTimer::getTimestamp(),
+        .n2_tank_pressure            = data.n2TankPressure.pressure,
+        .reg_out_pressure            = data.regulatorOutPressure.pressure,
+        .ox_tank_top_pressure        = data.oxTankTopPressure.pressure,
+        .ox_tank_bot_0_pressure      = data.oxTankBottom0Pressure.pressure,
+        .ox_tank_bot_1_pressure      = data.oxTankBottom1Pressure.pressure,
+        .combustion_chamber_pressure = data.combustionChamberPressure.pressure,
+        .thermocouple_temperature    = data.thermocoupleTemperature.temperature,
+        .battery_voltage             = data.batteryVoltage.voltage,
+        .current_consumption         = data.currentConsumption.current,
+        .log_number                  = data.device.logNumber,
+        .n2_quenching_valve_state    = data.n2QuenchingValveOpen,
+        .ox_venting_valve_state      = data.oxVentingValveOpen,
+        .nitrogen_valve_state        = data.nitrogenValveOpen,
+        .main_valve_state            = data.mainValveOpen,
+        .log_good                    = data.device.logGood,
+        .hil_state                   = data.device.hil,
+    };
+}
+
 }  // namespace Common

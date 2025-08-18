@@ -33,6 +33,7 @@
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <RIGv2/StateMachines/TARS3/TARS3.h>
 #include <common/MavlinkOrion.h>
+#include <common/canbus/MotorStatus.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>
@@ -46,9 +47,9 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
 class Radio
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Registry,
-                                           Actuators, Sensors, CanHandler,
-                                           GroundModeManager, TARS1, TARS3>
+    : public Boardcore::InjectableWithDeps<
+          Buses, BoardScheduler, Registry, Actuators, Sensors, CanHandler,
+          GroundModeManager, TARS1, TARS3, Common::MotorStatus>
 {
 public:
     Radio() {}

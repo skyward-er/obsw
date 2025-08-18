@@ -25,6 +25,7 @@
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Buses.h>
 #include <RIGv2/Sensors/SensorsData.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/MAX31856/MAX31856.h>
@@ -41,7 +42,8 @@
 namespace RIGv2
 {
 
-class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                     Common::MotorStatus>
 {
 public:
     Sensors() {}
@@ -66,9 +68,8 @@ public:
     Boardcore::PressureData getN2FillingPressure();
     Boardcore::PressureData getOxTankBottomPressure();
     Boardcore::PressureData getN2TankPressure();
-    Boardcore::PressureData getCombustionChamberPressure();
 
-    Boardcore::TemperatureData getOxTankTemperature();
+    Boardcore::TemperatureData getThermocoupleTemperature();
     Boardcore::LoadCellData getOxVesselWeight();
     Boardcore::LoadCellData getRocketWeight();
     Boardcore::LoadCellData getOxTankWeight();
@@ -76,24 +77,14 @@ public:
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
     Boardcore::VoltageData getBatteryVoltage();
-    Boardcore::VoltageData getMotorBatteryVoltage();
 
-    Boardcore::PressureData getCanOxTankBottomPressure();
-    Boardcore::PressureData getCanOxTankTopPressure();
-    Boardcore::PressureData getCanN2TankPressure();
-    Boardcore::PressureData getCanCombustionChamberPressure();
-    Boardcore::TemperatureData getCanTankTemperature();
-    Boardcore::VoltageData getCanMotorBatteryVoltage();
+    /**
+     * @brief Returns the Ox tank bottom pressure, either sampled directly by
+     * the RIG or received by the Motor board over CAN bus.
+     */
+    Boardcore::PressureData getOxTankBottomPressureDirectOrCan();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
-
-    void setCanOxTankBottomPressure(Boardcore::PressureData data);
-    void setCanOxTankTopPressure(Boardcore::PressureData data);
-    void setCanN2TankPressure(Boardcore::PressureData data);
-    void setCanCombustionChamberPressure(Boardcore::PressureData data);
-    void setCanOxTankTemperature(Boardcore::TemperatureData data);
-    void setCanMotorBatteryVoltage(Boardcore::VoltageData data);
-    void switchToCanSensors();
 
 private:
     void oxVesselPressureInit();
@@ -144,17 +135,6 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     std::atomic<bool> started{false};
-
-    std::atomic<bool> useCanData{false};
-    miosix::FastMutex canMutex;
-
-    Boardcore::PressureData canOxTankBottomPressure;
-    Boardcore::PressureData canOxTankTopPressure;
-    Boardcore::PressureData canN2TankPressure;
-    Boardcore::PressureData canCombustionChamberPressure;
-    // TODO: N2 tank pressure from CAN
-    Boardcore::TemperatureData canOxTankTemperature;
-    Boardcore::VoltageData canMotorBatteryVoltage;
 
     // Analog sensors
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxVesselPressure;

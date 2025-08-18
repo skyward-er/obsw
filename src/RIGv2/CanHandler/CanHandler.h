@@ -23,10 +23,10 @@
 #pragma once
 
 #include <RIGv2/BoardScheduler.h>
-#include <RIGv2/Configs/CanHandlerConfig.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkOrion.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -38,55 +38,42 @@ class GroundModeManager;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, GroundModeManager,
-                                           Actuators, Sensors>
+                                           Actuators, Sensors,
+                                           Common::MotorStatus>
 {
 public:
     struct CanStatus
     {
         long long mainLastStatus    = 0;
         long long payloadLastStatus = 0;
-        long long motorLastStatus   = 0;
 
         uint8_t mainState    = 0;
         uint8_t payloadState = 0;
-        uint8_t motorState   = 0;
 
         bool mainArmed    = false;
         bool payloadArmed = false;
-
-        uint16_t motorLogNumber = 0;
-        bool motorLogGood       = true;
-        bool motorHil           = false;
 
         bool isMainConnected()
         {
             return miosix::getTime() <=
                    (mainLastStatus +
-                    Config::CanHandler::STATUS_TIMEOUT.count());
+                    std::chrono::nanoseconds{Common::CanConfig::STATUS_TIMEOUT}
+                        .count());
         }
+
         bool isPayloadConnected()
         {
             return miosix::getTime() <=
                    (payloadLastStatus +
-                    Config::CanHandler::STATUS_TIMEOUT.count());
-        }
-        bool isMotorConnected()
-        {
-            return miosix::getTime() <=
-                   (motorLastStatus +
-                    Config::CanHandler::STATUS_TIMEOUT.count());
+                    std::chrono::nanoseconds{Common::CanConfig::STATUS_TIMEOUT}
+                        .count());
         }
 
         uint8_t getMainState() { return mainState; }
         uint8_t getPayloadState() { return payloadState; }
-        uint8_t getMotorState() { return motorState; }
 
         bool isMainArmed() { return mainArmed; }
         bool isPayloadArmed() { return payloadArmed; }
-
-        uint16_t getMotorLogNumber() { return motorLogNumber; }
-        bool isMotorLogGood() { return motorLogGood; }
-        bool isMotorHil() { return motorHil; }
     };
 
     CanHandler();

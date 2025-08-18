@@ -113,7 +113,6 @@ public:
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint32_t time);
     bool isServoOpen(ServosList servo);
-    bool isCanServoOpen(ServosList servo);
     uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
@@ -136,8 +135,6 @@ public:
 
     void clacsonOn();
     void clacsonOff();
-
-    void setCanServoOpen(ServosList servo, bool open);
 
     void inject(Boardcore::DependencyInjector& injector) override;
 

@@ -863,39 +863,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
         case MAV_MOTOR_ID:
         {
             mavlink_message_t msg;
-            mavlink_motor_tm_t tm;
-
-            tm.timestamp = TimestampTimer::getTimestamp();
-            // Lock the motor data in the smallest scope possible
-            {
-                auto motor = getModule<MotorStatus>()->lockData();
-
-                // Sensors
-                tm.n2_tank_pressure     = motor->n2TankPressure.pressure;
-                tm.reg_out_pressure     = motor->regulatorOutPressure.pressure;
-                tm.ox_tank_top_pressure = motor->n2TankPressure.pressure;
-                tm.ox_tank_bot_0_pressure =
-                    motor->oxTankBottom0Pressure.pressure;
-                tm.ox_tank_bot_1_pressure =
-                    motor->oxTankBottom1Pressure.pressure;
-                tm.combustion_chamber_pressure =
-                    motor->combustionChamberPressure.pressure;
-                tm.thermocouple_temperature =
-                    motor->thermocoupleTemperature.temperature;
-                tm.battery_voltage     = motor->batteryVoltage.voltage;
-                tm.current_consumption = motor->actuatorsCurrent.current;
-
-                // Valve states
-                tm.main_valve_state         = motor->mainValveOpen;
-                tm.nitrogen_valve_state     = motor->nitrogenValveOpen;
-                tm.ox_venting_valve_state   = motor->oxVentingValveOpen;
-                tm.n2_quenching_valve_state = motor->n2QuenchingValveOpen;
-
-                // Device state
-                tm.log_number = motor->device.logNumber;
-                tm.log_good   = motor->device.logGood;
-                tm.hil_state  = motor->device.hil;
-            }
+            mavlink_motor_tm_t tm =
+                getModule<MotorStatus>()->getMotorTelemetry();
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                         Config::Radio::MAV_COMPONENT_ID, &msg,
