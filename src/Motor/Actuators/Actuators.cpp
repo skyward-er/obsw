@@ -80,43 +80,50 @@ Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority())
 {
-    infos[0].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_0_TIM, TimerUtils::Channel::MIOSIX_SERVOS_0_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[1].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[2].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
-    infos[3].servo = std::make_unique<Servo>(
-        MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
-        Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-        Config::Servos::FREQUENCY);
+    {
+        ServoInfo* info = getServo(ServosList::OX_VENTING_VALVE);
+        info->servo     = std::make_unique<Servo>(
+            MIOSIX_SERVOS_0_TIM, TimerUtils::Channel::MIOSIX_SERVOS_0_CHANNEL,
+            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+            Config::Servos::FREQUENCY);
 
-    ServoInfo* info;
-    info          = getServo(ServosList::MAIN_VALVE);
-    info->limit   = Config::Servos::MAIN_LIMIT;
-    info->flipped = Config::Servos::MAIN_FLIPPED;
-    info->unsafeSetServoPosition(0.0f);
+        info->limit   = Config::Servos::OX_VENTING_LIMIT;
+        info->flipped = Config::Servos::OX_VENTING_FLIPPED;
+        info->unsafeSetServoPosition(0.0f);
+    }
+    {
+        ServoInfo* info = getServo(ServosList::MAIN_VALVE);
+        info->servo     = std::make_unique<Servo>(
+            MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
+            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+            Config::Servos::FREQUENCY);
 
-    info          = getServo(ServosList::OX_VENTING_VALVE);
-    info->limit   = Config::Servos::OX_VENTING_LIMIT;
-    info->flipped = Config::Servos::OX_VENTING_FLIPPED;
-    info->unsafeSetServoPosition(0.0f);
+        info->limit   = Config::Servos::MAIN_LIMIT;
+        info->flipped = Config::Servos::MAIN_FLIPPED;
+        info->unsafeSetServoPosition(0.0f);
+    }
+    {
+        ServoInfo* info = getServo(ServosList::NITROGEN_VALVE);
+        info->servo     = std::make_unique<Servo>(
+            MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
+            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
+            Config::Servos::FREQUENCY);
 
-    info          = getServo(ServosList::NITROGEN_VALVE);
-    info->limit   = Config::Servos::NITROGEN_LIMIT;
-    info->flipped = Config::Servos::NITROGEN_FLIPPED;
-    info->unsafeSetServoPosition(0.0f);
+        info->limit   = Config::Servos::NITROGEN_LIMIT;
+        info->flipped = Config::Servos::NITROGEN_FLIPPED;
+        info->unsafeSetServoPosition(0.0f);
+    }
+    {
+        ServoInfo* info = getServo(ServosList::N2_QUENCHING_VALVE);
+        info->servo     = std::make_unique<Servo>(
+            MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
+            Config::Servos::SMALL_MIN_PULSE, Config::Servos::SMALL_MAX_PULSE,
+            Config::Servos::FREQUENCY);
 
-    info          = getServo(ServosList::N2_QUENCHING_VALVE);
-    info->limit   = Config::Servos::N2_QUENCHING_LIMIT;
-    info->flipped = Config::Servos::N2_QUENCHING_FLIPPED;
-    info->unsafeSetServoPosition(0.0f);
+        info->limit   = Config::Servos::N2_QUENCHING_LIMIT;
+        info->flipped = Config::Servos::N2_QUENCHING_FLIPPED;
+        info->unsafeSetServoPosition(0.0f);
+    }
 }
 
 bool Actuators::start()
