@@ -200,14 +200,24 @@ int main()
         {
             while (true)
             {
-                auto sample  = sensors->getADS131M08LastSample();
-                auto battery = sensors->getBatteryVoltage().voltage;
+                auto n2Tank    = sensors->getN2TankPressure().pressure;
+                auto oxTankTop = sensors->getOxTankTopPressure().pressure;
+                auto oxTankBottom0 =
+                    sensors->getOxTankBottom0Pressure().pressure;
+                auto oxTankBottom1 =
+                    sensors->getOxTankBottom1Pressure().pressure;
+                auto regOut     = sensors->getRegulatorOutPressure().pressure;
+                auto ccPressure = sensors->getCCPressure().pressure;
+                auto battery    = sensors->getBatteryVoltage().voltage;
 
                 // Data frame marker
                 std::cout << "$";
-                // Print as millivolts
-                for (int i = 0; i < 8; i++)
-                    std::cout << sample.voltage[i] * 1000.f << " ";
+                std::cout << n2Tank << " ";
+                std::cout << oxTankTop << " ";
+                std::cout << oxTankBottom0 << " ";
+                std::cout << oxTankBottom1 << " ";
+                std::cout << regOut << " ";
+                std::cout << ccPressure << " ";
                 std::cout << battery << "\n";
 
                 std::this_thread::sleep_for(100ms);
