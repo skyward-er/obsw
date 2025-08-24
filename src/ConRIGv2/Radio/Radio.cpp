@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Authors: Ettore Pane, Niccolò Betto
+ * Authors: Ettore Pane, Niccolò Betto, Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -122,8 +122,8 @@ void Radio::sendPeriodicPing()
 
     {
         Lock<FastMutex> lock{buttonsMutex};
-        mavlink_msg_conrig_state_tc_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
+        mavlink_msg_conrig_state_tc_encode(Config::Common::MAV_SYSTEM_ID,
+                                           Config::Common::MAV_COMPONENT_ID,
                                            &conrigStateMsg, &buttonState);
         // Reset the button state after sending the ping
         resetButtonState(lock);
@@ -240,7 +240,7 @@ bool Radio::start()
 
     // Initialize mavdriver
     mavDriver = std::make_unique<MavDriver>(
-        radio.get(), [this](MavDriver*, const mavlink_message_t& msg)
+        this, [this](MavDriver*, const mavlink_message_t& msg)
         { handleMessage(msg); }, Config::Radio::MAV_SLEEP_AFTER_SEND,
         Config::Radio::MAV_OUT_BUFFER_MAX_AGE);
 
@@ -275,12 +275,50 @@ bool Radio::start()
     buzzzerSched.addTask([this]() { buzzerTask(); }, 20_hz,
                          TaskScheduler::Policy::RECOVER);
 
+    started = true;
     return true;
 }
-
-MavlinkStatus Radio::getMavlinkStatus() { return mavDriver->getStatus(); }
 
 Radio::Radio() : buzzer(MIOSIX_BUZZER_TIM, 523)
 {
     buzzer.setDutyCycle(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL, 0.5);
+}
+
+RadioStats Radio::getStats()
+{
+    if (started)
+    {
+        auto mav_stats = mavDriver->getStatus();
+
+        return {
+            .rssi           = radio->getLastRxRssi(),
+            .snr            = radio->getLastRxSnr(),
+            .rxSuccessCount = mav_stats.mavStats.packet_rx_success_count,
+            .rxDropCount    = mav_stats.mavStats.packet_rx_drop_count,
+            .bitsRxCount    = bitsRxCount,
+            .bitsTxCount    = bitsTxCount,
+        };
+    }
+    else
+    {
+        return {0};
+    }
+}
+
+ssize_t Radio::receive(uint8_t* pkt, size_t max_len)
+{
+    ssize_t ret = radio->receive(pkt, max_len);
+    if (ret > 0)
+        bitsRxCount += ret * 8;
+
+    return ret;
+}
+
+bool Radio::send(uint8_t* pkt, size_t len)
+{
+    bool ret = radio->send(pkt, len);
+    if (ret)
+        bitsTxCount += len * 8;
+
+    return ret;
 }
