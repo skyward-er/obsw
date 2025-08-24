@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Ettore Pane
+ * Author: Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,44 +22,22 @@
 
 #pragma once
 
-#include <common/MavlinkOrion.h>
 #include <units/Frequency.h>
-
-#include <chrono>
 
 namespace ConRIGv2
 {
-
 namespace Config
 {
-namespace Radio
+namespace Common
 {
 
-/* linter off */ using namespace std::chrono;
-/* linter off */ using namespace Boardcore::Units::Frequency;
+constexpr unsigned int RADIO_STATUS_PERIOD = 1000;  // in ms
 
-constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
-constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
+// Mavlink ids
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
 
-constexpr unsigned int CIRCULAR_BUFFER_SIZE = 10;
-
-constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
-constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
-
-// Time to wait after no messages is received before sending a new periodic ping
-constexpr auto PING_TIMEOUT = 1000ms;
-
-// Audio feedback message threshold
-constexpr auto AUDIO_FEEDBACK_THRESHOLD = 10;
-// Value to reset the message counter to, to avoid long pauses without audio
-// feedback after startup or disarming
-constexpr auto AUDIO_FEEDBACK_RESET_VALUE = AUDIO_FEEDBACK_THRESHOLD * 4 / 5;
-
-/// @brief Period of the radio status telemetry.
-constexpr unsigned int RADIO_STATUS_PERIOD = 250;
-/// @brief Size in ms of the radio moving bitrate window size.
-constexpr size_t RADIO_BITRATE_WINDOW_SIZE = 1000;
-
-}  // namespace Radio
+}  // namespace Common
 }  // namespace Config
+
 }  // namespace ConRIGv2

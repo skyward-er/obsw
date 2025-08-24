@@ -21,6 +21,7 @@
  */
 
 #include <ConRIGv2/BoardScheduler.h>
+#include <ConRIGv2/BoardStatus.h>
 #include <ConRIGv2/Buses.h>
 #include <ConRIGv2/Buttons/Buttons.h>
 #include <ConRIGv2/Hub/Hub.h>
@@ -46,11 +47,13 @@ int main()
     auto radio     = new Radio();
     auto buttons   = new Buttons();
     auto hub       = new Hub();
+    auto status    = new BoardStatus();
 
     initResult &= manager.insert<BoardScheduler>(scheduler) &&
                   manager.insert<Buses>(buses) &&
                   manager.insert<Radio>(radio) && manager.insert<Hub>(hub) &&
-                  manager.insert<Buttons>(buttons) && manager.inject();
+                  manager.insert<Buttons>(buttons) &&
+                  manager.insert<BoardStatus>(status) && manager.inject();
 
     if (!initResult)
     {
@@ -98,6 +101,14 @@ int main()
     else
     {
         led3Off();
+    }
+
+    std::cout << "Initializing Board Status monitor" << std::endl;
+    if (!status->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Board Status monitor ***"
+                  << std::endl;
     }
 
     std::cout << "Starting BoardScheduler" << std::endl;
