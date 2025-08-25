@@ -240,62 +240,48 @@ void ADAController::update()
         lastBaro2Timestamp = baro2.pressureTimestamp;
     }
 
+    auto ada0State = ada0.getState();
+    auto ada1State = ada1.getState();
+    auto ada2State = ada2.getState();
+
     // Then run detections
     if (curState == ADAControllerState::SHADOW_MODE ||
         curState == ADAControllerState::ACTIVE_ASCENT)
     {
-        if (ada0.getState().verticalSpeed <
-            Config::ADA::APOGEE_VERTICAL_SPEED_TARGET)
-        {
-            ada0DetectedApogees++;
-        }
-        else
-        {
-            // Apogees must be consecutive in order to be valid
-            ada0DetectedApogees = 0;
-        }
+        // Apogees must be consecutive in order to be valid
+#define UPDATE_APOGEE_CONFIDENCE(ada)                                         \
+    if (ada##State.verticalSpeed < Config::ADA::APOGEE_VERTICAL_SPEED_TARGET) \
+        ada##DetectedApogees++;                                               \
+    else                                                                      \
+        ada##DetectedApogees = 0
 
-        if (ada1.getState().verticalSpeed <
-            Config::ADA::APOGEE_VERTICAL_SPEED_TARGET)
-        {
-            ada1DetectedApogees++;
-        }
-        else
-        {
-            // Apogees must be consecutive in order to be valid
-            ada1DetectedApogees = 0;
-        }
-
-        if (ada2.getState().verticalSpeed <
-            Config::ADA::APOGEE_VERTICAL_SPEED_TARGET)
-        {
-            ada2DetectedApogees++;
-        }
-        else
-        {
-            // Apogees must be consecutive in order to be valid
-            ada2DetectedApogees = 0;
-        }
+        UPDATE_APOGEE_CONFIDENCE(ada0);
+        UPDATE_APOGEE_CONFIDENCE(ada1);
+        UPDATE_APOGEE_CONFIDENCE(ada2);
 
         if (curState == ADAControllerState::ACTIVE_ASCENT)
         {
             // Throw events only in ACTIVE_ASCENT
-            // We check if at least two out of the three ADA algorithms have
-            // detected more than 5 consecutive apogees
-            if ((ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES &&
-                 ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES) ||
-                (ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES &&
-                 ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES) ||
-                (ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES &&
-                 ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES))
+            // Detections are "sticky": once an ADA detects an apogee it will
+            // be considered as having detected it for the whole flight
+            if (ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
+                apogeeDetections.set(static_cast<size_t>(ADANumber::ADA0));
+
+            if (ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
+                apogeeDetections.set(static_cast<size_t>(ADANumber::ADA1));
+
+            if (ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
+                apogeeDetections.set(static_cast<size_t>(ADANumber::ADA2));
+
+            if (apogeeDetections.count() >= 2)
             {
                 auto gps = getModule<Sensors>()->getUBXGPSLastSample();
 
                 // Notify stats recorder
                 getModule<StatsRecorder>()->apogeeDetected(
                     TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                    ada0.getState().aglAltitude, ada2.getState().aglAltitude,
-                    ada2.getState().aglAltitude);
+                    ada0State.aglAltitude, ada1State.aglAltitude,
+                    ada2State.aglAltitude);
 
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
             }
@@ -304,32 +290,31 @@ void ADAController::update()
 
     if (curState == ADAControllerState::ACTIVE_DROGUE_DESCENT)
     {
-        if (ada0.getState().aglAltitude < getDeploymentAltitude())
-            ada0DetectedDeployments++;
-        else
-            ada0DetectedDeployments = 0;
+#define UPDATE_DEPLOYMENT_CONFIDENCE(ada)                 \
+    if (ada##State.aglAltitude < getDeploymentAltitude()) \
+        ada##DetectedDeployments++;                       \
+    else                                                  \
+        ada##DetectedDeployments = 0
 
-        if (ada1.getState().aglAltitude < getDeploymentAltitude())
-            ada1DetectedDeployments++;
-        else
-            ada1DetectedDeployments = 0;
+        UPDATE_DEPLOYMENT_CONFIDENCE(ada0);
+        UPDATE_DEPLOYMENT_CONFIDENCE(ada1);
+        UPDATE_DEPLOYMENT_CONFIDENCE(ada2);
 
-        if (ada2.getState().aglAltitude < getDeploymentAltitude())
-            ada2DetectedDeployments++;
-        else
-            ada2DetectedDeployments = 0;
+        if (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
+            deploymentDetections.set(static_cast<size_t>(ADANumber::ADA0));
 
-        if ((ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
-            (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES) ||
-            (ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES &&
-             ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES))
+        if (ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
+            deploymentDetections.set(static_cast<size_t>(ADANumber::ADA1));
+
+        if (ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
+            deploymentDetections.set(static_cast<size_t>(ADANumber::ADA2));
+
+        if (deploymentDetections.count() >= 2)
         {
             // Notify stats recorder
             getModule<StatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), ada0.getState().mslAltitude,
-                ada1.getState().mslAltitude, ada2.getState().mslAltitude);
+                TimestampTimer::getTimestamp(), ada0State.mslAltitude,
+                ada1State.mslAltitude, ada2State.mslAltitude);
 
             EventBroker::getInstance().post(ADA_DEPLOY_ALTITUDE_DETECTED,
                                             TOPIC_ADA);
@@ -347,11 +332,10 @@ void ADAController::update()
                                     curState};
     sdLogger.log(data);
 
-    // we use a support struct to differentiate between the three ADAs in the
-    // logs
-    sdLogger.log(ADA0State(ada0.getState()));
-    sdLogger.log(ADA1State(ada1.getState()));
-    sdLogger.log(ADA2State(ada2.getState()));
+    // Logs ADA states as separate structs
+    sdLogger.log(ADA0State(ada0State));
+    sdLogger.log(ADA1State(ada1State));
+    sdLogger.log(ADA2State(ada2State));
 }
 
 void ADAController::calibrate()

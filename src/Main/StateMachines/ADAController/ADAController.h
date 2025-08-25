@@ -30,6 +30,9 @@
 #include <algorithms/ADA/ADA.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include <bitset>
+
 namespace Main
 {
 
@@ -99,13 +102,17 @@ private:
     uint64_t lastBaro1Timestamp = 0;
     uint64_t lastBaro2Timestamp = 0;
 
-    unsigned int ada0DetectedApogees = 0;
-    unsigned int ada1DetectedApogees = 0;
-    unsigned int ada2DetectedApogees = 0;
+    uint32_t ada0DetectedApogees = 0;
+    uint32_t ada1DetectedApogees = 0;
+    uint32_t ada2DetectedApogees = 0;
+    // Bitset to track whether each ADA has detected an apogee
+    std::bitset<3> apogeeDetections;
 
-    unsigned int ada0DetectedDeployments = 0;
-    unsigned int ada1DetectedDeployments = 0;
-    unsigned int ada2DetectedDeployments = 0;
+    uint32_t ada0DetectedDeployments = 0;
+    uint32_t ada1DetectedDeployments = 0;
+    uint32_t ada2DetectedDeployments = 0;
+    // Bitset to track whether each ADA has detected a deployment
+    std::bitset<3> deploymentDetections;
 };
 
 }  // namespace Main

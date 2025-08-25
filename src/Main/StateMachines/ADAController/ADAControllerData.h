@@ -85,7 +85,7 @@ struct ADAControllerSampleData
 // A collection of the states of the three ada algorithms
 struct ADA0State : Boardcore::ADAState
 {
-    ADA0State(Boardcore::ADAState state) : Boardcore::ADAState(state) {};
+    ADA0State(const Boardcore::ADAState& state) : Boardcore::ADAState(state) {};
 
     static constexpr auto reflect()
     {
@@ -95,7 +95,7 @@ struct ADA0State : Boardcore::ADAState
 
 struct ADA1State : Boardcore::ADAState
 {
-    ADA1State(Boardcore::ADAState state) : Boardcore::ADAState(state) {};
+    ADA1State(const Boardcore::ADAState& state) : Boardcore::ADAState(state) {};
 
     static constexpr auto reflect()
     {
@@ -105,7 +105,7 @@ struct ADA1State : Boardcore::ADAState
 
 struct ADA2State : Boardcore::ADAState
 {
-    ADA2State(Boardcore::ADAState state) : Boardcore::ADAState(state) {};
+    ADA2State(const Boardcore::ADAState& state) : Boardcore::ADAState(state) {};
 
     static constexpr auto reflect()
     {
