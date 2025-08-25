@@ -52,9 +52,19 @@ public:
 
     Boardcore::ADAState getADAState(ADANumber num);
 
+    ADAControllerState getState();
+
     float getDeploymentAltitude();
 
-    ADAControllerState getState();
+    /**
+     * @brief Returns the maximum vertical speed (in module) of the ADAs.
+     */
+    float getMaxVerticalSpeed();
+
+    /**
+     * @brief Returns the maximum pressure (in module) of the ADAs.
+     */
+    float getMaxPressure();
 
 private:
     void update();

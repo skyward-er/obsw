@@ -29,6 +29,8 @@
 #include <events/EventBroker.h>
 #include <utils/AeroUtils/AeroUtils.h>
 
+#include <algorithm>
+
 using namespace Main;
 using namespace Boardcore;
 using namespace Common;
@@ -131,6 +133,7 @@ ADAState ADAController::getADAState(ADANumber num)
         {
             return ada2.getState();
         }
+
         default:
         {
             return ada0.getState();
@@ -144,6 +147,37 @@ float ADAController::getDeploymentAltitude()
 }
 
 ADAControllerState ADAController::getState() { return state; }
+
+float ADAController::getMaxVerticalSpeed()
+{
+    auto absCompare = [](float a, float b)
+    { return std::abs(a) < std::abs(b); };
+
+    // Lock the mutex in the smallest scope
+    auto speeds = [&]() -> std::array<float, 3>
+    {
+        Lock<FastMutex> lock{adaMutex};
+        return {ada0.getState().verticalSpeed, ada1.getState().verticalSpeed,
+                ada2.getState().verticalSpeed};
+    }();
+
+    return *std::max_element(speeds.begin(), speeds.end(), absCompare);
+}
+
+float ADAController::getMaxPressure()
+{
+    auto absCompare = [](float a, float b)
+    { return std::abs(a) < std::abs(b); };
+
+    // Lock the mutex in the smallest scope
+    auto pressures = [&]() -> std::array<float, 3>
+    {
+        Lock<FastMutex> lock{adaMutex};
+        return {ada0.getState().x0, ada1.getState().x0, ada2.getState().x0};
+    }();
+
+    return *std::max_element(pressures.begin(), pressures.end(), absCompare);
+}
 
 void ADAController::update()
 {

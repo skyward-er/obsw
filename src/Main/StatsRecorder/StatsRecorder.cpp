@@ -26,6 +26,8 @@
 #include <common/ReferenceConfig.h>
 #include <utils/AeroUtils/AeroUtils.h>
 
+#include <algorithm>
+
 using namespace Boardcore;
 using namespace Main;
 using namespace miosix;
@@ -165,4 +167,14 @@ void StatsRecorder::updateDplPressure(const PressureData& data)
             stats.maxDplPressureTs = data.pressureTimestamp;
         }
     }
+}
+
+float StatsRecorder::Stats::getMaxApogeeAlt() const
+{
+    return std::max({apogeeAlt0, apogeeAlt1, apogeeAlt2});
+}
+
+float StatsRecorder::Stats::getMaxDplAlt() const
+{
+    return std::max({dplAlt0, dplAlt1, dplAlt2});
 }

@@ -30,7 +30,6 @@
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
-#include <cmath>
 #include <map>
 
 using namespace Main;
@@ -573,83 +572,21 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
         case MAV_ADA_ID:
         {
+            auto ada      = getModule<ADAController>();
+            auto adaState = static_cast<uint8_t>(ada->getState());
+            auto ref      = getModule<AlgoReference>()->getReferenceValues();
+
+            for (auto n : {ADAController::ADANumber::ADA0,
+                           ADAController::ADANumber::ADA1,
+                           ADAController::ADANumber::ADA2})
             {
                 mavlink_message_t msg;
                 mavlink_ada_tm_t tm;
 
-                // Get the current ADA state
-                ADAController* ada = getModule<ADAController>();
-
-                ADAState state =
-                    ada->getADAState(ADAController::ADANumber::ADA0);
-                ReferenceValues ref =
-                    getModule<AlgoReference>()->getReferenceValues();
+                ADAState state = ada->getADAState(n);
 
                 tm.timestamp       = state.timestamp;
-                tm.state           = static_cast<uint8_t>(ada->getState());
-                tm.kalman_x0       = state.x0;
-                tm.kalman_x1       = state.x1;
-                tm.kalman_x2       = state.x2;
-                tm.vertical_speed  = state.verticalSpeed;
-                tm.msl_altitude    = state.mslAltitude;
-                tm.msl_pressure    = ref.mslPressure;
-                tm.msl_temperature = ref.mslTemperature - 273.15f;
-                tm.ref_altitude    = ref.refAltitude;
-                tm.ref_temperature = ref.refTemperature - 273.15f;
-                tm.ref_pressure    = ref.refPressure;
-                tm.dpl_altitude    = ada->getDeploymentAltitude();
-
-                mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                          Config::Radio::MAV_COMPONENT_ID, &msg,
-                                          &tm);
-                enqueuePacket(msg);
-            }
-            {
-                mavlink_message_t msg;
-                mavlink_ada_tm_t tm;
-
-                // Get the current ADA state
-                ADAController* ada = getModule<ADAController>();
-
-                ADAState state =
-                    ada->getADAState(ADAController::ADANumber::ADA1);
-                ReferenceValues ref =
-                    getModule<AlgoReference>()->getReferenceValues();
-
-                tm.timestamp       = state.timestamp;
-                tm.state           = static_cast<uint8_t>(ada->getState());
-                tm.kalman_x0       = state.x0;
-                tm.kalman_x1       = state.x1;
-                tm.kalman_x2       = state.x2;
-                tm.vertical_speed  = state.verticalSpeed;
-                tm.msl_altitude    = state.mslAltitude;
-                tm.msl_pressure    = ref.mslPressure;
-                tm.msl_temperature = ref.mslTemperature - 273.15f;
-                tm.ref_altitude    = ref.refAltitude;
-                tm.ref_temperature = ref.refTemperature - 273.15f;
-                tm.ref_pressure    = ref.refPressure;
-                tm.dpl_altitude    = ada->getDeploymentAltitude();
-
-                mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                          Config::Radio::MAV_COMPONENT_ID, &msg,
-                                          &tm);
-                enqueuePacket(msg);
-            }
-
-            {
-                mavlink_message_t msg;
-                mavlink_ada_tm_t tm;
-
-                // Get the current ADA state
-                ADAController* ada = getModule<ADAController>();
-
-                ADAState state =
-                    ada->getADAState(ADAController::ADANumber::ADA2);
-                ReferenceValues ref =
-                    getModule<AlgoReference>()->getReferenceValues();
-
-                tm.timestamp       = state.timestamp;
-                tm.state           = static_cast<uint8_t>(ada->getState());
+                tm.state           = adaState;
                 tm.kalman_x0       = state.x0;
                 tm.kalman_x1       = state.x1;
                 tm.kalman_x2       = state.x2;
@@ -731,12 +668,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDpl     = sensors->getDplBayPressureLastSample();
             auto pitotStatic  = sensors->getCanPitotStaticPressure();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
-            auto ada0State = ada->getADAState(ADAController::ADANumber::ADA0);
-            auto ada1State = ada->getADAState(ADAController::ADANumber::ADA1);
-            auto ada2State = ada->getADAState(ADAController::ADANumber::ADA2);
-            auto nasState  = nas->getNASState();
-            auto meaState  = mea->getMEAState();
-            auto ref       = getModule<AlgoReference>()->getReferenceValues();
+            auto adaPressure  = ada->getMaxPressure();
+            auto adaVertSpeed = ada->getMaxVerticalSpeed();
+            auto nasState     = nas->getNASState();
+            auto meaState     = mea->getMEAState();
+            auto ref = getModule<AlgoReference>()->getReferenceValues();
 
             // Compute airspeed
             float airspeedPitot =
@@ -749,6 +685,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             tm.airspeed_pitot = airspeedPitot;
+            tm.ada_vert_speed = adaVertSpeed;
             tm.mea_mass       = meaState.estimatedMass;
             tm.mea_apogee     = meaState.estimatedApogee;
 
@@ -756,6 +693,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
+            tm.pressure_ada    = adaPressure;
 
             tm.acc_x = imu.accelerationX;
             tm.acc_y = imu.accelerationY;
@@ -801,26 +739,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
-            // Get the biggest pressure (in module) from the three ADAs
-            float maxADAPressure = ada0State.x0;
-            if (abs(ada1State.x0) > abs(maxADAPressure))
-                maxADAPressure = ada1State.x0;
-
-            if (abs(ada2State.x0) > abs(maxADAPressure))
-                maxADAPressure = ada2State.x0;
-
-            tm.pressure_ada = maxADAPressure;
-
-            // Get the biggest vertical speed (in module) from the three ADAs
-            float maxADAVertSpeed = ada0State.verticalSpeed;
-            if (abs(ada1State.verticalSpeed) > abs(maxADAVertSpeed))
-                maxADAVertSpeed = ada1State.verticalSpeed;
-
-            if (abs(ada2State.verticalSpeed) > abs(maxADAVertSpeed))
-                maxADAVertSpeed = ada2State.verticalSpeed;
-
-            tm.ada_vert_speed = maxADAVertSpeed;
-
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
             tm.cam_battery_voltage =
                 sensors->getCamBatteryVoltageLastSample().voltage;
@@ -864,33 +782,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.apogee_ts               = stats.apogeeTs;
             tm.apogee_lat              = stats.apogeeLat;
             tm.apogee_lon              = stats.apogeeLon;
+            tm.apogee_alt              = stats.getMaxApogeeAlt();
             tm.apogee_max_acc_ts       = stats.apogeeMaxAccTs;
             tm.apogee_max_acc          = stats.apogeeMaxAcc;
             tm.dpl_ts                  = stats.dplTs;
+            tm.dpl_alt                 = stats.getMaxDplAlt();
             tm.dpl_max_acc_ts          = stats.dplMaxAccTs;
             tm.dpl_max_acc             = stats.dplMaxAcc;
             tm.dpl_bay_max_pressure_ts = stats.maxDplPressureTs;
             tm.dpl_bay_max_pressure    = stats.maxDplPressure;
-
-            // Get the biggest apogee altitude from the three ADAs
-            float apogeeAlt = stats.apogeeAlt0;
-            if (stats.apogeeAlt1 > apogeeAlt)
-                apogeeAlt = stats.apogeeAlt1;
-
-            if (stats.apogeeAlt2 > apogeeAlt)
-                apogeeAlt = stats.apogeeAlt2;
-
-            tm.apogee_alt = apogeeAlt;
-
-            // Get the biggest deployment altitude from the three ADAs
-            float dplAlt = stats.apogeeAlt0;
-            if (stats.dplAlt1 > dplAlt)
-                dplAlt = stats.dplAlt1;
-
-            if (stats.dplAlt2 > dplAlt)
-                dplAlt = stats.dplAlt2;
-
-            tm.dpl_alt = dplAlt;
 
             // Algorithms reference
             auto ref   = getModule<AlgoReference>()->getReferenceValues();

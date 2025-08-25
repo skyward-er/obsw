@@ -83,6 +83,16 @@ public:
         // Maximum deployment pressure
         uint64_t maxDplPressureTs = 0;
         float maxDplPressure      = 0.0f;
+
+        /**
+         * @brief Returns the max apogee altitude detected by the ADAs.
+         */
+        float getMaxApogeeAlt() const;
+
+        /**
+         * @brief Returns the max deployment altitude detected by the ADAs.
+         */
+        float getMaxDplAlt() const;
     };
 
     StatsRecorder() {}
