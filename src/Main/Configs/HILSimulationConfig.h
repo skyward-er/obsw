@@ -38,7 +38,7 @@ namespace HIL
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr bool IS_FULL_HIL = true;
+constexpr bool IS_FULL_HIL = false;
 constexpr bool ENABLE_HW   = false;
 
 // Period of simulation [ms]
