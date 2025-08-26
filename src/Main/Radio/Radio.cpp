@@ -572,34 +572,39 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
         case MAV_ADA_ID:
         {
-            mavlink_message_t msg;
-            mavlink_ada_tm_t tm;
+            auto ada      = getModule<ADAController>();
+            auto adaState = static_cast<uint8_t>(ada->getState());
+            auto ref      = getModule<AlgoReference>()->getReferenceValues();
 
-            // Get the current ADA state
-            ADAController* ada = getModule<ADAController>();
+            for (auto n : {ADAController::ADANumber::ADA0,
+                           ADAController::ADANumber::ADA1,
+                           ADAController::ADANumber::ADA2})
+            {
+                mavlink_message_t msg;
+                mavlink_ada_tm_t tm;
 
-            ADAState state = ada->getADAState();
-            ReferenceValues ref =
-                getModule<AlgoReference>()->getReferenceValues();
+                ADAState state = ada->getADAState(n);
 
-            tm.timestamp       = state.timestamp;
-            tm.state           = static_cast<uint8_t>(ada->getState());
-            tm.kalman_x0       = state.x0;
-            tm.kalman_x1       = state.x1;
-            tm.kalman_x2       = state.x2;
-            tm.vertical_speed  = state.verticalSpeed;
-            tm.msl_altitude    = state.mslAltitude;
-            tm.msl_pressure    = ref.mslPressure;
-            tm.msl_temperature = ref.mslTemperature - 273.15f;
-            tm.ref_altitude    = ref.refAltitude;
-            tm.ref_temperature = ref.refTemperature - 273.15f;
-            tm.ref_pressure    = ref.refPressure;
-            tm.dpl_altitude    = ada->getDeploymentAltitude();
+                tm.timestamp       = state.timestamp;
+                tm.state           = adaState;
+                tm.kalman_x0       = state.x0;
+                tm.kalman_x1       = state.x1;
+                tm.kalman_x2       = state.x2;
+                tm.vertical_speed  = state.verticalSpeed;
+                tm.msl_altitude    = state.mslAltitude;
+                tm.msl_pressure    = ref.mslPressure;
+                tm.msl_temperature = ref.mslTemperature - 273.15f;
+                tm.ref_altitude    = ref.refAltitude;
+                tm.ref_temperature = ref.refTemperature - 273.15f;
+                tm.ref_pressure    = ref.refPressure;
+                tm.dpl_altitude    = ada->getDeploymentAltitude();
 
-            mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                      Config::Radio::MAV_COMPONENT_ID, &msg,
-                                      &tm);
-            enqueuePacket(msg);
+                mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+                enqueuePacket(msg);
+            }
+
             return true;
         }
 
@@ -663,7 +668,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDpl     = sensors->getDplBayPressureLastSample();
             auto pitotStatic  = sensors->getCanPitotStaticPressure();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
-            auto adaState     = ada->getADAState();
+            auto adaPressure  = ada->getMaxPressure();
+            auto adaVertSpeed = ada->getMaxVerticalSpeed();
             auto nasState     = nas->getNASState();
             auto meaState     = mea->getMEAState();
             auto ref = getModule<AlgoReference>()->getReferenceValues();
@@ -679,6 +685,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.timestamp = TimestampTimer::getTimestamp();
 
             tm.airspeed_pitot = airspeedPitot;
+            tm.ada_vert_speed = adaVertSpeed;
             tm.mea_mass       = meaState.estimatedMass;
             tm.mea_apogee     = meaState.estimatedApogee;
 
@@ -686,6 +693,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
             tm.pressure_dpl    = pressDpl.pressure;
+            tm.pressure_ada    = adaPressure;
 
             tm.acc_x = imu.accelerationX;
             tm.acc_y = imu.accelerationY;
@@ -731,9 +739,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
-            tm.pressure_ada   = adaState.x0;
-            tm.ada_vert_speed = adaState.verticalSpeed;
-
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
             tm.cam_battery_voltage =
                 sensors->getCamBatteryVoltageLastSample().voltage;
@@ -777,11 +782,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.apogee_ts               = stats.apogeeTs;
             tm.apogee_lat              = stats.apogeeLat;
             tm.apogee_lon              = stats.apogeeLon;
-            tm.apogee_alt              = stats.apogeeAlt;
+            tm.apogee_alt              = stats.getMaxApogeeAlt();
             tm.apogee_max_acc_ts       = stats.apogeeMaxAccTs;
             tm.apogee_max_acc          = stats.apogeeMaxAcc;
             tm.dpl_ts                  = stats.dplTs;
-            tm.dpl_alt                 = stats.dplAlt;
+            tm.dpl_alt                 = stats.getMaxDplAlt();
             tm.dpl_max_acc_ts          = stats.dplMaxAccTs;
             tm.dpl_max_acc             = stats.dplMaxAcc;
             tm.dpl_bay_max_pressure_ts = stats.maxDplPressureTs;

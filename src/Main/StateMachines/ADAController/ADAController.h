@@ -30,6 +30,9 @@
 #include <algorithms/ADA/ADA.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include <bitset>
+
 namespace Main
 {
 
@@ -39,15 +42,32 @@ class ADAController
       public Boardcore::FSM<ADAController>
 {
 public:
+    enum class ADANumber : uint8_t
+    {
+        ADA0 = 0,
+        ADA1 = 1,
+        ADA2 = 2,
+    };
+
     ADAController();
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::ADAState getADAState();
+    Boardcore::ADAState getADAState(ADANumber num);
+
+    ADAControllerState getState();
 
     float getDeploymentAltitude();
 
-    ADAControllerState getState();
+    /**
+     * @brief Returns the maximum vertical speed (in module) of the ADAs.
+     */
+    float getMaxVerticalSpeed();
+
+    /**
+     * @brief Returns the maximum pressure (in module) of the ADAs.
+     */
+    float getMaxPressure();
 
 private:
     void update();
@@ -74,11 +94,25 @@ private:
     uint16_t shadowModeTimeoutEvent = 0;
 
     miosix::FastMutex adaMutex;
-    Boardcore::ADA ada;
+    Boardcore::ADA ada0;
+    Boardcore::ADA ada1;
+    Boardcore::ADA ada2;
 
-    uint64_t lastBaroTimestamp       = 0;
-    unsigned int detectedApogees     = 0;
-    unsigned int detectedDeployments = 0;
+    uint64_t lastBaro0Timestamp = 0;
+    uint64_t lastBaro1Timestamp = 0;
+    uint64_t lastBaro2Timestamp = 0;
+
+    uint32_t ada0DetectedApogees = 0;
+    uint32_t ada1DetectedApogees = 0;
+    uint32_t ada2DetectedApogees = 0;
+    // Bitset to track whether each ADA has detected an apogee
+    std::bitset<3> apogeeDetections;
+
+    uint32_t ada0DetectedDeployments = 0;
+    uint32_t ada1DetectedDeployments = 0;
+    uint32_t ada2DetectedDeployments = 0;
+    // Bitset to track whether each ADA has detected a deployment
+    std::bitset<3> deploymentDetections;
 };
 
 }  // namespace Main

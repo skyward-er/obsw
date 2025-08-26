@@ -62,7 +62,9 @@ public:
         uint64_t apogeeTs = 0;
         float apogeeLat   = 0.0f;
         float apogeeLon   = 0.0f;
-        float apogeeAlt   = 0.0f;
+        float apogeeAlt0  = 0.0f;
+        float apogeeAlt1  = 0.0f;
+        float apogeeAlt2  = 0.0f;
 
         // Maximum acceleration after apogee
         uint64_t apogeeMaxAccTs = 0;
@@ -70,7 +72,9 @@ public:
 
         // Deployment
         uint64_t dplTs = 0;
-        float dplAlt   = 0.0f;
+        float dplAlt0  = 0.0f;
+        float dplAlt1  = 0.0f;
+        float dplAlt2  = 0.0f;
 
         // Maximum acceleration after deployment
         uint64_t dplMaxAccTs = 0;
@@ -79,6 +83,16 @@ public:
         // Maximum deployment pressure
         uint64_t maxDplPressureTs = 0;
         float maxDplPressure      = 0.0f;
+
+        /**
+         * @brief Returns the max apogee altitude detected by the ADAs.
+         */
+        float getMaxApogeeAlt() const;
+
+        /**
+         * @brief Returns the max deployment altitude detected by the ADAs.
+         */
+        float getMaxDplAlt() const;
     };
 
     StatsRecorder() {}
@@ -89,8 +103,9 @@ public:
 
     void liftoffDetected(uint64_t ts);
     void shutdownDetected(uint64_t ts, float alt);
-    void apogeeDetected(uint64_t ts, float lat, float lon, float alt);
-    void deploymentDetected(uint64_t ts, float alt);
+    void apogeeDetected(uint64_t ts, float lat, float lon, float alt0,
+                        float alt1, float alt2);
+    void deploymentDetected(uint64_t ts, float alt0, float alt1, float alt2);
 
     void updateAcc(const Boardcore::AccelerometerData& data);
     void updateNas(const Boardcore::NASState& data);
