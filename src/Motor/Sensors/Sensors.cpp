@@ -80,6 +80,60 @@ bool Sensors::start()
     return true;
 }
 
+void Sensors::calibrate()
+{
+    using namespace Config::Sensors;
+
+    constexpr auto ADC_CHANNEL_COUNT = ADS131M08Defs::CHANNELS_NUM;
+
+    // One stat object per ADC channel
+    Stats adcVoltageStats[ADC_CHANNEL_COUNT] = {};
+
+    for (int i = 0; i < Trafag::CALIBRATE_SAMPLE_COUNT; i++)
+    {
+        auto adcSample = ads131m08->getLastSample();
+
+        for (int j = 0; j < ADC_CHANNEL_COUNT; j++)
+            adcVoltageStats[j].add(adcSample.voltage[j]);
+
+        Thread::sleep(
+            milliseconds{Trafag::CALIBRATE_WAIT_BETWEEN_SAMPLES}.count());
+    }
+
+    // Applies the shunt resistance for the given channel to a trafag pressure
+    // sensor, assuming the trafag is at atmospheric pressure reading
+    // MIN_CURRENT (= 0 bar)
+    auto applyShuntResistance = [&](auto& trafag, ADS131M08Defs::Channel ch)
+    {
+        constexpr float minCurrent = Trafag::MIN_CURRENT / 1000.0;  // [A]
+
+        float resistance =
+            adcVoltageStats[(size_t)ch].getStats().mean / minCurrent;
+
+        // Ignore the calibrated shunt resistance if it's out of bounds
+        if (resistance < Trafag::SHUNT_RESISTANCE_LOWER_BOUND ||
+            resistance > Trafag::SHUNT_RESISTANCE_UPPER_BOUND)
+        {
+            resistance = trafag->getShuntResistance();
+        }
+
+        trafag->setShuntResistance(resistance);
+
+#ifdef DEBUG
+        fmt::print("\tChannel {}: {:.2f} Ohm\n", (int)ch, resistance);
+#endif
+    };
+
+    using namespace Config::Sensors::ADS131M08;
+
+    applyShuntResistance(n2TankPressure, N2_TANK_PT_CHANNEL);
+    applyShuntResistance(regulatorOutPressure, REGULATOR_OUT_PT_CHANNEL);
+    applyShuntResistance(oxTankTopPressure, OX_TANK_TOP_PT_CHANNEL);
+    applyShuntResistance(oxTankBottom0Pressure, OX_TANK_BOTTOM_0_PT_CHANNEL);
+    applyShuntResistance(oxTankBottom1Pressure, OX_TANK_BOTTOM_1_PT_CHANNEL);
+    applyShuntResistance(ccPressure, CC_PT_CHANNEL);
+}
+
 InternalADCData Sensors::getInternalADCLastSample()
 {
     return internalAdc ? internalAdc->getLastSample() : InternalADCData{};
@@ -381,7 +435,7 @@ void Sensors::regulatorOutPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADS131M08::REGULATOR_OUT_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::REGULATOR_OUT_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::REGULATOR_OUT_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -401,7 +455,7 @@ void Sensors::oxTankTopPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADS131M08::OX_TANK_TOP_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_TANK_TOP_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::OX_TANK_TOP_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -441,7 +495,7 @@ void Sensors::oxTankBottomPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADS131M08::OX_TANK_BOTTOM_0_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_TANK_BOTTOM_0_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::OX_TANK_BOTTOM_0_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -453,7 +507,7 @@ void Sensors::oxTankBottomPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADS131M08::OX_TANK_BOTTOM_1_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_TANK_BOTTOM_1_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::OX_TANK_BOTTOM_1_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -478,7 +532,7 @@ void Sensors::n2TankPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADS131M08::N2_TANK_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::N2_TANK_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::N2_TANK_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -497,7 +551,7 @@ void Sensors::ccPressureInit()
             auto sample = getADS131M08LastSample();
             return sample.getVoltage(Config::Sensors::ADS131M08::CC_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::CC_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::CC_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);

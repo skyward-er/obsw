@@ -164,6 +164,8 @@ int main()
     }
     else
     {
+        std::cout << "\tCalibrating sensors" << std::endl;
+        sensors->calibrate();
         led1Off();
     }
 
