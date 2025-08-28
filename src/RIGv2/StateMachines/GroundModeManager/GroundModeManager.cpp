@@ -223,7 +223,7 @@ State GroundModeManager::state_disarmed(const Event& event)
 
         case TMTC_CALIBRATE:
         {
-            getModule<Sensors>()->calibrate();
+            getModule<Sensors>()->calibrateLoadcells();
             return HANDLED;
         }
 

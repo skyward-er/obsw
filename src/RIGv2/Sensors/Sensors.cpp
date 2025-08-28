@@ -201,6 +201,68 @@ PressureData Sensors::getOxTankBottomPressureDirectOrCan()
 
 void Sensors::calibrate()
 {
+    using namespace Config::Sensors;
+
+    constexpr auto ADC_CHANNEL_COUNT = ADS131M08Defs::CHANNELS_NUM;
+
+    // One stat object per ADC channel
+    Stats adcVoltageStats[2][ADC_CHANNEL_COUNT] = {};
+
+    for (int i = 0; i < Trafag::CALIBRATE_SAMPLE_COUNT; i++)
+    {
+        auto adc1Sample = adc1->getLastSample();
+        auto adc2Sample = adc2->getLastSample();
+
+        for (int j = 0; j < ADC_CHANNEL_COUNT; j++)
+            adcVoltageStats[0][j].add(adc1Sample.voltage[j]);
+        for (int j = 0; j < ADC_CHANNEL_COUNT; j++)
+            adcVoltageStats[1][j].add(adc2Sample.voltage[j]);
+
+        Thread::sleep(
+            milliseconds{Trafag::CALIBRATE_WAIT_BETWEEN_SAMPLES}.count());
+    }
+
+    // Applies the shunt resistance for the given channel to a trafag pressure
+    // sensor, assuming the trafag is at atmospheric pressure reading
+    // MIN_CURRENT (= 0 bar)
+    auto applyShuntResistance =
+        [&](int adcIndex, auto& trafag, ADS131M08Defs::Channel ch)
+    {
+        constexpr float minCurrent = Trafag::MIN_CURRENT / 1000.0;  // [A]
+
+        float resistance =
+            adcVoltageStats[adcIndex - 1][(size_t)ch].getStats().mean /
+            minCurrent;
+
+        // Ignore the calibrated shunt resistance if it's out of bounds
+        if (resistance < Trafag::SHUNT_RESISTANCE_LOWER_BOUND ||
+            resistance > Trafag::SHUNT_RESISTANCE_UPPER_BOUND)
+        {
+            resistance = trafag->getShuntResistance();
+        }
+
+        trafag->setShuntResistance(resistance);
+
+#ifdef DEBUG
+        fmt::print("\tADC {} - Channel {}: {:.2f} Ohm\n", adcIndex, (int)ch,
+                   resistance);
+#endif
+    };
+
+    using namespace Config::Sensors::ADC_1;
+    applyShuntResistance(1, oxVesselPressure, OX_VESSEL_PT_CHANNEL);
+    applyShuntResistance(1, oxFillingPressure, OX_FILLING_PT_CHANNEL);
+    applyShuntResistance(1, n2Vessel1Pressure, N2_VESSEL_1_PT_CHANNEL);
+    applyShuntResistance(1, n2Vessel2Pressure, N2_VESSEL_2_PT_CHANNEL);
+    applyShuntResistance(1, n2FillingPressure, N2_FILLING_PT_CHANNEL);
+
+    using namespace Config::Sensors::ADC_2;
+    applyShuntResistance(2, oxTankBottomPressure, OX_TANK_PT_CHANNEL);
+    applyShuntResistance(2, n2TankPressure, N2_TANK_PT_CHANNEL);
+}
+
+void Sensors::calibrateLoadcells()
+{
     Stats oxVesselStats, oxTankStats;
 
     for (unsigned int i = 0;
@@ -409,7 +471,7 @@ void Sensors::oxVesselPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_1::OX_VESSEL_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_VESSEL_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::OX_VESSEL_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -429,7 +491,7 @@ void Sensors::oxFillingPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_1::OX_FILLING_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_FILLING_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::OX_FILLING_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -449,7 +511,7 @@ void Sensors::n2Vessel1PressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_1::N2_VESSEL_1_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::N2_VESSEL1_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::N2_VESSEL1_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -469,7 +531,7 @@ void Sensors::n2Vessel2PressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_1::N2_VESSEL_2_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::N2_VESSEL2_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::N2_VESSEL2_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -489,7 +551,7 @@ void Sensors::n2FillingPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_1::N2_FILLING_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::N2_FILLING_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::N2_FILLING_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -509,7 +571,7 @@ void Sensors::oxTankBottomPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_2::OX_TANK_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::OX_TANK_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::OX_TANK_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);
@@ -529,7 +591,7 @@ void Sensors::n2TankPressureInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_2::N2_TANK_PT_CHANNEL);
         },
-        Config::Sensors::Trafag::N2_TANK_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::N2_TANK_MAX_PRESSURE,
         Config::Sensors::Trafag::MIN_CURRENT,
         Config::Sensors::Trafag::MAX_CURRENT);

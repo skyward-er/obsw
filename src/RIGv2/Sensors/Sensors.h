@@ -52,6 +52,8 @@ public:
 
     void calibrate();
 
+    void calibrateLoadcells();
+
     bool isStarted();
 
     // Getters for raw data coming from sensors

@@ -37,6 +37,7 @@ namespace Config
 
 namespace Sensors
 {
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 namespace LPS22DF
@@ -86,33 +87,6 @@ namespace ADS131M08
 constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
-/*
-Calibration values for tank sensors board
-
-Channel 6 - 29.79ohm
-0.1185V 3.97mA  29.84ohm
-0.3575V 12mA    29.79ohm
-0.5952V 20.01mA 29.76ohm
-
-Channel 5 - 29.73ohm
-0.1192V 4.03mA  29.57ohm
-0.3600V 12.01mA 29.97ohm
-0.5930V 20mA    29.65ohm
-
-Channel 4 - 29.65ohm
-0.1194V 4.02mA  29.70ohm
-0.3584V 12.06mA 29.72ohm
-0.5911V 20mA    29.55ohm
-*/
-
-// TODO: calibrate channels
-constexpr float CH0_SHUNT_RESISTANCE = 29.0;
-constexpr float CH1_SHUNT_RESISTANCE = 29.0;
-constexpr float CH2_SHUNT_RESISTANCE = 29.0;
-constexpr float CH3_SHUNT_RESISTANCE = 29.0;
-constexpr float CH4_SHUNT_RESISTANCE = 29.0;
-constexpr float CH5_SHUNT_RESISTANCE = 29.0;
-
 using namespace Boardcore::ADS131M08Defs;
 
 constexpr auto N2_TANK_PT_CHANNEL          = Channel::CHANNEL_4;
@@ -128,17 +102,19 @@ constexpr bool ENABLED = true;
 
 namespace Trafag
 {
-using namespace ADS131M08;
+// Default shunt resistance, used before calibration or if it's out of bounds
+constexpr float DEFAULT_SHUNT_RESISTANCE = 29.5;
+// Bounds of the shunt resistance, outside of which the calibration is ignored
+constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 28.5;
+constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 30.0;
 
-constexpr float N2_TANK_SHUNT_RESISTANCE          = CH4_SHUNT_RESISTANCE;
-constexpr float REGULATOR_OUT_SHUNT_RESISTANCE    = CH5_SHUNT_RESISTANCE;
-constexpr float OX_TANK_TOP_SHUNT_RESISTANCE      = CH2_SHUNT_RESISTANCE;
-constexpr float OX_TANK_BOTTOM_0_SHUNT_RESISTANCE = CH1_SHUNT_RESISTANCE;
-constexpr float OX_TANK_BOTTOM_1_SHUNT_RESISTANCE = CH0_SHUNT_RESISTANCE;
-constexpr float CC_SHUNT_RESISTANCE               = CH3_SHUNT_RESISTANCE;
+constexpr auto CALIBRATE_SAMPLE_COUNT         = 10;
+constexpr auto CALIBRATE_WAIT_BETWEEN_SAMPLES = 100ms;
 
-constexpr float MIN_CURRENT = 4;
-constexpr float MAX_CURRENT = 20;
+// Current at 0 bar relative to atmospheric pressure
+constexpr float MIN_CURRENT = 4;  // [mA]
+// Current at MAX_PRESSURE bar relative to atmospheric pressure
+constexpr float MAX_CURRENT = 20;  // [mA]
 
 constexpr float N2_TANK_MAX_PRESSURE          = 400;  // bar
 constexpr float REGULATOR_OUT_MAX_PRESSURE    = 100;  // bar

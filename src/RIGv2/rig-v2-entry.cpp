@@ -130,6 +130,13 @@ int main()
         std::cerr << "*** Failed to start EventBroker ***" << std::endl;
     }
 
+    std::cout << "Starting BoardScheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
+    }
+
     std::cout << "Starting Registry" << std::endl;
     if (!registry->start())
     {
@@ -159,6 +166,8 @@ int main()
     }
     else
     {
+        std::cout << "\tCalibrating sensors" << std::endl;
+        sensors->calibrate();
         led1Off();
     }
 
@@ -205,13 +214,6 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start TARS3 ***" << std::endl;
-    }
-
-    std::cout << "Starting BoardScheduler" << std::endl;
-    if (!scheduler->start())
-    {
-        initResult = false;
-        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
     }
 
     if (initResult)

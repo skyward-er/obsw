@@ -104,16 +104,19 @@ constexpr bool ENABLED = true;
 
 namespace Trafag
 {
-constexpr float OX_VESSEL_SHUNT_RESISTANCE  = ADC_1::CH0_SHUNT_RESISTANCE;
-constexpr float OX_FILLING_SHUNT_RESISTANCE = ADC_1::CH1_SHUNT_RESISTANCE;
-constexpr float N2_VESSEL1_SHUNT_RESISTANCE = ADC_1::CH2_SHUNT_RESISTANCE;
-constexpr float N2_VESSEL2_SHUNT_RESISTANCE = ADC_1::CH3_SHUNT_RESISTANCE;
-constexpr float N2_FILLING_SHUNT_RESISTANCE = ADC_1::CH7_SHUNT_RESISTANCE;
-constexpr float OX_TANK_SHUNT_RESISTANCE    = ADC_2::CH0_SHUNT_RESISTANCE;
-constexpr float N2_TANK_SHUNT_RESISTANCE    = ADC_2::CH1_SHUNT_RESISTANCE;
+// Default shunt resistance, used before calibration or if it's out of bounds
+constexpr float DEFAULT_SHUNT_RESISTANCE = 29.5;
+// Bounds of the shunt resistance, outside of which the calibration is ignored
+constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 28.5;
+constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 30.0;
 
-constexpr float MIN_CURRENT = 4;
-constexpr float MAX_CURRENT = 20;
+constexpr auto CALIBRATE_SAMPLE_COUNT         = 10;
+constexpr auto CALIBRATE_WAIT_BETWEEN_SAMPLES = 100ms;
+
+// Current at 0 bar relative to atmospheric pressure
+constexpr float MIN_CURRENT = 4;  // [mA]
+// Current at MAX_PRESSURE bar relative to atmospheric pressure
+constexpr float MAX_CURRENT = 20;  // [mA]
 
 constexpr float OX_VESSEL_MAX_PRESSURE  = 100;  // bar
 constexpr float OX_FILLING_MAX_PRESSURE = 100;  // bar

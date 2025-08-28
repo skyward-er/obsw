@@ -52,6 +52,8 @@ public:
 
     [[nodiscard]] bool start();
 
+    void calibrate();
+
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::LPS22DFData getLPS22DFLastSample();
