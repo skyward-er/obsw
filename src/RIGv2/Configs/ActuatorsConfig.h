@@ -37,7 +37,7 @@ namespace Servos
 
 // Pulse width for normal (74 kg) servos
 constexpr unsigned int MIN_PULSE = 500;
-constexpr unsigned int MAX_PULSE = 2440;
+constexpr unsigned int MAX_PULSE = 2500;
 
 // Pulse width for small (16 kg) servos
 constexpr unsigned int SMALL_MIN_PULSE = 900;
@@ -60,27 +60,27 @@ constexpr uint32_t DEFAULT_N2_QUE_OPENING_TIME = 15000;
 constexpr uint32_t DEFAULT_MAIN_OPENING_TIME   = 6000;
 
 constexpr float DEFAULT_OX_FIL_MAX_APERTURE = 1.0;
-constexpr float DEFAULT_OX_REL_MAX_APERTURE = 0.55;
+constexpr float DEFAULT_OX_REL_MAX_APERTURE = 0.57;
 constexpr float DEFAULT_OX_DET_MAX_APERTURE = 1.0;
 constexpr float DEFAULT_N2_FIL_MAX_APERTURE = 1.0;
-constexpr float DEFAULT_N2_REL_MAX_APERTURE = 0.55;
+constexpr float DEFAULT_N2_REL_MAX_APERTURE = 0.57;
 constexpr float DEFAULT_N2_DET_MAX_APERTURE = 1.0;
 constexpr float DEFAULT_NITR_MAX_APERTURE   = 1.0;
 constexpr float DEFAULT_OX_VEN_MAX_APERTURE = 1.0;
 constexpr float DEFAULT_N2_QUE_MAX_APERTURE = 1.0;
 constexpr float DEFAULT_MAIN_MAX_APERTURE   = 1.0;
 
-constexpr float OX_FIL_LIMIT = 0.9;
-constexpr float OX_REL_LIMIT = 0.9;
+constexpr float OX_FIL_LIMIT = 0.873;
+constexpr float OX_REL_LIMIT = 0.873;
 constexpr float OX_DET_LIMIT = 1.0;
 constexpr float N2_3W_LIMIT  = 1.0;
 constexpr float N2_FIL_LIMIT = 1.0;
-constexpr float N2_REL_LIMIT = 0.9;
+constexpr float N2_REL_LIMIT = 0.873;
 constexpr float N2_DET_LIMIT = 1.0;
-constexpr float NITR_LIMIT   = 0.9;
-constexpr float OX_VEN_LIMIT = 0.9;
-constexpr float N2_QUE_LIMIT = 0.9;
-constexpr float MAIN_LIMIT   = 0.9;
+constexpr float NITR_LIMIT   = 0.873;
+constexpr float OX_VEN_LIMIT = 0.873;
+constexpr float N2_QUE_LIMIT = 0.873;
+constexpr float MAIN_LIMIT   = 0.873;
 
 constexpr bool OX_FIL_FLIPPED = true;
 constexpr bool OX_REL_FLIPPED = true;
