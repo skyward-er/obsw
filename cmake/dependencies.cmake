@@ -81,6 +81,7 @@ set(CONRIG_V2_COMPUTER
     src/ConRIGv2/Buttons/Buttons.cpp
     src/ConRIGv2/Radio/Radio.cpp
     src/ConRIGv2/Hub/Hub.cpp
+    src/ConRIGv2/BoardStatus.cpp
 )
 
 set(PAYLOAD_COMPUTER

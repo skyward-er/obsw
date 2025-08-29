@@ -25,6 +25,7 @@
 #include <ConRIGv2/BoardScheduler.h>
 #include <ConRIGv2/Buses.h>
 #include <ConRIGv2/Buttons/Buttons.h>
+#include <ConRIGv2/Configs/CommonConfig.h>
 #include <ConRIGv2/Configs/RadioConfig.h>
 #include <ConRIGv2/Hub/Hub.h>
 #include <common/MavlinkOrion.h>
@@ -46,19 +47,33 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
+/**
+ * @brief Statistics of the radio.
+ */
+struct RadioStats
+{
+    float rssi;               //< RSSI in dBm of last received packet.
+    float snr;                //< Signal to Noise Ratio of last received packet.
+    uint16_t rxSuccessCount;  //< Number of received packets.
+    uint16_t rxDropCount;     //< Number of packet drops.
+    uint32_t bitsRxCount;     //< Number of bits received.
+    uint32_t bitsTxCount;     //< Number of bits sent.
+};
+
 class Radio
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Buttons, Hub>
+    : public Boardcore::Transceiver,
+      public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Buttons, Hub>
 {
 public:
     Radio();
 
     [[nodiscard]] bool start();
 
-    Boardcore::MavlinkStatus getMavlinkStatus();
-
     void updateButtonState(const mavlink_conrig_state_tc_t& state);
 
     bool enqueueMessage(const mavlink_message_t& msg);
+
+    RadioStats getStats();
 
 private:
     /**
@@ -67,6 +82,10 @@ private:
      * @note Button state is reset after sending the state.
      */
     void sendPeriodicPing();
+
+    ssize_t receive(uint8_t* pkt, size_t max_len) override;
+
+    bool send(uint8_t* pkt, size_t len) override;
 
     void buzzerTask();
     void handleMessage(const mavlink_message_t& msg);
@@ -78,6 +97,11 @@ private:
 
     void buzzerOn();
     void buzzerOff();
+
+    bool started = false;
+
+    uint32_t bitsRxCount = 0;
+    uint32_t bitsTxCount = 0;
 
     Boardcore::PWM buzzer;
 
