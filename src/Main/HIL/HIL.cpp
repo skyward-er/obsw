@@ -85,6 +85,8 @@ void MainHILPhasesManager::processFlagsImpl(
     const SimulatorData& simulatorData,
     std::vector<MainFlightPhases>& changed_flags)
 {
+    lastSignal = static_cast<HILSignal>(simulatorData.signal);
+
     if (simulatorData.signal ==
         static_cast<float>(HILSignal::SIMULATION_STARTED))
     {
