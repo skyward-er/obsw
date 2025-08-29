@@ -61,9 +61,27 @@ public:
 
     void printOutcomes();
 
+    /**
+     * @brief Returns if the simulation is in FULL HIL mode (using all three
+     * electronics) or not
+     */
+    bool isFullHIL()
+    {
+        return lastSignal.load() == HILSignal::SIMULATION_RUNNING_FULL_HIL;
+    };
+
+    bool isRunning()
+    {
+        auto signal = lastSignal.load();
+        return signal == HILSignal::SIMULATION_RUNNING ||
+               signal == HILSignal::SIMULATION_RUNNING_FULL_HIL;
+    }
+
 private:
     void handleEventImpl(const Boardcore::Event& e,
                          std::vector<MainFlightPhases>& changed_flags) override;
+
+    std::atomic<HILSignal> lastSignal = {};
 };
 
 class MainHIL
@@ -76,6 +94,24 @@ public:
     MainHIL();
 
     bool start() override;
+
+    bool isFullHIL()
+    {
+        auto manager = static_cast<MainHILPhasesManager*>(hilPhasesManager);
+        return manager->isFullHIL();
+    };
+
+    /**
+     * @brief Waits for the simulation to be in a running state.
+     *
+     * This method blocks until the simulation is in the running state.
+     */
+    void waitRunningSignal()
+    {
+        auto manager = static_cast<MainHILPhasesManager*>(hilPhasesManager);
+        while (!manager->isRunning())
+            miosix::Thread::sleep(1);
+    }
 
 private:
     ActuatorData updateActuatorData();

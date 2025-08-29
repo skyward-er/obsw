@@ -25,6 +25,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
+#include <Main/Configs/FMMConfig.h>
 #include <Main/HIL/HIL.h>
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
@@ -250,29 +251,49 @@ int main()
         std::cout << "Starting HIL" << std::endl;
         hil->start();
 
-        if (!Config::HIL::IS_FULL_HIL)
-        {
-            hil->registerToFlightPhase(
-                MainFlightPhases::SHUTDOWN,
-                [&]() { motorStatus->lockData()->mainValveOpen = false; });
-        }
-
-        // If we are in hil mode, there won't be the rig to send the ignition
-        // command. The Main will do it when receives the LIFTOFF command
-        hil->registerToFlightPhase(
-            MainFlightPhases::LIFTOFF,
-            [&]()
-            {
-                std::cout << "LIFTOFF!" << std::endl;
-                if (Config::HIL::IS_FULL_HIL)
-                    canHandler->sendServoOpenCommand(ServosList::MAIN_VALVE,
-                                                     7000);
-                else
-                    motorStatus->lockData()->mainValveOpen = true;
-            });
-
         std::cout << "Waiting simulation start..." << std::endl;
         hil->waitStartSimulation();
+
+        std::cout << "Waiting for the running signal..." << std::endl;
+        hil->waitRunningSignal();
+
+        // In HIL mode the RIG is not present and won't send the ignition
+        // command, we need to emulate it when entering the LIFTOFF phase
+        if (hil->isFullHIL())
+        {
+            std::cout << "Registering FULL HIL flight phases" << std::endl;
+
+            // Simulate the RIG sending the main valve open command to the motor
+            // through CAN bus
+            hil->registerToFlightPhase(
+                MainFlightPhases::LIFTOFF,
+                [&]
+                {
+                    // Opening time doesn't matter as the valve is closed by the
+                    // FMM, just open it more than the timeout
+                    canHandler->sendServoOpenCommand(
+                        ServosList::MAIN_VALVE,
+                        Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
+                            1000);
+                });
+        }
+        else
+        {
+            std::cout << "Registering HIL flight phases" << std::endl;
+
+            // Simulate motor valve state changes
+            hil->registerToFlightPhase(
+                MainFlightPhases::LIFTOFF,
+                [&] { motorStatus->lockData()->mainValveOpen = true; });
+
+            hil->registerToFlightPhase(
+                MainFlightPhases::SHUTDOWN,
+                [&] { motorStatus->lockData()->mainValveOpen = false; });
+
+            hil->registerToFlightPhase(
+                MainFlightPhases::PARA1,
+                [&] { motorStatus->lockData()->oxVentingValveOpen = true; });
+        }
     }
 
     std::cout << "Starting Sensors" << std::endl;

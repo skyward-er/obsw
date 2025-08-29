@@ -65,7 +65,7 @@ private:
         using namespace Boardcore;
 
         // If full hil, use the can received samples
-        if (!Config::HIL::IS_FULL_HIL)
+        if (!getModule<MainHIL>()->isFullHIL())
         {
             // Adding to sensorManager's scheduler a task to "sample" the
             // combustion chamber pressure coming from motor
