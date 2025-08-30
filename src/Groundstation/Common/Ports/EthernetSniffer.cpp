@@ -83,8 +83,11 @@ bool EthernetSniffer::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 
 void EthernetSniffer::handleMsg(const mavlink_message_t& msg)
 {
-    // Dispatch the message through the hub.
-    getModule<HubBase>()->dispatchOutgoingMsg(msg);
+    // Filter the sniffed message through the hub to only consider FLIGHT and
+    // STATS TM
+    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM &&
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+        getModule<HubBase>()->dispatchOutgoingMsg(msg);
 }
 
 ssize_t EthernetSniffer::receive(uint8_t* pkt, size_t max_len)

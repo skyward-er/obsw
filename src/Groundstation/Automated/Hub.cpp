@@ -55,7 +55,33 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     LyraGS::BoardStatus* status  = getModule<LyraGS::BoardStatus>();
     LyraGS::RadioMain* radioMain = getModule<LyraGS::RadioMain>();
 
-    if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
+    // In case the message is spoofed from ethernet by another groundstation
+    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+    {
+        TRACE(
+            "[info][SNIFFING] Hub: A MAIN packet was received from ground "
+            "packet "
+            "(ethernet probably and NOT radio)\n");
+        /* The message received by ethernet (outgoing) in reality is not a
+         * command but the telemetry spoofed, therefore is then used as incoming
+         */
+        dispatchIncomingMsg(msg);
+        LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
+        Logger::getInstance().log(sniffing);
+
+        logHubData.timestamp = TimestampTimer::getTimestamp();
+        logHubData.sniffedRx = logHubData.sniffedRx + 1;
+        logHubData.cpuMean   = CpuMeter::getCpuStats().mean;
+
+        Logger::getInstance().log(logHubData);
+        return;
+    }
+
+    // If it is a non-sniffed packet to be sent to the main
+    if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN &&
+        msg.msgid != MAVLINK_MSG_ID_ROCKET_FLIGHT_TM &&
+        msg.msgid != MAVLINK_MSG_ID_ROCKET_STATS_TM)
     {
         if (!radioMain->sendMsg(msg))
             sendNack(msg, 306);
@@ -247,28 +273,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 return;
             }
         }
-    }
-
-    // In case the message is spoofed from ethernet by another groundstation
-    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
-        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
-    {
-        TRACE(
-            "[info][SNIFFING] Hub: A MAIN packet was received from ground "
-            "packet "
-            "(ethernet probably and NOT radio)\n");
-        /* The message received by ethernet (outgoing) in reality is not a
-         * command but the telemetry spoofed, therefore is then used as incoming
-         */
-        dispatchIncomingMsg(msg);
-        LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
-        Logger::getInstance().log(sniffing);
-
-        logHubData.timestamp = TimestampTimer::getTimestamp();
-        logHubData.sniffedRx = logHubData.sniffedRx + 1;
-        logHubData.cpuMean   = CpuMeter::getCpuStats().mean;
-
-        Logger::getInstance().log(logHubData);
     }
 }
 
