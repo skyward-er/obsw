@@ -409,7 +409,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
-        infos.push_back(SensorInfo{name, 0, nullptr, false})
+        infos.push_back(SensorInfo{name, 0, 0, SensorStatus::NOT_INIT})
 
         PUSH_SENSOR_INFO(lps22df, "LPS22DF");
         PUSH_SENSOR_INFO(lis2mdl_ext, "LIS2MDL_EXT");
@@ -727,102 +727,104 @@ bool Sensors::sensorManagerInit()
 
     if (lps22df)
     {
-        SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::RATE,
-                        [this]() { lps22dfCallback(); }};
-        map.emplace(lps22df.get(), info);
+        SensorConfig config{"LPS22DF", Config::Sensors::LPS22DF::RATE,
+                        [this]() { lps22dfCallback(); }, 0};
+        map.emplace(lps22df.get(), config);
     }
 
     if (h3lis331dl)
     {
-        SensorInfo info{"H3LIS331DL", Config::Sensors::H3LIS331DL::RATE,
-                        [this]() { h3lis331dlCallback(); }};
-        map.emplace(h3lis331dl.get(), info);
+        SensorConfig config{"H3LIS331DL", Config::Sensors::H3LIS331DL::RATE,
+                        [this]() { h3lis331dlCallback(); }, 0};
+        map.emplace(h3lis331dl.get(), config);
     }
 
     if (lis2mdl_ext)
     {
-        SensorInfo info{"LIS2MDL_EXT", Config::Sensors::LIS2MDL::RATE,
-                        [this]() { lis2mdlExtCallback(); }};
-        map.emplace(lis2mdl_ext.get(), info);
+        SensorConfig config{"LIS2MDL_EXT", Config::Sensors::LIS2MDL::RATE,
+                        [this]() { lis2mdlExtCallback(); }, 0};
+        map.emplace(lis2mdl_ext.get(), config);
     }
 
     if (lis2mdl)
     {
-        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::RATE,
-                        [this]() { lis2mdlCallback(); }};
-        map.emplace(lis2mdl.get(), info);
+        SensorConfig config{"LIS2MDL", Config::Sensors::LIS2MDL::RATE,
+                        [this]() { lis2mdlCallback(); }, 0};
+        map.emplace(lis2mdl.get(), config);
     }
 
     if (ubxgps)
     {
-        SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::RATE,
-                        [this]() { ubxgpsCallback(); }};
-        map.emplace(ubxgps.get(), info);
+        SensorConfig config{"UBXGPS", Config::Sensors::UBXGPS::RATE,
+                        [this]() { ubxgpsCallback(); }, 0};
+        map.emplace(ubxgps.get(), config);
     }
 
     if (lsm6dsrx_0)
     {
-        SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
-                        [this]() { lsm6dsrx0Callback(); }};
-        map.emplace(lsm6dsrx_0.get(), info);
+        SensorConfig config{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
+                        [this]() { lsm6dsrx0Callback(); }, 0};
+        map.emplace(lsm6dsrx_0.get(), config);
     }
 
     if (lsm6dsrx_1)
     {
-        SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
-                        [this]() { lsm6dsrx1Callback(); }};
-        map.emplace(lsm6dsrx_1.get(), info);
+        SensorConfig config{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
+                        [this]() { lsm6dsrx1Callback(); }, 0};
+        map.emplace(lsm6dsrx_1.get(), config);
     }
 
     if (vn100)
     {
-        SensorInfo info{"VN100", Config::Sensors::VN100::RATE,
-                        [this]() { vn100Callback(); }};
-        map.emplace(vn100.get(), info);
+        SensorConfig config{"VN100", Config::Sensors::VN100::RATE,
+                        [this]() { vn100Callback(); }, 0};
+        map.emplace(vn100.get(), config);
     }
 
     if (internalAdc)
     {
-        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE,
-                        [this]() { internalAdcCallback(); }};
-        map.emplace(internalAdc.get(), info);
+        SensorConfig config{"InternalADC", Config::Sensors::InternalADC::RATE,
+                        [this]() { internalAdcCallback(); }, 0};
+        map.emplace(internalAdc.get(), config);
     }
 
     if (nd015a_0)
     {
-        SensorInfo info{"ND015A_0", Config::Sensors::ND015A::RATE,
-                        [this]() { nd015a0Callback(); }};
-        map.emplace(nd015a_0.get(), info);
+        SensorConfig config{"ND015A_0", Config::Sensors::ND015A::RATE,
+                        [this]() { nd015a0Callback(); }, 0};
+        map.emplace(nd015a_0.get(), config);
     }
 
     if (nd015a_1)
     {
-        SensorInfo info{"ND015A_1", Config::Sensors::ND015A::RATE,
-                        [this]() { nd015a1Callback(); }};
-        map.emplace(nd015a_1.get(), info);
+        SensorConfig config{"ND015A_1", Config::Sensors::ND015A::RATE,
+                        [this]() { nd015a1Callback(); }, 0};
+        map.emplace(nd015a_1.get(), config);
     }
 
     if (nd015a_2)
     {
-        SensorInfo info{"ND015A_2", Config::Sensors::ND015A::RATE,
-                        [this]() { nd015a2Callback(); }};
-        map.emplace(nd015a_2.get(), info);
+        SensorConfig config{"ND015A_2", Config::Sensors::ND015A::RATE,
+                        [this]() { nd015a2Callback(); }, 0};
+        map.emplace(nd015a_2.get(), config);
     }
 
     if (nd015a_3)
     {
-        SensorInfo info{"ND015A_3", Config::Sensors::ND015A::RATE,
-                        [this]() { nd015a3Callback(); }};
-        map.emplace(nd015a_3.get(), info);
+        SensorConfig config{"ND015A_3", Config::Sensors::ND015A::RATE,
+                        [this]() { nd015a3Callback(); }, 0};
+        map.emplace(nd015a_3.get(), config);
     }
 
     if (rotatedImu)
     {
-        SensorInfo info{"RotatedIMU", Config::Sensors::IMU::RATE,
-                        [this]() { rotatedImuCallback(); }};
-        map.emplace(rotatedImu.get(), info);
+        SensorConfig config{"RotatedIMU", Config::Sensors::IMU::RATE,
+                        [this]() { rotatedImuCallback(); }, 0};
+        map.emplace(rotatedImu.get(), config);
     }
 
-    manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
-    return manager->start();
+    SensorManager::SchedulerMap_t schedulerMap = {std::pair<uint8_t, TaskScheduler*>(0,&getSensorsScheduler())};
+    manager = std::make_unique<SensorManager>(map, schedulerMap);
+    manager->startAll();
+    return true;
 }

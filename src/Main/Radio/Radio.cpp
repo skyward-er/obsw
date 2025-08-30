@@ -425,8 +425,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 mavlink_sensor_state_tm_t tm;
 
                 strcpy(tm.sensor_name, sensor.id.c_str());
-                tm.initialized = sensor.isInitialized ? 1 : 0;
-                tm.enabled     = sensor.isEnabled ? 1 : 0;
+                // tm.initialized = sensor.isInitialized ? 1 : 0;
+                // tm.enabled     = sensor.isEnabled ? 1 : 0;
+                tm.sensorStatus = static_cast<uint8_t>(sensor.status);
 
                 mavlink_msg_sensor_state_tm_encode(
                     Config::Radio::MAV_SYSTEM_ID,

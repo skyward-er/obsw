@@ -328,9 +328,25 @@ int main()
     for (auto info : sensors->getSensorInfos())
     {
         // The period being 0 means the sensor is disabled
-        auto statusStr = info.period == 0ns   ? "Disabled"
-                         : info.isInitialized ? "Ok"
-                                              : "Error";
+        // auto statusStr = info.period == 0ns   ? "Disabled"
+        //                  : info.isInitialized ? "Ok"
+        //                                       : "Error";
+        std::string statusStr;
+        switch(info.status)
+        {
+            case SensorStatus::ENABLED:
+                statusStr = "Ok";
+                break;
+            case SensorStatus::DISABLED:
+                statusStr = "Disabled";
+                break;
+            case SensorStatus::NOT_INIT:
+                statusStr = "Error";
+                break;
+            default:
+                statusStr = "boohhhhh";
+                break;
+        }
 
         std::cout << "\t" << std::setw(20) << std::left << info.id << " "
                   << statusStr << std::endl;
