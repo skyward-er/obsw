@@ -167,7 +167,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 gpsData.fix          = 3;
                 gpsData.satellites   = 42;
 
-                getModule<SMA>()->setRocketNASOrigin(gpsData);
+                getModule<SMA>()->setRocketOriginAndPosition(gpsData);
                 sendAck(msg);
                 break;
             }

@@ -79,10 +79,11 @@ public:
     void setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates);
 
     /**
-     * @brief Setter for the initial rocket coordinates
+     * @brief Setter for the initial rocket coordinates and position
      * @details log an error if not in the correct state
      */
-    void setRocketNASOrigin(const Boardcore::GPSData& antennaCoordinates);
+    void setRocketOriginAndPosition(
+        const Boardcore::GPSData& antennaCoordinates);
 
     /**
      * @brief Starts the FSM thread and adds an update function into the

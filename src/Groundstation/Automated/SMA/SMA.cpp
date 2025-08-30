@@ -76,7 +76,8 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
     }
 }
 
-void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
+void SMA::setRocketOriginAndPosition(
+    const Boardcore::GPSData& rocketCoordinates)
 {
     if (!testState(&SMA::state_fix_rocket) &&
         !testState(&SMA::state_fix_rocket_nf))
@@ -88,6 +89,10 @@ void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
     else
     {
         follower.setRocketNASOrigin(rocketCoordinates);
+
+        // Zero-position NAS position to set the rocket as if there
+        NASState rocketNAS;
+        follower.setLastRocketNasState(rocketNAS);
         EventBroker::getInstance().post(ARP_FIX_ROCKET, TOPIC_ARP);
     }
 }
