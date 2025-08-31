@@ -1,0 +1,252 @@
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Giovanni Annaloro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#include "ZVKController.h"
+
+#include <Main/Configs/ZVKConfig.h>
+#include <Main/Configs/SchedulerConfig.h>
+#include <common/Events.h>
+#include <common/ReferenceConfig.h>
+#include <common/Topics.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
+#include <utils/SkyQuaternion/SkyQuaternion.h>
+#include <algorithms/NAS/StateInitializer.h>
+#include <algorithm>
+
+using namespace Main;
+using namespace Boardcore;
+using namespace Common;
+using namespace miosix;
+using namespace Eigen;
+
+ZVKController::ZVKController()
+   : FSM{&ZVKController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
+      Config::Scheduler::ZVK_PRIORITY},
+      zvk{Config::ZVK::CONFIG}
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_ZVK);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+}
+
+bool ZVKController::start()
+{
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+
+    size_t result =
+        scheduler.addTask([this]() { update(); }, Config::ZVK::UPDATE_RATE);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to add ZVK update task");
+        return false;
+    }
+
+    if (!FSM::start())
+    {
+        LOG_ERR(logger, "Failed to start ZVK FSM");
+        return false;
+    }
+
+    // Initialize state
+    Matrix<float, 16, 1> x = Matrix<float, 13, 1>::Zero();
+    Vector4f q             = SkyQuaternion::eul2quat({0, 0, 0});
+
+    x(0) = q(0);
+    x(1) = q(1);
+    x(2) = q(2);
+    x(3) = q(3);
+
+    zvk.setX(x);
+
+    return true;
+}
+
+ZVKControllerState ZVKController::getState()
+{
+    return state;
+}
+
+ZVKState ZVKController::getZVKState()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return zvk.getState();
+}
+
+void ZVKController::setOrientation(Eigen::Quaternion<float> quat)
+{
+    // Need to lock mutex because the only invocation comes from the radio
+    // which is a separate thread
+    Lock<FastMutex> lock{zvkMutex};
+
+    Matrix<float, 16, 1> x = zvk.getX();
+    x(0)                   = quat.x();
+    x(1)                   = quat.y();
+    x(2)                   = quat.z();
+    x(3)                   = quat.w();
+    zvk.setX(x);
+
+}
+
+void ZVKController::update()
+{
+    ZVKControllerState curState = state;
+
+    Lock<FastMutex> lock{zvkMutex};
+
+    if (curState == ZVKControllerState::ACTIVE)
+    {
+        Sensors* sensors = getModule<Sensors>();
+
+        IMUData imu = sensors->getIMULastSample();
+
+        zvk.predict(imu, imu);
+
+        if (lastMagTimestamp < imu.magneticFieldTimestamp){
+
+            zvk.correct(imu, imu, imu);
+
+        }
+
+        lastGyroTimestamp = imu.angularSpeedTimestamp;
+        lastAccTimestamp  = imu.accelerationTimestamp;
+        lastMagTimestamp  = imu.magneticFieldTimestamp;
+
+        auto state = zvk.getState();
+
+        sdLogger.log(state);
+    }
+}
+
+
+void ZVKController::calibrate()
+{
+    Sensors* sensors = getModule<Sensors>();
+
+    Vector3f accAcc = Vector3f::Zero();
+    Vector3f magAcc = Vector3f::Zero();
+
+    // First sample and average the data over a number of samples
+    for (int i = 0; i < Config::ZVK::CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        IMUData imu = sensors->getIMULastSample();
+
+        Vector3f acc = static_cast<AccelerometerData>(imu);
+        Vector3f mag = static_cast<MagnetometerData>(imu);
+
+        accAcc += acc;
+        magAcc += mag;
+
+        Thread::sleep(Config::ZVK::CALIBRATION_SLEEP_TIME);
+    }
+
+    accAcc /= Config::ZVK::CALIBRATION_SAMPLES_COUNT;
+    accAcc.normalize();
+    magAcc /= Config::ZVK::CALIBRATION_SAMPLES_COUNT;
+    magAcc.normalize();
+
+    // Use the triad to compute initial state
+    StateInitializer init;
+    init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
+
+    // Set initial state (TEMPORARY !!!!)
+    Lock<FastMutex> lock{zvkMutex};
+    Matrix<float, 16 ,1> initState = Matrix<float, 16, 1>::Zero(); 
+    Matrix<float, 13, 1> triadComputedState = init.getInitX(); 
+    initState.block<4,1>(0,0) = triadComputedState.block<4,1>(6,0);
+    zvk.setX(initState);
+
+    // Transition to active state
+    EventBroker::getInstance().post(ZVK_START, TOPIC_ZVK);
+}
+
+void ZVKController::state_init(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ZVKControllerState::INIT);
+            break;
+        }
+
+        case ZVK_CALIBRATE:
+        {
+            transition(&ZVKController::state_calibrating);
+            break;
+        }
+    }
+}
+
+void ZVKController::state_calibrating(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ZVKControllerState::CALIBRATING);
+            calibrate();
+            break;
+        }
+
+        case ZVK_START:
+        {
+            transition(&ZVKController::state_active);
+            break;
+        }
+    }
+}
+
+void ZVKController::state_active(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ZVKControllerState::ACTIVE);
+            break;
+        }
+        case FLIGHT_ARMED:
+        {
+            transition(&ZVKController::state_end);
+            break;
+        }
+        case ZVK_FORCE_STOP:
+        {
+            transition(&ZVKController::state_end);
+            break;
+        }
+    }
+}
+
+void ZVKController::state_end(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ZVKControllerState::END);
+            break;
+        }
+    }
+}
+
