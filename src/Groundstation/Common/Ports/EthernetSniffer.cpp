@@ -84,8 +84,11 @@ bool EthernetSniffer::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 
 void EthernetSniffer::handleMsg(const mavlink_message_t& msg)
 {
-    // Dispatch the message as if it was received by the radio communication
-    getModule<HubBase>()->dispatchIncomingMsg(msg);
+    // Dispatch the message as if it was received by the radio communication in
+    // case of ROCKET or FLIGHT
+    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+        getModule<HubBase>()->dispatchIncomingMsg(msg);
 
     Antennas::LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
     Logger::getInstance().log(sniffing);
