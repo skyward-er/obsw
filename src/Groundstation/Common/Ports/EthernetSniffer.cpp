@@ -22,6 +22,7 @@
 
 #include <Groundstation/Common/Config/EthernetConfig.h>
 #include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/LogSniffing.h>
 
 #include <random>
 
@@ -83,8 +84,11 @@ bool EthernetSniffer::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 
 void EthernetSniffer::handleMsg(const mavlink_message_t& msg)
 {
-    // Dispatch the message through the hub.
-    getModule<HubBase>()->dispatchOutgoingMsg(msg);
+    // Dispatch the message as if it was received by the radio communication
+    getModule<HubBase>()->dispatchIncomingMsg(msg);
+
+    Antennas::LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
+    Logger::getInstance().log(sniffing);
 }
 
 ssize_t EthernetSniffer::receive(uint8_t* pkt, size_t max_len)

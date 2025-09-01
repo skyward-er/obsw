@@ -248,28 +248,6 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
             }
         }
     }
-
-    // In case the message is spoofed from ethernet by another groundstation
-    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
-        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
-    {
-        TRACE(
-            "[info][SNIFFING] Hub: A MAIN packet was received from ground "
-            "packet "
-            "(ethernet probably and NOT radio)\n");
-        /* The message received by ethernet (outgoing) in reality is not a
-         * command but the telemetry spoofed, therefore is then used as incoming
-         */
-        dispatchIncomingMsg(msg);
-        LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
-        Logger::getInstance().log(sniffing);
-
-        logHubData.timestamp = TimestampTimer::getTimestamp();
-        logHubData.sniffedRx = logHubData.sniffedRx + 1;
-        logHubData.cpuMean   = CpuMeter::getCpuStats().mean;
-
-        Logger::getInstance().log(logHubData);
-    }
 }
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
@@ -357,6 +335,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         Logger::getInstance().log(gpsState);
     }
 
+    // TODO: In case of sniffing the message should not be sent again
     LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
     ethernet->sendMsg(msg);
 }
