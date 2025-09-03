@@ -30,6 +30,7 @@
 namespace Payload
 {
 
+// TODO: check if this class was the result of a refactoring og the other branch
 enum class WingControllerState : uint8_t
 {
     IDLE = 0,

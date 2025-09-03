@@ -31,9 +31,12 @@
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
+#include <chrono>
+
 using namespace Boardcore;
 using namespace Eigen;
 using namespace Common;
+using namespace std::chrono;
 namespace config = Payload::Config::NAS;
 
 namespace Payload
@@ -233,7 +236,7 @@ void NASController::calibrate()
 
         baroSum += baro.pressure;
 
-        Thread::sleep(config::CALIBRATION_SLEEP_TIME);
+        Thread::sleep(milliseconds{config::CALIBRATION_SLEEP_TIME}.count());
     }
 
     Vector3f meanAcc = accSum / config::CALIBRATION_SAMPLES_COUNT;
@@ -308,7 +311,7 @@ void NASController::update()
     // }
 
     if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
-        accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
+        accLength < Config::NAS::DISABLE_GPS_ACCELERATION_THRESHOLD)
     {
         nas.correctGPS(gps);
     }
@@ -372,6 +375,34 @@ void NASController::updateState(NASControllerState newState)
         .state     = newState,
     };
     Logger::getInstance().log(status);
+}
+
+void NASController::setReferenceAltitude(float altitude)
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto ref        = nas.getReferenceValues();
+    ref.refAltitude = altitude;
+    nas.setReferenceValues(ref);
+}
+
+void NASController::setReferenceTemperature(float temperature)
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto ref           = nas.getReferenceValues();
+    ref.refTemperature = temperature;
+    nas.setReferenceValues(ref);
+}
+
+void NASController::setReferenceCoordinates(float latitude, float longitude)
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto ref         = nas.getReferenceValues();
+    ref.refLatitude  = latitude;
+    ref.refLongitude = longitude;
+    nas.setReferenceValues(ref);
 }
 
 }  // namespace Payload

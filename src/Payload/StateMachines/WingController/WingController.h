@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Payload/AltitudeTrigger/LandingFlare.h>
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.h>
 #include <Payload/Wing/Guidance/EarlyManeuversGuidanceAlgorithm.h>
@@ -41,19 +42,6 @@
  * dedicated function in the task scheduler in order to be
  * executed every fixed period and to update the two servos position
  * depending on the selected algorithm.
- *
- * Use case example:
- * controller = new WingController(scheduler);
- *
- * controller.addAlgorithm("filename");
- * OR
- * controller.addAlgorithm(algorithm);
- *
- * controller.selectAlgorithm(index);
- *
- * controller.start();
- * controller.stop();  //If you want to abort the execution
- * controller.start(); //If you want to start again from the beginning
  */
 
 namespace Payload
@@ -62,11 +50,14 @@ class BoardScheduler;
 class Actuators;
 class NASController;
 class FlightStatsRecorder;
+class Sensors;
+class LandingFlare;
 
 class WingController
     : public Boardcore::HSM<WingController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, FlightStatsRecorder>
+                                           NASController, FlightStatsRecorder,
+                                           Sensors, LandingFlare>
 {
 public:
     /**
@@ -91,7 +82,7 @@ public:
 
     /**
      * @brief Override the inject method to inject dependencies into the
-     * algorithms, which are insantiated later than top-level modules.
+     * algorithms, which are instantiated later than top-level modules.
      */
     void inject(Boardcore::DependencyInjector& injector) override;
 
@@ -151,6 +142,14 @@ public:
         return emGuidance.calculateTargetAngle(currentPositionNED, heading);
     }
 
+    /**
+     * @brief Calling this method will calculate and update the current target
+     * position based on a offset from the current position.
+     * @param latitudeOffset The latitude offset in meters
+     * @param longitudeOffset The longitude offset in meters
+     */
+    void initDynamicTarget(float latitudeOffset, float longitudeOffset);
+
 private:
     /**
      * @brief Loads all algorithms.
@@ -178,6 +177,16 @@ private:
     void stopAlgorithm();
 
     /**
+     * @brief Pauses the currently selected algorithm.
+     */
+    void pauseAlgorithm();
+
+    /**
+     * @brief Resumes the currently selected algorithm.
+     */
+    void resumeAlgorithm();
+
+    /**
      * @brief Update early maneuver guidance points (EMC, M1, M2) based on the
      * current position and the target position.
      */
@@ -194,11 +203,6 @@ private:
      * Pulls the two ropes as skydiving people do.
      */
     void flareWing();
-
-    /**
-     * @brief Twirl the wing to the left.
-     */
-    void twirlWing();
 
     /**
      * @brief Reset the wing to the initial position.
@@ -241,10 +245,13 @@ private:
      */
     ClosedLoopGuidanceAlgorithm clGuidance;
 
-    uint16_t cuttersOffEventId = 0;
-    uint16_t flareEventId      = 0;
+    uint16_t pumpCount = Config::Wing::Deployment::PUMPS.size();
 
-    uint32_t flareCount = Config::Wing::FLARE_COUNT;
+    uint16_t calibrationTimeoutEventId = 0;
+    uint16_t cuttersOffEventId         = 0;
+    uint16_t dplFlareTimeoutEventId    = 0;
+    uint16_t ctrlFlareTimeoutEventId   = 0;
+    uint16_t resetTimeoutEventId       = 0;
 
     std::atomic<bool> started{false};
     std::atomic<bool> running{false};  ///< Whether the algorithm is running

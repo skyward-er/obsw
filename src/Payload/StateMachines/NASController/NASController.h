@@ -62,6 +62,10 @@ public:
 
     void setOrientation(const Eigen::Quaternionf& orientation);
 
+    void setReferenceAltitude(float altitude);
+    void setReferenceTemperature(float temperature);
+    void setReferenceCoordinates(float latitude, float longitude);
+
 private:
     void calibrate();
 

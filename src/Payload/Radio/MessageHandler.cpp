@@ -35,10 +35,12 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
+#include <units/Length.h>
 
 #include "Radio.h"
 
 using namespace Boardcore;
+using namespace Boardcore::Units::Length;
 using namespace Common;
 namespace config = Payload::Config::Radio;
 
@@ -167,6 +169,48 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
             // Forward the wiggle command over CAN
             parent.getModule<CanHandler>()->sendServoOpenCommand(servo, 1000);
             return enqueueWack(msg);
+        }
+
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
+        {
+            bool allowed = parent.getModule<FlightModeManager>()->isTestMode();
+            if (!allowed)
+                return enqueueNack(msg);
+
+            float altitude =
+                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
+
+            parent.getModule<NASController>()->setReferenceAltitude(altitude);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
+        {
+            auto allowed = parent.getModule<FlightModeManager>()->isTestMode();
+            if (!allowed)
+                return enqueueNack(msg);
+
+            float temperature =
+                mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
+
+            parent.getModule<NASController>()->setReferenceTemperature(
+                temperature);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_COORDINATES_TC:
+        {
+            auto allowed = parent.getModule<FlightModeManager>()->isTestMode();
+            if (!allowed)
+                return enqueueNack(msg);
+
+            float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_coordinates_tc_get_longitude(&msg);
+
+            parent.getModule<NASController>()->setReferenceCoordinates(
+                latitude, longitude);
+            break;
         }
 
         case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:

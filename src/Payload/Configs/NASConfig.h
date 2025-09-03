@@ -24,7 +24,10 @@
 
 #include <algorithms/NAS/NASConfig.h>
 #include <common/ReferenceConfig.h>
+#include <units/Acceleration.h>
 #include <units/Frequency.h>
+
+#include <chrono>
 
 namespace Payload
 {
@@ -34,30 +37,31 @@ namespace NAS
 {
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter-off */ using namespace std::chrono_literals;
 
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
+constexpr Hertz UPDATE_RATE        = 50_hz;
+constexpr auto UPDATE_RATE_SECONDS = 20ms;
 
-constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
-constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+constexpr int CALIBRATION_SAMPLES_COUNT = 20;
+constexpr auto CALIBRATION_SLEEP_TIME   = 100ms;
 
 static const Boardcore::NASConfig CONFIG = {
-    .T                   = UPDATE_RATE_SECONDS,
+    .T                   = UPDATE_RATE_SECONDS.count() / 1000.0,
     .SIGMA_BETA          = 0.0001,
-    .SIGMA_W             = 0.0019,
-    .SIGMA_ACC           = 0.202,
-    .SIGMA_MAG           = 0.0047,
-    .SIGMA_GPS           = {0.0447f, 0.0447f, 1.0f / 30.0f, 1.0f / 30.0f},
-    .SIGMA_BAR           = 400.0f,
-    .SIGMA_POS           = 2.0,
-    .SIGMA_VEL           = 1.0,
+    .SIGMA_W             = 0.3,
+    .SIGMA_ACC           = 0.1,
+    .SIGMA_MAG           = 0.1,
+    .SIGMA_GPS           = {0.0447, 0.0447, 1.0 / 30.0, 1.0 / 30.0},
+    .SIGMA_BAR           = 4.3,
+    .SIGMA_POS           = 10.0,
+    .SIGMA_VEL           = 10.0,
     .SIGMA_PITOT_STATIC  = 75.0,
     .SIGMA_PITOT_DYNAMIC = 75.0,
-    .P_POS               = 0.0,
-    .P_POS_VERTICAL      = 0.0,
-    .P_VEL               = 0.0,
-    .P_VEL_VERTICAL      = 0.0,
-    .P_ATT               = 0.1,
+    .P_POS               = 1.0,
+    .P_POS_VERTICAL      = 10.0,
+    .P_VEL               = 1.0,
+    .P_VEL_VERTICAL      = 10.0,
+    .P_ATT               = 0.01,
     .P_BIAS              = 0.01,
     .SATS_NUM            = 6.0,
     .NED_MAG             = Common::ReferenceConfig::nedMag};
@@ -66,11 +70,10 @@ static const Boardcore::NASConfig CONFIG = {
 constexpr int MAGNETOMETER_DECIMATE = 50;
 
 // Maximum allowed acceleration to correct with GPS
-constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2]
+constexpr float DISABLE_GPS_ACCELERATION_THRESHOLD = 34.0;  // [m/s^2]
 
-// How much confidence (in m/s^2) to apply to the accelerometer to check if it
-// is 1g
-constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;
+// How much confidence to apply to the accelerometer to check if it is 1g
+constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;  // [m/s^2]
 // How many samples will determine that we are in fact measuring gravity
 // acceleration
 constexpr int ACCELERATION_1G_SAMPLES = 20;

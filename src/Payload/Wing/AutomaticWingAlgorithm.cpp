@@ -61,12 +61,12 @@ void AutomaticWingAlgorithm::step()
         // Actuate the result
         // To see how to interpret the PI output
         // https://www.geogebra.org/calculator/xrhwarpz
-        // to system is
-        /*    N ^
-                |
-                |
-                ----> E
-        */
+        //
+        // Reference system
+        // N ^
+        //   |
+        //   |
+        //   ----> E
         if (result > 0)
         {
             // Activate the servo2 and reset servo1
@@ -85,8 +85,8 @@ void AutomaticWingAlgorithm::step()
             miosix::Lock<FastMutex> l(mutex);
 
             data.timestamp   = TimestampTimer::getTimestamp();
-            data.servo1Angle = getModule<Actuators>()->getServoPosition(servo1);
-            data.servo2Angle = getModule<Actuators>()->getServoPosition(servo2);
+            data.servo1Angle = getModule<Actuators>()->getServoAngle(servo1);
+            data.servo2Angle = getModule<Actuators>()->getServoAngle(servo2);
             SDlogger->log(data);
         }
     }
@@ -100,7 +100,6 @@ void AutomaticWingAlgorithm::step()
 
 float AutomaticWingAlgorithm::algorithmStep(const NASState& state)
 {
-    float result;
     // For some algorithms the third component is needed!
     Vector3f currentPosition(state.n, state.e, state.d);
 
@@ -111,18 +110,15 @@ float AutomaticWingAlgorithm::algorithmStep(const NASState& state)
     Vector2f relativeVelocity(state.vn, state.ve);
 
     // Compute the angle of the current velocity
-    float velocityAngle;
-
     // All angle are computed as angle from the north direction
-
-    velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
+    float velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
 
     // Compute the angle difference
     float error = angleDiff(targetAngle, velocityAngle);
 
     // Call the PI with the just calculated error. The result is in RADIANS,
     // if positive we activate one servo, if negative the other
-    result = controller->update(error);
+    float result = controller->update(error);
 
     // Convert the result from radians back to degrees
     result = result * (180.f / Constants::PI);

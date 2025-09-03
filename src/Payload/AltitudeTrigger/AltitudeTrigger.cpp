@@ -23,24 +23,34 @@
 #include "AltitudeTrigger.h"
 
 #include <Payload/BoardScheduler.h>
-#include <Payload/Configs/WingConfig.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 
 using namespace Boardcore;
 using namespace Common;
-namespace config = Payload::Config;
+namespace config = Payload::Config::AltitudeTrigger;
 
 namespace Payload
 {
+
+AltitudeTrigger::AltitudeTrigger(AltitudeTriggerConfig config)
+    : thresholdAltitude(config.threshold),
+      confidenceThreshold(config.confidence), updateRate(config.updateRate)
+{
+}
+
+AltitudeTrigger::AltitudeTrigger()
+    : thresholdAltitude(config::DEPLOYMENT_ALTITUDE),
+      confidenceThreshold(config::CONFIDENCE), updateRate(config::UPDATE_RATE)
+{
+}
 
 bool AltitudeTrigger::start()
 {
     auto& scheduler = getModule<BoardScheduler>()->altitudeTrigger();
 
-    auto task = scheduler.addTask([this] { update(); },
-                                  config::AltitudeTrigger::UPDATE_RATE);
+    auto task = scheduler.addTask([this] { update(); }, updateRate);
 
     if (task == 0)
         return false;
@@ -66,7 +76,7 @@ bool AltitudeTrigger::isEnabled() { return running; }
 
 void AltitudeTrigger::setDeploymentAltitude(float altitude)
 {
-    targetAltitude = altitude;
+    thresholdAltitude = altitude;
 }
 
 void AltitudeTrigger::update()
@@ -78,12 +88,12 @@ void AltitudeTrigger::update()
     auto nasState  = getModule<NASController>()->getNasState();
     float altitude = -nasState.d;
 
-    if (altitude < targetAltitude)
+    if (altitude < thresholdAltitude)
         confidence++;
     else
         confidence = 0;
 
-    if (confidence >= config::AltitudeTrigger::CONFIDENCE)
+    if (confidence >= confidenceThreshold)
     {
         confidence = 0;
         EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,

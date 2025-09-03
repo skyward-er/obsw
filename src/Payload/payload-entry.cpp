@@ -67,6 +67,7 @@ int main()
     auto pinHandler        = new PinHandler();
     auto radio             = new Radio();
     auto canHandler        = new CanHandler();
+    auto landingFlare      = new LandingFlare();
     auto altitudeTrigger   = new AltitudeTrigger();
     auto wingController    = new WingController();
     auto actuators         = new Actuators();
@@ -109,6 +110,7 @@ int main()
                   manager.insert<PinHandler>(pinHandler) &&
                   manager.insert<Radio>(radio) &&
                   manager.insert<CanHandler>(canHandler) &&
+                  manager.insert<LandingFlare>(landingFlare) &&
                   manager.insert<AltitudeTrigger>(altitudeTrigger) &&
                   manager.insert<WingController>(wingController) &&
                   manager.insert<Actuators>(actuators) &&
@@ -204,6 +206,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start AltitudeTrigger ***" << std::endl;
+    }
+
+    std::cout << "Starting LandingFlare" << std::endl;
+    if (!landingFlare->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start LandingFlare ***" << std::endl;
     }
 
     std::cout << "Starting WingController" << std::endl;

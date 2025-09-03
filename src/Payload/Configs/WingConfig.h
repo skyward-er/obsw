@@ -25,6 +25,7 @@
 #include <units/Frequency.h>
 #include <utils/Constants.h>
 
+#include <array>
 #include <chrono>
 
 namespace Payload
@@ -37,15 +38,24 @@ namespace Wing
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
+constexpr auto UPDATE_RATE                  = 1_hz;
+constexpr auto TARGET_UPDATE_RATE           = 10_hz;
+constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15s;
+constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5s;
+constexpr auto COMMAND_PERIOD               = 6s;
+constexpr auto WING_DECREMENT               = 20.0f;  // [deg]
+
 /**
  * @brief The available algorithms for the wing controller.
  */
 enum class AlgorithmId : size_t
 {
-    EARLY_MANEUVER = 0,
-    CLOSED_LOOP,
-    ROTATION,  ///< A predefined sequence of rotation maneuvers
-    LAST,      ///< Used to count the number of algorithms
+    CLOSED_LOOP = 0,
+    EARLY_MANEUVER,
+    SEQUENCE,
+    ROTATION,
+    PROGRESSIVE_ROTATION,
+    LAST  ///< Used to count the number of algorithms
 };
 
 namespace Default
@@ -61,22 +71,29 @@ constexpr auto TARGET_LAT = 45.5014089f;
 constexpr auto TARGET_LON = 9.1543615f;
 #endif
 
-constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
+constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
 }  // namespace Default
 
-constexpr auto UPDATE_RATE = 1_hz;
+/**
+ * @brief Dynamic target configuration. If enabled, the target is not fixed to
+ * the one specified in the Default config, but is dynamically set to a fixed
+ * offset relative to the position of launch (pin detach).
+ */
+namespace DynamicTarget
+{
+
+constexpr auto ENABLED          = false;
+constexpr auto LATITUDE_OFFSET  = 0;  // [m]
+constexpr auto LONGITUDE_OFFSET = 0;  // [m]
+
+}  // namespace DynamicTarget
 
 constexpr auto CUTTERS_TIMEOUT = 1s;
 
-constexpr auto FLARE_WAIT     = 5s;  ///< Time to wait before the first flare
-constexpr auto FLARE_COUNT    = 2;   ///< Number of flares
-constexpr auto FLARE_DURATION = 2s;  ///< Duration of the flare maneuver
-constexpr auto FLARE_INTERVAL = 1s;  ///< Interval between two flares
-
 namespace PI
 {
-constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI;
-constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI;
+constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 0.65;
+constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 0.65;
 
 constexpr auto KP = 0.9f;
 constexpr auto KI = 0.05f;
@@ -84,11 +101,42 @@ constexpr auto KI = 0.05f;
 
 namespace Guidance
 {
-constexpr auto CONFIDENCE                = 10;   // [samples]
+constexpr auto CONFIDENCE                = 15;   // [samples]
 constexpr auto M1_ALTITUDE_THRESHOLD     = 250;  // [m]
 constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
 }  // namespace Guidance
+
+namespace Deployment
+{
+
+constexpr auto PUMP_DELAY = 2s;
+
+struct Pump
+{
+    std::chrono::milliseconds flareTime;
+    std::chrono::milliseconds resetTime;
+};
+
+constexpr std::array<Pump, 3> PUMPS = {
+    Pump{.flareTime = 2s, .resetTime = 1s},
+    Pump{.flareTime = 2s, .resetTime = 1s},
+    Pump{.flareTime = 1s, .resetTime = 500ms},
+};
+
+}  // namespace Deployment
+
+namespace LandingFlare
+{
+
+constexpr bool ENABLED = false;
+
+constexpr float ALTITUDE   = 15;  // [m]
+constexpr int CONFIDENCE   = 10;  // [samples]
+constexpr auto UPDATE_RATE = 10_hz;
+constexpr auto DURATION    = 5s;
+
+}  // namespace LandingFlare
 
 constexpr auto ROTATION_PERIOD = 10s;  ///< Period of the rotation maneuver
 
@@ -96,11 +144,13 @@ constexpr auto ROTATION_PERIOD = 10s;  ///< Period of the rotation maneuver
 
 namespace AltitudeTrigger
 {
+
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr auto DEPLOYMENT_ALTITUDE = 600;  // [meters]
 constexpr auto CONFIDENCE          = 10;   // [samples]
 constexpr auto UPDATE_RATE         = 10_hz;
+
 }  // namespace AltitudeTrigger
 
 }  // namespace Config

@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,55 +24,15 @@
 
 #include <units/Frequency.h>
 
-#include <chrono>
-
 namespace Payload
 {
-namespace Config
+
+struct AltitudeTriggerConfig
 {
-namespace Actuators
-{
+    float threshold;  ///< [m] Altitude threshold
+    int confidence;   ///< Number of samples to reach the threshold
+    Boardcore::Units::Frequency::Hertz
+        updateRate;  ///< [Hz] Update rate of the trigger
+};
 
-/* linter off */ using namespace std::chrono_literals;
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
-// On Lyra 6-gear planetary multiplier: 100us ~= 1cm
-
-namespace LeftServo
-{
-constexpr auto ROTATION  = 180.f;  // [deg]
-constexpr auto MIN_PULSE = 500us;
-constexpr auto MAX_PULSE = 2460us;
-}  // namespace LeftServo
-
-namespace RightServo
-{
-constexpr auto ROTATION  = 180.f;  // [deg]
-constexpr auto MIN_PULSE = 2460us;
-constexpr auto MAX_PULSE = 500us;
-}  // namespace RightServo
-
-constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
-
-namespace StatusLed
-{
-constexpr auto UPDATE_RATE  = 10_hz;
-constexpr auto OK_PERIOD    = 1000ms;
-constexpr auto ERROR_PERIOD = 100ms;
-}  // namespace StatusLed
-
-namespace Buzzer
-{
-constexpr auto UPDATE_RATE   = 10_hz;
-constexpr auto ARMED_PERIOD  = 500ms;
-constexpr auto LANDED_PERIOD = 1000ms;
-// PWM parameters
-constexpr auto FREQUENCY  = 500_hz;
-constexpr auto DUTY_CYCLE = 0.5f;
-}  // namespace Buzzer
-
-// Status configs
-
-}  // namespace Actuators
-}  // namespace Config
 }  // namespace Payload

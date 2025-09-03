@@ -730,7 +730,6 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
         {
             return HANDLED;
         }
-
         default:
         {
             return UNHANDLED;

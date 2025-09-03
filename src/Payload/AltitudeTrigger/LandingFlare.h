@@ -1,5 +1,5 @@
-/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Nicclò Betto
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Davide Basso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,54 +22,25 @@
 
 #pragma once
 
-#include <Payload/Configs/WingConfig.h>
-#include <utils/DependencyManager/DependencyManager.h>
-
-#include <atomic>
-
-#include "AltitudeTriggerConfig.h"
+#include "AltitudeTrigger.h"
 
 namespace Payload
 {
+
 class BoardScheduler;
 class NASController;
 
-class AltitudeTrigger
-    : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
+class LandingFlare : public Boardcore::InjectableWithDeps<
+                         Boardcore::InjectableBase<AltitudeTrigger>,
+                         BoardScheduler, NASController>
 {
 public:
-    explicit AltitudeTrigger(AltitudeTriggerConfig config);
-
-    AltitudeTrigger();
-
-    bool start();
-    bool isStarted();
-
-    void enable();
-    void disable();
-    bool isEnabled();
-
-    /**
-     * @return Set the deployment altitude.
-     */
-    void setDeploymentAltitude(float altitude);
-
-private:
-    /**
-     * @brief Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
-     * altitude is reached
-     */
-    void update();
-
-    std::atomic<bool> started{false};
-    std::atomic<bool> running{false};
-
-    std::atomic<float> thresholdAltitude{0};
-    int confidenceThreshold = 0;
-    Boardcore::Units::Frequency::Hertz updateRate{0};
-
-    int confidence = 0;  ///< Number of consecutive readings that are below the
-                         ///< target altitude
+    LandingFlare()
+        : Super({
+              .threshold  = Config::Wing::LandingFlare::ALTITUDE,
+              .confidence = Config::Wing::LandingFlare::CONFIDENCE,
+              .updateRate = Config::Wing::LandingFlare::UPDATE_RATE,
+          }) {};
 };
 
 }  // namespace Payload

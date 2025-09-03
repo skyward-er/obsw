@@ -112,14 +112,14 @@ private:
     std::atomic<Target> activeTarget;
 
     // Eigen::Vector2f targetNED;  // NED, defined in the base class
-    Eigen::Vector2f EMC;  // NED
-    Eigen::Vector2f M1;   // NED
-    Eigen::Vector2f M2;   // NED
+    Eigen::Vector2f EMC{0, 0};  // NED
+    Eigen::Vector2f M1{0, 0};   // NED
+    Eigen::Vector2f M2{0, 0};   // NED
 
-    uint32_t targetAltitudeConfidence;
-    uint32_t m2AltitudeConfidence;
-    uint32_t m1AltitudeConfidence;
-    uint32_t emcAltitudeConfidence;
+    uint32_t targetAltitudeConfidence = 0;
+    uint32_t m2AltitudeConfidence     = 0;
+    uint32_t m1AltitudeConfidence     = 0;
+    uint32_t emcAltitudeConfidence    = 0;
 };
 
 }  // namespace Payload

@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 #include <Payload/Configs/ActuatorsConfig.h>
 #include <Payload/Configs/WingConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/Wing/AutomaticWingAlgorithm.h>
@@ -41,7 +42,6 @@
 using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
-using namespace Payload::Config::Wing;
 using namespace Payload::Config::Actuators;
 
 namespace Payload
@@ -54,6 +54,7 @@ WingController::WingController()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
+    EventBroker::getInstance().subscribe(this, TOPIC_ALT);
 
     // Instantiate the algorithms
     loadAlgorithms();
@@ -148,15 +149,24 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             getModule<Actuators>()->cuttersOn();
             cuttersOffEventId = EventBroker::getInstance().postDelayed(
                 DPL_CUT_TIMEOUT, TOPIC_DPL,
-                milliseconds{CUTTERS_TIMEOUT}.count());
+                milliseconds{Config::Wing::CUTTERS_TIMEOUT}.count());
 
-            auto nasState  = getModule<NASController>()->getNasState();
-            float altitude = -nasState.d;
+            auto nasState = getModule<NASController>()->getNasState();
+            auto altitude = -nasState.d;  // [m]
             getModule<FlightStatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
 
-            flareEventId = EventBroker::getInstance().postDelayed(
-                DPL_FLARE_START, TOPIC_DPL, milliseconds{FLARE_WAIT}.count());
+            if (pumpCount > 0)  // If there is at least one pump specified
+                dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                    DPL_FLARE_START, TOPIC_DPL,
+                    milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
+            else
+                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+
+            if (Config::Wing::DynamicTarget::ENABLED)
+                initDynamicTarget(
+                    Config::Wing::DynamicTarget::LATITUDE_OFFSET,
+                    Config::Wing::DynamicTarget::LONGITUDE_OFFSET);
 
             return HANDLED;
         }
@@ -164,7 +174,9 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         case EV_EXIT:
         {
             // Stop flares in the case of an early exit
-            EventBroker::getInstance().removeDelayed(flareEventId);
+            EventBroker::getInstance().removeDelayed(dplFlareTimeoutEventId);
+            EventBroker::getInstance().removeDelayed(resetTimeoutEventId);
+            EventBroker::getInstance().removeDelayed(calibrationTimeoutEventId);
             resetWing();
 
             return HANDLED;
@@ -177,29 +189,30 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
         case DPL_FLARE_START:
         {
+            pumpCount--;
+
+            auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
+
             flareWing();
-            flareEventId = EventBroker::getInstance().postDelayed(
+            dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_FLARE_STOP, TOPIC_DPL,
-                milliseconds{FLARE_DURATION}.count());
+                milliseconds{pump.flareTime}.count());
 
             return HANDLED;
         }
 
         case DPL_FLARE_STOP:
         {
-            resetWing();
-            flareCount--;
+            auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
-            if (flareCount > 0)
-            {
-                flareEventId = EventBroker::getInstance().postDelayed(
-                    DPL_FLARE_START, TOPIC_DPL,
-                    milliseconds{FLARE_INTERVAL}.count());
-            }
-            else
-            {
+            resetWing();
+
+            if (pumpCount - 1 == 0)
                 EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
-            }
+            else
+                dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                    DPL_FLARE_START, TOPIC_DPL,
+                    milliseconds{pump.resetTime}.count());
 
             return HANDLED;
         }
@@ -225,12 +238,21 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             updateState(WingControllerState::FLYING_CONTROLLED_DESCENT);
 
             startAlgorithm();
+
+            // Enable the landing flare altitude trigger
+            getModule<LandingFlare>()->enable();
+
             return HANDLED;
         }
 
         case EV_EXIT:
         {
             stopAlgorithm();
+
+            EventBroker::getInstance().removeDelayed(ctrlFlareTimeoutEventId);
+
+            getModule<LandingFlare>()->disable();
+
             return HANDLED;
         }
 
@@ -242,6 +264,26 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         case WING_ALGORITHM_ENDED:
         {
             return transition(&WingController::OnGround);
+        }
+
+        case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
+        {
+            pauseAlgorithm();
+            flareWing();
+
+            ctrlFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                WING_LANDING_FLARE_STOP, TOPIC_FLIGHT,
+                milliseconds{Config::Wing::LandingFlare::DURATION}.count());
+
+            return HANDLED;
+        }
+
+        case WING_LANDING_FLARE_STOP:
+        {
+            resetWing();
+            resumeAlgorithm();
+
+            return HANDLED;
         }
 
         default:
@@ -260,6 +302,9 @@ State WingController::OnGround(const Boardcore::Event& event)
             updateState(WingControllerState::ON_GROUND);
 
             resetWing();
+
+            getModule<Actuators>()->disableServo(PARAFOIL_LEFT_SERVO);
+            getModule<Actuators>()->disableServo(PARAFOIL_RIGHT_SERVO);
 
             return HANDLED;
         }
@@ -302,7 +347,8 @@ bool WingController::start()
         return false;
     }
 
-    auto updateTask = scheduler.addTask([this] { update(); }, UPDATE_RATE);
+    auto updateTask =
+        scheduler.addTask([this] { update(); }, Config::Wing::UPDATE_RATE);
 
     if (updateTask == 0)
     {
@@ -321,7 +367,7 @@ bool WingController::start()
             float altitude = -nasState.d;
             emGuidance.updateActiveTarget(altitude);
         },
-        10_hz);
+        Config::Wing::TARGET_UPDATE_RATE);
 
     if (activeTargetTask == 0)
     {
@@ -387,13 +433,16 @@ bool WingController::selectAlgorithm(uint8_t index)
     if (state != WingControllerState::IDLE)
         return false;
 
-    switch (index)
+    Config::Wing::AlgorithmId id =
+        static_cast<Config::Wing::AlgorithmId>(index);
+
+    switch (id)
     {
-        case static_cast<uint8_t>(AlgorithmId::EARLY_MANEUVER):
-        case static_cast<uint8_t>(AlgorithmId::CLOSED_LOOP):
-        case static_cast<uint8_t>(AlgorithmId::ROTATION):
+        case Config::Wing::AlgorithmId::EARLY_MANEUVER:
+        case Config::Wing::AlgorithmId::CLOSED_LOOP:
+        case Config::Wing::AlgorithmId::ROTATION:
         {
-            selectedAlgorithm = static_cast<AlgorithmId>(index);
+            selectedAlgorithm = id;
 
             auto data = WingControllerAlgorithmData{
                 .timestamp = TimestampTimer::getTimestamp(),
@@ -421,13 +470,28 @@ Eigen::Vector2f WingController::getActiveTarget()
     return emGuidance.getActiveTarget();
 }
 
+void WingController::initDynamicTarget(float latitudeOffset,
+                                       float longitudeOffset)
+{
+    auto gps = getModule<Sensors>()->getUBXGPSLastSample();
+
+    // Convert the offset from meters to degrees
+    float earthRadius = 6371000;  // [m]
+    float metersPerDegreeLongitude =
+        earthRadius * Constants::DEGREES_TO_RADIANS *
+        cosf(gps.latitude * Constants::DEGREES_TO_RADIANS);
+    float metersPerDegreeLatitude = earthRadius * Constants::DEGREES_TO_RADIANS;
+
+    float newLatitude = gps.latitude + latitudeOffset / metersPerDegreeLatitude;
+    float newLongitude =
+        gps.longitude + longitudeOffset / metersPerDegreeLongitude;
+
+    setTargetCoordinates(newLatitude, newLongitude);
+}
+
 void WingController::loadAlgorithms()
 {
-    // Early Maneuver Guidance Automatic Algorithm
-    algorithms[static_cast<size_t>(AlgorithmId::EARLY_MANEUVER)] =
-        std::make_unique<AutomaticWingAlgorithm>(
-            PI::KP, PI::KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO,
-            emGuidance);
+    using namespace Config::Wing;
 
     // Closed Loop Guidance Automatic Algorithm
     algorithms[static_cast<size_t>(AlgorithmId::CLOSED_LOOP)] =
@@ -435,7 +499,38 @@ void WingController::loadAlgorithms()
             PI::KP, PI::KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO,
             clGuidance);
 
-    // Rotation Sequence
+    // Early Maneuver Guidance Automatic Algorithm
+    algorithms[static_cast<size_t>(AlgorithmId::EARLY_MANEUVER)] =
+        std::make_unique<AutomaticWingAlgorithm>(
+            PI::KP, PI::KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO,
+            emGuidance);
+
+    // Sequence
+    {
+        auto algorithm = std::make_unique<WingAlgorithm>(PARAFOIL_LEFT_SERVO,
+                                                         PARAFOIL_RIGHT_SERVO);
+        WingAlgorithmData step;
+
+        step.timestamp   = 0;
+        step.servo1Angle = 0;
+        step.servo2Angle = 120;
+        algorithm->addStep(step);
+
+        step.timestamp += microseconds{STRAIGHT_FLIGHT_TIMEOUT}.count();
+        step.servo1Angle = 0;
+        step.servo2Angle = 0;
+        algorithm->addStep(step);
+
+        step.timestamp += microseconds{STRAIGHT_FLIGHT_TIMEOUT}.count();
+        step.servo1Angle = 0;
+        step.servo2Angle = 0;
+        algorithm->addStep(step);
+
+        algorithms[static_cast<size_t>(AlgorithmId::SEQUENCE)] =
+            std::move(algorithm);
+    }
+
+    // Rotation
     {
         auto algorithm = std::make_unique<WingAlgorithm>(PARAFOIL_LEFT_SERVO,
                                                          PARAFOIL_RIGHT_SERVO);
@@ -457,8 +552,8 @@ void WingController::loadAlgorithms()
         algorithm->addStep(step);
 
         step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = LeftServo::ROTATION / 2;
-        step.servo2Angle = 0;
+        step.servo1Angle = LeftServo::ROTATION;
+        step.servo2Angle = RightServo::ROTATION;
         algorithm->addStep(step);
 
         step.timestamp += microseconds{ROTATION_PERIOD}.count();
@@ -466,12 +561,42 @@ void WingController::loadAlgorithms()
         step.servo2Angle = RightServo::ROTATION / 2;
         algorithm->addStep(step);
 
-        step.timestamp += microseconds{2min}.count();
+        step.timestamp += microseconds{ROTATION_PERIOD}.count();
+        step.servo1Angle = 0;
+        step.servo2Angle = 0;
+        algorithm->addStep(step);
+
+        step.timestamp += microseconds{ROTATION_PERIOD}.count();
         step.servo1Angle = 0;
         step.servo2Angle = 0;
         algorithm->addStep(step);
 
         algorithms[static_cast<size_t>(AlgorithmId::ROTATION)] =
+            std::move(algorithm);
+    }
+
+    // Progressive rotation
+    {
+        auto algorithm = std::make_unique<WingAlgorithm>(PARAFOIL_LEFT_SERVO,
+                                                         PARAFOIL_RIGHT_SERVO);
+        WingAlgorithmData step;
+
+        step.timestamp = microseconds{PROGRESSIVE_ROTATION_TIMEOUT}.count();
+
+        for (auto angle = 80; angle >= 0; angle -= WING_DECREMENT)
+        {
+            step.servo1Angle = angle;
+            step.servo2Angle = 0;
+            algorithm->addStep(step);
+            step.timestamp += microseconds{COMMAND_PERIOD}.count();
+
+            step.servo1Angle = 0;
+            step.servo2Angle = angle;
+            algorithm->addStep(step);
+            step.timestamp += microseconds{COMMAND_PERIOD}.count();
+        }
+
+        algorithms[static_cast<size_t>(AlgorithmId::PROGRESSIVE_ROTATION)] =
             std::move(algorithm);
     }
 }
@@ -499,6 +624,9 @@ void WingController::stopAlgorithm()
         getCurrentAlgorithm().end();
     }
 }
+
+void WingController::pauseAlgorithm() { running = false; }
+void WingController::resumeAlgorithm() { running = true; }
 
 void WingController::updateEarlyManeuverPoints()
 {
