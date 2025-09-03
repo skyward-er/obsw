@@ -144,9 +144,18 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
 struct CalibrationData
 {
     uint64_t timestamp = 0;
-    float gyroBiasX    = 0.0f;
-    float gyroBiasY    = 0.0f;
-    float gyroBiasZ    = 0.0f;
+    float acc0BiasX    = 0.0f;
+    float acc0BiasY    = 0.0f;
+    float acc0BiasZ    = 0.0f;
+    float gyro0BiasX   = 0.0f;
+    float gyro0BiasY   = 0.0f;
+    float gyro0BiasZ   = 0.0f;
+    float acc1BiasX    = 0.0f;
+    float acc1BiasY    = 0.0f;
+    float acc1BiasZ    = 0.0f;
+    float gyro1BiasX   = 0.0f;
+    float gyro1BiasY   = 0.0f;
+    float gyro1BiasZ   = 0.0f;
     float magBiasX     = 0.0f;
     float magBiasY     = 0.0f;
     float magBiasZ     = 0.0f;
@@ -158,10 +167,14 @@ struct CalibrationData
     {
         return STRUCT_DEF(
             CalibrationData,
-            FIELD_DEF(timestamp) FIELD_DEF(gyroBiasX) FIELD_DEF(gyroBiasY)
-                FIELD_DEF(gyroBiasZ) FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
-                    FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
-                        FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
+            FIELD_DEF(timestamp) FIELD_DEF(acc0BiasX) FIELD_DEF(acc0BiasY)
+                FIELD_DEF(acc0BiasZ) FIELD_DEF(gyro0BiasX) FIELD_DEF(gyro0BiasY)
+                    FIELD_DEF(gyro0BiasZ) FIELD_DEF(acc1BiasX) FIELD_DEF(
+                        acc1BiasY) FIELD_DEF(acc1BiasZ) FIELD_DEF(gyro1BiasX)
+                        FIELD_DEF(gyro1BiasY) FIELD_DEF(gyro1BiasZ)
+                            FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
+                                FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
+                                    FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
     }
 };
 

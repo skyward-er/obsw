@@ -110,36 +110,4 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
     }
 };
 
-struct SensorCalibrationData
-{
-    uint64_t timestamp      = 0;
-    float gyroBiasX         = 0.0f;
-    float gyroBiasY         = 0.0f;
-    float gyroBiasZ         = 0.0f;
-    float magBiasX          = 0.0f;
-    float magBiasY          = 0.0f;
-    float magBiasZ          = 0.0f;
-    float magScaleX         = 0.0f;
-    float magScaleY         = 0.0f;
-    float magScaleZ         = 0.0f;
-    float staticPressBias   = 0.0f;
-    float staticPressScale  = 0.0f;
-    float dynamicPressBias  = 0.0f;
-    float dynamicPressScale = 0.0f;
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(
-            SensorCalibrationData,
-            FIELD_DEF(timestamp) FIELD_DEF(gyroBiasX) FIELD_DEF(gyroBiasY)
-                FIELD_DEF(gyroBiasZ) FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
-                    FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
-                        FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ)
-                            FIELD_DEF(staticPressBias)
-                                FIELD_DEF(staticPressScale)
-                                    FIELD_DEF(dynamicPressBias)
-                                        FIELD_DEF(dynamicPressScale));
-    }
-};
-
 }  // namespace Payload

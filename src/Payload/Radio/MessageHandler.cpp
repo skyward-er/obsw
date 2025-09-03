@@ -768,15 +768,27 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_message_t msg;
             mavlink_calibration_tm_t tm{};
 
-            auto cal = parent.getModule<Sensors>()->getCalibration();
+            auto data = parent.getModule<Sensors>()->getCalibration();
 
-            tm.timestamp   = TimestampTimer::getTimestamp();
-            tm.mag_bias_x  = cal.magBiasX;
-            tm.mag_bias_y  = cal.magBiasY;
-            tm.mag_bias_z  = cal.magBiasZ;
-            tm.mag_scale_x = cal.magScaleX;
-            tm.mag_scale_y = cal.magScaleY;
-            tm.mag_scale_z = cal.magScaleZ;
+            tm.timestamp    = data.timestamp;
+            tm.acc0_bias_x  = data.acc0BiasX;
+            tm.acc0_bias_y  = data.acc0BiasY;
+            tm.acc0_bias_z  = data.acc0BiasZ;
+            tm.gyro0_bias_x = data.gyro0BiasX;
+            tm.gyro0_bias_y = data.gyro0BiasY;
+            tm.gyro0_bias_z = data.gyro0BiasZ;
+            tm.acc1_bias_x  = data.acc1BiasX;
+            tm.acc1_bias_y  = data.acc1BiasY;
+            tm.acc1_bias_z  = data.acc1BiasZ;
+            tm.gyro1_bias_x = data.gyro1BiasX;
+            tm.gyro1_bias_y = data.gyro1BiasY;
+            tm.gyro1_bias_z = data.gyro1BiasZ;
+            tm.mag_bias_x   = data.magBiasX;
+            tm.mag_bias_y   = data.magBiasY;
+            tm.mag_bias_z   = data.magBiasZ;
+            tm.mag_scale_x  = data.magScaleX;
+            tm.mag_scale_y  = data.magScaleY;
+            tm.mag_scale_z  = data.magScaleZ;
 
             mavlink_msg_calibration_tm_encode(config::Mavlink::SYSTEM_ID,
                                               config::Mavlink::COMPONENT_ID,

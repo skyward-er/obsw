@@ -31,6 +31,7 @@
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
 #include <chrono>
+#include <mutex>
 
 #include "SensorData.h"
 
@@ -112,7 +113,7 @@ bool Sensors::start()
         {
             auto mag = getLIS2MDLExtLastSample();
 
-            Lock<FastMutex> lock{magCalibrationMutex};
+            std::lock_guard<std::mutex> lock{magCalibrationMutex};
             magCalibrator.feed(mag);
         },
         Config::Sensors::MAG_CALIBRATION_RATE);
@@ -130,29 +131,55 @@ bool Sensors::start()
     return true;
 }
 
-void Sensors::calibrate() {}
-
-SensorCalibrationData Sensors::getCalibration()
+void Sensors::calibrate()
 {
-    // TODO Modify Mavlink messages for ZVK calibration parameters
-    Lock<FastMutex> lock1{magCalibrationMutex};
+    // TODO: Reset and start the ZVK
 
-    SensorCalibrationData data;
-    data.timestamp = TimestampTimer::getTimestamp();
+    // Log the current calibration
+    sdLogger.log(getCalibration());
+}
 
-    data.magBiasX  = magCalibration.getb().x();
-    data.magBiasY  = magCalibration.getb().y();
-    data.magBiasZ  = magCalibration.getb().z();
-    data.magScaleX = magCalibration.getA().x();
-    data.magScaleY = magCalibration.getA().y();
-    data.magScaleZ = magCalibration.getA().z();
+Main::CalibrationData Sensors::getCalibration()
+{
+    std::lock(magCalibrationMutex, lsm6Calibration0Mutex,
+              lsm6Calibration1Mutex);
+    std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex, std::adopt_lock);
 
-    return data;
+    auto accBias0  = accCalibration0.getV();
+    auto gyroBias0 = gyroCalibration0.getV();
+    auto accBias1  = accCalibration1.getV();
+    auto gyroBias1 = gyroCalibration1.getV();
+    auto magBias   = magCalibration.getb();
+    auto magScale  = magCalibration.getA();
+
+    return {
+        .timestamp  = TimestampTimer::getTimestamp(),
+        .acc0BiasX  = accBias0.x(),
+        .acc0BiasY  = accBias0.y(),
+        .acc0BiasZ  = accBias0.z(),
+        .gyro0BiasX = gyroBias0.x(),
+        .gyro0BiasY = gyroBias0.y(),
+        .gyro0BiasZ = gyroBias0.z(),
+        .acc1BiasX  = accBias1.x(),
+        .acc1BiasY  = accBias1.y(),
+        .acc1BiasZ  = accBias1.z(),
+        .gyro1BiasX = gyroBias1.x(),
+        .gyro1BiasY = gyroBias1.y(),
+        .gyro1BiasZ = gyroBias1.z(),
+        .magBiasX   = magBias.x(),
+        .magBiasY   = magBias.y(),
+        .magBiasZ   = magBias.z(),
+        .magScaleX  = magScale.x(),
+        .magScaleY  = magScale.y(),
+        .magScaleZ  = magScale.z(),
+    };
 }
 
 void Sensors::resetMagCalibrator()
 {
-    Lock<FastMutex> lock{magCalibrationMutex};
+    std::lock_guard<std::mutex> lock{magCalibrationMutex};
     magCalibrator = SoftAndHardIronCalibration{};
 }
 
@@ -168,7 +195,7 @@ void Sensors::disableMagCalibrator()
 
 bool Sensors::saveMagCalibration()
 {
-    Lock<FastMutex> lock{magCalibrationMutex};
+    std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
     SixParametersCorrector calibration = magCalibrator.computeResult();
 
@@ -270,7 +297,7 @@ DynamicPressureData Sensors::getDynamicPressureLastSample()
 LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
 {
     auto sample = getLIS2MDLExtLastSample();
-    Lock<FastMutex> lock{magCalibrationMutex};
+    std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
     auto corrected =
         magCalibration.correct(static_cast<MagnetometerData>(sample));
@@ -284,7 +311,7 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
 LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 {
     auto sample = getLIS2MDLLastSample();
-    Lock<FastMutex> lock{magCalibrationMutex};
+    std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
     auto corrected =
         magCalibration.correct(static_cast<MagnetometerData>(sample));
@@ -298,7 +325,7 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
 {
     auto sample = getLSM6DSRX0LastSample();
-    Lock<FastMutex> lock{lsm6Calibration0Mutex};
+    std::lock_guard<std::mutex> lock{lsm6Calibration0Mutex};
 
     auto correctedAcc =
         accCalibration0.correct(static_cast<AccelerometerData>(sample));
@@ -318,7 +345,7 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
 LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
 {
     auto sample = getLSM6DSRX1LastSample();
-    Lock<FastMutex> lock{lsm6Calibration1Mutex};
+    std::lock_guard<std::mutex> lock{lsm6Calibration1Mutex};
 
     auto correctedAcc =
         accCalibration1.correct(static_cast<AccelerometerData>(sample));

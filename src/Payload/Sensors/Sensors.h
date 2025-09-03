@@ -44,6 +44,8 @@
 #include <sensors/correction/TwelveParametersCorrector/TwelveParametersCorrector.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <mutex>
+
 #include "SensorData.h"
 
 namespace Payload
@@ -52,7 +54,6 @@ class BoardScheduler;
 class Buses;
 class FlightStatsRecorder;
 
-// 266; 328; 366; Commented out vn100 methods
 class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
                                                      FlightStatsRecorder>
 {
@@ -65,7 +66,7 @@ public:
 
     void calibrate();
 
-    SensorCalibrationData getCalibration();
+    Main::CalibrationData getCalibration();
 
     void resetMagCalibrator();
     void enableMagCalibrator();
@@ -158,16 +159,16 @@ private:
 
     bool sensorManagerInit();
 
-    miosix::FastMutex magCalibrationMutex;
+    std::mutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
-    miosix::FastMutex lsm6Calibration0Mutex;
+    std::mutex lsm6Calibration0Mutex;
     Boardcore::TwelveParametersCorrector accCalibration0;
     Boardcore::TwelveParametersCorrector gyroCalibration0;
 
-    miosix::FastMutex lsm6Calibration1Mutex;
+    std::mutex lsm6Calibration1Mutex;
     Boardcore::TwelveParametersCorrector accCalibration1;
     Boardcore::TwelveParametersCorrector gyroCalibration1;
 

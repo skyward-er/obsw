@@ -45,6 +45,7 @@
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace Main
@@ -116,7 +117,7 @@ protected:
 
     Boardcore::TaskScheduler& getSensorsScheduler();
 
-    miosix::FastMutex canMutex;
+    std::mutex canMutex;
     // Payload
     Boardcore::PressureData canPitotDynamicPressure;
     Boardcore::PressureData canPitotStaticPressure;
@@ -184,16 +185,16 @@ private:
 
     bool sensorManagerInit();
 
-    miosix::FastMutex magCalibrationMutex;
+    std::mutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
-    miosix::FastMutex lsm6Calibration0Mutex;
+    std::mutex lsm6Calibration0Mutex;
     Boardcore::TwelveParametersCorrector accCalibration0;
     Boardcore::TwelveParametersCorrector gyroCalibration0;
 
-    miosix::FastMutex lsm6Calibration1Mutex;
+    std::mutex lsm6Calibration1Mutex;
     Boardcore::TwelveParametersCorrector accCalibration1;
     Boardcore::TwelveParametersCorrector gyroCalibration1;
 
