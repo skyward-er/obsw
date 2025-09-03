@@ -190,6 +190,20 @@ struct GuidanceDataHIL
 };
 
 /**
+ * @brief Pin data sent to the simulator
+ */
+struct PinDataHIL
+{
+    float pinLaunch = 0;
+
+    explicit PinDataHIL() : pinLaunch(0.0f) {}
+
+    explicit PinDataHIL(float pinLaunch) : pinLaunch(pinLaunch) {}
+
+    void print() { printf("pin launch: %f \n", pinLaunch); }
+};
+
+/**
  * @brief Data structure used by the simulator in order to directly deserialize
  * the data received
  *
@@ -216,15 +230,20 @@ struct ActuatorData
     NASStateHIL nasState;
     ActuatorsStateHIL actuatorsState;
     GuidanceDataHIL guidanceData;
+    PinDataHIL pin;
     float signal;
 
-    ActuatorData() : nasState(), actuatorsState(), guidanceData(), signal(0) {}
+    ActuatorData()
+        : nasState(), actuatorsState(), guidanceData(), pin(), signal(0)
+    {
+    }
 
     ActuatorData(const NASStateHIL& nasState,
                  const ActuatorsStateHIL& actuatorsState,
-                 const GuidanceDataHIL& guidanceData, float signal)
+                 const GuidanceDataHIL& guidanceData, const PinDataHIL& pin,
+                 float signal)
         : nasState(nasState), actuatorsState(actuatorsState),
-          guidanceData(guidanceData), signal(signal)
+          guidanceData(guidanceData), pin(pin), signal(signal)
     {
     }
 
@@ -233,6 +252,7 @@ struct ActuatorData
         nasState.print();
         actuatorsState.print();
         guidanceData.print();
+        pin.print();
     }
 };
 }  // namespace Payload

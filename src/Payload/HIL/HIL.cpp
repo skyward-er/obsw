@@ -253,10 +253,11 @@ bool PayloadHIL::start()
 
 ActuatorData PayloadHIL::updateActuatorData()
 {
-    auto nas       = getModule<Payload::NASController>();
-    auto fmm       = getModule<Payload::FlightModeManager>();
-    auto wing      = getModule<Payload::WingController>();
-    auto actuators = getModule<Payload::Actuators>();
+    auto nas        = getModule<Payload::NASController>();
+    auto fmm        = getModule<Payload::FlightModeManager>();
+    auto wing       = getModule<Payload::WingController>();
+    auto actuators  = getModule<Payload::Actuators>();
+    auto pinHandler = getModule<Payload::PinHandler>();
 
     NASStateHIL nasStateHIL(nas->getNasState());
 
@@ -276,9 +277,12 @@ ActuatorData PayloadHIL::updateActuatorData()
 
     GuidanceDataHIL guidanceData(psiRef, deltaA, heading[0], heading[1]);
 
+    PinDataHIL pinData(
+        pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState);
+
     // Returning the feedback for the simulator
     return ActuatorData(
-        nasStateHIL, actuatorsStateHIL, guidanceData,
+        nasStateHIL, actuatorsStateHIL, guidanceData, pinData,
         (fmm->testState(&Payload::FlightModeManager::FlyingAscending) ? 3 : 0));
 };
 }  // namespace Payload
