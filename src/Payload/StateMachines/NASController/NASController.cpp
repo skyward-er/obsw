@@ -283,8 +283,8 @@ void NASController::update()
 
     auto imu          = sensors->getIMULastSample();
     auto gps          = sensors->getUBXGPSLastSample();
-    auto baro         = sensors->getLPS22DFLastSample();
-    auto staticPitot  = sensors->getStaticPressureLastSample();
+    auto baro         = sensors->getStaticPressureLastSample();
+    auto staticPitot  = baro;
     auto dynamicPitot = sensors->getDynamicPressureLastSample();
 
     // Calculate acceleration
@@ -292,6 +292,12 @@ void NASController::update()
     float accLength = acc.norm();
 
     miosix::Lock<miosix::FastMutex> l(nasMutex);
+
+    auto prevState    = nas.getState();
+    auto ref          = nas.getReferenceValues();
+    float mslAltitude = ref.refAltitude - prevState.d;
+    float mach        = Aeroutils::computeMach(mslAltitude, prevState.vd,
+                                               Constants::MSL_TEMPERATURE);
 
     // Perform initial NAS prediction
     nas.predictGyro(imu);
@@ -320,15 +326,13 @@ void NASController::update()
         nas.correctBaro(baro.pressure);
 
     // Correct with pitot if one pressure sample is new
-    // Disable pitot correction
-    // if (dynamicPitot.pressure > 0 &&
-    //     (staticPitotTimestamp < staticPitot.pressureTimestamp ||
-    //      dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
-    //     (-nas.getState().d < Config::NAS::PITOT_ALTITUDE_THRESHOLD) &&
-    //     (-nas.getState().vd > Config::NAS::PITOT_SPEED_THRESHOLD))
-    // {
-    //     nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
-    // }
+    if (dynamicPitot.pressure > 0 &&
+        (staticPitotTimestamp < staticPitot.pressureTimestamp ||
+         dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
+        mach > Config::NAS::PITOT_MACH_THRESHOLD)
+    {
+        nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
+    }
 
     // Correct with accelerometer if the acceleration is in specs
     if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
@@ -360,7 +364,6 @@ void NASController::update()
     dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
 
     auto state = nas.getState();
-    auto ref   = nas.getReferenceValues();
 
     getModule<FlightStatsRecorder>()->updateNas(state, ref.refTemperature);
     Logger::getInstance().log(state);
