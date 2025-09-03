@@ -25,6 +25,7 @@
 #include <algorithms/ZVK/ZVKConfig.h>
 #include <common/ReferenceConfig.h>
 #include <units/Frequency.h>
+#include <Eigen/Dense>
 
 namespace Main
 {
@@ -38,10 +39,7 @@ namespace ZVK
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
-
-constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
-constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
+Eigen::Vector3f initialAttitude = {0,0,0};
 
 //TO DO : ASK GNC ACTUAL PARAMETERS
 static const Boardcore::ZVKConfig CONFIG = {

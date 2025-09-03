@@ -68,8 +68,8 @@ bool ZVKController::start()
     }
 
     // Initialize state
-    Matrix<float, 16, 1> x = Matrix<float, 13, 1>::Zero();
-    Vector4f q             = SkyQuaternion::eul2quat({0, 0, 0});
+    Matrix<float, 16, 1> x = Matrix<float, 16, 1>::Zero();
+    Vector4f q             = SkyQuaternion::eul2quat(Config::ZVK::initialAttitude);
 
     x(0) = q(0);
     x(1) = q(1);
@@ -138,47 +138,6 @@ void ZVKController::update()
 }
 
 
-void ZVKController::calibrate()
-{
-    Sensors* sensors = getModule<Sensors>();
-
-    Vector3f accAcc = Vector3f::Zero();
-    Vector3f magAcc = Vector3f::Zero();
-
-    // First sample and average the data over a number of samples
-    for (int i = 0; i < Config::ZVK::CALIBRATION_SAMPLES_COUNT; i++)
-    {
-        IMUData imu = sensors->getIMULastSample();
-
-        Vector3f acc = static_cast<AccelerometerData>(imu);
-        Vector3f mag = static_cast<MagnetometerData>(imu);
-
-        accAcc += acc;
-        magAcc += mag;
-
-        Thread::sleep(Config::ZVK::CALIBRATION_SLEEP_TIME);
-    }
-
-    accAcc /= Config::ZVK::CALIBRATION_SAMPLES_COUNT;
-    accAcc.normalize();
-    magAcc /= Config::ZVK::CALIBRATION_SAMPLES_COUNT;
-    magAcc.normalize();
-
-    // Use the triad to compute initial state
-    StateInitializer init;
-    init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
-
-    // Set initial state (TEMPORARY !!!!)
-    Lock<FastMutex> lock{zvkMutex};
-    Matrix<float, 16 ,1> initState = Matrix<float, 16, 1>::Zero(); 
-    Matrix<float, 13, 1> triadComputedState = init.getInitX(); 
-    initState.block<4,1>(0,0) = triadComputedState.block<4,1>(6,0);
-    zvk.setX(initState);
-
-    // Transition to active state
-    EventBroker::getInstance().post(ZVK_START, TOPIC_ZVK);
-}
-
 void ZVKController::state_init(const Event& event)
 {
     switch (event)
@@ -186,35 +145,14 @@ void ZVKController::state_init(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ZVKControllerState::INIT);
-            break;
-        }
 
-        case ZVK_CALIBRATE:
-        {
-            transition(&ZVKController::state_calibrating);
-            break;
-        }
-    }
-}
-
-void ZVKController::state_calibrating(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(ZVKControllerState::CALIBRATING);
-            calibrate();
-            break;
-        }
-
-        case ZVK_START:
-        {
+            // Immediate transition to active
             transition(&ZVKController::state_active);
             break;
         }
     }
 }
+
 
 void ZVKController::state_active(const Event& event)
 {
@@ -226,10 +164,6 @@ void ZVKController::state_active(const Event& event)
             break;
         }
         case FLIGHT_ARMED:
-        {
-            transition(&ZVKController::state_end);
-            break;
-        }
         case ZVK_FORCE_STOP:
         {
             transition(&ZVKController::state_end);

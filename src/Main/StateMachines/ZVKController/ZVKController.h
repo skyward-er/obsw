@@ -56,7 +56,6 @@ public:
 
 private:
     void update();
-    void calibrate();
 
     // FSM states
     void state_init(const Boardcore::Event& event);
