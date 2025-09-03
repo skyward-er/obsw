@@ -22,26 +22,22 @@
 
 #pragma once
 
+#include <chrono>
+
 namespace Main
 {
-
 namespace Config
 {
-
 namespace FlightModeManager
 {
+/* linter off */ using namespace std::chrono;
 
-// Set at 15 minutes
-constexpr unsigned int MISSION_TIMEOUT = 15 * 60 * 1000;
-
-constexpr unsigned int ENGINE_SHUTDOWN_TIMEOUT = 6000;
-
-constexpr unsigned int APOGEE_TIMEOUT = 28 * 1000;
-
-constexpr unsigned int CUT_DURATION = 500;  // [ms]
+constexpr auto MISSION_TIMEOUT          = 15min;
+constexpr auto ENGINE_SHUTDOWN_TIMEOUT  = 6000ms;
+constexpr auto APOGEE_TIMEOUT           = 28s;
+constexpr auto NITROGEN_VENTING_TIMEOUT = 150s;  // 120s + 25% safety margin
+constexpr auto CUT_DURATION             = 500ms;
 
 }  // namespace FlightModeManager
-
 }  // namespace Config
-
 }  // namespace Main

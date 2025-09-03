@@ -27,6 +27,7 @@
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 
+using namespace std::chrono;
 using namespace Main;
 using namespace Common;
 using namespace Boardcore;
@@ -527,13 +528,21 @@ State FlightModeManager::state_flying(const Event& event)
             // Post mission end timeout
             missionTimeoutEvent = EventBroker::getInstance().postDelayed(
                 FMM_MISSION_TIMEOUT, TOPIC_FMM,
-                Config::FlightModeManager::MISSION_TIMEOUT);
+                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
+                    .count());
 
             return HANDLED;
         }
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(missionTimeoutEvent);
+            if (nitrogenVentingEvent >= 0)
+                EventBroker::getInstance().removeDelayed(nitrogenVentingEvent);
+            if (missionTimeoutEvent >= 0)
+                EventBroker::getInstance().removeDelayed(missionTimeoutEvent);
+
+            nitrogenVentingEvent = -1;
+            missionTimeoutEvent  = -1;
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -543,6 +552,17 @@ State FlightModeManager::state_flying(const Event& event)
         case EV_INIT:
         {
             return transition(&FlightModeManager::state_powered_ascent);
+        }
+        case FMM_NITROGEN_VENTING:
+        {
+            nitrogenVentingEvent = -1;
+
+            getModule<CanHandler>()->sendServoOpenCommand(
+                ServosList::NITROGEN_VALVE,
+                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
+                    .count());
+
+            return HANDLED;
         }
         case FMM_MISSION_TIMEOUT:
         case TMTC_FORCE_LANDING:
@@ -569,13 +589,17 @@ State FlightModeManager::state_powered_ascent(const Event& event)
             // Safety engine shutdown
             engineShutdownEvent = EventBroker::getInstance().postDelayed(
                 FMM_ENGINE_TIMEOUT, TOPIC_FMM,
-                Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT);
+                milliseconds{Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT}
+                    .count());
 
             return HANDLED;
         }
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(engineShutdownEvent);
+            if (engineShutdownEvent >= 0)
+                EventBroker::getInstance().removeDelayed(engineShutdownEvent);
+            engineShutdownEvent = -1;
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -591,6 +615,20 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         {
             getModule<CanHandler>()->sendServoCloseCommand(
                 ServosList::MAIN_VALVE);
+            getModule<CanHandler>()->sendServoCloseCommand(
+                ServosList::NITROGEN_VALVE);
+
+            getModule<CanHandler>()->sendServoOpenCommand(
+                ServosList::N2_QUENCHING_VALVE,
+                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
+                    .count());
+
+            EventBroker::getInstance().postDelayed(
+                FMM_NITROGEN_VENTING, TOPIC_FMM,
+                milliseconds{
+                    Config::FlightModeManager::NITROGEN_VENTING_TIMEOUT}
+                    .count());
+
             return transition(&FlightModeManager::state_unpowered_ascent);
         }
         default:
@@ -613,12 +651,17 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
 
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 FMM_APOGEE_TIMEOUT, TOPIC_FMM,
-                Config::FlightModeManager::APOGEE_TIMEOUT);
+                milliseconds{Config::FlightModeManager::APOGEE_TIMEOUT}
+                    .count());
 
             return HANDLED;
         }
         case EV_EXIT:
         {
+            if (apogeeTimeoutEvent >= 0)
+                EventBroker::getInstance().removeDelayed(apogeeTimeoutEvent);
+            apogeeTimeoutEvent = -1;
+
             return HANDLED;
         }
         case EV_EMPTY:
@@ -664,7 +707,9 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             // Vent the tank
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::OX_VENTING_VALVE, 600000);
+                ServosList::OX_VENTING_VALVE,
+                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
+                    .count());
 
             return HANDLED;
         }
@@ -706,14 +751,16 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             getModule<Actuators>()->cutterOn();
             cutterTimeoutEvent = EventBroker::getInstance().postDelayed(
                 FMM_CUTTER_TIMEOUT, TOPIC_FMM,
-                Config::FlightModeManager::CUT_DURATION);
+                milliseconds{Config::FlightModeManager::CUT_DURATION}.count());
 
             return HANDLED;
         }
 
         case EV_EXIT:
         {
-            EventBroker::getInstance().removeDelayed(cutterTimeoutEvent);
+            if (cutterTimeoutEvent >= 0)
+                EventBroker::getInstance().removeDelayed(cutterTimeoutEvent);
+            cutterTimeoutEvent = -1;
 
             // Make sure the cutters are off
             getModule<Actuators>()->cutterOff();

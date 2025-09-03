@@ -273,8 +273,10 @@ int main()
                     // FMM, just open it more than the timeout
                     canHandler->sendServoOpenCommand(
                         ServosList::MAIN_VALVE,
-                        Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
-                            1000);
+                        milliseconds{
+                            Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
+                            1s}
+                            .count());
                 });
         }
         else
@@ -282,17 +284,34 @@ int main()
             std::cout << "Registering HIL flight phases" << std::endl;
 
             // Simulate motor valve state changes
-            hil->registerToFlightPhase(
-                MainFlightPhases::LIFTOFF,
-                [&] { motorStatus->lockData()->mainValveOpen = true; });
+            hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
+                                       [&]
+                                       {
+                                           auto motor = motorStatus->lockData();
+                                           motor->mainValveOpen     = true;
+                                           motor->nitrogenValveOpen = true;
+                                       });
 
-            hil->registerToFlightPhase(
-                MainFlightPhases::SHUTDOWN,
-                [&] { motorStatus->lockData()->mainValveOpen = false; });
+            hil->registerToFlightPhase(MainFlightPhases::SHUTDOWN,
+                                       [&]
+                                       {
+                                           auto motor = motorStatus->lockData();
+                                           motor->mainValveOpen        = false;
+                                           motor->nitrogenValveOpen    = false;
+                                           motor->n2QuenchingValveOpen = true;
+                                       });
 
-            hil->registerToFlightPhase(
-                MainFlightPhases::PARA1,
-                [&] { motorStatus->lockData()->oxVentingValveOpen = true; });
+            hil->registerToFlightPhase(MainFlightPhases::PARA1,
+                                       [&]
+                                       {
+                                           auto motor = motorStatus->lockData();
+                                           motor->oxVentingValveOpen = true;
+                                           // Normally the nitrogen valve should
+                                           // open after a delay from the N2
+                                           // quenching but we can't do that in
+                                           // HIL mode
+                                           motor->nitrogenValveOpen = true;
+                                       });
         }
     }
 

@@ -72,10 +72,11 @@ private:
     bool nasReady = false;
     bool adaReady = false;
 
-    uint16_t missionTimeoutEvent = 0;
-    uint16_t engineShutdownEvent = 0;
-    uint16_t apogeeTimeoutEvent  = 0;
-    uint16_t cutterTimeoutEvent  = 0;
+    int32_t missionTimeoutEvent  = -1;
+    int32_t engineShutdownEvent  = -1;
+    int32_t apogeeTimeoutEvent   = -1;
+    int32_t cutterTimeoutEvent   = -1;
+    int32_t nitrogenVentingEvent = -1;
 
     std::atomic<FlightModeManagerState> state{
         FlightModeManagerState::ON_GROUND};
