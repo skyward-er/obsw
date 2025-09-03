@@ -94,8 +94,6 @@ ZVKState ZVKController::getZVKState()
 
 void ZVKController::setOrientation(Eigen::Quaternion<float> quat)
 {
-    // Need to lock mutex because the only invocation comes from the radio
-    // which is a separate thread
     Lock<FastMutex> lock{zvkMutex};
 
     Matrix<float, 16, 1> x = zvk.getX();

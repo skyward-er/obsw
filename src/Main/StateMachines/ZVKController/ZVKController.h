@@ -59,7 +59,6 @@ private:
 
     // FSM states
     void state_init(const Boardcore::Event& event);
-    void state_calibrating(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
