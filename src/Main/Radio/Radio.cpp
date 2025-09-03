@@ -542,26 +542,17 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
         case MAV_CALIBRATION_ID:
         {
             mavlink_message_t msg;
-            mavlink_calibration_tm_t tm;
+            mavlink_calibration_tm_t tm{};
 
             CalibrationData data = getModule<Sensors>()->getCalibration();
 
-            tm.timestamp            = data.timestamp;
-            tm.gyro_bias_x          = data.gyroBiasX;
-            tm.gyro_bias_y          = data.gyroBiasY;
-            tm.gyro_bias_z          = data.gyroBiasZ;
-            tm.mag_bias_x           = data.magBiasX;
-            tm.mag_bias_y           = data.magBiasY;
-            tm.mag_bias_z           = data.magBiasZ;
-            tm.mag_scale_x          = data.magScaleX;
-            tm.mag_scale_y          = data.magScaleY;
-            tm.mag_scale_z          = data.magScaleZ;
-            tm.static_press_1_bias  = -1.0f;  // TODO: remove in mavlink
-            tm.static_press_1_scale = -1.0f;  // TODO: remove in mavlink
-            tm.static_press_2_bias  = -1.0f;  // TODO: remove in mavlink
-            tm.static_press_2_scale = -1.0f;  // TODO: remove in mavlink
-            tm.dpl_bay_press_bias   = -1.0f;  // TODO: remove in mavlink
-            tm.dpl_bay_press_scale  = -1.0f;  // TODO: remove in mavlink
+            tm.timestamp   = data.timestamp;
+            tm.mag_bias_x  = data.magBiasX;
+            tm.mag_bias_y  = data.magBiasY;
+            tm.mag_bias_z  = data.magBiasZ;
+            tm.mag_scale_x = data.magScaleX;
+            tm.mag_scale_y = data.magScaleY;
+            tm.mag_scale_z = data.magScaleZ;
 
             mavlink_msg_calibration_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                               Config::Radio::MAV_COMPONENT_ID,
