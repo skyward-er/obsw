@@ -160,9 +160,6 @@ void MEAController::update()
             if (baro.pressureTimestamp > lastBaroTimestamp)
                 step.withCCPressure(baro);
 
-            if (imu.accelerationTimestamp > lastAccTimestamp)
-                step.withAcceleration(imu);
-
             if (nas.timestamp > lastNasTimestamp)
                 step.withSpeedAndAlt(-nas.vd, mslAltitude);
 
