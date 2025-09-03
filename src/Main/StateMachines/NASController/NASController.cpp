@@ -118,11 +118,16 @@ void NASController::update()
     {
         Sensors* sensors = getModule<Sensors>();
 
-        IMUData imu               = sensors->getIMULastSample();
-        UBXGPSData gps            = sensors->getUBXGPSLastSample();
-        PressureData baro         = sensors->getAtmosPressureLastSample();
-        PressureData staticPitot  = sensors->getCanPitotStaticPressure();
-        PressureData dynamicPitot = sensors->getCanPitotDynamicPressure();
+        auto prevState    = nas.getState();
+        auto ref          = getModule<AlgoReference>()->getReferenceValues();
+        float mslAltitude = ref.refAltitude - prevState.d;
+        float mach        = Aeroutils::computeMach(mslAltitude, prevState.vd,
+                                                   Constants::MSL_TEMPERATURE);
+        auto imu          = sensors->getIMULastSample();
+        auto gps          = sensors->getUBXGPSLastSample();
+        auto baro         = sensors->getAtmosPressureLastSample();
+        auto staticPitot  = sensors->getCanPitotStaticPressure();
+        auto dynamicPitot = sensors->getCanPitotDynamicPressure();
 
         // Calculate acceleration
         Vector3f acc    = static_cast<AccelerometerData>(imu);
@@ -156,15 +161,13 @@ void NASController::update()
             nas.correctBaro(baro.pressure);
 
         // Correct with pitot if one pressure sample is new
-        // Disable pitot correction
-        // if (dynamicPitot.pressure > 0 &&
-        //     (staticPitotTimestamp < staticPitot.pressureTimestamp ||
-        //      dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
-        //     (-nas.getState().d < Config::NAS::PITOT_ALTITUDE_THRESHOLD) &&
-        //     (-nas.getState().vd > Config::NAS::PITOT_SPEED_THRESHOLD))
-        // {
-        //     nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
-        // }
+        if (dynamicPitot.pressure > 0 &&
+            (staticPitotTimestamp < staticPitot.pressureTimestamp ||
+             dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
+            mach > Config::NAS::PITOT_MACH_THRESHOLD)
+        {
+            nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
+        }
 
         // Correct with accelerometer if the acceleration is in specs
         if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)

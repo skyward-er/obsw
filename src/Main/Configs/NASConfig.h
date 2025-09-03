@@ -77,11 +77,8 @@ constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;
 // acceleration
 constexpr int ACCELERATION_1G_SAMPLES = 20;
 
-// Altitude under which we make the pitot correction
-constexpr float PITOT_ALTITUDE_THRESHOLD = 800;  // [m]
-
-// Vertical speed over which we make the pitot correction
-constexpr float PITOT_SPEED_THRESHOLD = 70;  // [m/s]
+// Mach number under which we disable the pitot correction
+constexpr float PITOT_MACH_THRESHOLD = 0.35;
 
 }  // namespace NAS
 
