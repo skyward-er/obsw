@@ -33,8 +33,8 @@ namespace Data
 namespace ABK
 {
 
-extern Boardcore::TrajectorySet CLOSED_TRAJECTORY_SET;
-extern Boardcore::TrajectorySet OPEN_TRAJECTORY_SET;
+extern const Boardcore::TrajectorySet CLOSED_TRAJECTORY_SET;
+extern const Boardcore::TrajectorySet OPEN_TRAJECTORY_SET;
 
 }  // namespace ABK
 

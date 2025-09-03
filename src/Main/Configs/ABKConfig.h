@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <algorithms/AirBrakes/AirBrakesInterp.h>
+#include <algorithms/AirBrakes/AirBrakesInterpPID.h>
 #include <units/Frequency.h>
 
 #include <cstdint>
@@ -46,7 +46,8 @@ constexpr float MACH_LIMIT = 0.8f;  // [-]
 
 constexpr unsigned int SHADOW_MODE_TIMEOUT = 300;  // [ms]
 
-static const Boardcore::AirBrakesInterpConfig CONFIG = {
+// TODO : Update with new Roccaraso parameters!
+static const Boardcore::AirBrakesInterpPIDConfig CONFIG = {
     .FILTER_MINIMUM_ALTITUDE = 400,
     .FILTER_MAXIMUM_ALTITUDE = 1000,
     .STARTING_FILTER_VALUE   = 0.75f,
@@ -54,6 +55,11 @@ static const Boardcore::AirBrakesInterpConfig CONFIG = {
     .DZ                      = 10,
     .INITIAL_MASS            = 26,
     .DM                      = 3,
+    .ARB_FREQ                = Hertz{UPDATE_RATE}.value(),
+    .PID_REF                 = 0.2f,
+    .KP                      = 1.2f,
+    .KI                      = 1,
+    .KD                      = 0.01f,
     .N_FORWARD               = 0};
 
 #else
@@ -63,14 +69,19 @@ static const Boardcore::AirBrakesInterpConfig CONFIG = {
 
 constexpr unsigned int SHADOW_MODE_TIMEOUT = 500;  // [ms]
 
-static const Boardcore::AirBrakesInterpConfig CONFIG = {
+static const Boardcore::AirBrakesInterpPIDConfig CONFIG = {
     .FILTER_MINIMUM_ALTITUDE = 1000,
     .FILTER_MAXIMUM_ALTITUDE = 3000,
     .STARTING_FILTER_VALUE   = 0.9f,
     .ABK_CRITICAL_ALTITUDE   = 2990,
     .DZ                      = 10,
-    .INITIAL_MASS            = 26,
+    .INITIAL_MASS            = 29,
     .DM                      = 0.4f,
+    .ARB_FREQ                = Hertz{UPDATE_RATE}.value(),
+    .PID_REF                 = 0.2f,
+    .KP                      = 1.2f,
+    .KI                      = 1,
+    .KD                      = 0.01f,
     .N_FORWARD               = 0};
 
 #endif

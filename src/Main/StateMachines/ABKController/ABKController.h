@@ -28,7 +28,7 @@
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
-#include <algorithms/AirBrakes/AirBrakesInterp.h>
+#include <algorithms/AirBrakes/AirBrakesInterpPID.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -69,7 +69,7 @@ private:
 
     uint16_t shadowModeTimeoutEvent = 0;
 
-    Boardcore::AirBrakesInterp abk;
+    Boardcore::AirBrakesInterpPID abk;
 };
 
 }  // namespace Main
