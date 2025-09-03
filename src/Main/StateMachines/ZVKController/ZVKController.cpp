@@ -184,3 +184,9 @@ void ZVKController::state_end(const Event& event)
     }
 }
 
+void ZVKController::updateAndLogStatus(ZVKControllerState state)
+{
+    this->state              = state;
+    ZVKControllerStatus data = {TimestampTimer::getTimestamp(), state};
+    sdLogger.log(data);
+}
