@@ -56,7 +56,7 @@ public:
         }
 
         if (!zvk.start())
-          {
+        {
             LOG_ERR(logger, "Failed to start ZVK scheduler");
             return false;
         }

@@ -25,18 +25,19 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ZVKController/ZVKControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/ZVK/ZVK.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
-#include <Main/StateMachines/ZVKController/ZVKControllerData.h>
 
 namespace Main
 {
 
-class ZVKController : public Boardcore::FSM<ZVKController>,
-                      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+class ZVKController
+    : public Boardcore::FSM<ZVKController>,
+      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
                                            StatsRecorder, AlgoReference>
 {
 public:
@@ -50,7 +51,7 @@ public:
 
     /**
      * @brief Method to set the orientation of the system with the quaternions
-     * (scalar first).
+     * (scalar last).
      */
     void setOrientation(Eigen::Quaternion<float> quat);
 
@@ -72,13 +73,13 @@ private:
     miosix::FastMutex zvkMutex;
     Boardcore::ZVK zvk;
 
-    //int magDecimateCount  = 0;
-    //int acc1gSamplesCount = 0;
-    //bool acc1g            = false;
+    // int magDecimateCount  = 0;
+    // int acc1gSamplesCount = 0;
+    // bool acc1g            = false;
 
-    uint64_t lastGyroTimestamp     = 0;
-    uint64_t lastAccTimestamp      = 0;
-    uint64_t lastMagTimestamp      = 0;
+    uint64_t lastGyroTimestamp = 0;
+    uint64_t lastAccTimestamp  = 0;
+    uint64_t lastMagTimestamp  = 0;
 };
 
 }  // namespace Main

@@ -34,7 +34,6 @@ enum class ZVKControllerState : uint8_t
 {
     INIT = 0,
     ACTIVE,
-    UNACTIVE,
     END
 };
 
@@ -48,6 +47,6 @@ struct ZVKControllerStatus
         return STRUCT_DEF(ZVKControllerStatus,
                           FIELD_DEF(timestamp) FIELD_DEF(state));
     }
-}; 
+};
 
 }  // namespace Main

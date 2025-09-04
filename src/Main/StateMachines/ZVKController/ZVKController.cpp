@@ -22,15 +22,15 @@
 
 #include "ZVKController.h"
 
-#include <Main/Configs/ZVKConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
+#include <Main/Configs/ZVKConfig.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
-#include <algorithms/NAS/StateInitializer.h>
+
 #include <algorithm>
 
 using namespace Main;
@@ -40,8 +40,8 @@ using namespace miosix;
 using namespace Eigen;
 
 ZVKController::ZVKController()
-   : FSM{&ZVKController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
-      Config::Scheduler::ZVK_PRIORITY},
+    : FSM{&ZVKController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
+          Config::Scheduler::ZVK_PRIORITY},
       zvk{Config::ZVK::CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ZVK);
@@ -50,7 +50,7 @@ ZVKController::ZVKController()
 
 bool ZVKController::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getZvkScheduler();
 
     size_t result =
         scheduler.addTask([this]() { update(); }, Config::ZVK::UPDATE_RATE);
@@ -69,7 +69,7 @@ bool ZVKController::start()
 
     // Initialize state
     Matrix<float, 16, 1> x = Matrix<float, 16, 1>::Zero();
-    Vector4f q             = SkyQuaternion::eul2quat(Config::ZVK::initialAttitude);
+    Vector4f q = SkyQuaternion::eul2quat(Config::ZVK::initialAttitude);
 
     x(0) = q(0);
     x(1) = q(1);
@@ -81,10 +81,7 @@ bool ZVKController::start()
     return true;
 }
 
-ZVKControllerState ZVKController::getState()
-{
-    return state;
-}
+ZVKControllerState ZVKController::getState() { return state; }
 
 ZVKState ZVKController::getZVKState()
 {
@@ -102,7 +99,6 @@ void ZVKController::setOrientation(Eigen::Quaternion<float> quat)
     x(2)                   = quat.z();
     x(3)                   = quat.w();
     zvk.setX(x);
-
 }
 
 void ZVKController::update()
@@ -119,11 +115,9 @@ void ZVKController::update()
 
         zvk.predict(imu, imu);
 
-        if (lastMagTimestamp < imu.magneticFieldTimestamp){
+        if (lastMagTimestamp < imu.magneticFieldTimestamp)
 
             zvk.correct(imu, imu, imu);
-
-        }
 
         lastGyroTimestamp = imu.angularSpeedTimestamp;
         lastAccTimestamp  = imu.accelerationTimestamp;
@@ -134,7 +128,6 @@ void ZVKController::update()
         sdLogger.log(state);
     }
 }
-
 
 void ZVKController::state_init(const Event& event)
 {
@@ -150,7 +143,6 @@ void ZVKController::state_init(const Event& event)
         }
     }
 }
-
 
 void ZVKController::state_active(const Event& event)
 {
@@ -188,3 +180,4 @@ void ZVKController::updateAndLogStatus(ZVKControllerState state)
     ZVKControllerStatus data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }
+
