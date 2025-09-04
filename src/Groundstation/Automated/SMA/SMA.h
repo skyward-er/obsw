@@ -140,6 +140,9 @@ private:
     // Scheduler to be used for update function
     Boardcore::TaskScheduler* scheduler;
 
+    // Mutex to lock for setters and usage
+    miosix::FastMutex mutex;
+
     SMAStatus status;
     Boardcore::Propagator propagator;
     Boardcore::Follower follower;

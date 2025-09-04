@@ -70,7 +70,9 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
     }
     else
     {
+        Lock<miosix::FastMutex> lock(mutex);
         follower.setAntennaCoordinates(antennaCoordinates);
+        // TODO: Block with mutex?
         antennaCoordinatesSet = true;
         EventBroker::getInstance().post(ARP_FIX_ANTENNAS, TOPIC_ARP);
     }
@@ -201,6 +203,7 @@ void SMA::update()
         // and multipliers set
         case SMAState::INSERT_INFO:
         {
+            Lock<miosix::FastMutex> lock(mutex);
             if (antennaCoordinatesSet)
                 EventBroker::getInstance().post(ARP_INFO_INSERTED, TOPIC_ARP);
 
