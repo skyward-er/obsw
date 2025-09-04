@@ -52,14 +52,17 @@ int main()
 {
     DependencyManager manager;
 
-    Buses* buses              = new Buses();
-    BoardScheduler* scheduler = new BoardScheduler();
+    auto buses     = new Buses();
+    auto scheduler = new BoardScheduler();
 
-    Sensors* sensors = new Sensors();
+    auto sensors     = new Sensors();
+    auto motorStatus = new MotorStatus();  // unused but required by Sensors
 
     bool initResult = manager.insert<Buses>(buses) &&
                       manager.insert<BoardScheduler>(scheduler) &&
-                      manager.insert<Sensors>(sensors) && manager.inject();
+                      manager.insert<Sensors>(sensors) &&
+                      manager.insert<MotorStatus>(motorStatus) &&
+                      manager.inject();
 
     if (!initResult)
     {
