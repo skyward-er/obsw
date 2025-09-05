@@ -128,9 +128,12 @@ Actuators::Actuators()
 
 bool Actuators::start()
 {
-    // Enable all servos
-    for (size_t i = 0; i < infos.size(); ++i)
-        infos[i].servo->enable();
+    // Enable all servos and close them to force a backstep
+    for (ServoInfo& info : infos)
+    {
+        info.servo->enable();
+        info.closeServo();
+    }
 
     // Reset the safety venting timestamp
     safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
@@ -230,17 +233,16 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     auto nextDeadline = TimePoint::max();
 
     // Get the closest deadline from all valves
-    for (uint8_t idx = 0; idx < infos.size(); idx++)
+    for (auto& info : infos)
     {
-        if (infos[idx].closeTs != ValveClosed)
-            nextDeadline = std::min(nextDeadline, infos[idx].closeTs);
+        if (info.closeTs != ValveClosed)
+            nextDeadline = std::min(nextDeadline, info.closeTs);
 
-        if (infos[idx].backstepTs != ValveClosed)
-            nextDeadline = std::min(nextDeadline, infos[idx].backstepTs);
+        if (info.backstepTs != ValveClosed)
+            nextDeadline = std::min(nextDeadline, info.backstepTs);
     }
 
-    if (safetyVentingTs < nextDeadline)
-        nextDeadline = safetyVentingTs;
+    nextDeadline = std::min(nextDeadline, safetyVentingTs);
 
     return nextDeadline;
 }
@@ -297,7 +299,7 @@ void Actuators::task()
     }
 
     // Check if we reached the inactivity timeout and should vent
-    if (currentTime > safetyVentingTs)
+    if (currentTime >= safetyVentingTs)
     {
         getServo(ServosList::OX_VENTING_VALVE)
             ->openServoWithTime(

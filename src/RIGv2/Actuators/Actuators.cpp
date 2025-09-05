@@ -136,17 +136,22 @@ Actuators::Actuators()
         servo.unsafeSetServoPosition(0.0f);
 
     n2_3wayValveInfo.unsafeSetServoPosition(0.0f);
+    unsafeCloseChamber();
 }
 
 bool Actuators::isStarted() { return started; }
 
 bool Actuators::start()
 {
-    // Enable all servos
-    for (ServoInfo& info : infos)
+    // Enable all servos and close them to force a backstep
+    for (auto& info : infos)
+    {
         info.servo->enable();
+        info.closeServo();
+    }
 
     n2_3wayValveInfo.servo->enable();
+    n2_3wayValveInfo.closeServo();
 
     if (!SignaledDeadlineTask::start())
     {
@@ -435,24 +440,21 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     auto nextDeadline = TimePoint::max();
 
     // Get the closest deadline from all valves
-    for (uint8_t idx = 0; idx < infos.size(); idx++)
+    for (auto& info : infos)
     {
-        if (infos[idx].closeTs != ValveClosed &&
-            infos[idx].closeTs < nextDeadline)
-            nextDeadline = infos[idx].closeTs;
+        if (info.closeTs != ValveClosed)
+            nextDeadline = std::min(nextDeadline, info.closeTs);
 
-        if (infos[idx].backstepTs != ValveClosed &&
-            infos[idx].backstepTs < nextDeadline)
-            nextDeadline = infos[idx].backstepTs;
+        if (info.backstepTs != ValveClosed)
+            nextDeadline = std::min(nextDeadline, info.backstepTs);
     }
 
     // 3-way valve is not a timed valve, only needs backstep handling
-    if (n2_3wayValveInfo.backstepTs != ValveClosed &&
-        n2_3wayValveInfo.backstepTs < nextDeadline)
-        nextDeadline = n2_3wayValveInfo.backstepTs;
+    if (n2_3wayValveInfo.backstepTs != ValveClosed)
+        nextDeadline = std::min(nextDeadline, n2_3wayValveInfo.backstepTs);
 
-    if (chamberCloseTs != ValveClosed && chamberCloseTs < nextDeadline)
-        nextDeadline = chamberCloseTs;
+    if (chamberCloseTs != ValveClosed)
+        nextDeadline = std::min(nextDeadline, chamberCloseTs);
 
     return nextDeadline;
 }
@@ -540,7 +542,7 @@ void Actuators::task()
         n2_3wayValveStateChanged = false;
     }
 
-    if (currentTime > n2_3wayValveInfo.backstepTs)
+    if (currentTime >= n2_3wayValveInfo.backstepTs)
     {
         auto backstepPosition =
             n2_3wayValveState ? 1.0f - Config::Servos::SERVO_BACKSTEP_AMOUNT

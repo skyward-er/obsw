@@ -161,11 +161,6 @@ private:
     // Time when the chamber valve should close, 0 if currently closed
     TimePoint chamberCloseTs = ValveClosed;
 
-    bool canMainOpen        = false;
-    bool canNitrogenOpen    = false;
-    bool canOxVentingOpen   = false;
-    bool canN2QuenchingOpen = false;
-
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 };

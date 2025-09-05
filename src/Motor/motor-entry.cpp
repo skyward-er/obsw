@@ -111,7 +111,13 @@ int main()
                   << std::endl;
     }
 
-    // Start modules
+    std::cout << "Starting BoardScheduler" << std::endl;
+    if (!scheduler->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
+    }
+
     std::cout << "Starting Actuators" << std::endl;
     led2On();
     if (!actuators->start())
@@ -134,13 +140,6 @@ int main()
     else
     {
         led3Off();
-    }
-
-    std::cout << "Starting BoardScheduler" << std::endl;
-    if (!scheduler->start())
-    {
-        initResult = false;
-        std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
     }
 
     if (hil)
