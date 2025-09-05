@@ -91,12 +91,6 @@ void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
     {
         // Set NAS origin
         follower.setRocketNASOrigin(rocketCoordinates);
-
-        // Set NAS as zero
-        NASState initialNAS = {};
-        follower.setLastRocketNasState(initialNAS);
-
-        propagator.setRocketNasState(initialNAS);
         EventBroker::getInstance().post(ARP_FIX_ROCKET, TOPIC_ARP);
     }
 }
