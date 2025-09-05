@@ -31,6 +31,7 @@ namespace Hub
 {
 
 constexpr bool ETHERNET_ENABLED = true;
+constexpr bool RANDOM_IP        = false;
 constexpr bool USART2_ENABLED   = true;
 constexpr bool USART4_ENABLED   = true;
 

@@ -71,12 +71,12 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
     // Set with the dipswitch offset
     if (!randomIp)
     {
-        WizIp ip = IP_BASE;
+        WizIp ip = GS_IP_BASE;
         ip.d = 1 + ipOffset;  // Add to the ip the offset set on the dipswitch
         currentIp = ip;
         this->wiz5500->setSourceIp(ip);
 
-        WizMac mac = MAC_BASE;
+        WizMac mac = GS_MAC_BASE;
         // Add to the mac address the offset set on the dipswitch
         mac.c += 1 + ipOffset;
         // In case of sniffing change ulteriorly the MAC to avoid switch to

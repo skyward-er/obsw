@@ -29,6 +29,21 @@
 namespace Groundstation
 {
 
+namespace detail
+{
+constexpr auto nextSubnetwork(Boardcore::WizIp ip)
+{
+    ip.c += 1;
+    return ip;
+}
+
+constexpr auto nextMacGroup(Boardcore::WizMac mac)
+{
+    mac.d += 1;
+    return mac;
+}
+}  // namespace detail
+
 constexpr uint16_t RECV_PORT = 42070;
 constexpr uint16_t SEND_PORT = 42069;
 
@@ -36,5 +51,11 @@ constexpr Boardcore::WizMac MAC_BASE = {0x69, 0x69, 0x69, 0x69, 0, 0};
 constexpr Boardcore::WizIp IP_BASE   = {169, 254, 1, 0};
 constexpr Boardcore::WizIp GATEWAY   = {169, 254, 1, 1};
 constexpr Boardcore::WizIp SUBNET    = {255, 255, 0, 0};
+
+// Base addresses used when static IP is enabled
+constexpr Boardcore::WizIp GS_IP_BASE    = IP_BASE;
+constexpr Boardcore::WizMac GS_MAC_BASE  = MAC_BASE;
+constexpr Boardcore::WizIp RIG_IP_BASE   = detail::nextSubnetwork(GS_IP_BASE);
+constexpr Boardcore::WizMac RIG_MAC_BASE = detail::nextMacGroup(GS_MAC_BASE);
 
 }  // namespace Groundstation

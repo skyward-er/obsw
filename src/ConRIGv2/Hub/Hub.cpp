@@ -153,14 +153,33 @@ bool Hub::initEthernet()
     wiz5500->setSubnetMask(SUBNET);
     wiz5500->setGatewayIp(GATEWAY);
 
-    currentIp  = generateRandomIpAddress(IP_BASE, SUBNET);
-    currentMac = generateRandomMacAddress(MAC_BASE);
+    if (Config::Hub::RANDOM_IP)
+    {
+        currentIp  = generateRandomIpAddress(IP_BASE, SUBNET);
+        currentMac = generateRandomMacAddress(MAC_BASE);
+    }
+    else
+    {
+        currentIp = RIG_IP_BASE;
+        currentIp.d += 1;
+        currentMac = RIG_MAC_BASE;
+        currentMac.f += 0x01;
+    }
+
     wiz5500->setSourceIp(currentIp);
     wiz5500->setSourceMac(currentMac);
 
     wiz5500->setOnIpConflict(
         [this]
         {
+            if (!Config::Hub::RANDOM_IP)
+            {
+                std::cerr << "IP conflict detected but static IP is enabled, "
+                             "check IP configuration"
+                          << std::endl;
+                return;
+            }
+
             currentIp = generateRandomIpAddress(IP_BASE, SUBNET);
             wiz5500->setSourceIp(currentIp);
 
