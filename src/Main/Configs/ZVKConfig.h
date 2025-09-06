@@ -25,7 +25,7 @@
 #include <algorithms/ZVK/ZVKConfig.h>
 #include <common/ReferenceConfig.h>
 #include <units/Frequency.h>
-
+#include <cmath>
 #include <Eigen/Dense>
 
 namespace Main
@@ -46,18 +46,18 @@ Eigen::Vector3f initialAttitude     = {0, 0, 0};
 // TO DO : ASK GNC ACTUAL PARAMETERS
 static const Boardcore::ZVKConfig CONFIG = {
     .T               = UPDATE_RATE_SECONDS,
-    .TUNE_PARAM_mu   = 0,
-    .TUNE_PARAM_Re   = 0,
-    .TUNE_PARAM_J2   = 0,
-    .SIGMA_GYRO      = 0,
-    .SIGMA_GYRO_BIAS = 0,
-    .SIGMA_ACC       = 0,
-    .SIGMA_BIAS_ACC  = 0,
-    .SIGMA_MAG       = 0,
-    .BIAS_ACC        = 0,
-    .BIAS_GYRO       = 0,
-    .VEL_UNCERTAINTY = 0,
-    .POS_UNCERTAINTY = 0,
+    .TUNE_PARAM_mu   = 3.986004418e14,
+    .TUNE_PARAM_Re   = 6368137,
+    .TUNE_PARAM_J2   = 1.082636e-3,
+    .SIGMA_GYRO      = 5e-4,
+    .SIGMA_GYRO_BIAS = 1e-8,
+    .SIGMA_ACC       = 5e-2,
+    .SIGMA_BIAS_ACC  = 1e-6,
+    .SIGMA_MAG       = 3,
+    .BIAS_ACC        = 0.025 * 0.025,
+    .BIAS_GYRO       = 0.0025 * 0.0025,
+    .VEL_UNCERTAINTY = 1e-6,
+    .POS_UNCERTAINTY = 1e-6,
     .NED_MAG         = Common::ReferenceConfig::nedMag};
 
 }  // namespace ZVK
