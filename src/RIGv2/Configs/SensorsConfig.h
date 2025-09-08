@@ -151,12 +151,12 @@ constexpr float ROCKET_P1_MASS    = 40.290;
 // constexpr float ROCKET_P1_MASS    = 25.300;
 
 // New Rocket ramp loadcell calibration data
-// Points obtained through regression. Check
-// https://docs.google.com/spreadsheets/d/1nQse2GMNQPRd9KqRvvtfn-WiyyxnLysz/edit?gid=918023600#gid=918023600
-constexpr float ROCKET_P0_VOLTAGE = -0.00003;
-constexpr float ROCKET_P0_MASS    = 0.0328;
-constexpr float ROCKET_P1_VOLTAGE = -0.0074;
-constexpr float ROCKET_P1_MASS    = 45.6882;
+// Points obtained from measurement on the ramp, through regression. Check
+// https://docs.google.com/spreadsheets/d/1nQse2GMNQPRd9KqRvvtfn-WiyyxnLysz/edit?gid=1597496666#gid=1597496666
+constexpr float ROCKET_P0_VOLTAGE = -0.001689;
+constexpr float ROCKET_P0_MASS    = 10.307;
+constexpr float ROCKET_P1_VOLTAGE = -0.007356;
+constexpr float ROCKET_P1_MASS    = 45.768;
 
 /* OLD CALIBRATION DATA (before 07/09/2024, before new flipping)
 // LC Vessel sensor calibration data
