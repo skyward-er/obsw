@@ -70,7 +70,7 @@ bool CanHandler::start()
                 DeviceStatus{
                     .timestamp = TimestampTimer::getTimestamp(),
                     .logNumber = static_cast<int16_t>(stats.logNumber),
-                    .state     = static_cast<uint8_t>(initStatus.load()),
+                    .state     = initStatus.load(),
                     .armed     = false,
                     .hil       = PersistentVars::getHilMode(),
                     .logGood   = stats.lastWriteError == 0,
@@ -267,7 +267,7 @@ bool CanHandler::start()
     return true;
 }
 
-void CanHandler::setInitStatus(InitStatus status) { initStatus = status; }
+void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
 
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {

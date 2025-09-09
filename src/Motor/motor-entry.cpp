@@ -42,6 +42,27 @@ using namespace Boardcore;
 using namespace Motor;
 using namespace miosix;
 
+namespace Motor
+{
+enum class StatusBit
+{
+    MODULES,
+    SD_LOGGER,
+    SCHEDULER,
+    ACTUATORS,
+    CAN_HANDLER,
+    SENSORS,
+    LAST = 7,  // Last status bit since flag is 8 bits
+};
+
+static uint8_t statusFlags = 0;
+
+void setStatus(StatusBit bit)
+{
+    statusFlags |= (1 << static_cast<uint8_t>(bit));
+}
+}  // namespace Motor
+
 int main()
 {
     ledOff();
@@ -83,6 +104,10 @@ int main()
         std::cerr << "*** Failed to inject dependencies ***" << std::endl;
         return -1;
     }
+    else
+    {
+        setStatus(StatusBit::MODULES);
+    }
 
     // Status led indicators
     // led1: Sensors init/error
@@ -109,6 +134,7 @@ int main()
         std::cout << "Logger Ok!\n"
                   << "\tLog number: " << sdLogger.getStats().logNumber
                   << std::endl;
+        setStatus(StatusBit::SD_LOGGER);
     }
 
     std::cout << "Starting BoardScheduler" << std::endl;
@@ -116,6 +142,10 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start BoardScheduler ***" << std::endl;
+    }
+    else
+    {
+        setStatus(StatusBit::SCHEDULER);
     }
 
     std::cout << "Starting Actuators" << std::endl;
@@ -128,6 +158,7 @@ int main()
     else
     {
         led2Off();
+        setStatus(StatusBit::ACTUATORS);
     }
 
     std::cout << "Starting CanHandler" << std::endl;
@@ -140,6 +171,7 @@ int main()
     else
     {
         led3Off();
+        setStatus(StatusBit::CAN_HANDLER);
     }
 
     if (hil)
@@ -166,17 +198,18 @@ int main()
         std::cout << "\tCalibrating sensors" << std::endl;
         sensors->calibrate();
         led1Off();
+        setStatus(StatusBit::SENSORS);
     }
 
     if (initResult)
     {
-        canHandler->setInitStatus(InitStatus::INIT_OK);
+        canHandler->setInitStatus(statusFlags);
         std::cout << "All good!" << std::endl;
         led4On();
     }
     else
     {
-        canHandler->setInitStatus(InitStatus::INIT_ERR);
+        canHandler->setInitStatus(statusFlags);
         std::cerr << "*** Init failure ***" << std::endl;
     }
 
