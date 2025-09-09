@@ -118,10 +118,11 @@ struct Pump
     std::chrono::milliseconds resetTime;
 };
 
+// Pumps are ordered from the first to activate to the last
 constexpr std::array<Pump, 3> PUMPS = {
-    Pump{.flareTime = 2s, .resetTime = 1s},
-    Pump{.flareTime = 2s, .resetTime = 1s},
     Pump{.flareTime = 1s, .resetTime = 500ms},
+    Pump{.flareTime = 2s, .resetTime = 1s},
+    Pump{.flareTime = 2s, .resetTime = 1s},
 };
 
 }  // namespace Deployment

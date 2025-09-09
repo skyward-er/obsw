@@ -189,8 +189,6 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
         case DPL_FLARE_START:
         {
-            pumpCount--;
-
             auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
             flareWing();
@@ -207,7 +205,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
             resetWing();
 
-            if (pumpCount - 1 == 0)
+            if (++pumpCount >= Config::Wing::Deployment::PUMPS.size())
                 EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
             else
                 dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(

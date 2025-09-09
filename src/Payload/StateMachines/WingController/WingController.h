@@ -245,7 +245,7 @@ private:
      */
     ClosedLoopGuidanceAlgorithm clGuidance;
 
-    uint16_t pumpCount = Config::Wing::Deployment::PUMPS.size();
+    uint16_t pumpCount = 0;
 
     uint16_t calibrationTimeoutEventId = 0;
     uint16_t cuttersOffEventId         = 0;
