@@ -65,6 +65,16 @@ bool Sensors::start()
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
+    uint8_t taskId = getModule<BoardScheduler>()->sensors().addTask(
+        [this] { checkOxTankOverpressure(); },
+        Config::Sensors::OxTankOverpressure::CHECK_RATE);
+
+    if (!taskId)
+    {
+        LOG_ERR(logger, "Failed to create OxTankOverpressure task");
+        return false;
+    }
+
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Failed to call postSensorCreationHook");
@@ -463,27 +473,7 @@ void Sensors::oxTankTopPressureInit()
 
 void Sensors::oxTankTopPressureCallback()
 {
-    static uint32_t confidence = 0;
-
-    auto sample = getOxTankTopPressure();
-
-    if (sample.pressure > 64.f)
-        confidence++;
-    else
-        confidence = 0;
-
-    if (confidence > 100)
-    {
-        auto actuators = getModule<Actuators>();
-
-        bool alreadyOpen = actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
-        if (!alreadyOpen)
-            actuators->openServoWithTime(ServosList::OX_VENTING_VALVE, 1000);
-
-        confidence = 0;
-    }
-
-    sdLogger.log(OxTankTopPressureData{sample});
+    sdLogger.log(OxTankTopPressureData{getOxTankTopPressure()});
 }
 
 void Sensors::oxTankBottomPressureInit()
@@ -683,4 +673,28 @@ bool Sensors::sensorManagerInit()
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
     return manager->start();
+}
+
+void Sensors::checkOxTankOverpressure()
+{
+    using namespace Config::Sensors::OxTankOverpressure;
+    auto sample = getOxTankTopPressure();
+
+    auto now = std::chrono::steady_clock::now();
+
+    if (sample.pressure < PRESSURE_THRESHOLD)
+        oxTankPressureOkTime = now;
+
+    if (now - oxTankPressureOkTime > HYSTERESIS)
+    {
+        auto actuators = getModule<Actuators>();
+
+        bool alreadyOpen = actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
+        if (!alreadyOpen)
+            actuators->openServoWithTime(
+                ServosList::OX_VENTING_VALVE,
+                milliseconds{VENTING_DURATION}.count());
+
+        oxTankPressureOkTime = now;
+    }
 }

@@ -140,6 +140,10 @@ private:
 
     bool sensorManagerInit();
 
+    void checkOxTankOverpressure();
+    // The last time point when the OX tank was ok (below threshold)
+    std::chrono::steady_clock::time_point oxTankPressureOkTime = {};
+
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 };
