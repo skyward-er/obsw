@@ -135,7 +135,7 @@ constexpr auto IOW = Boardcore::ND015A::IOWatchdogEnable::DISABLED;
 constexpr auto BWL = Boardcore::ND015A::BWLimitFilter::BWL_200;
 constexpr auto NTC = Boardcore::ND015A::NotchEnable::DISABLED;
 
-constexpr uint8_t ODR = 0x1C;
+constexpr uint8_t ODR = 0x00;  // Auto select based on BW
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
@@ -148,7 +148,7 @@ constexpr auto IOW = Boardcore::ND015D::IOWatchdogEnable::DISABLED;
 constexpr auto BWL = Boardcore::ND015D::BWLimitFilter::BWL_200;
 constexpr auto NTC = Boardcore::ND015D::NotchEnable::DISABLED;
 
-constexpr uint8_t ODR = 0x1C;
+constexpr uint8_t ODR = 0x00;  // Auto select based on BW
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
