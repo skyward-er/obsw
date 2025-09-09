@@ -37,6 +37,7 @@ set(MAIN_COMPUTER
     src/Main/Actuators/Actuators.cpp
     src/Main/StateMachines/NASController/NASController.cpp
     src/Main/StateMachines/ADAController/ADAController.cpp
+    src/Main/StateMachines/ZVKController/ZVKController.cpp
     src/Main/PinHandler/PinHandler.cpp
     src/Main/StateMachines/ABKController/ABKController.cpp
     src/Main/StateMachines/MEAController/MEAController.cpp

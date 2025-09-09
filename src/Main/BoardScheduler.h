@@ -35,6 +35,7 @@ public:
     BoardScheduler()
         : nas{Main::Config::Scheduler::NAS_PRIORITY},
           ada{Main::Config::Scheduler::ADA_PRIORITY},
+          zvk{Main::Config::Scheduler::ZVK_PRIORITY},
           sensors{Main::Config::Scheduler::SENSORS_PRIORITY},
           others{Main::Config::Scheduler::OTHERS_PRIORITY}
     {
@@ -51,6 +52,12 @@ public:
         if (!ada.start())
         {
             LOG_ERR(logger, "Failed to start ADA scheduler");
+            return false;
+        }
+
+        if (!zvk.start())
+        {
+            LOG_ERR(logger, "Failed to start ZVK scheduler");
             return false;
         }
 
@@ -80,6 +87,8 @@ public:
 
     Boardcore::TaskScheduler& getAdaScheduler() { return ada; }
 
+    Boardcore::TaskScheduler& getZvkScheduler() { return zvk; }
+
     Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
     Boardcore::TaskScheduler& getPinObserverScheduler()
@@ -105,6 +114,7 @@ private:
 
     Boardcore::TaskScheduler nas;
     Boardcore::TaskScheduler ada;
+    Boardcore::TaskScheduler zvk;
     Boardcore::TaskScheduler sensors;
     Boardcore::TaskScheduler others;
 };

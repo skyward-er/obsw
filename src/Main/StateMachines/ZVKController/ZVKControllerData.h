@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Giovanni Annaloro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,30 @@
 #pragma once
 
 #include <cstdint>
+#include <ostream>
+#include <reflect.hpp>
 #include <string>
-#include <vector>
 
-namespace Common
+namespace Main
 {
 
-enum Topics : uint8_t
+enum class ZVKControllerState : uint8_t
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_ARP,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
-    TOPIC_ZVK,
+    INIT = 0,
+    ACTIVE,
+    END
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA, TOPIC_MEA,  TOPIC_ARP, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM, TOPIC_FSR,  TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR,
-    TOPIC_TARS,   TOPIC_ALT, TOPIC_WING, TOPIC_ZVK};
+struct ZVKControllerStatus
+{
+    uint64_t timestamp       = 0;
+    ZVKControllerState state = ZVKControllerState::INIT;
 
-}  // namespace Common
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ZVKControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
+
+}  // namespace Main

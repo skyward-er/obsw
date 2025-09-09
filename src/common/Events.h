@@ -113,6 +113,7 @@ enum Events : uint8_t
     NAS_READY,
     NAS_FORCE_START,
     NAS_FORCE_STOP,
+    ZVK_FORCE_STOP,
     TMTC_ARM,
     TMTC_DISARM,
     TMTC_CALIBRATE,
