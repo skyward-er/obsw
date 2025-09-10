@@ -131,13 +131,15 @@ bool MotorHIL::start()
 ActuatorData MotorHIL::updateActuatorData()
 {
     auto actuators = getModule<Actuators>();
+    float fakeN2Quenching = (counter%10)*1.0f;
 
     ActuatorsStateHIL actuatorsStateHIL{
         (actuators->getServoPosition(MAIN_VALVE)),
         (actuators->getServoPosition(OX_VENTING_VALVE)),
         (actuators->getServoPosition(NITROGEN_VALVE)),
-        (actuators->getServoPosition(N2_QUENCHING_VALVE)),
+        (fakeN2Quenching),
     };
+    counter++;
 
     // Returning the feedback for the simulator
     return ActuatorData{actuatorsStateHIL};

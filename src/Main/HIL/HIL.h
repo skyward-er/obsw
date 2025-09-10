@@ -115,6 +115,7 @@ public:
 
 private:
     ActuatorData updateActuatorData();
+    uint8_t counter = 0;
 };
 
 }  // namespace Main

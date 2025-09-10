@@ -277,8 +277,9 @@ ActuatorData PayloadHIL::updateActuatorData()
 
     GuidanceDataHIL guidanceData(psiRef, deltaA, heading[0], heading[1]);
 
-    PinDataHIL pinData(
-        pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState ? 1.0 : 0.0);
+    PinDataHIL pinData((counter % 10) * 1.0f);
+
+    counter++;
 
     // Returning the feedback for the simulator
     return ActuatorData(

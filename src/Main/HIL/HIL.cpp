@@ -339,6 +339,8 @@ ActuatorData MainHIL::updateActuatorData()
     MEAStateHIL meaStateHIL{getModule<MEAController>()->getMEAState(),
                             getModule<MEAController>()->getState()};
 
+    meaStateHIL.updating = (counter % 10) * 1.0f;
+
     auto motor = getModule<Common::MotorStatus>()->lockData();
 
     ActuatorsStateHIL actuatorsStateHIL{
@@ -347,6 +349,8 @@ ActuatorData MainHIL::updateActuatorData()
         (motor->mainValveOpen ? 1.f : 0.f),
         (motor->oxVentingValveOpen ? 1.f : 0.f),
         static_cast<float>(miosix::gpios::mainDeploy::value())};
+
+    counter++;
 
     // Returning the feedback for the simulator
     return ActuatorData{adaStateHIL, nasStateHIL, abkStateHIL, meaStateHIL,

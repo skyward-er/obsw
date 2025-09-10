@@ -78,6 +78,7 @@ public:
 
 private:
     ActuatorData updateActuatorData();
+    uint8_t counter; 
 };
 
 }  // namespace Payload
