@@ -51,14 +51,26 @@ public:
 
     Boardcore::PinData getPinData(PinList pin);
 
-private:
-    void logPin(PinList pin);
+    std::chrono::milliseconds getRampPinDetectionDelay()
+    {
+        return rampPinDetectionDelay.load();
+    }
 
-    void onRampPinTransition(Boardcore::PinTransition transition);
-    void onDetachMainTransition(Boardcore::PinTransition transition);
-    void onDetachPayloadTransition(Boardcore::PinTransition transition);
-    void onExpulsionSenseTransition(Boardcore::PinTransition transition);
-    void onCutterSenseTransition(Boardcore::PinTransition transition);
+private:
+    void logPin(PinList pin, const Boardcore::PinData& data);
+
+    void onRampPinTransition(Boardcore::PinTransition transition,
+                             const Boardcore::PinData& data);
+    void onDetachMainTransition(Boardcore::PinTransition transition,
+                                const Boardcore::PinData& data);
+    void onDetachPayloadTransition(Boardcore::PinTransition transition,
+                                   const Boardcore::PinData& data);
+    void onExpulsionSenseTransition(Boardcore::PinTransition transition,
+                                    const Boardcore::PinData& data);
+    void onCutterSenseTransition(Boardcore::PinTransition transition,
+                                 const Boardcore::PinData& data);
+
+    std::atomic<std::chrono::milliseconds> rampPinDetectionDelay = {};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("pinhandler");

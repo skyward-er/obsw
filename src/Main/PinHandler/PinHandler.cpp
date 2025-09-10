@@ -29,6 +29,7 @@
 #include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 
+using namespace std::chrono;
 using namespace Main;
 using namespace Boardcore;
 using namespace Common;
@@ -41,37 +42,45 @@ bool PinHandler::start()
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getPinObserverScheduler();
 
-    pinObserver = std::make_unique<PinObserver>(scheduler, 20);
+    pinObserver = std::make_unique<PinObserver>(
+        scheduler, milliseconds{Config::PinHandler::POLL_INTERVAL}.count());
 
-    pinObserver->registerPinCallback(
+#define CHECK_RESULT(x)                                       \
+    if (!x)                                                   \
+    {                                                         \
+        LOG_ERR(logger, "Failed to register pin callback\n"); \
+        return false;                                         \
+    }
+
+    CHECK_RESULT(pinObserver->registerPinCallback(
         sense::detachRamp::getPin(),
         [this](PinTransition transition, auto pinData)
-        { onRampPinTransition(transition); },
-        Config::PinHandler::RAMP_PIN_THRESHOLD);
+        { onRampPinTransition(transition, pinData); },
+        Config::PinHandler::RAMP_PIN_THRESHOLD))
 
-    pinObserver->registerPinCallback(
+    CHECK_RESULT(pinObserver->registerPinCallback(
         sense::detachMain::getPin(),
         [this](PinTransition transition, auto pinData)
-        { onDetachMainTransition(transition); },
-        Config::PinHandler::MAIN_DETACH_PIN_THRESHOLD);
+        { onDetachMainTransition(transition, pinData); },
+        Config::PinHandler::MAIN_DETACH_PIN_THRESHOLD));
 
-    pinObserver->registerPinCallback(
+    CHECK_RESULT(pinObserver->registerPinCallback(
         sense::detachPayload::getPin(),
         [this](PinTransition transition, auto pinData)
-        { onDetachPayloadTransition(transition); },
-        Config::PinHandler::PAYLOAD_DETACH_PIN_THRESHOLD);
+        { onDetachPayloadTransition(transition, pinData); },
+        Config::PinHandler::PAYLOAD_DETACH_PIN_THRESHOLD));
 
-    pinObserver->registerPinCallback(
+    CHECK_RESULT(pinObserver->registerPinCallback(
         sense::expulsionSense::getPin(),
         [this](PinTransition transition, auto pinData)
-        { onExpulsionSenseTransition(transition); },
-        Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD);
+        { onExpulsionSenseTransition(transition, pinData); },
+        Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD));
 
-    pinObserver->registerPinCallback(
+    CHECK_RESULT(pinObserver->registerPinCallback(
         sense::cutterSense::getPin(),
         [this](PinTransition transition, auto pinData)
-        { onCutterSenseTransition(transition); },
-        Config::PinHandler::CUTTER_SENSE_PIN_THRESHOLD);
+        { onCutterSenseTransition(transition, pinData); },
+        Config::PinHandler::CUTTER_SENSE_PIN_THRESHOLD));
 
     started = true;
     return true;
@@ -96,49 +105,65 @@ PinData PinHandler::getPinData(PinList pin)
     }
 }
 
-void PinHandler::logPin(PinList pin)
+void PinHandler::logPin(PinList pin, const PinData& data)
 {
-    auto data = getPinData(pin);
-    sdLogger.log(PinChangeData{TimestampTimer::getTimestamp(),
-                               static_cast<uint8_t>(pin), data.lastState,
-                               data.changesCount});
+    sdLogger.log(PinChangeData{
+        .timestamp        = TimestampTimer::getTimestamp(),
+        .pinId            = static_cast<uint8_t>(pin),
+        .lastState        = data.lastState,
+        .detectionDelayMs = data.getLastDetectionDelay().count(),
+        .lastTransitionTs = duration_cast<microseconds>(
+                                data.lastTransitionTs.time_since_epoch())
+                                .count(),
+        .lastStateChangeTs = duration_cast<microseconds>(
+                                 data.lastStateChangeTs.time_since_epoch())
+                                 .count(),
+        .changesCount = data.changesCount,
+    });
 }
 
-void PinHandler::onRampPinTransition(PinTransition transition)
+void PinHandler::onRampPinTransition(PinTransition transition,
+                                     const PinData& data)
 {
-    logPin(PinList::RAMP_PIN);
+    logPin(PinList::RAMP_PIN, data);
     LOG_INFO(logger, "onRampPinTransition {}", static_cast<int>(transition));
 
     if (transition == Config::PinHandler::RAMP_PIN_TRIGGER)
     {
+        rampPinDetectionDelay = data.getLastDetectionDelay();
+
         EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
                                         TOPIC_FLIGHT);
     }
 }
 
-void PinHandler::onDetachMainTransition(PinTransition transition)
+void PinHandler::onDetachMainTransition(PinTransition transition,
+                                        const PinData& data)
 {
-    logPin(PinList::DETACH_MAIN_PIN);
+    logPin(PinList::DETACH_MAIN_PIN, data);
     LOG_INFO(logger, "onDetachMainTransition {}", static_cast<int>(transition));
 }
 
-void PinHandler::onDetachPayloadTransition(PinTransition transition)
+void PinHandler::onDetachPayloadTransition(PinTransition transition,
+                                           const PinData& data)
 {
-    logPin(PinList::DETACH_PAYLOAD_PIN);
+    logPin(PinList::DETACH_PAYLOAD_PIN, data);
     LOG_INFO(logger, "onDetachPayloadTransition {}",
              static_cast<int>(transition));
 }
 
-void PinHandler::onExpulsionSenseTransition(PinTransition transition)
+void PinHandler::onExpulsionSenseTransition(PinTransition transition,
+                                            const PinData& data)
 {
-    logPin(PinList::EXPULSION_SENSE);
+    logPin(PinList::EXPULSION_SENSE, data);
     LOG_INFO(logger, "onExpulsionSenseTransition {}",
              static_cast<int>(transition));
 }
 
-void PinHandler::onCutterSenseTransition(PinTransition transition)
+void PinHandler::onCutterSenseTransition(PinTransition transition,
+                                         const PinData& data)
 {
-    logPin(PinList::CUTTER_SENSE);
+    logPin(PinList::CUTTER_SENSE, data);
     LOG_INFO(logger, "onCutterSenseTransition {}",
              static_cast<int>(transition));
 }

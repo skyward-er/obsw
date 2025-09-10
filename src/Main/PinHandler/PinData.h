@@ -31,16 +31,21 @@ namespace Main
 
 struct PinChangeData
 {
-    uint64_t timestamp    = 0;
-    uint8_t pinId         = 0;
-    bool lastState        = false;
-    uint32_t changesCount = 0;
+    uint64_t timestamp        = 0;
+    uint8_t pinId             = 0;
+    bool lastState            = false;
+    int64_t detectionDelayMs  = 0;
+    int64_t lastTransitionTs  = 0;
+    int64_t lastStateChangeTs = 0;
+    uint32_t changesCount     = 0;
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(PinChangeData,
-                          FIELD_DEF(timestamp) FIELD_DEF(pinId)
-                              FIELD_DEF(lastState) FIELD_DEF(changesCount));
+        return STRUCT_DEF(
+            PinChangeData,
+            FIELD_DEF(timestamp) FIELD_DEF(pinId) FIELD_DEF(lastState)
+                FIELD_DEF(detectionDelayMs) FIELD_DEF(lastTransitionTs)
+                    FIELD_DEF(lastStateChangeTs) FIELD_DEF(changesCount));
     }
 };
 

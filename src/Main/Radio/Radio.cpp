@@ -409,7 +409,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                         pinData.lastStateChangeTs.time_since_epoch())
                         .count();
                 tm.changes_counter = pinData.changesCount;
-                tm.current_state   = pinData.lastState ? 1 : 0;
+                tm.current_state   = pinData.lastState;
 
                 mavlink_msg_pin_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -825,24 +825,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->getServoPosition(ServosList::EXPULSION_SERVO);
 
             tm.pin_launch =
-                pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState
-                    ? 1
-                    : 0;
+                pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState;
             tm.pin_nosecone =
                 pinHandler->getPinData(PinHandler::PinList::DETACH_MAIN_PIN)
-                        .lastState
-                    ? 1
-                    : 0;
+                    .lastState;
             tm.pin_expulsion =
                 pinHandler->getPinData(PinHandler::PinList::EXPULSION_SENSE)
-                        .lastState
-                    ? 1
-                    : 0;
+                    .lastState;
             tm.cutter_presence =
                 pinHandler->getPinData(PinHandler::PinList::CUTTER_SENSE)
-                        .lastState
-                    ? 1
-                    : 0;
+                    .lastState;
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();

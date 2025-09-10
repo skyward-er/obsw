@@ -58,10 +58,12 @@ public:
     Boardcore::PinData getPinData(PinList pin);
 
 private:
-    void logPin(PinList pin);
+    void logPin(PinList pin, const Boardcore::PinData& data);
 
-    void onRampDetachTransition(Boardcore::PinTransition transition);
-    void onNoseconeDetachTransition(Boardcore::PinTransition transition);
+    void onRampDetachTransition(Boardcore::PinTransition transition,
+                                const Boardcore::PinData& data);
+    void onNoseconeDetachTransition(Boardcore::PinTransition transition,
+                                    const Boardcore::PinData& data);
 
     std::unique_ptr<Boardcore::PinObserver> pinObserver;
 

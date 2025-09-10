@@ -32,14 +32,15 @@ namespace Config
 
 namespace PinHandler
 {
+/* linter-off */ using namespace std::chrono;
+
+constexpr auto POLL_INTERVAL = 20ms;
 
 constexpr uint32_t RAMP_PIN_THRESHOLD = 20;
-constexpr Boardcore::PinTransition RAMP_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+constexpr auto RAMP_PIN_TRIGGER       = Boardcore::PinTransition::RISING_EDGE;
 
 constexpr uint32_t MAIN_DETACH_PIN_THRESHOLD = 20;
-constexpr Boardcore::PinTransition MAIN_DETACH_PIN_TRIGGER =
-    Boardcore::PinTransition::RISING_EDGE;
+constexpr auto MAIN_DETACH_PIN_TRIGGER = Boardcore::PinTransition::RISING_EDGE;
 
 constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD  = 20;
 constexpr uint32_t EXPULSION_SENSE_PIN_THRESHOLD = 20;

@@ -31,6 +31,7 @@
 
 #include "PinData.h"
 
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
 namespace config = Payload::Config::PinHandler;
@@ -55,7 +56,7 @@ bool PinHandler::start()
 
     bool rampPinDetachResult = pinObserver->registerPinCallback(
         hwmap::detachRamp::getPin(),
-        [this](auto t, auto d) { onRampDetachTransition(t); },
+        [this](auto t, auto d) { onRampDetachTransition(t, d); },
         config::RampDetach::DETECTION_THRESHOLD);
 
     if (!rampPinDetachResult)
@@ -67,7 +68,7 @@ bool PinHandler::start()
 
     bool noseconeDetachResult = pinObserver->registerPinCallback(
         hwmap::detachPayload::getPin(),
-        [this](auto t, auto d) { onNoseconeDetachTransition(t); },
+        [this](auto t, auto d) { onNoseconeDetachTransition(t, d); },
         config::NoseconeDetach::DETECTION_THRESHOLD);
 
     if (!noseconeDetachResult)
@@ -96,21 +97,27 @@ PinData PinHandler::getPinData(PinList pin)
     }
 }
 
-void PinHandler::logPin(PinList pin)
+void PinHandler::logPin(PinList pin, const PinData& data)
 {
-    auto pinData       = getPinData(pin);
-    auto pinChangeData = PinChangeData{
-        .timestamp    = TimestampTimer::getTimestamp(),
-        .pinId        = static_cast<uint8_t>(pin),
-        .lastState    = pinData.lastState,
-        .changesCount = pinData.changesCount,
-    };
-    Logger::getInstance().log(pinChangeData);
+    Logger::getInstance().log(PinChangeData{
+        .timestamp        = TimestampTimer::getTimestamp(),
+        .pinId            = static_cast<uint8_t>(pin),
+        .lastState        = data.lastState,
+        .detectionDelayMs = data.getLastDetectionDelay().count(),
+        .lastTransitionTs = duration_cast<microseconds>(
+                                data.lastTransitionTs.time_since_epoch())
+                                .count(),
+        .lastStateChangeTs = duration_cast<microseconds>(
+                                 data.lastStateChangeTs.time_since_epoch())
+                                 .count(),
+        .changesCount = data.changesCount,
+    });
 }
 
-void PinHandler::onRampDetachTransition(PinTransition transition)
+void PinHandler::onRampDetachTransition(PinTransition transition,
+                                        const PinData& data)
 {
-    logPin(PinList::RAMP_DETACH_PIN);
+    logPin(PinList::RAMP_DETACH_PIN, data);
     LOG_INFO(logger, "Ramp Detach Pin trasition detected: {}",
              static_cast<int>(transition));
 
@@ -121,9 +128,10 @@ void PinHandler::onRampDetachTransition(PinTransition transition)
     }
 }
 
-void PinHandler::onNoseconeDetachTransition(PinTransition transition)
+void PinHandler::onNoseconeDetachTransition(PinTransition transition,
+                                            const PinData& data)
 {
-    logPin(PinList::NOSECONE_DETACH_PIN);
+    logPin(PinList::NOSECONE_DETACH_PIN, data);
     LOG_INFO(logger, "Nosecone Detach Pin transition detected: {}",
              static_cast<int>(transition));
 
