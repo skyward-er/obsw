@@ -156,7 +156,8 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             getModule<FlightStatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
 
-            if (pumpCount > 0)  // If there is at least one pump specified
+            if (Config::Wing::Deployment::PUMPS.size() >
+                0)  // If there is at least one pump specified
                 dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
                     DPL_FLARE_START, TOPIC_DPL,
                     milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
