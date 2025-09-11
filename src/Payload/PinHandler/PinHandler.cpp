@@ -55,7 +55,7 @@ bool PinHandler::start()
 
     bool rampPinDetachResult = pinObserver->registerPinCallback(
         hwmap::detachRamp::getPin(),
-        [this](auto t) { onRampDetachTransition(t); },
+        [this](auto t, auto d) { onRampDetachTransition(t); },
         config::RampDetach::DETECTION_THRESHOLD);
 
     if (!rampPinDetachResult)
@@ -67,7 +67,7 @@ bool PinHandler::start()
 
     bool noseconeDetachResult = pinObserver->registerPinCallback(
         hwmap::detachPayload::getPin(),
-        [this](auto t) { onNoseconeDetachTransition(t); },
+        [this](auto t, auto d) { onNoseconeDetachTransition(t); },
         config::NoseconeDetach::DETECTION_THRESHOLD);
 
     if (!noseconeDetachResult)

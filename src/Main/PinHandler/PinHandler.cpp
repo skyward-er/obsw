@@ -45,26 +45,31 @@ bool PinHandler::start()
 
     pinObserver->registerPinCallback(
         sense::detachRamp::getPin(),
-        [this](PinTransition transition) { onRampPinTransition(transition); },
+        [this](PinTransition transition, auto pinData)
+        { onRampPinTransition(transition); },
         Config::PinHandler::RAMP_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::detachMain::getPin(), [this](PinTransition transition)
+        sense::detachMain::getPin(),
+        [this](PinTransition transition, auto pinData)
         { onDetachMainTransition(transition); },
         Config::PinHandler::MAIN_DETACH_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::detachPayload::getPin(), [this](PinTransition transition)
+        sense::detachPayload::getPin(),
+        [this](PinTransition transition, auto pinData)
         { onDetachPayloadTransition(transition); },
         Config::PinHandler::PAYLOAD_DETACH_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::expulsionSense::getPin(), [this](PinTransition transition)
+        sense::expulsionSense::getPin(),
+        [this](PinTransition transition, auto pinData)
         { onExpulsionSenseTransition(transition); },
         Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD);
 
     pinObserver->registerPinCallback(
-        sense::cutterSense::getPin(), [this](PinTransition transition)
+        sense::cutterSense::getPin(),
+        [this](PinTransition transition, auto pinData)
         { onCutterSenseTransition(transition); },
         Config::PinHandler::CUTTER_SENSE_PIN_THRESHOLD);
 

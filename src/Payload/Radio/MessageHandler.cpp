@@ -37,8 +37,11 @@
 #include <interfaces-impl/hwmapping.h>
 #include <units/Length.h>
 
+#include <chrono>
+
 #include "Radio.h"
 
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Boardcore::Units::Length;
 using namespace Common;
@@ -450,11 +453,14 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
                 auto pinData = pinHandler->getPinData(pin);
 
-                tm.timestamp             = TimestampTimer::getTimestamp();
-                tm.pin_id                = static_cast<uint8_t>(pin);
-                tm.last_change_timestamp = pinData.lastStateTimestamp;
-                tm.changes_counter       = pinData.changesCount;
-                tm.current_state         = pinData.lastState;
+                tm.timestamp = TimestampTimer::getTimestamp();
+                tm.pin_id    = static_cast<uint8_t>(pin);
+                tm.last_change_timestamp =
+                    duration_cast<microseconds>(
+                        pinData.lastStateChangeTs.time_since_epoch())
+                        .count();
+                tm.changes_counter = pinData.changesCount;
+                tm.current_state   = pinData.lastState;
 
                 mavlink_msg_pin_tm_encode(config::Mavlink::SYSTEM_ID,
                                           config::Mavlink::COMPONENT_ID, &msg,

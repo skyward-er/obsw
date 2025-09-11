@@ -30,8 +30,9 @@
 #include <events/EventBroker.h>
 #include <radio/SX1278/SX1278Frontends.h>
 
-#include <map>
+#include <chrono>
 
+using namespace std::chrono;
 using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
@@ -401,11 +402,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
                 auto pinData = pinHandler->getPinData(pin);
 
-                tm.timestamp             = TimestampTimer::getTimestamp();
-                tm.pin_id                = static_cast<uint8_t>(pin);
-                tm.last_change_timestamp = pinData.lastStateTimestamp;
-                tm.changes_counter       = pinData.changesCount;
-                tm.current_state         = pinData.lastState ? 1 : 0;
+                tm.timestamp = TimestampTimer::getTimestamp();
+                tm.pin_id    = static_cast<uint8_t>(pin);
+                tm.last_change_timestamp =
+                    duration_cast<microseconds>(
+                        pinData.lastStateChangeTs.time_since_epoch())
+                        .count();
+                tm.changes_counter = pinData.changesCount;
+                tm.current_state   = pinData.lastState ? 1 : 0;
 
                 mavlink_msg_pin_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
