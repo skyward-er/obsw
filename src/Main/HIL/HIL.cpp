@@ -350,7 +350,8 @@ ActuatorData MainHIL::updateActuatorData()
         (motor->oxVentingValveOpen ? 1.f : 0.f),
         static_cast<float>(miosix::gpios::mainDeploy::value())};
 
-    counter++;
+    counter = (counter + 1)%10;
+
 
     // Returning the feedback for the simulator
     return ActuatorData{adaStateHIL, nasStateHIL, abkStateHIL, meaStateHIL,

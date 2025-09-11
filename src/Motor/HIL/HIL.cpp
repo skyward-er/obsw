@@ -139,7 +139,8 @@ ActuatorData MotorHIL::updateActuatorData()
         (actuators->getServoPosition(NITROGEN_VALVE)),
         (fakeN2Quenching),
     };
-    counter++;
+        
+    counter = (counter + 1)%10;
 
     // Returning the feedback for the simulator
     return ActuatorData{actuatorsStateHIL};

@@ -279,7 +279,7 @@ ActuatorData PayloadHIL::updateActuatorData()
 
     PinDataHIL pinData((counter % 10) * 1.0f);
 
-    counter++;
+    counter = (counter + 1)%10;
 
     // Returning the feedback for the simulator
     return ActuatorData(
