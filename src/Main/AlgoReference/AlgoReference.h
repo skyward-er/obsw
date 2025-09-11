@@ -27,6 +27,8 @@
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
+
 namespace Main
 {
 
@@ -39,9 +41,19 @@ public:
 
     Boardcore::ReferenceValues getReferenceValues();
 
+    /**
+     * @brief Compute time since liftoff accounting for detection delays.
+     */
+    std::chrono::milliseconds computeTimeSinceLiftoff(
+        std::chrono::milliseconds duration);
+
+    void setRampPinDetectionDelay(std::chrono::milliseconds delay);
+
 private:
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("reference");
+
+    std::atomic<std::chrono::milliseconds> rampPinDetectionDelay = {};
 
     miosix::FastMutex referenceMutex;
     Boardcore::ReferenceValues reference;

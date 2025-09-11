@@ -26,6 +26,7 @@
 #include <common/ReferenceConfig.h>
 #include <utils/AeroUtils/AeroUtils.h>
 
+using namespace std::chrono;
 using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
@@ -77,4 +78,16 @@ ReferenceValues AlgoReference::getReferenceValues()
 {
     Lock<FastMutex> lock{referenceMutex};
     return reference;
+}
+
+std::chrono::milliseconds AlgoReference::computeTimeSinceLiftoff(
+    std::chrono::milliseconds duration)
+{
+    // Cap the duration to positive values only
+    return std::max(duration - rampPinDetectionDelay.load(), 0ms);
+}
+
+void AlgoReference::setRampPinDetectionDelay(std::chrono::milliseconds delay)
+{
+    rampPinDetectionDelay = delay;
 }

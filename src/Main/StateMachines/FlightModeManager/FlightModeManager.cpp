@@ -500,8 +500,14 @@ State FlightModeManager::state_armed(const Event& event)
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return transition(&FlightModeManager::state_disarmed);
         }
-        case TMTC_FORCE_LAUNCH:
         case FLIGHT_LAUNCH_PIN_DETACHED:
+        {
+            getModule<AlgoReference>()->setRampPinDetectionDelay(
+                getModule<PinHandler>()->getRampPinDetectionDelay());
+
+            [[fallthrough]];
+        }
+        case TMTC_FORCE_LAUNCH:
         {
             getModule<StatsRecorder>()->liftoffDetected(
                 TimestampTimer::getTimestamp());
@@ -586,11 +592,14 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
             EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
 
+            auto shutdownTime =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT);
+
             // Safety engine shutdown
             engineShutdownEvent = EventBroker::getInstance().postDelayed(
                 FMM_ENGINE_TIMEOUT, TOPIC_FMM,
-                milliseconds{Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT}
-                    .count());
+                milliseconds{shutdownTime}.count());
 
             return HANDLED;
         }

@@ -26,6 +26,7 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/PersistentVars/PersistentVars.h>
+#include <Main/PinHandler/PinHandler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <events/EventBroker.h>
@@ -39,7 +40,8 @@ namespace Main
 
 class FlightModeManager
     : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler,
-                                           StatsRecorder, AlgoReference>,
+                                           StatsRecorder, AlgoReference,
+                                           PinHandler>,
       public Boardcore::HSM<FlightModeManager>
 {
 public:

@@ -25,6 +25,8 @@
 #include <algorithms/MEA/MEA.h>
 #include <units/Frequency.h>
 
+#include <chrono>
+
 namespace Main
 {
 
@@ -34,20 +36,21 @@ namespace Config
 namespace MEA
 {
 
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz UPDATE_RATE = 50_hz;
 
 #ifdef ROCCARASO
 // TODO: update for roccaraso flight
-constexpr unsigned int SHADOW_MODE_TIMEOUT  = 2000;    // [ms]
+constexpr auto SHADOW_MODE_TIMEOUT          = 2000ms;
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 30.36f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 800;     // agl [m]
 #else
 #ifndef EUROC
 #warning "MISSION NOT DEFINED: Using EUROC"
 #endif
-constexpr unsigned int SHADOW_MODE_TIMEOUT  = 2600;    // [ms]
+constexpr auto SHADOW_MODE_TIMEOUT          = 2600ms;
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.87f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
 #endif

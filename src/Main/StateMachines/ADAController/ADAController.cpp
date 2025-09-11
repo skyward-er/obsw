@@ -30,7 +30,9 @@
 #include <utils/AeroUtils/AeroUtils.h>
 
 #include <algorithm>
+#include <chrono>
 
+using namespace std::chrono;
 using namespace Main;
 using namespace Boardcore;
 using namespace Common;
@@ -460,9 +462,13 @@ void ADAController::state_shadow_mode(const Event& event)
         {
             updateAndLogStatus(ADAControllerState::SHADOW_MODE);
 
+            auto shadowModeTime =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    Config::ADA::SHADOW_MODE_TIMEOUT);
+
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,
-                Config::ADA::SHADOW_MODE_TIMEOUT);
+                milliseconds{shadowModeTime}.count());
             break;
         }
 

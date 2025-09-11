@@ -29,6 +29,9 @@
 #include <common/Topics.h>
 #include <events/EventBroker.h>
 
+#include <chrono>
+
+using namespace std::chrono;
 using namespace Boardcore;
 using namespace Main;
 using namespace miosix;
@@ -166,7 +169,7 @@ void ABKController::state_shadow_mode(const Event& event)
 
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 ABK_SHADOW_MODE_TIMEOUT, TOPIC_ABK,
-                Config::ABK::SHADOW_MODE_TIMEOUT);
+                milliseconds{Config::ABK::SHADOW_MODE_TIMEOUT}.count());
             break;
         }
 

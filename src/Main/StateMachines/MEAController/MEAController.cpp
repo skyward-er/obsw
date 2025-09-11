@@ -28,6 +28,9 @@
 #include <common/Topics.h>
 #include <events/EventBroker.h>
 
+#include <chrono>
+
+using namespace std::chrono;
 using namespace Main;
 using namespace Boardcore;
 using namespace Common;
@@ -274,9 +277,13 @@ void MEAController::state_shadow_mode(const Event& event)
         {
             updateAndLogStatus(MEAControllerState::SHADOW_MODE);
 
+            auto shadowModeTime =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    Config::MEA::SHADOW_MODE_TIMEOUT);
+
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 MEA_SHADOW_MODE_TIMEOUT, TOPIC_MEA,
-                Config::MEA::SHADOW_MODE_TIMEOUT);
+                milliseconds{shadowModeTime}.count());
             break;
         }
 

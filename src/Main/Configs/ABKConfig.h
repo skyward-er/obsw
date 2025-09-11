@@ -25,6 +25,7 @@
 #include <algorithms/AirBrakes/AirBrakesInterpPID.h>
 #include <units/Frequency.h>
 
+#include <chrono>
 #include <cstdint>
 
 namespace Main
@@ -36,6 +37,7 @@ namespace Config
 namespace ABK
 {
 
+/* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz UPDATE_RATE = 10_hz;
@@ -44,7 +46,7 @@ constexpr float MACH_LIMIT = 0.8f;  // [-]
 
 #ifdef ROCCARASO
 
-constexpr unsigned int SHADOW_MODE_TIMEOUT = 300;  // [ms]
+constexpr auto SHADOW_MODE_TIMEOUT = 300ms;
 
 // TODO : Update with new Roccaraso parameters!
 static const Boardcore::AirBrakesInterpPIDConfig CONFIG = {
@@ -67,7 +69,7 @@ static const Boardcore::AirBrakesInterpPIDConfig CONFIG = {
 #warning "MISSION NOT DEFINED: Using EUROC"
 #endif
 
-constexpr unsigned int SHADOW_MODE_TIMEOUT = 500;  // [ms]
+constexpr auto SHADOW_MODE_TIMEOUT = 500ms;
 
 static const Boardcore::AirBrakesInterpPIDConfig CONFIG = {
     .FILTER_MINIMUM_ALTITUDE = 1000,
