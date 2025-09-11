@@ -49,7 +49,7 @@ constexpr unsigned int FREQUENCY = 333;
 constexpr auto SERVO_BACKSTEP_DELAY   = 500ms;
 constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
-constexpr auto SAFETY_VENTING_TIMEOUT  = 2h;
+constexpr auto SAFETY_VENTING_TIMEOUT  = 45min;
 constexpr auto SAFETY_VENTING_DURATION = 10min;  // How long to vent
 
 constexpr float OX_VENTING_LIMIT   = 0.9f;
