@@ -601,6 +601,15 @@ State FlightModeManager::state_powered_ascent(const Event& event)
                 FMM_ENGINE_TIMEOUT, TOPIC_FMM,
                 milliseconds{shutdownTime}.count());
 
+            auto apogeeTimeout =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    Config::FlightModeManager::APOGEE_TIMEOUT);
+
+            // Safety apogee timeout
+            apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
+                FMM_APOGEE_TIMEOUT, TOPIC_FMM,
+                milliseconds{apogeeTimeout}.count());
+
             return HANDLED;
         }
         case EV_EXIT:
@@ -622,23 +631,18 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         case MEA_SHUTDOWN_DETECTED:
         case FMM_ENGINE_TIMEOUT:
         {
-            getModule<CanHandler>()->sendServoCloseCommand(
-                ServosList::MAIN_VALVE);
-            getModule<CanHandler>()->sendServoCloseCommand(
-                ServosList::NITROGEN_VALVE);
-
-            getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::N2_QUENCHING_VALVE,
-                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
-                    .count());
-
-            EventBroker::getInstance().postDelayed(
-                FMM_NITROGEN_VENTING, TOPIC_FMM,
-                milliseconds{
-                    Config::FlightModeManager::NITROGEN_VENTING_TIMEOUT}
-                    .count());
+            shutdownEngine();
 
             return transition(&FlightModeManager::state_unpowered_ascent);
+        }
+        case FMM_APOGEE_TIMEOUT:
+        {
+            shutdownEngine();
+
+            EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
+                                            TOPIC_FLIGHT);
+
+            return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
         {
@@ -657,11 +661,6 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
 
             EventBroker::getInstance().post(FLIGHT_MOTOR_SHUTDOWN,
                                             TOPIC_FLIGHT);
-
-            apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
-                FMM_APOGEE_TIMEOUT, TOPIC_FMM,
-                milliseconds{Config::FlightModeManager::APOGEE_TIMEOUT}
-                    .count());
 
             return HANDLED;
         }
@@ -837,6 +836,23 @@ State FlightModeManager::state_landed(const Event& event)
             return UNHANDLED;
         }
     }
+}
+
+void FlightModeManager::shutdownEngine()
+{
+    auto can = getModule<CanHandler>();
+
+    can->sendServoCloseCommand(ServosList::MAIN_VALVE);
+    can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
+
+    can->sendServoOpenCommand(
+        ServosList::N2_QUENCHING_VALVE,
+        milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}.count());
+
+    EventBroker::getInstance().postDelayed(
+        FMM_NITROGEN_VENTING, TOPIC_FMM,
+        milliseconds{Config::FlightModeManager::NITROGEN_VENTING_TIMEOUT}
+            .count());
 }
 
 void FlightModeManager::updateAndLogStatus(FlightModeManagerState state)

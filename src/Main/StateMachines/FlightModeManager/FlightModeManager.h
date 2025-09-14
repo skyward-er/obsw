@@ -66,6 +66,12 @@ private:
     Boardcore::State state_terminal_descent(const Boardcore::Event& event);
     Boardcore::State state_landed(const Boardcore::Event& event);
 
+    /**
+     * @brief Performs engine shutdown by sending the appropriate valve
+     * commands.
+     */
+    void shutdownEngine();
+
     void updateAndLogStatus(FlightModeManagerState state);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
