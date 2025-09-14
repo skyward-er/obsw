@@ -42,10 +42,9 @@ namespace MEA
 constexpr Hertz UPDATE_RATE = 50_hz;
 
 #ifdef ROCCARASO
-// TODO: update for roccaraso flight
-constexpr auto SHADOW_MODE_TIMEOUT          = 2000ms;
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 30.36f;  // [kg]
-constexpr float SHUTDOWN_APOGEE_TARGET      = 800;     // agl [m]
+constexpr auto SHADOW_MODE_TIMEOUT          = 1900ms;
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5f;  // [kg]
+constexpr float SHUTDOWN_APOGEE_TARGET      = 800;    // agl [m]
 #else
 #ifndef EUROC
 #warning "MISSION NOT DEFINED: Using EUROC"
@@ -55,7 +54,7 @@ constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.87f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
 #endif
 
-constexpr float CD_CORRECTION_FACTOR = 1.165f;
+constexpr float CD_CORRECTION_FACTOR = 1.f;
 
 constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
 
@@ -66,13 +65,13 @@ constexpr float MODEL_NOISE_VARIANCE  = 1.0f;
 constexpr float CC_PRESSURE_THRESHOLD = 1.0f;  // [bar]
 
 constexpr Boardcore::Aeroutils::AerodynamicCoeff AERO_COEFF = {
-    .n000 = 0.476899999999981f,
-    .n100 = -1.28143146853108f,
-    .n200 = 5.23466258740986f,
-    .n300 = -12.3610285547693f,
-    .n400 = 17.1137820512658f,
-    .n500 = -13.3237179487035f,
-    .n600 = 4.5833333333282f};
+    .n000 = 0.394970609413534f,
+    .n100 = 0.0552077159951773f,
+    .n200 = -4.24112361410578f,
+    .n300 = 17.48579079769f,
+    .n400 = -30.2920765271961f,
+    .n500 = 24.2503163396895f,
+    .n600 = -7.35809370785798f};
 
 }  // namespace MEA
 

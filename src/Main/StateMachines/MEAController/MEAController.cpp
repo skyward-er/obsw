@@ -43,41 +43,41 @@ MEA::Config computeMEAConfig()
 
     // clang-format off
     config.F = Matrix<float, 3, 3>({
-        {1.62583090191848f, -0.680722129751093f,	0.0f}, 
+        {1.90358089191774f, -0.905417961846974f,	0.0f},
         {1.f,                0.f,                0.f},
-        {-0.00102053146869855f, 0.000494919888520664f, 1.f}});
+        {-0.000928298701811387f, 0.0009108992319982f, 1.f}});
     config.Q = Matrix<float, 3, 3>::Identity() * Config::MEA::MODEL_NOISE_VARIANCE;
     config.G = Matrix<float, 3, 1>{{2}, {0}, {0}};
-    
-    config.baroH = {1.00196621875211f, -0.485916431287183f, 0.0f};
+
+    config.baroH = {0.927390616494013f, -0.910008167283178f, 0.0f};
     config.baroR = Config::MEA::SENSOR_NOISE_VARIANCE;
 
     config.P           = Matrix<float, 3, 3>({
-        {0.0f, 0.0f, 0.0f}, 
+        {0.0f, 0.0f, 0.0f},
         {0.0f, 0.0f, 0.0f},
         {0.0f, 0.0f, 0.1296f}});
     config.initialMass = Config::MEA::DEFAULT_INITIAL_ROCKET_MASS;
-    
-    // Trigger acceleration correction at accelerations and speeds 
+
+    // Trigger acceleration correction at accelerations and speeds
     // higher then these thresholds
-    config.accelThresh = 40.0f; 
-    config.speedThresh = 40.0f; 
+    config.accelThresh = 40.0f;
+    config.speedThresh = 40.0f;
 
     // Limits to clamp mass
-    config.minMass = 25.0f;
-    config.maxMass = 35.0f;
+    config.minMass = 29.0f;
+    config.maxMass = 36.0f;
 
-    config.Kt    = 105.2f;
+    config.Kt    = 108.57367f;
     config.alpha = 0.1057f;
     config.c     = 381.9571f;
 
     config.coeffs = Config::MEA::AERO_COEFF;
-    
+
     // Rockets diameter
     // TODO: De-hardcode this
     float d = 0.15f;
     config.crossSection = Constants::PI * (d / 2) * (d / 2);
-    
+
     config.ae = 0.00285943f;
     config.p0 = 100093.7492f;
 
