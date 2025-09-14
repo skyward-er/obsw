@@ -45,7 +45,7 @@ constexpr auto TIMEOUT = 1500ms;
 
 namespace Pitot
 {
-constexpr auto SEND_RATE = 20_hz;
+constexpr auto SEND_RATE = 25_hz;
 }
 
 }  // namespace CanHandler
