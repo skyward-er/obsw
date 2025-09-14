@@ -64,8 +64,8 @@ namespace Default
 constexpr auto TARGET_LAT = 39.38479088598281f;
 constexpr auto TARGET_LON = -8.28564625292085f;
 #elif defined(ROCCARASO)
-constexpr auto TARGET_LAT = 41.805101925447715f;
-constexpr auto TARGET_LON = 14.053726810082074f;
+constexpr auto TARGET_LAT = 41.807905240570980f;
+constexpr auto TARGET_LON = 14.057047761535994f;
 #else  // Milan
 constexpr auto TARGET_LAT = 45.5014089f;
 constexpr auto TARGET_LON = 9.1543615f;
