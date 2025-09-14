@@ -42,7 +42,7 @@ namespace ADA
 constexpr Hertz UPDATE_RATE         = 50_hz;
 constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
 
-constexpr auto SHADOW_MODE_TIMEOUT = 13000ms;
+constexpr auto SHADOW_MODE_TIMEOUT = 10000ms;
 
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
 constexpr unsigned int APOGEE_N_SAMPLES      = 5;
