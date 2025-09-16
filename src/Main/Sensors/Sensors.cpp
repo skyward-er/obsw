@@ -128,7 +128,7 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
-    // TODO: Reset and start the ZVK
+    getModule<ZVKController>()->reset();
 
     // Log the current calibration
     sdLogger.log(getCalibration());

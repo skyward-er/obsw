@@ -37,6 +37,7 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -66,6 +67,7 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
+
     Sensors* sensors = nullptr;
     auto actuators   = new Actuators();
     auto radio       = new Radio();
@@ -76,6 +78,7 @@ int main()
     auto ada         = new ADAController();
     auto nas         = new NASController();
     auto mea         = new MEAController();
+    auto zvk         = new ZVKController();
     auto abk         = new ABKController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
@@ -121,6 +124,7 @@ int main()
                   manager.insert<ADAController>(ada) &&
                   manager.insert<NASController>(nas) &&
                   manager.insert<MEAController>(mea) &&
+                  manager.insert<ZVKController>(zvk) &&
                   manager.insert<ABKController>(abk) &&
                   manager.insert<StatsRecorder>(recorder) &&
                   manager.insert<MotorStatus>(motorStatus) && manager.inject();
@@ -230,6 +234,14 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start MEAController ***" << std::endl;
+    }
+
+
+    std::cout << "Starting ZVKController" << std::endl;
+    if (!zvk->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ZVKController ***" << std::endl;
     }
 
     std::cout << "Starting ABKController" << std::endl;

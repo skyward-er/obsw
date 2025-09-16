@@ -35,6 +35,7 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/MavlinkOrion.h>
 #include <common/canbus/MotorStatus.h>
@@ -49,11 +50,11 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Fsk::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio
-    : public Boardcore::InjectableWithDeps<
-          Buses, BoardScheduler, Actuators, PinHandler, CanHandler, Sensors,
-          FlightModeManager, ADAController, NASController, MEAController,
-          ABKController, StatsRecorder, AlgoReference, Common::MotorStatus>
+class Radio : public Boardcore::InjectableWithDeps<
+                  Buses, BoardScheduler, Actuators, PinHandler, CanHandler,
+                  Sensors, FlightModeManager, ADAController, NASController,
+                  MEAController, ABKController, ZVKController, StatsRecorder,
+                  AlgoReference, Common::MotorStatus>
 {
 public:
     Radio() {}

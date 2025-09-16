@@ -41,19 +41,16 @@ class ZVKController
                                            StatsRecorder, AlgoReference>
 {
 public:
+ 
     ZVKController();
 
     [[nodiscard]] bool start() override;
 
+    void reset();
+
     ZVKControllerState getState();
 
     Boardcore::ZVKState getZVKState();
-
-    /**
-     * @brief Method to set the orientation of the system with the quaternions
-     * (scalar last).
-     */
-    void setOrientation(Eigen::Quaternion<float> quat);
 
 private:
     void update();
@@ -73,13 +70,10 @@ private:
     miosix::FastMutex zvkMutex;
     Boardcore::ZVK zvk;
 
-    // int magDecimateCount  = 0;
-    // int acc1gSamplesCount = 0;
-    // bool acc1g            = false;
-
-    uint64_t lastGyroTimestamp = 0;
-    uint64_t lastAccTimestamp  = 0;
-    uint64_t lastMagTimestamp  = 0;
+    uint64_t lastAccTimestamp0  = 0;
+    uint64_t lastAccTimestamp1  = 0;
+    uint64_t lastGyroTimestamp0 = 0;
+    uint64_t lastGyroTimestamp1 = 0;
 };
 
 }  // namespace Main

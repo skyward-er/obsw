@@ -21,7 +21,6 @@
  */
 
 #include "ZVKController.h"
-
 #include <Main/Configs/SchedulerConfig.h>
 #include <Main/Configs/ZVKConfig.h>
 #include <common/Events.h>
@@ -30,7 +29,6 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
-
 #include <algorithm>
 
 using namespace Main;
@@ -40,9 +38,9 @@ using namespace miosix;
 using namespace Eigen;
 
 ZVKController::ZVKController()
-    : FSM{&ZVKController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::ZVK_PRIORITY},
-      zvk{Config::ZVK::CONFIG}
+    : FSM{&ZVKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
+    Config::Scheduler::ZVK_PRIORITY},
+    zvk{Config::ZVK::CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ZVK);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -68,20 +66,20 @@ bool ZVKController::start()
     }
 
     // Initialize state
-    Matrix<float, 16, 1> x = Matrix<float, 16, 1>::Zero();
-    Vector4f q = SkyQuaternion::eul2quat(Config::ZVK::initialAttitude);
-
-    x(0) = q(0);
-    x(1) = q(1);
-    x(2) = q(2);
-    x(3) = q(3);
-
+    Matrix<float, 24, 1> x = Matrix<float, 24, 1>::Zero();
     zvk.setX(x);
 
     return true;
 }
 
-ZVKControllerState ZVKController::getState() { return state; }
+void ZVKController::reset()
+{
+    Lock<FastMutex> lock{zvkMutex};
+
+    // Reinitialize state
+    Matrix<float, 24, 1> x = Matrix<float, 24, 1>::Zero();
+    zvk.setX(x);
+}
 
 ZVKState ZVKController::getZVKState()
 {
@@ -89,17 +87,6 @@ ZVKState ZVKController::getZVKState()
     return zvk.getState();
 }
 
-void ZVKController::setOrientation(Eigen::Quaternion<float> quat)
-{
-    Lock<FastMutex> lock{zvkMutex};
-
-    Matrix<float, 16, 1> x = zvk.getX();
-    x(0)                   = quat.x();
-    x(1)                   = quat.y();
-    x(2)                   = quat.z();
-    x(3)                   = quat.w();
-    zvk.setX(x);
-}
 
 void ZVKController::update()
 {
@@ -111,21 +98,33 @@ void ZVKController::update()
     {
         Sensors* sensors = getModule<Sensors>();
 
-        IMUData imu = sensors->getIMULastSample();
+        LSM6DSRXData imu0 = sensors->getLSM6DSRX0LastSample();
+        LSM6DSRXData imu1 = sensors->getLSM6DSRX1LastSample();
 
-        zvk.predict(imu, imu);
+        zvk.predict();
 
-        if (lastMagTimestamp < imu.magneticFieldTimestamp)
+        zvk.correctZeroVel();
 
-            zvk.correct(imu, imu, imu);
+        if (lastAccTimestamp0 < imu0.accelerationTimestamp)
+            zvk.correctAcc0(imu0);
 
-        lastGyroTimestamp = imu.angularSpeedTimestamp;
-        lastAccTimestamp  = imu.accelerationTimestamp;
-        lastMagTimestamp  = imu.magneticFieldTimestamp;
+        if (lastAccTimestamp1 < imu1.accelerationTimestamp)
+            zvk.correctAcc1(imu1);
+
+        if (lastGyroTimestamp0 < imu0.angularSpeedTimestamp)
+            zvk.correctGyro0(imu0);
+
+        if (lastGyroTimestamp1 < imu1.angularSpeedTimestamp)
+            zvk.correctGyro1(imu1);
+
+        lastAccTimestamp0  = imu0.accelerationTimestamp;
+        lastAccTimestamp1  = imu1.accelerationTimestamp;
+        lastGyroTimestamp0 = imu0.angularSpeedTimestamp;
+        lastGyroTimestamp1 = imu1.angularSpeedTimestamp;
 
         auto state = zvk.getState();
 
-        sdLogger.log(state);
+        sdLogger.log(ZVKState(state));
     }
 }
 

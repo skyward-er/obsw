@@ -363,6 +363,30 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
+        case MAV_CMD_APPLY_ZVK_CALIBRATION:
+        {
+            Sensors* sensors   = getModule<Sensors>();
+            ZVKController* zvk = getModule<ZVKController>();
+            ZVKState zvkState = zvk->getZVKState();
+
+            Eigen::Vector3f biasAcc0 = {zvkState.bax0, zvkState.bay0,
+                                        zvkState.baz0};
+
+            Eigen::Vector3f biasGyro0 = {zvkState.bgx0, zvkState.bgy0,
+                                         zvkState.bgz0};
+
+            Eigen::Vector3f biasAcc1 = {zvkState.bax1, zvkState.bay1,
+                                        zvkState.baz1};
+
+            Eigen::Vector3f biasGyro1 = {zvkState.bgx1, zvkState.bgy1,
+                                         zvkState.bgz1};
+
+            sensors->accCalibration0.setV(biasAcc0);
+            sensors->gyroCalibration0.setV(biasGyro0);
+            sensors->accCalibration1.setV(biasAcc1);
+            sensors->gyroCalibration1.setV(biasGyro1);
+        }
+
         default:
         {
             // Try to map the command to an event
@@ -571,6 +595,36 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.mag_scale_z  = data.magScaleZ;
 
             mavlink_msg_calibration_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                              Config::Radio::MAV_COMPONENT_ID,
+                                              &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_ZVK_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_zvk_tm_t tm{};
+
+            ZVKController* zvk = getModule<ZVKController>();
+
+            ZVKState zvkState = zvk->getZVKState();
+    
+            tm.timestamp = (zvkState.timestamp);
+            tm.acc0_bias_x  = zvkState.bax0;
+            tm.acc0_bias_y  = zvkState.bay0;
+            tm.acc0_bias_z  = zvkState.baz0;
+            tm.gyro0_bias_x = zvkState.bgx0;
+            tm.gyro0_bias_y = zvkState.bgy0;
+            tm.gyro0_bias_z = zvkState.bgz0;
+            tm.acc1_bias_x  = zvkState.bax1;
+            tm.acc1_bias_y  = zvkState.bay1;
+            tm.acc1_bias_z  = zvkState.baz1;
+            tm.gyro1_bias_x = zvkState.bgx1;
+            tm.gyro1_bias_y = zvkState.bgy1;
+            tm.gyro1_bias_z = zvkState.bgz1;
+
+            mavlink_msg_zvk_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                               Config::Radio::MAV_COMPONENT_ID,
                                               &msg, &tm);
             enqueuePacket(msg);
