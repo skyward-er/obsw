@@ -23,6 +23,9 @@
 #include "Sensors.h"
 
 #include <Main/Configs/SensorsConfig.h>
+#include <common/Events.h>
+#include <common/Topics.h>
+#include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
@@ -33,6 +36,7 @@ using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
 using namespace Eigen;
+using namespace Common;
 
 bool Sensors::isStarted() { return started; }
 
@@ -128,7 +132,7 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
-    getModule<ZVKController>()->reset();
+    EventBroker::getInstance().post(ZVK_RESET, TOPIC_ZVK);
 
     // Log the current calibration
     sdLogger.log(getCalibration());
@@ -170,6 +174,20 @@ CalibrationData Sensors::getCalibration()
         .magScaleY  = magScale.y(),
         .magScaleZ  = magScale.z(),
     };
+}
+
+void Sensors::setImu0Bias(Eigen::Vector3f biasAcc0, Eigen::Vector3f biasGyro0)
+{
+    std::lock_guard<std::mutex> lock{lsm6Calibration0Mutex};
+    accCalibration0.setV(biasAcc0);
+    gyroCalibration0.setV(biasGyro0);
+}
+
+void Sensors::setImu1Bias(Eigen::Vector3f biasAcc1, Eigen::Vector3f biasGyro1)
+{
+    std::lock_guard<std::mutex> lock{lsm6Calibration1Mutex};
+    accCalibration1.setV(biasAcc1);
+    gyroCalibration1.setV(biasGyro1);
 }
 
 void Sensors::resetMagCalibrator()

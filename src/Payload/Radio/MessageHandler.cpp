@@ -30,6 +30,7 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
+#include <Payload/StateMachines/ZVKController/ZVKController.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -375,6 +376,28 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
                 return enqueueAck(msg);
             else
                 return enqueueNack(msg);
+        }
+
+        case MAV_CMD_APPLY_ZVK_CALIBRATION:
+        {
+            Sensors* sensors   = parent.getModule<Sensors>();
+            ZVKController* zvk = parent.getModule<ZVKController>();
+            ZVKState zvkState  = zvk->getZVKState();
+
+            Eigen::Vector3f biasAcc0 = {zvkState.bax0, zvkState.bay0,
+                                        zvkState.baz0};
+
+            Eigen::Vector3f biasGyro0 = {zvkState.bgx0, zvkState.bgy0,
+                                         zvkState.bgz0};
+
+            Eigen::Vector3f biasAcc1 = {zvkState.bax1, zvkState.bay1,
+                                        zvkState.baz1};
+
+            Eigen::Vector3f biasGyro1 = {zvkState.bgx1, zvkState.bgy1,
+                                         zvkState.bgz1};
+
+            sensors->setImu0Bias(biasAcc0, biasGyro0);
+            sensors->setImu1Bias(biasAcc1, biasGyro1);
         }
 
         default:

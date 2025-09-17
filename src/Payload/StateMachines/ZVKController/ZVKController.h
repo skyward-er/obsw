@@ -22,23 +22,22 @@
 
 #pragma once
 
-#include <Main/AlgoReference/AlgoReference.h>
-#include <Main/BoardScheduler.h>
-#include <Main/Sensors/Sensors.h>
-#include <Main/StateMachines/ZVKController/ZVKControllerData.h>
-#include <Main/StatsRecorder/StatsRecorder.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Payload/Sensors/Sensors.h>
+#include <Payload/StateMachines/ZVKController/ZVKControllerData.h>
 #include <algorithms/ZVK/ZVK.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace Main
+namespace Payload
 {
 
 class ZVKController
     : public Boardcore::FSM<ZVKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder, AlgoReference>
+                                           FlightStatsRecorder>
 {
 public:
     ZVKController();
@@ -75,5 +74,5 @@ private:
     uint64_t lastGyroTimestamp1 = 0;
 };
 
-}  // namespace Main
+}  // namespace Payload
 

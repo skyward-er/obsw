@@ -49,24 +49,4 @@ struct ZVKControllerStatus
     }
 };
 
-struct ZVK0State : Boardcore::ZVKState
-{
-    ZVK0State(const Boardcore::ZVKState& state) : Boardcore::ZVKState(state) {};
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(ZVK0State, EXTEND_DEF(Boardcore::ZVKState));
-    }
-};
-
-struct ZVK1State : Boardcore::ZVKState
-{
-    ZVK1State(const Boardcore::ZVKState& state) : Boardcore::ZVKState(state) {};
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(ZVK1State, EXTEND_DEF(Boardcore::ZVKState));
-    }
-};
-
 }  // namespace Main

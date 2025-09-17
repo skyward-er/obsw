@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Authors: Giovanni Annaloro
+ * Author: Giovanni Annaloro
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,31 @@
 
 #pragma once
 
-#include <algorithms/ZVK/ZVKConfig.h>
-#include <common/ReferenceConfig.h>
-#include <units/Frequency.h>
+#include <cstdint>
+#include <ostream>
+#include <reflect.hpp>
+#include <string>
 
-#include <Eigen/Dense>
-#include <cmath>
-
-namespace Main
+namespace Payload
 {
 
-namespace Config
+enum class ZVKControllerState : uint8_t
 {
+    INIT = 0,
+    ACTIVE,
+    END
+};
 
-namespace ZVK
+struct ZVKControllerStatus
 {
+    uint64_t timestamp       = 0;
+    ZVKControllerState state = ZVKControllerState::INIT;
 
-/* linter off */ using namespace Boardcore::Units::Frequency;
-using namespace Boardcore::Constants;
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
-const Eigen::Vector3f onRampAttitude(133 * PI / 180, 85 * PI / 180,
-                                     0 * PI / 180);  // z y x
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ZVKControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
 
-static const Boardcore::ZVKConfig CONFIG = {
-    .T                     = UPDATE_RATE_SECONDS,
-    .SIGMA_ACC             = 4e-2,
-    .SIGMA_BIAS_ACC        = 1e-5,
-    .SIGMA_GYRO            = 5e-3,
-    .SIGMA_BIAS_GYRO       = 1e-5,
-    .ON_RAMP_EULERO_ANGLES = onRampAttitude};
-
-}  // namespace ZVK
-
-}  // namespace Config
-
-}  // namespace Main
+}  // namespace Payload

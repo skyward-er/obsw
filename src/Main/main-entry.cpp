@@ -67,7 +67,6 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
-
     Sensors* sensors = nullptr;
     auto actuators   = new Actuators();
     auto radio       = new Radio();
@@ -235,7 +234,6 @@ int main()
         initResult = false;
         std::cerr << "*** Failed to start MEAController ***" << std::endl;
     }
-
 
     std::cout << "Starting ZVKController" << std::endl;
     if (!zvk->start())

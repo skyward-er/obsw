@@ -72,6 +72,11 @@ public:
         return Priority::MEDIUM;
     }
 
+    static Priority::PriorityLevel zvkControllerPriority()
+    {
+        return Priority::LOW;
+    }
+
     static Priority::PriorityLevel wingControllerPriority()
     {
         return Priority::MEDIUM;

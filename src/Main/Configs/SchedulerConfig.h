@@ -42,7 +42,7 @@ static const miosix::Priority ABK_PRIORITY = miosix::PRIORITY_MAX - 1;
 // Used for ADA related activities (state machines/scheduler)
 static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
 // Used for ZVK related activities (state machines/scheduler)
-static const miosix::Priority ZVK_PRIORITY = miosix::PRIORITY_MAX - 1;
+static const miosix::Priority ZVK_PRIORITY = miosix::PRIORITY_MAX - 3;
 // Used for Sensors TaskScheduler
 static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for everything else:

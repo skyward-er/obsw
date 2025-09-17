@@ -68,6 +68,8 @@ public:
 
     Main::CalibrationData getCalibration();
 
+    void setImu0Bias(Eigen::Vector3f biasAcc0, Eigen::Vector3f biasGyro0);
+    void setImu1Bias(Eigen::Vector3f biasAcc1, Eigen::Vector3f biasGyro1);
     void resetMagCalibrator();
     void enableMagCalibrator();
     void disableMagCalibrator();

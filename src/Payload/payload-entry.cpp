@@ -35,6 +35,7 @@
 #include <Payload/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Payload/StateMachines/NASController/NASController.h>
 #include <Payload/StateMachines/WingController/WingController.h>
+#include <Payload/StateMachines/ZVKController/ZVKController.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -64,6 +65,7 @@ int main()
     Sensors* sensors;
     auto flightModeManager = new FlightModeManager();
     auto nasController     = new NASController();
+    auto zvkController     = new ZVKController();
     auto pinHandler        = new PinHandler();
     auto radio             = new Radio();
     auto canHandler        = new CanHandler();
@@ -107,6 +109,7 @@ int main()
                   manager.insert<Sensors>(sensors) &&
                   manager.insert<FlightModeManager>(flightModeManager) &&
                   manager.insert<NASController>(nasController) &&
+                  manager.insert<ZVKController>(zvkController) &&
                   manager.insert<PinHandler>(pinHandler) &&
                   manager.insert<Radio>(radio) &&
                   manager.insert<CanHandler>(canHandler) &&
@@ -199,6 +202,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start NasController ***" << std::endl;
+    }
+
+    std::cout << "Starting ZvkController" << std::endl;
+    if (!zvkController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ZVkController ***" << std::endl;
     }
 
     std::cout << "Starting AltitudeTrigger" << std::endl;

@@ -98,6 +98,7 @@ set(PAYLOAD_COMPUTER
     src/Payload/Radio/Radio.cpp
     src/Payload/Radio/MessageHandler.cpp
     src/Payload/StateMachines/NASController/NASController.cpp
+    src/Payload/StateMachines/ZVKController/ZVKController.cpp
     src/Payload/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/Payload/StateMachines/WingController/WingController.cpp
     src/Payload/AltitudeTrigger/AltitudeTrigger.cpp
@@ -106,6 +107,7 @@ set(PAYLOAD_COMPUTER
     src/Payload/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
     src/Payload/Wing/FileWingAlgorithm.cpp
     src/Payload/Wing/WingAlgorithm.cpp
+
 )
 
 set(GROUNDSTATION_ROVIE

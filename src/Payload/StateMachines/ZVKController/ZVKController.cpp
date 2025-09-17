@@ -22,8 +22,8 @@
 
 #include "ZVKController.h"
 
-#include <Main/Configs/SchedulerConfig.h>
-#include <Main/Configs/ZVKConfig.h>
+#include <Payload/BoardScheduler.h>
+#include <Payload/Configs/ZVKConfig.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
@@ -33,15 +33,15 @@
 
 #include <algorithm>
 
-using namespace Main;
+using namespace Payload;
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
 using namespace Eigen;
 
 ZVKController::ZVKController()
-    : FSM{&ZVKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::ZVK_PRIORITY},
+    : FSM(&ZVKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
+          BoardScheduler::zvkControllerPriority()),
       zvk{Config::ZVK::CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ZVK);
@@ -50,23 +50,6 @@ ZVKController::ZVKController()
 
 bool ZVKController::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getZvkScheduler();
-
-    size_t result =
-        scheduler.addTask([this]() { update(); }, Config::ZVK::UPDATE_RATE);
-
-    if (result == 0)
-    {
-        LOG_ERR(logger, "Failed to add ZVK update task");
-        return false;
-    }
-
-    if (!FSM::start())
-    {
-        LOG_ERR(logger, "Failed to start ZVK FSM");
-        return false;
-    }
-
     // Initialize state
     Matrix<float, 24, 1> x = Matrix<float, 24, 1>::Zero();
     zvk.setX(x);

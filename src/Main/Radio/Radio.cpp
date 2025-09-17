@@ -367,7 +367,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {
             Sensors* sensors   = getModule<Sensors>();
             ZVKController* zvk = getModule<ZVKController>();
-            ZVKState zvkState = zvk->getZVKState();
+            ZVKState zvkState  = zvk->getZVKState();
 
             Eigen::Vector3f biasAcc0 = {zvkState.bax0, zvkState.bay0,
                                         zvkState.baz0};
@@ -381,10 +381,8 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             Eigen::Vector3f biasGyro1 = {zvkState.bgx1, zvkState.bgy1,
                                          zvkState.bgz1};
 
-            sensors->accCalibration0.setV(biasAcc0);
-            sensors->gyroCalibration0.setV(biasGyro0);
-            sensors->accCalibration1.setV(biasAcc1);
-            sensors->gyroCalibration1.setV(biasGyro1);
+            sensors->setImu0Bias(biasAcc0, biasGyro0);
+            sensors->setImu1Bias(biasAcc1, biasGyro1);
         }
 
         default:
@@ -609,8 +607,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             ZVKController* zvk = getModule<ZVKController>();
 
             ZVKState zvkState = zvk->getZVKState();
-    
-            tm.timestamp = (zvkState.timestamp);
+
+            tm.timestamp    = (zvkState.timestamp);
             tm.acc0_bias_x  = zvkState.bax0;
             tm.acc0_bias_y  = zvkState.bay0;
             tm.acc0_bias_z  = zvkState.baz0;
@@ -625,8 +623,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.gyro1_bias_z = zvkState.bgz1;
 
             mavlink_msg_zvk_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                              Config::Radio::MAV_COMPONENT_ID,
-                                              &msg, &tm);
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
             enqueuePacket(msg);
             return true;
         }

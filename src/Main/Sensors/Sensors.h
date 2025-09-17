@@ -26,7 +26,6 @@
 #include <Main/Buses.h>
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/Sensors/SensorsData.h>
-#include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
@@ -53,8 +52,7 @@ namespace Main
 {
 
 class Sensors
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder,
-                                           ZVKController>
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder>
 {
 public:
     Sensors() {}
@@ -67,6 +65,8 @@ public:
 
     CalibrationData getCalibration();
 
+    void setImu0Bias(Eigen::Vector3f biasAcc0, Eigen::Vector3f biasGyro0);
+    void setImu1Bias(Eigen::Vector3f biasAcc1, Eigen::Vector3f biasGyro1);
     void resetMagCalibrator();
     void enableMagCalibrator();
     void disableMagCalibrator();
@@ -110,12 +110,6 @@ public:
     // Methods for CanHandler
     void setCanPitotDynamicPressure(Boardcore::PressureData data);
     void setCanPitotStaticPressure(Boardcore::PressureData data);
-
-    // Modifiable Calibration variables
-    Boardcore::TwelveParametersCorrector accCalibration0;
-    Boardcore::TwelveParametersCorrector gyroCalibration0;
-    Boardcore::TwelveParametersCorrector accCalibration1;
-    Boardcore::TwelveParametersCorrector gyroCalibration1;
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
@@ -199,8 +193,12 @@ private:
     uint8_t magCalibrationTaskId = 0;
 
     std::mutex lsm6Calibration0Mutex;
+    Boardcore::TwelveParametersCorrector accCalibration0;
+    Boardcore::TwelveParametersCorrector gyroCalibration0;
 
     std::mutex lsm6Calibration1Mutex;
+    Boardcore::TwelveParametersCorrector accCalibration1;
+    Boardcore::TwelveParametersCorrector gyroCalibration1;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");

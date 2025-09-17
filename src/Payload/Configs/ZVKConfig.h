@@ -29,7 +29,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 
-namespace Main
+namespace Payload
 {
 
 namespace Config
@@ -57,4 +57,4 @@ static const Boardcore::ZVKConfig CONFIG = {
 
 }  // namespace Config
 
-}  // namespace Main
+}  // namespace Payload
