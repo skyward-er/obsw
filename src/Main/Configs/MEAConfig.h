@@ -42,9 +42,9 @@ namespace MEA
 constexpr Hertz UPDATE_RATE = 50_hz;
 
 #ifdef ROCCARASO
-constexpr auto SHADOW_MODE_TIMEOUT          = 1900ms;
+constexpr auto SHADOW_MODE_TIMEOUT          = 2200ms;
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5f;  // [kg]
-constexpr float SHUTDOWN_APOGEE_TARGET      = 800;    // agl [m]
+constexpr float SHUTDOWN_APOGEE_TARGET      = 1050;   // agl [m]
 #else
 #ifndef EUROC
 #warning "MISSION NOT DEFINED: Using EUROC"

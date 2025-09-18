@@ -33,7 +33,7 @@ namespace FlightModeManager
 /* linter off */ using namespace std::chrono;
 
 constexpr auto MISSION_TIMEOUT          = 15min;
-constexpr auto ENGINE_SHUTDOWN_TIMEOUT  = 2750ms;
+constexpr auto ENGINE_SHUTDOWN_TIMEOUT  = 2600ms;
 constexpr auto APOGEE_TIMEOUT           = 19s;
 constexpr auto NITROGEN_VENTING_TIMEOUT = 150s;  // 120s + 25% safety margin
 constexpr auto CUT_DURATION             = 500ms;
