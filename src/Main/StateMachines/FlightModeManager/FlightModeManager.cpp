@@ -564,9 +564,7 @@ State FlightModeManager::state_flying(const Event& event)
             nitrogenVentingEvent = -1;
 
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::NITROGEN_VALVE,
-                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
-                    .count());
+                ServosList::NITROGEN_VALVE, milliseconds::max().count());
 
             return HANDLED;
         }
@@ -715,9 +713,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             // Vent the tank
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::OX_VENTING_VALVE,
-                milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}
-                    .count());
+                ServosList::OX_VENTING_VALVE, milliseconds::max().count());
 
             return HANDLED;
         }
@@ -845,9 +841,8 @@ void FlightModeManager::shutdownEngine()
     can->sendServoCloseCommand(ServosList::MAIN_VALVE);
     can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
 
-    can->sendServoOpenCommand(
-        ServosList::N2_QUENCHING_VALVE,
-        milliseconds{Config::FlightModeManager::MISSION_TIMEOUT}.count());
+    can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
+                              milliseconds::max().count());
 
     EventBroker::getInstance().postDelayed(
         FMM_NITROGEN_VENTING, TOPIC_FMM,
