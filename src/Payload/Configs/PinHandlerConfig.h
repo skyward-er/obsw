@@ -52,6 +52,12 @@ constexpr auto DETECTION_THRESHOLD   = 20;
 constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
 }  // namespace NoseconeDetach
 
+namespace CutterSense
+{
+constexpr auto DETECTION_THRESHOLD   = 20;
+constexpr auto TRIGGERING_TRANSITION = Boardcore::PinTransition::RISING_EDGE;
+}  // namespace CutterSense
+
 }  // namespace PinHandler
 }  // namespace Config
 }  // namespace Payload

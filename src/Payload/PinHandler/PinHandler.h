@@ -35,6 +35,7 @@ enum class PinList : uint8_t
 {
     RAMP_DETACH_PIN     = 0,
     NOSECONE_DETACH_PIN = 1,
+    CUTTER_SENSE        = 2
 };
 
 /**
@@ -46,7 +47,7 @@ enum class PinList : uint8_t
 class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
-    static const std::array<PinList, 2> PIN_LIST;
+    static const std::array<PinList, 3> PIN_LIST;
 
     [[nodiscard]] bool start();
 
@@ -64,6 +65,8 @@ private:
                                 const Boardcore::PinData& data);
     void onNoseconeDetachTransition(Boardcore::PinTransition transition,
                                     const Boardcore::PinData& data);
+    void onCutterSenseTransition(Boardcore::PinTransition transition,
+                                 const Boardcore::PinData& data);
 
     std::unique_ptr<Boardcore::PinObserver> pinObserver;
 
