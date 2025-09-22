@@ -43,6 +43,8 @@ namespace Payload
 const decltype(PinHandler::PIN_LIST) PinHandler::PIN_LIST = {
     PinList::RAMP_DETACH_PIN,
     PinList::NOSECONE_DETACH_PIN,
+    PinList::CUTTER_SENSE,
+
 };
 
 bool PinHandler::start()
@@ -78,6 +80,18 @@ bool PinHandler::start()
         return false;
     }
 
+    bool cutterSenseResult = pinObserver->registerPinCallback(
+        hwmap::cutterSense::getPin(),
+        [this](auto t, auto d) { onCutterSenseTransition(t, d); },
+        config::CutterSense::DETECTION_THRESHOLD);
+
+    if (!noseconeDetachResult)
+    {
+        LOG_ERR(logger,
+                "Failed to register pin callback for the detach payload pin");
+        return false;
+    }
+
     started = true;
     return true;
 }
@@ -92,6 +106,8 @@ PinData PinHandler::getPinData(PinList pin)
             return pinObserver->getPinData(hwmap::detachRamp::getPin());
         case PinList::NOSECONE_DETACH_PIN:
             return pinObserver->getPinData(hwmap::detachPayload::getPin());
+        case PinList::CUTTER_SENSE:
+            return pinObserver->getPinData(hwmap::cutterSense::getPin());
         default:
             return PinData{};
     }
@@ -137,6 +153,14 @@ void PinHandler::onNoseconeDetachTransition(PinTransition transition,
 
     if (transition == config::NoseconeDetach::TRIGGERING_TRANSITION)
         EventBroker::getInstance().post(FLIGHT_NC_DETACHED, TOPIC_FLIGHT);
+}
+
+void PinHandler::onCutterSenseTransition(PinTransition transition,
+                                         const PinData& data)
+{
+    logPin(PinList::CUTTER_SENSE, data);
+    LOG_INFO(logger, "Cutter Sense transition detected: {}",
+             static_cast<int>(transition));
 }
 
 }  // namespace Payload
