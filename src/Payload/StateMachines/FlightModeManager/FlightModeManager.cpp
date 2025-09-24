@@ -82,6 +82,14 @@ bool FlightModeManager::isTestMode() const
     return state == FlightModeManagerState::ON_GROUND_TEST_MODE;
 }
 
+bool FlightModeManager::referenceUpdateAllowed() const
+{
+    auto s = state.load();
+
+    return s == FlightModeManagerState::ON_GROUND_DISARMED ||
+           s == FlightModeManagerState::ON_GROUND_TEST_MODE;
+}
+
 bool FlightModeManager::servoMovesAllowed() const
 {
     auto s = state.load();
