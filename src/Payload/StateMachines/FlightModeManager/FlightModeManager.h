@@ -59,6 +59,12 @@ public:
     bool isTestMode() const;
 
     /**
+     * @return Whether manual updates to the reference (altitude, latitude and
+     * longitude) are allowed.
+     */
+    bool referenceUpdateAllowed() const;
+
+    /**
      * @return Whether arbitrary servo movements are allowed.
      */
     bool servoMovesAllowed() const;

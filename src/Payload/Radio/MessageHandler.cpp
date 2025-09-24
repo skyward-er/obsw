@@ -176,7 +176,8 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
         {
-            bool allowed = parent.getModule<FlightModeManager>()->isTestMode();
+            bool allowed =
+                parent.getModule<FlightModeManager>()->referenceUpdateAllowed();
             if (!allowed)
                 return enqueueNack(msg);
 
@@ -189,7 +190,8 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
         {
-            auto allowed = parent.getModule<FlightModeManager>()->isTestMode();
+            auto allowed =
+                parent.getModule<FlightModeManager>()->referenceUpdateAllowed();
             if (!allowed)
                 return enqueueNack(msg);
 
@@ -203,7 +205,8 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_COORDINATES_TC:
         {
-            auto allowed = parent.getModule<FlightModeManager>()->isTestMode();
+            auto allowed =
+                parent.getModule<FlightModeManager>()->referenceUpdateAllowed();
             if (!allowed)
                 return enqueueNack(msg);
 
