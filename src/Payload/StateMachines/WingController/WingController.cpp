@@ -239,7 +239,8 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             startAlgorithm();
 
             // Enable the landing flare altitude trigger
-            getModule<LandingFlare>()->enable();
+            if (Config::Wing::LandingFlare::ENABLED)
+                getModule<LandingFlare>()->enable();
 
             return HANDLED;
         }
@@ -248,9 +249,13 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         {
             stopAlgorithm();
 
-            EventBroker::getInstance().removeDelayed(ctrlFlareTimeoutEventId);
+            if (Config::Wing::LandingFlare::ENABLED)
+            {
+                EventBroker::getInstance().removeDelayed(
+                    ctrlFlareTimeoutEventId);
 
-            getModule<LandingFlare>()->disable();
+                getModule<LandingFlare>()->disable();
+            }
 
             return HANDLED;
         }
