@@ -60,6 +60,7 @@ bool SMA::start()
 
 void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
 {
+    miosix::Lock<miosix::FastMutex> lock(mutex);
     if (!testState(&SMA::state_insert_info) &&
         !testState(&SMA::state_arm_ready) &&
         !testState(&SMA::state_fix_antennas))
@@ -70,7 +71,6 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
     }
     else
     {
-        Lock<miosix::FastMutex> lock(mutex);
         follower.setAntennaCoordinates(antennaCoordinates);
         // TODO: Block with mutex?
         antennaCoordinatesSet = true;
@@ -80,6 +80,7 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
 
 void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
 {
+    miosix::Lock<miosix::FastMutex> lock(mutex);
     if (!testState(&SMA::state_fix_rocket) &&
         !testState(&SMA::state_fix_rocket_nf))
     {
@@ -97,6 +98,8 @@ void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
 
 ActuationStatus SMA::moveStepperDeg(StepperList stepperId, float angle)
 {
+    miosix::Lock<miosix::FastMutex> lock(mutex);
+
     if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf) &&
         !testState(&SMA::state_calibrate))
     {
@@ -115,6 +118,8 @@ ActuationStatus SMA::moveStepperDeg(StepperList stepperId, float angle)
 
 ActuationStatus SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
 {
+    miosix::Lock<miosix::FastMutex> lock(mutex);
+
     if (!testState(&SMA::state_test) && !testState(&SMA::state_test_nf))
     {
         LOG_ERR(logger, "Stepper can only be manually moved in the TEST state");
@@ -128,6 +133,8 @@ ActuationStatus SMA::moveStepperSteps(StepperList stepperId, int16_t steps)
 
 void SMA::setMultipliers(StepperList axis, float multiplier)
 {
+    miosix::Lock<miosix::FastMutex> lock(mutex);
+
     if (!testState(&SMA::state_insert_info) && !testState(&SMA::state_test) &&
         !testState(&SMA::state_test_nf))
     {
@@ -145,6 +152,8 @@ void SMA::setFatal() { fatalInit = true; };
 
 void SMA::update()
 {
+    miosix::Lock<miosix::FastMutex> lock(mutex);
+
     GPSData rocketCoordinates, antennaCoordinates;
     VN300Data data;
     auto steppers = getModule<Actuators>();
@@ -197,7 +206,6 @@ void SMA::update()
         // and multipliers set
         case SMAState::INSERT_INFO:
         {
-            Lock<miosix::FastMutex> lock(mutex);
             if (antennaCoordinatesSet)
                 EventBroker::getInstance().post(ARP_INFO_INSERTED, TOPIC_ARP);
 
