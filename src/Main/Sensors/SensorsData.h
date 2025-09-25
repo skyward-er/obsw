@@ -143,25 +143,26 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
 
 struct CalibrationData
 {
-    uint64_t timestamp = 0;
-    float acc0BiasX    = 0.0f;
-    float acc0BiasY    = 0.0f;
-    float acc0BiasZ    = 0.0f;
-    float gyro0BiasX   = 0.0f;
-    float gyro0BiasY   = 0.0f;
-    float gyro0BiasZ   = 0.0f;
-    float acc1BiasX    = 0.0f;
-    float acc1BiasY    = 0.0f;
-    float acc1BiasZ    = 0.0f;
-    float gyro1BiasX   = 0.0f;
-    float gyro1BiasY   = 0.0f;
-    float gyro1BiasZ   = 0.0f;
-    float magBiasX     = 0.0f;
-    float magBiasY     = 0.0f;
-    float magBiasZ     = 0.0f;
-    float magScaleX    = 0.0f;
-    float magScaleY    = 0.0f;
-    float magScaleZ    = 0.0f;
+    uint64_t timestamp     = 0;
+    float acc0BiasX        = 0.0f;
+    float acc0BiasY        = 0.0f;
+    float acc0BiasZ        = 0.0f;
+    float gyro0BiasX       = 0.0f;
+    float gyro0BiasY       = 0.0f;
+    float gyro0BiasZ       = 0.0f;
+    float acc1BiasX        = 0.0f;
+    float acc1BiasY        = 0.0f;
+    float acc1BiasZ        = 0.0f;
+    float gyro1BiasX       = 0.0f;
+    float gyro1BiasY       = 0.0f;
+    float gyro1BiasZ       = 0.0f;
+    float magBiasX         = 0.0f;
+    float magBiasY         = 0.0f;
+    float magBiasZ         = 0.0f;
+    float magScaleX        = 0.0f;
+    float magScaleY        = 0.0f;
+    float magScaleZ        = 0.0f;
+    float pitotDynamicBias = 0.0f;
 
     static constexpr auto reflect()
     {

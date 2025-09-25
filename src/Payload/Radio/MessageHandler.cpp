@@ -290,38 +290,6 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 return enqueueNack(msg);
         }
 
-        case MAVLINK_MSG_ID_SET_CALIBRATION_PRESSURE_TC:
-        {
-            if (parent.getModule<FlightModeManager>()->getState() !=
-                FlightModeManagerState::ON_GROUND_DISARMED)
-            {
-                return enqueueNack(msg);
-            }
-
-            float press =
-                mavlink_msg_set_calibration_pressure_tc_get_pressure(&msg);
-
-            // TODO
-            if (press == 0)
-            {
-                // parent.getModule<Sensors>()->resetBaroCalibrationReference();
-                EventBroker::getInstance().post(TMTC_SET_CALIBRATION_PRESSURE,
-                                                TOPIC_TMTC);
-                return enqueueAck(msg);
-            }
-            else
-            {
-                // parent.getModule<Sensors>()->setBaroCalibrationReference(press);
-                EventBroker::getInstance().post(TMTC_SET_CALIBRATION_PRESSURE,
-                                                TOPIC_TMTC);
-
-                if (press < 50000)
-                    return enqueueWack(msg);
-                else
-                    return enqueueAck(msg);
-            }
-        }
-
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
         {
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);

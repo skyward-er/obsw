@@ -133,7 +133,22 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
-    // TODO: Reset and start the ZVK
+    float dynPressureAccum = 0.0f;
+
+    for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        auto dynPressure = getDynamicPressureLastSample();
+
+        dynPressureAccum += dynPressure.pressure;
+
+        Thread::sleep(
+            milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
+    }
+
+    float dynPressureOffset =
+        dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+
+    nd015d->updateOffset(dynPressureOffset);
 
     // Log the current calibration
     sdLogger.log(getCalibration());
@@ -155,25 +170,26 @@ Main::CalibrationData Sensors::getCalibration()
     auto magScale  = magCalibration.getA();
 
     return {
-        .timestamp  = TimestampTimer::getTimestamp(),
-        .acc0BiasX  = accBias0.x(),
-        .acc0BiasY  = accBias0.y(),
-        .acc0BiasZ  = accBias0.z(),
-        .gyro0BiasX = gyroBias0.x(),
-        .gyro0BiasY = gyroBias0.y(),
-        .gyro0BiasZ = gyroBias0.z(),
-        .acc1BiasX  = accBias1.x(),
-        .acc1BiasY  = accBias1.y(),
-        .acc1BiasZ  = accBias1.z(),
-        .gyro1BiasX = gyroBias1.x(),
-        .gyro1BiasY = gyroBias1.y(),
-        .gyro1BiasZ = gyroBias1.z(),
-        .magBiasX   = magBias.x(),
-        .magBiasY   = magBias.y(),
-        .magBiasZ   = magBias.z(),
-        .magScaleX  = magScale.x(),
-        .magScaleY  = magScale.y(),
-        .magScaleZ  = magScale.z(),
+        .timestamp        = TimestampTimer::getTimestamp(),
+        .acc0BiasX        = accBias0.x(),
+        .acc0BiasY        = accBias0.y(),
+        .acc0BiasZ        = accBias0.z(),
+        .gyro0BiasX       = gyroBias0.x(),
+        .gyro0BiasY       = gyroBias0.y(),
+        .gyro0BiasZ       = gyroBias0.z(),
+        .acc1BiasX        = accBias1.x(),
+        .acc1BiasY        = accBias1.y(),
+        .acc1BiasZ        = accBias1.z(),
+        .gyro1BiasX       = gyroBias1.x(),
+        .gyro1BiasY       = gyroBias1.y(),
+        .gyro1BiasZ       = gyroBias1.z(),
+        .magBiasX         = magBias.x(),
+        .magBiasY         = magBias.y(),
+        .magBiasZ         = magBias.z(),
+        .magScaleX        = magScale.x(),
+        .magScaleY        = magScale.y(),
+        .magScaleZ        = magScale.z(),
+        .pitotDynamicBias = nd015d->getOffset(),
     };
 }
 
