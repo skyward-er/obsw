@@ -80,6 +80,37 @@ ReferenceValues AlgoReference::getReferenceValues()
     return reference;
 }
 
+void AlgoReference::setReferenceAltitude(float altitude)
+{
+    {
+        Lock<FastMutex> lock{referenceMutex};
+        reference.refAltitude = altitude;
+    }
+
+    notifyReferenceChanged();
+}
+
+void AlgoReference::setReferenceTemperature(float temperature)
+{
+    {
+        Lock<FastMutex> lock{referenceMutex};
+        reference.refTemperature = temperature;
+    }
+
+    notifyReferenceChanged();
+}
+
+void AlgoReference::setReferenceCoordinates(float latitude, float longitude)
+{
+    {
+        Lock<FastMutex> lock{referenceMutex};
+        reference.refLatitude  = latitude;
+        reference.refLongitude = longitude;
+    }
+
+    notifyReferenceChanged();
+}
+
 std::chrono::milliseconds AlgoReference::computeTimeSinceLiftoff(
     std::chrono::milliseconds duration)
 {
@@ -90,4 +121,12 @@ std::chrono::milliseconds AlgoReference::computeTimeSinceLiftoff(
 void AlgoReference::setRampPinDetectionDelay(std::chrono::milliseconds delay)
 {
     rampPinDetectionDelay = delay;
+}
+
+void AlgoReference::notifyReferenceChanged()
+{
+    auto ref = getReferenceValues();
+
+    for (auto& sub : refSubscribers)
+        sub->onReferenceChanged(ref);
 }

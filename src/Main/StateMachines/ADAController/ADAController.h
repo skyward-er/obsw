@@ -39,7 +39,8 @@ namespace Main
 class ADAController
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
                                            StatsRecorder, AlgoReference>,
-      public Boardcore::FSM<ADAController>
+      public Boardcore::FSM<ADAController>,
+      public ReferenceSubscriber
 {
 public:
     enum class ADANumber : uint8_t
@@ -68,6 +69,8 @@ public:
      * @brief Returns the maximum pressure (in module) of the ADAs.
      */
     float getMaxPressure();
+
+    void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
 private:
     void update();

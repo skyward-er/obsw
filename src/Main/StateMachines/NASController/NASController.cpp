@@ -69,8 +69,11 @@ bool NASController::start()
     }
 
     // Initialize reference
-    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+    auto algoRef        = getModule<AlgoReference>();
+    ReferenceValues ref = algoRef->getReferenceValues();
     nas.setReferenceValues(ref);
+
+    algoRef->subscribeReferenceChanges(this);
 
     // Initialize state
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
@@ -106,6 +109,12 @@ void NASController::setOrientation(Eigen::Quaternion<float> quat)
     x(8)                   = quat.z();
     x(9)                   = quat.w();
     nas.setX(x);
+}
+
+void NASController::onReferenceChanged(const ReferenceValues& ref)
+{
+    Lock<FastMutex> l(nasMutex);
+    nas.setReferenceValues(ref);
 }
 
 void NASController::update()

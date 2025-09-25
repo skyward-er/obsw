@@ -49,6 +49,8 @@ public:
 
     FlightModeManagerState getState();
 
+    bool referenceChangeAllowed();
+
 private:
     Boardcore::State state_on_ground(const Boardcore::Event& event);
     Boardcore::State state_init(const Boardcore::Event& event);

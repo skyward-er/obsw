@@ -31,6 +31,14 @@
 
 namespace Main
 {
+/**
+ * An interface class for modules interested in being notified when the
+ * reference values change.
+ */
+struct ReferenceSubscriber
+{
+    virtual void onReferenceChanged(const Boardcore::ReferenceValues& ref) = 0;
+};
 
 class AlgoReference : public Boardcore::InjectableWithDeps<Sensors>
 {
@@ -41,6 +49,15 @@ public:
 
     Boardcore::ReferenceValues getReferenceValues();
 
+    void subscribeReferenceChanges(ReferenceSubscriber* sub)
+    {
+        refSubscribers.push_back(sub);
+    }
+
+    void setReferenceAltitude(float altitude);
+    void setReferenceTemperature(float temperature);
+    void setReferenceCoordinates(float latitude, float longitude);
+
     /**
      * @brief Compute time since liftoff accounting for detection delays.
      */
@@ -50,10 +67,14 @@ public:
     void setRampPinDetectionDelay(std::chrono::milliseconds delay);
 
 private:
+    void notifyReferenceChanged();
+
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("reference");
 
     std::atomic<std::chrono::milliseconds> rampPinDetectionDelay = {};
+
+    std::vector<ReferenceSubscriber*> refSubscribers;
 
     miosix::FastMutex referenceMutex;
     Boardcore::ReferenceValues reference;

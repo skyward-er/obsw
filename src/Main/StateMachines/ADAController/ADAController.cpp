@@ -108,10 +108,13 @@ bool ADAController::start()
         return false;
     }
 
-    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+    auto algoRef        = getModule<AlgoReference>();
+    ReferenceValues ref = algoRef->getReferenceValues();
     ada0.setReferenceValues(ref);
     ada1.setReferenceValues(ref);
     ada2.setReferenceValues(ref);
+
+    algoRef->subscribeReferenceChanges(this);
 
     return true;
 }
@@ -179,6 +182,14 @@ float ADAController::getMaxPressure()
     }();
 
     return *std::max_element(pressures.begin(), pressures.end(), absCompare);
+}
+
+void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
+{
+    miosix::Lock<miosix::FastMutex> l(adaMutex);
+    ada0.setReferenceValues(ref);
+    ada1.setReferenceValues(ref);
+    ada2.setReferenceValues(ref);
 }
 
 void ADAController::update()

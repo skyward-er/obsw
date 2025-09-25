@@ -64,6 +64,14 @@ FlightModeManager::FlightModeManager()
 
 FlightModeManagerState FlightModeManager::getState() { return state; }
 
+bool FlightModeManager::referenceChangeAllowed()
+{
+    auto s = state.load();
+
+    return s == FlightModeManagerState::DISARMED ||
+           s == FlightModeManagerState::TEST_MODE;
+}
+
 State FlightModeManager::state_on_ground(const Event& event)
 {
     switch (event)

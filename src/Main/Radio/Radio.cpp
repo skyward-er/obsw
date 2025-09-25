@@ -284,6 +284,50 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_SET_REFERENCE_ALTITUDE_TC:
+        {
+            bool allowed =
+                getModule<FlightModeManager>()->referenceChangeAllowed();
+            if (!allowed)
+                return enqueueNack(msg, 0);
+
+            float altitude =
+                mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
+
+            getModule<AlgoReference>()->setReferenceAltitude(altitude);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_REFERENCE_TEMPERATURE_TC:
+        {
+            bool allowed =
+                getModule<FlightModeManager>()->referenceChangeAllowed();
+            if (!allowed)
+                return enqueueNack(msg, 0);
+
+            float temperature =
+                mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
+
+            getModule<AlgoReference>()->setReferenceTemperature(temperature);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_COORDINATES_TC:
+        {
+            bool allowed =
+                getModule<FlightModeManager>()->referenceChangeAllowed();
+            if (!allowed)
+                return enqueueNack(msg, 0);
+
+            float latitude = mavlink_msg_set_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_coordinates_tc_get_longitude(&msg);
+
+            getModule<AlgoReference>()->setReferenceCoordinates(latitude,
+                                                                longitude);
+            break;
+        }
+
         case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:
         {
             if (getModule<NASController>()->getState() ==

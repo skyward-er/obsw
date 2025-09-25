@@ -38,7 +38,8 @@ namespace Main
 class NASController
     : public Boardcore::FSM<NASController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder, AlgoReference>
+                                           StatsRecorder, AlgoReference>,
+      public ReferenceSubscriber
 {
 public:
     NASController();
@@ -54,6 +55,8 @@ public:
      * (scalar first).
      */
     void setOrientation(Eigen::Quaternion<float> quat);
+
+    void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
 private:
     void update();
