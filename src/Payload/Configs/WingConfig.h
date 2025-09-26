@@ -110,7 +110,7 @@ constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
 namespace Deployment
 {
 
-constexpr auto PUMP_DELAY = 2s;
+constexpr auto PUMP_DELAY = 5s;
 
 struct Pump
 {
