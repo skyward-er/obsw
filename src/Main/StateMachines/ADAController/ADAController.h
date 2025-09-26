@@ -61,6 +61,9 @@ public:
     float getDeploymentAltitude();
     void setDeploymentAltitude(float altitude);
 
+    std::chrono::milliseconds getShadowModeTime();
+    void setShadowModeTime(std::chrono::milliseconds time);
+
     /**
      * @brief Returns the maximum vertical speed (in module) of the ADAs.
      */
@@ -97,12 +100,13 @@ private:
 
     uint16_t shadowModeTimeoutEvent = 0;
 
+    std::atomic<float> deploymentAltitude;  // [m]
+    std::atomic<std::chrono::milliseconds> shadowModeTime;
+
     miosix::FastMutex adaMutex;
     Boardcore::ADA ada0;
     Boardcore::ADA ada1;
     Boardcore::ADA ada2;
-
-    std::atomic<float> deploymentAltitude;
 
     uint64_t lastBaro0Timestamp = 0;
     uint64_t lastBaro1Timestamp = 0;

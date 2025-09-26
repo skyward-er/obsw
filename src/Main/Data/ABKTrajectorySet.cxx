@@ -533,7 +533,7 @@ const TrajectorySet Main::Data::ABK::OPEN_TRAJECTORY_SET(t_open, 2);
 
 #else
 #ifndef EUROC
-#warning "MISSION NOT DEFINED: Using EUROC"
+#warning "ABKTrajectory: no mission specified, using EUROC"
 #endif
 
 //['Heights ', 'Vz_closed_m29 ', 'Vz_closed_m29_4 ', 'Vz_closed_m29_8 ',

@@ -37,7 +37,7 @@ using namespace Common;
 using namespace miosix;
 using namespace Eigen;
 
-MEA::Config computeMEAConfig()
+MEA::Config computeMEAConfig(float initialMass)
 {
     MEA::Config config;
 
@@ -56,7 +56,7 @@ MEA::Config computeMEAConfig()
         {0.0f, 0.0f, 0.0f},
         {0.0f, 0.0f, 0.0f},
         {0.0f, 0.0f, 0.1296f}});
-    config.initialMass = Config::MEA::DEFAULT_INITIAL_ROCKET_MASS;
+    config.initialMass = initialMass;
 
     // Trigger acceleration correction at accelerations and speeds
     // higher then these thresholds
@@ -90,7 +90,10 @@ MEA::Config computeMEAConfig()
 MEAController::MEAController()
     : FSM{&MEAController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::MEA_PRIORITY},
-      mea{computeMEAConfig()}
+      initialMass{Config::MEA::DEFAULT_INITIAL_ROCKET_MASS},
+      minBurnTime{Config::MEA::SHADOW_MODE_TIMEOUT},
+      apogeeTarget{Config::MEA::SHUTDOWN_APOGEE_TARGET},
+      mea{computeMEAConfig(initialMass)}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MEA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -125,6 +128,16 @@ MEAState MEAController::getMEAState()
 }
 
 MEAControllerState MEAController::getState() { return state; }
+
+float MEAController::getInitialMass() { return initialMass.load(); }
+
+milliseconds MEAController::getMinBurnTime() { return minBurnTime.load(); }
+
+void MEAController::setMinBurnTime(milliseconds time) { minBurnTime = time; }
+
+float MEAController::getApogeeTarget() { return apogeeTarget.load(); }
+
+void MEAController::setApogeeTarget(float apogee) { apogeeTarget = apogee; }
 
 void MEAController::update()
 {
@@ -176,16 +189,11 @@ void MEAController::update()
                 curState == MEAControllerState::ACTIVE_UNPOWERED)
             {
                 // estimated apogee is msl, so account for that since
-                // SHUTDOWN_APOGEE_TARGET is agl
-                if (state.estimatedApogee >
-                    Config::MEA::SHUTDOWN_APOGEE_TARGET + ref.refAltitude)
-                {
+                // apogeeTarget is agl
+                if (state.estimatedApogee > apogeeTarget + ref.refAltitude)
                     detectedShutdowns++;
-                }
                 else
-                {
                     detectedShutdowns = 0;
-                }
 
                 if (curState == MEAControllerState::ACTIVE)
                 {
@@ -277,13 +285,13 @@ void MEAController::state_shadow_mode(const Event& event)
         {
             updateAndLogStatus(MEAControllerState::SHADOW_MODE);
 
-            auto shadowModeTime =
+            auto shadowModeDelay =
                 getModule<AlgoReference>()->computeTimeSinceLiftoff(
-                    Config::MEA::SHADOW_MODE_TIMEOUT);
+                    minBurnTime);
 
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 MEA_SHADOW_MODE_TIMEOUT, TOPIC_MEA,
-                milliseconds{shadowModeTime}.count());
+                milliseconds{shadowModeDelay}.count());
             break;
         }
 

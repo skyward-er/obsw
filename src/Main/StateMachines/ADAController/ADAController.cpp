@@ -82,9 +82,10 @@ ADA::KalmanFilter::KalmanConfig computeADAKalmanConfig(float refPressure)
 ADAController::ADAController()
     : FSM{&ADAController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::ADA_PRIORITY},
+      deploymentAltitude{Config::ADA::DEPLOYMENT_ALTITUDE_TARGET},
+      shadowModeTime{Config::ADA::SHADOW_MODE_TIMEOUT},
       ada0{DEFAULT_KALMAN_CONFIG}, ada1{DEFAULT_KALMAN_CONFIG},
-      ada2{DEFAULT_KALMAN_CONFIG},
-      deploymentAltitude{Config::ADA::DEPLOYMENT_ALTITUDE_TARGET}
+      ada2{DEFAULT_KALMAN_CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -155,6 +156,16 @@ float ADAController::getDeploymentAltitude()
 void ADAController::setDeploymentAltitude(float altitude)
 {
     deploymentAltitude = altitude;
+}
+
+milliseconds ADAController::getShadowModeTime()
+{
+    return shadowModeTime.load();
+}
+
+void ADAController::setShadowModeTime(milliseconds time)
+{
+    shadowModeTime = time;
 }
 
 ADAControllerState ADAController::getState() { return state; }
@@ -479,13 +490,13 @@ void ADAController::state_shadow_mode(const Event& event)
         {
             updateAndLogStatus(ADAControllerState::SHADOW_MODE);
 
-            auto shadowModeTime =
+            auto shadowModeDelay =
                 getModule<AlgoReference>()->computeTimeSinceLiftoff(
-                    Config::ADA::SHADOW_MODE_TIMEOUT);
+                    shadowModeTime);
 
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,
-                milliseconds{shadowModeTime}.count());
+                milliseconds{shadowModeDelay}.count());
             break;
         }
 

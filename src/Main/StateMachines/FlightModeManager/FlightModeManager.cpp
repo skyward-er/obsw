@@ -53,7 +53,9 @@ void exitHilMode()
 
 FlightModeManager::FlightModeManager()
     : HSM{&FlightModeManager::state_on_ground, STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::FMM_PRIORITY}
+          Config::Scheduler::FMM_PRIORITY},
+      apogeeTimeout{Config::FlightModeManager::APOGEE_TIMEOUT},
+      engineShutdownTimeout{Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
@@ -72,6 +74,26 @@ bool FlightModeManager::referenceChangeAllowed()
 
     return s == FlightModeManagerState::DISARMED ||
            s == FlightModeManagerState::TEST_MODE;
+}
+
+milliseconds FlightModeManager::getApogeeTimeout()
+{
+    return apogeeTimeout.load();
+}
+
+void FlightModeManager::setApogeeTimeout(milliseconds timeout)
+{
+    apogeeTimeout = timeout;
+}
+
+milliseconds FlightModeManager::getEngineShutdownTimeout()
+{
+    return engineShutdownTimeout.load();
+}
+
+void FlightModeManager::setEngineShutdownTimeout(milliseconds timeout)
+{
+    engineShutdownTimeout = timeout;
 }
 
 State FlightModeManager::state_on_ground(const Event& event)
@@ -601,23 +623,23 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
             EventBroker::getInstance().post(FLIGHT_LIFTOFF, TOPIC_FLIGHT);
 
-            auto shutdownTime =
+            auto shutdownDelay =
                 getModule<AlgoReference>()->computeTimeSinceLiftoff(
-                    Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT);
+                    engineShutdownTimeout);
 
             // Safety engine shutdown
             engineShutdownEvent = EventBroker::getInstance().postDelayed(
                 FMM_ENGINE_TIMEOUT, TOPIC_FMM,
-                milliseconds{shutdownTime}.count());
+                milliseconds{shutdownDelay}.count());
 
-            auto apogeeTimeout =
+            auto apogeeDelay =
                 getModule<AlgoReference>()->computeTimeSinceLiftoff(
-                    Config::FlightModeManager::APOGEE_TIMEOUT);
+                    apogeeTimeout);
 
             // Safety apogee timeout
             apogeeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 FMM_APOGEE_TIMEOUT, TOPIC_FMM,
-                milliseconds{apogeeTimeout}.count());
+                milliseconds{apogeeDelay}.count());
 
             return HANDLED;
         }

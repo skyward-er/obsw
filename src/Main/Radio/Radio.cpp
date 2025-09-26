@@ -378,6 +378,77 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_SET_MEA_INITIAL_MASS_TC:
+        {
+            // Allow changing the initial mass only if MEA isn't running yet
+            auto mea = getModule<MEAController>();
+            if (mea->getState() != MEAControllerState::READY)
+                return enqueueNack(msg, 0);
+
+            // TODO: implement after MEA reset is implemented
+
+            enqueueNack(msg, 0);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_MEA_APOGEE_TARGET_TC:
+        {
+            float apogee =
+                mavlink_msg_set_mea_apogee_target_tc_get_apogee_target(&msg);
+
+            getModule<MEAController>()->setApogeeTarget(apogee);
+
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_MEA_MIN_BURN_TIME_TC:
+        {
+            uint32_t time =
+                mavlink_msg_set_mea_min_burn_time_tc_get_min_burn_time(&msg);
+
+            getModule<MEAController>()->setMinBurnTime(milliseconds{time});
+
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_MEA_MAX_BURN_TIME_TC:
+        {
+            uint32_t time =
+                mavlink_msg_set_mea_max_burn_time_tc_get_max_burn_time(&msg);
+
+            getModule<FlightModeManager>()->setEngineShutdownTimeout(
+                milliseconds{time});
+
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_ADA_SHADOW_MODE_TIME_TC:
+        {
+            uint32_t time =
+                mavlink_msg_set_ada_shadow_mode_time_tc_get_shadow_mode_time(
+                    &msg);
+
+            getModule<ADAController>()->setShadowModeTime(milliseconds{time});
+
+            enqueueAck(msg);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_APOGEE_TIMEOUT_TC:
+        {
+            uint32_t time =
+                mavlink_msg_set_apogee_timeout_tc_get_apogee_timeout(&msg);
+
+            getModule<FlightModeManager>()->setApogeeTimeout(
+                milliseconds{time});
+
+            enqueueAck(msg);
+            break;
+        }
+
         default:
         {
             enqueueNack(msg, 0);
@@ -645,6 +716,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
         case MAV_ADA_ID:
         {
+            auto fmm      = getModule<FlightModeManager>();
             auto ada      = getModule<ADAController>();
             auto adaState = static_cast<uint8_t>(ada->getState());
             auto ref      = getModule<AlgoReference>()->getReferenceValues();
@@ -658,19 +730,21 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
                 ADAState state = ada->getADAState(n);
 
-                tm.timestamp       = state.timestamp;
-                tm.state           = adaState;
-                tm.kalman_x0       = state.x0;
-                tm.kalman_x1       = state.x1;
-                tm.kalman_x2       = state.x2;
-                tm.vertical_speed  = state.verticalSpeed;
-                tm.msl_altitude    = state.mslAltitude;
-                tm.msl_pressure    = ref.mslPressure;
-                tm.msl_temperature = ref.mslTemperature - 273.15f;
-                tm.ref_altitude    = ref.refAltitude;
-                tm.ref_temperature = ref.refTemperature - 273.15f;
-                tm.ref_pressure    = ref.refPressure;
-                tm.dpl_altitude    = ada->getDeploymentAltitude();
+                tm.timestamp        = state.timestamp;
+                tm.state            = adaState;
+                tm.kalman_x0        = state.x0;
+                tm.kalman_x1        = state.x1;
+                tm.kalman_x2        = state.x2;
+                tm.vertical_speed   = state.verticalSpeed;
+                tm.msl_altitude     = state.mslAltitude;
+                tm.msl_pressure     = ref.mslPressure;
+                tm.msl_temperature  = ref.mslTemperature - 273.15f;
+                tm.ref_altitude     = ref.refAltitude;
+                tm.ref_temperature  = ref.refTemperature - 273.15f;
+                tm.ref_pressure     = ref.refPressure;
+                tm.dpl_altitude     = ada->getDeploymentAltitude();
+                tm.shadow_mode_time = ada->getShadowModeTime().count();
+                tm.apogee_timeout   = fmm->getApogeeTimeout().count();
 
                 mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -716,6 +790,35 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_msg_nas_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                       Config::Radio::MAV_COMPONENT_ID, &msg,
                                       &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_MEA_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_mea_tm_t tm;
+
+            auto mea = getModule<MEAController>();
+            auto fmm = getModule<FlightModeManager>();
+
+            auto state = mea->getMEAState();
+
+            tm.timestamp          = state.timestamp;
+            tm.state              = static_cast<uint8_t>(mea->getState());
+            tm.kalman_x0          = state.x0;
+            tm.kalman_x1          = state.x1;
+            tm.kalman_x2          = state.x2;
+            tm.mass               = mea->getInitialMass();
+            tm.corrected_pressure = state.estimatedPressure;
+            tm.min_burn_time      = mea->getMinBurnTime().count();
+            tm.max_burn_time      = fmm->getEngineShutdownTimeout().count();
+            tm.apogee_target      = mea->getApogeeTarget();
+
+            mavlink_msg_mea_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+
             enqueuePacket(msg);
             return true;
         }

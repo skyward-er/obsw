@@ -36,6 +36,8 @@
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
+
 namespace Main
 {
 
@@ -53,6 +55,14 @@ public:
     Boardcore::MEAState getMEAState();
 
     MEAControllerState getState();
+
+    float getInitialMass();
+
+    std::chrono::milliseconds getMinBurnTime();
+    void setMinBurnTime(std::chrono::milliseconds time);
+
+    float getApogeeTarget();
+    void setApogeeTarget(float apogee);
 
 private:
     void update();
@@ -74,6 +84,10 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("mea");
 
     uint16_t shadowModeTimeoutEvent = 0;
+
+    std::atomic<float> initialMass;  // [kg]
+    std::atomic<std::chrono::milliseconds> minBurnTime;
+    std::atomic<float> apogeeTarget;  // agl [m]
 
     miosix::FastMutex meaMutex;
     Boardcore::MEA mea;

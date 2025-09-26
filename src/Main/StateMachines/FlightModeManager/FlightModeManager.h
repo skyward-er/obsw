@@ -33,6 +33,8 @@
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
+
 #include "FlightModeManagerData.h"
 
 namespace Main
@@ -50,6 +52,12 @@ public:
     FlightModeManagerState getState();
 
     bool referenceChangeAllowed();
+
+    std::chrono::milliseconds getApogeeTimeout();
+    void setApogeeTimeout(std::chrono::milliseconds timeout);
+
+    std::chrono::milliseconds getEngineShutdownTimeout();
+    void setEngineShutdownTimeout(std::chrono::milliseconds timeout);
 
 private:
     Boardcore::State state_on_ground(const Boardcore::Event& event);
@@ -90,6 +98,9 @@ private:
 
     std::atomic<FlightModeManagerState> state{
         FlightModeManagerState::ON_GROUND};
+
+    std::atomic<std::chrono::milliseconds> apogeeTimeout;
+    std::atomic<std::chrono::milliseconds> engineShutdownTimeout;
 };
 
 }  // namespace Main
