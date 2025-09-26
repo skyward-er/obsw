@@ -42,13 +42,22 @@ namespace ADA
 constexpr Hertz UPDATE_RATE         = 50_hz;
 constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
 
-constexpr auto SHADOW_MODE_TIMEOUT = 10000ms;
-
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
 constexpr unsigned int APOGEE_N_SAMPLES      = 5;
 
 constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 370;  // [m]
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
+
+#ifdef ROCCARASO
+constexpr auto SHADOW_MODE_TIMEOUT = 10s;
+
+#else  // EUROC
+constexpr auto SHADOW_MODE_TIMEOUT = 12s;
+
+#ifndef EUROC
+#warning "ADAConfig: no mission specified, using EUROC"
+#endif
+#endif
 
 }  // namespace ADA
 

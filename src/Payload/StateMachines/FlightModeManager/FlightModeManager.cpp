@@ -26,7 +26,7 @@
 #include <Payload/AltitudeTrigger/AltitudeTrigger.h>
 #include <Payload/BoardScheduler.h>
 #include <Payload/CanHandler/CanHandler.h>
-#include <Payload/Configs/FlightModeManagerConfig.h>
+#include <Payload/Configs/FMMConfig.h>
 #include <Payload/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Payload/Sensors/Sensors.h>
 #include <Payload/StateMachines/NASController/NASController.h>

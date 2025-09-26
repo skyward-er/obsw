@@ -45,13 +45,15 @@ constexpr Hertz UPDATE_RATE = 50_hz;
 constexpr auto SHADOW_MODE_TIMEOUT          = 2200ms;
 constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5f;  // [kg]
 constexpr float SHUTDOWN_APOGEE_TARGET      = 1050;   // agl [m]
-#else
+
+#else  // EUROC
+constexpr auto SHADOW_MODE_TIMEOUT          = 4000ms;
+constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5f;  // [kg]
+constexpr float SHUTDOWN_APOGEE_TARGET      = 3000;   // agl [m]
+
 #ifndef EUROC
-#warning "MISSION NOT DEFINED: Using EUROC"
+#warning "MEAConfig: no mission specified, using EUROC"
 #endif
-constexpr auto SHADOW_MODE_TIMEOUT          = 2600ms;
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 33.87f;  // [kg]
-constexpr float SHUTDOWN_APOGEE_TARGET      = 3200;    // agl [m]
 #endif
 
 constexpr float CD_CORRECTION_FACTOR = 1.f;

@@ -34,7 +34,17 @@ namespace FlightModeManager
 /* linter-off */ using namespace std::chrono_literals;
 
 constexpr auto MISSION_TIMEOUT = 15min;
-constexpr auto APOGEE_TIMEOUT  = 28s;
+
+#ifdef ROCCARASO
+constexpr auto APOGEE_TIMEOUT = 19s;
+
+#else  // EUROC
+constexpr auto APOGEE_TIMEOUT = 30s;
+
+#ifndef EUROC
+#warning "FMMConfig: no mission specified, using EUROC"
+#endif
+#endif
 
 }  // namespace FlightModeManager
 }  // namespace Config
