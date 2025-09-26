@@ -117,13 +117,18 @@ public:
      */
     Boardcore::AntennaAngles getTargetAngles()
     {
+        miosix::Lock<miosix::FastMutex> lock(mutex);
         return follower.getTargetAngles();
     }
 
     /**
      * @brief Getter for the current state of the FSM
      */
-    SMAStatus getStatus() { return status; }
+    SMAStatus getStatus()
+    {
+        miosix::Lock<miosix::FastMutex> lock(mutex);
+        return status;
+    }
 
     /**
      * @brief Set that the initialization had a fatal error
