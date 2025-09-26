@@ -60,7 +60,6 @@ bool SMA::start()
 
 void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
 {
-    miosix::Lock<miosix::FastMutex> lock(mutex);
     if (!testState(&SMA::state_insert_info) &&
         !testState(&SMA::state_arm_ready) &&
         !testState(&SMA::state_fix_antennas))
@@ -71,16 +70,19 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
     }
     else
     {
-        follower.setAntennaCoordinates(antennaCoordinates);
-        // TODO: Block with mutex?
-        antennaCoordinatesSet = true;
+        {
+            miosix::Lock<miosix::FastMutex> lock(mutex);
+
+            follower.setAntennaCoordinates(antennaCoordinates);
+            // TODO: Block with mutex?
+            antennaCoordinatesSet = true;
+        }
         EventBroker::getInstance().post(ARP_FIX_ANTENNAS, TOPIC_ARP);
     }
 }
 
 void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
 {
-    miosix::Lock<miosix::FastMutex> lock(mutex);
     if (!testState(&SMA::state_fix_rocket) &&
         !testState(&SMA::state_fix_rocket_nf))
     {
@@ -90,8 +92,11 @@ void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
     }
     else
     {
-        // Set NAS origin
-        follower.setRocketNASOrigin(rocketCoordinates);
+        {
+            miosix::Lock<miosix::FastMutex> lock(mutex);
+            // Set NAS origin
+            follower.setRocketNASOrigin(rocketCoordinates);
+        }
         EventBroker::getInstance().post(ARP_FIX_ROCKET, TOPIC_ARP);
     }
 }
@@ -152,53 +157,59 @@ void SMA::setFatal() { fatalInit = true; };
 
 void SMA::update()
 {
-    miosix::Lock<miosix::FastMutex> lock(mutex);
-
     GPSData rocketCoordinates, antennaCoordinates;
     VN300Data data;
-    auto steppers = getModule<Actuators>();
+    auto steppers        = getModule<Actuators>();
+    bool antennaCoordSet = false;
 
     Hub* hub      = static_cast<Hub*>(getModule<Groundstation::HubBase>());
     auto* sensors = getModule<Sensors>();
 
-    // TODO: Verify if same with the macrostate
-    // Update the antenna position if in feedback
-    // if (testState(&SMA::state_feedback))
-    if (testState(&SMA::state_init_done) || testState(&SMA::state_armed) ||
-        testState(&SMA::state_fix_antennas) ||
-        testState(&SMA::state_fix_rocket) || testState(&SMA::state_active) ||
-        testState(&SMA::state_test))
     {
-        // update antenna coordinates
-        data = sensors->getVN300LastSample();
-        if (data.gpsFix == 3)
+        miosix::Lock<miosix::FastMutex> lock(mutex);
+
+        // TODO: Verify if same with the macrostate
+        // Update the antenna position if in feedback
+        // if (testState(&SMA::state_feedback))
+        if (testState(&SMA::state_init_done) || testState(&SMA::state_armed) ||
+            testState(&SMA::state_fix_antennas) ||
+            testState(&SMA::state_fix_rocket) ||
+            testState(&SMA::state_active) || testState(&SMA::state_test))
         {
-            // build the GPSData struct with the VN300 data
-            antennaCoordinates.gpsTimestamp  = data.insTimestamp;
-            antennaCoordinates.latitude      = data.latitude;
-            antennaCoordinates.longitude     = data.longitude;
-            antennaCoordinates.height        = data.altitude;
-            antennaCoordinates.velocityNorth = data.velocityX;
-            antennaCoordinates.velocityEast  = data.velocityY;
-            antennaCoordinates.velocityDown  = data.velocityZ;
-            antennaCoordinates.satellites    = data.gpsFix;
-            antennaCoordinates.fix           = data.gpsFix;
+            // update antenna coordinates
+            data = sensors->getVN300LastSample();
+            if (data.gpsFix == 3)
+            {
+                // build the GPSData struct with the VN300 data
+                antennaCoordinates.gpsTimestamp  = data.insTimestamp;
+                antennaCoordinates.latitude      = data.latitude;
+                antennaCoordinates.longitude     = data.longitude;
+                antennaCoordinates.height        = data.altitude;
+                antennaCoordinates.velocityNorth = data.velocityX;
+                antennaCoordinates.velocityEast  = data.velocityY;
+                antennaCoordinates.velocityDown  = data.velocityZ;
+                antennaCoordinates.satellites    = data.gpsFix;
+                antennaCoordinates.fix           = data.gpsFix;
 
-            // update follower with coordinates
-            follower.setAntennaCoordinates(antennaCoordinates);
+                // update follower with coordinates
+                follower.setAntennaCoordinates(antennaCoordinates);
+            }
         }
-    }
-    else
-    {
-        // Fake attitude data, taking the stepper current positions as pitch and
-        // yaw
-        data.pitch = steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
-        data.yaw   = steppers->getCurrentDegPosition(StepperList::STEPPER_X);
-    }
+        else
+        {
+            // Fake attitude data, taking the stepper current positions as pitch
+            // and yaw
+            data.pitch =
+                steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
+            data.yaw = steppers->getCurrentDegPosition(StepperList::STEPPER_X);
+        }
 
-    // update follower with the rocket GPS data
-    if (hub->getRocketOrigin(rocketCoordinates))
-        follower.setRocketNASOrigin(rocketCoordinates);
+        // update follower with the rocket GPS data
+        if (hub->getRocketOrigin(rocketCoordinates))
+            follower.setRocketNASOrigin(rocketCoordinates);
+
+        antennaCoordSet = antennaCoordinatesSet;
+    }
 
     switch (status.state)
     {
@@ -206,7 +217,7 @@ void SMA::update()
         // and multipliers set
         case SMAState::INSERT_INFO:
         {
-            if (antennaCoordinatesSet)
+            if (antennaCoordSet)
                 EventBroker::getInstance().post(ARP_INFO_INSERTED, TOPIC_ARP);
 
             break;
@@ -244,51 +255,59 @@ void SMA::update()
         case SMAState::ACTIVE_NF:
         {
             // retrieve the last NAS Rocket state
-
-            NASState nasState;
-            // In case there is a new NAS packet
-            if (hub->hasNewNasState() && hub->getLastRocketNasState(nasState))
-                // update the propagator with the NAS state
-                // and retrieve the propagated state
-                propagator.setRocketNasState(nasState);
-
-            propagator.update();  // step the propagator
-            PropagatorState predicted = propagator.getState();
-
-            // update the follower with the propagated state
-            follower.setLastRocketNasState(predicted.getNasState());
-            follower.setLastAntennaAttitude(data);
-            follower.update();  // step the follower
-            FollowerState follow = follower.getState();
-
-            // Log the target angles and propagations info
-            AntennaAngles target = follower.getTargetAngles();
-            Boardcore::Logger::getInstance().log(
-                Boardcore::AntennaAnglesLog(target, predicted.nPropagations));
-
-            // actuate the steppers
-            steppers->setSpeed(StepperList::STEPPER_X, follow.horizontalSpeed);
-            steppers->setSpeed(StepperList::STEPPER_Y, follow.verticalSpeed);
-
-            ActuationStatus actuation =
-                steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
-            if (actuation != ActuationStatus::OK)
             {
-                LOG_ERR(
-                    logger,
-                    "Step antenna - STEPPER_X could not move or reached move "
-                    "limit. Error: ",
-                    actuation, "\n");
-            }
+                miosix::Lock<miosix::FastMutex> lock(mutex);
 
-            actuation = steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
-            if (actuation != ActuationStatus::OK)
-            {
-                LOG_ERR(
-                    logger,
-                    "Step antenna - STEPPER_Y could not move or reached move "
-                    "limit. Error: ",
-                    actuation, "\n");
+                NASState nasState;
+                // In case there is a new NAS packet
+                if (hub->hasNewNasState() &&
+                    hub->getLastRocketNasState(nasState))
+                    // update the propagator with the NAS state
+                    // and retrieve the propagated state
+                    propagator.setRocketNasState(nasState);
+
+                propagator.update();  // step the propagator
+                PropagatorState predicted = propagator.getState();
+
+                // update the follower with the propagated state
+                follower.setLastRocketNasState(predicted.getNasState());
+                follower.setLastAntennaAttitude(data);
+                follower.update();  // step the follower
+                FollowerState follow = follower.getState();
+
+                // Log the target angles and propagations info
+                AntennaAngles target = follower.getTargetAngles();
+                Boardcore::Logger::getInstance().log(
+                    Boardcore::AntennaAnglesLog(target,
+                                                predicted.nPropagations));
+
+                // actuate the steppers
+                steppers->setSpeed(StepperList::STEPPER_X,
+                                   follow.horizontalSpeed);
+                steppers->setSpeed(StepperList::STEPPER_Y,
+                                   follow.verticalSpeed);
+
+                ActuationStatus actuation =
+                    steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
+                if (actuation != ActuationStatus::OK)
+                {
+                    LOG_ERR(logger,
+                            "Step antenna - STEPPER_X could not move or "
+                            "reached move "
+                            "limit. Error: ",
+                            actuation, "\n");
+                }
+
+                actuation =
+                    steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
+                if (actuation != ActuationStatus::OK)
+                {
+                    LOG_ERR(logger,
+                            "Step antenna - STEPPER_Y could not move or "
+                            "reached move "
+                            "limit. Error: ",
+                            actuation, "\n");
+                }
             }
         }
         break;
@@ -386,7 +405,7 @@ State SMA::state_no_feedback(const Event& event)
         case EV_ENTRY:
         {
             logStatus(SMAState::NO_FEEDBACK);
-            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setSlowBlink(LedColor::RED);
 
             // Set the gains for the no feedback phase
             if (!follower.setMaxGain(SMAConfig::YAW_GAIN_NF,
@@ -466,7 +485,7 @@ State SMA::state_init_error(const Event& event)
             if (fatalInit)
                 getModule<Leds>()->setFastBlink(LedColor::RED);
             else
-                getModule<Leds>()->setOn(LedColor::RED);
+                getModule<Leds>()->setSlowBlink(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -543,7 +562,7 @@ State SMA::state_insert_info(const Event& event)
         {
             logStatus(SMAState::INSERT_INFO);
             getModule<Leds>()->setOff(LedColor::YELLOW);
-            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setSlowBlink(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -577,7 +596,7 @@ State SMA::state_arm_ready(const Event& event)
         {
             logStatus(SMAState::ARM_READY);
             getModule<Leds>()->setOff(LedColor::BLUE);
-            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setSlowBlink(LedColor::RED);
             getModule<Leds>()->setSlowBlink(LedColor::YELLOW);
             return HANDLED;
         }
@@ -844,7 +863,7 @@ State SMA::state_armed_nf(const Event& event)
             getModule<Actuators>()->arm();
             getModule<Leds>()->setOff(LedColor::BLUE);
             getModule<Leds>()->setOn(LedColor::YELLOW);
-            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setSlowBlink(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
@@ -962,7 +981,7 @@ State SMA::state_active_nf(const Event& event)
             follower.begin();
             propagator.begin();
             getModule<Leds>()->setOn(LedColor::BLUE);
-            getModule<Leds>()->setOn(LedColor::RED);
+            getModule<Leds>()->setSlowBlink(LedColor::RED);
             return HANDLED;
         }
         case EV_EXIT:
