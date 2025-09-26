@@ -83,7 +83,8 @@ ADAController::ADAController()
     : FSM{&ADAController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::ADA_PRIORITY},
       ada0{DEFAULT_KALMAN_CONFIG}, ada1{DEFAULT_KALMAN_CONFIG},
-      ada2{DEFAULT_KALMAN_CONFIG}
+      ada2{DEFAULT_KALMAN_CONFIG},
+      deploymentAltitude{Config::ADA::DEPLOYMENT_ALTITUDE_TARGET}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -148,7 +149,12 @@ ADAState ADAController::getADAState(ADANumber num)
 
 float ADAController::getDeploymentAltitude()
 {
-    return Config::ADA::DEPLOYMENT_ALTITUDE_TARGET;
+    return deploymentAltitude.load();
+}
+
+void ADAController::setDeploymentAltitude(float altitude)
+{
+    deploymentAltitude = altitude;
 }
 
 ADAControllerState ADAController::getState() { return state; }

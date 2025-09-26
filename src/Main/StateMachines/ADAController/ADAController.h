@@ -59,6 +59,7 @@ public:
     ADAControllerState getState();
 
     float getDeploymentAltitude();
+    void setDeploymentAltitude(float altitude);
 
     /**
      * @brief Returns the maximum vertical speed (in module) of the ADAs.
@@ -100,6 +101,8 @@ private:
     Boardcore::ADA ada0;
     Boardcore::ADA ada1;
     Boardcore::ADA ada2;
+
+    std::atomic<float> deploymentAltitude;
 
     uint64_t lastBaro0Timestamp = 0;
     uint64_t lastBaro1Timestamp = 0;

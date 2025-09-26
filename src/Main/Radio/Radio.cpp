@@ -357,6 +357,21 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
+        {
+            float altitude =
+                mavlink_msg_set_deployment_altitude_tc_get_dpl_altitude(&msg);
+
+            getModule<ADAController>()->setDeploymentAltitude(altitude);
+
+            if (altitude < 200 || altitude > 450)
+                enqueueWack(msg, 0);
+            else
+                enqueueAck(msg);
+
+            break;
+        }
+
         default:
         {
             enqueueNack(msg, 0);
