@@ -124,7 +124,7 @@ public:
     /**
      * @brief Getter for the current state of the FSM
      */
-    SMAStatus getStatus()
+    SMAState getStatus()
     {
         miosix::Lock<miosix::FastMutex> lock(mutex);
         return status;
@@ -140,7 +140,7 @@ private:
      * @brief Logs the current state of the FSM
      * @param state The current FSM state
      */
-    void logStatus(SMAState state);
+    void logStatusAndUpdate(SMAState state);
 
     // Scheduler to be used for update function
     Boardcore::TaskScheduler* scheduler;
@@ -148,7 +148,7 @@ private:
     // Mutex to lock for setters and usage
     miosix::FastMutex mutex;
 
-    SMAStatus status;
+    SMAState status;
     Boardcore::Propagator propagator;
     Boardcore::Follower follower;
 

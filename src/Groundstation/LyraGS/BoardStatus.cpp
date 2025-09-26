@@ -78,13 +78,13 @@ void BoardStatus::sendArpTm()
 
     mavlink_arp_tm_t tm = {};
     tm.timestamp        = TimestampTimer::getTimestamp(); /*< [us] Timestamp*/
-    tm.state        = static_cast<uint8_t>(sm->getStatus().state); /*<  State*/
-    tm.yaw          = vn300.yaw;          /*< [deg] Current Yaw*/
-    tm.pitch        = vn300.pitch;        /*< [deg] Current Pitch*/
-    tm.roll         = vn300.roll;         /*< [deg] Current Roll*/
-    tm.target_yaw   = targetAngles.yaw;   /*< [deg] Target Yaw*/
-    tm.target_pitch = targetAngles.pitch; /*< [deg] Target Pitch*/
-    tm.stepperX_pos = actuators->getCurrentDegPosition(
+    tm.state            = static_cast<uint8_t>(sm->getStatus()); /*<  State*/
+    tm.yaw              = vn300.yaw;          /*< [deg] Current Yaw*/
+    tm.pitch            = vn300.pitch;        /*< [deg] Current Pitch*/
+    tm.roll             = vn300.roll;         /*< [deg] Current Roll*/
+    tm.target_yaw       = targetAngles.yaw;   /*< [deg] Target Yaw*/
+    tm.target_pitch     = targetAngles.pitch; /*< [deg] Target Pitch*/
+    tm.stepperX_pos     = actuators->getCurrentDegPosition(
         StepperList::STEPPER_X); /*< [deg] StepperX target pos*/
     tm.stepperX_delta = actuators->getDeltaAngleDeg(
         StepperList::STEPPER_X); /*< [deg] StepperX target delta deg*/
