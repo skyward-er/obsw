@@ -295,6 +295,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_reference_altitude_tc_get_ref_altitude(&msg);
 
             getModule<AlgoReference>()->setReferenceAltitude(altitude);
+
+            enqueueAck(msg);
             break;
         }
 
@@ -309,6 +311,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_reference_temperature_tc_get_ref_temp(&msg);
 
             getModule<AlgoReference>()->setReferenceTemperature(temperature);
+
+            enqueueAck(msg);
             break;
         }
 
@@ -325,6 +329,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             getModule<AlgoReference>()->setReferenceCoordinates(latitude,
                                                                 longitude);
+
+            enqueueAck(msg);
             break;
         }
 
