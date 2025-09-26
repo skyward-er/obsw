@@ -211,7 +211,7 @@ void SMA::update()
         antennaCoordSet = antennaCoordinatesSet;
     }
 
-    switch (status.state)
+    switch (status)
     {
         // when in insert_info state, wait for antenna fix (manual insertion)
         // and multipliers set
@@ -333,7 +333,7 @@ State SMA::state_config(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::CONFIG);
+            logStatusAndUpdate(SMAState::CONFIG);
             return HANDLED;
         }
         case EV_EXIT:
@@ -362,7 +362,7 @@ State SMA::state_feedback(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::FEEDBACK);
+            logStatusAndUpdate(SMAState::FEEDBACK);
             getModule<Leds>()->setOff(LedColor::RED);
 
             // Set the gains for the no feedback phase
@@ -404,7 +404,7 @@ State SMA::state_no_feedback(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::NO_FEEDBACK);
+            logStatusAndUpdate(SMAState::NO_FEEDBACK);
             getModule<Leds>()->setSlowBlink(LedColor::RED);
 
             // Set the gains for the no feedback phase
@@ -445,7 +445,7 @@ State SMA::state_init(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::INIT);
+            logStatusAndUpdate(SMAState::INIT);
             return HANDLED;
         }
         case EV_EXIT:
@@ -481,7 +481,7 @@ State SMA::state_init_error(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::INIT_ERROR);
+            logStatusAndUpdate(SMAState::INIT_ERROR);
             if (fatalInit)
                 getModule<Leds>()->setFastBlink(LedColor::RED);
             else
@@ -521,7 +521,7 @@ State SMA::state_init_done(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::INIT_DONE);
+            logStatusAndUpdate(SMAState::INIT_DONE);
             getModule<Leds>()->setOff(LedColor::RED);
             getModule<Leds>()->setOff(LedColor::BLUE);
             getModule<Leds>()->setSlowBlink(LedColor::YELLOW);
@@ -560,7 +560,7 @@ State SMA::state_insert_info(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::INSERT_INFO);
+            logStatusAndUpdate(SMAState::INSERT_INFO);
             getModule<Leds>()->setOff(LedColor::YELLOW);
             getModule<Leds>()->setSlowBlink(LedColor::RED);
             return HANDLED;
@@ -594,7 +594,7 @@ State SMA::state_arm_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::ARM_READY);
+            logStatusAndUpdate(SMAState::ARM_READY);
             getModule<Leds>()->setOff(LedColor::BLUE);
             getModule<Leds>()->setSlowBlink(LedColor::RED);
             getModule<Leds>()->setSlowBlink(LedColor::YELLOW);
@@ -629,7 +629,7 @@ State SMA::state_armed(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::ARMED);
+            logStatusAndUpdate(SMAState::ARMED);
             getModule<Actuators>()->arm();
             getModule<Leds>()->setOn(LedColor::YELLOW);
             getModule<Leds>()->setOff(LedColor::BLUE);
@@ -668,7 +668,7 @@ State SMA::state_test(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::TEST);
+            logStatusAndUpdate(SMAState::TEST);
             return HANDLED;
         }
         case EV_EXIT:
@@ -707,7 +707,7 @@ State SMA::state_calibrate(const Event& event)
             auto* sensors = getModule<Sensors>();
             if (!sensors->calibrate() && sensors->isCalibrating())
                 transition(&SMA::state_test);
-            logStatus(SMAState::CALIBRATE);
+            logStatusAndUpdate(SMAState::CALIBRATE);
             return HANDLED;
         }
         case EV_EXIT:
@@ -739,7 +739,7 @@ State SMA::state_fix_antennas(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::FIX_ANTENNAS);
+            logStatusAndUpdate(SMAState::FIX_ANTENNAS);
             getModule<Leds>()->setSlowBlink(LedColor::BLUE);
             return HANDLED;
         }
@@ -776,7 +776,7 @@ State SMA::state_fix_rocket(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::FIX_ROCKET);
+            logStatusAndUpdate(SMAState::FIX_ROCKET);
             getModule<Leds>()->setFastBlink(LedColor::BLUE);
             return HANDLED;
         }
@@ -822,7 +822,7 @@ State SMA::state_active(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::ACTIVE);
+            logStatusAndUpdate(SMAState::ACTIVE);
             follower.begin();
             propagator.begin();
             getModule<Leds>()->setOn(LedColor::BLUE);
@@ -859,7 +859,7 @@ State SMA::state_armed_nf(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::ARMED_NF);
+            logStatusAndUpdate(SMAState::ARMED_NF);
             getModule<Actuators>()->arm();
             getModule<Leds>()->setOff(LedColor::BLUE);
             getModule<Leds>()->setOn(LedColor::YELLOW);
@@ -899,7 +899,7 @@ State SMA::state_test_nf(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::TEST_NF);
+            logStatusAndUpdate(SMAState::TEST_NF);
             return HANDLED;
         }
         case EV_EXIT:
@@ -931,7 +931,7 @@ State SMA::state_fix_rocket_nf(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::FIX_ROCKET_NF);
+            logStatusAndUpdate(SMAState::FIX_ROCKET_NF);
             getModule<Leds>()->setFastBlink(LedColor::BLUE);
             return HANDLED;
         }
@@ -977,7 +977,7 @@ State SMA::state_active_nf(const Event& event)
     {
         case EV_ENTRY:
         {
-            logStatus(SMAState::ACTIVE_NF);
+            logStatusAndUpdate(SMAState::ACTIVE_NF);
             follower.begin();
             propagator.begin();
             getModule<Leds>()->setOn(LedColor::BLUE);
@@ -1009,15 +1009,13 @@ State SMA::state_active_nf(const Event& event)
     }
 }
 
-void SMA::logStatus(SMAState state)
+void SMA::logStatusAndUpdate(SMAState newState)
 {
-    {
-        PauseKernelLock lock;
-        status.timestamp = TimestampTimer::getTimestamp();
-        status.state     = state;
-    }
-
-    Logger::getInstance().log(status);
+    SMAStatus statusLog;
+    status              = newState;
+    statusLog.timestamp = TimestampTimer::getTimestamp();
+    statusLog.state     = newState;
+    Logger::getInstance().log(statusLog);
 }
 
 }  // namespace Antennas
