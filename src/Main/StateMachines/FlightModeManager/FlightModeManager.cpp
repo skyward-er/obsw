@@ -28,10 +28,12 @@
 #include <drivers/timer/TimestampTimer.h>
 
 using namespace std::chrono;
-using namespace Main;
 using namespace Common;
 using namespace Boardcore;
 using namespace miosix;
+
+namespace Main
+{
 
 void enterHilMode()
 {
@@ -572,7 +574,8 @@ State FlightModeManager::state_flying(const Event& event)
             nitrogenVentingEvent = -1;
 
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::NITROGEN_VALVE, milliseconds::max().count());
+                ServosList::NITROGEN_VALVE,
+                std::numeric_limits<uint32_t>::max());
 
             return HANDLED;
         }
@@ -721,7 +724,8 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             // Vent the tank
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::OX_VENTING_VALVE, milliseconds::max().count());
+                ServosList::OX_VENTING_VALVE,
+                std::numeric_limits<uint32_t>::max());
 
             return HANDLED;
         }
@@ -850,7 +854,7 @@ void FlightModeManager::shutdownEngine()
     can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
 
     can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
-                              milliseconds::max().count());
+                              std::numeric_limits<uint32_t>::max());
 
     EventBroker::getInstance().postDelayed(
         FMM_NITROGEN_VENTING, TOPIC_FMM,
@@ -865,3 +869,5 @@ void FlightModeManager::updateAndLogStatus(FlightModeManagerState state)
     FlightModeManagerStatus data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }
+
+}  // namespace Main
