@@ -117,11 +117,10 @@ void BoardStatus::sendRadioLinkTm()
     mavlink_rocket_radio_link_info_tm_t tm = {};
     tm.timestamp                           = TimestampTimer::getTimestamp();
 
-    if (radio_433_type)
+    tm.radio_433_type = radio_433_type;
+    if (radio_433_type != RADIO_433_TYPE_NONE)
     {
-        tm.radio_433_type = radio_433_type;
-        tm.main_frequency = Common::MAIN_RADIO_CONFIG.freq_rf;
-
+        tm.main_frequency        = Common::MAIN_RADIO_CONFIG.freq_rf;
         auto stats               = getModule<RadioMain>()->getStats();
         tm.main_rx_success_count = stats.packet_rx_success_count;
         tm.main_rx_drop_count    = stats.packet_rx_drop_count;
@@ -131,11 +130,10 @@ void BoardStatus::sendRadioLinkTm()
         last_main_stats = stats;
     }
 
-    if (radio_868_type)
+    tm.radio_868_type = radio_868_type;
+    if (radio_868_type != RADIO_868_TYPE_NONE)
     {
-        tm.radio_868_type    = radio_868_type;
-        tm.payload_frequency = Common::PAYLOAD_RADIO_CONFIG.freq_rf;
-
+        tm.payload_frequency        = Common::PAYLOAD_RADIO_CONFIG.freq_rf;
         auto stats                  = getModule<RadioPayload>()->getStats();
         tm.payload_rx_success_count = stats.packet_rx_success_count;
         tm.payload_rx_drop_count    = stats.packet_rx_drop_count;
