@@ -30,6 +30,9 @@ namespace Config
 namespace Hub
 {
 
+constexpr uint8_t MAV_SYSTEM_ID    = 171;
+constexpr uint8_t MAV_COMPONENT_ID = 96;
+
 constexpr bool ETHERNET_ENABLED = true;
 constexpr bool RANDOM_IP        = false;
 constexpr bool USART2_ENABLED   = true;

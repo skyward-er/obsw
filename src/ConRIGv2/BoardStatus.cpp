@@ -22,10 +22,10 @@
 
 #include "BoardStatus.h"
 
-#include <ConRIGv2/Configs/CommonConfig.h>
 #include <ConRIGv2/Configs/HubConfig.h>
 #include <common/Radio.h>
 
+using namespace std::chrono;
 using namespace ConRIGv2;
 
 static constexpr int8_t clampTo8bits(float value)
@@ -64,9 +64,8 @@ void BoardStatus::sendRadioLinkInfoTm()
     }
 
     mavlink_message_t msg;
-    mavlink_msg_gse_radio_link_info_tm_encode(Config::Common::MAV_SYSTEM_ID,
-                                              Config::Common::MAV_COMPONENT_ID,
-                                              &msg, &tm);
+    mavlink_msg_gse_radio_link_info_tm_encode(
+        Config::Hub::MAV_SYSTEM_ID, Config::Hub::MAV_COMPONENT_ID, &msg, &tm);
 
     getModule<Hub>()->dispatchToPorts(msg);
 }
@@ -77,6 +76,7 @@ void BoardStatus::run()
     {
         sendRadioLinkInfoTm();
 
-        miosix::Thread::sleep(Config::Common::RADIO_STATUS_PERIOD);
+        miosix::Thread::sleep(
+            milliseconds{Config::Radio::RADIO_STATUS_PERIOD}.count());
     }
 }

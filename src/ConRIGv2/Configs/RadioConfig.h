@@ -55,10 +55,10 @@ constexpr auto AUDIO_FEEDBACK_THRESHOLD = 10;
 // feedback after startup or disarming
 constexpr auto AUDIO_FEEDBACK_RESET_VALUE = AUDIO_FEEDBACK_THRESHOLD * 4 / 5;
 
-/// @brief Period of the radio status telemetry.
-constexpr unsigned int RADIO_STATUS_PERIOD = 250;
-/// @brief Size in ms of the radio moving bitrate window size.
-constexpr size_t RADIO_BITRATE_WINDOW_SIZE = 1000;
+// Period of the radio status telemetry
+constexpr auto RADIO_STATUS_PERIOD = 250ms;
+// Duration of the time window over which the radio bitrate is averaged
+constexpr auto RADIO_BITRATE_WINDOW_SIZE = 1000ms;
 
 }  // namespace Radio
 }  // namespace Config

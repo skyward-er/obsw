@@ -22,6 +22,7 @@
 
 #include "Radio.h"
 
+#include <ConRIGv2/Configs/HubConfig.h>
 #include <common/MavlinkOrion.h>
 #include <common/Radio.h>
 #include <diagnostic/SkywardStack.h>
@@ -122,8 +123,8 @@ void Radio::sendPeriodicPing()
 
     {
         Lock<FastMutex> lock{buttonsMutex};
-        mavlink_msg_conrig_state_tc_encode(Config::Common::MAV_SYSTEM_ID,
-                                           Config::Common::MAV_COMPONENT_ID,
+        mavlink_msg_conrig_state_tc_encode(Config::Hub::MAV_SYSTEM_ID,
+                                           Config::Hub::MAV_COMPONENT_ID,
                                            &conrigStateMsg, &buttonState);
         // Reset the button state after sending the ping
         resetButtonState(lock);

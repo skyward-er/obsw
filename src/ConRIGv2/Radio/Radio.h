@@ -25,7 +25,6 @@
 #include <ConRIGv2/BoardScheduler.h>
 #include <ConRIGv2/Buses.h>
 #include <ConRIGv2/Buttons/Buttons.h>
-#include <ConRIGv2/Configs/CommonConfig.h>
 #include <ConRIGv2/Configs/RadioConfig.h>
 #include <ConRIGv2/Hub/Hub.h>
 #include <common/MavlinkOrion.h>

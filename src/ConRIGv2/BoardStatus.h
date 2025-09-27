@@ -29,6 +29,8 @@
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
 
+#include <chrono>
+
 namespace ConRIGv2
 {
 template <unsigned int WINDOW_SIZE, unsigned int PERIOD>
@@ -76,8 +78,10 @@ private:
 
     void sendRadioLinkInfoTm();
 
-    BitrateCalculator<Config::Radio::RADIO_BITRATE_WINDOW_SIZE,
-                      Config::Radio::RADIO_STATUS_PERIOD>
+    BitrateCalculator<
+        std::chrono::milliseconds{Config::Radio::RADIO_BITRATE_WINDOW_SIZE}
+            .count(),
+        std::chrono::milliseconds{Config::Radio::RADIO_STATUS_PERIOD}.count()>
         radioBitrate;
 };
 }  // namespace ConRIGv2
