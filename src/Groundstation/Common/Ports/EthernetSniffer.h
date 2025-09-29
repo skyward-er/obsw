@@ -66,6 +66,7 @@ private:
     uint16_t portNr;
     uint16_t srcPort;
     uint16_t dstPort;
+    uint32_t sniffedCounter = 0;
 };
 
 }  // namespace Groundstation

@@ -89,8 +89,13 @@ void EthernetSniffer::handleMsg(const mavlink_message_t& msg)
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
         msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
         getModule<HubBase>()->dispatchIncomingMsg(msg);
+    else
+        return;
 
-    Antennas::LogSniffing sniffing = {TimestampTimer::getTimestamp(), 1};
+    // Just logging the FLIGHT or STATS sniffed from the rocket
+    sniffedCounter++;
+    Antennas::LogSniffing sniffing = {TimestampTimer::getTimestamp(), msg.msgid,
+                                      sniffedCounter};
     Logger::getInstance().log(sniffing);
 }
 
