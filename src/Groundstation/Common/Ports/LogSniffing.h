@@ -34,11 +34,13 @@ namespace Antennas
 struct LogSniffing
 {
     uint64_t timestamp;
-    uint8_t sniffed;
+    uint8_t msgId;          //< The message ID of the sniffed packet
+    uint32_t totalSniffed;  //< Total FLIGHT/STATS sniffed packets
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(LogSniffing, FIELD_DEF(timestamp) FIELD_DEF(sniffed));
+        return STRUCT_DEF(LogSniffing, FIELD_DEF(timestamp) FIELD_DEF(msgId)
+                                           FIELD_DEF(totalSniffed));
     }
 };
 

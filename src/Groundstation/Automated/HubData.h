@@ -36,14 +36,16 @@ namespace Antennas
 struct HubData
 {
     uint64_t timestamp = 0;
-    uint16_t groundRx  = 0;
-    uint16_t rocketRx  = 0;
+    uint8_t messageId  = 0;
+    uint32_t groundRx  = 0;
+    uint32_t rocketRx  = 0;
     float cpuMean      = 0;
 
     static constexpr auto reflect()
     {
         return STRUCT_DEF(HubData, FIELD_DEF(timestamp) FIELD_DEF(groundRx)
-                                       FIELD_DEF(rocketRx) FIELD_DEF(cpuMean));
+                                       FIELD_DEF(messageId) FIELD_DEF(rocketRx)
+                                           FIELD_DEF(cpuMean));
     }
 };
 }  // namespace Antennas

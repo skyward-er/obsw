@@ -104,12 +104,20 @@ private:
      */
     void setRocketOrigin(const Boardcore::GPSData& newRocketCoordinates);
 
+    /**
+     * @brief Logs information about the received packets
+     */
+    void logData(bool isRocketRx, uint8_t messageId);
+
     Boardcore::GPSData lastRocketCoordinates;
     bool originReceived = false;
     Boardcore::NASState lastRocketNasState;
     bool rocketNasSet = false;
     miosix::FastMutex coordinatesMutex;
     miosix::FastMutex nasStateMutex;
+    miosix::FastMutex hubDataMutex;
+    miosix::FastMutex lastTMMutex;
+
     bool hasNewNasSet              = false;
     uint64_t lastFlightTMTimestamp = 0;
     uint64_t lastStatsTMTimestamp  = 0;
