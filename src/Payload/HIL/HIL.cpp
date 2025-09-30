@@ -280,9 +280,12 @@ ActuatorData PayloadHIL::updateActuatorData()
     PinDataHIL pinData(
         pinHandler->getPinData(PinList::RAMP_DETACH_PIN).lastState ? 1.0 : 0.0);
 
+    counter += 1.0f;
+
     // Returning the feedback for the simulator
     return ActuatorData(
         nasStateHIL, actuatorsStateHIL, guidanceData, pinData,
-        (fmm->testState(&Payload::FlightModeManager::FlyingAscending) ? 3 : 0));
+        (fmm->testState(&Payload::FlightModeManager::FlyingAscending) ? 3 : 0),
+        counter);
 };
 }  // namespace Payload

@@ -139,8 +139,10 @@ ActuatorData MotorHIL::updateActuatorData()
         (actuators->getServoPosition(N2_QUENCHING_VALVE)),
     };
 
+    counter += 1.0f;
+
     // Returning the feedback for the simulator
-    return ActuatorData{actuatorsStateHIL};
+    return ActuatorData{actuatorsStateHIL, counter};
 }
 
 }  // namespace Motor

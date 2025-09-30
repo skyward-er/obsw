@@ -232,18 +232,23 @@ struct ActuatorData
     GuidanceDataHIL guidanceData;
     PinDataHIL pin;
     float signal;
+    float sequenceNumber;  //< Counter used to see the sequence of packets sent
+                           // to the
+                           // simulator
 
     ActuatorData()
-        : nasState(), actuatorsState(), guidanceData(), pin(), signal(0)
+        : nasState(), actuatorsState(), guidanceData(), pin(), signal(0),
+          sequenceNumber(0.0f)
     {
     }
 
     ActuatorData(const NASStateHIL& nasState,
                  const ActuatorsStateHIL& actuatorsState,
                  const GuidanceDataHIL& guidanceData, const PinDataHIL& pin,
-                 float signal)
+                 float signal, float sequenceNumber)
         : nasState(nasState), actuatorsState(actuatorsState),
-          guidanceData(guidanceData), pin(pin), signal(signal)
+          guidanceData(guidanceData), pin(pin), signal(signal),
+          sequenceNumber(sequenceNumber)
     {
     }
 

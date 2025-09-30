@@ -313,19 +313,24 @@ struct ActuatorData
     AirBrakesStateHIL airBrakesState;
     MEAStateHIL meaState;
     ActuatorsStateHIL actuatorsState;
+    float sequenceNumber;  //< Counter used to see the sequence of packets sent
+                           // to the
+                           // simulator
 
     ActuatorData()
-        : adaState(), nasState(), airBrakesState(), meaState(), actuatorsState()
+        : adaState(), nasState(), airBrakesState(), meaState(),
+          actuatorsState(), sequenceNumber(0.0f)
     {
     }
 
     ActuatorData(const ADAStateHIL& adaState, const NASStateHIL& nasState,
                  const AirBrakesStateHIL& airBrakesState,
                  const MEAStateHIL& meaState,
-                 const ActuatorsStateHIL& actuatorsState)
+                 const ActuatorsStateHIL& actuatorsState,
+                 const float sequenceNumber)
         : adaState(adaState), nasState(nasState),
           airBrakesState(airBrakesState), meaState(meaState),
-          actuatorsState(actuatorsState)
+          actuatorsState(actuatorsState), sequenceNumber(sequenceNumber)
     {
     }
 

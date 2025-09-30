@@ -115,6 +115,7 @@ public:
 
 private:
     ActuatorData updateActuatorData();
+    float counter = 0;  //< Counter used as debug information
 };
 
 }  // namespace Main

@@ -98,11 +98,15 @@ struct SimulatorData
 struct ActuatorData
 {
     ActuatorsStateHIL actuatorsState;
+    float sequenceNumber;  //< Counter used to see the sequence of packets sent
+                           // to the
+                           // simulator
 
-    ActuatorData() : actuatorsState() {}
+    ActuatorData() : actuatorsState(), sequenceNumber(0.0f) {}
 
-    explicit ActuatorData(const ActuatorsStateHIL& actuatorsState)
-        : actuatorsState(actuatorsState)
+    explicit ActuatorData(const ActuatorsStateHIL& actuatorsState,
+                          float sequenceNumber)
+        : actuatorsState(actuatorsState), sequenceNumber(sequenceNumber)
     {
     }
 
