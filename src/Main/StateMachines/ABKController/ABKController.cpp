@@ -87,8 +87,8 @@ void ABKController::update()
         auto nas          = getModule<NASController>()->getNASState();
         auto ref          = getModule<AlgoReference>()->getReferenceValues();
         float mslAltitude = ref.refAltitude - nas.d;
-        float mach        = Aeroutils::computeMach(mslAltitude, nas.vd,
-                                                   Constants::MSL_TEMPERATURE);
+        float mach =
+            Aeroutils::computeMach(-mslAltitude, -nas.vd, ref.mslTemperature);
 
         if (mach <= Config::ABK::MACH_LIMIT)
             EventBroker::getInstance().post(ABK_MACH_BELOW_LIMIT, TOPIC_ABK);

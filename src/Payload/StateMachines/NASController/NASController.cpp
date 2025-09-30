@@ -296,8 +296,8 @@ void NASController::update()
     auto prevState    = nas.getState();
     auto ref          = nas.getReferenceValues();
     float mslAltitude = ref.refAltitude - prevState.d;
-    float mach        = Aeroutils::computeMach(mslAltitude, prevState.vd,
-                                               Constants::MSL_TEMPERATURE);
+    float mach =
+        Aeroutils::computeMach(-mslAltitude, -prevState.vd, ref.mslTemperature);
 
     // Perform initial NAS prediction
     nas.predictGyro(imu);

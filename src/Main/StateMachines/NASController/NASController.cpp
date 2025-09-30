@@ -130,8 +130,8 @@ void NASController::update()
         auto prevState    = nas.getState();
         auto ref          = getModule<AlgoReference>()->getReferenceValues();
         float mslAltitude = ref.refAltitude - prevState.d;
-        float mach        = Aeroutils::computeMach(mslAltitude, prevState.vd,
-                                                   Constants::MSL_TEMPERATURE);
+        float mach        = Aeroutils::computeMach(-mslAltitude, -prevState.vd,
+                                                   ref.mslTemperature);
         auto imu          = sensors->getIMULastSample();
         auto gps          = sensors->getUBXGPSLastSample();
         auto baro         = sensors->getAtmosPressureLastSample();
