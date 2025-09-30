@@ -196,9 +196,9 @@ int main()
     // ARP modules insertion
     LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
     actuators  = new Antennas::Actuators();
-    sensors    = new Antennas::Sensors();
+    sensors    = new Antennas::Sensors(*scheduler_high);
     sma        = new Antennas::SMA(scheduler_high);
-    pinHandler = new Antennas::PinHandler();
+    pinHandler = new Antennas::PinHandler(*scheduler_low);
     leds       = new Antennas::Leds(scheduler_low);
     ok &= manager.insert(sma);
     ok &= manager.insert(actuators);

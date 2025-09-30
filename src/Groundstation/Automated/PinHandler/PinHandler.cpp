@@ -37,7 +37,8 @@ using namespace Common;
 
 namespace Antennas
 {
-PinHandler::PinHandler() : scheduler(), pin_observer(scheduler)
+PinHandler::PinHandler(TaskScheduler& taskscheduler)
+    : scheduler(taskscheduler), pin_observer(taskscheduler)
 {
     pin_observer.registerPinCallback(
         miosix::commBox::switchArm::getPin(),
@@ -50,7 +51,7 @@ PinHandler::PinHandler() : scheduler(), pin_observer(scheduler)
         PinHandlerConfig::ACTIVE_SWITCH_THRESHOLD);
 }
 
-bool PinHandler::start() { return scheduler.start(); }
+bool PinHandler::start() { return true; }
 
 bool PinHandler::isStarted() { return scheduler.isRunning(); }
 

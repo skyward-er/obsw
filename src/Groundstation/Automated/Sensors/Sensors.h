@@ -41,7 +41,7 @@ static constexpr std::chrono::seconds VN300_CAL_TIME = std::chrono::seconds(30);
 class Sensors : public Boardcore::InjectableWithDeps<LyraGS::Buses>
 {
 public:
-    Sensors();
+    Sensors(Boardcore::TaskScheduler& scheduler);
 
     /**
      * @brief Starts the SensorManager.
@@ -72,6 +72,7 @@ private:
     Boardcore::VN300* vn300 = nullptr;
 
     Boardcore::SensorManager* sm = nullptr;
+    Boardcore::TaskScheduler& scheduler;
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
     std::chrono::nanoseconds calibrationStart;

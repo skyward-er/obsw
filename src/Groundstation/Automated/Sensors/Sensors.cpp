@@ -30,14 +30,14 @@ constexpr int SAMPLE_PERIOD_VN300 = 20;
 
 namespace Antennas
 {
-Sensors::Sensors() {}
+Sensors::Sensors(Boardcore::TaskScheduler& scheduler) : scheduler(scheduler) {}
 
 bool Sensors::start()
 {
     if (!vn300Init())
         return false;
 
-    sm = new SensorManager(sensorsMap);
+    sm = new SensorManager(sensorsMap, &scheduler);
     if (!sm->start())
     {
         LOG_ERR(logger, "Sensor Manager failed to start");

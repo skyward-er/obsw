@@ -39,7 +39,7 @@ public:
         ACTIVE_SWITCH
     };
 
-    PinHandler();
+    PinHandler(Boardcore::TaskScheduler& taskscheduler);
 
     /**
      * @brief Starts the PinObserver module thread
@@ -69,7 +69,7 @@ public:
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 
-    Boardcore::TaskScheduler scheduler;
+    Boardcore::TaskScheduler& scheduler;
     Boardcore::PinObserver pin_observer;
 };
 }  // namespace Antennas
