@@ -377,7 +377,7 @@ void ADAController::calibrate()
     ada1.setReferenceValues(ref);
     ada2.setReferenceValues(ref);
 
-    // TODO: Should this be calculated by ADA at the moment?
+    // Recomputing Kalman config also resets the ADA state
     auto kalmanConfig = computeADAKalmanConfig(ref.refPressure);
     ada0.setKalmanConfig(kalmanConfig);
     ada1.setKalmanConfig(kalmanConfig);
@@ -386,8 +386,6 @@ void ADAController::calibrate()
     ada0.update(ref.refPressure);
     ada1.update(ref.refPressure);
     ada2.update(ref.refPressure);
-
-    EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
 }
 
 void ADAController::state_init(const Event& event)
@@ -416,6 +414,8 @@ void ADAController::state_calibrating(const Event& event)
         {
             updateAndLogStatus(ADAControllerState::CALIBRATING);
             calibrate();
+
+            EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
             break;
         }
 
@@ -438,6 +438,7 @@ void ADAController::state_ready(const Event& event)
         }
 
         case ADA_CALIBRATE:
+        case ADA_RESET:
         {
             transition(&ADAController::state_calibrating);
             break;

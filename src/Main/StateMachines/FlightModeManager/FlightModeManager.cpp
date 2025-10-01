@@ -408,6 +408,16 @@ State FlightModeManager::state_disarmed(const Event& event)
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
             return transition(&FlightModeManager::state_armed);
         }
+        case TMTC_RESET_NAS:
+        {
+            EventBroker::getInstance().post(NAS_RESET, TOPIC_NAS);
+            return HANDLED;
+        }
+        case TMTC_RESET_ADA:
+        {
+            EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;
@@ -480,6 +490,16 @@ State FlightModeManager::state_test_mode(const Event& event)
         case CAN_ENTER_HIL_MODE:
         {
             enterHilMode();
+            return HANDLED;
+        }
+        case TMTC_RESET_NAS:
+        {
+            EventBroker::getInstance().post(NAS_RESET, TOPIC_NAS);
+            return HANDLED;
+        }
+        case TMTC_RESET_ADA:
+        {
+            EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
             return HANDLED;
         }
         default:

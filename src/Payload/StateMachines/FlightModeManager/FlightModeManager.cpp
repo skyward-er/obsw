@@ -399,7 +399,8 @@ State FlightModeManager::OnGroundDisarmed(const Event& event)
         case TMTC_ARM:
         {
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
-            // Fallthrough
+
+            [[fallthrough]];
         }
         case CAN_ARM:
         {
@@ -410,7 +411,8 @@ State FlightModeManager::OnGroundDisarmed(const Event& event)
         {
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::ENTER_TEST_MODE);
-            // Fallthrough
+
+            [[fallthrough]];
         }
         case CAN_ENTER_TEST_MODE:
         {
@@ -420,12 +422,25 @@ State FlightModeManager::OnGroundDisarmed(const Event& event)
         case TMTC_CALIBRATE:
         {
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
-            // Fallthrough
+
+            [[fallthrough]];
         }
         case TMTC_SET_CALIBRATION_PRESSURE:
         case CAN_CALIBRATE:
         {
             return transition(&FlightModeManager::OnGroundSensorCalibration);
+        }
+
+        case TMTC_RESET_NAS:
+        {
+            EventBroker::getInstance().post(NAS_RESET, TOPIC_NAS);
+            return HANDLED;
+        }
+
+        case TMTC_RESET_ADA:
+        {
+            EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
+            return HANDLED;
         }
 
         default:
@@ -496,11 +511,24 @@ State FlightModeManager::OnGroundTestMode(const Event& event)
         {
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::EXIT_TEST_MODE);
-            // Fallthrough
+
+            [[fallthrough]];
         }
         case CAN_EXIT_TEST_MODE:
         {
             return transition(&FlightModeManager::OnGroundDisarmed);
+        }
+
+        case TMTC_RESET_NAS:
+        {
+            EventBroker::getInstance().post(NAS_RESET, TOPIC_NAS);
+            return HANDLED;
+        }
+
+        case TMTC_RESET_ADA:
+        {
+            EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
+            return HANDLED;
         }
 
         default:
@@ -551,7 +579,8 @@ State FlightModeManager::Armed(const Event& event)
         case TMTC_DISARM:
         {
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
-            // Fallthrough
+
+            [[fallthrough]];
         }
         case CAN_DISARM:
         {
@@ -561,7 +590,8 @@ State FlightModeManager::Armed(const Event& event)
         case TMTC_FORCE_LAUNCH:
         {
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
-            // Fallthrough
+
+            [[fallthrough]];
         }
         case CAN_LIFTOFF:
         case FLIGHT_LAUNCH_PIN_DETACHED:

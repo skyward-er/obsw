@@ -141,7 +141,10 @@ void NASController::Calibrating(const Event& event)
         case EV_ENTRY:
         {
             updateState(NASControllerState::CALIBRATING);
+
             calibrate();
+
+            EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             break;
         }
 
@@ -163,6 +166,14 @@ void NASController::Ready(const Event& event)
             break;
         }
 
+        case NAS_RESET:
+        {
+            Lock<FastMutex> l(nasMutex);
+            nas.resetCovariance();
+
+            // Recalculate initial state with triad via calibration
+            [[fallthrough]];
+        }
         case NAS_CALIBRATE:
         {
             transition(&NASController::Calibrating);
@@ -269,8 +280,6 @@ void NASController::calibrate()
     // Update the algorithm reference values
     nas.setX(init.getInitX());
     nas.setReferenceValues(reference);
-
-    EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
 }
 
 void NASController::update()

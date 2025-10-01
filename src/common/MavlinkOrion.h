@@ -77,6 +77,10 @@ inline Events mavCmdToEvent(uint8_t id)
             return TMTC_STOP_RECORDING;
         case MAV_CMD_OPEN_CHAMBER:
             return TMTC_OPEN_CHAMBER;
+        case MAV_CMD_RESET_NAS:
+            return TMTC_RESET_NAS;
+        case MAV_CMD_RESET_ADA:
+            return TMTC_RESET_ADA;
         default:
             return LAST_EVENT;
     }
