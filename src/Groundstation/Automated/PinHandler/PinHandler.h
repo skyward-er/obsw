@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Groundstation/Automated/BoardScheduler.h>
 #include <Groundstation/Automated/PinHandler/PinData.h>
 #include <diagnostic/PrintLogger.h>
 #include <scheduler/TaskScheduler.h>
@@ -30,7 +31,7 @@
 
 namespace Antennas
 {
-class PinHandler : public Boardcore::Injectable
+class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
     enum PinList : uint8_t
@@ -38,8 +39,6 @@ public:
         ARM_SWITCH,
         ACTIVE_SWITCH
     };
-
-    PinHandler();
 
     /**
      * @brief Starts the PinObserver module thread
@@ -69,7 +68,6 @@ public:
 private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("PinHandler");
 
-    Boardcore::TaskScheduler scheduler;
-    Boardcore::PinObserver pin_observer;
+    std::unique_ptr<Boardcore::PinObserver> pin_observer;
 };
 }  // namespace Antennas

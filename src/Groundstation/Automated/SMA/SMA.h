@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/BoardScheduler.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/HubBase.h>
@@ -31,7 +32,6 @@
 #include <algorithms/Propagator/Propagator.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>
-#include <scheduler/TaskScheduler.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -44,12 +44,13 @@ namespace Antennas
  * @brief SMA - State Machine for Arp is the state machine which
  * controls the Autonomous Rocket Pointer system.
  */
-class SMA : public Boardcore::InjectableWithDeps<Actuators, Sensors,
-                                                 Groundstation::HubBase, Leds>,
-            public Boardcore::HSM<SMA>
+class SMA
+    : public Boardcore::InjectableWithDeps<
+          Actuators, Sensors, Groundstation::HubBase, Leds, BoardScheduler>,
+      public Boardcore::HSM<SMA>
 {
 public:
-    explicit SMA(Boardcore::TaskScheduler* scheduler);
+    explicit SMA();
 
     // FSM States
 
@@ -141,9 +142,6 @@ private:
      * @param state The current FSM state
      */
     void logStatusAndUpdate(SMAState state);
-
-    // Scheduler to be used for update function
-    Boardcore::TaskScheduler* scheduler;
 
     // Mutex to lock for setters and usage
     miosix::FastMutex mutex;

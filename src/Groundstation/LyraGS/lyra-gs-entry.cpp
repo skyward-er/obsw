@@ -21,6 +21,7 @@
  */
 
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/BoardScheduler.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
@@ -37,7 +38,6 @@
 #include <drivers/DipSwitch/DipSwitch.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
-#include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <thread>
@@ -159,10 +159,9 @@ int main()
     PrintLogger logger = Logging::getLogger("lyra_gs");
 
     // TODO: Board scheduler for the schedulers
-    TaskScheduler* scheduler_low  = new TaskScheduler(0);
-    TaskScheduler* scheduler_high = new TaskScheduler();
-    Buses* buses                  = new Buses();
-    SerialLyraGS* serial          = new SerialLyraGS();
+    BoardScheduler* scheduler = new BoardScheduler();
+    Buses* buses              = new Buses();
+    SerialLyraGS* serial      = new SerialLyraGS();
     LyraGS::RadioMain* radio_main =
         new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
     LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
@@ -190,6 +189,7 @@ int main()
     ok &= manager.insert<EthernetSniffer>(ethernetSniffer);
     ok &= manager.insert<LyraGS::RadioPayload>(radio_payload);
     ok &= manager.insert(board_status);
+    ok &= manager.insert<BoardScheduler>(scheduler);
 
     // Inserting Modules
 
@@ -197,9 +197,9 @@ int main()
     LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
     actuators  = new Antennas::Actuators();
     sensors    = new Antennas::Sensors();
-    sma        = new Antennas::SMA(scheduler_high);
+    sma        = new Antennas::SMA();
     pinHandler = new Antennas::PinHandler();
-    leds       = new Antennas::Leds(scheduler_low);
+    leds       = new Antennas::Leds();
     ok &= manager.insert(sma);
     ok &= manager.insert(actuators);
     ok &= manager.insert(sensors);
@@ -251,24 +251,7 @@ int main()
     }
 #endif
 
-    LOG_DEBUG(logger, "DEBUG: scheduler_low starting...\n");
-
-    if (!scheduler_low->start())
-    {
-        std::cout << "[error] Failed to start scheduler_low!" << std::endl;
-        ok = false;
-    }
-
-    LOG_DEBUG(logger, "DEBUG: scheduler_high starting...\n");
-
-    if (!scheduler_high->start())
-    {
-        std::cout << "[error] Failed to start scheduler_high!" << std::endl;
-        ok         = false;
-        init_fatal = true;
-    }
-
-    LOG_DEBUG(logger, "DEBUG: serial starting...\n");
+    LOG_INFO(logger, "DEBUG: serial starting...\n");
 
     if (!serial->start())
     {
@@ -276,7 +259,7 @@ int main()
         ok = false;
     }
 
-    LOG_DEBUG(logger, "DEBUG: radio_main starting...\n");
+    LOG_INFO(logger, "radio_main starting...\n");
 
     if (!radio_main->start())
     {
@@ -285,7 +268,7 @@ int main()
         init_fatal = true;
     }
 
-    LOG_DEBUG(logger, "DEBUG: radio_payload starting...\n");
+    LOG_INFO(logger, "radio_payload starting...\n");
 
     if (!radio_payload->start())
     {
@@ -294,7 +277,7 @@ int main()
         ok &= dipRead.isARP;
     }
 
-    LOG_DEBUG(logger, "DEBUG: ethernet starting...\n");
+    LOG_INFO(logger, "DEBUG: ethernet starting...\n");
 
     if (!ethernet->start())
     {
@@ -306,19 +289,13 @@ int main()
         ethernet->printIpConfig(std::cout);
     }
 
-    LOG_DEBUG(logger, "DEBUG: board_status starting...\n");
-
-    if (!board_status->start())
-    {
-        std::cout << "[error] Failed to start board_status!" << std::endl;
-        ok = false;
-    }
+    LOG_INFO(logger, "Starting BoardScheduler starting...\n");
 
     // Starting ARP specific modules
 
     if (dipRead.isARP)
     {
-        LOG_DEBUG(logger, "DEBUG: leds starting...\n");
+        LOG_INFO(logger, "leds starting...\n");
 
         if (leds && !(leds->start()))
         {
@@ -326,7 +303,7 @@ int main()
             ok = false;
         }
 
-        LOG_DEBUG(logger, "DEBUG: sensors starting...\n");
+        LOG_INFO(logger, "sensors starting...\n");
 
         if (sensors && !(sensors->start()))
         {
@@ -334,7 +311,7 @@ int main()
             ok = false;
         }
 
-        LOG_DEBUG(logger, "DEBUG: sma starting...\n");
+        LOG_INFO(logger, "DEBUG: sma starting...\n");
 
         if (sma && !(sma->start()))
         {
@@ -342,7 +319,7 @@ int main()
             ok = false;
         }
 
-        LOG_DEBUG(logger, "DEBUG: actuators starting...\n");
+        LOG_INFO(logger, "DEBUG: actuators starting...\n");
 
         if (actuators)
         {
@@ -352,13 +329,29 @@ int main()
         else
             std::cout << "[error] Failed to start actuators!" << std::endl;
 
-        LOG_DEBUG(logger, "DEBUG: pin handler starting...\n");
+        LOG_INFO(logger, "pin handler starting...\n");
 
         if (pinHandler && !pinHandler->start())
         {
             std::cout << "[error] Failed to start PinHandler!" << std::endl;
             ok = false;
         }
+    }
+
+    LOG_INFO(logger, "Board scheduler starting...\n");
+
+    if (!scheduler->start())
+    {
+        std::cout << "[error] Failed to start BoardScheduler!" << std::endl;
+        ok = false;
+    }
+
+    LOG_INFO(logger, "board_status starting...\n");
+
+    if (!board_status->start())
+    {
+        std::cout << "[error] Failed to start board_status!" << std::endl;
+        ok = false;
     }
 
     if (!dipRead.isARP && !ok)
@@ -368,7 +361,7 @@ int main()
         errorLoop();
     }
 
-    LOG_DEBUG(logger, "All modules started successfully!\n");
+    LOG_INFO(logger, "All modules started successfully!\n");
 
     // Check presence of radio and ethernet
 

@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include <Groundstation/Automated/BoardScheduler.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -38,7 +39,8 @@ static constexpr uint8_t VN300_CAL_CONVERGENCE =
         ///< calibration. 5: converge in 60-90sec, 1: converge in 15-20sec
 static constexpr std::chrono::seconds VN300_CAL_TIME = std::chrono::seconds(30);
 
-class Sensors : public Boardcore::InjectableWithDeps<LyraGS::Buses>
+class Sensors
+    : public Boardcore::InjectableWithDeps<LyraGS::Buses, BoardScheduler>
 {
 public:
     Sensors();
@@ -71,7 +73,7 @@ private:
 
     Boardcore::VN300* vn300 = nullptr;
 
-    Boardcore::SensorManager* sm = nullptr;
+    std::unique_ptr<Boardcore::SensorManager> sm = nullptr;
     Boardcore::SensorManager::SensorMap_t sensorsMap;
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
     std::chrono::nanoseconds calibrationStart;

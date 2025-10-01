@@ -42,9 +42,9 @@ using namespace std;
 namespace Antennas
 {
 
-SMA::SMA(TaskScheduler* sched)
-    : HSM(&SMA::state_config), scheduler(sched),
-      propagator(SMAConfig::UPDATE_PERIOD), follower(SMAConfig::UPDATE_PERIOD)
+SMA::SMA()
+    : HSM(&SMA::state_config), propagator(SMAConfig::UPDATE_PERIOD),
+      follower(SMAConfig::UPDATE_PERIOD)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ARP);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
@@ -52,9 +52,9 @@ SMA::SMA(TaskScheduler* sched)
 
 bool SMA::start()
 {
-    size_t result =
-        scheduler->addTask(bind(&SMA::update, this), SMAConfig::UPDATE_PERIOD,
-                           TaskScheduler::Policy::RECOVER);
+    size_t result = getModule<BoardScheduler>()->getSMAScheduler().addTask(
+        bind(&SMA::update, this), SMAConfig::UPDATE_PERIOD,
+        TaskScheduler::Policy::RECOVER);
     return HSM::start() && result != 0;
 }
 

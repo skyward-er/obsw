@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Groundstation/Automated/BoardScheduler.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -48,10 +49,10 @@ enum class LedColor : uint8_t
  * @brief Utility to handle blinking leds with non-blocking sleep
  * (useful for state machines states that need to blink leds without blocking)
  */
-class Leds : public Boardcore::Injectable
+class Leds : public Boardcore::InjectableWithDeps<BoardScheduler>
 {
 public:
-    explicit Leds(Boardcore::TaskScheduler* scheduler);
+    explicit Leds();
 
     /**
      * @brief Start all the blinking LED thread
@@ -110,8 +111,6 @@ private:
         return &leds_state[static_cast<uint8_t>(color)];
     }
 
-    // scheduler to run the update blink function
-    Boardcore::TaskScheduler* scheduler;
     // toggles to allow led to blink
     std::array<bool, 5> led_toggles;
     // counter to keep track of slow blink

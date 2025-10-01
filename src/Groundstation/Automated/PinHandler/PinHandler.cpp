@@ -37,22 +37,30 @@ using namespace Common;
 
 namespace Antennas
 {
-PinHandler::PinHandler() : scheduler(), pin_observer(scheduler)
+
+bool PinHandler::start()
 {
-    pin_observer.registerPinCallback(
+    TaskScheduler& scheduler =
+        getModule<BoardScheduler>()->getOthersScheduler();
+
+    pin_observer = std::make_unique<PinObserver>(scheduler);
+    pin_observer->registerPinCallback(
         miosix::commBox::switchArm::getPin(),
         bind(&PinHandler::onArmTransition, this, _1),
         PinHandlerConfig::ARM_SWITCH_THRESHOLD);
 
-    pin_observer.registerPinCallback(
+    pin_observer->registerPinCallback(
         miosix::commBox::switchActive::getPin(),
         bind(&PinHandler::onActiveTransition, this, _1),
         PinHandlerConfig::ACTIVE_SWITCH_THRESHOLD);
+
+    return true;
 }
 
-bool PinHandler::start() { return scheduler.start(); }
-
-bool PinHandler::isStarted() { return scheduler.isRunning(); }
+bool PinHandler::isStarted()
+{
+    return getModule<BoardScheduler>()->getOthersScheduler().isRunning();
+}
 
 void PinHandler::onArmTransition(PinTransition transition)
 {
@@ -114,12 +122,12 @@ PinData PinHandler::getPinData(PinList pin)
     {
         case PinList::ARM_SWITCH:
         {
-            return pin_observer.getPinData(
+            return pin_observer->getPinData(
                 miosix::commBox::switchArm::getPin());
         }
         case PinList::ACTIVE_SWITCH:
         {
-            return pin_observer.getPinData(
+            return pin_observer->getPinData(
                 miosix::commBox::switchActive::getPin());
         }
         default:

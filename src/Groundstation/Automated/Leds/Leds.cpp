@@ -27,7 +27,7 @@ using namespace Boardcore;
 namespace Antennas
 {
 
-Leds::Leds(TaskScheduler* scheduler) : scheduler(scheduler)
+Leds::Leds()
 {
     leds_state.fill(LedState::OFF);
     led_toggles.fill(false);
@@ -42,9 +42,9 @@ bool Leds::start()
     // turn off all leds
     miosix::ledOff();
 
-    result = scheduler->addTask(std::bind(&Leds::update, this),
-                                LED_BLINK_FAST_PERIOD_MS,
-                                TaskScheduler::Policy::RECOVER);
+    result = getModule<BoardScheduler>()->getOthersScheduler().addTask(
+        std::bind(&Leds::update, this), LED_BLINK_FAST_PERIOD_MS,
+        TaskScheduler::Policy::RECOVER);
     ok &= result;
 
     return ok;
