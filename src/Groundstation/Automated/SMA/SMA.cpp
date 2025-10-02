@@ -26,7 +26,6 @@
 #include <Groundstation/Automated/Config/SMAConfig.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
-#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <sensors/Vectornav/VN300/VN300Data.h>
@@ -162,47 +161,15 @@ void SMA::update()
     auto steppers        = getModule<Actuators>();
     bool antennaCoordSet = false;
 
-    Hub* hub      = static_cast<Hub*>(getModule<Groundstation::HubBase>());
-    auto* sensors = getModule<Sensors>();
+    Hub* hub = static_cast<Hub*>(getModule<Groundstation::HubBase>());
 
     {
         miosix::Lock<miosix::FastMutex> lock(mutex);
 
-        // TODO: Verify if same with the macrostate
-        // Update the antenna position if in feedback
-        // if (testState(&SMA::state_feedback))
-        if (testState(&SMA::state_init_done) || testState(&SMA::state_armed) ||
-            testState(&SMA::state_fix_antennas) ||
-            testState(&SMA::state_fix_rocket) ||
-            testState(&SMA::state_active) || testState(&SMA::state_test))
-        {
-            // update antenna coordinates
-            data = sensors->getVN300LastSample();
-            if (data.gpsFix == 3)
-            {
-                // build the GPSData struct with the VN300 data
-                antennaCoordinates.gpsTimestamp  = data.insTimestamp;
-                antennaCoordinates.latitude      = data.latitude;
-                antennaCoordinates.longitude     = data.longitude;
-                antennaCoordinates.height        = data.altitude;
-                antennaCoordinates.velocityNorth = data.velocityX;
-                antennaCoordinates.velocityEast  = data.velocityY;
-                antennaCoordinates.velocityDown  = data.velocityZ;
-                antennaCoordinates.satellites    = data.gpsFix;
-                antennaCoordinates.fix           = data.gpsFix;
-
-                // update follower with coordinates
-                follower.setAntennaCoordinates(antennaCoordinates);
-            }
-        }
-        else
-        {
-            // Fake attitude data, taking the stepper current positions as pitch
-            // and yaw
-            data.pitch =
-                steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
-            data.yaw = steppers->getCurrentDegPosition(StepperList::STEPPER_X);
-        }
+        // Fake attitude data, taking the stepper current positions as pitch
+        // and yaw
+        data.pitch = steppers->getCurrentDegPosition(StepperList::STEPPER_Y);
+        data.yaw   = steppers->getCurrentDegPosition(StepperList::STEPPER_X);
 
         // update follower with the rocket GPS data
         if (hub->getRocketOrigin(rocketCoordinates))
@@ -314,11 +281,8 @@ void SMA::update()
 
         case SMAState::CALIBRATE:
         {
-            if (!sensors->isCalibrating())
-            {
-                EventBroker::getInstance().post(ARP_CAL_DONE, TOPIC_ARP);
-                LOG_DEBUG(logger, "Exit from calibration\n");
-            }
+            EventBroker::getInstance().post(ARP_CAL_DONE, TOPIC_ARP);
+            LOG_DEBUG(logger, "Exit from calibration\n");
         }
         break;
         default:
@@ -506,7 +470,7 @@ State SMA::state_init_error(const Event& event)
         }
         case TMTC_ARP_FORCE_INIT:
         {
-            return transition(&SMA::state_init_done);
+            return transition(&SMA::state_no_feedback);
         }
         default:
         {
@@ -525,7 +489,7 @@ State SMA::state_init_done(const Event& event)
             getModule<Leds>()->setOff(LedColor::RED);
             getModule<Leds>()->setOff(LedColor::BLUE);
             getModule<Leds>()->setSlowBlink(LedColor::YELLOW);
-            return HANDLED;
+            return transition(&SMA::state_insert_info);
         }
         case EV_EXIT:
         {
@@ -545,7 +509,7 @@ State SMA::state_init_done(const Event& event)
         }
         case TMTC_ARP_ARM:
         {
-            return transition(&SMA::state_feedback);
+            return transition(&SMA::state_insert_info);
         }
         default:
         {
@@ -704,10 +668,6 @@ State SMA::state_calibrate(const Event& event)
     {
         case EV_ENTRY:
         {
-            auto* sensors = getModule<Sensors>();
-            if (!sensors->calibrate() && sensors->isCalibrating())
-                transition(&SMA::state_test);
-            logStatusAndUpdate(SMAState::CALIBRATE);
             return HANDLED;
         }
         case EV_EXIT:

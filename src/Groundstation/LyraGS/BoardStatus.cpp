@@ -69,8 +69,6 @@ void BoardStatus::sendArpTm()
 {
     using namespace Antennas;
 
-    auto vn300 = getModule<Sensors>()->getVN300LastSample();
-
     Actuators* actuators = getModule<Actuators>();
     SMA* sm              = getModule<SMA>();
 
@@ -79,9 +77,6 @@ void BoardStatus::sendArpTm()
     mavlink_arp_tm_t tm = {};
     tm.timestamp        = TimestampTimer::getTimestamp(); /*< [us] Timestamp*/
     tm.state            = static_cast<uint8_t>(sm->getStatus()); /*<  State*/
-    tm.yaw              = vn300.yaw;          /*< [deg] Current Yaw*/
-    tm.pitch            = vn300.pitch;        /*< [deg] Current Pitch*/
-    tm.roll             = vn300.roll;         /*< [deg] Current Roll*/
     tm.target_yaw       = targetAngles.yaw;   /*< [deg] Target Yaw*/
     tm.target_pitch     = targetAngles.pitch; /*< [deg] Target Pitch*/
     tm.stepperX_pos     = actuators->getCurrentDegPosition(
@@ -96,10 +91,6 @@ void BoardStatus::sendArpTm()
         StepperList::STEPPER_Y); /*< [deg] StepperY target delta deg*/
     tm.stepperY_speed =
         actuators->getSpeed(StepperList::STEPPER_Y); /*< [rps] StepperY Speed*/
-    tm.gps_latitude  = vn300.latitude;               /*< [deg] Latitude*/
-    tm.gps_longitude = vn300.longitude;              /*< [deg] Longitude*/
-    tm.gps_height    = vn300.altitude;               /*< [m] Altitude*/
-    tm.gps_fix       = vn300.gpsFix; /*<  Wether the GPS has a FIX*/
     tm.log_number =
         Logger::getInstance().getCurrentLogNumber(); /*<  Log number*/
 

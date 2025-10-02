@@ -25,7 +25,6 @@
 #include <ActiveObject.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
-#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Config/RadioConfig.h>
 #include <Groundstation/Common/HubBase.h>
@@ -83,9 +82,9 @@ private:
  * @brief Class responsible for keeping track of radio status and metrics.
  */
 class BoardStatus
-    : public Boardcore::InjectableWithDeps<
-          Antennas::Actuators, Antennas::SMA, Antennas::Sensors,
-          Groundstation::HubBase, RadioMain, RadioPayload, EthernetGS>,
+    : public Boardcore::InjectableWithDeps<Antennas::Actuators, Antennas::SMA,
+                                           Groundstation::HubBase, RadioMain,
+                                           RadioPayload, EthernetGS>,
       private Boardcore::ActiveObject
 {
 public:

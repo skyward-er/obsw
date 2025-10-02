@@ -127,7 +127,6 @@ set (LYRA_GS
     src/Groundstation/Automated/Leds/Leds.cpp
     src/Groundstation/Automated/SMA/SMA.cpp
     src/Groundstation/Automated/Actuators/Actuators.cpp
-    src/Groundstation/Automated/Sensors/Sensors.cpp
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
     src/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
 )

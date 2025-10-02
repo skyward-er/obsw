@@ -24,6 +24,7 @@
 
 #include <Groundstation/Common/Ports/EthernetBase.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
+#include <Groundstation/LyraGS/Buses.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace LyraGS

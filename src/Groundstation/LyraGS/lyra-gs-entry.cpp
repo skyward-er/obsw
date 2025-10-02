@@ -26,7 +26,6 @@
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
-#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/LyraGS/Base/Hub.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Buses.h>
@@ -176,7 +175,6 @@ int main()
     // ARP-related things
     Antennas::Actuators* actuators   = nullptr;
     Antennas::Leds* leds             = nullptr;
-    Antennas::Sensors* sensors       = nullptr;
     Antennas::SMA* sma               = nullptr;
     Antennas::PinHandler* pinHandler = nullptr;
 
@@ -196,13 +194,11 @@ int main()
     // ARP modules insertion
     LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
     actuators  = new Antennas::Actuators();
-    sensors    = new Antennas::Sensors();
     sma        = new Antennas::SMA();
     pinHandler = new Antennas::PinHandler();
     leds       = new Antennas::Leds();
     ok &= manager.insert(sma);
     ok &= manager.insert(actuators);
-    ok &= manager.insert(sensors);
     ok &= manager.insert(leds);
     ok &= manager.insert(pinHandler);
 
@@ -300,14 +296,6 @@ int main()
         if (leds && !(leds->start()))
         {
             std::cout << "[error] Failed to start leds!" << std::endl;
-            ok = false;
-        }
-
-        LOG_INFO(logger, "sensors starting...\n");
-
-        if (sensors && !(sensors->start()))
-        {
-            std::cout << "[error] Failed to start sensors!" << std::endl;
             ok = false;
         }
 

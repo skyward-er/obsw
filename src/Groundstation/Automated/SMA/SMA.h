@@ -25,7 +25,6 @@
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/BoardScheduler.h>
 #include <Groundstation/Automated/Leds/Leds.h>
-#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/HubBase.h>
 #include <algorithms/Follower/Follower.h>
 #include <algorithms/NAS/NASState.h>
@@ -45,8 +44,8 @@ namespace Antennas
  * controls the Autonomous Rocket Pointer system.
  */
 class SMA
-    : public Boardcore::InjectableWithDeps<
-          Actuators, Sensors, Groundstation::HubBase, Leds, BoardScheduler>,
+    : public Boardcore::InjectableWithDeps<Actuators, Groundstation::HubBase,
+                                           Leds, BoardScheduler>,
       public Boardcore::HSM<SMA>
 {
 public:

@@ -37,7 +37,6 @@ public:
 
     Boardcore::SPIBus radio1_bus{MIOSIX_RADIO1_SPI};
     Boardcore::SPIBus radio2_bus{MIOSIX_RADIO2_SPI};
-    Boardcore::USART usart2{USART2, 115200};
     Boardcore::USART uart4{UART4, 115200};
     Boardcore::SPIBus ethernet_bus{MIOSIX_ETHERNET_SPI};
 };

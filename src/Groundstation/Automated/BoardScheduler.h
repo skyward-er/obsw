@@ -34,7 +34,6 @@ class BoardScheduler : public Boardcore::Injectable
 public:
     BoardScheduler()
         : sma{Antennas::Config::Scheduler::SMA_PRIORITY},
-          sensors{Antennas::Config::Scheduler::SENSORS_PRIORIY},
           others{Antennas::Config::Scheduler::OTHER_PRIORIY}
     {
     }
@@ -44,12 +43,6 @@ public:
         if (!sma.start())
         {
             LOG_ERR(logger, "Failed to start SMA scheduler");
-            return false;
-        }
-
-        if (!sensors.start())
-        {
-            LOG_ERR(logger, "Failed to start Sensors scheduler");
             return false;
         }
 
@@ -67,8 +60,6 @@ public:
 
     Boardcore::TaskScheduler& getSMAScheduler() { return sma; }
 
-    Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
-
     Boardcore::TaskScheduler& getOthersScheduler() { return others; }
 
 private:
@@ -78,7 +69,6 @@ private:
     std::atomic<bool> started{false};
 
     Boardcore::TaskScheduler sma;
-    Boardcore::TaskScheduler sensors;
     Boardcore::TaskScheduler others;
 };
 
