@@ -36,13 +36,13 @@ static const Boardcore::ReferenceValues defaultReferenceValues = {
     160.0,      // [m] Altitude
     99418.0,    // [Pa] Pressure
     288.15,     // [K] Temperature
-    39.389733,  // [deg] Start latitude
-    -8.288992,  // [deg] Start longitude
+    39.388727,  // [deg] Start latitude
+    -8.287842,  // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,
     Boardcore::Constants::MSL_TEMPERATURE,
 };
 
-const Eigen::Vector3f nedMag(0.59448, -0.0093, 0.80406);
+const Eigen::Vector3f nedMag(0.594477, -0.009249, 0.804059);
 
 #elif defined(ROCCARASO)
 

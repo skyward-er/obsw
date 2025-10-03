@@ -69,14 +69,14 @@ static const Boardcore::AirBrakesInterpPIDConfig CONFIG = {
     .FILTER_MINIMUM_ALTITUDE = 1000,
     .FILTER_MAXIMUM_ALTITUDE = 3000,
     .STARTING_FILTER_VALUE   = 0.9f,
-    .ABK_CRITICAL_ALTITUDE   = 2990,
+    .ABK_CRITICAL_ALTITUDE   = 2950,
     .DZ                      = 10,
     .INITIAL_MASS            = 29,
     .DM                      = 0.4f,
     .ARB_FREQ                = Hertz{UPDATE_RATE}.value(),
     .PID_REF                 = 0.2f,
-    .KP                      = 0.8f,
-    .KI                      = 1,
+    .KP                      = 1.0f,
+    .KI                      = 0.5f,
     .KD                      = 0.03f,
     .N_FORWARD               = 0};
 

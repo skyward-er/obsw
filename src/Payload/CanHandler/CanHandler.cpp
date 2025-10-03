@@ -34,7 +34,6 @@ using namespace Boardcore;
 using namespace Boardcore::Canbus;
 using namespace Common;
 using namespace Common::CanConfig;
-namespace config = Payload::Config::CanHandler;
 
 namespace Payload
 {
@@ -44,19 +43,19 @@ using namespace std::chrono;
 bool CanStatus::isMainConnected()
 {
     return miosix::getTime() <=
-           mainLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
+           mainLastStatus + nanoseconds{STATUS_TIMEOUT}.count();
 }
 
 bool CanStatus::isRigConnected()
 {
     return miosix::getTime() <=
-           rigLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
+           rigLastStatus + nanoseconds{STATUS_TIMEOUT}.count();
 }
 
 bool CanStatus::isMotorConnected()
 {
     return miosix::getTime() <=
-           motorLastStatus + nanoseconds{config::Status::TIMEOUT}.count();
+           motorLastStatus + nanoseconds{STATUS_TIMEOUT}.count();
 }
 
 bool CanHandler::start()
@@ -102,7 +101,7 @@ bool CanHandler::start()
 
     // Initialize CanbusDriver
     LOG_DEBUG(logger, "Initializing CanbusDriver");
-    if (!driver->init(Common::CanConfig::CAN_SYNC_TIMEOUT))
+    if (!driver->init(CAN_SYNC_TIMEOUT))
     {
         LOG_ERR(logger, "Failed to initialize CanbusDriver");
         return false;
@@ -129,7 +128,7 @@ bool CanHandler::start()
                                   static_cast<uint8_t>(Board::BROADCAST), 0x00,
                                   status);
         },
-        config::Status::PERIOD);
+        STATUS_SEND_PERIOD);
 
     if (statusTask == 0)
     {
@@ -161,7 +160,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(SensorId::PITOT_DYNAMIC_PRESSURE),
                 dynamicPressure);
         },
-        config::Pitot::SEND_RATE);
+        Config::CanHandler::Pitot::SEND_RATE);
 
     if (pitotTask == 0)
     {

@@ -36,13 +36,6 @@ namespace CanHandler
 /* linter-off */ using namespace std::chrono_literals;
 /* linter-off */ using namespace Boardcore::Units::Frequency;
 
-namespace Status
-{
-constexpr auto PERIOD = 1000ms;
-// Time after which a board is reported as disconnected in CAN telemetry
-constexpr auto TIMEOUT = 1500ms;
-}  // namespace Status
-
 namespace Pitot
 {
 constexpr auto SEND_RATE = 25_hz;

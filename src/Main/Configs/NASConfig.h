@@ -38,7 +38,7 @@ namespace NAS
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
+constexpr float UPDATE_RATE_SECONDS = 1.0 / UPDATE_RATE.value();  // [s]
 
 constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
 constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
@@ -46,14 +46,14 @@ constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
 static const Boardcore::NASConfig CONFIG = {
     .T                   = UPDATE_RATE_SECONDS,
     .SIGMA_BETA          = 0.0001,
-    .SIGMA_W             = 0.0019,
-    .SIGMA_ACC           = 0.05,
-    .SIGMA_MAG           = 0.0047,
-    .SIGMA_GPS           = {0.0447f, 0.0447f, 1.0f / 30.0f, 1.0f / 30.0f},
-    .SIGMA_BAR           = 50.0f,
+    .SIGMA_W             = 0.0031,
+    .SIGMA_ACC           = 0.035,
+    .SIGMA_MAG           = 0.0038,
+    .SIGMA_GPS           = {0.0179f, 0.0179f, 0.0996f, 0.0996f},
+    .SIGMA_BAR           = 68.0f,
     .SIGMA_POS           = 0.02,
     .SIGMA_VEL           = 0.01,
-    .SIGMA_PITOT_STATIC  = 75.0,
+    .SIGMA_PITOT_STATIC  = 25.0,
     .SIGMA_PITOT_DYNAMIC = 75.0,
     .P_POS               = 0.0,
     .P_POS_VERTICAL      = 0.0,
