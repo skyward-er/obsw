@@ -76,7 +76,7 @@ constexpr float DISABLE_GPS_ACCELERATION_THRESHOLD = 34.0;  // [m/s^2]
 constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;  // [m/s^2]
 // How many samples will determine that we are in fact measuring gravity
 // acceleration
-constexpr int ACCELERATION_1G_SAMPLES = 20;
+constexpr int ACCELERATION_1G_SAMPLES = 200;
 
 // Mach number under which we disable the pitot correction
 constexpr float PITOT_MACH_THRESHOLD = 0.35;
