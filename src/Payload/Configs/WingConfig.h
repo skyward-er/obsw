@@ -107,6 +107,10 @@ constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
 constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
 }  // namespace Guidance
 
+// Early Maneuver Guidance EMC point generation parameters
+constexpr auto LATERAL_DISTANCE = 20.0;
+constexpr auto SCALE_FACTOR     = 1.2;
+
 namespace Deployment
 {
 

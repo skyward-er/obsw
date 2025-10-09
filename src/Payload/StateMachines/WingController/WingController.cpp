@@ -43,6 +43,7 @@ using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
 using namespace Payload::Config::Actuators;
+using namespace Payload::Config::Wing;
 
 namespace Payload
 {
@@ -649,8 +650,8 @@ void WingController::updateEarlyManeuverPoints()
     Vector2f normPoint       = targetOffsetNED / targetOffsetNED.norm();
     float psi0               = atan2(normPoint.y(), normPoint.x());
 
-    float distFromCenterline = 20;  // the distance that the M1 and M2 points
-                                    // must have from the center line
+    // the distance that the M1 and M2 points must have from the center line
+    float distFromCenterline = LATERAL_DISTANCE;
 
     // Calculate the angle between the lines <NED Origin, target> and <NED
     // Origin, M1> This angle is the same for M2 since is symmetric to M1
@@ -661,8 +662,8 @@ void WingController::updateEarlyManeuverPoints()
     float m2Angle                 = psi0 + psiMan;
     float m1Angle                 = psi0 - psiMan;
 
-    // EMC is calculated as target * 1.2
-    Vector2f emcPosition = targetOffsetNED * 1.2 + currentPositionNED;
+    // EMC is calculated as target * SCALE_FACTOR
+    Vector2f emcPosition = targetOffsetNED * SCALE_FACTOR + currentPositionNED;
 
     Vector2f m1Position =
         Vector2f{cos(m1Angle), sin(m1Angle)} * maneuverPointsMagnitude +
