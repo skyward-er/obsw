@@ -61,8 +61,8 @@ enum class AlgorithmId : size_t
 namespace Default
 {
 #if defined(EUROC)
-constexpr auto TARGET_LAT = 39.38479088598281f;
-constexpr auto TARGET_LON = -8.28564625292085f;
+constexpr auto TARGET_LAT = 39.38724722f;
+constexpr auto TARGET_LON = -8.28647778f;
 #elif defined(ROCCARASO)
 constexpr auto TARGET_LAT = 41.807905240570980f;
 constexpr auto TARGET_LON = 14.057047761535994f;
@@ -71,7 +71,7 @@ constexpr auto TARGET_LAT = 45.5014089f;
 constexpr auto TARGET_LON = 9.1543615f;
 #endif
 
-constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
+constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
 }  // namespace Default
 
 /**
@@ -108,8 +108,8 @@ constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
 }  // namespace Guidance
 
 // Early Maneuver Guidance EMC point generation parameters
-constexpr auto LATERAL_DISTANCE = 20.0;
-constexpr auto SCALE_FACTOR     = 1.2;
+constexpr float LATERAL_DISTANCE = 30.0;
+constexpr float SCALE_FACTOR     = 1.1;
 
 namespace Deployment
 {
@@ -152,7 +152,7 @@ namespace AltitudeTrigger
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 600;  // [meters]
+constexpr auto DEPLOYMENT_ALTITUDE = 650;  // [meters]
 constexpr auto CONFIDENCE          = 10;   // [samples]
 constexpr auto UPDATE_RATE         = 10_hz;
 
