@@ -638,12 +638,14 @@ void WingController::updateEarlyManeuverPoints()
     using namespace Eigen;
 
     auto nas       = getModule<NASController>();
-    auto nasState  = nas->getNasState();
+    auto gps       = getModule<Sensors>()->getUBXGPSLastSample();
     auto nasRef    = nas->getReferenceValues();
     auto targetGEO = targetPositionGEO.load();
 
-    Vector2f currentPositionNED = {nasState.n, nasState.e};
-    Vector2f targetNED          = Aeroutils::geodetic2NED(
+    Vector2f currentPositionNED =
+        Aeroutils::geodetic2NED({gps.latitude, gps.longitude},
+                                {nasRef.refLatitude, nasRef.refLongitude});
+    Vector2f targetNED = Aeroutils::geodetic2NED(
         targetGEO, {nasRef.refLatitude, nasRef.refLongitude});
 
     Vector2f targetOffsetNED = targetNED - currentPositionNED;
