@@ -67,7 +67,8 @@ protected:
      * @return The angle to set to the servo, positive is right and negative is
      * left
      */
-    float algorithmStep(const Boardcore::NASState& state);
+    float algorithmStep(const Boardcore::ReferenceValues& ref,
+                        const Boardcore::GPSData& currentPosition);
 
     /**
      * @brief This method implements the automatic algorithm that will steer the

@@ -53,10 +53,13 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
 
 void AutomaticWingAlgorithm::step()
 {
-    if (getModule<Sensors>()->getUBXGPSLastSample().fix == 3)
+    auto gps = getModule<Sensors>()->getUBXGPSLastSample();
+
+    if (gps.fix == 3)
     {
+        auto nas = getModule<NASController>();
         // The PI calculated result
-        float result = algorithmStep(getModule<NASController>()->getNasState());
+        float result = algorithmStep(nas->getReferenceValues(), gps);
 
         // Actuate the result
         // To see how to interpret the PI output
@@ -98,16 +101,17 @@ void AutomaticWingAlgorithm::step()
     }
 }
 
-float AutomaticWingAlgorithm::algorithmStep(const NASState& state)
+float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
+                                            const GPSData& gps)
 {
-    // For some algorithms the third component is needed!
-    Vector3f currentPosition(state.n, state.e, state.d);
-
     Vector2f heading;  // used for logging purposes
 
-    float targetAngle = guidance.calculateTargetAngle(currentPosition, heading);
+    auto currentPosition = Aeroutils::geodetic2NED(
+        {gps.latitude, gps.longitude}, {ref.refLatitude, ref.refLongitude});
+    float targetAngle = guidance.calculateTargetAngle(
+        {currentPosition.x(), currentPosition.y(), gps.height}, heading);
 
-    Vector2f relativeVelocity(state.vn, state.ve);
+    Vector2f relativeVelocity(gps.velocityNorth, gps.velocityEast);
 
     // Compute the angle of the current velocity
     // All angle are computed as angle from the north direction
