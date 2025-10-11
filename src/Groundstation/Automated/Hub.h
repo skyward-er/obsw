@@ -93,6 +93,12 @@ public:
 
     bool hasNewNasState();
 
+    /**
+     * @brief Gets the current rocket position if it is available
+     *
+     */
+    bool getRocketPosition(Boardcore::GPSData& rocketPosition);
+
 private:
     /**
      * @brief Synchronized setter for the last rocket NAS state.
@@ -105,14 +111,24 @@ private:
     void setRocketOrigin(const Boardcore::GPSData& newRocketCoordinates);
 
     /**
+     * @brief Synchronized setter for the last rocket GPS position.
+     */
+    void setRocketPosition(const Boardcore::GPSData&);
+
+    /**
      * @brief Logs information about the received packets
      */
     void logData(bool isRocketRx, uint8_t messageId);
 
     Boardcore::GPSData lastRocketCoordinates;
     bool originReceived = false;
+
+    Boardcore::GPSData lastRocketPosition;
+    bool rocketGPSPositionReceived = false;
+
     Boardcore::NASState lastRocketNasState;
     bool rocketNasSet = false;
+
     miosix::FastMutex coordinatesMutex;
     miosix::FastMutex nasStateMutex;
     miosix::FastMutex hubDataMutex;

@@ -259,12 +259,27 @@ void SMA::update()
                 miosix::Lock<miosix::FastMutex> lock(mutex);
 
                 NASState nasState;
-                // In case there is a new NAS packet
+                GPSData position, origin;
                 if (hub->hasNewNasState() &&
                     hub->getLastRocketNasState(nasState))
+                {
+                    // In case there is a new NAS packet
+                    if (SMAConfig::USING_ROCKET_GPS_POSITION &&
+                        hub->getRocketOrigin(origin) &&
+                        hub->getRocketPosition(position))
+                    {
+                        Eigen::Vector2f currentNEDPosition =
+                            Aeroutils::geodetic2NED(
+                                {position.latitude, position.longitude},
+                                {origin.latitude, origin.longitude});
+
+                        nasState.n = currentNEDPosition[0];
+                        nasState.e = currentNEDPosition[1];
+                    }
                     // update the propagator with the NAS state
                     // and retrieve the propagated state
                     propagator.setRocketNasState(nasState);
+                }
 
                 propagator.update();  // step the propagator
                 PropagatorState predicted = propagator.getState();
