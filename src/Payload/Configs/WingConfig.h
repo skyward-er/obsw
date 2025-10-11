@@ -152,7 +152,7 @@ namespace AltitudeTrigger
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 650;  // [meters]
+constexpr auto DEPLOYMENT_ALTITUDE = 450;  // [meters]
 constexpr auto CONFIDENCE          = 10;   // [samples]
 constexpr auto UPDATE_RATE         = 10_hz;
 
