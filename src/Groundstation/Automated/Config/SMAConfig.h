@@ -34,6 +34,9 @@ namespace SMAConfig
 /// @brief Period of the propagator algorithm [ms].
 constexpr milliseconds UPDATE_PERIOD = 100ms;  // 10 Hz
 
+static constexpr bool USING_ROCKET_GPS_POSITION =
+    true;  //< Use the GPS position instead of the NAS
+
 // No feedback gains for the Follower
 static constexpr float YAW_GAIN_NF =
     1.0;  ///< Yaw gain for the no feedback states

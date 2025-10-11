@@ -283,6 +283,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 timestamp);
             lastFlightTMTimestamp = timestamp;
         }
+
         NASState nasState{
             mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
             Eigen::Matrix<float, 13, 1>(
@@ -291,8 +292,18 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 rocketTM.nas_qy, rocketTM.nas_qz, rocketTM.nas_qw,
                 rocketTM.nas_bias_x, rocketTM.nas_bias_y, rocketTM.nas_bias_z)};
 
+        GPSData gpsData;
+        gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
+        gpsData.latitude     = rocketTM.gps_lat;
+        gpsData.longitude    = rocketTM.gps_lon;
+        gpsData.height       = rocketTM.gps_alt;
+        gpsData.fix          = rocketTM.gps_fix;
+        gpsData.satellites   = 42;
+
         // Set the rocket NAS
         setRocketNasState(nasState);
+        // Set the rocket GPS position
+        setRocketPosition(gpsData);
     }
     else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
     {
@@ -349,6 +360,13 @@ bool Hub::getRocketOrigin(Boardcore::GPSData& rocketOrigin)
     return originReceived;
 }
 
+bool Hub::getRocketPosition(Boardcore::GPSData& rocketPosition)
+{
+    Lock<FastMutex> lock(coordinatesMutex);
+    rocketPosition = lastRocketPosition;
+    return rocketGPSPositionReceived;
+}
+
 bool Hub::getLastRocketNasState(Boardcore::NASState& nasState)
 {
     Lock<FastMutex> lock(nasStateMutex);
@@ -378,6 +396,13 @@ void Hub::setRocketOrigin(const GPSData& newRocketCoordinates)
     lastRocketCoordinates = newRocketCoordinates;
     originReceived        = true;
     Logger::getInstance().log(newRocketCoordinates);
+}
+
+void Hub::setRocketPosition(const Boardcore::GPSData& gpsData)
+{
+    Lock<FastMutex> lock(coordinatesMutex);
+    rocketGPSPositionReceived = true;
+    lastRocketPosition        = gpsData;
 }
 
 void Hub::logData(bool isRocketRx, uint8_t messageId)

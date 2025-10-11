@@ -33,6 +33,7 @@
 #include <events/EventBroker.h>
 #include <events/HSM.h>
 #include <sensors/SensorData.h>
+#include <utils/AeroUtils/AeroUtils.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include "SMAData.h"
