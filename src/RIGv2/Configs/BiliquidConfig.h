@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,39 +19,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <chrono>
 
-namespace Common
+namespace RIGv2
 {
-
-enum Topics : uint8_t
+namespace Config
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_ARP,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_BILIQUID,
-    TOPIC_ALT,
-    TOPIC_WING,
-};
+namespace Biliquid
+{
+/* linter off */ using namespace std::chrono;
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,      TOPIC_MEA, TOPIC_ARP, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,      TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR,
-    TOPIC_TARS,   TOPIC_BILIQUID, TOPIC_ALT, TOPIC_WING};
+// sequence 1 configs
+static constexpr int maxStepCount                = 6;
+static constexpr float PositionsOX[maxStepCount] = {
+    0.14388f, 0.16786f, 0.19184f, 0.21439f, 0.23694f, 0.25883f};
 
-}  // namespace Common
+static constexpr float PositionsFUEL[maxStepCount] = {
+    0.14388f, 0.1559f, 0.16786f, 0.1799f, 0.19184f, 0.2031f};
+
+// time to wait between steps in sequence 1
+static constexpr milliseconds DT{2000};
+
+// sequence 2 configs
+static constexpr milliseconds SEQ_2_OX_DELAY{2000};
+static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2000};
+
+// sequence 3 configs
+static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{2500};
+
+}  // namespace Biliquid
+}  // namespace Config
+}  // namespace RIGv2
+

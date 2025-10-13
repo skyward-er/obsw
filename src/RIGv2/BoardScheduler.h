@@ -78,6 +78,11 @@ public:
         return Priority::CRITICAL;  // TARS3 FSM priority
     }
 
+    static Priority::PriorityLevel biliquidPriority()
+    {
+        return Priority::CRITICAL;  // Biliquid FSM priority
+    }
+
     static Priority::PriorityLevel canHandlerPriority()
     {
         return Priority::MEDIUM;

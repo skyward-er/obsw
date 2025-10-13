@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,40 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
+#include <reflect.hpp>
 #include <string>
-#include <vector>
 
-namespace Common
+namespace RIGv2
 {
 
-enum Topics : uint8_t
+enum BiliquidState : uint8_t
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_ARP,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_TARS,
-    TOPIC_BILIQUID,
-    TOPIC_ALT,
-    TOPIC_WING,
+    IDLE = 0,
+    READY,
+    SEQUENCE_1,
+    SEQUENCE_2,
+    SEQUENCE_3,
+    ABORTED,
+    INVALID,
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,    TOPIC_ADA,      TOPIC_MEA, TOPIC_ARP, TOPIC_DPL,  TOPIC_CAN,
-    TOPIC_FLIGHT, TOPIC_FMM,      TOPIC_FSR, TOPIC_NAS, TOPIC_TMTC, TOPIC_MOTOR,
-    TOPIC_TARS,   TOPIC_BILIQUID, TOPIC_ALT, TOPIC_WING};
+struct BiliquidData
+{
+    uint64_t timestamp;
+    BiliquidState state;
 
-}  // namespace Common
+    BiliquidData() : timestamp{0}, state{BiliquidState::IDLE} {}
+
+    BiliquidData(uint64_t timestamp, BiliquidState state)
+        : timestamp{timestamp}, state{state}
+    {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(BiliquidData, FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
+
+}  // namespace RIGv2
