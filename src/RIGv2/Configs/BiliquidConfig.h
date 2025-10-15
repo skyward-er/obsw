@@ -43,10 +43,13 @@ static constexpr float PositionsFUEL[maxStepCount] = {
 static constexpr milliseconds DT{2000};
 
 // sequence 2 configs
-static constexpr milliseconds SEQ_2_OX_DELAY{2000};
-static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2000};
+static constexpr float SEQ_2_FUEL_POSITION = 0.25883f;
+static constexpr float SEQ_2_OX_POSITION   = 0.32516f;
+static constexpr milliseconds SEQ_2_OX_DELAY{100};
+static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2500};
 
 // sequence 3 configs
+static constexpr milliseconds SEQ_3_ANIMATION_TIME{1000};
 static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{2500};
 
 }  // namespace Biliquid

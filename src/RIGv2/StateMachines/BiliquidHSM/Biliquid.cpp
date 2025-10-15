@@ -90,7 +90,7 @@ State Biliquid::state_ready(const Event& event)
         {
             updateAndLogStatus(BiliquidState::READY);
 
-            // close all valves
+            getModule<Actuators>()->closeAllServos();
 
             return HANDLED;
         }
@@ -146,6 +146,15 @@ State Biliquid::state_seq_1(const Event& event)
         {
             if (stepCount < Config::Biliquid::maxStepCount)
             {  // move the valve to the next step
+                getModule<Actuators>()->moveServo(
+                    ServosList::MAIN_OX,
+                    Config::Biliquid::PositionsOX[stepCount]);
+
+                // might need to add a wait here
+
+                getModule<Actuators>()->moveServo(
+                    ServosList::MAIN_FUEL,
+                    Config::Biliquid::PositionsFUEL[stepCount]);
 
                 // update the number of steps taken before stepping again
                 stepCount++;
@@ -177,7 +186,9 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_EXIT:
         {
-            // close fuel and ox valves
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
+
             return HANDLED;
         }
 
@@ -200,8 +211,10 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
         case EV_ENTRY:
         {
             // open FUEL valve
+            getModule<Actuators>()->moveServo(
+                ServosList::MAIN_FUEL, Config::Biliquid::SEQ_2_FUEL_POSITION);
 
-            // wait for SEQ_2_DELAY ms before opening OX valve
+            // wait for before opening OX valve
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_SEQ_2_OX, TOPIC_BILIQUID,
                 milliseconds{Config::Biliquid::SEQ_2_OX_DELAY}.count());
@@ -225,8 +238,7 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
 
         case EV_EXIT:
         {
-            // close fuel valve
-
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
             return HANDLED;
         }
 
@@ -244,6 +256,8 @@ State Biliquid::state_seq_2_OX(const Event& event)
         case EV_ENTRY:
         {
             // open OX valve
+            getModule<Actuators>()->moveServo(
+                ServosList::MAIN_OX, Config::Biliquid::SEQ_2_OX_POSITION);
 
             // wait for SEQ_2_SHUTDOWN_DELAY ms before closing all valves
             nextEventId = EventBroker::getInstance().postDelayed(
@@ -269,7 +283,7 @@ State Biliquid::state_seq_2_OX(const Event& event)
 
         case EV_EXIT:
         {
-            // close OX valve
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
             return HANDLED;
         }
 
@@ -287,6 +301,13 @@ State Biliquid::state_seq_3(const Event& event)
         case EV_ENTRY:
         {
             // animate open OX and fuel valves
+            getModule<Actuators>()->animateServo(
+                ServosList::MAIN_OX, 1.0f,
+                Config::Biliquid::SEQ_3_ANIMATION_TIME.count());
+
+            getModule<Actuators>()->animateServo(
+                ServosList::MAIN_FUEL, 1.0f,
+                Config::Biliquid::SEQ_3_ANIMATION_TIME.count());
 
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_SEQ_3_SHUTDOWN, TOPIC_BILIQUID,
@@ -305,7 +326,8 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_EXIT:
         {
-            // close fuel and OX valves
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
             return HANDLED;
         }
 
