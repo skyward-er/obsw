@@ -48,10 +48,10 @@ private:
     {
         struct ServoConfig
         {
-            float limit  = 1.0;    ///< Movement range limit
+            float limit  = 1.0f;   ///< Movement range limit
             bool flipped = false;  ///< Whether the servo is flipped
             uint32_t defaultOpeningTime = 1000;  // Default opening time [ms]
-            float defaultMaxAperture    = 1.0;   // Max aperture
+            float defaultMaxAperture    = 1.0f;  // Max aperture
 
             uint8_t openingEvent = 0;  ///< Event to fire after opening
             uint8_t closingEvent = 0;  ///< Event to fire after closing
@@ -72,18 +72,39 @@ private:
         std::unique_ptr<Boardcore::Servo> servo;
         ServoConfig config;
 
-        // Time when the valve should close, 0 if currently closed
-        TimePoint closeTs = ValveClosed;
+        float currentPosition = 0.0f;  ///< Current position in range [0, 1]
+
+        enum class Direction
+        {
+            CLOSE,
+            OPEN,
+        } direction = Direction::CLOSE;  ///< Direction of the last valve move
+
+        float animationStep      = 0.0f;  ///< Amount of one animation step
+        TimePoint animationEndTs = ValveClosed;  ///< End time of last animation
+
+        // Time when the valve should be moved next during an animation
+        TimePoint updateTs = ValveClosed;
         // Time when to backstep the valve to avoid straining the servo
         TimePoint backstepTs = ValveClosed;
+        // Time when the vavle should close
+        TimePoint closeTs = ValveClosed;
 
+        void openServoWithTime(float position, uint32_t time);
         void openServoWithTime(uint32_t time);
+        void animateServo(float position, uint32_t time);
         void closeServo();
+
         void unsafeSetServoPosition(float position);
+        void move();
+        void backstep();
+
+        float scalePosition(float position);
         bool isServoOpen();
         float getServoPosition();
         float getMaxAperture();
         uint32_t getOpeningTime();
+
         bool setMaxAperture(float aperture);
         bool setOpeningTime(uint32_t time);
     };
@@ -94,7 +115,8 @@ private:
         bool state = false;  ///< Whether the valve is open or closed
         std::chrono::milliseconds timing      = {};  ///< Opening time
         std::chrono::milliseconds timeToClose = {};  ///< Time until valve close
-        float aperture                        = 0;   ///< Max valve aperture
+        float aperture                        = 0.0f;  ///< Max valve aperture
+        float position                        = 0.0f;  ///< Current position
     };
 
 public:
@@ -107,7 +129,11 @@ public:
     bool wiggleServo(ServosList servo);
     bool toggleServo(ServosList servo);
     bool openServo(ServosList servo);
+    bool moveServo(ServosList servo, float position);
+    bool moveServoWithTime(ServosList servo, float position, uint32_t time);
     bool openServoWithTime(ServosList servo, uint32_t time);
+    bool animateServo(ServosList servo, float position, uint32_t time);
+
     bool closeServo(ServosList servo);
     void closeAllServos();
     bool setMaxAperture(ServosList servo, float aperture);

@@ -48,6 +48,10 @@ constexpr unsigned int FREQUENCY = 333;
 constexpr auto SERVO_BACKSTEP_DELAY   = 500ms;
 constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
+constexpr auto ANIMATION_UPDATE_PERIOD = 10ms;
+
+constexpr auto MOVE_SERVO_TIMEOUT = 10000ms;
+
 constexpr uint32_t DEFAULT_OX_FIL_OPENING_TIME = 15000;
 constexpr uint32_t DEFAULT_OX_REL_OPENING_TIME = 10000;
 constexpr uint32_t DEFAULT_OX_DET_OPENING_TIME = 2000;
