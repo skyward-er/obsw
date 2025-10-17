@@ -86,8 +86,8 @@ bool Sensors::start()
     if (Config::Sensors::ND015A::ENABLED)
         nd015aInit();
 
-    if (Config::Sensors::ND015D::ENABLED)
-        nd015dInit();
+    if (Config::Sensors::ND030D::ENABLED)
+        nd030dInit();
 
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
@@ -148,7 +148,7 @@ void Sensors::calibrate()
     float dynPressureOffset =
         dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
 
-    nd015d->updateOffset(dynPressureOffset);
+    nd030d->updateOffset(dynPressureOffset);
 
     // Log the current calibration
     sdLogger.log(getCalibration());
@@ -189,7 +189,7 @@ Main::CalibrationData Sensors::getCalibration()
         .magScaleX        = magScale.x(),
         .magScaleY        = magScale.y(),
         .magScaleZ        = magScale.z(),
-        .pitotDynamicBias = nd015d->getOffset(),
+        .pitotDynamicBias = nd030d->getOffset(),
     };
 }
 
@@ -273,9 +273,9 @@ ND015XData Sensors::getND015ADataLastSample()
     return nd015a ? nd015a->getLastSample() : ND015XData{};
 }
 
-ND015XData Sensors::getND015DDataLastSample()
+ND030XData Sensors::getND030DDataLastSample()
 {
-    return nd015d ? nd015d->getLastSample() : ND015XData{};
+    return nd030d ? nd030d->getLastSample() : ND030XData{};
 }
 
 InternalADCData Sensors::getInternalADCLastSample()
@@ -307,7 +307,7 @@ StaticPressureData Sensors::getStaticPressureLastSample()
 
 DynamicPressureData Sensors::getDynamicPressureLastSample()
 {
-    return DynamicPressureData{getND015DDataLastSample()};
+    return DynamicPressureData{getND030DDataLastSample()};
 }
 
 LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
@@ -409,7 +409,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(nd015a, "ND015A");
-        PUSH_SENSOR_INFO(nd015d, "ND015D");
+        PUSH_SENSOR_INFO(nd030d, "ND030D");
         PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
 
         return infos;
@@ -618,20 +618,20 @@ void Sensors::nd015aCallback()
     sdLogger.log(StaticPressureData{getND015ADataLastSample()});
 }
 
-void Sensors::nd015dInit()
+void Sensors::nd030dInit()
 {
-    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+    SPIBusConfig spiConfig = ND030D::getDefaultSPIConfig();
 
-    nd015d = std::make_unique<ND015D>(
+    nd030d = std::make_unique<ND030D>(
         getModule<Buses>()->getND015X(), sensors::ND015A_2::cs::getPin(),
-        spiConfig, Config::Sensors::ND015D::FSR, Config::Sensors::ND015D::IOW,
-        Config::Sensors::ND015D::BWL, Config::Sensors::ND015D::NTC,
-        Config::Sensors::ND015D::ODR);
+        spiConfig, Config::Sensors::ND030D::FSR, Config::Sensors::ND030D::IOW,
+        Config::Sensors::ND030D::BWL, Config::Sensors::ND030D::NTC,
+        Config::Sensors::ND030D::ODR);
 }
 
-void Sensors::nd015dCallback()
+void Sensors::nd030dCallback()
 {
-    sdLogger.log(DynamicPressureData{getND015DDataLastSample()});
+    sdLogger.log(DynamicPressureData{getND030DDataLastSample()});
 }
 
 void Sensors::rotatedImuInit()
@@ -732,11 +732,11 @@ bool Sensors::sensorManagerInit()
         map.emplace(nd015a.get(), info);
     }
 
-    if (nd015d)
+    if (nd030d)
     {
-        SensorInfo info{"ND015D", Config::Sensors::ND015D::RATE,
-                        [this]() { nd015dCallback(); }};
-        map.emplace(nd015d.get(), info);
+        SensorInfo info{"ND030D", Config::Sensors::ND030D::RATE,
+                        [this]() { nd030dCallback(); }};
+        map.emplace(nd030d.get(), info);
     }
 
     if (rotatedImu)

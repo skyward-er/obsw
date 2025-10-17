@@ -77,7 +77,7 @@ private:
                        [this]() { return updateLSM6DSRXData_1(); });
         hillificator<>(nd015a, enableHw,
                        [this]() { return updateStaticPressureData(); });
-        hillificator<>(nd015d, enableHw,
+        hillificator<>(nd030d, enableHw,
                        [this]() { return updateDynamicPressureData(); });
         hillificator<>(rotatedImu, enableHw,
                        [this]() { return updateIMUData(); });
@@ -270,9 +270,9 @@ private:
         return data;
     };
 
-    Boardcore::ND015XData updateDynamicPressureData()
+    Boardcore::ND030XData updateDynamicPressureData()
     {
-        Boardcore::ND015XData data;
+        Boardcore::ND030XData data;
 
         auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
