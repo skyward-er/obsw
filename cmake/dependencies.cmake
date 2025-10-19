@@ -70,6 +70,7 @@ set(RIG_V2_COMPUTER
     src/RIGv2/StateMachines/GroundModeManager/GroundModeManager.cpp
     src/RIGv2/StateMachines/TARS1/TARS1.cpp
     src/RIGv2/StateMachines/TARS3/TARS3.cpp
+    src/RIGv2/StateMachines/BiliquidHSM/Biliquid.cpp
 )
 
 set(CON_RIG_COMPUTER

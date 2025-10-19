@@ -30,7 +30,7 @@
 namespace RIGv2
 {
 
-enum BiliquidState : uint8_t
+enum class BiliquidState : uint8_t
 {
     IDLE = 0,
     READY,

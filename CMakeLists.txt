@@ -109,3 +109,9 @@ add_executable(lyra-gs-entry
 )
 target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
+
+# Biliquid test entrypoint
+
+add_executable(rig-v2-biliquid-test src/RIGv2/rig-v2-biliquid-test.cpp ${RIG_V2_COMPUTER})
+target_include_directories(rig-v2-biliquid-test PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(rig-v2-biliquid-test stm32f767zi_rig_v2)
