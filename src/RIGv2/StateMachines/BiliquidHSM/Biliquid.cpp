@@ -166,14 +166,10 @@ State Biliquid::state_seq_1(const Event& event)
                 return HANDLED;
             }
             else
-                return transition(&Biliquid::state_idle);
-        }
-
-        case BILIQUID_END_SEQUENCE_1:
-        {
-            // reset step count for new sequence
-            stepCount = 0;
-            return tranSuper(&Biliquid::state_idle);
+            {  // reset step count for new sequence
+                stepCount = 0;
+                return tranSuper(&Biliquid::state_idle);
+            }
         }
 
         case BILIQUID_ABORT:
@@ -181,7 +177,7 @@ State Biliquid::state_seq_1(const Event& event)
             // reset step count and remove delayed event
             stepCount = 0;
             EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&Biliquid::state_aborted);
+            return transition(&Biliquid::state_idle);
         }
 
         case EV_EXIT:
@@ -202,6 +198,7 @@ State Biliquid::state_seq_1(const Event& event)
             return UNHANDLED;
         }
     }
+}
 }
 
 State Biliquid::state_seq_2_FUEL(const Event& event)
@@ -229,7 +226,7 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
         case BILIQUID_ABORT:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&Biliquid::state_aborted);
+            return transition(&Biliquid::state_idle);
         }
         case EV_EMPTY:
         {
@@ -273,7 +270,7 @@ State Biliquid::state_seq_2_OX(const Event& event)
         case BILIQUID_ABORT:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&Biliquid::state_aborted);
+            return transition(&Biliquid::state_idle);
         }
 
         case EV_EMPTY:
@@ -328,37 +325,6 @@ State Biliquid::state_seq_3(const Event& event)
         {
             getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
             getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
-            return HANDLED;
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State Biliquid::state_aborted(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(BiliquidState::ABORTED);
-            return HANDLED;
-        }
-
-        case BILIQUID_RESET:
-        {
-            return transition(&Biliquid::state_idle);
-        }
-        case EV_EMPTY:
-        {
-            return tranSuper(&Biliquid::state_top);
-        }
-
-        case EV_EXIT:
-        {
             return HANDLED;
         }
 

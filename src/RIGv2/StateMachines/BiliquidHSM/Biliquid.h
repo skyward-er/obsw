@@ -47,7 +47,6 @@ private:
     Boardcore::State state_seq_2_FUEL(const Boardcore::Event& event);
     Boardcore::State state_seq_2_OX(const Boardcore::Event& event);
     Boardcore::State state_seq_3(const Boardcore::Event& event);
-    Boardcore::State state_aborted(const Boardcore::Event& event);
 
     void updateAndLogStatus(BiliquidState state);
 

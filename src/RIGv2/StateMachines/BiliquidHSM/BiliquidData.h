@@ -37,7 +37,6 @@ enum class BiliquidState : uint8_t
     SEQUENCE_1,
     SEQUENCE_2,
     SEQUENCE_3,
-    ABORTED,
     INVALID,
 };
 

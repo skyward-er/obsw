@@ -1026,6 +1026,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     auto debounceTime     = msToNs(Config::Radio::LAST_COMMAND_THRESHOLD);
     long long currentTime = getTime();
 
+    /*[ACTION]
+    [ACTION]
+    [ACTION]  for a set time */
+
     if (currentTime > lastManualActuation + debounceTime)
     {
         // Ok we can accept new commands
@@ -1045,7 +1049,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(ox_filling_btn))
+        if (BUTTON_PRESSED(ox_filling_btn))  // fully open/close OX-FILL
         {
             // The OX filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
@@ -1071,7 +1075,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(ox_venting_btn))
+        if (BUTTON_PRESSED(ox_venting_btn))  // fully open/close VENT-OX
         {
             // The OX venting switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
@@ -1080,7 +1084,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::OX_VENTING_VALVE);
         }
 
-        if (BUTTON_PRESSED(n2_filling_btn))
+        if (BUTTON_PRESSED(n2_filling_btn))  // fully open/close PRZ-FILL
         {
             // The N2 filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
@@ -1089,7 +1093,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::N2_FILLING_VALVE);
         }
 
-        if (BUTTON_PRESSED(n2_release_btn))
+        if (BUTTON_PRESSED(n2_release_btn))  // fully open/close PRZ-FUEL
         {
             // The N2 release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
@@ -1098,7 +1102,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::N2_RELEASE_VALVE);
         }
 
-        if (BUTTON_PRESSED(n2_detach_btn))
+        if (BUTTON_PRESSED(n2_detach_btn))  // fully open/close PRZ-OX
         {
             // The N2 detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
@@ -1106,7 +1110,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             lastManualActuation = currentTime;
         }
 
-        if (BUTTON_PRESSED(n2_quenching_btn))
+        if (BUTTON_PRESSED(n2_quenching_btn))  // fully open/close VENT-FUEL
         {
             // The N2 quenching switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
@@ -1115,7 +1119,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::N2_QUENCHING_VALVE);
         }
 
-        if (SWITCH_CHANGED(tars_switch))
+        if (SWITCH_CHANGED(tars_switch))  // switch used for sequence 1z
         {
             // The TARS switch changed state
             switch (state.tars_switch)
@@ -1148,7 +1152,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::NITROGEN_VALVE);
         }
 
-        if (SWITCH_CHANGED(n2_3way_switch))
+        if (SWITCH_CHANGED(n2_3way_switch))  // switch used for sequence 3
         {
             // The 3-way valve switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
