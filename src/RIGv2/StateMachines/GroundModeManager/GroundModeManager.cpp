@@ -446,7 +446,7 @@ State GroundModeManager::state_oxidizer(const Event& event)
         {
             updateAndLogStatus(GroundModeManagerState::OXIDIZER);
 
-            getModule<Actuators>()->openServo(ServosList::MAIN_VALVE);
+            getModule<Actuators>()->openServo(ServosList::MAIN_OX_VALVE);
 
             uint32_t chamberDelay =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
@@ -495,7 +495,7 @@ State GroundModeManager::state_cooling(const Event& event)
             updateAndLogStatus(GroundModeManagerState::COOLING);
 
             // Stop pressurizing the OX after the firing is over
-            getModule<Actuators>()->closeServo(ServosList::NITROGEN_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::PRZ_OX_VALVE);
 
             uint32_t coolingDelay =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
@@ -510,8 +510,9 @@ State GroundModeManager::state_cooling(const Event& event)
 
         case MOTOR_START_COOLING:
         {
-            // Open the quenching valve
-            getModule<Actuators>()->openServo(ServosList::N2_QUENCHING_VALVE);
+            // Open the quenching valve (N2_QUENCHING_VALVE doesn't exists atm,
+            // changing it for now)
+            getModule<Actuators>()->openServo(ServosList::PRZ_RELEASE_VALVE);
 
             return HANDLED;
         }

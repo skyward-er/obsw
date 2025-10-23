@@ -283,12 +283,11 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      infos{MAKE_SERVO(OX_FIL),       MAKE_SERVO(OX_REL),
-            MAKE_SMALL_SERVO(OX_DET), MAKE_SMALL_SERVO(N2_FIL),
-            MAKE_SMALL_SERVO(N2_REL), MAKE_SMALL_SERVO(N2_DET),
-            MAKE_SERVO(NITR),         MAKE_SERVO(OX_VEN),
-            MAKE_SMALL_SERVO(N2_QUE), MAKE_SERVO(MAIN)},
-      n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
+      infos{MAKE_SERVO(OX_FIL),   MAKE_SERVO(OX_REL),   MAKE_SERVO(PRZ_FIL),
+            MAKE_SERVO(PRZ_REL),  MAKE_SERVO(PRZ_FUEL), MAKE_SERVO(PRZ_OX),
+            MAKE_SERVO(OX_VEN),   MAKE_SERVO(FUEL_VEN), MAKE_SERVO(MAIN_OX),
+            MAKE_SERVO(MAIN_FUEL)},
+      n2_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W))
 {
     for (auto& servo : infos)
         servo.unsafeSetServoPosition(0.0f);
@@ -308,9 +307,9 @@ bool Actuators::start()
         info.closeServo();
     }
 
-    n2_3wayValveInfo.servo->enable();
-    n2_3wayValveInfo.closeServo();
-
+    /*     n2_3wayValveInfo.servo->enable();
+        n2_3wayValveInfo.closeServo();
+     */
     if (!SignaledDeadlineTask::start())
     {
         LOG_ERR(logger, "Failed to start Actuators task");
@@ -333,7 +332,7 @@ void Actuators::clacsonOff() { relays::clacson::high(); }
 bool Actuators::wiggleServo(ServosList servo)
 {
     // Special handling for the 3-way valve
-    if (servo == N2_3WAY_VALVE)
+    if (servo == PRZ_3WAY_VALVE)
     {
         // Toggle the valve to the current opposite state
         auto state = get3wayValveState();
@@ -438,7 +437,6 @@ bool Actuators::animateServo(ServosList servo, float position, uint32_t time)
     if (info == nullptr)
         return false;
 
-    // I really need to figure out what this does
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->animateServo(position, time);
     signalTask();
@@ -464,7 +462,9 @@ void Actuators::closeAllServos()
     for (uint8_t idx = 0; idx < 10; idx++)
         infos[idx].closeServo();
 
-    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_VALVE);
+    // TODO: figure out which valves need a can message to be closed
+    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_FUEL_VALVE);
+    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_OX_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(
         ServosList::OX_VENTING_VALVE);
 
@@ -597,21 +597,25 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
             return &infos[0];
         case OX_RELEASE_VALVE:  // OX_REL
             return &infos[1];
-        case OX_DETACH_SERVO:  // OX_DET
+        /* case OX_DETACH_SERVO:  // OX_DET
+            return &infos[2]; */
+        case PRZ_FILLING_VALVE:  // PRZ_FIL
             return &infos[2];
-        case N2_FILLING_VALVE:  // N2_FIL
+        case PRZ_RELEASE_VALVE:  // PRZ_REL
+            /* return &infos[4];
+        case PRZ_DETACH_SERVO:  // PRZ_DET */
             return &infos[3];
-        case N2_RELEASE_VALVE:  // N2_REL
+        case PRZ_FUEL_VALVE:  // PRZ_FUEL
             return &infos[4];
-        case N2_DETACH_SERVO:  // N2_DET
+        case PRZ_OX_VALVE:  // PRZ_OX
             return &infos[5];
-        case NITROGEN_VALVE:  // NITR
-            return &infos[6];
         case OX_VENTING_VALVE:  // OX_VEN
+            return &infos[6];
+        case FUEL_VENTING_VALVE:  // FUEL_VEN
             return &infos[7];
-        case N2_QUENCHING_VALVE:  // N2_QUE
+        case MAIN_OX_VALVE:  // MAIN_OX
             return &infos[8];
-        case MAIN_VALVE:  // MAIN
+        case MAIN_FUEL_VALVE:  // MAIN_FUEL
             return &infos[9];
 
         default:

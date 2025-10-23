@@ -134,17 +134,18 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
             data.oxVentingValveOpen = valveData.open;
             break;
 
-        case ServosList::MAIN_VALVE:
+        case ServosList::MAIN_OX_VALVE:
             data.mainValveOpen = valveData.open;
             break;
 
-        case ServosList::NITROGEN_VALVE:
-            data.nitrogenValveOpen = valveData.open;
-            break;
+            // TODO update this
+            /* case ServosList::NITROGEN_VALVE:
+                data.nitrogenValveOpen = valveData.open;
+                break;
 
-        case ServosList::N2_QUENCHING_VALVE:
-            data.n2QuenchingValveOpen = valveData.open;
-            break;
+            case ServosList::N2_QUENCHING_VALVE:
+                data.n2QuenchingValveOpen = valveData.open;
+                break; */
 
         default:
         {

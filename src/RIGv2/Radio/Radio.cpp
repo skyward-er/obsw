@@ -680,19 +680,19 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
 
             tm.n2_filling_valve_state =
-                actuators->isServoOpen(ServosList::N2_FILLING_VALVE);
+                actuators->isServoOpen(ServosList::PRZ_FILLING_VALVE);
             tm.n2_release_valve_state =
-                actuators->isServoOpen(ServosList::N2_RELEASE_VALVE);
+                actuators->isServoOpen(ServosList::PRZ_RELEASE_VALVE);
             tm.n2_detach_state =
-                actuators->isServoOpen(ServosList::N2_DETACH_SERVO);
-            tm.n2_quenching_valve_state =
-                actuators->isServoOpen(ServosList::N2_QUENCHING_VALVE);
+                actuators->isServoOpen(ServosList::PRZ_DETACH_SERVO);
+            /* tm.n2_quenching_valve_state =
+                actuators->isServoOpen(ServosList::PRZ_QUENCHING_VALVE); */
             tm.n2_3way_valve_state = actuators->get3wayValveState();
 
-            tm.main_valve_state =
+            /* tm.main_valve_state =
                 actuators->isServoOpen(ServosList::MAIN_VALVE);
             tm.nitrogen_valve_state =
-                actuators->isServoOpen(ServosList::NITROGEN_VALVE);
+                actuators->isServoOpen(ServosList::NITROGEN_VALVE); */
             tm.chamber_valve_state = actuators->isChamberOpen();
 
             // Internal states
@@ -1088,35 +1088,36 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The N2 filling switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2_FILLING_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::PRZ_FILLING_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::N2_FILLING_VALVE);
+            // enqueueValveInfoTm(ServosList::N2_FILLING_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_release_btn))  // fully open/close PRZ-FUEL
         {
             // The N2 release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2_RELEASE_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::PRZ_RELEASE_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::N2_RELEASE_VALVE);
+            // enqueueValveInfoTm(ServosList::N2_RELEASE_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_detach_btn))  // fully open/close PRZ-OX
         {
             // The N2 detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2_DETACH_SERVO);
+            EventBroker::getInstance().post(EV_INIT, TOPIC_BILIQUID);
             lastManualActuation = currentTime;
         }
 
         if (BUTTON_PRESSED(n2_quenching_btn))  // fully open/close VENT-FUEL
         {
             // The N2 quenching switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::N2_QUENCHING_VALVE);
+            EventBroker::getInstance().post(BILIQUID_START_SEQUENCE_1,
+                                            TOPIC_BILIQUID);
+
+            /* getModule<Actuators>()->toggleServo(ServosList::N2_QUENCHING_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::N2_QUENCHING_VALVE);
+            enqueueValveInfoTm(ServosList::N2_QUENCHING_VALVE); */
         }
 
         if (SWITCH_CHANGED(tars_switch))  // switch used for sequence 1z
@@ -1146,10 +1147,11 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(nitrogen_btn))
         {
             // The nitrogen switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
+            EventBroker::getInstance().post(BILIQUID_START_SEQUENCE_3,
+                                            TOPIC_BILIQUID);
+            /* getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::NITROGEN_VALVE);
+            enqueueValveInfoTm(ServosList::NITROGEN_VALVE); */
         }
 
         if (SWITCH_CHANGED(n2_3way_switch))  // switch used for sequence 3

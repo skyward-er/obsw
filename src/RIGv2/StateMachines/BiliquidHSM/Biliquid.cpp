@@ -147,13 +147,13 @@ State Biliquid::state_seq_1(const Event& event)
             if (stepCount < Config::Biliquid::maxStepCount)
             {  // move the valve to the next step
                 getModule<Actuators>()->moveServo(
-                    ServosList::MAIN_OX,
+                    ServosList::MAIN_OX_VALVE,
                     Config::Biliquid::PositionsOX[stepCount]);
 
                 // might need to add a wait here
 
                 getModule<Actuators>()->moveServo(
-                    ServosList::MAIN_FUEL,
+                    ServosList::MAIN_FUEL_VALVE,
                     Config::Biliquid::PositionsFUEL[stepCount]);
 
                 // update the number of steps taken before stepping again
@@ -182,8 +182,8 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
-            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
 
             return HANDLED;
         }
@@ -199,7 +199,6 @@ State Biliquid::state_seq_1(const Event& event)
         }
     }
 }
-}
 
 State Biliquid::state_seq_2_FUEL(const Event& event)
 {
@@ -209,7 +208,8 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
         {
             // open FUEL valve
             getModule<Actuators>()->moveServo(
-                ServosList::MAIN_FUEL, Config::Biliquid::SEQ_2_FUEL_POSITION);
+                ServosList::MAIN_FUEL_VALVE,
+                Config::Biliquid::SEQ_2_FUEL_POSITION);
 
             // wait for before opening OX valve
             nextEventId = EventBroker::getInstance().postDelayed(
@@ -235,7 +235,7 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
             return HANDLED;
         }
 
@@ -254,12 +254,14 @@ State Biliquid::state_seq_2_OX(const Event& event)
         {
             // open OX valve
             getModule<Actuators>()->moveServo(
-                ServosList::MAIN_OX, Config::Biliquid::SEQ_2_OX_POSITION);
+                ServosList::MAIN_OX_VALVE, Config::Biliquid::SEQ_2_OX_POSITION);
 
             // wait for SEQ_2_SHUTDOWN_DELAY ms before closing all valves
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_END_SEQUENCE_2, TOPIC_BILIQUID,
                 milliseconds{Config::Biliquid::SEQ_2_SHUTDOWN_DELAY}.count());
+
+            return HANDLED;
         }
 
         case BILIQUID_END_SEQUENCE_2:
@@ -280,7 +282,7 @@ State Biliquid::state_seq_2_OX(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
             return HANDLED;
         }
 
@@ -299,16 +301,18 @@ State Biliquid::state_seq_3(const Event& event)
         {
             // animate open OX and fuel valves
             getModule<Actuators>()->animateServo(
-                ServosList::MAIN_OX, 1.0f,
+                ServosList::MAIN_OX_VALVE, 1.0f,
                 Config::Biliquid::SEQ_3_ANIMATION_TIME.count());
 
             getModule<Actuators>()->animateServo(
-                ServosList::MAIN_FUEL, 1.0f,
+                ServosList::MAIN_FUEL_VALVE, 1.0f,
                 Config::Biliquid::SEQ_3_ANIMATION_TIME.count());
 
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_SEQ_3_SHUTDOWN, TOPIC_BILIQUID,
                 milliseconds{Config::Biliquid::SEQ_3_SHUTDOWN_DELAY}.count());
+
+            return HANDLED;
         }
 
         case BILIQUID_SEQ_3_SHUTDOWN:
@@ -323,8 +327,8 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_OX);
-            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
             return HANDLED;
         }
 
