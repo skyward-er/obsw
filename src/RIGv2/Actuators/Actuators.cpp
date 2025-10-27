@@ -134,9 +134,15 @@ void Actuators::ServoInfo::animateServo(float position, uint32_t time)
     closeTs = ValveClosed;  // The animate function does not close the servo
                             // automatically
 
-    auto stepCount = static_cast<float>(nanoseconds{msToNs(time)}.count()) /
-                     Config::Servos::ANIMATION_UPDATE_PERIOD.count();
-    animationStep = delta / stepCount;
+    float stepCount = time / Config::Servos::ANIMATION_UPDATE_PERIOD.count();
+    animationStep   = delta / stepCount;
+
+    // Debugging
+    /* printf(
+        "set animation with max aperture: %.5f, current position: %5.f, delta: "
+        "%.5f, step count: %.5f"
+        "animation step: %.5f\n",
+        position, currentPosition, delta, stepCount, animationStep); */
 }
 
 void Actuators::ServoInfo::closeServo()
@@ -201,12 +207,9 @@ void Actuators::ServoInfo::move()
             updateTs       = ValveClosed;
         }
     }
-    // TODO: figure out if we want to keep this for debugging
-    /* else
-    {
-        fmt::print("\tMoving valve {} to position {:05.3f} ({:05.3f} deg)\n",
-                   config.id, currentPosition, toDegrees(currentPosition));
-    } */
+
+    // printf("\tMoving valve to position %.3f\n", currentPosition);
+
     servo->setPosition(scalePosition(currentPosition));
 }
 
@@ -355,13 +358,15 @@ bool Actuators::toggleServo(ServosList servo)
     if (info == nullptr)
         return false;
 
-    if (info->updateTs == ValveClosed)
+    if (info->closeTs == ValveClosed)
     {
         uint32_t time = info->getOpeningTime();
 
         // The servo is closed, open it
-        getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-        info->openServoWithTime(time);
+        /* getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+        info->openServoWithTime(time); */
+
+        info->animateServo(1.0f, time);
     }
     else
     {
