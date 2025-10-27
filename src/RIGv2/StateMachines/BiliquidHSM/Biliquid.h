@@ -40,6 +40,8 @@ public:
 
     BiliquidState getState();
 
+    bool start();
+
 private:
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
@@ -50,7 +52,8 @@ private:
 
     void updateAndLogStatus(BiliquidState state);
 
-    Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("biliquid");
 
     std::atomic<BiliquidState> state{BiliquidState::IDLE};
 

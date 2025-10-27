@@ -35,10 +35,32 @@ enum class BiliquidState : uint8_t
     IDLE = 0,
     READY,
     SEQUENCE_1,
-    SEQUENCE_2,
+    SEQUENCE_2_FUEL,
+    SEQUENCE_2_OX,
     SEQUENCE_3,
     INVALID,
 };
+
+inline std::string to_string(BiliquidState state)
+{
+    switch (state)
+    {
+        case BiliquidState::IDLE:
+            return "IDLE";
+        case BiliquidState::READY:
+            return "READY";
+        case BiliquidState::SEQUENCE_1:
+            return "SEQUENCE_1";
+        case BiliquidState::SEQUENCE_2_FUEL:
+            return "SEQUENCE_2_FUEL";
+        case BiliquidState::SEQUENCE_2_OX:
+            return "SEQUENCE_2_OX";
+        case BiliquidState::SEQUENCE_3:
+            return "SEQUENCE_3";
+        default:
+            return "UNKNOWN";
+    }
+}
 
 struct BiliquidData
 {

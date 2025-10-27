@@ -42,15 +42,42 @@ Biliquid::Biliquid()
     EventBroker::getInstance().subscribe(this, TOPIC_BILIQUID);
 }
 
+bool Biliquid::start()
+{
+    /* TaskScheduler& scheduler = getModule<BoardScheduler>()->biliquid();
+
+    uint8_t result =
+        scheduler.addTask([this]() { sample(); }, Config::TARS3::SAMPLE_PERIOD);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to add TARS3 sample task");
+        return false;
+    } */
+
+    if (!HSM::start())
+    {
+        LOG_ERR(logger, "Failed to activate Biliquid HSM thread");
+        return false;
+    }
+
+    return true;
+}
+
 BiliquidState Biliquid::getState() { return state; }
 
 State Biliquid::state_idle(const Event& event)
 {
     switch (event)
     {
-        case EV_ENTRY:
+        case EV_INIT:
         {
             updateAndLogStatus(BiliquidState::IDLE);
+            return HANDLED;
+        }
+
+        case EV_ENTRY:
+        {
             return HANDLED;
         }
 
@@ -64,7 +91,7 @@ State Biliquid::state_idle(const Event& event)
             return tranSuper(&Biliquid::state_top);
         }
 
-        case EV_INIT:
+        case BILIQUID_READY:
         {
             return transition(&Biliquid::state_ready);
         }
@@ -86,12 +113,16 @@ State Biliquid::state_ready(const Event& event)
 {
     switch (event)
     {
-        case EV_ENTRY:
+        case EV_INIT:
         {
             updateAndLogStatus(BiliquidState::READY);
 
             getModule<Actuators>()->closeAllServos();
+            return HANDLED;
+        }
 
+        case EV_ENTRY:
+        {
             return HANDLED;
         }
 
@@ -112,7 +143,7 @@ State Biliquid::state_ready(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&Biliquid::state_top);
+            return tranSuper(&Biliquid::state_idle);
         }
 
         case EV_EXIT:
@@ -131,10 +162,15 @@ State Biliquid::state_seq_1(const Event& event)
 {
     switch (event)
     {
-        case EV_ENTRY:
+        case EV_INIT:
         {
             updateAndLogStatus(BiliquidState::SEQUENCE_1);
+            stepCount = 0;
+            return HANDLED;
+        }
 
+        case EV_ENTRY:
+        {
             // start stepping
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_STEP, TOPIC_BILIQUID,
@@ -150,8 +186,6 @@ State Biliquid::state_seq_1(const Event& event)
                     ServosList::MAIN_OX_VALVE,
                     Config::Biliquid::PositionsOX[stepCount]);
 
-                // might need to add a wait here
-
                 getModule<Actuators>()->moveServo(
                     ServosList::MAIN_FUEL_VALVE,
                     Config::Biliquid::PositionsFUEL[stepCount]);
@@ -166,16 +200,21 @@ State Biliquid::state_seq_1(const Event& event)
                 return HANDLED;
             }
             else
-            {  // reset step count for new sequence
-                stepCount = 0;
-                return tranSuper(&Biliquid::state_idle);
+            {
+                nextEventId = EventBroker::getInstance().postDelayed(
+                    BILIQUID_END_SEQUENCE_1, TOPIC_BILIQUID,
+                    milliseconds{Config::Biliquid::DT}.count());
             }
+        }
+
+        case BILIQUID_END_SEQUENCE_1:
+        {
+            return transition(&Biliquid::state_idle);
         }
 
         case BILIQUID_ABORT:
         {
             // reset step count and remove delayed event
-            stepCount = 0;
             EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&Biliquid::state_idle);
         }
@@ -190,7 +229,7 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&Biliquid::state_top);
+            return tranSuper(&Biliquid::state_ready);
         }
 
         default:
@@ -204,6 +243,12 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
 {
     switch (event)
     {
+        case EV_INIT:
+        {
+            updateAndLogStatus(BiliquidState::SEQUENCE_2_FUEL);
+            return HANDLED;
+        }
+
         case EV_ENTRY:
         {
             // open FUEL valve
@@ -230,7 +275,7 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&Biliquid::state_top);
+            return tranSuper(&Biliquid::state_ready);
         }
 
         case EV_EXIT:
@@ -250,6 +295,12 @@ State Biliquid::state_seq_2_OX(const Event& event)
 {
     switch (event)
     {
+        case EV_INIT:
+        {
+            updateAndLogStatus(BiliquidState::SEQUENCE_2_OX);
+            return HANDLED;
+        }
+
         case EV_ENTRY:
         {
             // open OX valve
@@ -277,7 +328,7 @@ State Biliquid::state_seq_2_OX(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&Biliquid::state_top);
+            return tranSuper(&Biliquid::state_ready);
         }
 
         case EV_EXIT:
@@ -297,6 +348,12 @@ State Biliquid::state_seq_3(const Event& event)
 {
     switch (event)
     {
+        case EV_INIT:
+        {
+            updateAndLogStatus(BiliquidState::SEQUENCE_3);
+            return HANDLED;
+        }
+
         case EV_ENTRY:
         {
             // animate open OX and fuel valves
@@ -320,9 +377,14 @@ State Biliquid::state_seq_3(const Event& event)
             return transition(&Biliquid::state_idle);
         }
 
+        case BILIQUID_ABORT:
+        {
+            return transition(&Biliquid::state_idle);
+        }
+
         case EV_EMPTY:
         {
-            return tranSuper(&Biliquid::state_top);
+            return tranSuper(&Biliquid::state_ready);
         }
 
         case EV_EXIT:
@@ -342,6 +404,8 @@ State Biliquid::state_seq_3(const Event& event)
 void Biliquid::updateAndLogStatus(BiliquidState state)
 {
     this->state = state;
+
+    // printf("Biliquid state updated to %s\n", to_string(state).c_str());
 
     BiliquidData data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
