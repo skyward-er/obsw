@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

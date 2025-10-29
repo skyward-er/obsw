@@ -25,7 +25,7 @@
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <common/CanConfig.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>

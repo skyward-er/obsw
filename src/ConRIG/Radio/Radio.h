@@ -27,7 +27,7 @@
 #include <ConRIG/Buttons/Buttons.h>
 #include <ConRIG/Configs/RadioConfig.h>
 #include <ConRIG/Serial/Serial.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <diagnostic/PrintLogger.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SX1278/SX1278Lora.h>

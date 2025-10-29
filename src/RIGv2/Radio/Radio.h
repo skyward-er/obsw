@@ -32,7 +32,7 @@
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <RIGv2/StateMachines/TARS3/TARS3.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <common/canbus/MotorStatus.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
