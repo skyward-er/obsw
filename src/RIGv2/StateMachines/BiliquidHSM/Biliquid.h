@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#pragma once
 
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/Sensors/Sensors.h>
@@ -40,6 +41,7 @@ public:
 
     BiliquidState getState();
 
+    bool setSequence(ValveSequenceList sequence);
     bool start();
 
 private:
@@ -58,6 +60,7 @@ private:
     std::atomic<BiliquidState> state{BiliquidState::IDLE};
 
     uint16_t nextEventId = -1;
+    ValveSequenceList currentSequence;
 
     int stepCount = 0;
 };

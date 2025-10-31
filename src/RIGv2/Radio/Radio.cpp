@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -231,9 +231,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                     enqueueNack(msg, 0);
             }
             else
-            {
                 enqueueNack(msg, 0);
-            }
             break;
         }
 
@@ -263,6 +261,19 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 enqueueAck(msg);
             else
                 enqueueNack(msg, 0);
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_VALVE_SEQUENCE_TC:
+        {
+            ValveSequenceList sequence = static_cast<ValveSequenceList>(
+                mavlink_msg_set_valve_sequence_tc_get_sequence(&msg));
+
+            if (getModule<Biliquid>()->setSequence(sequence))
+                enqueueAck(msg);
+            else
+                enqueueNack(msg, 0);
+
             break;
         }
 
@@ -641,14 +652,19 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             // Sensors
             tm.rocket_mass    = sensors->getRocketWeight().load;
-            tm.ox_tank_mass   = sensors->getOxTankWeight().load;
             tm.ox_vessel_mass = sensors->getOxVesselWeight().load;
+            tm.ox_tank_mass   = sensors->getOxTankWeight().load;
 
-            tm.ox_vessel_pressure   = sensors->getOxVesselPressure().pressure;
-            tm.ox_filling_pressure  = sensors->getOxFillingPressure().pressure;
-            tm.n2_filling_pressure  = sensors->getN2FillingPressure().pressure;
-            tm.n2_vessel_1_pressure = sensors->getN2Vessel1Pressure().pressure;
-            tm.n2_vessel_2_pressure = sensors->getN2Vessel2Pressure().pressure;
+            tm.ox_vessel_pressure = sensors->getOxVesselPressure().pressure;
+            tm.prz_vessel_1_pressure =
+                sensors->getPrzVessel1Pressure().pressure;
+            tm.prz_vessel_2_pressure =
+                sensors->getPrzVessel2Pressure().pressure;
+
+            tm.main_fuel_valve_position =
+                static_cast<uint8_t>(sensors->getFuelValvePosition().position);
+            tm.main_ox_valve_position =
+                static_cast<uint8_t>(sensors->getOxValvePosition().position);
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.current_consumption = sensors->getServoCurrent().current;
@@ -678,27 +694,26 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::OX_DETACH_SERVO);
             tm.ox_venting_valve_state =
                 actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
-
-            tm.n2_filling_valve_state =
+            tm.prz_filling_valve_state =
                 actuators->isServoOpen(ServosList::PRZ_FILLING_VALVE);
-            tm.n2_release_valve_state =
+            tm.prz_release_valve_state =
                 actuators->isServoOpen(ServosList::PRZ_RELEASE_VALVE);
-            tm.n2_detach_state =
+            tm.prz_detach_state =
                 actuators->isServoOpen(ServosList::PRZ_DETACH_SERVO);
-            /* tm.n2_quenching_valve_state =
-                actuators->isServoOpen(ServosList::PRZ_QUENCHING_VALVE); */
-            tm.n2_3way_valve_state = actuators->get3wayValveState();
-
-            /* tm.main_valve_state =
-                actuators->isServoOpen(ServosList::MAIN_VALVE);
-            tm.nitrogen_valve_state =
-                actuators->isServoOpen(ServosList::NITROGEN_VALVE); */
+            tm.prz_3way_valve_state = actuators->get3wayValveState();
+            tm.prz_ox_valve_state =
+                actuators->isServoOpen(ServosList::PRZ_OX_VALVE);
+            tm.prz_fuel_valve_state =
+                actuators->isServoOpen(ServosList::PRZ_FUEL_VALVE);
             tm.chamber_valve_state = actuators->isChamberOpen();
 
             // Internal states
-            tm.gmm_state    = getModule<GroundModeManager>()->getState();
-            tm.tars1_state  = (uint8_t)getModule<TARS1>()->getLastAction();
-            tm.tars3_state  = (uint8_t)getModule<TARS3>()->getLastAction();
+            tm.gmm_state   = getModule<GroundModeManager>()->getState();
+            tm.tars1_state = (uint8_t)getModule<TARS1>()->getLastAction();
+            tm.tars3_state = (uint8_t)getModule<TARS3>()->getLastAction();
+            tm.biliquid_hsm_state = (uint8_t)getModule<Biliquid>()->getState();
+            tm.biliquid_sequence =
+                (uint8_t)getModule<Biliquid>()->getCurrentSequence();
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
                               GroundModeManagerState::ARMED;
 
@@ -729,12 +744,28 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Use RIG data if motor is not detected
             if (!motor->detected())
             {
-                auto sensors        = getModule<Sensors>();
-                tm.n2_tank_pressure = sensors->getN2TankPressure().pressure;
-                tm.ox_tank_bot_0_pressure =
-                    sensors->getOxTankBottomPressure().pressure;
-                tm.thermocouple_temperature =
-                    sensors->getThermocoupleTemperature().temperature;
+                auto sensors          = getModule<Sensors>();
+                tm.prz_tank_pressure  = sensors->getPrzTankPressure().pressure;
+                tm.ox_tank_pressure   = sensors->getOxTankPressure().pressure;
+                tm.fuel_tank_pressure = sensors->getFuelTankPressure().pressure;
+                tm.reg_out_pressure = sensors->getRegulatorPressure().pressure;
+
+                // valve states
+                tm.prz_ox_valve_state = getModule<Actuators>()->isServoOpen(
+                    ServosList::PRZ_OX_VALVE);
+                tm.prz_fuel_valve_state = getModule<Actuators>()->isServoOpen(
+                    ServosList::PRZ_FUEL_VALVE);
+
+                tm.ox_venting_valve_state = getModule<Actuators>()->isServoOpen(
+                    ServosList::OX_VENTING_VALVE);
+                tm.fuel_venting_valve_state =
+                    getModule<Actuators>()->isServoOpen(
+                        ServosList::FUEL_VENTING_VALVE);
+
+                tm.main_fuel_valve_state = getModule<Actuators>()->isServoOpen(
+                    ServosList::MAIN_FUEL_VALVE);
+                tm.main_ox_valve_state = getModule<Actuators>()->isServoOpen(
+                    ServosList::MAIN_OX_VALVE);
             }
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -833,24 +864,6 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
             return true;
         }
 
-        case MAV_FILLING_PRESS_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_pressure_tm_t tm;
-
-            PressureData data = getModule<Sensors>()->getOxFillingPressure();
-
-            tm.timestamp = data.pressureTimestamp;
-            tm.pressure  = data.pressure;
-            strcpy(tm.sensor_name, "OxFillingPressure");
-
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueueMessage(msg);
-            return true;
-        }
-
         case MAV_TANK_TOP_PRESS_ID:
         {
             mavlink_message_t msg;
@@ -931,24 +944,6 @@ bool Radio::enqueueSensorTm(uint8_t tmId)
                                            &msg, &tm);
             enqueueMessage(msg);
 
-            return true;
-        }
-
-        case MAV_TANK_TEMP_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_temp_tm_t tm;
-
-            TemperatureData data = getModule<Sensors>()->getTc1LastSample();
-
-            tm.timestamp   = data.temperatureTimestamp;
-            tm.temperature = data.temperature;
-            strcpy(tm.sensor_name, "MAX31856");
-
-            mavlink_msg_temp_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                       Config::Radio::MAV_COMPONENT_ID, &msg,
-                                       &tm);
-            enqueueMessage(msg);
             return true;
         }
 
@@ -1044,8 +1039,13 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(ignition_btn))
         {
             // The ignition switch was pressed
+            EventBroker::getInstance().post(BILIQUID_START_SEQUENCE_GENERIC,
+                                            TOPIC_BILIQUID);
+
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            EventBroker::getInstance().post(MOTOR_IGNITION, TOPIC_MOTOR);
+
+            // instead of direct ignition, start the generic biliquid sequence
+            // EventBroker::getInstance().post(MOTOR_IGNITION, TOPIC_MOTOR);
             lastManualActuation = currentTime;
         }
 
@@ -1058,21 +1058,22 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::OX_FILLING_VALVE);
         }
 
-        if (BUTTON_PRESSED(ox_release_btn))
+        if (BUTTON_PRESSED(ox_release_btn))  // fully open/close PRZ-OX
         {
             // The OX release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::OX_RELEASE_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::PRZ_OX_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::OX_RELEASE_VALVE);
+            enqueueValveInfoTm(ServosList::PRZ_OX_VALVE);
         }
 
-        if (BUTTON_PRESSED(ox_detach_btn))
+        if (BUTTON_PRESSED(ox_detach_btn))  // fully open/close PRZ-FUEL
         {
             // The OX detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::OX_DETACH_SERVO);
+            getModule<Actuators>()->toggleServo(ServosList::PRZ_FUEL_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_venting_btn))  // fully open/close VENT-OX
@@ -1090,37 +1091,37 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleServo(ServosList::PRZ_FILLING_VALVE);
             lastManualActuation = currentTime;
-            // enqueueValveInfoTm(ServosList::N2_FILLING_VALVE);
+            enqueueValveInfoTm(ServosList::PRZ_FILLING_VALVE);
         }
 
-        if (BUTTON_PRESSED(n2_release_btn))  // fully open/close PRZ-FUEL
+        if (BUTTON_PRESSED(n2_release_btn))  // fully open/close MAIN-OX
         {
             // The N2 release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::PRZ_RELEASE_VALVE);
+            getModule<Actuators>()->toggleServo(ServosList::MAIN_OX_VALVE);
             lastManualActuation = currentTime;
-            // enqueueValveInfoTm(ServosList::N2_RELEASE_VALVE);
+            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
         }
 
-        if (BUTTON_PRESSED(n2_detach_btn))  // fully open/close PRZ-OX
+        if (BUTTON_PRESSED(n2_detach_btn))  // fully open/close MAIN-FUEL
         {
             // The N2 detach switch was pressed
-            EventBroker::getInstance().post(EV_INIT, TOPIC_BILIQUID);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::MAIN_FUEL_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_quenching_btn))  // fully open/close VENT-FUEL
         {
             // The N2 quenching switch was pressed
-            EventBroker::getInstance().post(BILIQUID_START_SEQUENCE_1,
-                                            TOPIC_BILIQUID);
-
-            /* getModule<Actuators>()->toggleServo(ServosList::N2_QUENCHING_VALVE);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleServo(ServosList::FUEL_VENTING_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::N2_QUENCHING_VALVE); */
+            enqueueValveInfoTm(ServosList::FUEL_VENTING_VALVE);
         }
 
-        if (SWITCH_CHANGED(tars_switch))  // switch used for sequence 1z
+        if (SWITCH_CHANGED(tars_switch))
         {
             // The TARS switch changed state
             switch (state.tars_switch)
@@ -1147,8 +1148,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(nitrogen_btn))
         {
             // The nitrogen switch was pressed
-            EventBroker::getInstance().post(BILIQUID_START_SEQUENCE_3,
-                                            TOPIC_BILIQUID);
+            // getModule<Sensors>()->calibrateEncoders();
             /* getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
             lastManualActuation = currentTime;
             enqueueValveInfoTm(ServosList::NITROGEN_VALVE); */

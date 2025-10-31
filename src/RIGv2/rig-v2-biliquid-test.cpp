@@ -53,12 +53,18 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
-    auto sensors    = new Sensors();
-    auto actuators  = new Actuators();
-    auto registry   = new Registry();
-    auto canHandler = new CanHandler();
-    auto biliquid   = new Biliquid();
-    auto radio      = new Radio();
+    auto sensors     = new Sensors();
+    auto actuators   = new Actuators();
+    auto registry    = new Registry();
+    auto canHandler  = new CanHandler();
+    auto motorStatus = new MotorStatus();
+    auto gmm         = new GroundModeManager();
+    auto tars1       = new TARS1();
+    auto tars3       = new TARS3();
+
+    auto biliquid = new Biliquid();
+
+    auto radio = new Radio();
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();
@@ -73,14 +79,17 @@ int main()
                          });
 
     // Insert modules
-    initResult &= manager.insert<Buses>(buses) &&
-                  manager.insert<BoardScheduler>(scheduler) &&
-                  manager.insert<Actuators>(actuators) &&
-                  manager.insert<Sensors>(sensors) &&
-                  manager.insert<Radio>(radio) &&
-                  manager.insert<CanHandler>(canHandler) &&
-                  manager.insert<Registry>(registry) &&
-                  manager.insert<Biliquid>(biliquid) && manager.inject();
+    initResult &=
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
+        manager.insert<CanHandler>(canHandler) &&
+        manager.insert<Registry>(registry) &&
+        manager.insert<GroundModeManager>(gmm) &&
+        manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
+        manager.insert<MotorStatus>(motorStatus) &&
+        manager.insert<Biliquid>(biliquid) && manager.inject();
 
     if (!initResult)
     {
@@ -176,11 +185,30 @@ int main()
         led2Off();
     }
 
+    std::cout << "Starting TARS 3" << std::endl;
+    if (!tars3->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start TARS 3 ***" << std::endl;
+    }
+
+    if (initResult)
+    {
+        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
+        std::cout << "All good!" << std::endl;
+        led4On();
+    }
+    else
+    {
+        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
+        std::cerr << "*** Init failure ***" << std::endl;
+    }
+
     std::cout << "Starting Biliquid HSM" << std::endl;
     if (!biliquid->start())
     {
         initResult = false;
-        std::cerr << "*** Failed to start TARS3 ***" << std::endl;
+        std::cerr << "*** Failed to start BIliquid HSM ***" << std::endl;
     }
 
     if (initResult)

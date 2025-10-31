@@ -27,7 +27,7 @@
 #include <ConRIGv2/Buttons/Buttons.h>
 #include <ConRIGv2/Configs/RadioConfig.h>
 #include <ConRIGv2/Hub/Hub.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/timer/PWM.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>

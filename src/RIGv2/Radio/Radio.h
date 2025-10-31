@@ -29,6 +29,7 @@
 #include <RIGv2/Configs/RadioConfig.h>
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
+#include <RIGv2/StateMachines/BiliquidHSM/Biliquid.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <RIGv2/StateMachines/TARS3/TARS3.h>
@@ -49,7 +50,7 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
 class Radio
     : public Boardcore::InjectableWithDeps<
           Buses, BoardScheduler, Registry, Actuators, Sensors, CanHandler,
-          GroundModeManager, TARS1, TARS3, Common::MotorStatus>
+          GroundModeManager, Biliquid, TARS1, TARS3, Common::MotorStatus>
 {
 public:
     Radio() {}

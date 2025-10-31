@@ -363,10 +363,8 @@ bool Actuators::toggleServo(ServosList servo)
         uint32_t time = info->getOpeningTime();
 
         // The servo is closed, open it
-        /* getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-        info->openServoWithTime(time); */
-
-        info->animateServo(1.0f, time);
+        getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+        info->openServoWithTime(time);
     }
     else
     {

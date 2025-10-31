@@ -126,6 +126,21 @@ State Biliquid::state_ready(const Event& event)
             return HANDLED;
         }
 
+        case BILIQUID_START_SEQUENCE_GENERIC:
+        {
+            switch (currentSequence)
+            {
+                case SEQUENCE_1:
+                    return transition(&Biliquid::state_seq_1);
+                case SEQUENCE_2:
+                    return transition(&Biliquid::state_seq_2_FUEL);
+                case SEQUENCE_3:
+                    return transition(&Biliquid::state_seq_3);
+                default:
+                    break;
+            }
+        }
+
         case BILIQUID_START_SEQUENCE_1:
         {
             return transition(&Biliquid::state_seq_1);
@@ -400,6 +415,12 @@ State Biliquid::state_seq_3(const Event& event)
         }
     }
 }
+
+bool Biliquid::setSequence(ValveSequenceList sequence)
+{
+    currentSequence = sequence;
+    return true;
+};
 
 void Biliquid::updateAndLogStatus(BiliquidState state)
 {

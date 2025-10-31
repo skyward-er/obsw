@@ -67,14 +67,16 @@ constexpr bool ENABLED = true;
 
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
-constexpr auto OX_VESSEL_PT_CHANNEL   = Channel::CHANNEL_0;
-constexpr auto OX_FILLING_PT_CHANNEL  = Channel::CHANNEL_1;
-constexpr auto N2_VESSEL_1_PT_CHANNEL = Channel::CHANNEL_2;
-constexpr auto N2_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_3;
-constexpr auto SERVO_CURRENT_CHANNEL  = Channel::CHANNEL_4;
-constexpr auto OX_VESSEL_LC_CHANNEL   = Channel::CHANNEL_5;
-constexpr auto ROCKET_LC_CHANNEL      = Channel::CHANNEL_6;
-constexpr auto N2_FILLING_PT_CHANNEL  = Channel::CHANNEL_7;
+// TODO: update the channels
+constexpr auto OX_VESSEL_PT_CHANNEL    = Channel::CHANNEL_0;  // set
+constexpr auto REGULATOR_PT_CHANNEL    = Channel::CHANNEL_1;  // set
+constexpr auto PRZ_VESSEL_1_PT_CHANNEL = Channel::CHANNEL_2;  // set
+constexpr auto FUEL_TANK_PT_CHANNEL    = Channel::CHANNEL_3;  // set
+constexpr auto OX_VESSEL_LC_CHANNEL    = Channel::CHANNEL_5;  // set
+constexpr auto PRZ_TANK_PT_CHANNEL     = Channel::CHANNEL_7;  // set
+
+constexpr auto SERVO_CURRENT_CHANNEL = Channel::CHANNEL_0;  // not needed
+constexpr auto ROCKET_LC_CHANNEL     = Channel::CHANNEL_0;  // not needed
 
 constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
 constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
@@ -89,8 +91,10 @@ constexpr bool ENABLED = true;
 
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
-constexpr auto OX_TANK_PT_CHANNEL = Channel::CHANNEL_0;
-constexpr auto N2_TANK_PT_CHANNEL = Channel::CHANNEL_1;
+constexpr auto OX_TANK_PT_CHANNEL      = Channel::CHANNEL_0;  // set
+constexpr auto OX_VALVE_ENC_CHANNEL    = Channel::CHANNEL_1;  // set
+constexpr auto FUEL_VALVE_ENC_CHANNEL  = Channel::CHANNEL_2;  // set
+constexpr auto PRZ_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_3;  // set
 
 constexpr float CH0_SHUNT_RESISTANCE = 29.685f;
 constexpr float CH1_SHUNT_RESISTANCE = 29.625f;
@@ -118,13 +122,13 @@ constexpr float MIN_CURRENT = 4;  // [mA]
 // Current at MAX_PRESSURE bar relative to atmospheric pressure
 constexpr float MAX_CURRENT = 20;  // [mA]
 
-constexpr float OX_VESSEL_MAX_PRESSURE  = 100;  // bar
-constexpr float OX_FILLING_MAX_PRESSURE = 100;  // bar
-constexpr float N2_VESSEL1_MAX_PRESSURE = 400;  // bar
-constexpr float N2_VESSEL2_MAX_PRESSURE = 400;  // bar
-constexpr float N2_FILLING_MAX_PRESSURE = 400;  // bar
-constexpr float OX_TANK_MAX_PRESSURE    = 100;  // bar
-constexpr float N2_TANK_MAX_PRESSURE    = 400;  // bar
+constexpr float OX_VESSEL_MAX_PRESSURE    = 100;  // bar
+constexpr float REGULATOR_MAX_PRESSURE    = 100;  // bar
+constexpr float PRZ_VESSEL_1_MAX_PRESSURE = 400;  // bar
+constexpr float PRZ_VESSEL_2_MAX_PRESSURE = 400;  // bar
+constexpr float FUEL_TANK_MAX_PRESSURE    = 100;  // bar
+constexpr float PRZ_TANK_MAX_PRESSURE     = 250;  // bar
+constexpr float OX_TANK_MAX_PRESSURE      = 100;  // bar
 }  // namespace Trafag
 
 namespace LoadCell
@@ -189,6 +193,19 @@ constexpr float VESSEL_P1_MASS    = 8.720;
 */
 }  // namespace LoadCell
 
+namespace Encoder
+{
+// Default shunt resistance
+constexpr float DEFAULT_SHUNT_RESISTANCE = 29.5f;
+
+constexpr float FULLSCALE_VOLTAGE = 4.7f;
+
+constexpr int SENSOR_RESISTANCE = 31240;  // Ohm
+constexpr int CURRENT_GAIN      = 100;
+
+constexpr float MAX_ANGLE = 360.0f;  // degrees
+
+}  // namespace Encoder
 namespace InternalADC
 {
 constexpr auto BATTERY_VOLTAGE_CHANNEL = Boardcore::InternalADC::CH14;

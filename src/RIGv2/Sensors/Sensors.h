@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
+#include <sensors/analog/AnalogEncoder.h>
 #include <sensors/analog/TrafagPressureSensor.h>
 #include <sensors/analog/TwoPointAnalogLoadCell.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -54,27 +55,30 @@ public:
 
     void calibrateLoadcells();
 
+    void calibrateEncoders();
+
     bool isStarted();
 
     // Getters for raw data coming from sensors
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::ADS131M08Data getADC1LastSample();
     Boardcore::ADS131M08Data getADC2LastSample();
-    Boardcore::MAX31856Data getTc1LastSample();
 
     // Getters for processed data
     Boardcore::PressureData getOxVesselPressure();
-    Boardcore::PressureData getOxFillingPressure();
-    Boardcore::PressureData getN2Vessel1Pressure();
-    Boardcore::PressureData getN2Vessel2Pressure();
-    Boardcore::PressureData getN2FillingPressure();
-    Boardcore::PressureData getOxTankBottomPressure();
-    Boardcore::PressureData getN2TankPressure();
+    Boardcore::PressureData getPrzVessel1Pressure();
+    Boardcore::PressureData getPrzVessel2Pressure();
+    Boardcore::PressureData getPrzTankPressure();
+    Boardcore::PressureData getRegulatorPressure();
+    Boardcore::PressureData getOxTankPressure();
+    Boardcore::PressureData getFuelTankPressure();
 
-    Boardcore::TemperatureData getThermocoupleTemperature();
     Boardcore::LoadCellData getOxVesselWeight();
     Boardcore::LoadCellData getRocketWeight();
     Boardcore::LoadCellData getOxTankWeight();
+
+    Boardcore::ServoPositionData getFuelValvePosition();
+    Boardcore::ServoPositionData getOxValvePosition();
 
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
@@ -92,23 +96,23 @@ private:
     void oxVesselPressureInit();
     void oxVesselPressureCallback();
 
-    void oxFillingPressureInit();
-    void oxFillingPressureCallback();
+    void przVessel1PressureInit();
+    void przVessel1PressureCallback();
 
-    void n2Vessel1PressureInit();
-    void n2Vessel1PressureCallback();
+    void przVessel2PressureInit();
+    void przVessel2PressureCallback();
 
-    void n2Vessel2PressureInit();
-    void n2Vessel2PressureCallback();
+    void regulatorPressureInit();
+    void regulatorPressureCallback();
 
-    void n2FillingPressureInit();
-    void n2FillingPressureCallback();
+    void przTankPressureInit();
+    void przTankPressureCallback();
 
-    void oxTankBottomPressureInit();
-    void oxTankBottomPressureCallback();
+    void oxTankPressureInit();
+    void oxTankPressureCallback();
 
-    void n2TankPressureInit();
-    void n2TankPressureCallback();
+    void fuelTankPressureInit();
+    void fuelTankPressureCallback();
 
     void oxVesselWeightInit();
     void oxVesselWeightCallback();
@@ -118,6 +122,12 @@ private:
 
     void oxTankWeightInit();
     void oxTankWeightCallback();
+
+    void oxValvePositionInit();
+    void oxValvePositionCallback();
+
+    void fuelValvePositionInit();
+    void fuelValvePositionCallback();
 
     void internalAdcInit();
     void internalAdcCallback();
@@ -140,20 +150,22 @@ private:
 
     // Analog sensors
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxVesselPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxFillingPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> n2Vessel1Pressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> n2Vessel2Pressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> n2FillingPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottomPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> przVessel1Pressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> przVessel2Pressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> regulatorPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> przTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> fuelTankPressure;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
+    std::unique_ptr<Boardcore::AnalogEncoder> oxValvePosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> fuelValvePosition;
 
     // Digital sensors
     std::unique_ptr<Boardcore::ADS131M08> adc1;
     std::unique_ptr<Boardcore::ADS131M08> adc2;
-    std::unique_ptr<Boardcore::MAX31856> tc1;
+    // std::unique_ptr<Boardcore::MAX31856> tc1;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
     std::unique_ptr<Boardcore::SensorManager> manager;
 };

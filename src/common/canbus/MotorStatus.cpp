@@ -157,26 +157,25 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     }
 }
 
+// TODO: update this when we get a final mavlink message definition
 mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
 {
     miosix::Lock<miosix::FastMutex> lock(mutex);
 
     return {
         .timestamp                   = TimestampTimer::getTimestamp(),
-        .n2_tank_pressure            = data.n2TankPressure.pressure,
+        .prz_tank_pressure           = data.n2TankPressure.pressure,
         .reg_out_pressure            = data.regulatorOutPressure.pressure,
-        .ox_tank_top_pressure        = data.oxTankTopPressure.pressure,
-        .ox_tank_bot_0_pressure      = data.oxTankBottom0Pressure.pressure,
-        .ox_tank_bot_1_pressure      = data.oxTankBottom1Pressure.pressure,
+        .ox_tank_pressure            = data.oxTankTopPressure.pressure,
         .combustion_chamber_pressure = data.combustionChamberPressure.pressure,
-        .thermocouple_temperature    = data.thermocoupleTemperature.temperature,
         .battery_voltage             = data.batteryVoltage.voltage,
         .current_consumption         = data.currentConsumption.current,
         .log_number                  = data.device.logNumber,
-        .n2_quenching_valve_state    = data.n2QuenchingValveOpen,
         .ox_venting_valve_state      = data.oxVentingValveOpen,
-        .nitrogen_valve_state        = data.nitrogenValveOpen,
-        .main_valve_state            = data.mainValveOpen,
+        .prz_ox_valve_state          = data.nitrogenValveOpen,
+        .prz_fuel_valve_state        = data.nitrogenValveOpen,
+        .main_ox_valve_state         = data.mainValveOpen,
+        .main_fuel_valve_state       = data.mainValveOpen,
         .log_good                    = data.device.logGood,
         .hil_state                   = data.device.hil,
     };
