@@ -179,10 +179,10 @@ private:
     miosix::FastMutex infosMutex;
     std::array<ServoInfo, 10> infos;
 
-    // N2 3-way valve info
-    ServoInfo n2_3wayValveInfo;
-    std::atomic<bool> n2_3wayValveState{false};
-    std::atomic<bool> n2_3wayValveStateChanged{true};
+    // PRZ 3-way valve info
+    ServoInfo prz_3wayValveInfo;
+    std::atomic<bool> prz_3wayValveState{false};
+    std::atomic<bool> prz_3wayValveStateChanged{true};
 
     // Time when the chamber valve should close, 0 if currently closed
     TimePoint chamberCloseTs = ValveClosed;

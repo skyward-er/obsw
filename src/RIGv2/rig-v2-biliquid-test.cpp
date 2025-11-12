@@ -185,6 +185,13 @@ int main()
         led2Off();
     }
 
+    std::cout << "Starting GMM" << std::endl;
+    if (!gmm->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start GMM ***" << std::endl;
+    }
+
     std::cout << "Starting TARS 3" << std::endl;
     if (!tars3->start())
     {

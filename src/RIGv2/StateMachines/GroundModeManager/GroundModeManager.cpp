@@ -37,6 +37,7 @@ GroundModeManager::GroundModeManager()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MOTOR);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
+    EventBroker::getInstance().subscribe(this, TOPIC_BILIQUID);
 }
 
 GroundModeManagerState GroundModeManager::getState() { return state; }
@@ -218,12 +219,15 @@ State GroundModeManager::state_disarmed(const Event& event)
 
         case TMTC_ARM:
         {
+            // Notify Biliquid state machine to get ready
+            EventBroker::getInstance().post(BILIQUID_READY, TOPIC_BILIQUID);
             return transition(&GroundModeManager::state_armed);
         }
 
         case TMTC_CALIBRATE:
         {
             getModule<Sensors>()->calibrateLoadcells();
+            getModule<Sensors>()->calibrateEncoders();
             return HANDLED;
         }
 
@@ -292,26 +296,32 @@ State GroundModeManager::state_armed(const Event& event)
             return HANDLED;
         }
 
-        case TMTC_OPEN_CHAMBER:
-        {
-            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
-                CONFIG_ID_CHAMBER_TIME,
-                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
-            getModule<Actuators>()->openChamberWithTime(chamberTime);
+            /* Disabled for cft tests, the Biliquid state machine will handle
+             ignition
+             case TMTC_OPEN_CHAMBER:
+            {
+                uint32_t chamberTime =
+            getModule<Registry>()->getOrSetDefaultUnsafe(
+                    CONFIG_ID_CHAMBER_TIME,
+                    Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
+                getModule<Actuators>()->openChamberWithTime(chamberTime);
 
-            // Chamber causes automatic disarm
-            return transition(&GroundModeManager::state_disarmed);
-        }
+                // Chamber causes automatic disarm
+                return transition(&GroundModeManager::state_disarmed);
+            } */
 
         case TMTC_DISARM:
         {
+            // Notify Biliquid state machine to abort
+            EventBroker::getInstance().post(BILIQUID_ABORT, TOPIC_BILIQUID);
             return transition(&GroundModeManager::state_disarmed);
         }
 
-        case MOTOR_IGNITION:
-        {
-            return transition(&GroundModeManager::state_firing);
-        }
+            /* Disabled for cft tests, the Biliquid state machine will handle
+            ignition case MOTOR_IGNITION:
+            {
+                return transition(&GroundModeManager::state_firing);
+            } */
 
         default:
         {

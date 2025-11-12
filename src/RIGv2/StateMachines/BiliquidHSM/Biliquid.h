@@ -40,6 +40,7 @@ public:
     Biliquid();
 
     BiliquidState getState();
+    ValveSequenceList getCurrentSequence();
 
     bool setSequence(ValveSequenceList sequence);
     bool start();
@@ -59,8 +60,8 @@ private:
 
     std::atomic<BiliquidState> state{BiliquidState::IDLE};
 
-    uint16_t nextEventId = -1;
-    ValveSequenceList currentSequence;
+    uint16_t nextEventId              = -1;
+    ValveSequenceList currentSequence = ValveSequenceList::SEQUENCE_0;
 
     int stepCount = 0;
 };

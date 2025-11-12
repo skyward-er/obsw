@@ -261,7 +261,7 @@ uint32_t Actuators::ServoInfo::getOpeningTime()
         config.openingTimeRegKey, config.defaultOpeningTime);
 }
 
-bool Actuators::ServoInfo::isServoOpen() { return updateTs != ValveClosed; }
+bool Actuators::ServoInfo::isServoOpen() { return closeTs != ValveClosed; }
 
 bool Actuators::ServoInfo::setMaxAperture(float aperture)
 {
@@ -286,16 +286,17 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      infos{MAKE_SERVO(OX_FIL),   MAKE_SERVO(OX_REL),   MAKE_SERVO(PRZ_FIL),
-            MAKE_SERVO(PRZ_REL),  MAKE_SERVO(PRZ_FUEL), MAKE_SERVO(PRZ_OX),
-            MAKE_SERVO(OX_VEN),   MAKE_SERVO(FUEL_VEN), MAKE_SERVO(MAIN_OX),
-            MAKE_SERVO(MAIN_FUEL)},
-      n2_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W))
+      infos{MAKE_SERVO(OX_FIL),        MAKE_SERVO(OX_REL),
+            MAKE_SMALL_SERVO(PRZ_FIL), MAKE_SMALL_SERVO(PRZ_REL),
+            MAKE_SERVO(PRZ_FUEL),      MAKE_SERVO(PRZ_OX),
+            MAKE_SERVO(OX_VEN),        MAKE_SERVO(FUEL_VEN),
+            MAKE_SERVO(MAIN_OX),       MAKE_SERVO(MAIN_FUEL)},
+      prz_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W))
 {
     for (auto& servo : infos)
         servo.unsafeSetServoPosition(0.0f);
 
-    n2_3wayValveInfo.unsafeSetServoPosition(0.0f);
+    prz_3wayValveInfo.unsafeSetServoPosition(0.0f);
     unsafeCloseChamber();
 }
 
@@ -310,9 +311,9 @@ bool Actuators::start()
         info.closeServo();
     }
 
-    /*     n2_3wayValveInfo.servo->enable();
-        n2_3wayValveInfo.closeServo();
-     */
+    prz_3wayValveInfo.servo->enable();
+    prz_3wayValveInfo.closeServo();
+
     if (!SignaledDeadlineTask::start())
     {
         LOG_ERR(logger, "Failed to start Actuators task");
@@ -519,7 +520,7 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
     if (isOpen)
     {
         // Subtract 400ms to account for radio latency (empirically tested)
-        auto diff = info->updateTs - Clock::now() - 400ms;
+        auto diff = info->closeTs - Clock::now() - 400ms;
         if (diff > 0ms)
             timeToClose = duration_cast<milliseconds>(diff);
 
@@ -538,12 +539,30 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
 
 void Actuators::set3wayValveState(bool state)
 {
-    n2_3wayValveState        = state;
-    n2_3wayValveStateChanged = true;
+    prz_3wayValveState = state;
+    if (state)
+    {
+        // TODO: This part of the code sucks ass, openServoWithTime cannot be
+        // called for the 3way valve since it is a simple servo so this
+        // workaround is used instead
+
+        auto currentTime = Clock::now();
+
+        prz_3wayValveInfo.direction       = ServoInfo::Direction::OPEN;
+        prz_3wayValveInfo.currentPosition = 1.0f;
+
+        prz_3wayValveInfo.backstepTs =
+            currentTime + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+
+        prz_3wayValveInfo.unsafeSetServoPosition(1.0f);
+    }
+    else
+        prz_3wayValveInfo.closeServo();
+
     signalTask();
 }
 
-bool Actuators::get3wayValveState() { return n2_3wayValveState; }
+bool Actuators::get3wayValveState() { return prz_3wayValveState; }
 
 void Actuators::openChamberWithTime(uint32_t time)
 {
@@ -665,8 +684,8 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     }
 
     // 3-way valve is not a timed valve, only needs backstep handling
-    if (n2_3wayValveInfo.backstepTs != ValveClosed)
-        nextDeadline = std::min(nextDeadline, n2_3wayValveInfo.backstepTs);
+    if (prz_3wayValveInfo.backstepTs != ValveClosed)
+        nextDeadline = std::min(nextDeadline, prz_3wayValveInfo.backstepTs);
 
     if (chamberCloseTs != ValveClosed)
         nextDeadline = std::min(nextDeadline, chamberCloseTs);
@@ -696,5 +715,12 @@ void Actuators::task()
             // Close the servo
             info.closeServo();
         }
+    }
+
+    if (currentTime > prz_3wayValveInfo.backstepTs &&
+        prz_3wayValveInfo.backstepTs != ValveClosed)
+    {
+        // Backstep the 3-way valve servo a little to avoid strain
+        prz_3wayValveInfo.backstep();
     }
 }

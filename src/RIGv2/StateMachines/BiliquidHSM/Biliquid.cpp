@@ -65,6 +65,7 @@ bool Biliquid::start()
 }
 
 BiliquidState Biliquid::getState() { return state; }
+ValveSequenceList Biliquid::getCurrentSequence() { return currentSequence; }
 
 State Biliquid::state_idle(const Event& event)
 {
@@ -118,6 +119,7 @@ State Biliquid::state_ready(const Event& event)
             updateAndLogStatus(BiliquidState::READY);
 
             getModule<Actuators>()->closeAllServos();
+
             return HANDLED;
         }
 
@@ -130,6 +132,11 @@ State Biliquid::state_ready(const Event& event)
         {
             switch (currentSequence)
             {
+                case SEQUENCE_0:
+                    LOG_ERR(logger,
+                            "Biliquid sequence not set when trying to start "
+                            "generic sequence");
+                    return UNHANDLED;
                 case SEQUENCE_1:
                     return transition(&Biliquid::state_seq_1);
                 case SEQUENCE_2:
@@ -154,6 +161,11 @@ State Biliquid::state_ready(const Event& event)
         case BILIQUID_START_SEQUENCE_3:
         {
             return transition(&Biliquid::state_seq_3);
+        }
+
+        case BILIQUID_ABORT:
+        {
+            return transition(&Biliquid::state_idle);
         }
 
         case EV_EMPTY:
@@ -229,7 +241,6 @@ State Biliquid::state_seq_1(const Event& event)
 
         case BILIQUID_ABORT:
         {
-            // reset step count and remove delayed event
             EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&Biliquid::state_idle);
         }
@@ -371,25 +382,16 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_ENTRY:
         {
-            // animate open OX and fuel valves
-            getModule<Actuators>()->animateServo(
-                ServosList::MAIN_OX_VALVE, 1.0f,
-                Config::Biliquid::SEQ_3_ANIMATION_TIME.count());
+            // fully open OX and fuel valves for SEQ_3_SHUTDOWN_DELAY ms
+            getModule<Actuators>()->openServoWithTime(
+                ServosList::MAIN_OX_VALVE,
+                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
 
-            getModule<Actuators>()->animateServo(
-                ServosList::MAIN_FUEL_VALVE, 1.0f,
-                Config::Biliquid::SEQ_3_ANIMATION_TIME.count());
-
-            nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_SEQ_3_SHUTDOWN, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::SEQ_3_SHUTDOWN_DELAY}.count());
+            getModule<Actuators>()->openServoWithTime(
+                ServosList::MAIN_FUEL_VALVE,
+                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
 
             return HANDLED;
-        }
-
-        case BILIQUID_SEQ_3_SHUTDOWN:
-        {
-            return transition(&Biliquid::state_idle);
         }
 
         case BILIQUID_ABORT:

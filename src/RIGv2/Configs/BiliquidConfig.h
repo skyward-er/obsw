@@ -32,15 +32,15 @@ namespace Biliquid
 /* linter off */ using namespace std::chrono;
 
 // sequence 1 configs
-static constexpr int maxStepCount                = 6;
-static constexpr float PositionsOX[maxStepCount] = {
-    0.14388f, 0.16786f, 0.19184f, 0.21439f, 0.23694f, 0.25883f};
+static constexpr int maxStepCount                = 5;
+static constexpr float PositionsOX[maxStepCount] = {0.20f, 0.25f, 0.30f, 0.35f,
+                                                    0.40f};
 
-static constexpr float PositionsFUEL[maxStepCount] = {
-    0.14388f, 0.1559f, 0.16786f, 0.1799f, 0.19184f, 0.2031f};
+static constexpr float PositionsFUEL[maxStepCount] = {0.15f, 0.20f, 0.25f,
+                                                      0.30f, 0.35f};
 
 // time to wait between steps in sequence 1
-static constexpr milliseconds DT{2000};
+static constexpr milliseconds DT{1500};
 
 // sequence 2 configs
 static constexpr float SEQ_2_FUEL_POSITION = 0.25883f;
@@ -49,8 +49,7 @@ static constexpr milliseconds SEQ_2_OX_DELAY{100};
 static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2500};
 
 // sequence 3 configs
-static constexpr milliseconds SEQ_3_ANIMATION_TIME{1000};
-static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{2500};
+static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{1500};
 
 }  // namespace Biliquid
 }  // namespace Config

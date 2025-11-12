@@ -53,15 +53,15 @@ constexpr auto ANIMATION_UPDATE_PERIOD = 10ms;
 constexpr auto MOVE_SERVO_TIMEOUT = 10000ms;
 
 constexpr uint32_t DEFAULT_OX_FIL_OPENING_TIME    = 15000;
-constexpr uint32_t DEFAULT_OX_REL_OPENING_TIME    = 10000;
-constexpr uint32_t DEFAULT_PRZ_FUEL_OPENING_TIME  = 2000;
+constexpr uint32_t DEFAULT_OX_REL_OPENING_TIME    = 15000;
+constexpr uint32_t DEFAULT_PRZ_FUEL_OPENING_TIME  = 15000;
 constexpr uint32_t DEFAULT_PRZ_FIL_OPENING_TIME   = 15000;
-constexpr uint32_t DEFAULT_PRZ_REL_OPENING_TIME   = 10000;
-constexpr uint32_t DEFAULT_MAIN_FUEL_OPENING_TIME = 2000;
-constexpr uint32_t DEFAULT_PRZ_OX_OPENING_TIME    = 600000;
+constexpr uint32_t DEFAULT_PRZ_REL_OPENING_TIME   = 15000;
+constexpr uint32_t DEFAULT_MAIN_FUEL_OPENING_TIME = 15000;
+constexpr uint32_t DEFAULT_PRZ_OX_OPENING_TIME    = 15000;
 constexpr uint32_t DEFAULT_OX_VEN_OPENING_TIME    = 15000;
 constexpr uint32_t DEFAULT_PRZ_QUE_OPENING_TIME   = 15000;
-constexpr uint32_t DEFAULT_MAIN_OX_OPENING_TIME   = 6000;
+constexpr uint32_t DEFAULT_MAIN_OX_OPENING_TIME   = 15000;
 constexpr uint32_t DEFAULT_FUEL_VEN_OPENING_TIME  = 15000;
 
 constexpr float DEFAULT_OX_FIL_MAX_APERTURE    = 1.0;
@@ -91,12 +91,12 @@ constexpr float FUEL_VEN_LIMIT  = 0.9;
 
 constexpr bool OX_FIL_FLIPPED    = true;
 constexpr bool OX_REL_FLIPPED    = true;
-constexpr bool PRZ_FUEL_FLIPPED  = false;
-constexpr bool PRZ_OX_FLIPPED    = false;
+constexpr bool PRZ_FUEL_FLIPPED  = true;
+constexpr bool PRZ_OX_FLIPPED    = true;
 constexpr bool PRZ_3W_FLIPPED    = true;
 constexpr bool PRZ_FIL_FLIPPED   = false;
 constexpr bool PRZ_REL_FLIPPED   = false;
-constexpr bool MAIN_FUEL_FLIPPED = false;
+constexpr bool MAIN_FUEL_FLIPPED = true;
 constexpr bool NITR_FLIPPED      = true;
 constexpr bool OX_VEN_FLIPPED    = true;
 constexpr bool PRZ_QUE_FLIPPED   = false;
