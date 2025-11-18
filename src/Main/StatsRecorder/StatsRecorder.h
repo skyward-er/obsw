@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <algorithms/ADA/ADAData.h>
+#include <algorithms/ADA/ADA_Algorithm0_types.h>
 #include <algorithms/NAS/NASState.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>

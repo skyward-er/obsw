@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <algorithms/ADA/ADAData.h>
+#include <algorithms/ADA/ADA_Algorithm0_types.h>
 
 #include <cstdint>
 #include <ostream>
@@ -83,33 +83,33 @@ struct ADAControllerSampleData
 };
 
 // A collection of the states of the three ada algorithms
-struct ADA0State : Boardcore::ADAState
+struct ADA0State : ADAState
 {
-    ADA0State(const Boardcore::ADAState& state) : Boardcore::ADAState(state) {};
+    ADA0State(const ADAState& state) : ADAState(state) {};
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(ADA0State, EXTEND_DEF(Boardcore::ADAState));
+        return STRUCT_DEF(ADA0State, EXTEND_DEF(ADAState));
     }
 };
 
-struct ADA1State : Boardcore::ADAState
+struct ADA1State : ADAState
 {
-    ADA1State(const Boardcore::ADAState& state) : Boardcore::ADAState(state) {};
+    ADA1State(const ADAState& state) : ADAState(state) {};
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(ADA1State, EXTEND_DEF(Boardcore::ADAState));
+        return STRUCT_DEF(ADA1State, EXTEND_DEF(ADAState));
     }
 };
 
-struct ADA2State : Boardcore::ADAState
+struct ADA2State : ADAState
 {
-    ADA2State(const Boardcore::ADAState& state) : Boardcore::ADAState(state) {};
+    ADA2State(const ADAState& state) : ADAState(state) {};
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(ADA2State, EXTEND_DEF(Boardcore::ADAState));
+        return STRUCT_DEF(ADA2State, EXTEND_DEF(ADAState));
     }
 };
 

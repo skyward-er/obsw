@@ -22,13 +22,14 @@
 
 #pragma once
 
-#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/ADA/ADA.h>
+#include <algorithms/ADA/ADA_Algorithm0.h>
+#include <algorithms/ADA/ADA_Algorithm0_types.h>
 #include <events/FSM.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <bitset>
@@ -54,7 +55,7 @@ public:
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::ADAState getADAState(ADANumber num);
+    ADAState getADAState(ADANumber num);
 
     ADAControllerState getState();
 
@@ -78,7 +79,6 @@ public:
 
 private:
     void update();
-    void calibrate();
 
     // FSM states
     void state_init(const Boardcore::Event& event);
@@ -104,9 +104,9 @@ private:
     std::atomic<std::chrono::milliseconds> shadowModeTime;
 
     miosix::FastMutex adaMutex;
-    Boardcore::ADA ada0;
-    Boardcore::ADA ada1;
-    Boardcore::ADA ada2;
+    ADA_Algorithm0 ada0;
+    ADA_Algorithm0 ada1;
+    ADA_Algorithm0 ada2;
 
     uint64_t lastBaro0Timestamp = 0;
     uint64_t lastBaro1Timestamp = 0;

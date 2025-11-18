@@ -27,7 +27,7 @@
 
 // ADA
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
-#include <algorithms/ADA/ADAData.h>
+#include <algorithms/ADA/ADA_Algorithm0_types.h>
 
 // NAS
 #include <Main/StateMachines/NASController/NASControllerData.h>
@@ -110,7 +110,7 @@ struct ADAStateHIL
     {
     }
 
-    ADAStateHIL(const Boardcore::ADAState& adaState,
+    ADAStateHIL(const ADAState& adaState,
                 const Main::ADAControllerState& state)
         : mslAltitude(adaState.mslAltitude), aglAltitude(adaState.aglAltitude),
           verticalSpeed(adaState.verticalSpeed),

@@ -21,14 +21,11 @@
  */
 
 #include "ADAController.h"
-
 #include <Main/Configs/ADAConfig.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
 #include <events/EventBroker.h>
-#include <utils/AeroUtils/AeroUtils.h>
-
 #include <algorithm>
 #include <chrono>
 
@@ -38,54 +35,13 @@ using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
 
-// The default Kalman is empty, as calibrate will update it correctly
-const ADA::KalmanFilter::KalmanConfig DEFAULT_KALMAN_CONFIG{};
 
-ADA::KalmanFilter::KalmanConfig computeADAKalmanConfig(float refPressure)
-{
-    ADA::KalmanFilter::MatrixNN F;
-    ADA::KalmanFilter::MatrixPN H;
-    ADA::KalmanFilter::MatrixNN P;
-    ADA::KalmanFilter::MatrixNN Q;
-    ADA::KalmanFilter::MatrixPP R;
-    ADA::KalmanFilter::MatrixNM G;
-    ADA::KalmanFilter::CVectorN x;
-
-    // clang-format off
-    F  = ADA::KalmanFilter::MatrixNN({
-        {1.0, Config::ADA::UPDATE_RATE_SECONDS, 0.5f * Config::ADA::UPDATE_RATE_SECONDS * Config::ADA::UPDATE_RATE_SECONDS},
-        {0.0, 1.0,                              Config::ADA::UPDATE_RATE_SECONDS                                          },
-        {0.0, 0.0,                              1.0                                                                       }});
-
-    H = {1.0, 0.0, 0.0};
-
-    P = ADA::KalmanFilter::MatrixNN({
-        {1.0, 0.0, 0.0}, 
-        {0.0, 1.0, 0.0}, 
-        {0.0, 0.0, 1.0}});
-
-    Q << ADA::KalmanFilter::MatrixNN({
-        {30.0, 0.0,  0.0}, 
-        {0.0,  10.0, 0.0}, 
-        {0.0,  0.0,  2.5}});
-
-    R[0] = 4000.0;
-
-    G = ADA::KalmanFilter::MatrixNM::Zero();
-
-    x = ADA::KalmanFilter::CVectorN(refPressure, 0, 0);
-    // clang-format on
-
-    return {F, H, Q, R, P, G, x};
-}
 
 ADAController::ADAController()
     : FSM{&ADAController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::ADA_PRIORITY},
       deploymentAltitude{Config::ADA::DEPLOYMENT_ALTITUDE_TARGET},
-      shadowModeTime{Config::ADA::SHADOW_MODE_TIMEOUT},
-      ada0{DEFAULT_KALMAN_CONFIG}, ada1{DEFAULT_KALMAN_CONFIG},
-      ada2{DEFAULT_KALMAN_CONFIG}
+      shadowModeTime{Config::ADA::SHADOW_MODE_TIMEOUT}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -94,6 +50,10 @@ ADAController::ADAController()
 bool ADAController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getAdaScheduler();
+    
+    ada0.initialize();
+    ada1.initialize();
+    ada2.initialize();
 
     uint8_t result =
         scheduler.addTask([this]() { update(); }, Config::ADA::UPDATE_RATE);
@@ -109,14 +69,6 @@ bool ADAController::start()
         LOG_ERR(logger, "Failed to start ADA FSM");
         return false;
     }
-
-    auto algoRef        = getModule<AlgoReference>();
-    ReferenceValues ref = algoRef->getReferenceValues();
-    ada0.setReferenceValues(ref);
-    ada1.setReferenceValues(ref);
-    ada2.setReferenceValues(ref);
-
-    algoRef->subscribeReferenceChanges(this);
 
     return true;
 }
@@ -146,6 +98,11 @@ ADAState ADAController::getADAState(ADANumber num)
             return ada0.getState();
         }
     }
+}
+
+void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
+{
+
 }
 
 float ADAController::getDeploymentAltitude()
@@ -201,13 +158,7 @@ float ADAController::getMaxPressure()
     return *std::max_element(pressures.begin(), pressures.end(), absCompare);
 }
 
-void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
-{
-    miosix::Lock<miosix::FastMutex> l(adaMutex);
-    ada0.setReferenceValues(ref);
-    ada1.setReferenceValues(ref);
-    ada2.setReferenceValues(ref);
-}
+
 
 void ADAController::update()
 {
@@ -233,40 +184,34 @@ void ADAController::update()
         if (baro0.pressureTimestamp > lastBaro0Timestamp)
         {
             // Barometer is valid, correct with it
-            ada0.update(baro0.pressure);
+            ADA_Algorithm0::ExtU_ADA_Algorithm0_T inputs;
+            inputs.Pressure = baro0.pressure;
+            ada0.setExternalInputs(&inputs);
+            ada0.step();
         }
-        else
-        {
-            // Do not perform correction
-            ada0.update();
-        }
-
+ 
         lastBaro0Timestamp = baro0.pressureTimestamp;
 
         if (baro1.pressureTimestamp > lastBaro1Timestamp)
         {
             // Barometer is valid, correct with it
-            ada1.update(baro1.pressure);
+            ADA_Algorithm0::ExtU_ADA_Algorithm0_T inputs;
+            inputs.Pressure = baro1.pressure;
+            ada1.setExternalInputs(&inputs);
+            ada1.step();
         }
-        else
-        {
-            // Do not perform correction
-            ada1.update();
-        }
-
+ 
         lastBaro1Timestamp = baro1.pressureTimestamp;
 
         if (baro2.pressureTimestamp > lastBaro2Timestamp)
         {
             // Barometer is valid, correct with it
-            ada2.update(baro2.pressure);
+            ADA_Algorithm0::ExtU_ADA_Algorithm0_T inputs;
+            inputs.Pressure = baro2.pressure;
+            ada2.setExternalInputs(&inputs);
+            ada2.step();
         }
-        else
-        {
-            // Do not perform correction
-            ada2.update();
-        }
-
+ 
         lastBaro2Timestamp = baro2.pressureTimestamp;
     }
 
@@ -368,25 +313,6 @@ void ADAController::update()
     sdLogger.log(ADA2State(ada2State));
 }
 
-void ADAController::calibrate()
-{
-    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
-
-    Lock<FastMutex> lock{adaMutex};
-    ada0.setReferenceValues(ref);
-    ada1.setReferenceValues(ref);
-    ada2.setReferenceValues(ref);
-
-    // Recomputing Kalman config also resets the ADA state
-    auto kalmanConfig = computeADAKalmanConfig(ref.refPressure);
-    ada0.setKalmanConfig(kalmanConfig);
-    ada1.setKalmanConfig(kalmanConfig);
-    ada2.setKalmanConfig(kalmanConfig);
-
-    ada0.update(ref.refPressure);
-    ada1.update(ref.refPressure);
-    ada2.update(ref.refPressure);
-}
 
 void ADAController::state_init(const Event& event)
 {
@@ -400,32 +326,12 @@ void ADAController::state_init(const Event& event)
 
         case ADA_CALIBRATE:
         {
-            transition(&ADAController::state_calibrating);
-            break;
-        }
-    }
-}
-
-void ADAController::state_calibrating(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(ADAControllerState::CALIBRATING);
-            calibrate();
-
-            EventBroker::getInstance().post(ADA_READY, TOPIC_ADA);
-            break;
-        }
-
-        case ADA_READY:
-        {
             transition(&ADAController::state_ready);
             break;
         }
     }
 }
+
 
 void ADAController::state_ready(const Event& event)
 {
@@ -437,10 +343,9 @@ void ADAController::state_ready(const Event& event)
             break;
         }
 
-        case ADA_CALIBRATE:
         case ADA_RESET:
         {
-            transition(&ADAController::state_calibrating);
+            transition(&ADAController::state_init);
             break;
         }
 
