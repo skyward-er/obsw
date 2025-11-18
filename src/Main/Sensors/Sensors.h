@@ -86,7 +86,8 @@ public:
     Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
-    Boardcore::IMUData getIMULastSample();
+    Boardcore::IMUData getIMU0LastSample();
+    Boardcore::IMUData getIMU1LastSample();
 
     Boardcore::ND015XData getND015A0LastSample();
     Boardcore::ND015XData getND015A1LastSample();
@@ -140,8 +141,8 @@ protected:
     std::unique_ptr<Boardcore::ND015A> nd015a_3;
 
     // Virtual sensors
-    std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
-
+    std::unique_ptr<Boardcore::RotatedIMU> rotatedImu0;
+    std::unique_ptr<Boardcore::RotatedIMU> rotatedImu1;
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
@@ -182,8 +183,11 @@ private:
     void nd015a3Init();
     void nd015a3Callback();
 
-    void rotatedImuInit();
-    void rotatedImuCallback();
+    void rotatedImu0Init();
+    void rotatedImu1Init();
+
+    void rotatedImu0Callback();
+    void rotatedImu1Callback();
 
     bool sensorManagerInit();
 

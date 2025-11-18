@@ -42,14 +42,14 @@ namespace ZVK
 using namespace Boardcore::Constants;
 constexpr Hertz UPDATE_RATE         = 50_hz;
 constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
-const Eigen::Vector3f onRampAttitude(133, 85,
+const Eigen::Vector3f onRampAttitude(133, 90,
                                      0);  // z y x
 
 static const Boardcore::ZVKConfig CONFIG = {
     .T                     = UPDATE_RATE_SECONDS,
-    .SIGMA_ACC             = 4e-2,
+    .SIGMA_ACC             = 4e-5,
     .SIGMA_BIAS_ACC        = 1e-5,
-    .SIGMA_GYRO            = 5e-3,
+    .SIGMA_GYRO            = 5e-4,
     .SIGMA_BIAS_GYRO       = 1e-5,
     .ON_RAMP_EULERO_ANGLES = onRampAttitude};
 

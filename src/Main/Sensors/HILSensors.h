@@ -109,7 +109,7 @@ private:
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015a_2, enableHw,
                        [this]() { return updateStaticPressureData(); });
-        hillificator<>(rotatedImu, enableHw,
+        hillificator<>(rotatedImu0, enableHw,
                        [this]() { return updateIMUData(*this); });
 
         return true;

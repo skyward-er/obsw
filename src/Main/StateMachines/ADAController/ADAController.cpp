@@ -84,6 +84,7 @@ ADAController::ADAController()
           Config::Scheduler::ADA_PRIORITY},
       ada0{DEFAULT_KALMAN_CONFIG}, ada1{DEFAULT_KALMAN_CONFIG},
       ada2{DEFAULT_KALMAN_CONFIG}
+
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -116,7 +117,7 @@ bool ADAController::start()
     return true;
 }
 
-ADAState ADAController::getADAState(ADANumber num)
+Boardcore::ADAState ADAController::getADAState(ADANumber num)
 {
     Lock<FastMutex> lock{adaMutex};
     switch (num)
@@ -206,24 +207,16 @@ void ADAController::update()
         {
             // Barometer is valid, correct with it
             ada0.update(baro0.pressure);
+            printf("baro0 executed \n");
         }
-        else
-        {
-            // Do not perform correction
-            ada0.update();
-        }
-
+   
         lastBaro0Timestamp = baro0.pressureTimestamp;
 
         if (baro1.pressureTimestamp > lastBaro1Timestamp)
         {
             // Barometer is valid, correct with it
             ada1.update(baro1.pressure);
-        }
-        else
-        {
-            // Do not perform correction
-            ada1.update();
+            printf("baro1 executed \n");
         }
 
         lastBaro1Timestamp = baro1.pressureTimestamp;
@@ -232,11 +225,7 @@ void ADAController::update()
         {
             // Barometer is valid, correct with it
             ada2.update(baro2.pressure);
-        }
-        else
-        {
-            // Do not perform correction
-            ada2.update();
+            printf("baro2 executed \n");
         }
 
         lastBaro2Timestamp = baro2.pressureTimestamp;
@@ -354,7 +343,7 @@ void ADAController::calibrate()
     ada0.setKalmanConfig(kalmanConfig);
     ada1.setKalmanConfig(kalmanConfig);
     ada2.setKalmanConfig(kalmanConfig);
-
+    
     ada0.update(ref.refPressure);
     ada1.update(ref.refPressure);
     ada2.update(ref.refPressure);

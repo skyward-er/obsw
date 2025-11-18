@@ -642,7 +642,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 mavlink_message_t msg;
                 mavlink_ada_tm_t tm;
 
-                ADAState state = ada->getADAState(n);
+                auto state = ada->getADAState(n);
 
                 tm.timestamp       = state.timestamp;
                 tm.state           = adaState;
@@ -718,7 +718,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             MEAController* mea     = getModule<MEAController>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
 
-            auto imu          = sensors->getIMULastSample();
+            auto imu          = sensors->getIMU0LastSample();
             auto gps          = sensors->getUBXGPSLastSample();
             auto vn100        = sensors->getVN100LastSample();
             auto temperature  = sensors->getTemperatureLastSample();

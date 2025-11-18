@@ -93,7 +93,10 @@ bool Sensors::start()
         internalAdcInit();
 
     if (Config::Sensors::IMU::ENABLED)
-        rotatedImuInit();
+    {
+        rotatedImu0Init();
+        rotatedImu1Init();
+    }
 
     if (!postSensorCreationHook())
     {
@@ -384,9 +387,14 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
     return sample;
 }
 
-IMUData Sensors::getIMULastSample()
+IMUData Sensors::getIMU0LastSample()
 {
-    return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
+    return rotatedImu0 ? rotatedImu0->getLastSample() : IMUData{};
+}
+
+IMUData Sensors::getIMU1LastSample()
+{
+    return rotatedImu1 ? rotatedImu1->getLastSample() : IMUData{};
 }
 
 PressureData Sensors::getAtmosPressureLastSample(
@@ -468,7 +476,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
         PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
         PUSH_SENSOR_INFO(nd015a_3, "ND015A_3");
-        PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
+        PUSH_SENSOR_INFO(rotatedImu0, "RotatedIMU0");
+        PUSH_SENSOR_INFO(rotatedImu1, "RotatedIMU1");
 
         return infos;
     }
@@ -734,9 +743,9 @@ void Sensors::nd015a3Callback()
     sdLogger.log(DplBayPressureData{getND015A3LastSample()});
 }
 
-void Sensors::rotatedImuInit()
+void Sensors::rotatedImu0Init()
 {
-    rotatedImu = std::make_unique<RotatedIMU>(
+    rotatedImu0 = std::make_unique<RotatedIMU>(
         [this]()
         {
             auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
@@ -750,20 +759,51 @@ void Sensors::rotatedImuInit()
         });
 
     // Accelerometer
-    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(+90));
-    rotatedImu->addAccTransformation(RotatedIMU::rotateAroundX(+90));
+    rotatedImu0->addAccTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu0->addAccTransformation(RotatedIMU::rotateAroundX(+90));
     // Gyroscope
-    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
-    rotatedImu->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
+    rotatedImu0->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu0->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
     // Invert the Y axis on the magnetometer
     Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    rotatedImu->addMagTransformation(m);
+    rotatedImu0->addMagTransformation(m);
     // Magnetometer
-    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(+90));
-    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
+    rotatedImu0->addMagTransformation(RotatedIMU::rotateAroundY(+90));
+    rotatedImu0->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
 }
 
-void Sensors::rotatedImuCallback() { sdLogger.log(getIMULastSample()); }
+void Sensors::rotatedImu1Init()
+{
+    rotatedImu1 = std::make_unique<RotatedIMU>(
+        [this]()
+        {
+            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                            ? getCalibratedLSM6DSRX1LastSample()
+                            : getLSM6DSRX1LastSample();
+            auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+                            ? getCalibratedLIS2MDLLastSample()
+                            : getLIS2MDLLastSample();
+
+            return IMUData{imu6, imu6, mag};
+        });
+
+    // Accelerometer
+    rotatedImu1->addAccTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu1->addAccTransformation(RotatedIMU::rotateAroundX(+90));
+    // Gyroscope
+    rotatedImu1->addGyroTransformation(RotatedIMU::rotateAroundZ(+90));
+    rotatedImu1->addGyroTransformation(RotatedIMU::rotateAroundX(+90));
+    // Invert the Y axis on the magnetometer
+    Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
+    rotatedImu1->addMagTransformation(m);
+    // Magnetometer
+    rotatedImu1->addMagTransformation(RotatedIMU::rotateAroundY(+90));
+    rotatedImu1->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
+}
+
+void Sensors::rotatedImu0Callback() { sdLogger.log(IMU0Data{getIMU0LastSample()});}
+
+void Sensors::rotatedImu1Callback() { sdLogger.log(IMU1Data{getIMU1LastSample()});}
 
 bool Sensors::sensorManagerInit()
 {
@@ -860,11 +900,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(nd015a_3.get(), info);
     }
 
-    if (rotatedImu)
+    if (rotatedImu0)
     {
-        SensorInfo info{"RotatedIMU", Config::Sensors::IMU::RATE,
-                        [this]() { rotatedImuCallback(); }};
-        map.emplace(rotatedImu.get(), info);
+        SensorInfo info{"RotatedIMU0", Config::Sensors::IMU::RATE,
+                        [this]() { rotatedImu0Callback(); }};
+        map.emplace(rotatedImu0.get(), info);
+    }
+
+    if (rotatedImu1)
+    {
+        SensorInfo info{"RotatedIMU1", Config::Sensors::IMU::RATE,
+                        [this]() { rotatedImu1Callback(); }};
+        map.emplace(rotatedImu1.get(), info);
     }
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());

@@ -99,8 +99,8 @@ void ZVKController::update()
     {
         Sensors* sensors = getModule<Sensors>();
 
-        LSM6DSRXData imu0 = sensors->getLSM6DSRX0LastSample();
-        LSM6DSRXData imu1 = sensors->getLSM6DSRX1LastSample();
+        IMUData imu0 = sensors->getIMU0LastSample();
+        IMUData imu1 = sensors->getIMU1LastSample();
 
         zvk.predict();
 
@@ -109,11 +109,11 @@ void ZVKController::update()
         if (lastAccTimestamp0 < imu0.accelerationTimestamp)
             zvk.correctAcc0(imu0);
 
-        if (lastAccTimestamp1 < imu1.accelerationTimestamp)
-            zvk.correctAcc1(imu1);
-
         if (lastGyroTimestamp0 < imu0.angularSpeedTimestamp)
             zvk.correctGyro0(imu0);
+
+        if (lastAccTimestamp1 < imu1.accelerationTimestamp)
+            zvk.correctAcc1(imu1);
 
         if (lastGyroTimestamp1 < imu1.angularSpeedTimestamp)
             zvk.correctGyro1(imu1);

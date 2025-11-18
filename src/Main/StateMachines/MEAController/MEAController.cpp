@@ -140,7 +140,7 @@ void MEAController::update()
     {
         // Perform updates only during this phases
         PressureData baro;
-        IMUData imu         = getModule<Sensors>()->getIMULastSample();
+        IMUData imu         = getModule<Sensors>()->getIMU0LastSample();
         NASState nas        = getModule<NASController>()->getNASState();
         ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
 

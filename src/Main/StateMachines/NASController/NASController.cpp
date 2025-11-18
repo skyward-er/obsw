@@ -123,7 +123,7 @@ void NASController::update()
         float mslAltitude = ref.refAltitude - prevState.d;
         float mach        = Aeroutils::computeMach(mslAltitude, prevState.vd,
                                                    Constants::MSL_TEMPERATURE);
-        auto imu          = sensors->getIMULastSample();
+        auto imu          = sensors->getIMU0LastSample();
         auto gps          = sensors->getUBXGPSLastSample();
         auto baro         = sensors->getAtmosPressureLastSample();
         auto staticPitot  = sensors->getCanPitotStaticPressure();
@@ -215,7 +215,7 @@ void NASController::calibrate()
     // First sample and average the data over a number of samples
     for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        IMUData imu = sensors->getIMULastSample();
+        IMUData imu = sensors->getIMU0LastSample();
 
         Vector3f acc = static_cast<AccelerometerData>(imu);
         Vector3f mag = static_cast<MagnetometerData>(imu);
