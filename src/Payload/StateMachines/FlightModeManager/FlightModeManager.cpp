@@ -378,6 +378,7 @@ State FlightModeManager::OnGroundDisarmed(const Event& event)
             getModule<Actuators>()->setBuzzerOff();
             getModule<Actuators>()->cameraOff();
             EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
+            EventBroker::getInstance().postDelayed(CAN_ARM, TOPIC_CAN, 500);
             return HANDLED;
         }
 
@@ -557,6 +558,8 @@ State FlightModeManager::Armed(const Event& event)
             getModule<Actuators>()->cameraOn();
 
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
+            EventBroker::getInstance().postDelayed(FLIGHT_LAUNCH_PIN_DETACHED,
+                                                   TOPIC_FLIGHT, 500);
             return HANDLED;
         }
 
