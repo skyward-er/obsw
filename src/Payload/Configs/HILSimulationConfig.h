@@ -68,10 +68,10 @@ static_assert(N_DATA_GPS * SIMULATION_RATE >= Sensors::UBXGPS::RATE,
               "N_DATA_GPS not enough");
 static_assert(N_DATA_BARO_STATIC * SIMULATION_RATE >= Sensors::LPS22DF::RATE,
               "N_DATA_BARO_STATIC not enough");
-static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::ND015A::RATE,
-              "N_DATA_BARO_PITOT not enough");
-static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::ND030D::RATE,
-              "N_DATA_BARO_PITOT not enough");
+// static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::ND015A::RATE,
+//               "N_DATA_BARO_PITOT not enough");
+// static_assert(N_DATA_BARO_PITOT * SIMULATION_RATE >= Sensors::ND030D::RATE,
+//               "N_DATA_BARO_PITOT not enough");
 // clang-format on
 
 }  // namespace HIL

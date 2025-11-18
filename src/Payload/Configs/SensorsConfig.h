@@ -27,8 +27,9 @@
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
-#include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030D/ND030D.h>
+// #include <sensors/ND015X/ND015A.h>
+// #include <sensors/ND030D/ND030D.h>
+#include <sensors/LPS28DFW/LPS28DFW.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -64,7 +65,7 @@ constexpr auto AVG = Boardcore::LPS22DF::AVG_4;
 constexpr auto ODR = Boardcore::LPS22DF::ODR_100;
 
 constexpr auto RATE    = 50_hz;
-constexpr auto ENABLED = true;
+constexpr auto ENABLED = false;
 }  // namespace LPS22DF
 
 namespace H3LIS331DL
@@ -129,7 +130,7 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace LSM6DSRX_1
 
-namespace ND015A
+/* namespace ND015A
 {
 constexpr auto IOW = Boardcore::ND015A::IOWatchdogEnable::DISABLED;
 constexpr auto BWL = Boardcore::ND015A::BWLimitFilter::BWL_200;
@@ -140,8 +141,8 @@ constexpr uint8_t ODR = 0x00;  // Auto select based on BW
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace ND015A
-
-namespace ND030D
+ */
+/* namespace ND030D
 {
 constexpr auto FSR = Boardcore::ND030D::FullScaleRange::FS_10;
 constexpr auto IOW = Boardcore::ND030D::IOWatchdogEnable::DISABLED;
@@ -153,6 +154,17 @@ constexpr uint8_t ODR = 0x00;  // Auto select based on BW
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace ND030D
+ */
+
+namespace LPS28DFW
+{
+constexpr Boardcore::LPS28DFW::FullScaleRange FS = Boardcore::LPS28DFW::FS_1260;
+constexpr Boardcore::LPS28DFW::AVG AVG           = Boardcore::LPS28DFW::AVG_4;
+constexpr Boardcore::LPS28DFW::ODR ODR           = Boardcore::LPS28DFW::ODR_100;
+
+constexpr Hertz RATE   = 50_hz;
+constexpr bool ENABLED = true;
+}  // namespace LPS28DFW
 
 namespace InternalADC
 {

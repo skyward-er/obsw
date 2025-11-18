@@ -55,10 +55,10 @@ bool Sensors::start()
     gyroCalibration0.fromFile(
         Config::Sensors::LSM6DSRX_0::GYRO_CALIBRATION_FILENAME);
 
-    accCalibration1.fromFile(
-        Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
-    gyroCalibration1.fromFile(
-        Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
+    // accCalibration1.fromFile(
+    //     Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
+    // gyroCalibration1.fromFile(
+    //     Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
 
     if (Config::Sensors::LPS22DF::ENABLED &&
         !Config::Sensors::USING_DUAL_MAGNETOMETER)
@@ -67,9 +67,9 @@ bool Sensors::start()
     if (Config::Sensors::H3LIS331DL::ENABLED)
         h3lis331dlInit();
 
-    if (Config::Sensors::LIS2MDL::ENABLED &&
-        Config::Sensors::USING_DUAL_MAGNETOMETER)
-        lis2mdlExtInit();
+    // if (Config::Sensors::LIS2MDL::ENABLED &&
+    //     Config::Sensors::USING_DUAL_MAGNETOMETER)
+    //     lis2mdlExtInit();
 
     if (Config::Sensors::LIS2MDL::ENABLED)
         lis2mdlInit();
@@ -80,14 +80,18 @@ bool Sensors::start()
     if (Config::Sensors::LSM6DSRX_0::ENABLED)
         lsm6dsrx0Init();
 
-    if (Config::Sensors::LSM6DSRX_1::ENABLED)
-        lsm6dsrx1Init();
+    // Not present in test sensor board, WE HAVE ONLY ONE LSM6DSRX
+    //    if (Config::Sensors::LSM6DSRX_1::ENABLED)
+    //        lsm6dsrx1Init();
 
-    if (Config::Sensors::ND015A::ENABLED)
-        nd015aInit();
+    //    if (Config::Sensors::ND015A::ENABLED)
+    //        nd015aInit();
 
-    if (Config::Sensors::ND030D::ENABLED)
-        nd030dInit();
+    //    if (Config::Sensors::ND030D::ENABLED)
+    //        nd030dInit();
+
+    if (Config::Sensors::LPS28DFW::ENABLED)
+        lps28dfwInit();
 
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
@@ -133,22 +137,22 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
-    float dynPressureAccum = 0.0f;
+    // float dynPressureAccum = 0.0f;
 
-    for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
-    {
-        auto dynPressure = getDynamicPressureLastSample();
+    // for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
+    // {
+    //     auto dynPressure = getDynamicPressureLastSample();
 
-        dynPressureAccum += dynPressure.pressure;
+    //     dynPressureAccum += dynPressure.pressure;
 
-        Thread::sleep(
-            milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
-    }
+    //     Thread::sleep(
+    //         milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
+    // }
 
-    float dynPressureOffset =
-        dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+    // float dynPressureOffset =
+    //     dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
 
-    nd030d->updateOffset(dynPressureOffset);
+    // nd030d->updateOffset(dynPressureOffset);
 
     // Log the current calibration
     sdLogger.log(getCalibration());
@@ -156,40 +160,50 @@ void Sensors::calibrate()
 
 Main::CalibrationData Sensors::getCalibration()
 {
-    std::lock(magCalibrationMutex, lsm6Calibration0Mutex,
-              lsm6Calibration1Mutex);
+    // std::lock(magCalibrationMutex, lsm6Calibration0Mutex,
+    //           lsm6Calibration1Mutex);
+    std::lock(magCalibrationMutex, lsm6Calibration0Mutex);
+
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex, std::adopt_lock);
+    // std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex,
+    // std::adopt_lock);
 
     auto accBias0  = accCalibration0.getV();
     auto gyroBias0 = gyroCalibration0.getV();
-    auto accBias1  = accCalibration1.getV();
-    auto gyroBias1 = gyroCalibration1.getV();
-    auto magBias   = magCalibration.getb();
-    auto magScale  = magCalibration.getA();
+    // auto accBias1  = accCalibration1.getV();
+    // auto gyroBias1 = gyroCalibration1.getV();
+    auto magBias  = magCalibration.getb();
+    auto magScale = magCalibration.getA();
 
     return {
-        .timestamp        = TimestampTimer::getTimestamp(),
-        .acc0BiasX        = accBias0.x(),
-        .acc0BiasY        = accBias0.y(),
-        .acc0BiasZ        = accBias0.z(),
-        .gyro0BiasX       = gyroBias0.x(),
-        .gyro0BiasY       = gyroBias0.y(),
-        .gyro0BiasZ       = gyroBias0.z(),
-        .acc1BiasX        = accBias1.x(),
-        .acc1BiasY        = accBias1.y(),
-        .acc1BiasZ        = accBias1.z(),
-        .gyro1BiasX       = gyroBias1.x(),
-        .gyro1BiasY       = gyroBias1.y(),
-        .gyro1BiasZ       = gyroBias1.z(),
-        .magBiasX         = magBias.x(),
-        .magBiasY         = magBias.y(),
-        .magBiasZ         = magBias.z(),
-        .magScaleX        = magScale.x(),
-        .magScaleY        = magScale.y(),
-        .magScaleZ        = magScale.z(),
-        .pitotDynamicBias = nd030d->getOffset(),
+        .timestamp  = TimestampTimer::getTimestamp(),
+        .acc0BiasX  = accBias0.x(),
+        .acc0BiasY  = accBias0.y(),
+        .acc0BiasZ  = accBias0.z(),
+        .gyro0BiasX = gyroBias0.x(),
+        .gyro0BiasY = gyroBias0.y(),
+        .gyro0BiasZ = gyroBias0.z(),
+        //.acc1BiasX        = accBias1.x(),
+        //.acc1BiasY        = accBias1.y(),
+        //.acc1BiasZ        = accBias1.z(),
+        //.gyro1BiasX       = gyroBias1.x(),
+        //.gyro1BiasY       = gyroBias1.y(),
+        //.gyro1BiasZ       = gyroBias1.z(),
+        .acc1BiasX  = 0,
+        .acc1BiasY  = 0,
+        .acc1BiasZ  = 0,
+        .gyro1BiasX = 0,
+        .gyro1BiasY = 0,
+        .gyro1BiasZ = 0,
+        .magBiasX   = magBias.x(),
+        .magBiasY   = magBias.y(),
+        .magBiasZ   = magBias.z(),
+        .magScaleX  = magScale.x(),
+        .magScaleY  = magScale.y(),
+        .magScaleZ  = magScale.z(),
+        //.pitotDynamicBias = nd030d->getOffset(),
+        .pitotDynamicBias = 0,
     };
 }
 
@@ -263,19 +277,24 @@ LSM6DSRXData Sensors::getLSM6DSRX0LastSample()
     return lsm6dsrx_0 ? lsm6dsrx_0->getLastSample() : LSM6DSRXData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
-{
-    return lsm6dsrx_1 ? lsm6dsrx_1->getLastSample() : LSM6DSRXData{};
-}
+// LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
+// {
+//     return lsm6dsrx_1 ? lsm6dsrx_1->getLastSample() : LSM6DSRXData{};
+// }
 
-ND015XData Sensors::getND015ADataLastSample()
-{
-    return nd015a ? nd015a->getLastSample() : ND015XData{};
-}
+// ND015XData Sensors::getND015ADataLastSample()
+//{
+//     return nd015a ? nd015a->getLastSample() : ND015XData{};
+// }
 
-ND030XData Sensors::getND030DDataLastSample()
+// ND030XData Sensors::getND030DDataLastSample()
+//{
+//     return nd030d ? nd030d->getLastSample() : ND030XData{};
+// }
+
+LPS28DFWData Sensors::getLPS28DFWLastSample()
 {
-    return nd030d ? nd030d->getLastSample() : ND030XData{};
+    return lps28dfw ? lps28dfw->getLastSample() : LPS28DFWData{};
 }
 
 InternalADCData Sensors::getInternalADCLastSample()
@@ -302,27 +321,29 @@ VoltageData Sensors::getCamBatteryVoltageLastSample()
 
 StaticPressureData Sensors::getStaticPressureLastSample()
 {
-    return StaticPressureData{getND015ADataLastSample()};
+    // return StaticPressureData{getND015ADataLastSample()};
+    return StaticPressureData{getLPS28DFWLastSample()};
 }
 
 DynamicPressureData Sensors::getDynamicPressureLastSample()
 {
-    return DynamicPressureData{getND030DDataLastSample()};
+    return DynamicPressureData{PressureData{0}};
+    // return DynamicPressureData{getND030DDataLastSample()};
 }
 
-LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
-{
-    auto sample = getLIS2MDLExtLastSample();
-    std::lock_guard<std::mutex> lock{magCalibrationMutex};
+// LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
+// {
+//     auto sample = getLIS2MDLExtLastSample();
+//     std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
-    auto corrected =
-        magCalibration.correct(static_cast<MagnetometerData>(sample));
-    sample.magneticFieldX = corrected.x();
-    sample.magneticFieldY = corrected.y();
-    sample.magneticFieldZ = corrected.z();
+//     auto corrected =
+//         magCalibration.correct(static_cast<MagnetometerData>(sample));
+//     sample.magneticFieldX = corrected.x();
+//     sample.magneticFieldY = corrected.y();
+//     sample.magneticFieldZ = corrected.z();
 
-    return sample;
-}
+//     return sample;
+// }
 
 LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 {
@@ -358,7 +379,7 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
     return sample;
 }
 
-LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
+/* LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
 {
     auto sample = getLSM6DSRX1LastSample();
     std::lock_guard<std::mutex> lock{lsm6Calibration1Mutex};
@@ -377,6 +398,7 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
 
     return sample;
 }
+*/
 
 IMUData Sensors::getIMULastSample()
 {
@@ -406,10 +428,11 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
         PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
-        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
+        // PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
-        PUSH_SENSOR_INFO(nd015a, "ND015A");
-        PUSH_SENSOR_INFO(nd030d, "ND030D");
+        PUSH_SENSOR_INFO(lps28dfw, "LPS28DFW");
+        // PUSH_SENSOR_INFO(nd015a, "ND015A");
+        // PUSH_SENSOR_INFO(nd030d, "ND030D");
         PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
 
         return infos;
@@ -433,6 +456,8 @@ void Sensors::lps22dfInit()
     LPS22DF::Config config;
     config.avg = Config::Sensors::LPS22DF::AVG;
     config.odr = Config::Sensors::LPS22DF::ODR;
+
+    sensors::LPS22DF::cs::high();
 
     lps22df = std::make_unique<LPS22DF>(getModule<Buses>()->getLPS22DF(),
                                         sensors::LPS22DF::cs::getPin(),
@@ -462,25 +487,25 @@ void Sensors::h3lis331dlCallback()
     sdLogger.log(sample);
 }
 
-void Sensors::lis2mdlExtInit()
-{
-    SPIBusConfig spiConfig = LIS2MDL::getDefaultSPIConfig();
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+// void Sensors::lis2mdlExtInit()
+//{
+//     SPIBusConfig spiConfig = LIS2MDL::getDefaultSPIConfig();
+//     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+//
+//     LIS2MDL::Config config;
+//     config.deviceMode         = LIS2MDL::MD_CONTINUOUS;
+//     config.odr                = Config::Sensors::LIS2MDL::ODR;
+//     config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
+//
+//     lis2mdl_ext = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
+//                                             sensors::LIS2MDL_EXT::cs::getPin(),
+//                                             spiConfig, config);
+// }
 
-    LIS2MDL::Config config;
-    config.deviceMode         = LIS2MDL::MD_CONTINUOUS;
-    config.odr                = Config::Sensors::LIS2MDL::ODR;
-    config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
-
-    lis2mdl_ext = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
-                                            sensors::LIS2MDL_EXT::cs::getPin(),
-                                            spiConfig, config);
-}
-
-void Sensors::lis2mdlExtCallback()
-{
-    sdLogger.log(LIS2MDLExternalData{getLIS2MDLExtLastSample()});
-}
+// void Sensors::lis2mdlExtCallback()
+//{
+//     sdLogger.log(LIS2MDLExternalData{getLIS2MDLExtLastSample()});
+// }
 
 void Sensors::lis2mdlInit()
 {
@@ -534,7 +559,7 @@ void Sensors::lsm6dsrx0Init()
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
     lsm6dsrx_0 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                            sensors::LSM6DSRX_0::cs::getPin(),
+                                            sensors::LSM6DSRX::cs::getPin(),
                                             spiConfig, config);
 }
 
@@ -550,44 +575,60 @@ void Sensors::lsm6dsrx0Callback()
         sdLogger.log(LSM6DSRX0Data{lastFifo.at(i)});
 }
 
-void Sensors::lsm6dsrx1Init()
+// void Sensors::lsm6dsrx1Init()
+// {
+//     SPIBusConfig spiConfig;
+//     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+//     spiConfig.mode         = SPI::Mode::MODE_0;
+
+//     LSM6DSRXConfig config;
+//     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
+
+//     config.fsAcc     = Config::Sensors::LSM6DSRX_1::ACC_FS;
+//     config.odrAcc    = Config::Sensors::LSM6DSRX_1::ACC_ODR;
+//     config.opModeAcc = Config::Sensors::LSM6DSRX_1::ACC_OP_MODE;
+
+//     config.fsGyr     = Config::Sensors::LSM6DSRX_1::GYR_FS;
+//     config.odrGyr    = Config::Sensors::LSM6DSRX_1::GYR_ODR;
+//     config.opModeGyr = Config::Sensors::LSM6DSRX_1::GYR_OP_MODE;
+
+//     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
+//     config.fifoTimestampDecimation =
+//         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
+//     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
+
+//     lsm6dsrx_1 =
+//     std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
+//                                             sensors::LSM6DSRX_1::cs::getPin(),
+//                                             spiConfig, config);
+// }
+
+// void Sensors::lsm6dsrx1Callback()
+// {
+//     if (!lsm6dsrx_1)
+//         return;
+
+//     // For every instance inside the fifo log the sample
+//     uint16_t lastFifoSize;
+//     const auto lastFifo = lsm6dsrx_1->getLastFifo(lastFifoSize);
+//     for (uint16_t i = 0; i < lastFifoSize; i++)
+//         sdLogger.log(LSM6DSRX1Data{lastFifo.at(i)});
+// }
+
+void Sensors::lps28dfwInit()
 {
-    SPIBusConfig spiConfig;
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
-    spiConfig.mode         = SPI::Mode::MODE_0;
+    LPS28DFW::SensorConfig config;
+    config.sa0  = true;
+    config.fsr  = Config::Sensors::LPS28DFW::FS;
+    config.avg  = Config::Sensors::LPS28DFW::AVG;
+    config.odr  = Config::Sensors::LPS28DFW::ODR;
+    config.drdy = false;
 
-    LSM6DSRXConfig config;
-    config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
-
-    config.fsAcc     = Config::Sensors::LSM6DSRX_1::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX_1::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX_1::ACC_OP_MODE;
-
-    config.fsGyr     = Config::Sensors::LSM6DSRX_1::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX_1::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX_1::GYR_OP_MODE;
-
-    config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
-    config.fifoTimestampDecimation =
-        LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
-    config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
-
-    lsm6dsrx_1 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                            sensors::LSM6DSRX_1::cs::getPin(),
-                                            spiConfig, config);
+    lps28dfw =
+        std::make_unique<LPS28DFW>(getModule<Buses>()->getLPS28DFW(), config);
 }
 
-void Sensors::lsm6dsrx1Callback()
-{
-    if (!lsm6dsrx_1)
-        return;
-
-    // For every instance inside the fifo log the sample
-    uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx_1->getLastFifo(lastFifoSize);
-    for (uint16_t i = 0; i < lastFifoSize; i++)
-        sdLogger.log(LSM6DSRX1Data{lastFifo.at(i)});
-}
+void Sensors::lps28dfwCallback() { sdLogger.log(getLPS28DFWLastSample()); }
 
 void Sensors::internalAdcInit()
 {
@@ -603,36 +644,37 @@ void Sensors::internalAdcCallback()
     sdLogger.log(getInternalADCLastSample());
 }
 
-void Sensors::nd015aInit()
-{
-    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+// void Sensors::nd015aInit()
+//{
+//     SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
+//
+//     nd015a = std::make_unique<ND015A>(
+//         getModule<Buses>()->getND015X(), sensors::ND015A_1::cs::getPin(),
+//         spiConfig, Config::Sensors::ND015A::IOW,
+//         Config::Sensors::ND015A::BWL, Config::Sensors::ND015A::NTC,
+//         Config::Sensors::ND015A::ODR);
+// }
 
-    nd015a = std::make_unique<ND015A>(
-        getModule<Buses>()->getND015X(), sensors::ND015A_1::cs::getPin(),
-        spiConfig, Config::Sensors::ND015A::IOW, Config::Sensors::ND015A::BWL,
-        Config::Sensors::ND015A::NTC, Config::Sensors::ND015A::ODR);
-}
+// void Sensors::nd015aCallback()
+//{
+//     sdLogger.log(StaticPressureData{getND015ADataLastSample()});
+// }
 
-void Sensors::nd015aCallback()
-{
-    sdLogger.log(StaticPressureData{getND015ADataLastSample()});
-}
+// void Sensors::nd030dInit()
+//{
+//     SPIBusConfig spiConfig = ND030D::getDefaultSPIConfig();
+//
+//     nd030d = std::make_unique<ND030D>(
+//         getModule<Buses>()->getND015X(), sensors::ND015A_2::cs::getPin(),
+//         spiConfig, Config::Sensors::ND030D::FSR,
+//         Config::Sensors::ND030D::IOW, Config::Sensors::ND030D::BWL,
+//         Config::Sensors::ND030D::NTC, Config::Sensors::ND030D::ODR);
+// }
 
-void Sensors::nd030dInit()
-{
-    SPIBusConfig spiConfig = ND030D::getDefaultSPIConfig();
-
-    nd030d = std::make_unique<ND030D>(
-        getModule<Buses>()->getND015X(), sensors::ND015A_2::cs::getPin(),
-        spiConfig, Config::Sensors::ND030D::FSR, Config::Sensors::ND030D::IOW,
-        Config::Sensors::ND030D::BWL, Config::Sensors::ND030D::NTC,
-        Config::Sensors::ND030D::ODR);
-}
-
-void Sensors::nd030dCallback()
-{
-    sdLogger.log(DynamicPressureData{getND030DDataLastSample()});
-}
+// void Sensors::nd030dCallback()
+// {
+//     sdLogger.log(DynamicPressureData{getND030DDataLastSample()});
+// }
 
 void Sensors::rotatedImuInit()
 {
@@ -683,12 +725,12 @@ bool Sensors::sensorManagerInit()
         map.emplace(h3lis331dl.get(), info);
     }
 
-    if (lis2mdl_ext)
-    {
-        SensorInfo info{"LIS2MDL_EXT", Config::Sensors::LIS2MDL::RATE,
-                        [this]() { lis2mdlExtCallback(); }};
-        map.emplace(lis2mdl_ext.get(), info);
-    }
+    // if (lis2mdl_ext)
+    // {
+    //     SensorInfo info{"LIS2MDL_EXT", Config::Sensors::LIS2MDL::RATE,
+    //                     [this]() { lis2mdlExtCallback(); }};
+    //     map.emplace(lis2mdl_ext.get(), info);
+    // }
 
     if (lis2mdl)
     {
@@ -711,12 +753,12 @@ bool Sensors::sensorManagerInit()
         map.emplace(lsm6dsrx_0.get(), info);
     }
 
-    if (lsm6dsrx_1)
-    {
-        SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
-                        [this]() { lsm6dsrx1Callback(); }};
-        map.emplace(lsm6dsrx_1.get(), info);
-    }
+    // if (lsm6dsrx_1)
+    // {
+    //     SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
+    //                     [this]() { lsm6dsrx1Callback(); }};
+    //     map.emplace(lsm6dsrx_1.get(), info);
+    // }
 
     if (internalAdc)
     {
@@ -725,18 +767,25 @@ bool Sensors::sensorManagerInit()
         map.emplace(internalAdc.get(), info);
     }
 
-    if (nd015a)
-    {
-        SensorInfo info{"ND015A", Config::Sensors::ND015A::RATE,
-                        [this]() { nd015aCallback(); }};
-        map.emplace(nd015a.get(), info);
-    }
+    // if (nd015a)
+    // {
+    //     SensorInfo info{"ND015A", Config::Sensors::ND015A::RATE,
+    //                     [this]() { nd015aCallback(); }};
+    //     map.emplace(nd015a.get(), info);
+    // }
 
-    if (nd030d)
+    // if (nd030d)
+    // {
+    //     SensorInfo info{"ND030D", Config::Sensors::ND030D::RATE,
+    //                     [this]() { nd030dCallback(); }};
+    //     map.emplace(nd030d.get(), info);
+    // }
+
+    if (lps28dfw)
     {
-        SensorInfo info{"ND030D", Config::Sensors::ND030D::RATE,
-                        [this]() { nd030dCallback(); }};
-        map.emplace(nd030d.get(), info);
+        SensorInfo info{"LPS28DFW", Config::Sensors::LPS28DFW::RATE,
+                        [this]() { lps28dfwCallback(); }};
+        map.emplace(lps28dfw.get(), info);
     }
 
     if (rotatedImu)

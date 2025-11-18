@@ -50,14 +50,14 @@ private:
             Main::LSM6DSRX0Data{lsm6dsrx_0->getLastSample()});
     }
 
-    void lsm6dsrx1Callback() override
-    {
-        if (!lsm6dsrx_1)
-            return;
+    // void lsm6dsrx1Callback() override
+    // {
+    //     if (!lsm6dsrx_1)
+    //         return;
 
-        Boardcore::Logger::getInstance().log(
-            Main::LSM6DSRX1Data{lsm6dsrx_1->getLastSample()});
-    }
+    //     Boardcore::Logger::getInstance().log(
+    //         Main::LSM6DSRX1Data{lsm6dsrx_1->getLastSample()});
+    // }
 
     bool postSensorCreationHook() override
     {
@@ -73,12 +73,14 @@ private:
                        [this]() { return updateUBXGPSData(); });
         hillificator<>(lsm6dsrx_0, enableHw,
                        [this]() { return updateLSM6DSRXData_0(); });
-        hillificator<>(lsm6dsrx_1, enableHw,
-                       [this]() { return updateLSM6DSRXData_1(); });
-        hillificator<>(nd015a, enableHw,
-                       [this]() { return updateStaticPressureData(); });
-        hillificator<>(nd030d, enableHw,
-                       [this]() { return updateDynamicPressureData(); });
+        // hillificator<>(lsm6dsrx_1, enableHw,
+        //                [this]() { return updateLSM6DSRXData_1(); });
+        // hillificator<>(nd015a, enableHw,
+        //                [this]() { return updateStaticPressureData(); });
+        // hillificator<>(nd030d, enableHw,
+        //                [this]() { return updateDynamicPressureData(); });
+        hillificator<>(lps28dfw, enableHw,
+                       [this]() { return updateLPS28DFWData(); });
         hillificator<>(rotatedImu, enableHw,
                        [this]() { return updateIMUData(); });
 
@@ -234,55 +236,55 @@ private:
         return data;
     };
 
-    Boardcore::LSM6DSRXData updateLSM6DSRXData_1()
-    {
-        Boardcore::LSM6DSRXData data;
+    // Boardcore::LSM6DSRXData updateLSM6DSRXData_1()
+    // {
+    //     Boardcore::LSM6DSRXData data;
 
-        auto* sensorData = getModule<PayloadHIL>()->getSensorData();
+    //     auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
-        int iAcc  = getSampleCounter(sensorData->accelerometer2.NDATA);
-        int iGyro = getSampleCounter(sensorData->gyro2.NDATA);
+    //     int iAcc  = getSampleCounter(sensorData->accelerometer2.NDATA);
+    //     int iGyro = getSampleCounter(sensorData->gyro2.NDATA);
 
-        data.accelerationTimestamp = data.angularSpeedTimestamp =
-            Boardcore::TimestampTimer::getTimestamp();
+    //     data.accelerationTimestamp = data.angularSpeedTimestamp =
+    //         Boardcore::TimestampTimer::getTimestamp();
 
-        data.accelerationX = sensorData->accelerometer2.measures[iAcc][0];
-        data.accelerationY = sensorData->accelerometer2.measures[iAcc][1];
-        data.accelerationZ = sensorData->accelerometer2.measures[iAcc][2];
+    //     data.accelerationX = sensorData->accelerometer2.measures[iAcc][0];
+    //     data.accelerationY = sensorData->accelerometer2.measures[iAcc][1];
+    //     data.accelerationZ = sensorData->accelerometer2.measures[iAcc][2];
 
-        data.angularSpeedX = sensorData->gyro2.measures[iGyro][0];
-        data.angularSpeedY = sensorData->gyro2.measures[iGyro][1];
-        data.angularSpeedZ = sensorData->gyro2.measures[iGyro][2];
-        return data;
-    };
+    //     data.angularSpeedX = sensorData->gyro2.measures[iGyro][0];
+    //     data.angularSpeedY = sensorData->gyro2.measures[iGyro][1];
+    //     data.angularSpeedZ = sensorData->gyro2.measures[iGyro][2];
+    //     return data;
+    // };
 
-    Boardcore::ND015XData updateStaticPressureData()
-    {
-        Boardcore::ND015XData data;
+    // Boardcore::ND015XData updateStaticPressureData()
+    // {
+    //     Boardcore::ND015XData data;
 
-        auto* sensorData = getModule<PayloadHIL>()->getSensorData();
+    //     auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
-        int iBaro = getSampleCounter(sensorData->staticPitot.NDATA);
+    //     int iBaro = getSampleCounter(sensorData->staticPitot.NDATA);
 
-        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
-        data.pressure          = sensorData->staticPitot.measures[iBaro];
+    //     data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
+    //     data.pressure          = sensorData->staticPitot.measures[iBaro];
 
-        return data;
-    };
+    //     return data;
+    // };
 
-    Boardcore::ND030XData updateDynamicPressureData()
-    {
-        Boardcore::ND030XData data;
+    // Boardcore::ND030XData updateDynamicPressureData()
+    // {
+    //     Boardcore::ND030XData data;
 
-        auto* sensorData = getModule<PayloadHIL>()->getSensorData();
+    //     auto* sensorData = getModule<PayloadHIL>()->getSensorData();
 
-        int iBaro = getSampleCounter(sensorData->dynamicPitot.NDATA);
+    //     int iBaro = getSampleCounter(sensorData->dynamicPitot.NDATA);
 
-        data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
-        data.pressure          = sensorData->dynamicPitot.measures[iBaro];
+    //     data.pressureTimestamp = Boardcore::TimestampTimer::getTimestamp();
+    //     data.pressure          = sensorData->dynamicPitot.measures[iBaro];
 
-        return data;
-    };
+    //     return data;
+    // };
 
     Boardcore::IMUData updateIMUData()
     {

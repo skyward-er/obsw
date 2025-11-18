@@ -1022,7 +1022,6 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
                 parent.getModule<Sensors>()->getStaticPressureLastSample();
             auto dynamicSample =
                 parent.getModule<Sensors>()->getDynamicPressureLastSample();
-
             tm.pressure  = staticSample.pressure + dynamicSample.pressure;
             tm.timestamp = TimestampTimer::getTimestamp();
             strcpy(tm.sensor_name, "PitotTotal");
@@ -1046,6 +1045,25 @@ bool Radio::MavlinkBackend::enqueueSensorsTm(SensorsTMList tmId)
             tm.pressure  = sample.pressure;
             tm.timestamp = sample.pressureTimestamp;
             strcpy(tm.sensor_name, "PitotDynamic");
+
+            mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
+                                           config::Mavlink::COMPONENT_ID, &msg,
+                                           &tm);
+
+            enqueueMessage(msg);
+            return true;
+        }
+
+        case MAV_LPS28DFW_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+
+            auto sample = parent.getModule<Sensors>()->getLPS28DFWLastSample();
+
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "LPS28DFW");
 
             mavlink_msg_pressure_tm_encode(config::Mavlink::SYSTEM_ID,
                                            config::Mavlink::COMPONENT_ID, &msg,

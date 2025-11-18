@@ -364,13 +364,14 @@ void NASController::update()
         acc1g             = false;
     }
 
-    lastGyroTimestamp     = imu.angularSpeedTimestamp;
-    lastAccTimestamp      = imu.accelerationTimestamp;
-    lastMagTimestamp      = imu.magneticFieldTimestamp;
-    lastGpsTimestamp      = gps.gpsTimestamp;
-    lastBaroTimestamp     = baro.pressureTimestamp;
-    staticPitotTimestamp  = staticPitot.pressureTimestamp;
-    dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
+    lastGyroTimestamp    = imu.angularSpeedTimestamp;
+    lastAccTimestamp     = imu.accelerationTimestamp;
+    lastMagTimestamp     = imu.magneticFieldTimestamp;
+    lastGpsTimestamp     = gps.gpsTimestamp;
+    lastBaroTimestamp    = baro.pressureTimestamp;
+    staticPitotTimestamp = staticPitot.pressureTimestamp;
+    // dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
+    dynamicPitotTimestamp = 0;
 
     auto state = nas.getState();
 

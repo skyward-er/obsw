@@ -32,8 +32,8 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
-#include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030D/ND030D.h>
+// #include <sensors/ND015X/ND015A.h>
+// #include <sensors/ND030D/ND030D.h>
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
@@ -79,15 +79,16 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLLastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
-    Boardcore::ND015XData getND015ADataLastSample();
-    Boardcore::ND030XData getND030DDataLastSample();
+    // Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
+    // Boardcore::ND015XData getND015ADataLastSample();
+    // Boardcore::ND030XData getND030DDataLastSample();
+    Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
     Boardcore::LIS2MDLData getCalibratedLIS2MDLExtLastSample();
     Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
-    Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
+    // Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
     Boardcore::IMUData getIMULastSample();
 
     StaticPressureData getStaticPressureLastSample();
@@ -104,7 +105,7 @@ protected:
     virtual bool postSensorCreationHook() { return true; }
 
     virtual void lsm6dsrx0Callback();
-    virtual void lsm6dsrx1Callback();
+    // virtual void lsm6dsrx1Callback();
 
     Boardcore::TaskScheduler& getSensorsScheduler();
 
@@ -115,10 +116,11 @@ protected:
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
+    // std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
-    std::unique_ptr<Boardcore::ND015A> nd015a;
-    std::unique_ptr<Boardcore::ND030D> nd030d;
+    //    std::unique_ptr<Boardcore::ND015A> nd015a;
+    //    std::unique_ptr<Boardcore::ND030D> nd030d;
+    std::unique_ptr<Boardcore::LPS28DFW> lps28dfw;
 
     // Virtual sensors
     std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
@@ -132,8 +134,8 @@ private:
     void h3lis331dlInit();
     void h3lis331dlCallback();
 
-    void lis2mdlExtInit();
-    void lis2mdlExtCallback();
+    // void lis2mdlExtInit();
+    // void lis2mdlExtCallback();
 
     void lis2mdlInit();
     void lis2mdlCallback();
@@ -143,16 +145,19 @@ private:
 
     void lsm6dsrx0Init();
 
-    void lsm6dsrx1Init();
+    // void lsm6dsrx1Init();
 
     void internalAdcInit();
     void internalAdcCallback();
 
-    void nd015aInit();
-    void nd015aCallback();
+    // void nd015aInit();
+    // void nd015aCallback();
 
-    void nd030dInit();
-    void nd030dCallback();
+    // void nd030dInit();
+    // void nd030dCallback();
+
+    void lps28dfwInit();
+    void lps28dfwCallback();
 
     void rotatedImuInit();
     void rotatedImuCallback();
@@ -168,9 +173,9 @@ private:
     Boardcore::TwelveParametersCorrector accCalibration0;
     Boardcore::TwelveParametersCorrector gyroCalibration0;
 
-    std::mutex lsm6Calibration1Mutex;
-    Boardcore::TwelveParametersCorrector accCalibration1;
-    Boardcore::TwelveParametersCorrector gyroCalibration1;
+    // std::mutex lsm6Calibration1Mutex;
+    // Boardcore::TwelveParametersCorrector accCalibration1;
+    // Boardcore::TwelveParametersCorrector gyroCalibration1;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
