@@ -312,6 +312,8 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
             EventBroker::getInstance().post(ADA_CALIBRATE, TOPIC_ADA);
 
+            adaReady = true;
+
             return HANDLED;
         }
         case EV_EXIT:
@@ -329,18 +331,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
         case NAS_READY:
         {
             nasReady = true;
-            if (adaReady)
-                return transition(&FlightModeManager::state_disarmed);
-            else
-                return HANDLED;
-        }
-        case ADA_READY:
-        {
-            adaReady = true;
-            if (nasReady)
-                return transition(&FlightModeManager::state_disarmed);
-            else
-                return HANDLED;
+            return transition(&FlightModeManager::state_disarmed);
         }
         default:
         {
