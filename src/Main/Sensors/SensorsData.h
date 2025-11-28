@@ -24,10 +24,8 @@
 
 #include <sensors/LIS2MDL/LIS2MDLData.h>
 #include <sensors/LSM6DSRX/LSM6DSRXData.h>
-#include <sensors/SensorData.h>
 #include <sensors/RotatedIMU/IMUData.h>
-
-
+#include <sensors/SensorData.h>
 
 #include <reflect.hpp>
 
@@ -36,8 +34,7 @@ namespace Main
 
 struct IMU0Data : public Boardcore::IMUData
 {
-    explicit IMU0Data(const Boardcore::IMUData& data)
-        : Boardcore::IMUData(data)
+    explicit IMU0Data(const Boardcore::IMUData& data) : Boardcore::IMUData(data)
     {
     }
 
@@ -45,15 +42,13 @@ struct IMU0Data : public Boardcore::IMUData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(IMU0Data,
-                          EXTEND_DEF(Boardcore::IMUData));
+        return STRUCT_DEF(IMU0Data, EXTEND_DEF(Boardcore::IMUData));
     }
 };
 
 struct IMU1Data : public Boardcore::IMUData
 {
-    explicit IMU1Data(const Boardcore::IMUData& data)
-        : Boardcore::IMUData(data)
+    explicit IMU1Data(const Boardcore::IMUData& data) : Boardcore::IMUData(data)
     {
     }
 
@@ -61,8 +56,7 @@ struct IMU1Data : public Boardcore::IMUData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(IMU1Data,
-                          EXTEND_DEF(Boardcore::IMUData));
+        return STRUCT_DEF(IMU1Data, EXTEND_DEF(Boardcore::IMUData));
     }
 };
 

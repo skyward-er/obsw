@@ -801,9 +801,15 @@ void Sensors::rotatedImu1Init()
     rotatedImu1->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
 }
 
-void Sensors::rotatedImu0Callback() { sdLogger.log(IMU0Data{getIMU0LastSample()});}
+void Sensors::rotatedImu0Callback()
+{
+    sdLogger.log(IMU0Data{getIMU0LastSample()});
+}
 
-void Sensors::rotatedImu1Callback() { sdLogger.log(IMU1Data{getIMU1LastSample()});}
+void Sensors::rotatedImu1Callback()
+{
+    sdLogger.log(IMU1Data{getIMU1LastSample()});
+}
 
 bool Sensors::sensorManagerInit()
 {

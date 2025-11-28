@@ -209,7 +209,7 @@ void ADAController::update()
             ada0.update(baro0.pressure);
             printf("baro0 executed \n");
         }
-   
+
         lastBaro0Timestamp = baro0.pressureTimestamp;
 
         if (baro1.pressureTimestamp > lastBaro1Timestamp)
@@ -343,7 +343,7 @@ void ADAController::calibrate()
     ada0.setKalmanConfig(kalmanConfig);
     ada1.setKalmanConfig(kalmanConfig);
     ada2.setKalmanConfig(kalmanConfig);
-    
+
     ada0.update(ref.refPressure);
     ada1.update(ref.refPressure);
     ada2.update(ref.refPressure);

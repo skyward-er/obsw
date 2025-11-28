@@ -42,14 +42,16 @@ namespace ZVK
 using namespace Boardcore::Constants;
 constexpr Hertz UPDATE_RATE         = 50_hz;
 constexpr float UPDATE_RATE_SECONDS = 0.02;  // [s]
-const Eigen::Vector4f onRampQuaternion(-0.648459397353161 , 0.281958170628864, 0.648459397353161, 0.281958170628864);   // scalar last
+const Eigen::Vector4f onRampQuaternion(-0.648459397353161, 0.281958170628864,
+                                       0.648459397353161,
+                                       0.281958170628864);  // scalar last
 
 static const Boardcore::ZVKConfig CONFIG = {
-    .T                     = UPDATE_RATE_SECONDS,
-    .SIGMA_ACC             = 4e-5,
-    .SIGMA_BIAS_ACC        = 1e-5,
-    .SIGMA_GYRO            = 5e-4,
-    .SIGMA_BIAS_GYRO       = 1e-5,
+    .T                  = UPDATE_RATE_SECONDS,
+    .SIGMA_ACC          = 4e-5,
+    .SIGMA_BIAS_ACC     = 1e-5,
+    .SIGMA_GYRO         = 5e-4,
+    .SIGMA_BIAS_GYRO    = 1e-5,
     .ON_RAMP_QUATERNION = onRampQuaternion};
 
 }  // namespace ZVK
