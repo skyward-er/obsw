@@ -107,6 +107,24 @@ set(PAYLOAD_COMPUTER
     src/Payload/Wing/WingAlgorithm.cpp
 )
 
+set(PARAFOIL_COMPUTER
+    src/Parafoil/Actuators/Actuators.cpp
+    src/Parafoil/FlightStatsRecorder/FlightStatsRecorder.cpp
+    src/Parafoil/PinHandler/PinHandler.cpp
+    src/Parafoil/Radio/MessageHandler.cpp
+    src/Parafoil/Radio/Radio.cpp
+    src/Parafoil/Sensors/Sensors.cpp
+    src/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
+    src/Parafoil/StateMachines/NASController/NASController.cpp
+    src/Parafoil/StateMachines/WingController/WingController.cpp
+    src/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
+    src/Parafoil/Wing/AutomaticWingAlgorithm.cpp
+    src/Parafoil/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
+    src/Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp
+    src/Parafoil/Wing/FileWingAlgorithm.cpp
+    src/Parafoil/Wing/WingAlgorithm.cpp
+    )
+
 set(GROUNDSTATION_ROVIE
     src/Groundstation/Rovie/Radio/Radio.cpp
     src/Groundstation/Rovie/Ports/Ethernet.cpp
