@@ -230,12 +230,17 @@ void Actuators::setBuzzerOff() { buzzerThreshold = 0; }
 
 void Actuators::setBuzzerLanded()
 {
-    buzzerThreshold = config::Buzzer::LANDED_PERIOD.count();
+    // buzzerThreshold = config::Buzzer::LANDED_PERIOD.count();
+    const uint32_t BUZZER_SEQUENCE[] = {1000, 1000, 1000, 1000,
+                                        1000, 1000, 1000, 1000};
+    std::memcpy(this->buzzerSequence, BUZZER_SEQUENCE, 8 * sizeof(uint32_t));
 }
 
 void Actuators::setBuzzerArmed()
 {
-    buzzerThreshold = config::Buzzer::ARMED_PERIOD.count();
+    const uint32_t BUZZER_SEQUENCE[] = {50, 50, 50, 2500, 50, 50, 50, 0};
+    std::memcpy(this->buzzerSequence, BUZZER_SEQUENCE, 8 * sizeof(uint32_t));
+    buzzerThreshold = buzzerSequence[0];
 }
 
 void Actuators::cameraOn() { gpios::camEnable::high(); }
@@ -272,7 +277,9 @@ void Actuators::updateBuzzer()
     {
         // Enable the buzzer for this period to emit a short beep
         buzzerOn();
-        buzzerCounter = 0;
+        buzzerCounter         = 0;
+        buzzerSequenceCounter = (buzzerSequenceCounter + 1) % 8;
+        buzzerThreshold       = buzzerSequence[buzzerSequenceCounter];
     }
     else
     {

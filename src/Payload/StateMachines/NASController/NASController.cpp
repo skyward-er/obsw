@@ -163,6 +163,7 @@ void NASController::Ready(const Event& event)
         case EV_ENTRY:
         {
             updateState(NASControllerState::READY);
+            transition(&NASController::Active);
             break;
         }
 
@@ -173,11 +174,6 @@ void NASController::Ready(const Event& event)
 
             // Recalculate initial state with triad via calibration
             [[fallthrough]];
-        }
-        case NAS_CALIBRATE:
-        {
-            transition(&NASController::Calibrating);
-            break;
         }
 
         case NAS_FORCE_START:
@@ -196,6 +192,12 @@ void NASController::Active(const Event& event)
         case EV_ENTRY:
         {
             updateState(NASControllerState::ACTIVE);
+            break;
+        }
+
+        case NAS_CALIBRATE:
+        {
+            transition(&NASController::Calibrating);
             break;
         }
 

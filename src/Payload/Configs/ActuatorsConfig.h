@@ -64,7 +64,7 @@ constexpr auto ERROR_PERIOD = 100ms;
 namespace Buzzer
 {
 constexpr auto UPDATE_RATE   = 10_hz;
-constexpr auto ARMED_PERIOD  = 500ms;
+constexpr auto ARMED_PERIOD  = 1000ms;
 constexpr auto LANDED_PERIOD = 1000ms;
 // PWM parameters
 constexpr auto FREQUENCY  = 500_hz;

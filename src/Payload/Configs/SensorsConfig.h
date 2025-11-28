@@ -65,7 +65,7 @@ constexpr auto AVG = Boardcore::LPS22DF::AVG_4;
 constexpr auto ODR = Boardcore::LPS22DF::ODR_100;
 
 constexpr auto RATE    = 50_hz;
-constexpr auto ENABLED = false;
+constexpr auto ENABLED = true;
 }  // namespace LPS22DF
 
 namespace H3LIS331DL

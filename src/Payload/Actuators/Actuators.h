@@ -121,6 +121,8 @@ private:
     ServoActuator rightServo;
     std::unique_ptr<Boardcore::PWM> buzzer;
 
+    uint32_t buzzerSequence[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    std::atomic<uint32_t> buzzerSequenceCounter{0};
     std::atomic<uint32_t> buzzerCounter{0};
     std::atomic<uint32_t> buzzerThreshold{0};
 

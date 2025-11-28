@@ -358,7 +358,7 @@ State FlightModeManager::OnGroundAlgorithmCalibration(const Event& event)
         case NAS_READY:
         {
             EventBroker::getInstance().post(FMM_READY, TOPIC_FMM);
-            return transition(&FlightModeManager::OnGroundDisarmed);
+            return transition(&FlightModeManager::Armed);
         }
 
         default:
@@ -555,11 +555,13 @@ State FlightModeManager::Armed(const Event& event)
             updateState(FlightModeManagerState::ARMED);
 
             getModule<Actuators>()->setBuzzerArmed();
+
             getModule<Actuators>()->cameraOn();
 
             EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
-            EventBroker::getInstance().postDelayed(FLIGHT_LAUNCH_PIN_DETACHED,
-                                                   TOPIC_FLIGHT, 500);
+
+            // EventBroker::getInstance().postDelayed(FLIGHT_LAUNCH_PIN_DETACHED,
+            //                                        TOPIC_FLIGHT, 500);
             return HANDLED;
         }
 
@@ -599,9 +601,19 @@ State FlightModeManager::Armed(const Event& event)
         case CAN_LIFTOFF:
         case FLIGHT_LAUNCH_PIN_DETACHED:
         {
-            getModule<FlightStatsRecorder>()->liftoffDetected(
-                TimestampTimer::getTimestamp());
-            return transition(&FlightModeManager::Flying);
+            // getModule<FlightStatsRecorder>()->liftoffDetected(
+            //     TimestampTimer::getTimestamp());
+            // return transition(&FlightModeManager::Flying);
+            return HANDLED;
+        }
+        case FLIGHT_NC_DETACHED:
+        {
+            return transition(&FlightModeManager::FlyingWingDescent);
+        }
+
+        case TMTC_CALIBRATE:
+        {
+            return transition(&FlightModeManager::OnGroundSensorCalibration);
         }
 
         default:
@@ -685,15 +697,16 @@ State FlightModeManager::FlyingAscending(const Event& event)
         case FLIGHT_NC_DETACHED:
         case TMTC_FORCE_EXPULSION:
         {
-            auto gps       = getModule<Sensors>()->getUBXGPSLastSample();
-            auto nasState  = getModule<NASController>()->getNasState();
-            float altitude = -nasState.d;
+            // auto gps       = getModule<Sensors>()->getUBXGPSLastSample();
+            // auto nasState  = getModule<NASController>()->getNasState();
+            // float altitude = -nasState.d;
 
-            getModule<FlightStatsRecorder>()->apogeeDetected(
-                TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                altitude);
+            // getModule<FlightStatsRecorder>()->apogeeDetected(
+            //     TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
+            //     altitude);
 
-            return transition(&FlightModeManager::FlyingDrogueDescent);
+            // return transition(&FlightModeManager::FlyingDrogueDescent);
+            return HANDLED;
         }
 
         default:
@@ -735,7 +748,8 @@ State FlightModeManager::FlyingDrogueDescent(const Event& event)
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         case TMTC_FORCE_DEPLOYMENT:
         {
-            return transition(&FlightModeManager::FlyingWingDescent);
+            return HANDLED;
+            // return transition(&FlightModeManager::FlyingWingDescent);
         }
 
         default:
