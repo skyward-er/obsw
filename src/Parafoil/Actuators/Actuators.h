@@ -95,6 +95,7 @@ public:
     void setBuzzerOff();
     void setBuzzerLanded();
     void setBuzzerArmed();
+    void setBuzzerNoseconeDetached();
 
     void setStatusOff();
     void setStatusOk();

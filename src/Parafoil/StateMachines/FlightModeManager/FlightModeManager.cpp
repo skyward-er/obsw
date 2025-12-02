@@ -453,6 +453,7 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
             updateState(FlightModeManagerState::FLYING_WING_DESCENT);
             // Send the event to the WingController
             EventBroker::getInstance().post(FLIGHT_WING_DESCENT, TOPIC_FLIGHT);
+            getModule<Actuators>()->setBuzzerNoseconeDetached();
             getModule<FlightStatsRecorder>()->dropDetected(
                 TimestampTimer::getTimestamp());
 

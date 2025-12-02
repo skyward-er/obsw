@@ -231,14 +231,20 @@ void Actuators::setBuzzerOff() { buzzerThreshold = 0; }
 void Actuators::setBuzzerLanded()
 {
     // buzzerThreshold = config::Buzzer::LANDED_PERIOD.count();
-    const uint32_t BUZZER_SEQUENCE[] = {1000, 1000, 1000, 1000,
-                                        1000, 1000, 1000, 1000};
+    const uint32_t BUZZER_SEQUENCE[] = {25, 50, 100, 1000, 25, 50, 100, 1000};
     std::memcpy(this->buzzerSequence, BUZZER_SEQUENCE, 8 * sizeof(uint32_t));
 }
 
 void Actuators::setBuzzerArmed()
 {
-    const uint32_t BUZZER_SEQUENCE[] = {50, 50, 50, 2500, 50, 50, 50, 0};
+    const uint32_t BUZZER_SEQUENCE[] = {50, 50, 50, 2500, 50, 50, 0, 0};
+    std::memcpy(this->buzzerSequence, BUZZER_SEQUENCE, 8 * sizeof(uint32_t));
+    buzzerThreshold = buzzerSequence[0];
+}
+
+void Actuators::setBuzzerNoseconeDetached()
+{
+    const uint32_t BUZZER_SEQUENCE[] = {50, 1000, 50, 1000, 50, 1000, 50, 1000};
     std::memcpy(this->buzzerSequence, BUZZER_SEQUENCE, 8 * sizeof(uint32_t));
     buzzerThreshold = buzzerSequence[0];
 }
