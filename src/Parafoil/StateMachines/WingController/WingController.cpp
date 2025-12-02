@@ -362,7 +362,7 @@ bool WingController::start()
 
             auto nasState  = getModule<NASController>()->getNasState();
             float altitude = -nasState.d;
-            emGuidance.updateActiveTarget(altitude);
+            emGuidance.updateActiveTarget(Meter{altitude});
         },
         Config::Wing::TARGET_UPDATE_RATE);
 
@@ -580,7 +580,7 @@ void WingController::loadAlgorithms()
 
         step.timestamp = microseconds{PROGRESSIVE_ROTATION_TIMEOUT}.count();
 
-        for (auto angle = 80; angle >= 0; angle -= WING_DECREMENT)
+        for (auto angle = 80; angle >= 0; angle -= WING_DECREMENT.value())
         {
             step.servo1Angle = angle;
             step.servo2Angle = 0;

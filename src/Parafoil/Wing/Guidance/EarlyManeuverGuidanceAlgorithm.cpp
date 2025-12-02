@@ -42,7 +42,7 @@ EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
 
 EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
 
-float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
+Radian EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)
 {
     switch (activeTarget)
@@ -65,14 +65,14 @@ float EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
             break;
     }
 
-    return atan2(heading[1], heading[0]);
+    return Radian{static_cast<float>(atan2(heading[1], heading[0]))};
 }
 
-void EarlyManeuversGuidanceAlgorithm::updateActiveTarget(float altitude)
+void EarlyManeuversGuidanceAlgorithm::updateActiveTarget(Meter altitude)
 {
     if (altitude <=
-        Guidance::TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head directly
-                                              // to target
+        Guidance::TARGET_ALTITUDE_THRESHOLD)  // Altitude is low, head
+                                              // directly to target
     {
         targetAltitudeConfidence++;
     }
@@ -147,7 +147,7 @@ void EarlyManeuversGuidanceAlgorithm::updateActiveTarget(float altitude)
         auto data = EarlyManeuversActiveTargetData{
             .timestamp = TimestampTimer::getTimestamp(),
             .target    = static_cast<uint32_t>(newTarget),
-            .altitude  = altitude,
+            .altitude  = altitude.value(),
         };
         Logger::getInstance().log(data);
     }

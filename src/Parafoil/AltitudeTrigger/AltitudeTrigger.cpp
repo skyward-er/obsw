@@ -35,13 +35,13 @@ namespace Parafoil
 {
 
 AltitudeTrigger::AltitudeTrigger(AltitudeTriggerConfig config)
-    : thresholdAltitude(config.threshold),
+    : thresholdAltitude(config.threshold.value()),
       confidenceThreshold(config.confidence), updateRate(config.updateRate)
 {
 }
 
 AltitudeTrigger::AltitudeTrigger()
-    : thresholdAltitude(config::DEPLOYMENT_ALTITUDE),
+    : thresholdAltitude(config::DEPLOYMENT_ALTITUDE.value()),
       confidenceThreshold(config::CONFIDENCE), updateRate(config::UPDATE_RATE)
 {
 }
@@ -74,9 +74,9 @@ void AltitudeTrigger::disable() { running = false; }
 
 bool AltitudeTrigger::isEnabled() { return running; }
 
-void AltitudeTrigger::setDeploymentAltitude(float altitude)
+void AltitudeTrigger::setDeploymentAltitude(Meter altitude)
 {
-    thresholdAltitude = altitude;
+    thresholdAltitude = altitude.value();
 }
 
 void AltitudeTrigger::update()

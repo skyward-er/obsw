@@ -22,10 +22,14 @@
 
 #pragma once
 
+#include <units/Angle.h>
+
 #include <Eigen/Core>
 
 namespace Parafoil
 {
+
+using namespace Boardcore::Units::Angle;
 
 /**
  * This class acts as an interface for a generic guidance algorithm that is used
@@ -48,7 +52,7 @@ public:
      *
      * @returns the yaw angle of the parafoil in [rad]
      */
-    virtual float calculateTargetAngle(
+    virtual Radian calculateTargetAngle(
         const Eigen::Vector3f& currentPositionNED,
         Eigen::Vector2f& heading) = 0;
 

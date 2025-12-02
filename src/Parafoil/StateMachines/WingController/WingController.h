@@ -150,8 +150,8 @@ public:
      *
      * @returns the yaw angle of the parafoil in rad
      */
-    float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
-                               Eigen::Vector2f& heading)
+    Radian calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
+                                Eigen::Vector2f& heading)
     {
         return emGuidance.calculateTargetAngle(currentPositionNED, heading);
     }

@@ -108,14 +108,15 @@ float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
 
     auto currentPosition = Aeroutils::geodetic2NED(
         {gps.latitude, gps.longitude}, {ref.refLatitude, ref.refLongitude});
-    float targetAngle = guidance.calculateTargetAngle(
+    Radian targetAngle = guidance.calculateTargetAngle(
         {currentPosition.x(), currentPosition.y(), gps.height}, heading);
 
     Vector2f relativeVelocity(gps.velocityNorth, gps.velocityEast);
 
     // Compute the angle of the current velocity
     // All angle are computed as angle from the north direction
-    float velocityAngle = atan2(relativeVelocity[1], relativeVelocity[0]);
+    Radian velocityAngle =
+        Radian{atan2(relativeVelocity[1], relativeVelocity[0])};
 
     // Compute the angle difference
     float error = angleDiff(targetAngle, velocityAngle);
@@ -132,8 +133,8 @@ float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
         miosix::Lock<FastMutex> l(mutex);
         data.targetX       = heading[0];
         data.targetY       = heading[1];
-        data.targetAngle   = targetAngle;
-        data.velocityAngle = velocityAngle;
+        data.targetAngle   = targetAngle.value();
+        data.velocityAngle = velocityAngle.value();
         data.error         = error;
         data.pidOutput     = result;
     }
@@ -141,9 +142,9 @@ float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
     return result;
 }
 
-float AutomaticWingAlgorithm::angleDiff(float a, float b)
+float AutomaticWingAlgorithm::angleDiff(Radian a, Radian b)
 {
-    float diff = a - b;
+    float diff = (a - b).value();
 
     // Angle difference
     if (diff < -Constants::PI || Constants::PI < diff)

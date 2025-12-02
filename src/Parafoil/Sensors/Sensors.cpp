@@ -55,21 +55,12 @@ bool Sensors::start()
     gyroCalibration0.fromFile(
         Config::Sensors::LSM6DSRX_0::GYRO_CALIBRATION_FILENAME);
 
-    // accCalibration1.fromFile(
-    //     Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
-    // gyroCalibration1.fromFile(
-    //     Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
-
     if (Config::Sensors::LPS22DF::ENABLED &&
         !Config::Sensors::USING_DUAL_MAGNETOMETER)
         lps22dfInit();
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
         h3lis331dlInit();
-
-    // if (Config::Sensors::LIS2MDL::ENABLED &&
-    //     Config::Sensors::USING_DUAL_MAGNETOMETER)
-    //     lis2mdlExtInit();
 
     if (Config::Sensors::LIS2MDL::ENABLED)
         lis2mdlInit();
@@ -79,16 +70,6 @@ bool Sensors::start()
 
     if (Config::Sensors::LSM6DSRX_0::ENABLED)
         lsm6dsrx0Init();
-
-    // Not present in test sensor board, WE HAVE ONLY ONE LSM6DSRX
-    //    if (Config::Sensors::LSM6DSRX_1::ENABLED)
-    //        lsm6dsrx1Init();
-
-    //    if (Config::Sensors::ND015A::ENABLED)
-    //        nd015aInit();
-
-    //    if (Config::Sensors::ND030D::ENABLED)
-    //        nd030dInit();
 
     if (Config::Sensors::LPS28DFW::ENABLED)
         lps28dfwInit();
@@ -135,74 +116,40 @@ bool Sensors::start()
     return true;
 }
 
-void Sensors::calibrate()
-{
-    // float dynPressureAccum = 0.0f;
-
-    // for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
-    // {
-    //     auto dynPressure = getDynamicPressureLastSample();
-
-    //     dynPressureAccum += dynPressure.pressure;
-
-    //     Thread::sleep(
-    //         milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
-    // }
-
-    // float dynPressureOffset =
-    //     dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
-
-    // nd030d->updateOffset(dynPressureOffset);
-
-    // Log the current calibration
-    sdLogger.log(getCalibration());
-}
+void Sensors::calibrate() { sdLogger.log(getCalibration()); }
 
 Main::CalibrationData Sensors::getCalibration()
 {
-    // std::lock(magCalibrationMutex, lsm6Calibration0Mutex,
-    //           lsm6Calibration1Mutex);
     std::lock(magCalibrationMutex, lsm6Calibration0Mutex);
 
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
-    // std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex,
-    // std::adopt_lock);
 
     auto accBias0  = accCalibration0.getV();
     auto gyroBias0 = gyroCalibration0.getV();
-    // auto accBias1  = accCalibration1.getV();
-    // auto gyroBias1 = gyroCalibration1.getV();
-    auto magBias  = magCalibration.getb();
-    auto magScale = magCalibration.getA();
+    auto magBias   = magCalibration.getb();
+    auto magScale  = magCalibration.getA();
 
     return {
-        .timestamp  = TimestampTimer::getTimestamp(),
-        .acc0BiasX  = accBias0.x(),
-        .acc0BiasY  = accBias0.y(),
-        .acc0BiasZ  = accBias0.z(),
-        .gyro0BiasX = gyroBias0.x(),
-        .gyro0BiasY = gyroBias0.y(),
-        .gyro0BiasZ = gyroBias0.z(),
-        //.acc1BiasX        = accBias1.x(),
-        //.acc1BiasY        = accBias1.y(),
-        //.acc1BiasZ        = accBias1.z(),
-        //.gyro1BiasX       = gyroBias1.x(),
-        //.gyro1BiasY       = gyroBias1.y(),
-        //.gyro1BiasZ       = gyroBias1.z(),
-        .acc1BiasX  = 0,
-        .acc1BiasY  = 0,
-        .acc1BiasZ  = 0,
-        .gyro1BiasX = 0,
-        .gyro1BiasY = 0,
-        .gyro1BiasZ = 0,
-        .magBiasX   = magBias.x(),
-        .magBiasY   = magBias.y(),
-        .magBiasZ   = magBias.z(),
-        .magScaleX  = magScale.x(),
-        .magScaleY  = magScale.y(),
-        .magScaleZ  = magScale.z(),
-        //.pitotDynamicBias = nd030d->getOffset(),
+        .timestamp        = TimestampTimer::getTimestamp(),
+        .acc0BiasX        = accBias0.x(),
+        .acc0BiasY        = accBias0.y(),
+        .acc0BiasZ        = accBias0.z(),
+        .gyro0BiasX       = gyroBias0.x(),
+        .gyro0BiasY       = gyroBias0.y(),
+        .gyro0BiasZ       = gyroBias0.z(),
+        .acc1BiasX        = 0,
+        .acc1BiasY        = 0,
+        .acc1BiasZ        = 0,
+        .gyro1BiasX       = 0,
+        .gyro1BiasY       = 0,
+        .gyro1BiasZ       = 0,
+        .magBiasX         = magBias.x(),
+        .magBiasY         = magBias.y(),
+        .magBiasZ         = magBias.z(),
+        .magScaleX        = magScale.x(),
+        .magScaleY        = magScale.y(),
+        .magScaleZ        = magScale.z(),
         .pitotDynamicBias = 0,
     };
 }
@@ -277,21 +224,6 @@ LSM6DSRXData Sensors::getLSM6DSRX0LastSample()
     return lsm6dsrx_0 ? lsm6dsrx_0->getLastSample() : LSM6DSRXData{};
 }
 
-// LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
-// {
-//     return lsm6dsrx_1 ? lsm6dsrx_1->getLastSample() : LSM6DSRXData{};
-// }
-
-// ND015XData Sensors::getND015ADataLastSample()
-//{
-//     return nd015a ? nd015a->getLastSample() : ND015XData{};
-// }
-
-// ND030XData Sensors::getND030DDataLastSample()
-//{
-//     return nd030d ? nd030d->getLastSample() : ND030XData{};
-// }
-
 LPS28DFWData Sensors::getLPS28DFWLastSample()
 {
     return lps28dfw ? lps28dfw->getLastSample() : LPS28DFWData{};
@@ -321,29 +253,13 @@ VoltageData Sensors::getCamBatteryVoltageLastSample()
 
 StaticPressureData Sensors::getStaticPressureLastSample()
 {
-    // return StaticPressureData{getND015ADataLastSample()};
     return StaticPressureData{getLPS28DFWLastSample()};
 }
 
 DynamicPressureData Sensors::getDynamicPressureLastSample()
 {
     return DynamicPressureData{PressureData{0}};
-    // return DynamicPressureData{getND030DDataLastSample()};
 }
-
-// LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
-// {
-//     auto sample = getLIS2MDLExtLastSample();
-//     std::lock_guard<std::mutex> lock{magCalibrationMutex};
-
-//     auto corrected =
-//         magCalibration.correct(static_cast<MagnetometerData>(sample));
-//     sample.magneticFieldX = corrected.x();
-//     sample.magneticFieldY = corrected.y();
-//     sample.magneticFieldZ = corrected.z();
-
-//     return sample;
-// }
 
 LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 {
@@ -379,27 +295,6 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
     return sample;
 }
 
-/* LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
-{
-    auto sample = getLSM6DSRX1LastSample();
-    std::lock_guard<std::mutex> lock{lsm6Calibration1Mutex};
-
-    auto correctedAcc =
-        accCalibration1.correct(static_cast<AccelerometerData>(sample));
-    sample.accelerationX = correctedAcc.x();
-    sample.accelerationY = correctedAcc.y();
-    sample.accelerationZ = correctedAcc.z();
-
-    auto correctedGyro =
-        gyroCalibration1.correct(static_cast<GyroscopeData>(sample));
-    sample.angularSpeedX = correctedGyro.x();
-    sample.angularSpeedY = correctedGyro.y();
-    sample.angularSpeedZ = correctedGyro.z();
-
-    return sample;
-}
-*/
-
 IMUData Sensors::getIMULastSample()
 {
     return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
@@ -427,12 +322,9 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
         PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
-        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
-        // PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
+        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(lps28dfw, "LPS28DFW");
-        // PUSH_SENSOR_INFO(nd015a, "ND015A");
-        // PUSH_SENSOR_INFO(nd030d, "ND030D");
         PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
 
         return infos;
@@ -486,26 +378,6 @@ void Sensors::h3lis331dlCallback()
     getModule<FlightStatsRecorder>()->updateAcc(sample);
     sdLogger.log(sample);
 }
-
-// void Sensors::lis2mdlExtInit()
-//{
-//     SPIBusConfig spiConfig = LIS2MDL::getDefaultSPIConfig();
-//     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
-//
-//     LIS2MDL::Config config;
-//     config.deviceMode         = LIS2MDL::MD_CONTINUOUS;
-//     config.odr                = Config::Sensors::LIS2MDL::ODR;
-//     config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
-//
-//     lis2mdl_ext = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
-//                                             sensors::LIS2MDL_EXT::cs::getPin(),
-//                                             spiConfig, config);
-// }
-
-// void Sensors::lis2mdlExtCallback()
-//{
-//     sdLogger.log(LIS2MDLExternalData{getLIS2MDLExtLastSample()});
-// }
 
 void Sensors::lis2mdlInit()
 {

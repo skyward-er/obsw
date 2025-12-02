@@ -85,7 +85,7 @@ protected:
      *
      * @returns angle(a) - angle(b)
      */
-    float angleDiff(float a, float b);
+    float angleDiff(Radian a, Radian b);
 
     // Logging structure
     WingAlgorithmData data;

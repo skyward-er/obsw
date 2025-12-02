@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Parafoil/Configs/WingConfig.h>
+#include <units/Length.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <atomic>
@@ -33,6 +34,7 @@ namespace Parafoil
 {
 class BoardScheduler;
 class NASController;
+using namespace Boardcore::Units::Length;
 
 class AltitudeTrigger
     : public Boardcore::InjectableWithDeps<BoardScheduler, NASController>
@@ -52,7 +54,7 @@ public:
     /**
      * @return Set the deployment altitude.
      */
-    void setDeploymentAltitude(float altitude);
+    void setDeploymentAltitude(Meter altitude);
 
 private:
     /**
@@ -64,7 +66,7 @@ private:
     std::atomic<bool> started{false};
     std::atomic<bool> running{false};
 
-    std::atomic<float> thresholdAltitude{0};
+    std::atomic<float> thresholdAltitude{0};  // [m]
     int confidenceThreshold = 0;
     Boardcore::Units::Frequency::Hertz updateRate{0};
 

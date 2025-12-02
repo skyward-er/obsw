@@ -23,16 +23,17 @@
 #pragma once
 
 #include <units/Frequency.h>
+#include <units/Length.h>
 
 namespace Parafoil
 {
-
+using namespace Boardcore::Units::Frequency;
+using namespace Boardcore::Units::Length;
 struct AltitudeTriggerConfig
 {
-    float threshold;  ///< [m] Altitude threshold
-    int confidence;   ///< Number of samples to reach the threshold
-    Boardcore::Units::Frequency::Hertz
-        updateRate;  ///< [Hz] Update rate of the trigger
+    Meter threshold;   ///< [m] Altitude threshold
+    int confidence;    ///< Number of samples to reach the threshold
+    Hertz updateRate;  ///< [Hz] Update rate of the trigger
 };
 
 }  // namespace Parafoil

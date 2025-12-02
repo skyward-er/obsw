@@ -22,7 +22,9 @@
 
 #pragma once
 
+#include <units/Angle.h>
 #include <units/Frequency.h>
+#include <units/Length.h>
 #include <utils/Constants.h>
 
 #include <array>
@@ -37,13 +39,14 @@ namespace Wing
 
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Angle;
 
 constexpr auto UPDATE_RATE                  = 1_hz;
 constexpr auto TARGET_UPDATE_RATE           = 10_hz;
 constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15s;
 constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5s;
 constexpr auto COMMAND_PERIOD               = 6s;
-constexpr auto WING_DECREMENT               = 20.0f;  // [deg]
+constexpr auto WING_DECREMENT               = 20_deg;
 
 /**
  * @brief The available algorithms for the wing controller.
@@ -124,10 +127,12 @@ constexpr auto KI = 0.05f;
 
 namespace Guidance
 {
-constexpr auto CONFIDENCE                = 15;   // [samples]
-constexpr auto M1_ALTITUDE_THRESHOLD     = 250;  // [m]
-constexpr auto M2_ALTITUDE_THRESHOLD     = 150;  // [m]
-constexpr auto TARGET_ALTITUDE_THRESHOLD = 50;   // [m]
+/* linter off */ using namespace Boardcore::Units::Length;
+
+constexpr auto CONFIDENCE                 = 15;     // [samples]
+constexpr Meter M1_ALTITUDE_THRESHOLD     = 250_m;  // [m]
+constexpr Meter M2_ALTITUDE_THRESHOLD     = 150_m;  // [m]
+constexpr Meter TARGET_ALTITUDE_THRESHOLD = 50_m;   // [m]
 }  // namespace Guidance
 
 // Early Maneuver Guidance EMC point generation parameters
@@ -157,14 +162,16 @@ constexpr std::array<Pump, 3> PUMPS = {
 namespace LandingFlare
 {
 
+/* linter off */ using namespace Boardcore::Units::Length;
+
 #ifdef DISABLE_LANDING_FLARE
 constexpr auto ENABLED = false;
 #else
 constexpr auto ENABLED = true;
 #endif
 
-constexpr float ALTITUDE   = 15;  // [m]
-constexpr int CONFIDENCE   = 10;  // [samples]
+constexpr Meter ALTITUDE   = 15_m;  // [m]
+constexpr int CONFIDENCE   = 10;    // [samples]
 constexpr auto UPDATE_RATE = 10_hz;
 constexpr auto DURATION    = 5s;
 
@@ -178,10 +185,11 @@ namespace AltitudeTrigger
 {
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Length;
 
-constexpr auto DEPLOYMENT_ALTITUDE = 450;  // [meters]
-constexpr auto CONFIDENCE          = 10;   // [samples]
-constexpr auto UPDATE_RATE         = 10_hz;
+constexpr Meter DEPLOYMENT_ALTITUDE = 450_m;  // [meters]
+constexpr auto CONFIDENCE           = 10;     // [samples]
+constexpr auto UPDATE_RATE          = 10_hz;
 
 }  // namespace AltitudeTrigger
 

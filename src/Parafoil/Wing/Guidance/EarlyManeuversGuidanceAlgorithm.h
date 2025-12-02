@@ -22,13 +22,15 @@
 
 #pragma once
 
+#include <units/Length.h>
+
 #include <Eigen/Core>
 
 #include "GuidanceAlgorithm.h"
 
 namespace Parafoil
 {
-
+using namespace Boardcore::Units::Length;
 struct EarlyManeuversPoints
 {
     float targetN;
@@ -78,8 +80,8 @@ public:
      *
      * @returns the yaw angle of the parafoil in rad
      */
-    float calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
-                               Eigen::Vector2f& heading) override;
+    Radian calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
+                                Eigen::Vector2f& heading) override;
 
     /**
      * @brief Set Early Maneuvers points
@@ -105,7 +107,7 @@ public:
     /**
      * @brief Updates the active target based on the current altitude.
      */
-    void updateActiveTarget(float altitude);
+    void updateActiveTarget(Meter altitude);
 
 private:
     // Point we are currently poinying to
