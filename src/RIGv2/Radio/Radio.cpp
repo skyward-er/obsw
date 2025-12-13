@@ -661,11 +661,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.prz_vessel_2_pressure =
                 sensors->getPrzVessel2Pressure().pressure;
 
-            tm.main_fuel_valve_position =
-                static_cast<uint8_t>(sensors->getFuelValvePosition().position);
-            tm.main_ox_valve_position =
-                static_cast<uint8_t>(sensors->getOxValvePosition().position);
-
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.current_consumption = sensors->getServoCurrent().current;
             tm.umbilical_current_consumption =
@@ -692,8 +687,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 actuators->isServoOpen(ServosList::OX_RELEASE_VALVE);
             tm.ox_detach_state =
                 actuators->isServoOpen(ServosList::OX_DETACH_SERVO);
-            tm.ox_venting_valve_state =
-                actuators->isServoOpen(ServosList::OX_VENTING_VALVE);
             tm.prz_filling_valve_state =
                 actuators->isServoOpen(ServosList::PRZ_FILLING_VALVE);
             tm.prz_release_valve_state =
@@ -701,19 +694,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.prz_detach_state =
                 actuators->isServoOpen(ServosList::PRZ_DETACH_SERVO);
             tm.prz_3way_valve_state = actuators->get3wayValveState();
-            tm.prz_ox_valve_state =
-                actuators->isServoOpen(ServosList::PRZ_OX_VALVE);
-            tm.prz_fuel_valve_state =
-                actuators->isServoOpen(ServosList::PRZ_FUEL_VALVE);
-            tm.chamber_valve_state = actuators->isChamberOpen();
 
             // Internal states
-            tm.gmm_state   = getModule<GroundModeManager>()->getState();
-            tm.tars1_state = (uint8_t)getModule<TARS1>()->getLastAction();
-            tm.tars3_state = (uint8_t)getModule<TARS3>()->getLastAction();
-            tm.biliquid_hsm_state = (uint8_t)getModule<Biliquid>()->getState();
-            tm.biliquid_sequence =
-                (uint8_t)getModule<Biliquid>()->getCurrentSequence();
+            tm.gmm_state    = getModule<GroundModeManager>()->getState();
+            tm.tars1_state  = (uint8_t)getModule<TARS1>()->getLastAction();
+            tm.tars3_state  = (uint8_t)getModule<TARS3>()->getLastAction();
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
                               GroundModeManagerState::ARMED;
 
@@ -766,6 +751,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     ServosList::MAIN_FUEL_VALVE);
                 tm.main_ox_valve_state = getModule<Actuators>()->isServoOpen(
                     ServosList::MAIN_OX_VALVE);
+
+                tm.main_fuel_valve_position = static_cast<uint8_t>(
+                    sensors->getFuelValvePosition().position);
+                tm.main_ox_valve_position = static_cast<uint8_t>(
+                    sensors->getOxValvePosition().position);
+
+                tm.biliquid_hsm_state =
+                    (uint8_t)getModule<Biliquid>()->getState();
+                tm.biliquid_sequence =
+                    (uint8_t)getModule<Biliquid>()->getCurrentSequence();
             }
 
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID,
@@ -1062,18 +1057,20 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The OX release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::PRZ_OX_VALVE);
+            // getModule<Actuators>()->toggleServo(ServosList::PRZ_OX_VALVE);
+            EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::PRZ_OX_VALVE);
+            // enqueueValveInfoTm(ServosList::PRZ_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_detach_btn))  // fully open/close PRZ-FUEL
         {
             // The OX detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::PRZ_FUEL_VALVE);
+            // getModule<Actuators>()->toggleServo(ServosList::PRZ_FUEL_VALVE);
+            EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
+            // enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_venting_btn))  // fully open/close VENT-OX
@@ -1098,6 +1095,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The N2 release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
             getModule<Actuators>()->toggleServo(ServosList::MAIN_OX_VALVE);
             lastManualActuation = currentTime;
             enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
@@ -1107,6 +1105,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The N2 detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_FUEL);
             getModule<Actuators>()->toggleServo(ServosList::MAIN_FUEL_VALVE);
             lastManualActuation = currentTime;
             enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
@@ -1148,10 +1147,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(nitrogen_btn))
         {
             // The nitrogen switch was pressed
-            // getModule<Sensors>()->calibrateEncoders();
-            /* getModule<Actuators>()->toggleServo(ServosList::NITROGEN_VALVE);
-            lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::NITROGEN_VALVE); */
+            /*  EventBroker::getInstance().post(MOTOR_MANUAL_ACTION,
+             TOPIC_TARS); EventBroker::getInstance().post(EREG_START_REGULATING,
+             TOPIC_EREG); lastManualActuation = currentTime; */
         }
 
         if (SWITCH_CHANGED(n2_3way_switch))  // switch used for sequence 3

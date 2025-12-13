@@ -28,6 +28,11 @@
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/BiliquidHSM/Biliquid.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerFUEL.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerOX.h>
+#include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <RIGv2/StateMachines/TARS1/TARS1.h>
+#include <RIGv2/StateMachines/TARS3/TARS3.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -61,6 +66,8 @@ int main()
     auto gmm         = new GroundModeManager();
     auto tars1       = new TARS1();
     auto tars3       = new TARS3();
+    auto eRegOX      = new ERegControllerOX();
+    auto eRegFUEL    = new ERegControllerFUEL();
 
     auto biliquid = new Biliquid();
 
@@ -88,6 +95,8 @@ int main()
         manager.insert<Registry>(registry) &&
         manager.insert<GroundModeManager>(gmm) &&
         manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
+        manager.insert<ERegControllerOX>(eRegOX) &&
+        manager.insert<ERegControllerFUEL>(eRegFUEL) &&
         manager.insert<MotorStatus>(motorStatus) &&
         manager.insert<Biliquid>(biliquid) && manager.inject();
 
@@ -192,23 +201,27 @@ int main()
         std::cerr << "*** Failed to start GMM ***" << std::endl;
     }
 
-    std::cout << "Starting TARS 3" << std::endl;
-    if (!tars3->start())
+    /*     std::cout << "Starting TARS 3" << std::endl;
+        if (!tars3->start())
+        {
+            initResult = false;
+            std::cerr << "*** Failed to start TARS 3 ***" << std::endl;
+        } */
+
+    std::cout << "Starting eRegController" << std::endl;
+    if (!eRegOX->start())
     {
         initResult = false;
-        std::cerr << "*** Failed to start TARS 3 ***" << std::endl;
+        std::cerr << "*** Failed to start ERegController for oxidant ***"
+                  << std::endl;
     }
 
-    if (initResult)
+    std::cout << "Starting eRegController" << std::endl;
+    if (!eRegFUEL->start())
     {
-        broker.post(FMM_INIT_OK, TOPIC_MOTOR);
-        std::cout << "All good!" << std::endl;
-        led4On();
-    }
-    else
-    {
-        broker.post(FMM_INIT_ERROR, TOPIC_MOTOR);
-        std::cerr << "*** Init failure ***" << std::endl;
+        initResult = false;
+        std::cerr << "*** Failed to start ERegController for fuel***"
+                  << std::endl;
     }
 
     std::cout << "Starting Biliquid HSM" << std::endl;

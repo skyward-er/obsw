@@ -198,6 +198,10 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_ENTRY:
         {
+            // Change the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+
             // start stepping
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_STEP, TOPIC_BILIQUID,
@@ -247,6 +251,10 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_EXIT:
         {
+            // Change back the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+
             getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
             getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
 
@@ -277,6 +285,9 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
 
         case EV_ENTRY:
         {
+            // change the state of the FUEL ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_FUEL);
+
             // open FUEL valve
             getModule<Actuators>()->moveServo(
                 ServosList::MAIN_FUEL_VALVE,
@@ -329,6 +340,9 @@ State Biliquid::state_seq_2_OX(const Event& event)
 
         case EV_ENTRY:
         {
+            // change the state of the OX ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+
             // open OX valve
             getModule<Actuators>()->moveServo(
                 ServosList::MAIN_OX_VALVE, Config::Biliquid::SEQ_2_OX_POSITION);
@@ -382,6 +396,13 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_ENTRY:
         {
+            // change the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_FUEL);
+
+            // TODO: make a new state and post delayed event to ensure that the
+            // ereg has time to change state
+
             // fully open OX and fuel valves for SEQ_3_SHUTDOWN_DELAY ms
             getModule<Actuators>()->openServoWithTime(
                 ServosList::MAIN_OX_VALVE,
@@ -406,6 +427,10 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_EXIT:
         {
+            // Change back the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+
             getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
             getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
             return HANDLED;

@@ -56,6 +56,8 @@ public:
     Boardcore::TaskScheduler& tars1() { return high; }
     Boardcore::TaskScheduler& tars3() { return high; }
     Boardcore::TaskScheduler& sensors() { return high; }
+    Boardcore::TaskScheduler& eRegOx() { return high; }
+    Boardcore::TaskScheduler& eRegFuel() { return high; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
 
     static Priority::PriorityLevel actuatorsPriority()
@@ -81,6 +83,11 @@ public:
     static Priority::PriorityLevel biliquidPriority()
     {
         return Priority::CRITICAL;  // Biliquid FSM priority
+    }
+
+    static Priority::PriorityLevel eRegControllerPriority()
+    {
+        return Priority::CRITICAL;  // eReg controller FSM priority
     }
 
     static Priority::PriorityLevel canHandlerPriority()

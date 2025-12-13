@@ -1,0 +1,78 @@
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Pietro Bortolus
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#pragma once
+
+#include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/BoardScheduler.h>
+#include <RIGv2/Configs/ERegConfig.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerData.h>
+#include <algorithms/EReg/EReg.h>
+#include <common/MedianFilter.h>
+#include <events/FSM.h>
+#include <utils/DependencyManager/DependencyManager.h>
+
+namespace RIGv2
+{
+
+class ERegControllerOX
+    : public Boardcore::FSM<ERegControllerOX>,
+      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors>
+{
+public:
+    ERegControllerOX();
+
+    [[nodiscard]] bool start() override;
+
+    ERegState getState();
+
+    void changePIDConfig(Boardcore::ERegPIDConfig newPressurizationConfig,
+                         Boardcore::ERegPIDConfig newDischargeConfig);
+
+    void changeTargetPressure(float newTargetPressure);
+
+private:
+    void update();
+
+    // FSM states
+    void state_init(const Boardcore::Event& event);
+    void state_closed(const Boardcore::Event& event);
+    void state_pressurizing(const Boardcore::Event& event);
+    void state_discharging(const Boardcore::Event& event);
+    void state_ended(const Boardcore::Event& event);
+
+    void updateAndLogStatus(ERegState state);
+
+    std::atomic<ERegState> state{ERegState::INIT};
+
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ereg");
+
+    Boardcore::EReg regulator;
+    MedianFilter<float, Config::ERegOX::MEDIAN_SAMPLE_NUMBER> pressureFilter;
+
+    Boardcore::ERegPIDConfig pressurizationConfig;
+    Boardcore::ERegPIDConfig dischargeConfig;
+    float targetPressure;
+};
+
+}  // namespace RIGv2
