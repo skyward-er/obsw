@@ -148,11 +148,6 @@ public:
     void set3wayValveState(bool state);
     bool get3wayValveState();
 
-    // Chamber valve control
-    void openChamberWithTime(uint32_t time);
-    void closeChamber();
-    bool isChamberOpen();
-
     void armLightOn();
     void armLightOff();
 
@@ -168,8 +163,6 @@ private:
     ServoInfo* getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
-    void unsafeOpenChamber();
-    void unsafeCloseChamber();
 
     TimePoint nextTaskDeadline() override;
     void task() override;
@@ -183,9 +176,6 @@ private:
     ServoInfo prz_3wayValveInfo;
     std::atomic<bool> prz_3wayValveState{false};
     std::atomic<bool> prz_3wayValveStateChanged{true};
-
-    // Time when the chamber valve should close, 0 if currently closed
-    TimePoint chamberCloseTs = ValveClosed;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");

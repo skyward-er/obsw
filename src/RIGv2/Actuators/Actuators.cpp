@@ -297,7 +297,6 @@ Actuators::Actuators()
         servo.unsafeSetServoPosition(0.0f);
 
     prz_3wayValveInfo.unsafeSetServoPosition(0.0f);
-    unsafeCloseChamber();
 }
 
 bool Actuators::isStarted() { return started; }
@@ -466,7 +465,6 @@ void Actuators::closeAllServos()
     for (uint8_t idx = 0; idx < 10; idx++)
         infos[idx].closeServo();
 
-    // TODO: figure out which valves need a can message to be closed
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_FUEL_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_OX_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(
@@ -564,26 +562,6 @@ void Actuators::set3wayValveState(bool state)
 
 bool Actuators::get3wayValveState() { return prz_3wayValveState; }
 
-void Actuators::openChamberWithTime(uint32_t time)
-{
-    Lock<FastMutex> lock(infosMutex);
-    chamberCloseTs = Clock::now() + nanoseconds{msToNs(time)};
-    signalTask();
-}
-
-void Actuators::closeChamber()
-{
-    Lock<FastMutex> lock(infosMutex);
-    chamberCloseTs = ValveClosed;
-    signalTask();
-}
-
-bool Actuators::isChamberOpen()
-{
-    Lock<FastMutex> lock(infosMutex);
-    return chamberCloseTs != ValveClosed;
-}
-
 uint32_t Actuators::getServoOpeningTime(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
@@ -659,10 +637,6 @@ void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
     sdLogger.log(data);
 }
 
-void Actuators::unsafeOpenChamber() { relays::nitrogen::low(); }
-
-void Actuators::unsafeCloseChamber() { relays::nitrogen::high(); }
-
 SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
 {
     Lock<FastMutex> lock(infosMutex);
@@ -686,9 +660,6 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     // 3-way valve is not a timed valve, only needs backstep handling
     if (prz_3wayValveInfo.backstepTs != ValveClosed)
         nextDeadline = std::min(nextDeadline, prz_3wayValveInfo.backstepTs);
-
-    if (chamberCloseTs != ValveClosed)
-        nextDeadline = std::min(nextDeadline, chamberCloseTs);
 
     return nextDeadline;
 }
