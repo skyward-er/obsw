@@ -207,16 +207,6 @@ State GroundModeManager::state_disarmed(const Event& event)
             return HANDLED;
         }
 
-        case TMTC_OPEN_CHAMBER:
-        {
-            uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
-                CONFIG_ID_CHAMBER_TIME,
-                Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
-
-            getModule<Actuators>()->openChamberWithTime(chamberTime);
-            return HANDLED;
-        }
-
         case TMTC_ARM:
         {
             // Notify Biliquid state machine to get ready
@@ -272,7 +262,6 @@ State GroundModeManager::state_armed(const Event& event)
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::ARM);
 
             getModule<Actuators>()->closeAllServos();
-            getModule<Actuators>()->closeChamber();
             EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
 
             // Power on the arm light last to indicate that the system is armed
@@ -345,7 +334,6 @@ State GroundModeManager::state_firing(const Event& event)
             // Stop ignition and close all servos
             getModule<Actuators>()->igniterOff();
             getModule<Actuators>()->closeAllServos();
-            getModule<Actuators>()->closeChamber();
 
             // Disable all events
             EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
@@ -366,7 +354,7 @@ State GroundModeManager::state_firing(const Event& event)
         case TMTC_OPEN_CHAMBER:
         case MOTOR_OPEN_CHAMBER:
         {
-            // Open chamber
+            /* // Open chamber
             uint32_t chamberTime = getModule<Registry>()->getOrSetDefaultUnsafe(
                 CONFIG_ID_CHAMBER_TIME,
                 Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_TIME);
@@ -381,7 +369,8 @@ State GroundModeManager::state_firing(const Event& event)
             else
             {
                 return HANDLED;
-            }
+            } */
+            return HANDLED;
         }
 
         case MOTOR_COOLING_TIMEOUT:  // Normal firing end
