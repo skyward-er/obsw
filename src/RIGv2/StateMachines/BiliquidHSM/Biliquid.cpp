@@ -198,40 +198,17 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_ENTRY:
         {
-            // start stepping
+            getModule<Actuators>()->openOxSolenoidWithTime(2700);
             nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_STEP, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::DT}.count());
+                BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{100ms}.count());
             return HANDLED;
         }
 
         case BILIQUID_STEP:
         {
-            if (stepCount < Config::Biliquid::maxStepCount)
-            {  // move the valve to the next step
-                getModule<Actuators>()->moveServo(
-                    ServosList::MAIN_OX_VALVE,
-                    Config::Biliquid::PositionsOX[stepCount]);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::MAIN_FUEL_VALVE,
-                    Config::Biliquid::PositionsFUEL[stepCount]);
-
-                // update the number of steps taken before stepping again
-                stepCount++;
-
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_STEP, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::DT}.count());
-
-                return HANDLED;
-            }
-            else
-            {
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_END_SEQUENCE_1, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::DT}.count());
-            }
+            getModule<Actuators>()->openFuelSolenoidWithTime(2200);
+            getModule<Actuators>()->startSparkPlugWithTime(500);
+            return HANDLED;
         }
 
         case BILIQUID_END_SEQUENCE_1:
@@ -247,9 +224,9 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
-            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
-
+            getModule<Actuators>()->closeOxSolenoid();
+            getModule<Actuators>()->closeFuelSolenoid();
+            getModule<Actuators>()->stopSparkPlug();
             return HANDLED;
         }
 
@@ -277,21 +254,18 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
 
         case EV_ENTRY:
         {
-            // open FUEL valve
-            getModule<Actuators>()->moveServo(
-                ServosList::MAIN_FUEL_VALVE,
-                Config::Biliquid::SEQ_2_FUEL_POSITION);
+            getModule<Actuators>()->openOxSolenoidWithTime(2700);
+            getModule<Actuators>()->openFuelSolenoidWithTime(2300);
 
-            // wait for before opening OX valve
             nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_SEQ_2_OX, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::SEQ_2_OX_DELAY}.count());
+                BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{100ms}.count());
             return HANDLED;
         }
 
-        case BILIQUID_SEQ_2_OX:
+        case BILIQUID_STEP:
         {
-            return transition(&Biliquid::state_seq_2_OX);
+            getModule<Actuators>()->startSparkPlugWithTime(500);
+            return HANDLED;
         }
 
         case BILIQUID_ABORT:
@@ -306,60 +280,9 @@ State Biliquid::state_seq_2_FUEL(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
-            return HANDLED;
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State Biliquid::state_seq_2_OX(const Event& event)
-{
-    switch (event)
-    {
-        case EV_INIT:
-        {
-            updateAndLogStatus(BiliquidState::SEQUENCE_2_OX);
-            return HANDLED;
-        }
-
-        case EV_ENTRY:
-        {
-            // open OX valve
-            getModule<Actuators>()->moveServo(
-                ServosList::MAIN_OX_VALVE, Config::Biliquid::SEQ_2_OX_POSITION);
-
-            // wait for SEQ_2_SHUTDOWN_DELAY ms before closing all valves
-            nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_END_SEQUENCE_2, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::SEQ_2_SHUTDOWN_DELAY}.count());
-
-            return HANDLED;
-        }
-
-        case BILIQUID_END_SEQUENCE_2:
-        {
-            return transition(&Biliquid::state_idle);
-        }
-
-        case BILIQUID_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&Biliquid::state_idle);
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&Biliquid::state_ready);
-        }
-
-        case EV_EXIT:
-        {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeOxSolenoid();
+            getModule<Actuators>()->closeFuelSolenoid();
+            getModule<Actuators>()->stopSparkPlug();
             return HANDLED;
         }
 
@@ -382,15 +305,17 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_ENTRY:
         {
-            // fully open OX and fuel valves for SEQ_3_SHUTDOWN_DELAY ms
-            getModule<Actuators>()->openServoWithTime(
-                ServosList::MAIN_OX_VALVE,
-                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
+            // start stepping
+            getModule<Actuators>()->openFuelSolenoidWithTime(2300);
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{100ms}.count());
+            return HANDLED;
+        }
 
-            getModule<Actuators>()->openServoWithTime(
-                ServosList::MAIN_FUEL_VALVE,
-                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
-
+        case BILIQUID_STEP:
+        {
+            getModule<Actuators>()->openOxSolenoidWithTime(2600);
+            getModule<Actuators>()->startSparkPlugWithTime(500);
             return HANDLED;
         }
 
@@ -406,8 +331,9 @@ State Biliquid::state_seq_3(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
-            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
+            getModule<Actuators>()->closeOxSolenoid();
+            getModule<Actuators>()->closeFuelSolenoid();
+            getModule<Actuators>()->stopSparkPlug();
             return HANDLED;
         }
 

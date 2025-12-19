@@ -69,11 +69,11 @@ using Channel = Boardcore::ADS131M08Defs::Channel;
 
 // TODO: update the channels
 constexpr auto OX_VESSEL_PT_CHANNEL    = Channel::CHANNEL_0;  // set
-constexpr auto REGULATOR_PT_CHANNEL    = Channel::CHANNEL_1;  // set
+constexpr auto REG_OUT_OX_PT_CHANNEL   = Channel::CHANNEL_1;  // set
 constexpr auto PRZ_VESSEL_1_PT_CHANNEL = Channel::CHANNEL_2;  // set
-constexpr auto FUEL_TANK_PT_CHANNEL    = Channel::CHANNEL_3;  // set
+constexpr auto PRZ_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_3;  // set
 constexpr auto OX_VESSEL_LC_CHANNEL    = Channel::CHANNEL_5;  // set
-constexpr auto PRZ_TANK_PT_CHANNEL     = Channel::CHANNEL_7;  // set
+constexpr auto PRZ_FILLING_PT_CHANNEL  = Channel::CHANNEL_7;  // set
 
 constexpr auto SERVO_CURRENT_CHANNEL = Channel::CHANNEL_0;  // not needed
 constexpr auto ROCKET_LC_CHANNEL     = Channel::CHANNEL_0;  // not needed
@@ -92,9 +92,13 @@ constexpr bool ENABLED = true;
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
 constexpr auto OX_TANK_PT_CHANNEL      = Channel::CHANNEL_0;  // set
-constexpr auto OX_VALVE_ENC_CHANNEL    = Channel::CHANNEL_1;  // set
-constexpr auto FUEL_VALVE_ENC_CHANNEL  = Channel::CHANNEL_2;  // set
-constexpr auto PRZ_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_3;  // set
+constexpr auto MAIN_OX_ENC_CHANNEL     = Channel::CHANNEL_1;  // set
+constexpr auto MAIN_FUEL_ENC_CHANNEL   = Channel::CHANNEL_2;  // set
+constexpr auto PRZ_TANK_PT_CHANNEL     = Channel::CHANNEL_3;  // set
+constexpr auto REG_OUT_FUEL_PT_CHANNEL = Channel::CHANNEL_4;  // set
+constexpr auto PRZ_FUEL_ENC_CHANNEL    = Channel::CHANNEL_5;  // set
+constexpr auto PRZ_OX_ENC_CHANNEL      = Channel::CHANNEL_6;  // set
+constexpr auto FUEL_TANK_PT_CHANNEL    = Channel::CHANNEL_7;  // set
 
 constexpr float CH0_SHUNT_RESISTANCE = 29.685f;
 constexpr float CH1_SHUNT_RESISTANCE = 29.625f;
@@ -123,11 +127,12 @@ constexpr float MIN_CURRENT = 4;  // [mA]
 constexpr float MAX_CURRENT = 20;  // [mA]
 
 constexpr float OX_VESSEL_MAX_PRESSURE    = 100;  // bar
-constexpr float REGULATOR_MAX_PRESSURE    = 100;  // bar
+constexpr float REGULATOR_MAX_PRESSURE    = 250;  // bar
+constexpr float PRZ_FILLING_MAX_PRESSURE  = 400;  // bar
 constexpr float PRZ_VESSEL_1_MAX_PRESSURE = 400;  // bar
 constexpr float PRZ_VESSEL_2_MAX_PRESSURE = 400;  // bar
 constexpr float FUEL_TANK_MAX_PRESSURE    = 100;  // bar
-constexpr float PRZ_TANK_MAX_PRESSURE     = 250;  // bar
+constexpr float PRZ_TANK_MAX_PRESSURE     = 400;  // bar
 constexpr float OX_TANK_MAX_PRESSURE      = 100;  // bar
 }  // namespace Trafag
 

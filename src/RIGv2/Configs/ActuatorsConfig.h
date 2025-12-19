@@ -91,7 +91,7 @@ constexpr float FUEL_VEN_LIMIT  = 0.9;
 
 constexpr bool OX_FIL_FLIPPED    = true;
 constexpr bool OX_REL_FLIPPED    = true;
-constexpr bool PRZ_FUEL_FLIPPED  = true;
+constexpr bool PRZ_FUEL_FLIPPED  = false;
 constexpr bool PRZ_OX_FLIPPED    = true;
 constexpr bool PRZ_3W_FLIPPED    = true;
 constexpr bool PRZ_FIL_FLIPPED   = false;
