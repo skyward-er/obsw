@@ -26,6 +26,7 @@
 #include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
+#include <actuators/SparkPlug.h>
 #include <common/MavlinkHydra.h>
 #include <miosix.h>
 #include <scheduler/SignaledDeadlineTask.h>
@@ -148,6 +149,20 @@ public:
     void set3wayValveState(bool state);
     bool get3wayValveState();
 
+    void openOxSolenoidWithTime(uint32_t time);
+    void closeOxSolenoid();
+    void toggleOxSolenoid();
+    bool isOxSolenoidOpen();
+
+    void openFuelSolenoidWithTime(uint32_t time);
+    void closeFuelSolenoid();
+    void toggleFuelSolenoid();
+    bool isFuelSolenoidOpen();
+
+    void startSparkPlugWithTime(uint32_t time);
+    void stopSparkPlug();
+    void toggleSparkPlug();
+
     void armLightOn();
     void armLightOff();
 
@@ -172,10 +187,25 @@ private:
     miosix::FastMutex infosMutex;
     std::array<ServoInfo, 10> infos;
 
+    void unsafeOpenOxSolenoid();
+    void unsafeCloseOxSolenoid();
+
+    void unsafeOpenFuelSolenoid();
+    void unsafeCloseFuelSolenoid();
+
+    void unsafeStartSparkPlug();
+    void unsafeStopSparkPlug();
+
     // PRZ 3-way valve info
     ServoInfo prz_3wayValveInfo;
     std::atomic<bool> prz_3wayValveState{false};
     std::atomic<bool> prz_3wayValveStateChanged{true};
+
+    std::unique_ptr<Boardcore::SparkPlug> spark;
+
+    TimePoint fuelSolenoidCloseTs = ValveClosed;
+    TimePoint oxSolenoidCloseTs   = ValveClosed;
+    TimePoint sparkPlugCloseTs    = ValveClosed;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");

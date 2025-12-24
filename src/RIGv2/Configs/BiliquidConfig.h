@@ -49,7 +49,7 @@ static constexpr milliseconds SEQ_2_OX_DELAY{100};
 static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2500};
 
 // sequence 3 configs
-static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{1500};
+static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{2500};
 
 }  // namespace Biliquid
 }  // namespace Config

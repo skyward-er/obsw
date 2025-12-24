@@ -165,7 +165,7 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
     return {
         .timestamp                   = TimestampTimer::getTimestamp(),
         .prz_tank_pressure           = data.n2TankPressure.pressure,
-        .reg_out_pressure            = data.regulatorOutPressure.pressure,
+        .ox_reg_out_pressure         = data.regulatorOutPressure.pressure,
         .ox_tank_pressure            = data.oxTankTopPressure.pressure,
         .combustion_chamber_pressure = data.combustionChamberPressure.pressure,
         .battery_voltage             = data.batteryVoltage.voltage,
