@@ -68,8 +68,10 @@ public:
     Boardcore::PressureData getOxVesselPressure();
     Boardcore::PressureData getPrzVessel1Pressure();
     Boardcore::PressureData getPrzVessel2Pressure();
+    Boardcore::PressureData getPrzFillingPressure();
     Boardcore::PressureData getPrzTankPressure();
-    Boardcore::PressureData getRegulatorPressure();
+    Boardcore::PressureData getOxRegulatorPressure();
+    Boardcore::PressureData getFuelRegulatorPressure();
     Boardcore::PressureData getOxTankPressure();
     Boardcore::PressureData getFuelTankPressure();
 
@@ -77,8 +79,10 @@ public:
     Boardcore::LoadCellData getRocketWeight();
     Boardcore::LoadCellData getOxTankWeight();
 
-    Boardcore::ServoPositionData getFuelValvePosition();
     Boardcore::ServoPositionData getOxValvePosition();
+    Boardcore::ServoPositionData getFuelValvePosition();
+    Boardcore::ServoPositionData getOxRegPosition();
+    Boardcore::ServoPositionData getFuelRegPosition();
 
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
@@ -102,8 +106,14 @@ private:
     void przVessel2PressureInit();
     void przVessel2PressureCallback();
 
-    void regulatorPressureInit();
-    void regulatorPressureCallback();
+    void przFillingPressureInit();
+    void przFillingPressureCallback();
+
+    void oxRegulatorPressureInit();
+    void oxRegulatorPressureCallback();
+
+    void fuelRegulatorPressureInit();
+    void fuelRegulatorPressureCallback();
 
     void przTankPressureInit();
     void przTankPressureCallback();
@@ -123,11 +133,17 @@ private:
     void oxTankWeightInit();
     void oxTankWeightCallback();
 
-    void oxValvePositionInit();
+    void mainOxPositionInit();
     void oxValvePositionCallback();
 
-    void fuelValvePositionInit();
-    void fuelValvePositionCallback();
+    void mainFuelPositionInit();
+    void mainFuelPositionCallback();
+
+    void oxRegPositionInit();
+    void oxRegPositionCallback();
+
+    void fuelRegPositionInit();
+    void fuelRegPositionCallback();
 
     void internalAdcInit();
     void internalAdcCallback();
@@ -137,9 +153,6 @@ private:
 
     void adc2Init();
     void adc2Callback();
-
-    void tc1Init();
-    void tc1Callback();
 
     bool sensorManagerInit();
 
@@ -152,20 +165,23 @@ private:
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxVesselPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> przVessel1Pressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> przVessel2Pressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> regulatorPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxRegulatorPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> fuelRegulatorPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> przFillingPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> przTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> fuelTankPressure;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
-    std::unique_ptr<Boardcore::AnalogEncoder> oxValvePosition;
-    std::unique_ptr<Boardcore::AnalogEncoder> fuelValvePosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> mainOxPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> mainFuelPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> oxRegPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> fuelRegPosition;
 
     // Digital sensors
     std::unique_ptr<Boardcore::ADS131M08> adc1;
     std::unique_ptr<Boardcore::ADS131M08> adc2;
-    // std::unique_ptr<Boardcore::MAX31856> tc1;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
     std::unique_ptr<Boardcore::SensorManager> manager;
 };

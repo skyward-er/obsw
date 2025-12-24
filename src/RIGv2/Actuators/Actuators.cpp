@@ -81,11 +81,12 @@ void Actuators::ServoInfo::openServoWithTime(float position, uint32_t time)
 
 void Actuators::ServoInfo::openServoWithTime(uint32_t time)
 {
+    direction        = Direction::OPEN;
     auto currentTime = Clock::now();
 
     closeTs = currentTime + nanoseconds{msToNs(time)};
     backstepTs =
-        currentTime + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+        currentTime + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
 
     // Set opening position
     currentPosition = getMaxAperture();
@@ -286,17 +287,21 @@ bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      infos{MAKE_SERVO(OX_FIL),        MAKE_SERVO(OX_REL),
-            MAKE_SMALL_SERVO(PRZ_FIL), MAKE_SMALL_SERVO(PRZ_REL),
-            MAKE_SERVO(PRZ_FUEL),      MAKE_SERVO(PRZ_OX),
-            MAKE_SERVO(OX_VEN),        MAKE_SERVO(FUEL_VEN),
-            MAKE_SERVO(MAIN_OX),       MAKE_SERVO(MAIN_FUEL)},
-      prz_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W))
+      infos{MAKE_SERVO(OX_FIL),         MAKE_SERVO(OX_REL),
+            MAKE_SMALL_SERVO(PRZ_FIL),  MAKE_SMALL_SERVO(PRZ_REL),
+            MAKE_SMALL_SERVO(PRZ_FUEL), MAKE_SERVO(PRZ_OX),
+            MAKE_SERVO(OX_VEN),         MAKE_SERVO(FUEL_VEN),
+            MAKE_SERVO(MAIN_OX),        MAKE_SERVO(MAIN_FUEL)},
+      prz_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W)),
+      spark(std::make_unique<SparkPlug>(
+          MIOSIX_SERVOS_SPARK_PLUG_TIM, (uint16_t)50,
+          TimerUtils::Channel::MIOSIX_SERVOS_SPARK_PLUG_CHANNEL))
 {
     for (auto& servo : infos)
         servo.unsafeSetServoPosition(0.0f);
 
     prz_3wayValveInfo.unsafeSetServoPosition(0.0f);
+    spark->stop();
 }
 
 bool Actuators::isStarted() { return started; }
@@ -308,10 +313,13 @@ bool Actuators::start()
     {
         info.servo->enable();
         info.closeServo();
+        info.backstepTs = Clock::now() + milliseconds{2000};
     }
 
     prz_3wayValveInfo.servo->enable();
     prz_3wayValveInfo.closeServo();
+
+    spark->enable();
 
     if (!SignaledDeadlineTask::start())
     {
@@ -319,6 +327,7 @@ bool Actuators::start()
         return false;
     }
 
+    signalTask();
     started = true;
     return true;
 }
@@ -331,6 +340,15 @@ void Actuators::igniterOff() { relays::ignition::high(); }
 
 void Actuators::clacsonOn() { relays::clacson::low(); }
 void Actuators::clacsonOff() { relays::clacson::high(); }
+
+void Actuators::unsafeOpenOxSolenoid() { /* relays::nitrogen::low(); */ };
+void Actuators::unsafeCloseOxSolenoid() { /* relays::nitrogen::high(); */ };
+
+void Actuators::unsafeOpenFuelSolenoid() { /* relays::armLight::low(); */ };
+void Actuators::unsafeCloseFuelSolenoid() { /* relays::armLight::high(); */ };
+
+void Actuators::unsafeStartSparkPlug() { spark->start(); };
+void Actuators::unsafeStopSparkPlug() { spark->stop(); };
 
 bool Actuators::wiggleServo(ServosList servo)
 {
@@ -572,6 +590,82 @@ uint32_t Actuators::getServoOpeningTime(ServosList servo)
     return info->getOpeningTime();
 }
 
+void Actuators::openOxSolenoidWithTime(uint32_t time)
+{
+    unsafeOpenOxSolenoid();
+    oxSolenoidCloseTs = Clock::now() + nanoseconds{msToNs(time)};
+    signalTask();
+}
+
+void Actuators::closeOxSolenoid()
+{
+    unsafeCloseOxSolenoid();
+    oxSolenoidCloseTs = ValveClosed;
+    signalTask();
+}
+
+void Actuators::toggleOxSolenoid()
+{
+    if (isOxSolenoidOpen())
+        closeOxSolenoid();
+
+    else
+        openOxSolenoidWithTime(5000);
+}
+
+bool Actuators::isOxSolenoidOpen() { return oxSolenoidCloseTs != ValveClosed; }
+
+void Actuators::openFuelSolenoidWithTime(uint32_t time)
+{
+    unsafeOpenFuelSolenoid();
+    fuelSolenoidCloseTs = Clock::now() + nanoseconds{msToNs(time)};
+    signalTask();
+}
+
+void Actuators::closeFuelSolenoid()
+{
+    unsafeCloseFuelSolenoid();
+    fuelSolenoidCloseTs = ValveClosed;
+    signalTask();
+}
+
+void Actuators::toggleFuelSolenoid()
+{
+    if (isFuelSolenoidOpen())
+        closeFuelSolenoid();
+    else
+        openFuelSolenoidWithTime(5000);
+}
+
+bool Actuators::isFuelSolenoidOpen()
+{
+    return fuelSolenoidCloseTs != ValveClosed;
+}
+
+void Actuators::startSparkPlugWithTime(uint32_t time)
+{
+    unsafeStartSparkPlug();
+    sparkPlugCloseTs = Clock::now() + nanoseconds{msToNs(time)};
+    signalTask();
+}
+
+void Actuators::stopSparkPlug()
+{
+    unsafeStopSparkPlug();
+    sparkPlugCloseTs = ValveClosed;
+    signalTask();
+}
+
+void Actuators::toggleSparkPlug()
+{
+    if (sparkPlugCloseTs != ValveClosed)
+    {
+        unsafeStopSparkPlug();
+        return;
+    }
+    unsafeStartSparkPlug();
+}
+
 float Actuators::getServoMaxAperture(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
@@ -661,6 +755,15 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     if (prz_3wayValveInfo.backstepTs != ValveClosed)
         nextDeadline = std::min(nextDeadline, prz_3wayValveInfo.backstepTs);
 
+    if (oxSolenoidCloseTs != ValveClosed)
+        nextDeadline = std::min(nextDeadline, oxSolenoidCloseTs);
+
+    if (fuelSolenoidCloseTs != ValveClosed)
+        nextDeadline = std::min(nextDeadline, fuelSolenoidCloseTs);
+
+    if (sparkPlugCloseTs != ValveClosed)
+        nextDeadline = std::min(nextDeadline, sparkPlugCloseTs);
+
     return nextDeadline;
 }
 
@@ -694,4 +797,14 @@ void Actuators::task()
         // Backstep the 3-way valve servo a little to avoid strain
         prz_3wayValveInfo.backstep();
     }
+
+    // handle igniter actuation
+    if (currentTime > oxSolenoidCloseTs && oxSolenoidCloseTs != ValveClosed)
+        closeOxSolenoid();
+
+    if (currentTime > fuelSolenoidCloseTs && fuelSolenoidCloseTs != ValveClosed)
+        closeFuelSolenoid();
+
+    if (currentTime > sparkPlugCloseTs && sparkPlugCloseTs != ValveClosed)
+        stopSparkPlug();
 }
