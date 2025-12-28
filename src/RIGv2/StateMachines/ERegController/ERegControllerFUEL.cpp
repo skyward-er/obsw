@@ -80,6 +80,9 @@ void ERegControllerFUEL::update()
 {
     pressureFilter.add(getModule<Sensors>()->getFuelTankPressure().pressure);
 
+    if (pressureFilter.calcMedian() > Config::ERegFUEL::TARGET_PRESSURE * 1.5)
+        EventBroker::getInstance().post(EREG_STOP, TOPIC_EREG_FUEL);
+
     if (state == ERegState::PRESSURIZING || state == ERegState::DISCHARGING)
         regulator.update();
 }

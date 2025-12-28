@@ -400,9 +400,15 @@ State Biliquid::state_seq_3(const Event& event)
             EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
             EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_FUEL);
 
-            // TODO: make a new state and post delayed event to ensure that the
-            // ereg has time to change state
+            // wait before opening the valves to ensure that the ereg algorithm
+            // has had enough time to adjust
+            EventBroker::getInstance().postDelayed(
+                BILIQUID_STEP, TOPIC_BILIQUID, Config::Biliquid::DT.count());
+            return HANDLED;
+        }
 
+        case BILIQUID_STEP:
+        {
             // fully open OX and fuel valves for SEQ_3_SHUTDOWN_DELAY ms
             getModule<Actuators>()->openServoWithTime(
                 ServosList::MAIN_OX_VALVE,

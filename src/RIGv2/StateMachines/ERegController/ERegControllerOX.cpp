@@ -80,6 +80,9 @@ void ERegControllerOX::update()
 {
     pressureFilter.add(getModule<Sensors>()->getOxTankPressure().pressure);
 
+    if (pressureFilter.calcMedian() > Config::ERegOX::TARGET_PRESSURE * 1.5)
+        EventBroker::getInstance().post(EREG_STOP, TOPIC_EREG_OX);
+
     if (state == ERegState::PRESSURIZING || state == ERegState::DISCHARGING)
         regulator.update();
 }
