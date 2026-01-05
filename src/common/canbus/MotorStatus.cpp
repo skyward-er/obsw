@@ -163,21 +163,20 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
     miosix::Lock<miosix::FastMutex> lock(mutex);
 
     return {
-        .timestamp                   = TimestampTimer::getTimestamp(),
-        .prz_tank_pressure           = data.n2TankPressure.pressure,
-        .ox_reg_out_pressure         = data.regulatorOutPressure.pressure,
-        .ox_tank_pressure            = data.oxTankTopPressure.pressure,
-        .combustion_chamber_pressure = data.combustionChamberPressure.pressure,
-        .battery_voltage             = data.batteryVoltage.voltage,
-        .current_consumption         = data.currentConsumption.current,
-        .log_number                  = data.device.logNumber,
-        .ox_venting_valve_state      = data.oxVentingValveOpen,
-        .prz_ox_valve_state          = data.nitrogenValveOpen,
-        .prz_fuel_valve_state        = data.nitrogenValveOpen,
-        .main_ox_valve_state         = data.mainValveOpen,
-        .main_fuel_valve_state       = data.mainValveOpen,
-        .log_good                    = data.device.logGood,
-        .hil_state                   = data.device.hil,
+        .timestamp              = TimestampTimer::getTimestamp(),
+        .prz_tank_pressure      = data.n2TankPressure.pressure,
+        .ox_reg_out_pressure    = data.regulatorOutPressure.pressure,
+        .ox_tank_pressure       = data.oxTankTopPressure.pressure,
+        .battery_voltage        = data.batteryVoltage.voltage,
+        .current_consumption    = data.currentConsumption.current,
+        .log_number             = data.device.logNumber,
+        .ox_venting_valve_state = data.oxVentingValveOpen,
+        .prz_ox_valve_state     = data.nitrogenValveOpen,
+        .prz_fuel_valve_state   = data.nitrogenValveOpen,
+        .main_ox_valve_state    = data.mainValveOpen,
+        .main_fuel_valve_state  = data.mainValveOpen,
+        .log_good               = data.device.logGood,
+        .hil_state              = data.device.hil,
     };
 }
 

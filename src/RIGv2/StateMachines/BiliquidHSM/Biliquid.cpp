@@ -434,8 +434,8 @@ State Biliquid::state_seq_3(const Event& event)
         case EV_EXIT:
         {
             // Change back the state of the OX and FUEL ereg
-            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
-            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
             getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
             getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);

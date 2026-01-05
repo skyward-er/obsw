@@ -81,7 +81,12 @@ void ERegControllerFUEL::update()
     pressureFilter.add(getModule<Sensors>()->getFuelTankPressure().pressure);
 
     if (pressureFilter.calcMedian() > Config::ERegFUEL::TARGET_PRESSURE * 1.5)
+    {
         EventBroker::getInstance().post(EREG_STOP, TOPIC_EREG_FUEL);
+
+        getModule<Actuators>()->closeServo(Config::ERegFUEL::EREG_SERVO);
+        getModule<Actuators>()->openServoWithTime(FUEL_VENTING_VALVE, 5000);
+    }
 
     if (state == ERegState::PRESSURIZING || state == ERegState::DISCHARGING)
         regulator.update();
@@ -120,10 +125,6 @@ void ERegControllerFUEL::state_closed(const Event& event)
         }
 
         case EREG_TOGGLE:
-        {
-            [[fallthrough]];
-        }
-
         case EREG_PRESSURIZE:
         {
             transition(&ERegControllerFUEL::state_pressurizing);
@@ -147,10 +148,6 @@ void ERegControllerFUEL::state_pressurizing(const Event& event)
         }
 
         case EREG_TOGGLE:
-        {
-            [[fallthrough]];
-        }
-
         case EREG_CLOSE:
         {
             transition(&ERegControllerFUEL::state_closed);
@@ -190,18 +187,16 @@ void ERegControllerFUEL::state_discharging(const Event& event)
         }
 
         case EREG_TOGGLE:
-        {
-            [[fallthrough]];
-        }
-
         case EREG_CLOSE:
         {
             transition(&ERegControllerFUEL::state_closed);
+            break;
         }
 
         case EREG_STOP:
         {
             transition(&ERegControllerFUEL::state_ended);
+            break;
         }
     }
 }
@@ -236,7 +231,7 @@ void ERegControllerFUEL::changeTargetPressure(float newTargetPressure)
 void ERegControllerFUEL::updateAndLogStatus(ERegState state)
 {
     this->state = state;
-    printf("changing to state: %s\n", to_string(state).c_str());
+    // printf("changing to state: %s\n", to_string(state).c_str());
     ERegStateData data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }

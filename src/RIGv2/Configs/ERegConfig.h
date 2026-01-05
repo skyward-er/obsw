@@ -39,9 +39,9 @@ using namespace std::chrono;
 
 constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
-constexpr float TARGET_PRESSURE    = 40;  // [Bar]
+constexpr float TARGET_PRESSURE    = 58;  // [Bar]
 constexpr Hertz UPDATE_RATE        = 100_hz;
-constexpr int MEDIAN_SAMPLE_NUMBER = 6;
+constexpr int MEDIAN_SAMPLE_NUMBER = 10;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 constexpr float MAX_APERATURE       = 1.0f;
@@ -58,9 +58,9 @@ const static Boardcore::ERegPIDConfig STABILIZING_CONFIG = {
 };
 
 const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
-    .KP = 0.07f,
-    .KI = 0.02f,
-    .KD = 0.0f,
+    .KP = 0.14,
+    .KI = 0.03f,
+    .KD = 0.01f,
 
     .Ts   = UPDATE_RATE_SECONDS,
     .uMin = MIN_APERATURE,
@@ -77,9 +77,9 @@ using namespace std::chrono;
 
 constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
 
-constexpr float TARGET_PRESSURE    = 40;  // [Bar]
+constexpr float TARGET_PRESSURE    = 58;  // [Bar]
 constexpr Hertz UPDATE_RATE        = 100_hz;
-constexpr int MEDIAN_SAMPLE_NUMBER = 6;
+constexpr int MEDIAN_SAMPLE_NUMBER = 10;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 constexpr float MAX_APERATURE       = 1.0f;
@@ -96,9 +96,9 @@ const static Boardcore::ERegPIDConfig STABILIZING_CONFIG = {
 };
 
 const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
-    .KP = 0.07f,
-    .KI = 0.02f,
-    .KD = 0.0f,
+    .KP = 0.13f,
+    .KI = 0.08f,
+    .KD = 0.03f,
 
     .Ts   = UPDATE_RATE_SECONDS,
     .uMin = MIN_APERATURE,

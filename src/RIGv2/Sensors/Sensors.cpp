@@ -292,8 +292,7 @@ void Sensors::calibrate()
     applyShuntResistance(2, fuelRegulatorPressure, REG_OUT_FUEL_PT_CHANNEL);
     applyShuntResistance(2, fuelTankPressure, FUEL_TANK_PT_CHANNEL);
 
-    mainFuelPosition->calibrate();
-    mainOxPosition->calibrate();
+    calibrateEncoders();
 }
 
 void Sensors::calibrateLoadcells()

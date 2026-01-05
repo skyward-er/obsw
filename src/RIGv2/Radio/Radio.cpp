@@ -660,6 +660,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 sensors->getPrzVessel1Pressure().pressure;
             tm.prz_vessel_2_pressure =
                 sensors->getPrzVessel2Pressure().pressure;
+            tm.ox_filling_pressure  = sensors->getPrzFillingPressure().pressure;
+            tm.prz_filling_pressure = sensors->getPrzFillingPressure().pressure;
 
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.current_consumption = sensors->getServoCurrent().current;
@@ -737,9 +739,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     sensors->getOxRegulatorPressure().pressure;
                 tm.fuel_reg_out_pressure =
                     sensors->getFuelRegulatorPressure().pressure;
-
-                tm.combustion_chamber_pressure =
-                    sensors->getPrzFillingPressure().pressure;
 
                 // valve states
                 tm.ox_venting_valve_state = getModule<Actuators>()->isServoOpen(
