@@ -33,6 +33,8 @@
 
 #include <memory>
 
+#include "ValveInterface.h"
+
 namespace RIGv2
 {
 
@@ -63,13 +65,13 @@ private:
                                                  ///< aperture
         };
 
-        ServoInfo(std::unique_ptr<Boardcore::Servo> servo,
+        ServoInfo(std::unique_ptr<ValveInterface> servo,
                   const ServoConfig& config)
             : servo(std::move(servo)), config(config)
         {
         }
 
-        std::unique_ptr<Boardcore::Servo> servo;
+        std::unique_ptr<ValveInterface> servo;
         ServoConfig config;
 
         // Time when the valve should close, 0 if currently closed
