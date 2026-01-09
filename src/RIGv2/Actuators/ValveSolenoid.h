@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <miosix.h>
+
 #include "ValveInterface.h"
 #include "actuators/Servo/Servo.h"
 
@@ -32,23 +34,40 @@ namespace Boardcore
 class ValveSolenoid : public RIGv2::ValveInterface
 {
 public:
-    ValveSolenoid() {};  // TODO: Constructor with GPIO pin
+    /**
+     * @brief ValveSolenoid Constructor
+     * @param pin Solenoid valve control pin
+     */
+    ValveSolenoid(miosix::GpioPin pin) : pin(pin) {};
     ~ValveSolenoid() {};
 
+    /**
+     * @brief Sets the state of the solenoid valve (open/closed).
+     * @param position position values greater than 0.5f are treated as high.
+     */
     bool setPosition(float position)
     {
         if (position < 0.5f)
-            // set PIN to low
+        {
+            ValveSolenoid::pin.low();  // set PIN to low
             return true;
+        }
         else
-            // set PIN to high
-            return false;
+        {
+            ValveSolenoid::pin.high();  // set PIN to high
+            return true;
+        }
     };
 
-    bool getPosition()
-    {
-        // read PIN state
-        return false;  // TODO: return actual PIN state
-    };
+    /**
+     * @brief Returns the state of the solenoid valve (open/closed).
+     * @returns True if open
+     *
+     * False if closed
+     */
+    bool getPosition() { return ValveSolenoid::pin.value(); };
+
+private:
+    miosix::GpioPin pin;
 };
 }  // namespace Boardcore
