@@ -82,7 +82,7 @@ void ERegControllerOX::update()
 
     if (pressureFilter.calcMedian() > Config::ERegOX::TARGET_PRESSURE * 1.5)
     {
-        EventBroker::getInstance().post(EREG_STOP, TOPIC_EREG_OX);
+        EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
         getModule<Actuators>()->closeServo(Config::ERegOX::EREG_SERVO);
         getModule<Actuators>()->openServoWithTime(OX_VENTING_VALVE, 5000);
@@ -159,12 +159,6 @@ void ERegControllerOX::state_pressurizing(const Event& event)
             transition(&ERegControllerOX::state_discharging);
             break;
         }
-
-        case EREG_STOP:
-        {
-            transition(&ERegControllerOX::state_ended);
-            break;
-        }
     }
 }
 
@@ -184,27 +178,6 @@ void ERegControllerOX::state_discharging(const Event& event)
         case EREG_CLOSE:
         {
             transition(&ERegControllerOX::state_closed);
-            break;
-        }
-
-        case EREG_STOP:
-        {
-            transition(&ERegControllerOX::state_ended);
-            break;
-        }
-    }
-}
-
-void ERegControllerOX::state_ended(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(ERegState::ENDED);
-
-            getModule<Actuators>()->closeServo(Config::ERegOX::EREG_SERVO);
-            regulator.end();
             break;
         }
     }

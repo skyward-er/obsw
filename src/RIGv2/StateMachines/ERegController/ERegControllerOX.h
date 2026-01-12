@@ -58,7 +58,6 @@ private:
     void state_closed(const Boardcore::Event& event);
     void state_pressurizing(const Boardcore::Event& event);
     void state_discharging(const Boardcore::Event& event);
-    void state_ended(const Boardcore::Event& event);
 
     void updateAndLogStatus(ERegState state);
 

@@ -82,7 +82,7 @@ void ERegControllerFUEL::update()
 
     if (pressureFilter.calcMedian() > Config::ERegFUEL::TARGET_PRESSURE * 1.5)
     {
-        EventBroker::getInstance().post(EREG_STOP, TOPIC_EREG_FUEL);
+        EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
         getModule<Actuators>()->closeServo(Config::ERegFUEL::EREG_SERVO);
         getModule<Actuators>()->openServoWithTime(FUEL_VENTING_VALVE, 5000);
@@ -159,12 +159,6 @@ void ERegControllerFUEL::state_pressurizing(const Event& event)
             transition(&ERegControllerFUEL::state_discharging);
             break;
         }
-
-        case EREG_STOP:
-        {
-            transition(&ERegControllerFUEL::state_ended);
-            break;
-        }
     }
 }
 
@@ -190,27 +184,6 @@ void ERegControllerFUEL::state_discharging(const Event& event)
         case EREG_CLOSE:
         {
             transition(&ERegControllerFUEL::state_closed);
-            break;
-        }
-
-        case EREG_STOP:
-        {
-            transition(&ERegControllerFUEL::state_ended);
-            break;
-        }
-    }
-}
-
-void ERegControllerFUEL::state_ended(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(ERegState::ENDED);
-
-            getModule<Actuators>()->closeServo(Config::ERegFUEL::EREG_SERVO);
-            regulator.end();
             break;
         }
     }

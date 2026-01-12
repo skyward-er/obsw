@@ -36,7 +36,6 @@ enum class ERegState : uint8_t
     CLOSED,
     PRESSURIZING,
     DISCHARGING,
-    ENDED,
     INVALID,
 };
 
@@ -52,8 +51,6 @@ inline std::string to_string(ERegState state)
             return "PRESSURIZING";
         case ERegState::DISCHARGING:
             return "DISCHARGING";
-        case ERegState::ENDED:
-            return "ENDED";
         default:
             return "UNKNOWN";
     }
