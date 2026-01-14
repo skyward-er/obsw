@@ -332,20 +332,20 @@ bool Actuators::start()
     return true;
 }
 
-void Actuators::armLightOn() { /* relays::armLight::low(); */ }
-void Actuators::armLightOff() { /* relays::armLight::high(); */ }
+void Actuators::armLightOn() { relays::armLight::low(); }
+void Actuators::armLightOff() { relays::armLight::high(); }
 
 void Actuators::igniterOn() { relays::ignition::low(); }
 void Actuators::igniterOff() { relays::ignition::high(); }
 
-void Actuators::clacsonOn() { relays::clacson::low(); }
-void Actuators::clacsonOff() { relays::clacson::high(); }
+void Actuators::clacsonOn() { /* relays::clacson::low(); */ }
+void Actuators::clacsonOff() { /* relays::clacson::high(); */ }
 
 void Actuators::unsafeOpenOxSolenoid() { relays::nitrogen::low(); };
 void Actuators::unsafeCloseOxSolenoid() { relays::nitrogen::high(); };
 
-void Actuators::unsafeOpenFuelSolenoid() { relays::armLight::low(); };
-void Actuators::unsafeCloseFuelSolenoid() { relays::armLight::high(); };
+void Actuators::unsafeOpenFuelSolenoid() { relays::clacson::low(); };
+void Actuators::unsafeCloseFuelSolenoid() { relays::clacson::high(); };
 
 void Actuators::unsafeStartSparkPlug() { spark->start(); };
 void Actuators::unsafeStopSparkPlug() { spark->stop(); };
@@ -660,11 +660,13 @@ void Actuators::toggleSparkPlug()
 {
     if (sparkPlugCloseTs != ValveClosed)
     {
-        unsafeStopSparkPlug();
+        stopSparkPlug();
         return;
     }
-    unsafeStartSparkPlug();
+    startSparkPlugWithTime(5000);
 }
+
+bool Actuators::isSparkSparking() { return sparkPlugCloseTs != ValveClosed; }
 
 float Actuators::getServoMaxAperture(ServosList servo)
 {

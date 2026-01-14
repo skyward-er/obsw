@@ -661,6 +661,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.prz_vessel_2_pressure =
                 sensors->getPrzVessel2Pressure().pressure;
 
+            tm.ox_filling_pressure = sensors->getPrzFillingPressure()
+                                         .pressure;  // ox filling to be added
+            tm.prz_filling_pressure = sensors->getPrzFillingPressure().pressure;
+
             tm.battery_voltage     = sensors->getBatteryVoltage().voltage;
             tm.current_consumption = sensors->getServoCurrent().current;
             tm.umbilical_current_consumption =
@@ -729,6 +733,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Use RIG data if motor is not detected
             if (!motor->detected())
             {
+                // sensors
                 auto sensors          = getModule<Sensors>();
                 tm.prz_tank_pressure  = sensors->getPrzTankPressure().pressure;
                 tm.ox_tank_pressure   = sensors->getOxTankPressure().pressure;
@@ -738,8 +743,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 tm.fuel_reg_out_pressure =
                     sensors->getFuelRegulatorPressure().pressure;
 
-                tm.combustion_chamber_pressure =
-                    sensors->getPrzFillingPressure().pressure;
+                tm.main_ox_valve_position = static_cast<uint8_t>(
+                    sensors->getOxValvePosition().position);
+                tm.main_fuel_valve_position = static_cast<uint8_t>(
+                    sensors->getFuelValvePosition().position);
+                tm.prz_ox_valve_position =
+                    static_cast<uint8_t>(sensors->getOxRegPosition().position);
+                tm.prz_fuel_valve_position = static_cast<uint8_t>(
+                    sensors->getFuelRegPosition().position);
 
                 // valve states
                 tm.ox_venting_valve_state = getModule<Actuators>()->isServoOpen(
@@ -747,30 +758,19 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 tm.fuel_venting_valve_state =
                     getModule<Actuators>()->isServoOpen(
                         ServosList::FUEL_VENTING_VALVE);
-
                 tm.prz_ox_valve_state = getModule<Actuators>()->isServoOpen(
                     ServosList::PRZ_OX_VALVE);
                 tm.prz_fuel_valve_state = getModule<Actuators>()->isServoOpen(
                     ServosList::PRZ_FUEL_VALVE);
-
-                tm.prz_ox_valve_position =
-                    static_cast<uint8_t>(sensors->getOxRegPosition().position);
-                tm.prz_fuel_valve_position = static_cast<uint8_t>(
-                    sensors->getFuelRegPosition().position);
-
                 tm.main_ox_valve_state = getModule<Actuators>()->isServoOpen(
                     ServosList::MAIN_OX_VALVE);
                 tm.main_fuel_valve_state = getModule<Actuators>()->isServoOpen(
                     ServosList::MAIN_FUEL_VALVE);
-
-                tm.main_fuel_valve_position = static_cast<uint8_t>(
-                    sensors->getFuelValvePosition().position);
-                tm.main_ox_valve_position = static_cast<uint8_t>(
-                    sensors->getOxValvePosition().position);
-
                 tm.ox_solenoid   = getModule<Actuators>()->isOxSolenoidOpen();
                 tm.fuel_solenoid = getModule<Actuators>()->isFuelSolenoidOpen();
+                tm.spark_igniter = getModule<Actuators>()->isSparkSparking();
 
+                // state machines
                 tm.biliquid_hsm_state =
                     (uint8_t)getModule<Biliquid>()->getState();
                 tm.biliquid_sequence =
@@ -1160,9 +1160,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The nitrogen switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleServo(ServosList::PRZ_RELEASE_VALVE);
+            // getModule<Actuators>()->toggleServo(ServosList::PRZ_RELEASE_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::PRZ_RELEASE_VALVE);
+            getModule<Actuators>()->toggleSparkPlug();
+            // enqueueValveInfoTm(ServosList::PRZ_RELEASE_VALVE);
         }
 
         if (SWITCH_CHANGED(n2_3way_switch))  // switch used for sequence 3

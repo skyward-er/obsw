@@ -48,9 +48,9 @@ public:
 private:
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
+    Boardcore::State state_seq_0(const Boardcore::Event& event);
     Boardcore::State state_seq_1(const Boardcore::Event& event);
-    Boardcore::State state_seq_2_FUEL(const Boardcore::Event& event);
-    Boardcore::State state_seq_2_OX(const Boardcore::Event& event);
+    Boardcore::State state_seq_2(const Boardcore::Event& event);
     Boardcore::State state_seq_3(const Boardcore::Event& event);
 
     void updateAndLogStatus(BiliquidState state);

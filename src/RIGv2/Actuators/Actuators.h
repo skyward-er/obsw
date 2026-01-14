@@ -162,6 +162,7 @@ public:
     void startSparkPlugWithTime(uint32_t time);
     void stopSparkPlug();
     void toggleSparkPlug();
+    bool isSparkSparking();
 
     void armLightOn();
     void armLightOff();

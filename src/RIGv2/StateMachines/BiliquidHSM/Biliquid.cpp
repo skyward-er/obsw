@@ -133,14 +133,11 @@ State Biliquid::state_ready(const Event& event)
             switch (currentSequence)
             {
                 case SEQUENCE_0:
-                    LOG_ERR(logger,
-                            "Biliquid sequence not set when trying to start "
-                            "generic sequence");
-                    return UNHANDLED;
+                    return transition(&Biliquid::state_seq_0);
                 case SEQUENCE_1:
                     return transition(&Biliquid::state_seq_1);
                 case SEQUENCE_2:
-                    return transition(&Biliquid::state_seq_2_FUEL);
+                    return transition(&Biliquid::state_seq_2);
                 case SEQUENCE_3:
                     return transition(&Biliquid::state_seq_3);
                 default:
@@ -155,7 +152,7 @@ State Biliquid::state_ready(const Event& event)
 
         case BILIQUID_START_SEQUENCE_2:
         {
-            return transition(&Biliquid::state_seq_2_FUEL);
+            return transition(&Biliquid::state_seq_2);
         }
 
         case BILIQUID_START_SEQUENCE_3:
@@ -176,6 +173,56 @@ State Biliquid::state_ready(const Event& event)
         case EV_EXIT:
         {
             return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State Biliquid::state_seq_0(const Event& event)
+{
+    switch (event)
+    {
+        case EV_INIT:
+        {
+            updateAndLogStatus(BiliquidState::SEQUENCE_0);
+            stepCount = 0;
+            return HANDLED;
+        }
+
+        case EV_ENTRY:
+        {
+            getModule<Actuators>()->openOxSolenoidWithTime(6000);
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{3000ms}.count());
+            return HANDLED;
+        }
+
+        case BILIQUID_STEP:
+        {
+            getModule<Actuators>()->openFuelSolenoidWithTime(3000);
+            return HANDLED;
+        }
+
+        case BILIQUID_ABORT:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&Biliquid::state_idle);
+        }
+
+        case EV_EXIT:
+        {
+            getModule<Actuators>()->closeOxSolenoid();
+            getModule<Actuators>()->closeFuelSolenoid();
+            return HANDLED;
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&Biliquid::state_ready);
         }
 
         default:
@@ -211,11 +258,6 @@ State Biliquid::state_seq_1(const Event& event)
             return HANDLED;
         }
 
-        case BILIQUID_END_SEQUENCE_1:
-        {
-            return transition(&Biliquid::state_idle);
-        }
-
         case BILIQUID_ABORT:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
@@ -242,13 +284,13 @@ State Biliquid::state_seq_1(const Event& event)
     }
 }
 
-State Biliquid::state_seq_2_FUEL(const Event& event)
+State Biliquid::state_seq_2(const Event& event)
 {
     switch (event)
     {
         case EV_INIT:
         {
-            updateAndLogStatus(BiliquidState::SEQUENCE_2_FUEL);
+            updateAndLogStatus(BiliquidState::SEQUENCE_2);
             return HANDLED;
         }
 
