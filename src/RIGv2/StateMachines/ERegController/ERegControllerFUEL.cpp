@@ -22,6 +22,7 @@
 
 #include "ERegControllerFUEL.h"
 
+#include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/BoardScheduler.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -42,9 +43,14 @@ ERegControllerFUEL::ERegControllerFUEL()
       regulator{Config::ERegFUEL::STABILIZING_CONFIG,
                 Config::ERegFUEL::TARGET_PRESSURE,
                 [this]() { return pressureFilter.calcMedian(); },
-                [this](float position) {
+                [this](float position)
+                {
                     getModule<Actuators>()->moveServo(
                         Config::ERegFUEL::EREG_SERVO, position);
+                    ActuatorsData positionData = {
+                        TimestampTimer::getTimestamp(),
+                        Config::ERegFUEL::EREG_SERVO, position};
+                    sdLogger.log(positionData);
                 }}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_FUEL);

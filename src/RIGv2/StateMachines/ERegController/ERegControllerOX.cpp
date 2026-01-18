@@ -22,6 +22,7 @@
 
 #include "ERegControllerOX.h"
 
+#include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/BoardScheduler.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -42,9 +43,14 @@ ERegControllerOX::ERegControllerOX()
       regulator{Config::ERegOX::STABILIZING_CONFIG,
                 Config::ERegOX::TARGET_PRESSURE,
                 [this]() { return pressureFilter.calcMedian(); },
-                [this](float position) {
+                [this](float position)
+                {
                     getModule<Actuators>()->moveServo(
                         Config::ERegOX::EREG_SERVO, position);
+                    ActuatorsData positionData = {
+                        TimestampTimer::getTimestamp(),
+                        Config::ERegOX::EREG_SERVO, position};
+                    sdLogger.log(positionData);
                 }}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_OX);
