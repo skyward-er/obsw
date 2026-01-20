@@ -311,6 +311,14 @@ int main()
             ok = false;
         }
 
+        LOG_INFO(logger, "DEBUG: EventBroker starting...\n");
+
+        if (!EventBroker::getInstance().start())
+        {
+            std::cout << "[error] Failed to start EventBroker!" << std::endl;
+            ok = false;
+        }
+
         LOG_INFO(logger, "DEBUG: sma starting...\n");
 
         if (sma && !(sma->start()))

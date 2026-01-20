@@ -70,6 +70,7 @@ public:
     Boardcore::State state_fix_rocket(const Boardcore::Event& event);
     Boardcore::State state_active(const Boardcore::Event& event);
     Boardcore::State state_armed_nf(const Boardcore::Event& event);
+    Boardcore::State state_offset(const Boardcore::Event& event);
     Boardcore::State state_test_nf(const Boardcore::Event& event);
     Boardcore::State state_fix_rocket_nf(const Boardcore::Event& event);
     Boardcore::State state_active_nf(const Boardcore::Event& event);
@@ -137,6 +138,15 @@ public:
      */
     void setFatal();
 
+    /**
+     * @brief Adds to the follower algorithm a certain offset
+     *
+     * @param axis: The stepper to be offseted
+     * @param axis: The offset to add to the current one
+     * @return true if the operation has been performed, false if error.
+     */
+    bool addOffset(StepperList axis, float offset);
+
 private:
     /**
      * @brief Logs the current state of the FSM
@@ -154,6 +164,9 @@ private:
     // Flags indicating if the antenna coordinates have been set
     bool antennaCoordinatesSet = false;
     bool fatalInit = false;  ///< In case the initialization was fatal
+
+    // Last delayed event to remove it in case there is an exit from the state
+    uint16_t lastDelayedEvent;
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("SMA");
 };

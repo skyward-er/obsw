@@ -46,24 +46,25 @@ enum class SMAState : uint8_t
     FIX_ROCKET,     ///< 10
     FIX_ROCKET_NF,  ///< 11
     ARM_READY,      ///< 12
-    ACTIVE,         ///< 13
-    ACTIVE_NF,      ///< 14
+    OFFSET_ANGLES,  ///< 13
+    ACTIVE,         ///< 14
+    ACTIVE_NF,      ///< 15
     /**
      * @brief macro state for configuration (init, init_error,
      * init_done, state_insert_info)
      */
-    CONFIG,  ///< 15
+    CONFIG,  ///< 16
     /**
      * @brief macro state for feedback (armed, test, calibrate,
      * fix_antennas, fix_rocket, active)
      */
-    FEEDBACK,  ///< 16
+    FEEDBACK,  ///< 17
     /**
      * @brief macro state for no feedback (armed_nf, test_nf,
      * fix_rocket_nf, active_nf)
      */
-    NO_FEEDBACK,  ///< 17
-    INVALID,      ///< 18
+    NO_FEEDBACK,  ///< 18
+    INVALID,      ///< 19
 };
 
 struct SMAStatus

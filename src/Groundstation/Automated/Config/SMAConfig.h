@@ -34,6 +34,9 @@ namespace SMAConfig
 /// @brief Period of the propagator algorithm [ms].
 constexpr milliseconds UPDATE_PERIOD = 100ms;  // 10 Hz
 
+/// @brief  Time of the OFFSET state waiting for the algorithm to converge
+constexpr milliseconds OFFSET_TIME = 10s;
+
 static constexpr bool USING_ROCKET_GPS_POSITION =
     true;  //< Use the GPS position instead of the NAS
 

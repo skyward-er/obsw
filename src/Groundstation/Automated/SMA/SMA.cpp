@@ -84,7 +84,7 @@ void SMA::setAntennaCoordinates(const Boardcore::GPSData& antennaCoordinates)
 void SMA::setRocketNASOrigin(const Boardcore::GPSData& rocketCoordinates)
 {
     if (!testState(&SMA::state_fix_rocket) &&
-        !testState(&SMA::state_fix_rocket_nf))
+        !testState(&SMA::state_fix_rocket_nf) && !testState(&SMA::state_offset))
     {
         LOG_ERR(logger,
                 "Rocket coordinates can only be set in the "
@@ -151,6 +151,20 @@ void SMA::setMultipliers(StepperList axis, float multiplier)
     {
         getModule<Actuators>()->setMultipliers(axis, multiplier);
     }
+}
+
+bool SMA::addOffset(StepperList axis, float offset)
+{
+    if (!testState(&SMA::state_active) && !testState(&SMA::state_active_nf))
+        return false;
+
+    if (axis == STEPPER_X)
+        follower.addToOffset(offset, 0.0f);
+    else if (axis == STEPPER_Y)
+        follower.addToOffset(0.0f, offset);
+    else
+        return false;
+    return true;
 }
 
 void SMA::setFatal() { fatalInit = true; };
@@ -253,10 +267,15 @@ void SMA::update()
         // in active state, update the follower and propagator inner states
         case SMAState::ACTIVE:
         case SMAState::ACTIVE_NF:
+        case SMAState::OFFSET_ANGLES:
         {
             // retrieve the last NAS Rocket state
             {
                 miosix::Lock<miosix::FastMutex> lock(mutex);
+
+                // Break in case of no fix
+                if (rocketCoordinates.fix < 3)
+                    break;
 
                 NASState nasState;
                 GPSData position, origin;
@@ -296,32 +315,35 @@ void SMA::update()
                     Boardcore::AntennaAnglesLog(target,
                                                 predicted.nPropagations));
 
-                // actuate the steppers
-                steppers->setSpeed(StepperList::STEPPER_X,
-                                   follow.horizontalSpeed);
-                steppers->setSpeed(StepperList::STEPPER_Y,
-                                   follow.verticalSpeed);
-
-                ActuationStatus actuation =
-                    steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
-                if (actuation != ActuationStatus::OK)
+                // actuate the steppers if not in OFFSET state
+                if (status != SMAState::OFFSET_ANGLES)
                 {
-                    LOG_ERR(logger,
-                            "Step antenna - STEPPER_X could not move or "
-                            "reached move "
-                            "limit. Error: ",
-                            actuation, "\n");
-                }
+                    steppers->setSpeed(StepperList::STEPPER_X,
+                                       follow.horizontalSpeed);
+                    steppers->setSpeed(StepperList::STEPPER_Y,
+                                       follow.verticalSpeed);
 
-                actuation =
-                    steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
-                if (actuation != ActuationStatus::OK)
-                {
-                    LOG_ERR(logger,
-                            "Step antenna - STEPPER_Y could not move or "
-                            "reached move "
-                            "limit. Error: ",
-                            actuation, "\n");
+                    ActuationStatus actuation =
+                        steppers->moveDeg(StepperList::STEPPER_X, follow.yaw);
+                    if (actuation != ActuationStatus::OK)
+                    {
+                        LOG_ERR(logger,
+                                "Step antenna - STEPPER_X could not move or "
+                                "reached move "
+                                "limit. Error: ",
+                                actuation, "\n");
+                    }
+
+                    actuation =
+                        steppers->moveDeg(StepperList::STEPPER_Y, follow.pitch);
+                    if (actuation != ActuationStatus::OK)
+                    {
+                        LOG_ERR(logger,
+                                "Step antenna - STEPPER_Y could not move or "
+                                "reached move "
+                                "limit. Error: ",
+                                actuation, "\n");
+                    }
                 }
             }
         }
@@ -477,7 +499,7 @@ State SMA::state_init(const Event& event)
         }
         case ARP_INIT_OK:
         {
-            return transition(&SMA::state_init_done);
+            return transition(&SMA::state_insert_info);
         }
         case ARP_INIT_ERROR:
         {
@@ -630,6 +652,10 @@ State SMA::state_arm_ready(const Event& event)
         case TMTC_ARP_ARM:
         {
             return transition(&SMA::state_no_feedback);
+        }
+        case TMTC_ARP_ENTER_OFFSET:
+        {
+            return transition(&SMA::state_offset);
         }
         default:
         {
@@ -900,6 +926,56 @@ State SMA::state_armed_nf(const Event& event)
         case TMTC_ARP_ENTER_TEST_MODE:
         {
             return transition(&SMA::state_test_nf);
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State SMA::state_offset(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            logStatusAndUpdate(SMAState::OFFSET_ANGLES);
+
+            // After some time exit form the offset angle
+            lastDelayedEvent = EventBroker::getInstance().postDelayed(
+                TMTC_ARP_EXIT_OFFSET, TOPIC_TMTC,
+                SMAConfig::OFFSET_TIME.count());
+            follower.begin();
+            propagator.begin();
+            return HANDLED;
+        }
+        case EV_EXIT:
+        {
+            // Offset the algorithm angles
+            follower.initOffset();
+            follower.end();
+            propagator.end();
+
+            // Remove any scheduled exit from the OFFSET state
+            if (lastDelayedEvent)
+            {
+                EventBroker::getInstance().removeDelayed(lastDelayedEvent);
+                lastDelayedEvent = 0;
+            }
+            return HANDLED;
+        }
+        case TMTC_ARP_EXIT_OFFSET:
+        {
+            return transition(&SMA::state_arm_ready);
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&SMA::state_no_feedback);
+        }
+        case EV_INIT:
+        {
+            return HANDLED;
         }
         default:
         {

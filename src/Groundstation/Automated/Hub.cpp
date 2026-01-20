@@ -80,6 +80,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     {MAV_CMD_ARM, TMTC_ARP_ARM},
                     {MAV_CMD_DISARM, TMTC_ARP_DISARM},
                     {MAV_CMD_ARP_FOLLOW, TMTC_ARP_FOLLOW},
+                    {MAV_CMD_ARP_ENTER_OFFSET, TMTC_ARP_ENTER_OFFSET},
                     {MAV_CMD_CALIBRATE, TMTC_ARP_CALIBRATE},
                     {MAV_CMD_ENTER_TEST_MODE, TMTC_ARP_ENTER_TEST_MODE},
                     {MAV_CMD_EXIT_TEST_MODE, TMTC_ARP_EXIT_TEST_MODE},
@@ -144,6 +145,20 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 sendAck(msg);
                 break;
             }
+            case MAVLINK_MSG_ID_ADD_OFFSET_ANGLE_TC:
+            {
+                StepperList stepperId = static_cast<StepperList>(
+                    mavlink_msg_add_offset_angle_tc_get_stepper_id(&msg));
+
+                float angle = mavlink_msg_add_offset_angle_tc_get_angle(&msg);
+
+                // Add to the offset
+                if (getModule<SMA>()->addOffset(stepperId, angle))
+                    sendAck(msg);
+                else
+                    sendNack(msg, 304);
+                break;
+            }
             case MAVLINK_MSG_ID_SET_ROCKET_COORDINATES_ARP_TC:
             {
                 float latitude =
@@ -163,6 +178,8 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 gpsData.fix          = 3;
                 gpsData.satellites   = 42;
 
+                // Set the rocket origin for hub and SMA
+                setRocketOrigin(gpsData);
                 getModule<SMA>()->setRocketNASOrigin(gpsData);
                 sendAck(msg);
                 break;
@@ -226,7 +243,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     }
                     default:
                     {
-                        sendNack(msg, 304);
+                        sendNack(msg, 306);
                         return;
                     }
                 }
