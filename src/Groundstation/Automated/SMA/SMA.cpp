@@ -159,9 +159,9 @@ bool SMA::addOffset(StepperList axis, float offset)
         return false;
 
     if (axis == STEPPER_X)
-        follower.addToOffset(offset, 0.0f);
+        return follower.addToOffset(offset, 0.0f);
     else if (axis == STEPPER_Y)
-        follower.addToOffset(0.0f, offset);
+        return follower.addToOffset(0.0f, offset);
     else
         return false;
     return true;
