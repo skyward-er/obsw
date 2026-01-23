@@ -28,8 +28,8 @@
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/BiliquidHSM/Biliquid.h>
-#include <RIGv2/StateMachines/ERegController/ERegControllerFUEL.h>
-#include <RIGv2/StateMachines/ERegController/ERegControllerOX.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerFuel.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerOx.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <RIGv2/StateMachines/TARS3/TARS3.h>
@@ -66,8 +66,8 @@ int main()
     auto gmm         = new GroundModeManager();
     auto tars1       = new TARS1();
     auto tars3       = new TARS3();
-    auto eRegOX      = new ERegControllerOX();
-    auto eRegFUEL    = new ERegControllerFUEL();
+    auto eRegOX      = new ERegControllerOx();
+    auto eRegFUEL    = new ERegControllerFuel();
 
     auto biliquid = new Biliquid();
 
@@ -95,8 +95,8 @@ int main()
         manager.insert<Registry>(registry) &&
         manager.insert<GroundModeManager>(gmm) &&
         manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
-        manager.insert<ERegControllerOX>(eRegOX) &&
-        manager.insert<ERegControllerFUEL>(eRegFUEL) &&
+        manager.insert<ERegControllerOx>(eRegOX) &&
+        manager.insert<ERegControllerFuel>(eRegFUEL) &&
         manager.insert<MotorStatus>(motorStatus) &&
         manager.insert<Biliquid>(biliquid) && manager.inject();
 

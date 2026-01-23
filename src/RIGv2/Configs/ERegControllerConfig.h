@@ -22,7 +22,7 @@
 #pragma once
 
 #include <RIGv2/Actuators/Actuators.h>
-#include <algorithms/EReg/ERegPIDConfig.h>
+#include <algorithms/EReg/ERegConfig.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -31,7 +31,7 @@ namespace RIGv2
 {
 namespace Config
 {
-namespace ERegFUEL
+namespace ERegFuel
 {
 
 using namespace Boardcore::Units::Frequency;
@@ -39,22 +39,20 @@ using namespace std::chrono;
 
 constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
+constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
+
 constexpr float TARGET_PRESSURE    = 58;  // [Bar]
 constexpr Hertz UPDATE_RATE        = 100_hz;
 constexpr int MEDIAN_SAMPLE_NUMBER = 10;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
-constexpr float MAX_APERATURE       = 1.0f;
-constexpr float MIN_APERATURE       = 0.0f;
 
 const static Boardcore::ERegPIDConfig STABILIZING_CONFIG = {
-    .KP = 0.07f,
-    .KI = 0.02f,
+    .KP = 0.004f,
+    .KI = 0.0f,
     .KD = 0.0f,
 
-    .Ts   = UPDATE_RATE_SECONDS,
-    .uMin = MIN_APERATURE,
-    .uMax = MAX_APERATURE,
+    .Ts = UPDATE_RATE_SECONDS,
 };
 
 const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
@@ -62,14 +60,24 @@ const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
     .KI = 0.03f,
     .KD = 0.01f,
 
-    .Ts   = UPDATE_RATE_SECONDS,
-    .uMin = MIN_APERATURE,
-    .uMax = MAX_APERATURE,
+    .Ts = UPDATE_RATE_SECONDS,
 };
 
-}  // namespace ERegFUEL
+const static Boardcore::ERegValveInfo VALVE_INFO = {
+    .minServoPosition = 0.261603f,
+    .minValveAngle    = 20,
+    .maxCv            = 0.912291f,
 
-namespace ERegOX
+    .polyValveCoeff = {11.5576f, -27.1038f, 23.5596f, -9.4317f, 2.3962f,
+                       0.0032f},
+
+    .polyServoCoeff = {0.0f, 0.0f, 1.3302e-6f, -169.3787e-6f, 18.6759e-3f,
+                       11.8442e-3f},
+};
+
+}  // namespace ERegFuel
+
+namespace ERegOx
 {
 
 using namespace Boardcore::Units::Frequency;
@@ -77,22 +85,20 @@ using namespace std::chrono;
 
 constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
 
+constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
+
 constexpr float TARGET_PRESSURE    = 58;  // [Bar]
 constexpr Hertz UPDATE_RATE        = 100_hz;
 constexpr int MEDIAN_SAMPLE_NUMBER = 10;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
-constexpr float MAX_APERATURE       = 1.0f;
-constexpr float MIN_APERATURE       = 0.0f;
 
 const static Boardcore::ERegPIDConfig STABILIZING_CONFIG = {
-    .KP = 0.07f,
-    .KI = 0.02f,
+    .KP = 0.01f,
+    .KI = 0.0f,
     .KD = 0.0f,
 
-    .Ts   = UPDATE_RATE_SECONDS,
-    .uMin = MIN_APERATURE,
-    .uMax = MAX_APERATURE,
+    .Ts = UPDATE_RATE_SECONDS,
 };
 
 const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
@@ -100,12 +106,22 @@ const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
     .KI = 0.08f,
     .KD = 0.03f,
 
-    .Ts   = UPDATE_RATE_SECONDS,
-    .uMin = MIN_APERATURE,
-    .uMax = MAX_APERATURE,
+    .Ts = UPDATE_RATE_SECONDS,
 };
 
-}  // namespace ERegOX
+const static Boardcore::ERegValveInfo VALVE_INFO = {
+    .minServoPosition = 0.155261f,
+    .minValveAngle    = 18,
+    .maxCv            = 0.981898f,
+
+    .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
+                       0.0036f},
+
+    .polyServoCoeff = {1.3476e-9f, -258.0271e-9f, 18.2523e-6f, -577.5516e-6f,
+                       16.5135e-3f, 2.7180e-3f},
+};
+
+}  // namespace ERegOx
 }  // namespace Config
 }  // namespace RIGv2
 

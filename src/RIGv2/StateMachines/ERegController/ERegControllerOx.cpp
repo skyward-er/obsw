@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include "ERegControllerFUEL.h"
+#include "ERegControllerOx.h"
 
 #include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/BoardScheduler.h>
@@ -37,35 +37,35 @@ using namespace RIGv2;
 using namespace miosix;
 using namespace Common;
 
-ERegControllerFUEL::ERegControllerFUEL()
-    : FSM{&ERegControllerFUEL::state_init, STACK_DEFAULT_FOR_PTHREAD,
+ERegControllerOx::ERegControllerOx()
+    : FSM{&ERegControllerOx::state_init, STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::eRegControllerPriority()},
-      regulator{Config::ERegFUEL::STABILIZING_CONFIG,
-                Config::ERegFUEL::TARGET_PRESSURE,
-                [this]() { return pressureFilter.calcMedian(); },
+      regulator{Config::ERegOx::STABILIZING_CONFIG, Config::ERegOx::VALVE_INFO,
+                Config::ERegOx::TARGET_PRESSURE,
+                [this]() { return currentSample; },
                 [this](float position)
                 {
                     getModule<Actuators>()->moveServo(
-                        Config::ERegFUEL::EREG_SERVO, position);
+                        Config::ERegOx::EREG_SERVO, position);
                     ActuatorsData positionData = {
                         TimestampTimer::getTimestamp(),
-                        Config::ERegFUEL::EREG_SERVO, position};
+                        Config::ERegOx::EREG_SERVO, position};
                     sdLogger.log(positionData);
                 }}
 {
-    EventBroker::getInstance().subscribe(this, TOPIC_EREG_FUEL);
+    EventBroker::getInstance().subscribe(this, TOPIC_EREG_OX);
 
-    changePIDConfig(Config::ERegFUEL::STABILIZING_CONFIG,
-                    Config::ERegFUEL::DISCHARGING_CONFIG);
-    changeTargetPressure(Config::ERegFUEL::TARGET_PRESSURE);
+    changePIDConfig(Config::ERegOx::STABILIZING_CONFIG,
+                    Config::ERegOx::DISCHARGING_CONFIG);
+    changeTargetPressure(Config::ERegOx::TARGET_PRESSURE);
 }
 
-bool ERegControllerFUEL::start()
+bool ERegControllerOx::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->eRegFuel();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->eRegOx();
 
-    uint8_t result = scheduler.addTask([this]() { update(); },
-                                       Config::ERegFUEL::UPDATE_RATE);
+    uint8_t result =
+        scheduler.addTask([this]() { update(); }, Config::ERegOx::UPDATE_RATE);
 
     if (result == 0)
     {
@@ -75,32 +75,46 @@ bool ERegControllerFUEL::start()
 
     if (!FSM::start())
     {
-        LOG_ERR(logger, "Failed to start ERegControllerFUEL FSM");
+        LOG_ERR(logger, "Failed to start ERegControllerOx FSM");
         return false;
     }
 
     return true;
 }
 
-void ERegControllerFUEL::update()
+void ERegControllerOx::update()
 {
-    pressureFilter.add(getModule<Sensors>()->getFuelTankPressure().pressure);
+    pressureFilter.add(getModule<Sensors>()->getOxTankPressure().pressure);
+    currentSample = pressureFilter.calcMedian();
 
-    if (pressureFilter.calcMedian() > Config::ERegFUEL::TARGET_PRESSURE * 1.5)
+    if (currentSample > Config::ERegOx::TARGET_PRESSURE * 1.2)
     {
-        EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
+        EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
-        getModule<Actuators>()->closeServo(Config::ERegFUEL::EREG_SERVO);
-        getModule<Actuators>()->openServoWithTime(FUEL_VENTING_VALVE, 5000);
+        getModule<Actuators>()->closeServo(Config::ERegOx::EREG_SERVO);
+        getModule<Actuators>()->openServoWithTime(OX_VENTING_VALVE, 5000);
+        return;
     }
 
-    if (state == ERegState::PRESSURIZING || state == ERegState::DISCHARGING)
+    if (state == ERegState::PRESSURIZING &&
+        abs(currentSample - lastSample) > Config::ERegOx::PRESSURE_THRESHOLD)
+    {
+        lastSample = currentSample;
         regulator.update();
+        return;
+    }
+
+    if (state == ERegState::DISCHARGING)
+    {
+        lastSample = currentSample;
+        regulator.update();
+        return;
+    }
 }
 
-ERegState ERegControllerFUEL::getState() { return state; }
+ERegState ERegControllerOx::getState() { return state; }
 
-void ERegControllerFUEL::state_init(const Event& event)
+void ERegControllerOx::state_init(const Event& event)
 {
     switch (event)
     {
@@ -111,13 +125,13 @@ void ERegControllerFUEL::state_init(const Event& event)
             regulator.init();
 
             // Immediately transition to ready
-            transition(&ERegControllerFUEL::state_closed);
+            transition(&ERegControllerOx::state_closed);
             break;
         }
     }
 }
 
-void ERegControllerFUEL::state_closed(const Event& event)
+void ERegControllerOx::state_closed(const Event& event)
 {
     switch (event)
     {
@@ -126,20 +140,20 @@ void ERegControllerFUEL::state_closed(const Event& event)
             updateAndLogStatus(ERegState::CLOSED);
 
             regulator.end();
-            getModule<Actuators>()->closeServo(Config::ERegFUEL::EREG_SERVO);
+            getModule<Actuators>()->closeServo(Config::ERegOx::EREG_SERVO);
             break;
         }
 
         case EREG_TOGGLE:
         case EREG_PRESSURIZE:
         {
-            transition(&ERegControllerFUEL::state_pressurizing);
+            transition(&ERegControllerOx::state_pressurizing);
             break;
         }
     }
 }
 
-void ERegControllerFUEL::state_pressurizing(const Event& event)
+void ERegControllerOx::state_pressurizing(const Event& event)
 {
     switch (event)
     {
@@ -150,25 +164,26 @@ void ERegControllerFUEL::state_pressurizing(const Event& event)
             regulator.changePIDConfig(pressurizationConfig);
             regulator.setReferencePoint(targetPressure);
             regulator.begin();
+            lastSample = -1.0f;
             break;
         }
 
         case EREG_TOGGLE:
         case EREG_CLOSE:
         {
-            transition(&ERegControllerFUEL::state_closed);
+            transition(&ERegControllerOx::state_closed);
             break;
         }
 
         case EREG_DISCHARGE:
         {
-            transition(&ERegControllerFUEL::state_discharging);
+            transition(&ERegControllerOx::state_discharging);
             break;
         }
     }
 }
 
-void ERegControllerFUEL::state_discharging(const Event& event)
+void ERegControllerOx::state_discharging(const Event& event)
 {
     switch (event)
     {
@@ -180,34 +195,33 @@ void ERegControllerFUEL::state_discharging(const Event& event)
             break;
         }
 
-        case EREG_PRESSURIZE:
-        {
-            transition(&ERegControllerFUEL::state_pressurizing);
-            break;
-        }
-
         case EREG_TOGGLE:
         case EREG_CLOSE:
         {
-            transition(&ERegControllerFUEL::state_closed);
+            transition(&ERegControllerOx::state_closed);
             break;
         }
     }
 }
 
-void ERegControllerFUEL::changePIDConfig(ERegPIDConfig newPressurizationConfig,
-                                         ERegPIDConfig newDischargeConfig)
+void ERegControllerOx::changePIDConfig(ERegPIDConfig newPressurizationConfig,
+                                       ERegPIDConfig newDischargeConfig)
 {
-    this->pressurizationConfig = newPressurizationConfig;
-    this->dischargeConfig      = newDischargeConfig;
+    this->pressurizationConfig.KP = newPressurizationConfig.KP;
+    this->pressurizationConfig.KI = newPressurizationConfig.KI;
+    this->pressurizationConfig.KD = newPressurizationConfig.KD;
+
+    this->dischargeConfig.KP = newDischargeConfig.KP;
+    this->dischargeConfig.KI = newDischargeConfig.KI;
+    this->dischargeConfig.KD = newDischargeConfig.KD;
 }
 
-void ERegControllerFUEL::changeTargetPressure(float newTargetPressure)
+void ERegControllerOx::changeTargetPressure(float newTargetPressure)
 {
     this->targetPressure = newTargetPressure;
 }
 
-void ERegControllerFUEL::updateAndLogStatus(ERegState state)
+void ERegControllerOx::updateAndLogStatus(ERegState state)
 {
     this->state = state;
     // printf("changing to state: %s\n", to_string(state).c_str());

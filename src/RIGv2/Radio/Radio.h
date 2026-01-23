@@ -30,6 +30,8 @@
 #include <RIGv2/Registry/Registry.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <RIGv2/StateMachines/BiliquidHSM/Biliquid.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerFuel.h>
+#include <RIGv2/StateMachines/ERegController/ERegControllerOx.h>
 #include <RIGv2/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv2/StateMachines/TARS1/TARS1.h>
 #include <RIGv2/StateMachines/TARS3/TARS3.h>
@@ -40,17 +42,16 @@
 #include <radio/SX1278/SX1278Lora.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
-
 namespace RIGv2
 {
 using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio
-    : public Boardcore::InjectableWithDeps<
-          Buses, BoardScheduler, Registry, Actuators, Sensors, CanHandler,
-          GroundModeManager, Biliquid, TARS1, TARS3, Common::MotorStatus>
+class Radio : public Boardcore::InjectableWithDeps<
+                  Buses, BoardScheduler, Registry, Actuators, Sensors,
+                  CanHandler, GroundModeManager, Biliquid, ERegControllerOx,
+                  ERegControllerFuel, TARS1, TARS3, Common::MotorStatus>
 {
 public:
     Radio() {}

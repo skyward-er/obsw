@@ -24,7 +24,7 @@
 
 #include <RIGv2/Actuators/Actuators.h>
 #include <RIGv2/BoardScheduler.h>
-#include <RIGv2/Configs/ERegConfig.h>
+#include <RIGv2/Configs/ERegControllerConfig.h>
 #include <RIGv2/StateMachines/ERegController/ERegControllerData.h>
 #include <algorithms/EReg/EReg.h>
 #include <common/MedianFilter.h>
@@ -34,12 +34,12 @@
 namespace RIGv2
 {
 
-class ERegControllerOX
-    : public Boardcore::FSM<ERegControllerOX>,
+class ERegControllerOx
+    : public Boardcore::FSM<ERegControllerOx>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors>
 {
 public:
-    ERegControllerOX();
+    ERegControllerOx();
 
     [[nodiscard]] bool start() override;
 
@@ -67,7 +67,10 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ereg");
 
     Boardcore::EReg regulator;
-    MedianFilter<float, Config::ERegOX::MEDIAN_SAMPLE_NUMBER> pressureFilter;
+    MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER> pressureFilter;
+
+    float currentSample;  // Current sample, passed to ereg algorithm
+    float lastSample;  // Last sample used by ereg algorithm to update its state
 
     Boardcore::ERegPIDConfig pressurizationConfig;
     Boardcore::ERegPIDConfig dischargeConfig;

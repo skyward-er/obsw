@@ -345,6 +345,58 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_SET_EREG_CONSTANTS_TC:
+        {
+            ERegPIDConfig pressurizationConfig = {
+                mavlink_msg_set_ereg_constants_tc_get_KpPressurization(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KiPressurization(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KdPressurization(&msg),
+            };
+
+            ERegPIDConfig dischargeConfig = {
+                mavlink_msg_set_ereg_constants_tc_get_KpDiscarge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KiDiscarge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KdDiscarge(&msg),
+            };
+
+            if (mavlink_msg_set_ereg_constants_tc_get_Ereg(&msg) == EREG_OX &&
+                getModule<ERegControllerOx>()->getState() == ERegState::CLOSED)
+            {
+                getModule<ERegControllerOx>()->changePIDConfig(
+                    pressurizationConfig, dischargeConfig);
+                return enqueueAck(msg);
+            }
+            if (mavlink_msg_set_ereg_constants_tc_get_Ereg(&msg) == EREG_FUEL &&
+                getModule<ERegControllerFuel>()->getState() ==
+                    ERegState::CLOSED)
+            {
+                getModule<ERegControllerFuel>()->changePIDConfig(
+                    pressurizationConfig, dischargeConfig);
+                return enqueueAck(msg);
+            }
+
+            return enqueueNack(msg, 0);
+        }
+
+        case MAVLINK_MSG_ID_SET_EREG_TARGET_TC:
+        {
+            float targetPressure =
+                mavlink_msg_set_ereg_target_tc_get_PressureTarget(&msg);
+
+            if (mavlink_msg_set_ereg_target_tc_get_Ereg(&msg) == EREG_OX)
+            {
+                getModule<ERegControllerOx>()->changeTargetPressure(
+                    targetPressure);
+            }
+            else
+            {
+                getModule<ERegControllerFuel>()->changeTargetPressure(
+                    targetPressure);
+            }
+
+            return enqueueAck(msg);
+        }
+
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
         {
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);

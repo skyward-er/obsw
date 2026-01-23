@@ -71,8 +71,8 @@ set(RIG_V2_COMPUTER
     src/RIGv2/StateMachines/TARS1/TARS1.cpp
     src/RIGv2/StateMachines/TARS3/TARS3.cpp
     src/RIGv2/StateMachines/BiliquidHSM/Biliquid.cpp
-    src/RIGv2/StateMachines/ERegController/ERegControllerOX.cpp
-    src/RIGv2/StateMachines/ERegController/ERegControllerFUEL.cpp
+    src/RIGv2/StateMachines/ERegController/ERegControllerOx.cpp
+    src/RIGv2/StateMachines/ERegController/ERegControllerFuel.cpp
 )
 
 set(CON_RIG_COMPUTER
