@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto, Pietro Bortolus
+ * Authors: Davide Mor, Niccolò Betto, Pietro Bortolus, Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,88 +39,88 @@ using namespace RIGv2;
 
 const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
 
-void Actuators::ServoInfo::openServoWithTime(uint32_t time)
-{
-    auto currentTime = Clock::now();
+// void Actuators::ServoInfo::openServoWithTime(uint32_t time)
+// {
+//     auto currentTime = Clock::now();
 
-    closeTs = currentTime + nanoseconds{msToNs(time)};
-    backstepTs =
-        currentTime + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+//     closeTs = currentTime + nanoseconds{msToNs(time)};
+//     backstepTs =
+//         currentTime + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
 
-    if (config.openingEvent != 0)
-        EventBroker::getInstance().post(config.openingEvent, TOPIC_MOTOR);
-}
+//     if (config.openingEvent != 0)
+//         EventBroker::getInstance().post(config.openingEvent, TOPIC_MOTOR);
+// }
 
-void Actuators::ServoInfo::closeServo()
-{
-    closeTs = ValveClosed;
-    backstepTs =
-        Clock::now() + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+// void Actuators::ServoInfo::closeServo()
+// {
+//     closeTs = ValveClosed;
+//     backstepTs =
+//         Clock::now() + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
 
-    if (config.closingEvent != 0)
-        EventBroker::getInstance().post(config.closingEvent, TOPIC_MOTOR);
-}
+//     if (config.closingEvent != 0)
+//         EventBroker::getInstance().post(config.closingEvent, TOPIC_MOTOR);
+// }
 
-void Actuators::ServoInfo::unsafeSetServoPosition(float position)
-{
-    // Check that the servo is actually there, just to be safe
-    if (!servo)
-        return;
+// void Actuators::ServoInfo::unsafeSetServoPosition(float position)
+// {
+//     // Check that the servo is actually there, just to be safe
+//     if (!servo)
+//         return;
 
-    position *= config.limit;
-    if (config.flipped)
-        position = 1.0f - position;
+//     position *= config.limit;
+//     if (config.flipped)
+//         position = 1.0f - position;
 
-    servo->setPosition(position);
-}
+//     servo->setPosition(position);
+// }
 
-float Actuators::ServoInfo::getServoPosition()
-{
-    // Check that the servo is actually there, just to be safe
-    if (!servo)
-        return 0.0f;
+// float Actuators::ServoInfo::getServoPosition()
+// {
+//     // Check that the servo is actually there, just to be safe
+//     if (!servo)
+//         return 0.0f;
 
-    float position = servo->getPosition();
-    if (config.flipped)
-        position = 1.0f - position;
+//     float position = servo->getPosition();
+//     if (config.flipped)
+//         position = 1.0f - position;
 
-    position /= config.limit;
-    return position;
-}
+//     position /= config.limit;
+//     return position;
+// }
 
-float Actuators::ServoInfo::getMaxAperture()
-{
-    return getModule<Registry>()->getOrSetDefaultUnsafe(
-        config.maxApertureRegKey, config.defaultMaxAperture);
-}
+// float Actuators::ServoInfo::getMaxAperture()
+// {
+//     return getModule<Registry>()->getOrSetDefaultUnsafe(
+//         config.maxApertureRegKey, config.defaultMaxAperture);
+// }
 
-uint32_t Actuators::ServoInfo::getOpeningTime()
-{
-    return getModule<Registry>()->getOrSetDefaultUnsafe(
-        config.openingTimeRegKey, config.defaultOpeningTime);
-}
+// uint32_t Actuators::ServoInfo::getOpeningTime()
+// {
+//     return getModule<Registry>()->getOrSetDefaultUnsafe(
+//         config.openingTimeRegKey, config.defaultOpeningTime);
+// }
 
-bool Actuators::ServoInfo::isServoOpen() { return closeTs != ValveClosed; }
+// bool Actuators::ServoInfo::isServoOpen() { return closeTs != ValveClosed; }
 
-bool Actuators::ServoInfo::setMaxAperture(float aperture)
-{
-    if (aperture >= 0.0 && aperture <= 1.0)
-    {
-        getModule<Registry>()->setUnsafe(config.maxApertureRegKey, aperture);
-        return true;
-    }
-    else
-    {
-        // What? Who would ever set this to above 100%?
-        return false;
-    }
-}
+// bool Actuators::ServoInfo::setMaxAperture(float aperture)
+// {
+//     if (aperture >= 0.0 && aperture <= 1.0)
+//     {
+//         getModule<Registry>()->setUnsafe(config.maxApertureRegKey, aperture);
+//         return true;
+//     }
+//     else
+//     {
+//         // What? Who would ever set this to above 100%?
+//         return false;
+//     }
+// }
 
-bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
-{
-    getModule<Registry>()->setUnsafe(config.openingTimeRegKey, time);
-    return true;
-}
+// bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
+// {
+//     getModule<Registry>()->setUnsafe(config.openingTimeRegKey, time);
+//     return true;
+// }
 
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,

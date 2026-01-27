@@ -24,6 +24,14 @@
 
 namespace RIGv2
 {
+
+enum class ValveType
+{
+    SERVO_PCA,
+    SOLENOID,
+    TIMED,
+};
+
 class ValveInterface
 {
 public:
@@ -31,7 +39,9 @@ public:
     virtual ~ValveInterface();
 
 public:
-    virtual bool setPosition(float position) = 0;
-    virtual bool getPosition()               = 0;
+    virtual void setPosition(float position, bool limited = true) = 0;
+    virtual float getPosition()                                   = 0;
+    virtual ValveType getType() const                             = 0;
+    virtual void enable() {};
 };
 }  // namespace RIGv2

@@ -1,3 +1,5 @@
+// Gpio come source (costruttore)
+// Viene alzato a 1 o a 0 dopo setPosition.
 /* Copyright (c) 2025 Skyward Experimental Rocketry
  * Author: Riccardo Sironi
  *
@@ -22,44 +24,56 @@
 
 #pragma once
 
+#include <miosix.h>
+
+#include <memory>
+
 #include "ValveInterface.h"
-#include "drivers/PCA9685/PCA9685.h"
+#include "actuators/Servo/Servo.h"
 
 namespace RIGv2
 {
-class ValveServoPCA : public ValveInterface
+class ValveTimed : public ValveInterface
 {
 public:
-    ValveServoPCA::ValveServoPCA(Boardcore::PCA9685& pca,
-                                 Boardcore::PCA9685::Channels channel)
-        : pca(pca), channel(channel)
+    /**
+     * @brief ValveSolenoid Constructor
+     * @param pin Solenoid valve control pin
+     */
+    ValveTimed(std::unique_ptr<Boardcore::Servo> servo)
+        : servo(std::move(servo))
     {
     }
+    ~ValveTimed() {};
 
-    void setPosition(float position, bool limited = true)
+    // Move-only
+    ValveTimed(ValveTimed&&)                 = default;
+    ValveTimed& operator=(ValveTimed&&)      = default;
+    ValveTimed(const ValveTimed&)            = delete;
+    ValveTimed& operator=(const ValveTimed&) = delete;
+
+    /**
+     * @brief Sets the state of the solenoid valve (open/closed).
+     * @param position position values greater than 0.5f are treated as high.
+     */
+    void setPosition(float position, bool limited = false)
     {
-        if (limited)
-        {
-            if (position < 0.0f)
-                position = 0.0f;
-            else if (position > 1.0f)
-                position = 1.0f;
-        }
-
-        lastPosition = position;
-        if (!pca.setDutyCycle(channel, position))
-        {
-            // How can I handle this error?
-        };
+        servo->setPosition(position, limited);
     };
 
-    float getPosition() { return lastPosition; };
+    /**
+     * @brief Returns the state of the solenoid valve (open/closed).
+     * @returns True if open
+     *
+     * False if closed
+     */
+    float getPosition() { return servo->getPosition(); };
 
-    ValveType getType() const override { return ValveType::SERVO_PCA; }
+    void enable() override { servo->enable(); }
+
+    ValveType getType() const override { return ValveType::TIMED; }
 
 private:
-    Boardcore::PCA9685& pca;
-    Boardcore::PCA9685::Channels channel;
-    float lastPosition = 0.0f;
+    std::unique_ptr<Boardcore::Servo> servo;
 };
 }  // namespace RIGv2

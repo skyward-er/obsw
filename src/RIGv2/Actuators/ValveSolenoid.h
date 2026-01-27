@@ -27,11 +27,10 @@
 #include <miosix.h>
 
 #include "ValveInterface.h"
-#include "actuators/Servo/Servo.h"
 
-namespace Boardcore
+namespace RIGv2
 {
-class ValveSolenoid : public RIGv2::ValveInterface
+class ValveSolenoid : public ValveInterface
 {
 public:
     /**
@@ -45,18 +44,16 @@ public:
      * @brief Sets the state of the solenoid valve (open/closed).
      * @param position position values greater than 0.5f are treated as high.
      */
-    bool setPosition(float position)
+    void setPosition(float position, bool limited = false)
     {
         if (position < 0.5f)
         {
-            ValveSolenoid::pin.low();  // set PIN to low
-            return true;
-        }
+            ValveSolenoid::pin.low();
+        }  // set PIN to low
         else
         {
-            ValveSolenoid::pin.high();  // set PIN to high
-            return true;
-        }
+            ValveSolenoid::pin.high();
+        }  // set PIN to high
     };
 
     /**
@@ -65,9 +62,11 @@ public:
      *
      * False if closed
      */
-    bool getPosition() { return ValveSolenoid::pin.value(); };
+    float getPosition() { return ValveSolenoid::pin.value(); };
+
+    ValveType getType() const override { return ValveType::SOLENOID; }
 
 private:
     miosix::GpioPin pin;
 };
-}  // namespace Boardcore
+}  // namespace RIGv2
