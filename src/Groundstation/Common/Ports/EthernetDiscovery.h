@@ -1,5 +1,5 @@
-/* Copyright (c) 2023-2025 Skyward Experimental Rocketry
- * Authors: Davide Mor, Nicolò Caruso, Federico Lolli
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,7 @@
 
 #pragma once
 
-#include <ActiveObject.h>
 #include <Groundstation/Common/HubBase.h>
-#include <Groundstation/Common/Ports/EthernetDiscovery.h>
-#include <Groundstation/Common/Ports/EthernetSniffer.h>
 #include <common/MavlinkOrion.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
@@ -36,62 +33,54 @@
 namespace Groundstation
 {
 
-// Timeout for the port receive
-static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 500;
-
 using EthernetMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
-class EthernetBase
-    : public Boardcore::Transceiver,
-      public Boardcore::InjectableWithDeps<HubBase, EthernetSniffer,
-                                           EthernetDiscovery>
+/**
+ * @brief Handles the discovery channel for GS autodiscovery.
+ *
+ * This class listens on a fixed port for GS_DISCOVERY_REQUEST messages
+ * and forwards them to the Hub for processing. Discovery responses are
+ * sent back via this same channel.
+ */
+class EthernetDiscovery : public Boardcore::Transceiver,
+                          public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
-    EthernetBase() {};
-    EthernetBase(bool randomIp, uint8_t ipOffset, bool sniffing)
-        : randomIp{randomIp}, ipOffset{ipOffset}, sniffOtherGs{sniffing} {};
+    /**
+     * @brief Initialize the discovery channel parameters.
+     * @param socketNr Socket number to use (typically 0)
+     * @param listenPort Port to listen on for discovery requests
+     */
+    void init(uint16_t socketNr, uint16_t listenPort);
 
-    void handleINTn();
-
-    void sendMsg(const mavlink_message_t& msg);
-
-    Boardcore::Wiz5500::PhyState getState();
-
-    Boardcore::WizIp getCurrentIp() { return currentIp; }
-    Boardcore::WizMac getCurrentMac() { return currentMac; }
-    uint16_t getDuplexPort() const { return duplexPort; }
-
-    void printIpConfig(std::ostream& os) const;
-
-protected:
+    /**
+     * @brief Start the discovery channel.
+     * @param wiz5500 Shared pointer to the WIZ5500 driver
+     * @return true if started successfully
+     */
     bool start(std::shared_ptr<Boardcore::Wiz5500> wiz5500);
-    std::shared_ptr<Boardcore::Wiz5500> wiz5500;
+
+    /**
+     * @brief Send a message via the discovery channel.
+     * Used to send GS_DISCOVERY_RESPONSE back to requesters.
+     */
+    void sendMsg(const mavlink_message_t& msg);
 
 private:
     /**
      * @brief Called internally when a message is received.
+     * Only forwards GS_DISCOVERY_REQUEST to Hub, ignores other messages.
      */
     void handleMsg(const mavlink_message_t& msg);
 
     ssize_t receive(uint8_t* pkt, size_t max_len) override;
-
     bool send(uint8_t* pkt, size_t len) override;
 
-    bool started = false;
+    std::shared_ptr<Boardcore::Wiz5500> wiz5500;
     std::unique_ptr<EthernetMavDriver> mav_driver;
-    bool randomIp    = true;
-    uint8_t ipOffset = 0;
-
-    Boardcore::WizIp currentIp   = {};
-    Boardcore::WizMac currentMac = {};
-
-    bool sniffOtherGs = false;
-    bool firstPort    = true;
-
-    // Socket number for duplex communication (socket 1 reserved for sniffer)
-    static constexpr int DUPLEX_SOCKET = 2;
-    uint16_t duplexPort                = 0;
+    uint16_t socketNr   = 0;
+    uint16_t listenPort = 0;
 };
 
 }  // namespace Groundstation

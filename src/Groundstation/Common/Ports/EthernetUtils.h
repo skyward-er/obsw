@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+ * Author: Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,4 +41,11 @@ Boardcore::WizIp generateRandomIpAddress(Boardcore::WizIp base,
  * The last two bytes of the MAC address are randomized.
  */
 Boardcore::WizMac generateRandomMacAddress(Boardcore::WizMac base);
+
+/**
+ * @brief Generates a random port number in the specified range.
+ *
+ * Default range is the IANA ephemeral port range (49152-65535).
+ */
+uint16_t generateRandomPort(uint16_t minPort = 49152, uint16_t maxPort = 65535);
 }  // namespace Groundstation

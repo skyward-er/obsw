@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023-2025 Skyward Experimental Rocketry
+ * Author: Davide Mor, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Groundstation/Common/HubBase.h>
+#include <Groundstation/Common/Ports/EthernetDiscovery.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <common/MavlinkOrion.h>
@@ -36,7 +37,8 @@ namespace GroundstationBase
 class Hub : public Boardcore::InjectableWithDeps<
                 Boardcore::InjectableBase<Groundstation::HubBase>,
                 LyraGS::BoardStatus, LyraGS::RadioMain, LyraGS::RadioPayload,
-                LyraGS::SerialLyraGS, LyraGS::EthernetGS>
+                LyraGS::SerialLyraGS, LyraGS::EthernetGS,
+                Groundstation::EthernetDiscovery>
 {
 public:
     /**

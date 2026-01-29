@@ -1,5 +1,5 @@
 /* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+ * Author: Niccolò Betto, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,5 +53,14 @@ WizMac generateRandomMacAddress(Boardcore::WizMac base)
     mac.f      = (std::rand() % 254) + 1;  // Generate in range 1-254
 
     return mac;
+}
+
+uint16_t generateRandomPort(uint16_t minPort, uint16_t maxPort)
+{
+    if (maxPort <= minPort)
+        return minPort;
+
+    return minPort +
+           static_cast<uint16_t>(std::rand() % (maxPort - minPort + 1));
 }
 }  // namespace Groundstation

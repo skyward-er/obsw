@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2023-2025 Skyward Experimental Rocketry
+ * Author: Davide Mor, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 #include <Groundstation/Common/Config/EthernetConfig.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
+#include <Groundstation/Common/Ports/EthernetDiscovery.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
@@ -38,18 +39,18 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     LyraGS::BoardStatus* status = getModule<LyraGS::BoardStatus>();
 
-    // Handle GS_DISCOVERY_REQUEST (responds via both Serial and Ethernet)
+    // Handle GS_DISCOVERY_REQUEST (responds via Serial and Discovery channel)
     if (msg.msgid == MAVLINK_MSG_ID_GS_DISCOVERY_REQUEST)
     {
         mavlink_gs_discovery_response_t response;
 
-        // Network info (0 if no ethernet)
+        // Network info: advertise the duplex port for direct communication
         if (status->isEthernetPresent())
         {
             LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
             Boardcore::WizIp currentIp   = ethernet->getCurrentIp();
             response.ip                  = static_cast<uint32_t>(currentIp);
-            response.port                = Groundstation::RECV_PORT;
+            response.port                = ethernet->getDuplexPort();
         }
         else
         {
@@ -70,13 +71,19 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                 ? Common::PAYLOAD_RADIO_CONFIG.freq_rf
                 : 0;
 
-        // Encode and send the response
+        // Encode the response
         mavlink_message_t responseMsg;
-        mavlink_msg_gs_discovery_response_encode(
-            Groundstation::GS_SYSTEM_ID, Groundstation::GS_COMPONENT_ID,
-            &responseMsg, &response);
+        mavlink_msg_gs_discovery_response_encode(Groundstation::GS_SYSTEM_ID,
+                                                 Groundstation::GS_COMPONENT_ID,
+                                                 &responseMsg, &response);
 
-        dispatchIncomingMsg(responseMsg);
+        // Send via discovery channel (ethernet) if present
+        if (status->isEthernetPresent())
+            getModule<EthernetDiscovery>()->sendMsg(responseMsg);
+
+        // Also send via serial for serial discovery
+        getModule<SerialLyraGS>()->sendMsg(responseMsg);
+
         return;  // Don't forward discovery requests to radios
     }
 

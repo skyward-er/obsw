@@ -1,5 +1,5 @@
-/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Nicolò Caruso
+/* Copyright (c) 2023-2025 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Nicolò Caruso, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,10 +51,12 @@ Boardcore::Wiz5500::PhyState EthernetBase::getState()
 void EthernetBase::printIpConfig(std::ostream& os) const
 {
     os << "Ethernet state:"
-       << "\n\tIP address:  " << currentIp
-       << "\n\tSubnet mask: " << Groundstation::SUBNET
-       << "\n\tGateway:     " << Groundstation::GATEWAY
-       << "\n\tMAC address: " << currentMac << std::endl;
+       << "\n\tIP address:   " << currentIp
+       << "\n\tSubnet mask:  " << Groundstation::SUBNET
+       << "\n\tGateway:      " << Groundstation::GATEWAY
+       << "\n\tMAC address:  " << currentMac
+       << "\n\tDiscovery port: " << Groundstation::DISCOVERY_PORT
+       << "\n\tDuplex port:  " << duplexPort << std::endl;
 }
 
 bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
@@ -112,9 +114,17 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
             this->printIpConfig(std::cout);
         });
 
-    // Ok now open the UDP socket
-    if (!this->wiz5500->openUdp(0, RECV_PORT, {255, 255, 255, 255}, SEND_PORT,
-                                500))
+    // Generate random port for duplex communication
+    duplexPort = generateRandomPort(DUPLEX_PORT_MIN, DUPLEX_PORT_MAX);
+
+    // Initialize and start discovery channel (socket 0, fixed port)
+    getModule<EthernetDiscovery>()->init(0, DISCOVERY_PORT);
+    if (!getModule<EthernetDiscovery>()->start(this->wiz5500))
+        return false;
+
+    // Open duplex socket (socket 2, random port) for all other communication
+    if (!this->wiz5500->openUdp(DUPLEX_SOCKET, duplexPort, {255, 255, 255, 255},
+                                SEND_PORT, 500))
     {
         return false;
     }
@@ -136,6 +146,8 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
     }
 
     TRACE("[info] Ethernet module started correctly\n");
+    TRACE("[info] Discovery port: %d, Duplex port: %d\n", DISCOVERY_PORT,
+          duplexPort);
     return true;
 }
 
@@ -149,11 +161,10 @@ ssize_t EthernetBase::receive(uint8_t* pkt, size_t max_len)
 {
     WizIp dst_ip;
     uint16_t dst_port;
-    return wiz5500->recvfrom(0, pkt, max_len, dst_ip, dst_port);
+    return wiz5500->recvfrom(DUPLEX_SOCKET, pkt, max_len, dst_ip, dst_port);
 }
 
 bool EthernetBase::send(uint8_t* pkt, size_t len)
 {
-    return wiz5500->send(0, pkt, len, 1000);
-    // return true;
+    return wiz5500->send(DUPLEX_SOCKET, pkt, len, 1000);
 }

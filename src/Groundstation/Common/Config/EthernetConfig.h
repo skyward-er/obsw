@@ -1,5 +1,5 @@
-/* Copyright (c) 2023 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Davide Mor, Federico Lolli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,13 @@ constexpr auto nextMacGroup(Boardcore::WizMac mac)
 
 constexpr uint16_t RECV_PORT = 42070;
 constexpr uint16_t SEND_PORT = 42069;
+
+// Discovery channel uses RECV_PORT (fixed)
+constexpr uint16_t DISCOVERY_PORT = RECV_PORT;
+
+// Duplex channel uses randomized port in ephemeral range
+constexpr uint16_t DUPLEX_PORT_MIN = 49152;
+constexpr uint16_t DUPLEX_PORT_MAX = 65535;
 
 constexpr Boardcore::WizMac MAC_BASE = {0x69, 0x69, 0x69, 0x69, 0, 0};
 constexpr Boardcore::WizIp IP_BASE   = {169, 254, 1, 0};

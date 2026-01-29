@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
+/* Copyright (c) 2024-2025 Skyward Experimental Rocketry
  * Author: Nicolò Caruso
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,6 +27,7 @@
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
+#include <Groundstation/Common/Ports/EthernetDiscovery.h>
 #include <Groundstation/LyraGS/Base/Hub.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Buses.h>
@@ -167,8 +168,9 @@ int main()
     LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
     LyraGS::EthernetGS* ethernet      = new LyraGS::EthernetGS(
         randomIp, dipRead.ipConfig, dipRead.isARP & ethernetSniffing);
-    EthernetSniffer* ethernetSniffer    = new EthernetSniffer();
-    LyraGS::RadioPayload* radio_payload = new LyraGS::RadioPayload(
+    EthernetSniffer* ethernetSniffer     = new EthernetSniffer();
+    EthernetDiscovery* ethernetDiscovery = new EthernetDiscovery();
+    LyraGS::RadioPayload* radio_payload  = new LyraGS::RadioPayload(
         dipRead.payloadHasBackup, dipRead.payloadTXenable);
 
     HubBase* hub = nullptr;
@@ -187,6 +189,7 @@ int main()
     ok &= manager.insert<LyraGS::RadioMain>(radio_main);
     ok &= manager.insert<LyraGS::EthernetGS>(ethernet);
     ok &= manager.insert<EthernetSniffer>(ethernetSniffer);
+    ok &= manager.insert<EthernetDiscovery>(ethernetDiscovery);
     ok &= manager.insert<LyraGS::RadioPayload>(radio_payload);
     ok &= manager.insert(board_status);
     ok &= manager.insert<BoardScheduler>(scheduler);
