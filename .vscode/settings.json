@@ -183,6 +183,7 @@
         "Xbee"
     ],
     "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
     "cmake.configureSettings": {
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
