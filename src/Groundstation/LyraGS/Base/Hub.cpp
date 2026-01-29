@@ -22,10 +22,12 @@
 
 #include "Hub.h"
 
+#include <Groundstation/Common/Config/EthernetConfig.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/LyraGS/BoardStatus.h>
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
+#include <common/Radio.h>
 
 using namespace Groundstation;
 using namespace GroundstationBase;
@@ -35,6 +37,46 @@ using namespace LyraGS;
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
     LyraGS::BoardStatus* status = getModule<LyraGS::BoardStatus>();
+
+    // Handle GS_DISCOVERY_REQUEST
+    if (msg.msgid == MAVLINK_MSG_ID_GS_DISCOVERY_REQUEST)
+    {
+        // Only respond if ethernet is present
+        if (status->isEthernetPresent())
+        {
+            LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
+            Boardcore::WizIp currentIp   = ethernet->getCurrentIp();
+
+            // Build the response
+            mavlink_gs_discovery_response_t response;
+            response.ip        = static_cast<uint32_t>(currentIp);
+            response.port      = Groundstation::RECV_PORT;
+            response.device_id = status->getSystemId();
+
+            // Radio types from BoardStatus
+            response.radio_433_type = status->getRadio433Type();
+            response.radio_868_type = status->getRadio868Type();
+
+            // Radio frequencies (only if radio is present)
+            response.radio_433_frequency =
+                (response.radio_433_type != RADIO_433_TYPE_NONE)
+                    ? Common::MAIN_RADIO_CONFIG.freq_rf
+                    : 0;
+            response.radio_868_frequency =
+                (response.radio_868_type != RADIO_868_TYPE_NONE)
+                    ? Common::PAYLOAD_RADIO_CONFIG.freq_rf
+                    : 0;
+
+            // Encode and send the response
+            mavlink_message_t responseMsg;
+            mavlink_msg_gs_discovery_response_encode(
+                Groundstation::GS_SYSTEM_ID, Groundstation::GS_COMPONENT_ID,
+                &responseMsg, &response);
+
+            dispatchIncomingMsg(responseMsg);
+        }
+        return;  // Don't forward discovery requests to radios
+    }
 
     bool send_ok = false;
 

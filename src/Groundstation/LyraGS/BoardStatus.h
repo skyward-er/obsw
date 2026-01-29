@@ -119,6 +119,10 @@ public:
     void setRadio868Present(bool backup);
     void setEthernetPresent(bool present);
 
+    uint8_t getRadio433Type() const { return radio_433_type; }
+    uint8_t getRadio868Type() const { return radio_868_type; }
+    uint8_t getSystemId() const { return systemId; }
+
 private:
     void sendArpTm();
     void sendRadioLinkTm();
