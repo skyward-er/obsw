@@ -47,10 +47,7 @@ ERegControllerOx::ERegControllerOx()
                 {
                     getModule<Actuators>()->moveServo(
                         Config::ERegOx::EREG_SERVO, position);
-                    ActuatorsData positionData = {
-                        TimestampTimer::getTimestamp(),
-                        Config::ERegOx::EREG_SERVO, position};
-                    sdLogger.log(positionData);
+                    PidData.output = position;
                 }}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_OX);
@@ -84,8 +81,12 @@ bool ERegControllerOx::start()
 
 void ERegControllerOx::update()
 {
+    sdLogger.log(PidData);
     pressureFilter.add(getModule<Sensors>()->getOxTankPressure().pressure);
     currentSample = pressureFilter.calcMedian();
+
+    PidData.timestamp = TimestampTimer::getTimestamp();
+    PidData.input     = currentSample;
 
     if (currentSample > Config::ERegOx::TARGET_PRESSURE * 1.2)
     {

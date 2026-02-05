@@ -799,10 +799,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     getModule<Actuators>()->isServoOpen(
                         ServosList::FUEL_VENTING_VALVE);
 
-                tm.prz_ox_valve_state = getModule<Actuators>()->isServoOpen(
-                    ServosList::PRZ_OX_VALVE);
-                tm.prz_fuel_valve_state = getModule<Actuators>()->isServoOpen(
-                    ServosList::PRZ_FUEL_VALVE);
+                tm.prz_ox_valve_state =
+                    (getModule<ERegControllerOx>()->getState() !=
+                     ERegState::CLOSED);
+                tm.prz_fuel_valve_state =
+                    (getModule<ERegControllerFuel>()->getState() !=
+                     ERegState::CLOSED);
 
                 tm.prz_ox_valve_position =
                     static_cast<uint8_t>(sensors->getOxRegPosition().position);

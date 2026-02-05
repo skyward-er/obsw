@@ -56,16 +56,16 @@ const static Boardcore::ERegPIDConfig STABILIZING_CONFIG = {
 };
 
 const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
-    .KP = 0.14,
-    .KI = 0.03f,
-    .KD = 0.01f,
+    .KP = 0.13f,
+    .KI = 0.0f,
+    .KD = 0.0f,
 
     .Ts = UPDATE_RATE_SECONDS,
 };
 
 const static Boardcore::ERegValveInfo VALVE_INFO = {
-    .minServoPosition = 0.261603f,
-    .minValveAngle    = 20,
+    .minServoPosition = 0.1012f,
+    .minValveAngle    = 12,
     .maxCv            = 0.912291f,
 
     .polyValveCoeff = {11.5576f, -27.1038f, 23.5596f, -9.4317f, 2.3962f,
@@ -102,16 +102,16 @@ const static Boardcore::ERegPIDConfig STABILIZING_CONFIG = {
 };
 
 const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
-    .KP = 0.13f,
-    .KI = 0.08f,
-    .KD = 0.03f,
+    .KP = 0.26f,
+    .KI = 0.0f,
+    .KD = 0.0f,
 
     .Ts = UPDATE_RATE_SECONDS,
 };
 
 const static Boardcore::ERegValveInfo VALVE_INFO = {
-    .minServoPosition = 0.155261f,
-    .minValveAngle    = 18,
+    .minServoPosition = 0.1163f,
+    .minValveAngle    = 16,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,

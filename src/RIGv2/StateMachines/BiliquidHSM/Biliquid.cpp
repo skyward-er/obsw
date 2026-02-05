@@ -133,11 +133,14 @@ State Biliquid::state_ready(const Event& event)
             switch (currentSequence)
             {
                 case SEQUENCE_0:
-                    return transition(&Biliquid::state_seq_0);
+                    LOG_ERR(logger,
+                            "Biliquid sequence not set when trying to start "
+                            "generic sequence");
+                    return UNHANDLED;
                 case SEQUENCE_1:
                     return transition(&Biliquid::state_seq_1);
                 case SEQUENCE_2:
-                    return transition(&Biliquid::state_seq_2);
+                    return transition(&Biliquid::state_seq_2_FUEL);
                 case SEQUENCE_3:
                     return transition(&Biliquid::state_seq_3);
                 default:
@@ -152,7 +155,7 @@ State Biliquid::state_ready(const Event& event)
 
         case BILIQUID_START_SEQUENCE_2:
         {
-            return transition(&Biliquid::state_seq_2);
+            return transition(&Biliquid::state_seq_2_FUEL);
         }
 
         case BILIQUID_START_SEQUENCE_3:
@@ -182,99 +185,6 @@ State Biliquid::state_ready(const Event& event)
     }
 }
 
-State Biliquid::state_seq_0(const Event& event)
-{
-    switch (event)
-    {
-        case EV_INIT:
-        {
-            updateAndLogStatus(BiliquidState::SEQUENCE_0);
-            stepCount = 0;
-            return HANDLED;
-        }
-
-        case EV_ENTRY:
-        {
-            getModule<Actuators>()->moveServo(PRZ_OX_VALVE, 0.5f);
-            getModule<Actuators>()->moveServo(PRZ_FUEL_VALVE, 0.5f);
-
-            // start stepping
-            nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_STEP, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::DT}.count());
-            return HANDLED;
-        }
-
-        case BILIQUID_STEP:
-        {
-            if (stepCount < Config::Biliquid::maxStepCount4)
-            {  // move the valves to the next step
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_OX_VALVE,
-                           Config::Biliquid::Positions4[stepCount]};
-                sdLogger.log(logData);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_OX_VALVE,
-                    Config::Biliquid::Positions4[stepCount]);
-
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_FUEL_VALVE,
-                           Config::Biliquid::Positions4[stepCount]};
-                sdLogger.log(logData);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_FUEL_VALVE,
-                    Config::Biliquid::Positions4[stepCount]);
-
-                // update the number of steps taken before stepping again
-                stepCount++;
-
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_STEP, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::Times4[stepCount]}.count());
-
-                return HANDLED;
-            }
-            else
-            {
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_END_SEQUENCE_1, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::DT}.count());
-            }
-        }
-
-        case BILIQUID_END_SEQUENCE_1:
-        {
-            return transition(&Biliquid::state_idle);
-        }
-
-        case BILIQUID_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&Biliquid::state_idle);
-        }
-
-        case EV_EXIT:
-        {
-            getModule<Actuators>()->closeServo(ServosList::PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(ServosList::PRZ_FUEL_VALVE);
-
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&Biliquid::state_ready);
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
 State Biliquid::state_seq_1(const Event& event)
 {
     switch (event)
@@ -288,8 +198,9 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_ENTRY:
         {
-            getModule<Actuators>()->closeServo(PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(PRZ_FUEL_VALVE);
+            // Change the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
 
             // start stepping
             nextEventId = EventBroker::getInstance().postDelayed(
@@ -300,25 +211,15 @@ State Biliquid::state_seq_1(const Event& event)
 
         case BILIQUID_STEP:
         {
-            if (stepCount < Config::Biliquid::maxStepCount1)
-            {  // move the valves to the next step
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_OX_VALVE,
-                           Config::Biliquid::Positions1[stepCount]};
-                sdLogger.log(logData);
+            if (stepCount < Config::Biliquid::maxStepCount)
+            {  // move the valve to the next step
+                getModule<Actuators>()->moveServo(
+                    ServosList::MAIN_OX_VALVE,
+                    Config::Biliquid::PositionsOX[stepCount]);
 
                 getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_OX_VALVE,
-                    Config::Biliquid::Positions1[stepCount]);
-
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_FUEL_VALVE,
-                           Config::Biliquid::Positions1[stepCount]};
-                sdLogger.log(logData);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_FUEL_VALVE,
-                    Config::Biliquid::Positions1[stepCount]);
+                    ServosList::MAIN_FUEL_VALVE,
+                    Config::Biliquid::PositionsFUEL[stepCount]);
 
                 // update the number of steps taken before stepping again
                 stepCount++;
@@ -350,8 +251,12 @@ State Biliquid::state_seq_1(const Event& event)
 
         case EV_EXIT:
         {
-            getModule<Actuators>()->closeServo(ServosList::PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(ServosList::PRZ_FUEL_VALVE);
+            // Change back the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_PRESSURIZE, TOPIC_EREG_OX);
+
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
 
             return HANDLED;
         }
@@ -368,69 +273,89 @@ State Biliquid::state_seq_1(const Event& event)
     }
 }
 
-State Biliquid::state_seq_2(const Event& event)
+State Biliquid::state_seq_2_FUEL(const Event& event)
 {
     switch (event)
     {
         case EV_INIT:
         {
-            updateAndLogStatus(BiliquidState::SEQUENCE_2);
-            stepCount = 0;
+            updateAndLogStatus(BiliquidState::SEQUENCE_2_FUEL);
             return HANDLED;
         }
 
         case EV_ENTRY:
         {
-            getModule<Actuators>()->closeServo(PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(PRZ_FUEL_VALVE);
+            // change the state of the FUEL ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_FUEL);
 
-            // start stepping
+            // open FUEL valve
+            getModule<Actuators>()->moveServo(
+                ServosList::MAIN_FUEL_VALVE,
+                Config::Biliquid::SEQ_2_FUEL_POSITION);
+
+            // wait for before opening OX valve
             nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_STEP, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::DT}.count());
+                BILIQUID_SEQ_2_OX, TOPIC_BILIQUID,
+                milliseconds{Config::Biliquid::SEQ_2_OX_DELAY}.count());
             return HANDLED;
         }
 
-        case BILIQUID_STEP:
+        case BILIQUID_SEQ_2_OX:
         {
-            if (stepCount < Config::Biliquid::maxStepCount2)
-            {  // move the valves to the next step
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_OX_VALVE,
-                           Config::Biliquid::Positions2[stepCount]};
-                sdLogger.log(logData);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_OX_VALVE,
-                    Config::Biliquid::Positions2[stepCount]);
-
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_FUEL_VALVE,
-                           Config::Biliquid::Positions2[stepCount]};
-                sdLogger.log(logData);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_FUEL_VALVE,
-                    Config::Biliquid::Positions2[stepCount]);
-
-                // update the number of steps taken before stepping again
-                stepCount++;
-
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_STEP, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::DT}.count());
-
-                return HANDLED;
-            }
-            else
-            {
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_END_SEQUENCE_1, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::DT}.count());
-            }
+            return transition(&Biliquid::state_seq_2_OX);
         }
 
-        case BILIQUID_END_SEQUENCE_1:
+        case BILIQUID_ABORT:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&Biliquid::state_idle);
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&Biliquid::state_ready);
+        }
+
+        case EV_EXIT:
+        {
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State Biliquid::state_seq_2_OX(const Event& event)
+{
+    switch (event)
+    {
+        case EV_INIT:
+        {
+            updateAndLogStatus(BiliquidState::SEQUENCE_2_OX);
+            return HANDLED;
+        }
+
+        case EV_ENTRY:
+        {
+            // change the state of the OX ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+
+            // open OX valve
+            getModule<Actuators>()->moveServo(
+                ServosList::MAIN_OX_VALVE, Config::Biliquid::SEQ_2_OX_POSITION);
+
+            // wait for SEQ_2_SHUTDOWN_DELAY ms before closing all valves
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_END_SEQUENCE_2, TOPIC_BILIQUID,
+                milliseconds{Config::Biliquid::SEQ_2_SHUTDOWN_DELAY}.count());
+
+            return HANDLED;
+        }
+
+        case BILIQUID_END_SEQUENCE_2:
         {
             return transition(&Biliquid::state_idle);
         }
@@ -441,17 +366,15 @@ State Biliquid::state_seq_2(const Event& event)
             return transition(&Biliquid::state_idle);
         }
 
-        case EV_EXIT:
-        {
-            getModule<Actuators>()->closeServo(ServosList::PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(ServosList::PRZ_FUEL_VALVE);
-
-            return HANDLED;
-        }
-
         case EV_EMPTY:
         {
             return tranSuper(&Biliquid::state_ready);
+        }
+
+        case EV_EXIT:
+        {
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
+            return HANDLED;
         }
 
         default:
@@ -468,62 +391,40 @@ State Biliquid::state_seq_3(const Event& event)
         case EV_INIT:
         {
             updateAndLogStatus(BiliquidState::SEQUENCE_3);
-            stepCount = 0;
             return HANDLED;
         }
 
         case EV_ENTRY:
         {
-            getModule<Actuators>()->closeServo(PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(PRZ_FUEL_VALVE);
+            // change the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_FUEL);
 
-            // start stepping
+            // wait before opening the valves to ensure that the ereg algorithm
+            // has had enough time to adjust
             nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_STEP, TOPIC_BILIQUID,
-                milliseconds{Config::Biliquid::DT}.count());
+                BILIQUID_STEP, TOPIC_BILIQUID, Config::Biliquid::DT.count());
             return HANDLED;
         }
 
         case BILIQUID_STEP:
         {
-            if (stepCount < Config::Biliquid::maxStepCount0)
-            {  // move the valves to the next step
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_OX_VALVE,
-                           Config::Biliquid::Positions0[stepCount]};
-                sdLogger.log(logData);
+            // fully open OX and fuel valves for SEQ_3_SHUTDOWN_DELAY ms
+            getModule<Actuators>()->openServoWithTime(
+                ServosList::MAIN_OX_VALVE,
+                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
 
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_OX_VALVE,
-                    Config::Biliquid::Positions0[stepCount]);
+            getModule<Actuators>()->openServoWithTime(
+                ServosList::MAIN_FUEL_VALVE,
+                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
 
-                logData = {static_cast<uint64_t>(miosix::getTime()),
-                           ServosList::PRZ_FUEL_VALVE,
-                           Config::Biliquid::Positions0[stepCount]};
-                sdLogger.log(logData);
-
-                getModule<Actuators>()->moveServo(
-                    ServosList::PRZ_FUEL_VALVE,
-                    Config::Biliquid::Positions0[stepCount]);
-
-                // update the number of steps taken before stepping again
-                stepCount++;
-
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_STEP, TOPIC_BILIQUID,
-                    milliseconds{Config::Biliquid::DT}.count());
-
-                return HANDLED;
-            }
-            else
-            {
-                nextEventId = EventBroker::getInstance().postDelayed(
-                    BILIQUID_END_SEQUENCE_1, TOPIC_BILIQUID,
-                    milliseconds{500}.count());
-            }
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_END_SEQUENCE_2, TOPIC_BILIQUID,
+                Config::Biliquid::SEQ_3_SHUTDOWN_DELAY.count());
+            return HANDLED;
         }
 
-        case BILIQUID_END_SEQUENCE_1:
+        case BILIQUID_END_SEQUENCE_2:
         {
             return transition(&Biliquid::state_idle);
         }
@@ -534,17 +435,20 @@ State Biliquid::state_seq_3(const Event& event)
             return transition(&Biliquid::state_idle);
         }
 
-        case EV_EXIT:
-        {
-            getModule<Actuators>()->closeServo(ServosList::PRZ_OX_VALVE);
-            getModule<Actuators>()->closeServo(ServosList::PRZ_FUEL_VALVE);
-
-            return HANDLED;
-        }
-
         case EV_EMPTY:
         {
             return tranSuper(&Biliquid::state_ready);
+        }
+
+        case EV_EXIT:
+        {
+            // Change back the state of the OX and FUEL ereg
+            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
+
+            getModule<Actuators>()->closeServo(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeServo(ServosList::MAIN_FUEL_VALVE);
+            return HANDLED;
         }
 
         default:

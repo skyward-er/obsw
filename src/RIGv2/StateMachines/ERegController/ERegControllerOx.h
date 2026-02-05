@@ -27,6 +27,7 @@
 #include <RIGv2/Configs/ERegControllerConfig.h>
 #include <RIGv2/StateMachines/ERegController/ERegControllerData.h>
 #include <algorithms/EReg/EReg.h>
+#include <algorithms/EReg/ERegData.h>
 #include <common/MedianFilter.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -71,9 +72,12 @@ private:
 
     float currentSample;  // Current sample, passed to ereg algorithm
     float lastSample;  // Last sample used by ereg algorithm to update its state
+    Boardcore::ERegData PidData = {0, Config::ERegOx::EREG_SERVO, 0.0f, 0.0f};
 
-    Boardcore::ERegPIDConfig pressurizationConfig;
-    Boardcore::ERegPIDConfig dischargeConfig;
+    Boardcore::ERegPIDConfig pressurizationConfig =
+        Config::ERegOx::STABILIZING_CONFIG;
+    Boardcore::ERegPIDConfig dischargeConfig =
+        Config::ERegOx::DISCHARGING_CONFIG;
     float targetPressure;
 };
 

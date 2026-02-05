@@ -42,15 +42,12 @@ ERegControllerFuel::ERegControllerFuel()
           BoardScheduler::eRegControllerPriority()},
       regulator{Config::ERegFuel::STABILIZING_CONFIG,
                 Config::ERegFuel::VALVE_INFO, Config::ERegFuel::TARGET_PRESSURE,
-                [this]() { return currentSample; },
+                [this]() { return this->currentSample; },
                 [this](float position)
                 {
                     getModule<Actuators>()->moveServo(
                         Config::ERegFuel::EREG_SERVO, position);
-                    ActuatorsData positionData = {
-                        TimestampTimer::getTimestamp(),
-                        Config::ERegFuel::EREG_SERVO, position};
-                    sdLogger.log(positionData);
+                    PidData.output = position;
                 }}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_FUEL);
@@ -84,15 +81,19 @@ bool ERegControllerFuel::start()
 
 void ERegControllerFuel::update()
 {
-    pressureFilter.add(getModule<Sensors>()->getOxTankPressure().pressure);
+    sdLogger.log(PidData);
+    pressureFilter.add(getModule<Sensors>()->getFuelTankPressure().pressure);
     currentSample = pressureFilter.calcMedian();
+
+    PidData.timestamp = TimestampTimer::getTimestamp();
+    PidData.input     = currentSample;
 
     if (currentSample > Config::ERegFuel::TARGET_PRESSURE * 1.2)
     {
-        EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
+        EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
         getModule<Actuators>()->closeServo(Config::ERegFuel::EREG_SERVO);
-        getModule<Actuators>()->openServoWithTime(OX_VENTING_VALVE, 5000);
+        getModule<Actuators>()->openServoWithTime(FUEL_VENTING_VALVE, 5000);
         return;
     }
 
@@ -161,8 +162,8 @@ void ERegControllerFuel::state_pressurizing(const Event& event)
         {
             updateAndLogStatus(ERegState::PRESSURIZING);
 
-            regulator.changePIDConfig(pressurizationConfig);
             regulator.setReferencePoint(targetPressure);
+            regulator.changePIDConfig(pressurizationConfig);
             regulator.begin();
             lastSample = -1.0f;
             break;
@@ -190,7 +191,7 @@ void ERegControllerFuel::state_discharging(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ERegState::DISCHARGING);
-
+            regulator.setReferencePoint(targetPressure);
             regulator.changePIDConfig(dischargeConfig);
             break;
         }

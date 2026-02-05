@@ -22,7 +22,6 @@
 #pragma once
 
 #include <RIGv2/Actuators/Actuators.h>
-#include <RIGv2/Actuators/ActuatorsData.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
@@ -49,9 +48,9 @@ public:
 private:
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
-    Boardcore::State state_seq_0(const Boardcore::Event& event);
     Boardcore::State state_seq_1(const Boardcore::Event& event);
-    Boardcore::State state_seq_2(const Boardcore::Event& event);
+    Boardcore::State state_seq_2_FUEL(const Boardcore::Event& event);
+    Boardcore::State state_seq_2_OX(const Boardcore::Event& event);
     Boardcore::State state_seq_3(const Boardcore::Event& event);
 
     void updateAndLogStatus(BiliquidState state);
@@ -63,7 +62,6 @@ private:
 
     uint16_t nextEventId              = -1;
     ValveSequenceList currentSequence = ValveSequenceList::SEQUENCE_0;
-    ActuatorsData logData;
 
     int stepCount = 0;
 };

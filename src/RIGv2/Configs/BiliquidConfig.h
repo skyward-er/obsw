@@ -32,27 +32,15 @@ namespace Biliquid
 /* linter off */ using namespace std::chrono;
 
 // sequence 1 configs
-static constexpr int maxStepCount1               = 5;
-static constexpr float Positions1[maxStepCount1] = {0.20f, 0.40f, 0.60f, 0.80f,
-                                                    1.0f};
+static constexpr int maxStepCount                = 5;
+static constexpr float PositionsOX[maxStepCount] = {0.20f, 0.25f, 0.30f, 0.35f,
+                                                    0.40f};
 
-static constexpr int maxStepCount2               = 8;
-static constexpr float Positions2[maxStepCount2] = {0.50f, 0.00f, 1.0f,  0.20f,
-                                                    0.80f, 0.35f, 0.65f, 0.50f};
-
-static constexpr int maxStepCount4               = 5;
-static constexpr float Positions4[maxStepCount4] = {1.0f, 0.0f, 1.0f, 0.0f,
-                                                    0.5f};
-
-static constexpr uint64_t Times4[maxStepCount4] = {1500, 1000, 500, 500, 1000};
-
-static constexpr int maxStepCount0               = 20;
-static constexpr float Positions0[maxStepCount0] = {
-    0.05,  0.10f, 0.15f, 0.20f, 0.25f, 0.30f, 0.35f, 0.40f, 0.45f, 0.50f,
-    0.55f, 0.60f, 0.65f, 0.70f, 0.75f, 0.80f, 0.85f, 0.90f, 0.95f, 1.0f};
+static constexpr float PositionsFUEL[maxStepCount] = {0.15f, 0.20f, 0.25f,
+                                                      0.30f, 0.35f};
 
 // time to wait between steps in sequence 1
-static constexpr milliseconds DT{1000};
+static constexpr milliseconds DT{1500};
 
 // sequence 2 configs
 static constexpr float SEQ_2_FUEL_POSITION = 0.25883f;
@@ -61,7 +49,7 @@ static constexpr milliseconds SEQ_2_OX_DELAY{100};
 static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2500};
 
 // sequence 3 configs
-static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{2500};
+static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{10000};
 
 }  // namespace Biliquid
 }  // namespace Config

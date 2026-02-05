@@ -45,12 +45,9 @@ public:
 
     T calcMedian()
     {
-        /* printf(
-            "Calculating median for: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f] \n",
-            values[0], values[1], values[2], values[3], values[4], values[5]);
-         */
         std::array<T, Max> valuesCopy;
         std::copy(values.begin(), values.end(), valuesCopy.begin());
+        std::sort(valuesCopy.begin(), valuesCopy.end());
 
         return valuesCopy[Max / 2];
     }
