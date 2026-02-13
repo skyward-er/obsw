@@ -51,6 +51,8 @@ static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2500};
 // sequence 3 configs
 static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{2500};
 
+static constexpr int maxIterationCount = 11;
+
 }  // namespace Biliquid
 }  // namespace Config
 }  // namespace RIGv2

@@ -182,6 +182,7 @@ State Biliquid::state_ready(const Event& event)
     }
 }
 
+// cft sequence
 State Biliquid::state_seq_0(const Event& event)
 {
     switch (event)
@@ -189,7 +190,6 @@ State Biliquid::state_seq_0(const Event& event)
         case EV_INIT:
         {
             updateAndLogStatus(BiliquidState::SEQUENCE_0);
-            stepCount = 0;
             return HANDLED;
         }
 
@@ -232,6 +232,7 @@ State Biliquid::state_seq_0(const Event& event)
     }
 }
 
+// Purge sequence
 State Biliquid::state_seq_1(const Event& event)
 {
     switch (event)
@@ -239,28 +240,23 @@ State Biliquid::state_seq_1(const Event& event)
         case EV_INIT:
         {
             updateAndLogStatus(BiliquidState::SEQUENCE_1);
-            stepCount = 0;
             return HANDLED;
         }
 
         case EV_ENTRY:
         {
-            getModule<Actuators>()->openOxSolenoidWithTime(2700);
-            nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{100ms}.count());
+            getModule<Actuators>()->openOxSolenoidWithTime(5000);
+            getModule<Actuators>()->openFuelSolenoidWithTime(4500);
             return HANDLED;
         }
 
         case BILIQUID_STEP:
         {
-            getModule<Actuators>()->openFuelSolenoidWithTime(2200);
-            getModule<Actuators>()->startSparkPlugWithTime(500);
             return HANDLED;
         }
 
         case BILIQUID_ABORT:
         {
-            EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&Biliquid::state_idle);
         }
 
@@ -284,6 +280,7 @@ State Biliquid::state_seq_1(const Event& event)
     }
 }
 
+// sft sequence 1
 State Biliquid::state_seq_2(const Event& event)
 {
     switch (event)
@@ -296,9 +293,7 @@ State Biliquid::state_seq_2(const Event& event)
 
         case EV_ENTRY:
         {
-            getModule<Actuators>()->openOxSolenoidWithTime(2700);
-            getModule<Actuators>()->openFuelSolenoidWithTime(2300);
-
+            getModule<Actuators>()->openOxSolenoidWithTime(2500);
             nextEventId = EventBroker::getInstance().postDelayed(
                 BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{100ms}.count());
             return HANDLED;
@@ -306,6 +301,7 @@ State Biliquid::state_seq_2(const Event& event)
 
         case BILIQUID_STEP:
         {
+            getModule<Actuators>()->openFuelSolenoidWithTime(2000);
             getModule<Actuators>()->startSparkPlugWithTime(500);
             return HANDLED;
         }
@@ -348,16 +344,42 @@ State Biliquid::state_seq_3(const Event& event)
         case EV_ENTRY:
         {
             // start stepping
-            getModule<Actuators>()->openFuelSolenoidWithTime(2300);
-            nextEventId = EventBroker::getInstance().postDelayed(
-                BILIQUID_STEP, TOPIC_BILIQUID, milliseconds{100ms}.count());
+            iterationCount = 0;
+            EventBroker::getInstance().post(BILIQUID_OX, TOPIC_BILIQUID);
             return HANDLED;
         }
 
-        case BILIQUID_STEP:
+        case BILIQUID_OX:
         {
-            getModule<Actuators>()->openOxSolenoidWithTime(2600);
+            if (iterationCount >= Config::Biliquid::maxIterationCount)
+            {
+                transition(&Biliquid::state_idle);
+                return HANDLED;
+            }
+
+            getModule<Actuators>()->openOxSolenoidWithTime(1300);
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_FUEL, TOPIC_BILIQUID, milliseconds{100ms}.count());
+            return HANDLED;
+        }
+
+        case BILIQUID_FUEL:
+        {
+            getModule<Actuators>()->openFuelSolenoidWithTime(800);
             getModule<Actuators>()->startSparkPlugWithTime(500);
+
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_PURGE, TOPIC_BILIQUID, milliseconds{1700ms}.count());
+            return HANDLED;
+        }
+
+        case BILIQUID_PURGE:
+        {
+            getModule<Actuators>()->openOxSolenoidWithTime(2000);
+            nextEventId = EventBroker::getInstance().postDelayed(
+                BILIQUID_OX, TOPIC_BILIQUID, milliseconds{2500ms}.count());
+
+            iterationCount++;
             return HANDLED;
         }
 

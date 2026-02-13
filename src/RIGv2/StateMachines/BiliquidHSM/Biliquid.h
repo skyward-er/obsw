@@ -63,6 +63,6 @@ private:
     uint16_t nextEventId              = -1;
     ValveSequenceList currentSequence = ValveSequenceList::SEQUENCE_0;
 
-    int stepCount = 0;
+    int iterationCount = 0;
 };
 }  // namespace RIGv2
