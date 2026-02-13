@@ -68,16 +68,24 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ereg");
 
     Boardcore::EReg regulator;
-    MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER> pressureFilter;
+    MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER>
+        downstreamPressureFilter;
+    MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER>
+        upstreamPressureFilter;
 
-    float currentSample;  // Current sample, passed to ereg algorithm
-    float lastSample;  // Last sample used by ereg algorithm to update its state
-    Boardcore::ERegData PidData = {0, Config::ERegOx::EREG_SERVO, 0.0f, 0.0f};
+    float downstreamSample;  // Downstream sample, passed to ereg algorithm
+    float upstreamSample;    // Upstream sample, passed to ereg algorithm
+
+    float lastDownstreamSample;  // Last sample used by ereg algorithm
+    float lastUpstreamSample;    // Last sample used by ereg algorithm
+
+    EregOxData pidData /* = {0, 0.0f, 0.0f, 0.0f} */;
 
     Boardcore::ERegPIDConfig pressurizationConfig =
         Config::ERegOx::STABILIZING_CONFIG;
     Boardcore::ERegPIDConfig dischargeConfig =
         Config::ERegOx::DISCHARGING_CONFIG;
+
     float targetPressure;
 };
 

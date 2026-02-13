@@ -88,4 +88,48 @@ struct ERegSampleData
     }
 };
 
+struct EregOxData : public Boardcore::ERegData
+{
+    explicit EregOxData(const Boardcore::ERegData& data)
+        : Boardcore::ERegData(data)
+    {
+    }
+
+    EregOxData(long timestamp, float downstreamPressure, float upstreamPressure,
+               float servoPosition)
+        : Boardcore::ERegData(timestamp, downstreamPressure, upstreamPressure,
+                              servoPosition)
+    {
+    }
+
+    EregOxData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(EregOxData, EXTEND_DEF(Boardcore::ERegData));
+    }
+};
+
+struct EregFuelData : public Boardcore::ERegData
+{
+    explicit EregFuelData(const Boardcore::ERegData& data)
+        : Boardcore::ERegData(data)
+    {
+    }
+
+    EregFuelData(long timestamp, float downstreamPressure,
+                 float upstreamPressure, float servoPosition)
+        : Boardcore::ERegData(timestamp, downstreamPressure, upstreamPressure,
+                              servoPosition)
+    {
+    }
+
+    EregFuelData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(EregFuelData, EXTEND_DEF(Boardcore::ERegData));
+    }
+};
+
 }  // namespace RIGv2

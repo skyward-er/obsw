@@ -41,14 +41,7 @@ ERegControllerFuel::ERegControllerFuel()
     : FSM{&ERegControllerFuel::state_init, STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::eRegControllerPriority()},
       regulator{Config::ERegFuel::STABILIZING_CONFIG,
-                Config::ERegFuel::VALVE_INFO, Config::ERegFuel::TARGET_PRESSURE,
-                [this]() { return this->currentSample; },
-                [this](float position)
-                {
-                    getModule<Actuators>()->moveServo(
-                        Config::ERegFuel::EREG_SERVO, position);
-                    PidData.output = position;
-                }}
+                Config::ERegFuel::VALVE_INFO, Config::ERegFuel::TARGET_PRESSURE}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_FUEL);
 
@@ -81,14 +74,20 @@ bool ERegControllerFuel::start()
 
 void ERegControllerFuel::update()
 {
-    sdLogger.log(PidData);
-    pressureFilter.add(getModule<Sensors>()->getFuelTankPressure().pressure);
-    currentSample = pressureFilter.calcMedian();
+    downstreamPressureFilter.add(
+        getModule<Sensors>()->getFuelTankPressure().pressure);
 
-    PidData.timestamp = TimestampTimer::getTimestamp();
-    PidData.input     = currentSample;
+    upstreamPressureFilter.add(
+        getModule<Sensors>()->getPrzTankPressure().pressure);
 
-    if (currentSample > Config::ERegFuel::TARGET_PRESSURE * 1.2)
+    downstreamSample = downstreamPressureFilter.calcMedian();
+    upstreamSample   = upstreamPressureFilter.calcMedian();
+
+    pidData.timestamp          = TimestampTimer::getTimestamp();
+    pidData.downstreamPressure = downstreamSample;
+    pidData.downstreamPressure = upstreamSample;
+
+    if (downstreamSample > Config::ERegFuel::TARGET_PRESSURE * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
@@ -98,17 +97,36 @@ void ERegControllerFuel::update()
     }
 
     if (state == ERegState::PRESSURIZING &&
-        abs(currentSample - lastSample) > Config::ERegFuel::PRESSURE_THRESHOLD)
+        (abs(downstreamSample - lastDownstreamSample) >
+             Config::ERegFuel::PRESSURE_THRESHOLD ||
+         abs(upstreamSample - lastUpstreamSample) >
+             Config::ERegFuel::PRESSURE_THRESHOLD))
     {
-        lastSample = currentSample;
+        lastDownstreamSample = downstreamSample;
+        lastUpstreamSample   = upstreamSample;
+        regulator.setInput(downstreamSample, upstreamSample);
+
         regulator.update();
+
+        pidData.servoPosition = regulator.getOutput();
+        getModule<Actuators>()->moveServo(Config::ERegFuel::EREG_SERVO,
+                                          pidData.servoPosition);
+        sdLogger.log(pidData);
         return;
     }
 
     if (state == ERegState::DISCHARGING)
     {
-        lastSample = currentSample;
+        lastDownstreamSample = downstreamSample;
+        lastUpstreamSample   = upstreamSample;
+        regulator.setInput(downstreamSample, upstreamSample);
+
         regulator.update();
+
+        pidData.servoPosition = regulator.getOutput();
+        getModule<Actuators>()->moveServo(Config::ERegFuel::EREG_SERVO,
+                                          pidData.servoPosition);
+        sdLogger.log(pidData);
         return;
     }
 }
@@ -165,7 +183,8 @@ void ERegControllerFuel::state_pressurizing(const Event& event)
             regulator.setReferencePoint(targetPressure);
             regulator.changePIDConfig(pressurizationConfig);
             regulator.begin();
-            lastSample = -1.0f;
+            lastDownstreamSample = -1.0f;
+            lastUpstreamSample   = -1.0f;
             break;
         }
 

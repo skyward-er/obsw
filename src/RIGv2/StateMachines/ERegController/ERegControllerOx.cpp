@@ -40,15 +40,11 @@ using namespace Common;
 ERegControllerOx::ERegControllerOx()
     : FSM{&ERegControllerOx::state_init, STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::eRegControllerPriority()},
-      regulator{Config::ERegOx::STABILIZING_CONFIG, Config::ERegOx::VALVE_INFO,
-                Config::ERegOx::TARGET_PRESSURE,
-                [this]() { return currentSample; },
-                [this](float position)
-                {
-                    getModule<Actuators>()->moveServo(
-                        Config::ERegOx::EREG_SERVO, position);
-                    PidData.output = position;
-                }}
+      regulator{
+          Config::ERegOx::STABILIZING_CONFIG,
+          Config::ERegOx::VALVE_INFO,
+          Config::ERegOx::TARGET_PRESSURE,
+      }
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_OX);
 
@@ -81,14 +77,20 @@ bool ERegControllerOx::start()
 
 void ERegControllerOx::update()
 {
-    sdLogger.log(PidData);
-    pressureFilter.add(getModule<Sensors>()->getOxTankPressure().pressure);
-    currentSample = pressureFilter.calcMedian();
+    downstreamPressureFilter.add(
+        getModule<Sensors>()->getOxTankPressure().pressure);
 
-    PidData.timestamp = TimestampTimer::getTimestamp();
-    PidData.input     = currentSample;
+    upstreamPressureFilter.add(
+        getModule<Sensors>()->getPrzTankPressure().pressure);
 
-    if (currentSample > Config::ERegOx::TARGET_PRESSURE * 1.2)
+    downstreamSample = downstreamPressureFilter.calcMedian();
+    upstreamSample   = upstreamPressureFilter.calcMedian();
+
+    pidData.timestamp          = TimestampTimer::getTimestamp();
+    pidData.downstreamPressure = downstreamSample;
+    pidData.downstreamPressure = upstreamSample;
+
+    if (downstreamSample > Config::ERegOx::TARGET_PRESSURE * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
@@ -98,17 +100,36 @@ void ERegControllerOx::update()
     }
 
     if (state == ERegState::PRESSURIZING &&
-        abs(currentSample - lastSample) > Config::ERegOx::PRESSURE_THRESHOLD)
+        (abs(downstreamSample - lastDownstreamSample) >
+             Config::ERegOx::PRESSURE_THRESHOLD ||
+         abs(upstreamSample - lastUpstreamSample) >
+             Config::ERegOx::PRESSURE_THRESHOLD))
     {
-        lastSample = currentSample;
+        lastDownstreamSample = downstreamSample;
+        lastUpstreamSample   = upstreamSample;
+        regulator.setInput(downstreamSample, upstreamSample);
+
         regulator.update();
+
+        pidData.servoPosition = regulator.getOutput();
+        getModule<Actuators>()->moveServo(Config::ERegOx::EREG_SERVO,
+                                          pidData.servoPosition);
+        sdLogger.log(pidData);
         return;
     }
 
     if (state == ERegState::DISCHARGING)
     {
-        lastSample = currentSample;
+        lastDownstreamSample = downstreamSample;
+        lastUpstreamSample   = upstreamSample;
+        regulator.setInput(downstreamSample, upstreamSample);
+
         regulator.update();
+
+        pidData.servoPosition = regulator.getOutput();
+        getModule<Actuators>()->moveServo(Config::ERegOx::EREG_SERVO,
+                                          pidData.servoPosition);
+        sdLogger.log(pidData);
         return;
     }
 }
@@ -165,7 +186,8 @@ void ERegControllerOx::state_pressurizing(const Event& event)
             regulator.changePIDConfig(pressurizationConfig);
             regulator.setReferencePoint(targetPressure);
             regulator.begin();
-            lastSample = -1.0f;
+            lastDownstreamSample = -1.0f;
+            lastUpstreamSample   = -1.0f;
             break;
         }
 
