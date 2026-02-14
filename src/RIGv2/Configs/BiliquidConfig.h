@@ -45,8 +45,8 @@ static constexpr milliseconds DT{1500};
 // sequence 2 configs
 static constexpr float SEQ_2_FUEL_POSITION = 0.25883f;
 static constexpr float SEQ_2_OX_POSITION   = 0.32516f;
-static constexpr milliseconds SEQ_2_OX_DELAY{100};
-static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{2500};
+static constexpr milliseconds SEQ_2_OX_DELAY{1000};
+static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{4500};
 
 // sequence 3 configs
 static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{10000};

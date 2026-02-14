@@ -85,7 +85,7 @@ void ERegControllerFuel::update()
 
     pidData.timestamp          = TimestampTimer::getTimestamp();
     pidData.downstreamPressure = downstreamSample;
-    pidData.downstreamPressure = upstreamSample;
+    pidData.upstreamPressure   = upstreamSample;
 
     if (downstreamSample > Config::ERegFuel::TARGET_PRESSURE * 1.2)
     {

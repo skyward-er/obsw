@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <algorithms/EReg/ERegData.h>
+
 #include <cstdint>
 #include <iostream>
 #include <reflect.hpp>
