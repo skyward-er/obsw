@@ -1,6 +1,4 @@
-// Gpio come source (costruttore)
-// Viene alzato a 1 o a 0 dopo setPosition.
-/* Copyright (c) 2025 Skyward Experimental Rocketry
+/* Copyright (c) 2026 Skyward Experimental Rocketry
  * Author: Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,24 +31,24 @@
 
 namespace RIGv2
 {
-class ValveTimed : public ValveInterface
+class ValveServo : public ValveInterface
 {
 public:
     /**
      * @brief ValveSolenoid Constructor
      * @param pin Solenoid valve control pin
      */
-    ValveTimed(std::unique_ptr<Boardcore::Servo> servo)
+    ValveServo(std::unique_ptr<Boardcore::Servo> servo)
         : servo(std::move(servo))
     {
     }
-    ~ValveTimed() {};
+    ~ValveServo() {};
 
     // Move-only
-    ValveTimed(ValveTimed&&)                 = default;
-    ValveTimed& operator=(ValveTimed&&)      = default;
-    ValveTimed(const ValveTimed&)            = delete;
-    ValveTimed& operator=(const ValveTimed&) = delete;
+    ValveServo(ValveServo&&)                 = default;
+    ValveServo& operator=(ValveServo&&)      = default;
+    ValveServo(const ValveServo&)            = delete;
+    ValveServo& operator=(const ValveServo&) = delete;
 
     /**
      * @brief Sets the state of the solenoid valve (open/closed).

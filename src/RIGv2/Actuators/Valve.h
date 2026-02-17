@@ -1,30 +1,36 @@
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Riccardo Sironi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 #pragma once
 
-#include <RIGv2/BoardScheduler.h>
-#include <RIGv2/CanHandler/CanHandler.h>
-#include <RIGv2/Registry/Registry.h>
-#include <actuators/Servo/Servo.h>
-#include <miosix.h>
-#include <scheduler/SignaledDeadlineTask.h>
-#include <scheduler/TaskScheduler.h>
-
-#include <chrono>
-#include <memory>
-#include <optional>
-#include <variant>
-
+#include "ValveServo.h"
 #include "ValveServoPCA.h"
 #include "ValveSolenoid.h"
-#include "ValveTimed.h"
 
 namespace RIGv2
 {
-class Valve : public Boardcore::InjectableWithDeps<Registry>,
-              public Boardcore::SignaledDeadlineTask
+class Valve
 {
 public:
-    static const TimePoint ValveClosed;
-
     struct ValveConfig
     {
         float limit                 = 1.0;    ///< Movement range limit
@@ -42,8 +48,7 @@ public:
                                              ///< aperture
     };
 
-    Valve(std::unique_ptr<ValveInterface> interface,
-          const ValveConfig& config = {})
+    Valve(std::unique_ptr<ValveInterface> interface, const ValveConfig& config)
         : servo(std::move(interface)), config(config)
     {
     }
@@ -60,19 +65,11 @@ public:
     bool isServoOpen();
 
     float getServoPosition();
-    float getMaxAperture();
-    uint32_t getOpeningTime();
 
-    bool setMaxAperture(float aperture);
-    bool setOpeningTime(uint32_t time);
+    const ValveConfig getConfig() const;
 
 private:
     std::unique_ptr<ValveInterface> servo;
     ValveConfig config;
-
-    // Time when the valve should close, 0 if currently closed
-    TimePoint closeTs = ValveClosed;
-    // Time when to backstep the valve to avoid straining the servo
-    TimePoint backstepTs = ValveClosed;
 };
 }  // namespace RIGv2

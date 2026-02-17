@@ -1,4 +1,4 @@
-/* Copyright (c) 2025 Skyward Experimental Rocketry
+/* Copyright (c) 2026 Skyward Experimental Rocketry
  * Authors: Davide Mor, Niccolò Betto, Pietro Bortolus, Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -56,7 +56,6 @@ const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
 //     closeTs = ValveClosed;
 //     backstepTs =
 //         Clock::now() + nanoseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
-
 //     if (config.closingEvent != 0)
 //         EventBroker::getInstance().post(config.closingEvent, TOPIC_MOTOR);
 // }
@@ -66,27 +65,23 @@ const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
 //     // Check that the servo is actually there, just to be safe
 //     if (!servo)
 //         return;
-
 //     position *= config.limit;
 //     if (config.flipped)
 //         position = 1.0f - position;
-
 //     servo->setPosition(position);
-// }
+// } DONE
 
 // float Actuators::ServoInfo::getServoPosition()
 // {
 //     // Check that the servo is actually there, just to be safe
 //     if (!servo)
 //         return 0.0f;
-
 //     float position = servo->getPosition();
 //     if (config.flipped)
 //         position = 1.0f - position;
-
 //     position /= config.limit;
 //     return position;
-// }
+// } DONE
 
 // float Actuators::ServoInfo::getMaxAperture()
 // {
@@ -98,7 +93,7 @@ const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
 // {
 //     return getModule<Registry>()->getOrSetDefaultUnsafe(
 //         config.openingTimeRegKey, config.defaultOpeningTime);
-// }
+// } DONE
 
 // bool Actuators::ServoInfo::isServoOpen() { return closeTs != ValveClosed; }
 
@@ -133,9 +128,9 @@ Actuators::Actuators()
       n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
 {
     for (auto& servo : infos)
-        servo.unsafeSetServoPosition(0.0f);
+        servo.valve.unsafeSetServoPosition(0.0f);
 
-    n2_3wayValveInfo.unsafeSetServoPosition(0.0f);
+    n2_3wayValveInfo.valve.unsafeSetServoPosition(0.0f);
     unsafeCloseChamber();
 }
 
@@ -146,11 +141,11 @@ bool Actuators::start()
     // Enable all servos and close them to force a backstep
     for (auto& info : infos)
     {
-        info.servo->enable();
+        info->valve.enable();
         info.closeServo();
     }
 
-    n2_3wayValveInfo.servo->enable();
+    n2_3wayValveInfo->valve.enable();
     n2_3wayValveInfo.closeServo();
 
     if (!SignaledDeadlineTask::start())
@@ -200,17 +195,20 @@ bool Actuators::toggleServo(ServosList servo)
 
     if (info->closeTs == ValveClosed)
     {
-        uint32_t time = info->getOpeningTime();
+        const auto& config = info->valve.getConfig();
+
+        uint32_t time = getModule<Registry>()->getOrSetDefaultUnsafe(
+            config.openingTimeRegKey, config.defaultOpeningTime);
 
         // The servo is closed, open it
         getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-        info->openServoWithTime(time);
+        info->valve.openServoWithTime(time);
     }
     else
     {
         // The servo is open, close it
         getModule<CanHandler>()->sendServoCloseCommand(servo);
-        info->closeServo();
+        info->valve.closeServo();
     }
 
     signalTask();
@@ -224,9 +222,13 @@ bool Actuators::openServo(ServosList servo)
     if (info == nullptr)
         return false;
 
-    uint32_t time = info->getOpeningTime();
+    const auto& config = info->valve.getConfig();
+
+    uint32_t time = getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.openingTimeRegKey, config.defaultOpeningTime);
+
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-    info->openServoWithTime(time);
+    info->valve.openServoWithTime(time);
     signalTask();
     return true;
 }
@@ -239,7 +241,7 @@ bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
         return false;
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-    info->openServoWithTime(time);
+    info->valve.openServoWithTime(time);
     signalTask();
     return true;
 }
@@ -252,7 +254,7 @@ bool Actuators::closeServo(ServosList servo)
         return false;
 
     getModule<CanHandler>()->sendServoCloseCommand(servo);
-    info->closeServo();
+    info->valve.closeServo();
     signalTask();
     return true;
 }
@@ -261,7 +263,7 @@ void Actuators::closeAllServos()
 {
     Lock<FastMutex> lock(infosMutex);
     for (uint8_t idx = 0; idx < 10; idx++)
-        infos[idx].closeServo();
+        infos[idx].valve.closeServo();
 
     getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_VALVE);
     getModule<CanHandler>()->sendServoCloseCommand(
@@ -277,7 +279,18 @@ bool Actuators::setMaxAperture(ServosList servo, float aperture)
     if (info == nullptr)
         return false;
 
-    return info->setMaxAperture(aperture);
+    const auto& config = info->valve.getConfig();
+
+    if (aperture >= 0.0 && aperture <= 1.0)
+    {
+        getModule<Registry>()->setUnsafe(config.maxApertureRegKey, aperture);
+        return true;
+    }
+    else
+    {
+        // What? Who would ever set this to above 100%?
+        return false;
+    }
 }
 
 bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
@@ -287,7 +300,10 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
     if (info == nullptr)
         return false;
 
-    return info->setOpeningTime(time);
+    const auto& config = info->valve.getConfig();
+
+    getModule<Registry>()->setUnsafe(config.openingTimeRegKey, time);
+    return true;
 }
 
 bool Actuators::isServoOpen(ServosList servo)
@@ -297,7 +313,7 @@ bool Actuators::isServoOpen(ServosList servo)
     if (info == nullptr)
         return false;
 
-    return info->isServoOpen();
+    return info->valve.isServoOpen();
 }
 
 Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
@@ -308,7 +324,7 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
     if (info == nullptr)
         return {};
 
-    bool isOpen      = info->isServoOpen();
+    bool isOpen      = info->valve.isServoOpen();
     auto timeToClose = 0ms;
 
     if (isOpen)
@@ -319,12 +335,16 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
             timeToClose = duration_cast<milliseconds>(diff);
     }
 
+    const auto& config = info->valve.getConfig();
+
     return ValveInfo{
-        .valid       = true,
-        .state       = isOpen,
-        .timing      = milliseconds{info->getOpeningTime()},
+        .valid  = true,
+        .state  = isOpen,
+        .timing = milliseconds{getModule<Registry>()->getOrSetDefaultUnsafe(
+            config.openingTimeRegKey, config.defaultOpeningTime)},
         .timeToClose = timeToClose,
-        .aperture    = info->getMaxAperture(),
+        .aperture    = getModule<Registry>()->getOrSetDefaultUnsafe(
+            config.maxApertureRegKey, config.defaultMaxAperture),
     };
 }
 
@@ -364,7 +384,10 @@ uint32_t Actuators::getServoOpeningTime(ServosList servo)
     if (info == nullptr)
         return 0;
 
-    return info->getOpeningTime();
+    const auto& config = info->valve.getConfig();
+
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.openingTimeRegKey, config.defaultOpeningTime);
 }
 
 float Actuators::getServoMaxAperture(ServosList servo)
@@ -374,7 +397,10 @@ float Actuators::getServoMaxAperture(ServosList servo)
     if (info == nullptr)
         return 0;
 
-    return info->getMaxAperture();
+    const auto& config = info->valve.getConfig();
+
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.maxApertureRegKey, config.defaultMaxAperture);
 }
 
 void Actuators::inject(DependencyInjector& injector)
@@ -418,7 +444,7 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 
 void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
 {
-    infos[idx].unsafeSetServoPosition(position);
+    infos[idx].valve.unsafeSetServoPosition(position);
 
     // Log the update
     ActuatorsData data;
@@ -474,13 +500,13 @@ void Actuators::task()
             if (currentTime < infos[idx].backstepTs)
             {
                 // We should open the valve all the way
-                unsafeSetServoPosition(idx, infos[idx].getMaxAperture());
+                unsafeSetServoPosition(idx, infos[idx].valve.getMaxAperture());
             }
             else
             {
                 // Backstep the valve a little to avoid strain
                 unsafeSetServoPosition(
-                    idx, infos[idx].getMaxAperture() *
+                    idx, infos[idx].valve.getMaxAperture() *
                              (1.0 - Config::Servos::SERVO_BACKSTEP_AMOUNT));
 
                 infos[idx].backstepTs = ValveClosed;  // Reset backstep time
@@ -492,7 +518,7 @@ void Actuators::task()
             if (infos[idx].closeTs != ValveClosed)
             {
                 // Perform the servo closing
-                infos[idx].closeServo();
+                infos[idx].valve.closeServo();
             }
 
             if (currentTime < infos[idx].backstepTs)
@@ -504,7 +530,7 @@ void Actuators::task()
             {
                 // Backstep the valve a little to avoid strain
                 unsafeSetServoPosition(
-                    idx, infos[idx].getMaxAperture() *
+                    idx, infos[idx].valve.getMaxAperture() *
                              Config::Servos::SERVO_BACKSTEP_AMOUNT);
 
                 infos[idx].backstepTs = ValveClosed;  // Reset backstep time
@@ -529,14 +555,14 @@ void Actuators::task()
         if (n2_3wayValveState)
         {
             // Open servo method called for logging and to set backstep time
-            n2_3wayValveInfo.openServoWithTime(0);
-            n2_3wayValveInfo.unsafeSetServoPosition(1.0f);
+            n2_3wayValveInfo.valve.openServoWithTime(0);
+            n2_3wayValveInfo.valve.unsafeSetServoPosition(1.0f);
         }
         else
         {
             // Close servo method called for logging and to set backstep time
-            n2_3wayValveInfo.closeServo();
-            n2_3wayValveInfo.unsafeSetServoPosition(0.0f);
+            n2_3wayValveInfo.valve.closeServo();
+            n2_3wayValveInfo.valve.unsafeSetServoPosition(0.0f);
         }
 
         n2_3wayValveStateChanged = false;
@@ -547,7 +573,7 @@ void Actuators::task()
         auto backstepPosition =
             n2_3wayValveState ? 1.0f - Config::Servos::SERVO_BACKSTEP_AMOUNT
                               : 0.0f + Config::Servos::SERVO_BACKSTEP_AMOUNT;
-        n2_3wayValveInfo.unsafeSetServoPosition(backstepPosition);
+        n2_3wayValveInfo.valve.unsafeSetServoPosition(backstepPosition);
 
         n2_3wayValveInfo.backstepTs = ValveClosed;  // Reset backstep time
     }

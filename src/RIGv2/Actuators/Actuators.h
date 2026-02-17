@@ -1,5 +1,5 @@
-/* Copyright (c) 2025 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Davide Mor, Niccolò Betto, Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,55 +38,28 @@
 namespace RIGv2
 {
 
-class Actuators
-    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>,
-      public Boardcore::SignaledDeadlineTask
+class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler,
+                                                       CanHandler, Registry>,
+                  public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for the valve closed state
     static const TimePoint ValveClosed;
 
-    struct ServoInfo : public Boardcore::InjectableWithDeps<Registry>
+    struct ServoInfo
     {
-        struct ServoConfig
-        {
-            float limit  = 1.0;    ///< Movement range limit
-            bool flipped = false;  ///< Whether the servo is flipped
-            uint32_t defaultOpeningTime = 1000;  // Default opening time [ms]
-            float defaultMaxAperture    = 1.0;   // Max aperture
+        ServoInfo(Valve&& valve) : valve(std::move(valve)) {}
 
-            uint8_t openingEvent = 0;  ///< Event to fire after opening
-            uint8_t closingEvent = 0;  ///< Event to fire after closing
-            uint32_t openingTimeRegKey =
-                CONFIG_ID_DEFAULT_OPENING_TIME;  ///< Registry key for opening
-                                                 ///< time
-            uint32_t maxApertureRegKey =
-                CONFIG_ID_DEFAULT_MAX_APERTURE;  ///< Registry key for max
-                                                 ///< aperture
-        };
+        Valve valve;
 
-        ServoInfo(std::unique_ptr<Valve> servo, const ServoConfig& config)
-            : servo(std::move(servo)), config(config)
-        {
-        }
-
-        std::unique_ptr<Valve> servo;
-        ServoConfig config;
+        // Disable Copy
+        ServoInfo(const ServoInfo&)            = delete;
+        ServoInfo& operator=(const ServoInfo&) = delete;
 
         // Time when the valve should close, 0 if currently closed
         TimePoint closeTs = ValveClosed;
         // Time when to backstep the valve to avoid straining the servo
         TimePoint backstepTs = ValveClosed;
-
-        void openServoWithTime(uint32_t time);
-        void closeServo();
-        void unsafeSetServoPosition(float position);
-        bool isServoOpen();
-        float getServoPosition();
-        float getMaxAperture();
-        uint32_t getOpeningTime();
-        bool setMaxAperture(float aperture);
-        bool setOpeningTime(uint32_t time);
     };
 
     struct ValveInfo

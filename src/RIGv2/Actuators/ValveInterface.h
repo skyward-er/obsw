@@ -1,4 +1,4 @@
-/* Copyright (c) 2025 Skyward Experimental Rocketry
+/* Copyright (c) 2026 Skyward Experimental Rocketry
  * Author: Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
