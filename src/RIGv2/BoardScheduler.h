@@ -58,6 +58,7 @@ public:
     Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& eRegOx() { return high; }
     Boardcore::TaskScheduler& eRegFuel() { return high; }
+    Boardcore::TaskScheduler& biliquid() { return high; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
 
     static Priority::PriorityLevel actuatorsPriority()

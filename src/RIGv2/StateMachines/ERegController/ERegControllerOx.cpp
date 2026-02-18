@@ -77,18 +77,19 @@ bool ERegControllerOx::start()
 
 void ERegControllerOx::update()
 {
-    downstreamPressureFilter.add(
-        getModule<Sensors>()->getOxTankPressure().pressure);
+    EregOxData logData;
 
-    upstreamPressureFilter.add(
-        getModule<Sensors>()->getPrzTankPressure().pressure);
+    logData.downstreamPressure =
+        getModule<Sensors>()->getOxTankPressure().pressure;
+    logData.upstreamPressure =
+        getModule<Sensors>()->getPrzTankPressure().pressure;
 
-    downstreamSample = downstreamPressureFilter.calcMedian();
-    upstreamSample   = upstreamPressureFilter.calcMedian();
+    downstreamPressureFilter.add(logData.downstreamPressure);
+    upstreamPressureFilter.add(logData.upstreamPressure);
 
-    pidData.timestamp          = TimestampTimer::getTimestamp();
-    pidData.downstreamPressure = downstreamSample;
-    pidData.upstreamPressure   = upstreamSample;
+    logData.filteredDownstreamPressure = downstreamPressureFilter.calcMedian();
+    logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMedian();
+    logData.timestamp                  = TimestampTimer::getTimestamp();
 
     if (downstreamSample > Config::ERegOx::TARGET_PRESSURE * 1.2)
     {
@@ -111,10 +112,10 @@ void ERegControllerOx::update()
 
         regulator.update();
 
-        pidData.servoPosition = regulator.getOutput();
+        logData.servoPosition = regulator.getOutput();
         getModule<Actuators>()->moveServo(Config::ERegOx::EREG_SERVO,
-                                          pidData.servoPosition);
-        sdLogger.log(pidData);
+                                          logData.servoPosition);
+        sdLogger.log(logData);
         return;
     }
 
@@ -126,10 +127,10 @@ void ERegControllerOx::update()
 
         regulator.update();
 
-        pidData.servoPosition = regulator.getOutput();
+        logData.servoPosition = regulator.getOutput();
         getModule<Actuators>()->moveServo(Config::ERegOx::EREG_SERVO,
-                                          pidData.servoPosition);
-        sdLogger.log(pidData);
+                                          logData.servoPosition);
+        sdLogger.log(logData);
         return;
     }
 }

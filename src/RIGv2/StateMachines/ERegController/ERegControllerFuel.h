@@ -79,8 +79,6 @@ private:
     float lastDownstreamSample;  // Last sample used by ereg algorithm
     float lastUpstreamSample;    // Last sample used by ereg algorithm
 
-    EregFuelData pidData /* = {0, 0.0f, 0.0f, 0.0f} */;
-
     Boardcore::ERegPIDConfig pressurizationConfig =
         Config::ERegFuel::STABILIZING_CONFIG;
     Boardcore::ERegPIDConfig dischargeConfig =

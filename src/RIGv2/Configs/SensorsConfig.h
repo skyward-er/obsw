@@ -127,7 +127,7 @@ constexpr float MAX_CURRENT = 20;  // [mA]
 
 constexpr float OX_VESSEL_MAX_PRESSURE    = 100;  // bar
 constexpr float REGULATOR_MAX_PRESSURE    = 250;  // bar
-constexpr float PRZ_FILLING_MAX_PRESSURE  = 400;  // bar
+constexpr float PRZ_FILLING_MAX_PRESSURE  = 40;   // bar
 constexpr float PRZ_VESSEL_1_MAX_PRESSURE = 400;  // bar
 constexpr float PRZ_VESSEL_2_MAX_PRESSURE = 400;  // bar
 constexpr float FUEL_TANK_MAX_PRESSURE    = 100;  // bar

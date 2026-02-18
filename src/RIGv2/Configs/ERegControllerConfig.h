@@ -37,6 +37,7 @@ namespace ERegFuel
 using namespace Boardcore::Units::Frequency;
 using namespace std::chrono;
 
+// why is this not static constexpr?
 constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]

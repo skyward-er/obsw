@@ -98,9 +98,11 @@ struct EregOxData : public Boardcore::ERegData
     }
 
     EregOxData(long timestamp, float downstreamPressure, float upstreamPressure,
+               float filteredDownstreamPressure, float filteredUpstreamPressure,
                float servoPosition)
         : Boardcore::ERegData(timestamp, downstreamPressure, upstreamPressure,
-                              servoPosition)
+                              filteredDownstreamPressure,
+                              filteredUpstreamPressure, servoPosition)
     {
     }
 
@@ -120,9 +122,11 @@ struct EregFuelData : public Boardcore::ERegData
     }
 
     EregFuelData(long timestamp, float downstreamPressure,
-                 float upstreamPressure, float servoPosition)
+                 float upstreamPressure, float filteredDownstreamPressure,
+                 float filteredUpstreamPressure, float servoPosition)
         : Boardcore::ERegData(timestamp, downstreamPressure, upstreamPressure,
-                              servoPosition)
+                              filteredDownstreamPressure,
+                              filteredUpstreamPressure, servoPosition)
     {
     }
 

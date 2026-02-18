@@ -22,6 +22,7 @@
 #pragma once
 
 #include <RIGv2/Actuators/Actuators.h>
+#include <RIGv2/BoardScheduler.h>
 #include <RIGv2/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
@@ -33,8 +34,9 @@
 
 namespace RIGv2
 {
-class Biliquid : public Boardcore::InjectableWithDeps<Sensors, Actuators>,
-                 public Boardcore::HSM<Biliquid>
+class Biliquid
+    : public Boardcore::InjectableWithDeps<Sensors, Actuators, BoardScheduler>,
+      public Boardcore::HSM<Biliquid>
 {
 public:
     Biliquid();
@@ -46,6 +48,8 @@ public:
     bool start();
 
 private:
+    void update();
+
     Boardcore::State state_idle(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
     Boardcore::State state_seq_1(const Boardcore::Event& event);

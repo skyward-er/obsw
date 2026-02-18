@@ -21,15 +21,20 @@
  */
 #pragma once
 
-#include <chrono>
+#include <units/Frequency.h>
 
+#include <chrono>
 namespace RIGv2
 {
 namespace Config
 {
 namespace Biliquid
 {
-/* linter off */ using namespace std::chrono;
+
+using namespace std::chrono;
+using namespace Boardcore::Units::Frequency;
+
+static constexpr Hertz UPDATE_RATE = 100_hz;
 
 // sequence 1 configs
 static constexpr int maxStepCount                = 5;
@@ -46,10 +51,10 @@ static constexpr milliseconds DT{1500};
 static constexpr float SEQ_2_FUEL_POSITION = 0.25883f;
 static constexpr float SEQ_2_OX_POSITION   = 0.32516f;
 static constexpr milliseconds SEQ_2_OX_DELAY{1000};
-static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{4500};
+static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{4500 + 500};
 
 // sequence 3 configs
-static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{10000};
+static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{9000 + 500};
 
 }  // namespace Biliquid
 }  // namespace Config
