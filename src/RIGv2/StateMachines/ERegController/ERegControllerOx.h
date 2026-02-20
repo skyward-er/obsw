@@ -73,11 +73,8 @@ private:
     MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER>
         upstreamPressureFilter;
 
-    float downstreamSample;  // Downstream sample, passed to ereg algorithm
-    float upstreamSample;    // Upstream sample, passed to ereg algorithm
-
-    float lastDownstreamSample;  // Last sample used by ereg algorithm
-    float lastUpstreamSample;    // Last sample used by ereg algorithm
+    float lastDownstreamInput;  // Last sample used by ereg algorithm
+    float lastUpstreamInput;    // Last sample used by ereg algorithm
 
     Boardcore::ERegPIDConfig pressurizationConfig =
         Config::ERegOx::STABILIZING_CONFIG;

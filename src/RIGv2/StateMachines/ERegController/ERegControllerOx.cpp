@@ -91,7 +91,8 @@ void ERegControllerOx::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMedian();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (downstreamSample > Config::ERegOx::TARGET_PRESSURE * 1.2)
+    if (logData.filteredDownstreamPressure >
+        Config::ERegOx::TARGET_PRESSURE * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
@@ -101,14 +102,15 @@ void ERegControllerOx::update()
     }
 
     if (state == ERegState::PRESSURIZING &&
-        (abs(downstreamSample - lastDownstreamSample) >
+        (abs(logData.filteredDownstreamPressure - lastDownstreamInput) >
              Config::ERegOx::PRESSURE_THRESHOLD ||
-         abs(upstreamSample - lastUpstreamSample) >
+         abs(logData.filteredUpstreamPressure - lastUpstreamInput) >
              Config::ERegOx::PRESSURE_THRESHOLD))
     {
-        lastDownstreamSample = downstreamSample;
-        lastUpstreamSample   = upstreamSample;
-        regulator.setInput(downstreamSample, upstreamSample);
+        lastDownstreamInput = logData.filteredDownstreamPressure;
+        lastUpstreamInput   = logData.filteredUpstreamPressure;
+        regulator.setInput(logData.filteredDownstreamPressure,
+                           logData.filteredUpstreamPressure);
 
         regulator.update();
 
@@ -121,9 +123,8 @@ void ERegControllerOx::update()
 
     if (state == ERegState::DISCHARGING)
     {
-        lastDownstreamSample = downstreamSample;
-        lastUpstreamSample   = upstreamSample;
-        regulator.setInput(downstreamSample, upstreamSample);
+        regulator.setInput(logData.filteredDownstreamPressure,
+                           logData.filteredUpstreamPressure);
 
         regulator.update();
 
@@ -187,8 +188,8 @@ void ERegControllerOx::state_pressurizing(const Event& event)
             regulator.changePIDConfig(pressurizationConfig);
             regulator.setReferencePoint(targetPressure);
             regulator.begin();
-            lastDownstreamSample = -1.0f;
-            lastUpstreamSample   = -1.0f;
+            lastDownstreamInput = -1.0f;
+            lastUpstreamInput   = -1.0f;
             break;
         }
 
