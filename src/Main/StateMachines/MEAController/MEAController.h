@@ -30,7 +30,8 @@
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/MEA/MEA.h>
+#include <algorithms/MEA/MEA0.h>
+#include <algorithms/MEA/MEA0_types.h>
 #include <common/canbus/MotorStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
@@ -52,7 +53,7 @@ public:
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::MEAState getMEAState();
+    MEAState getMEAState();
 
     MEAControllerState getState();
 
@@ -90,7 +91,7 @@ private:
     std::atomic<float> apogeeTarget;  // agl [m]
 
     miosix::FastMutex meaMutex;
-    Boardcore::MEA mea;
+    MEA0 mea;
 
     uint64_t lastAccTimestamp      = 0;
     uint64_t lastBaroTimestamp     = 0;

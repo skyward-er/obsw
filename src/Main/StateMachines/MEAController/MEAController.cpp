@@ -37,63 +37,12 @@ using namespace Common;
 using namespace miosix;
 using namespace Eigen;
 
-MEA::Config computeMEAConfig(float initialMass)
-{
-    MEA::Config config;
-
-    // clang-format off
-    config.F = Matrix<float, 3, 3>({
-        {1.90358089191774f, -0.905417961846974f,	0.0f},
-        {1.f,                0.f,                0.f},
-        {-0.000928298701811387f, 0.0009108992319982f, 1.f}});
-    config.Q = Matrix<float, 3, 3>::Identity() * Config::MEA::MODEL_NOISE_VARIANCE;
-    config.G = Matrix<float, 3, 1>{{2}, {0}, {0}};
-
-    config.baroH = {0.927390616494013f, -0.910008167283178f, 0.0f};
-    config.baroR = Config::MEA::SENSOR_NOISE_VARIANCE;
-
-    config.P           = Matrix<float, 3, 3>({
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 0.1296f}});
-    config.initialMass = initialMass;
-
-    // Trigger acceleration correction at accelerations and speeds
-    // higher then these thresholds
-    config.accelThresh = 40.0f;
-    config.speedThresh = 40.0f;
-
-    // Limits to clamp mass
-    config.minMass = 29.0f;
-    config.maxMass = 36.0f;
-
-    config.Kt    = 108.57367f;
-    config.alpha = 0.1057f;
-    config.c     = 381.9571f;
-
-    config.coeffs = Config::MEA::AERO_COEFF;
-
-    // Rockets diameter
-    // TODO: De-hardcode this
-    float d = 0.15f;
-    config.crossSection = Constants::PI * (d / 2) * (d / 2);
-
-    config.ae = 0.00285943f;
-    config.p0 = 100093.7492f;
-
-    config.cdCorrectionFactor = Config::MEA::CD_CORRECTION_FACTOR;
-    // clang-format on
-
-    return config;
-}
-
 MEAController::MEAController()
     : FSM{&MEAController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::MEA_PRIORITY},
       initialMass{Config::MEA::DEFAULT_INITIAL_ROCKET_MASS},
       minBurnTime{Config::MEA::SHADOW_MODE_TIMEOUT},
-      apogeeTarget{Config::MEA::SHUTDOWN_APOGEE_TARGET},
-      mea{computeMEAConfig(initialMass)}
+      apogeeTarget{Config::MEA::SHUTDOWN_APOGEE_TARGET}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MEA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -102,6 +51,8 @@ MEAController::MEAController()
 bool MEAController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getMeaScheduler();
+
+    mea.initialize();
 
     uint8_t result =
         scheduler.addTask([this]() { update(); }, Config::MEA::UPDATE_RATE);
@@ -171,15 +122,17 @@ void MEAController::update()
 
         if (baro.pressure > Config::MEA::CC_PRESSURE_THRESHOLD)
         {
-            MEA::Step step{aperture};
+            // Set inputs
+            MEA0::ExtU_MEA0_T inputs;
+            inputs.CombustionChamberBus.CCPressure  = baro.pressure;
+            inputs.CombustionChamberBus.CCTimestamp = {
+                {(uint32_t)(baro.pressureTimestamp & 0xFFFFFFFF),
+                 (uint32_t)(baro.pressureTimestamp >> 32)}};
+            inputs.MainValvePosition = aperture;
 
-            if (baro.pressureTimestamp > lastBaroTimestamp)
-                step.withCCPressure(baro);
+            mea.setExternalInputs(&inputs);
 
-            if (nas.timestamp > lastNasTimestamp)
-                step.withSpeedAndAlt(-nas.vd, mslAltitude);
-
-            mea.update(step);
+            mea.step(-nas.vd, mslAltitude);
 
             MEAState state = mea.getState();
 

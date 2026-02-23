@@ -39,7 +39,7 @@
 
 // MEA
 #include <Main/StateMachines/MEAController/MEAControllerData.h>
-#include <algorithms/MEA/MEAData.h>
+#include <algorithms/MEA/MEA0_types.h>
 
 namespace Main
 {
@@ -221,8 +221,7 @@ struct MEAStateHIL
     {
     }
 
-    MEAStateHIL(const Boardcore::MEAState& meaState,
-                const Main::MEAControllerState& state)
+    MEAStateHIL(const MEAState& meaState, const Main::MEAControllerState& state)
         : correctedPressure(meaState.estimatedPressure),
           estimatedMass(meaState.estimatedMass),
           estimatedApogee(meaState.estimatedApogee),
