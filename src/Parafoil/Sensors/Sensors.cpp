@@ -74,6 +74,12 @@ bool Sensors::start()
     if (Config::Sensors::LPS28DFW::ENABLED)
         lps28dfwInit();
 
+    if (Config::Sensors::AS5047D_1::ENABLED)
+        as5047d1Init();
+
+    if (Config::Sensors::AS5047D_2::ENABLED)
+        as5047d2Init();
+
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
@@ -445,6 +451,44 @@ void Sensors::lsm6dsrx0Callback()
     const auto lastFifo = lsm6dsrx_0->getLastFifo(lastFifoSize);
     for (uint16_t i = 0; i < lastFifoSize; i++)
         sdLogger.log(LSM6DSRX0Data{lastFifo.at(i)});
+}
+
+void Sensors::as5047d1Init()
+{
+    AS5047DSPIConfig config;
+    config.daecEnabled = Config::Sensors::AS5047D_1::DAEC_EN;
+    config.dataType    = Config::Sensors::AS5047D_1::DATA_SELECT;
+
+    as5047d_1 =
+        std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D1(),
+                                     sensors::AS5047D_1::cs::getPin(), config);
+}
+
+void Sensors::as5047d1Callback()
+{
+    if (!as5047d_1)
+        return;
+
+    sdLogger.log(getAS5047D1LastSample());
+}
+
+void Sensors::as5047d2Init()
+{
+    AS5047DSPIConfig config;
+    config.daecEnabled = Config::Sensors::AS5047D_2::DAEC_EN;
+    config.dataType    = Config::Sensors::AS5047D_2::DATA_SELECT;
+
+    as5047d_2 =
+        std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D2(),
+                                     sensors::AS5047D_2::cs::getPin(), config);
+}
+
+void Sensors::as5047d2Callback()
+{
+    if (!as5047d_2)
+        return;
+
+    sdLogger.log(getAS5047D2LastSample());
 }
 
 // void Sensors::lsm6dsrx1Init()

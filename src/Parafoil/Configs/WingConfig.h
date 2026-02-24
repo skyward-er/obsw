@@ -43,6 +43,7 @@ namespace Wing
 
 constexpr auto UPDATE_RATE                  = 1_hz;
 constexpr auto TARGET_UPDATE_RATE           = 10_hz;
+constexpr auto SERVO_UPDATE_RATE            = 10_hz;
 constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15s;
 constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5s;
 constexpr auto COMMAND_PERIOD               = 6s;

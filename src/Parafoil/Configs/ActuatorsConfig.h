@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <units/Angle.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -35,21 +36,32 @@ namespace Actuators
 
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Angle;
 
 // On Lyra 6-gear planetary multiplier: 100us ~= 1cm
 
 namespace LeftServo
 {
-constexpr auto ROTATION  = 180.f;  // [deg]
-constexpr auto MIN_PULSE = 500us;
-constexpr auto MAX_PULSE = 2460us;
+constexpr auto ROTATION                = 180.f;  // [deg]
+constexpr auto MIN_PULSE               = 500us;
+constexpr auto MAX_PULSE               = 2460us;
+constexpr auto SCHMITT_THRESHOLD_LOW   = Degree(3);
+constexpr auto SCHMITT_THRESHOLD_HIGH  = Degree(3);
+constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
+constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
+constexpr auto STOP_THRESHOLD_VELOCITY = 0.4f;
 }  // namespace LeftServo
 
 namespace RightServo
 {
-constexpr auto ROTATION  = 180.f;  // [deg]
-constexpr auto MIN_PULSE = 2460us;
-constexpr auto MAX_PULSE = 500us;
+constexpr auto ROTATION                = 180.f;  // [deg]
+constexpr auto MIN_PULSE               = 2460us;
+constexpr auto MAX_PULSE               = 500us;
+constexpr auto SCHMITT_THRESHOLD_LOW   = Degree(3);
+constexpr auto SCHMITT_THRESHOLD_HIGH  = Degree(3);
+constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
+constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
+constexpr auto STOP_THRESHOLD_VELOCITY = 0.4f;
 }  // namespace RightServo
 
 constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]

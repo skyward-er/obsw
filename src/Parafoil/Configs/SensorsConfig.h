@@ -29,6 +29,7 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 // #include <sensors/ND015X/ND015A.h>
 // #include <sensors/ND030D/ND030D.h>
+#include <sensors/AS5047D/AS5047DDefs.h>
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <units/Frequency.h>
 
@@ -155,6 +156,19 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace ND030D
  */
+
+namespace AS5047D_1
+{
+constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
+constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
+constexpr bool ENABLED     = true;
+}  // namespace AS5047D_1
+namespace AS5047D_2
+{
+constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
+constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
+constexpr bool ENABLED     = true;
+}  // namespace AS5047D_2
 
 namespace LPS28DFW
 {

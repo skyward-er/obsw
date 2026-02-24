@@ -372,6 +372,28 @@ bool WingController::start()
         return false;
     }
 
+    auto servoStateTask = scheduler.addTask(
+        [this]
+        {
+            if (!running)
+                return;
+
+            auto servo1Angle = getModule<Sensors>()->getAS5047D1LastSample();
+            auto servo2Angle = getModule<Sensors>()->getAS5047D2LastSample();
+
+            getModule<Actuators>()->updateServoState(PARAFOIL_LEFT_SERVO,
+                                                     Radian(servo1Angle.angle));
+            getModule<Actuators>()->updateServoState(PARAFOIL_RIGHT_SERVO,
+                                                     Radian(servo2Angle.angle));
+        },
+        Config::Wing::SERVO_UPDATE_RATE);
+
+    if (servoStateTask == 0)
+    {
+        LOG_ERR(logger, "Failed to add servo update target task");
+        return false;
+    }
+
     if (!HSM::start())
     {
         LOG_ERR(logger, "Failed to start WingController HSM active object");

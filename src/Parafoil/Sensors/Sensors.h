@@ -34,6 +34,7 @@
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 // #include <sensors/ND015X/ND015A.h>
 // #include <sensors/ND030D/ND030D.h>
+#include <sensors/AS5047D/AS5047DSPI.h>
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
@@ -84,6 +85,8 @@ public:
     // Boardcore::ND030XData getND030DDataLastSample();
     Boardcore::LPS28DFWData getLPS28DFWLastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
+    Boardcore::AS5047DData getAS5047D1LastSample();
+    Boardcore::AS5047DData getAS5047D2LastSample();
 
     Boardcore::LIS2MDLData getCalibratedLIS2MDLExtLastSample();
     Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
@@ -117,6 +120,8 @@ protected:
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
     // std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
+    std::unique_ptr<Boardcore::AS5047DSPI> as5047d_1;
+    std::unique_ptr<Boardcore::AS5047DSPI> as5047d_2;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
     //    std::unique_ptr<Boardcore::ND015A> nd015a;
     //    std::unique_ptr<Boardcore::ND030D> nd030d;
@@ -146,6 +151,12 @@ private:
     void lsm6dsrx0Init();
 
     // void lsm6dsrx1Init();
+
+    void as5047d1Init();
+    void as5047d1Callback();
+
+    void as5047d2Init();
+    void as5047d2Callback();
 
     void internalAdcInit();
     void internalAdcCallback();

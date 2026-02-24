@@ -22,8 +22,10 @@
 
 #pragma once
 
-#include <actuators/Servo/Servo.h>
+#include <actuators/Servo/ServoWinch.h>
+#include <algorithms/SchmittTrigger/SchmittTrigger.h>
 #include <common/MavlinkOrion.h>
+#include <common/UnlimitedAngle.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Parafoil
@@ -38,8 +40,36 @@ public:
      */
     struct ServoActuator
     {
-        std::unique_ptr<Boardcore::Servo> servo;
-        float fullRangeAngle;  ///< The full range of the servo [degrees]
+        std::unique_ptr<Boardcore::ServoWinch> servo;
+
+        /**
+         * Used to trigger servo to rotate CW or CCW or to stay still
+         */
+        std::unique_ptr<SchmittTrigger> servoTrigger;
+
+        /**
+         * Used to encode the angle data reading from the encoders
+         */
+        Common::UnlimitedAngle angleData;
+
+        /**
+         * Used to set the servo velocity when the Schmitt trigger output is
+         * HIGH
+         */
+        float highServoVelocity;
+
+        /**
+         * Used to set the servo velocity when the Schmitt trigger output is LOW
+         */
+        float lowServoVelocity;
+
+        /**
+         * Used to set the servo velocity when the Schmitt trigger output is
+         * STOP
+         */
+
+        float stopServoVelocity;
+
         miosix::FastMutex mutex;
     };
 
@@ -87,6 +117,13 @@ public:
      * @return `false` if the servo is invalid, `true` otherwise.
      */
     bool disableServo(ServosList servoId);
+
+    /**
+     * @brief updates the unlimited angle estimator and the schmitt trigger with
+     * a new angle reading (likely from an external encoder, like the AS5047D)
+     * for the given servo
+     */
+    void updateServoState(ServosList servoId, Units::Angle::Radian angle);
 
 private:
     ServoActuator* getServoActuator(ServosList servoId);
