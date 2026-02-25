@@ -45,7 +45,7 @@ public:
         /**
          * Used to trigger servo to rotate CW or CCW or to stay still
          */
-        std::unique_ptr<SchmittTrigger> servoTrigger;
+        std::unique_ptr<Boardcore::SchmittTrigger> servoTrigger;
 
         /**
          * Used to encode the angle data reading from the encoders
@@ -123,7 +123,8 @@ public:
      * a new angle reading (likely from an external encoder, like the AS5047D)
      * for the given servo
      */
-    void updateServoState(ServosList servoId, Units::Angle::Radian angle);
+    void updateServoState(ServosList servoId,
+                          Boardcore::Units::Angle::Radian angle);
 
 private:
     ServoActuator* getServoActuator(ServosList servoId);

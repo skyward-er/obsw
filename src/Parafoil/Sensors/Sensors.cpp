@@ -329,6 +329,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
         PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX");
+        PUSH_SENSOR_INFO(as5047d_1, "AS5047D_1");
+        PUSH_SENSOR_INFO(as5047d_2, "AS5047D_2");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(lps28dfw, "LPS28DFW");
         PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
@@ -460,7 +462,7 @@ void Sensors::as5047d1Init()
     config.dataType    = Config::Sensors::AS5047D_1::DATA_SELECT;
 
     as5047d_1 =
-        std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D1(),
+        std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D(),
                                      sensors::AS5047D_1::cs::getPin(), config);
 }
 
@@ -479,7 +481,7 @@ void Sensors::as5047d2Init()
     config.dataType    = Config::Sensors::AS5047D_2::DATA_SELECT;
 
     as5047d_2 =
-        std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D2(),
+        std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D(),
                                      sensors::AS5047D_2::cs::getPin(), config);
 }
 
@@ -489,6 +491,16 @@ void Sensors::as5047d2Callback()
         return;
 
     sdLogger.log(getAS5047D2LastSample());
+}
+
+Boardcore::AS5047DData Sensors::getAS5047D1LastSample()
+{
+    return as5047d_1 ? as5047d_1->getLastSample() : AS5047DData{};
+}
+
+Boardcore::AS5047DData Sensors::getAS5047D2LastSample()
+{
+    return as5047d_2 ? as5047d_2->getLastSample() : AS5047DData{};
 }
 
 // void Sensors::lsm6dsrx1Init()
@@ -675,6 +687,20 @@ bool Sensors::sensorManagerInit()
     //                     [this]() { lsm6dsrx1Callback(); }};
     //     map.emplace(lsm6dsrx_1.get(), info);
     // }
+
+    if (as5047d_1)
+    {
+        SensorInfo info{"AS5047D_1", Config::Sensors::AS5047D_1::RATE,
+                        [this]() { as5047d1Callback(); }};
+        map.emplace(as5047d_1.get(), info);
+    }
+
+    if (as5047d_2)
+    {
+        SensorInfo info{"AS5047D_2", Config::Sensors::AS5047D_2::RATE,
+                        [this]() { as5047d2Callback(); }};
+        map.emplace(as5047d_2.get(), info);
+    }
 
     if (internalAdc)
     {

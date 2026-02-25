@@ -161,13 +161,17 @@ namespace AS5047D_1
 {
 constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
 constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
-constexpr bool ENABLED     = true;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
 }  // namespace AS5047D_1
 namespace AS5047D_2
 {
 constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
 constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
-constexpr bool ENABLED     = true;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
 }  // namespace AS5047D_2
 
 namespace LPS28DFW

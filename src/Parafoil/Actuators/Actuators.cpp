@@ -43,12 +43,13 @@ Actuators::Actuators()
     leftServo.servo = std::make_unique<ServoWinch>(
         MIOSIX_PARAFOIL_SERVO_1_TIM,
         TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_1_CHANNEL,
-        config::LeftServo::MIN_PULSE.count(),
-        config::LeftServo::MAX_PULSE.count());
+        config::LeftServo::MIN_PULSE, config::LeftServo::MAX_PULSE,
+        config::LeftServo::HERTZ);
 
     leftServo.servoTrigger = std::make_unique<SchmittTrigger>(
-        config::LeftServo::SCHMITT_THRESHOLD_LOW,
-        config::LeftServo::SCHMITT_THRESHOLD_HIGH);
+        Units::Angle::Radian(config::LeftServo::SCHMITT_THRESHOLD_LOW).value(),
+        Units::Angle::Radian(config::LeftServo::SCHMITT_THRESHOLD_HIGH)
+            .value());
 
     leftServo.highServoVelocity = config::LeftServo::HIGH_THRESHOLD_VELOCITY;
     leftServo.lowServoVelocity  = config::LeftServo::LOW_THRESHOLD_VELOCITY;
@@ -58,12 +59,13 @@ Actuators::Actuators()
     rightServo.servo = std::make_unique<ServoWinch>(
         MIOSIX_PARAFOIL_SERVO_2_TIM,
         TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_2_CHANNEL,
-        config::RightServo::MIN_PULSE.count(),
-        config::RightServo::MAX_PULSE.count());
+        config::RightServo::MIN_PULSE, config::RightServo::MAX_PULSE,
+        config::RightServo::HERTZ);
 
     rightServo.servoTrigger = std::make_unique<SchmittTrigger>(
-        config::RightServo::SCHMITT_THRESHOLD_LOW,
-        config::RightServo::SCHMITT_THRESHOLD_HIGH);
+        Units::Angle::Radian(config::RightServo::SCHMITT_THRESHOLD_LOW).value(),
+        Units::Angle::Radian(config::RightServo::SCHMITT_THRESHOLD_HIGH)
+            .value());
 
     rightServo.highServoVelocity = config::RightServo::HIGH_THRESHOLD_VELOCITY;
     rightServo.lowServoVelocity  = config::RightServo::LOW_THRESHOLD_VELOCITY;

@@ -24,6 +24,7 @@
 
 #include <units/Angle.h>
 #include <units/Frequency.h>
+#include <units/Time.h>
 
 #include <chrono>
 
@@ -37,14 +38,16 @@ namespace Actuators
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Angle;
+/* linter off */ using namespace Boardcore::Units::Time;
 
 // On Lyra 6-gear planetary multiplier: 100us ~= 1cm
 
 namespace LeftServo
 {
 constexpr auto ROTATION                = 180.f;  // [deg]
-constexpr auto MIN_PULSE               = 500us;
-constexpr auto MAX_PULSE               = 2460us;
+constexpr auto MIN_PULSE               = 500_us;
+constexpr auto MAX_PULSE               = 2460_us;
+constexpr auto HERTZ                   = 50_hz;
 constexpr auto SCHMITT_THRESHOLD_LOW   = Degree(3);
 constexpr auto SCHMITT_THRESHOLD_HIGH  = Degree(3);
 constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
@@ -55,8 +58,9 @@ constexpr auto STOP_THRESHOLD_VELOCITY = 0.4f;
 namespace RightServo
 {
 constexpr auto ROTATION                = 180.f;  // [deg]
-constexpr auto MIN_PULSE               = 2460us;
-constexpr auto MAX_PULSE               = 500us;
+constexpr auto MIN_PULSE               = 2460_us;
+constexpr auto MAX_PULSE               = 500_us;
+constexpr auto HERTZ                   = 50_hz;
 constexpr auto SCHMITT_THRESHOLD_LOW   = Degree(3);
 constexpr auto SCHMITT_THRESHOLD_HIGH  = Degree(3);
 constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
