@@ -22,36 +22,34 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <common/MavlinkHydra.h>
 
-namespace Common
+namespace RIGv3
 {
 
-template <typename T, size_t Max>
-class MedianFilter
+namespace Config
 {
-public:
-    MedianFilter() {}
 
-    void reset() { idx = 0; }
+namespace Radio
+{
 
-    void add(T value)
-    {
-        values[idx] = value;
-        idx         = (idx + 1) % Max;
-    }
+constexpr unsigned int MAV_OUT_QUEUE_SIZE = 20;
+constexpr unsigned int MAV_MAX_LENGTH     = MAVLINK_MAX_DIALECT_PAYLOAD_SIZE;
 
-    T calcMedian()
-    {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
-    }
+constexpr uint16_t MAV_SLEEP_AFTER_SEND = 0;
+constexpr size_t MAV_OUT_BUFFER_MAX_AGE = 10;
 
-private:
-    size_t idx                = 0;
-    std::array<T, Max> values = {0};
-};
+constexpr unsigned int CIRCULAR_BUFFER_SIZE = 30;
+// Maximum bytes to flush at once, consider a bitrate of 3500 bps
+constexpr unsigned int MAX_FLUSH_SIZE = 250;  // [bytes]
 
-}  // namespace Common
+constexpr uint8_t MAV_SYSTEM_ID    = MAV_SYSID_RIG;
+constexpr uint8_t MAV_COMPONENT_ID = 0;
+
+constexpr long long LAST_COMMAND_THRESHOLD = 300;
+
+}  // namespace Radio
+
+}  // namespace Config
+
+}  // namespace RIGv3

@@ -22,36 +22,35 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <cstdint>
+#include <ostream>
+#include <reflect.hpp>
 
-namespace Common
+namespace RIGv3
 {
-
-template <typename T, size_t Max>
-class MedianFilter
+struct ActuatorsData
 {
-public:
-    MedianFilter() {}
+    uint64_t timestamp;
+    uint8_t valveIdx;
+    float position;
 
-    void reset() { idx = 0; }
-
-    void add(T value)
+    ActuatorsData()
     {
-        values[idx] = value;
-        idx         = (idx + 1) % Max;
+        timestamp = 0;
+        valveIdx  = 0;
+        position  = 0;
     }
 
-    T calcMedian()
+    ActuatorsData(uint64_t time, uint8_t valveIdx, float pos)
+        : timestamp(time), valveIdx(valveIdx), position(pos)
     {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
     }
 
-private:
-    size_t idx                = 0;
-    std::array<T, Max> values = {0};
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ActuatorsData, FIELD_DEF(timestamp) FIELD_DEF(
+                                             valveIdx) FIELD_DEF(position));
+    }
 };
 
-}  // namespace Common
+}  // namespace RIGv3

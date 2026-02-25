@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,10 @@ namespace Common
 {
 
 template <typename T, size_t Max>
-class MedianFilter
+class MeanFilter
 {
 public:
-    MedianFilter() {}
+    MeanFilter() {}
 
     void reset() { idx = 0; }
 
@@ -43,10 +43,9 @@ public:
         idx         = (idx + 1) % Max;
     }
 
-    T calcMedian()
+    T calcMean()
     {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
+        return std::accumulate(values.begin(), values.end(), T(0)) / Max;
     }
 
 private:

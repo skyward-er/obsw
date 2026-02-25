@@ -22,36 +22,47 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <cstdint>
+#include <iostream>
+#include <reflect.hpp>
+#include <string>
 
-namespace Common
+namespace RIGv3
 {
 
-template <typename T, size_t Max>
-class MedianFilter
+enum GroundModeManagerState : uint8_t
 {
-public:
-    MedianFilter() {}
-
-    void reset() { idx = 0; }
-
-    void add(T value)
-    {
-        values[idx] = value;
-        idx         = (idx + 1) % Max;
-    }
-
-    T calcMedian()
-    {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
-    }
-
-private:
-    size_t idx                = 0;
-    std::array<T, Max> values = {0};
+    IDLE = 0,
+    INIT,
+    INIT_ERR,
+    DISARMED,
+    ARMED,
+    FIRING,
+    IGNITING,
+    OXIDIZER,
+    COOLING,
+    INVALID,
 };
 
-}  // namespace Common
+struct GroundModeManagerData
+{
+    uint64_t timestamp;
+    GroundModeManagerState state;
+
+    GroundModeManagerData() : timestamp{0}, state{GroundModeManagerState::IDLE}
+    {
+    }
+
+    GroundModeManagerData(uint64_t timestamp, GroundModeManagerState state)
+        : timestamp{timestamp}, state{state}
+    {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(GroundModeManagerData,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
+
+}  // namespace RIGv3
