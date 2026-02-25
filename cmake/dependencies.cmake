@@ -72,6 +72,10 @@ set(RIG_V2_COMPUTER
     src/RIGv2/StateMachines/TARS3/TARS3.cpp
 )
 
+set(RIG_V3_COMPUTER
+    src/RIGv3/Sensors/Sensors.cpp
+)
+
 set(CON_RIG_COMPUTER
     src/ConRIG/Buttons/Buttons.cpp
     src/ConRIG/Radio/Radio.cpp
