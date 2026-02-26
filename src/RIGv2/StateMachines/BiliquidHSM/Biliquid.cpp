@@ -264,7 +264,6 @@ State Biliquid::state_seq_1(const Event& event)
         {
             getModule<Actuators>()->closeOxSolenoid();
             getModule<Actuators>()->closeFuelSolenoid();
-            getModule<Actuators>()->stopSparkPlug();
             return HANDLED;
         }
 
