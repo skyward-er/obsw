@@ -286,16 +286,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
-        case MAVLINK_MSG_ID_SET_CHAMBER_TIME_TC:
-        {
-            // Chamber valve opening time
-            uint32_t timing = mavlink_msg_set_chamber_time_tc_get_timing(&msg);
-            getModule<GroundModeManager>()->setChamberTime(timing);
-
-            enqueueAck(msg);
-            break;
-        }
-
         case MAVLINK_MSG_ID_SET_COOLING_TIME_TC:
         {
             // Cooling procedure delay
@@ -766,14 +756,17 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     ServosList::MAIN_OX_VALVE);
                 tm.main_fuel_valve_state = getModule<Actuators>()->isServoOpen(
                     ServosList::MAIN_FUEL_VALVE);
-                tm.ox_solenoid   = getModule<Actuators>()->isOxSolenoidOpen();
-                tm.fuel_solenoid = getModule<Actuators>()->isFuelSolenoidOpen();
-                tm.spark_igniter = getModule<Actuators>()->isSparkSparking();
+                tm.ox_solenoid_state =
+                    getModule<Actuators>()->isOxSolenoidOpen();
+                tm.fuel_solenoid_state =
+                    getModule<Actuators>()->isFuelSolenoidOpen();
+                tm.spark_igniter_state =
+                    getModule<Actuators>()->isSparkSparking();
 
                 // state machines
-                tm.biliquid_hsm_state =
+                tm.engine_hsm_state =
                     (uint8_t)getModule<Biliquid>()->getState();
-                tm.biliquid_sequence =
+                tm.firing_sequence =
                     (uint8_t)getModule<Biliquid>()->getCurrentSequence();
             }
 
