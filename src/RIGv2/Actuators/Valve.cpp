@@ -22,49 +22,42 @@
 
 #include "Valve.h"
 
-#include "ValveServo.h"
-#include "ValveServoPCA.h"
-#include "ValveSolenoid.h"
-
 namespace RIGv2
 {
-void Valve::unsafeSetServoPosition(float position)
+
+uint8_t Valve::getClosingEvent() const { return config.closingEvent; }
+uint8_t Valve::getOpeningEvent() const { return config.openingEvent; }
+
+bool Valve::setOpeningTime(uint32_t time)
 {
-    if (!servo)
-        return;
+    getModule<Registry>()->setUnsafe(config.openingTimeRegKey, time);
+    return true;
+}
 
-    if (!(servo->getType() == ValveType::SOLENOID))
+float Valve::getMaxAperture()
+{
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.maxApertureRegKey, config.defaultMaxAperture);
+}
+
+bool Valve::setMaxAperture(float aperture)
+{
+    if (aperture >= 0.0 && aperture <= 1.0)
     {
-        position *= config.limit;
-
-        if (config.flipped)
-            position = 1.0f - position;
-
-        servo->setPosition(position);
+        getModule<Registry>()->setUnsafe(config.maxApertureRegKey, aperture);
+        return true;
     }
     else
     {
-        servo->setPosition(position);
+        // What? Who would ever set this to above 100%?
+        return false;
     }
 }
 
-float Valve::getServoPosition()
+uint32_t Valve::getOpeningTime()
 {
-    if (!servo)
-        return 0.0f;
-
-    float position = servo->getPosition();
-
-    if (servo->getType() == ValveType::TIMED)
-    {
-        if (config.flipped)
-            position = 1.0f - position;
-
-        position /= config.limit;
-    }
-    return position;
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        config.openingTimeRegKey, config.defaultOpeningTime);
 }
-
-const Valve::ValveConfig Valve::getConfig() const { return Valve::config; }
 
 }  // namespace RIGv2

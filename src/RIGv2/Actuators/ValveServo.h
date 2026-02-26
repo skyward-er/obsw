@@ -22,24 +22,20 @@
 
 #pragma once
 
-#include <miosix.h>
-
-#include <memory>
-
-#include "ValveInterface.h"
-#include "actuators/Servo/Servo.h"
+#include "Valve.h"
 
 namespace RIGv2
 {
-class ValveServo : public ValveInterface
+class ValveServo : public Valve
 {
 public:
     /**
      * @brief ValveSolenoid Constructor
      * @param pin Solenoid valve control pin
      */
-    ValveServo(std::unique_ptr<Boardcore::Servo> servo)
-        : servo(std::move(servo))
+    ValveServo(const ValveConfig& config,
+               std::unique_ptr<Boardcore::Servo> servo)
+        : Valve(config), servo(std::move(servo))
     {
     }
     ~ValveServo() {};
@@ -54,10 +50,16 @@ public:
      * @brief Sets the state of the solenoid valve (open/closed).
      * @param position position values greater than 0.5f are treated as high.
      */
-    void setPosition(float position, bool limited = false)
+    bool setPosition(float position) override
     {
-        servo->setPosition(position, limited);
-    };
+        position *= config.limit;
+
+        if (config.flipped)
+            position = 1.0f - position;
+
+        servo->setPosition(position, true);
+        return true;
+        };
 
     /**
      * @brief Returns the state of the solenoid valve (open/closed).
@@ -65,11 +67,38 @@ public:
      *
      * False if closed
      */
-    float getPosition() { return servo->getPosition(); };
+    float getPosition() override
+    {
+        float position = servo->getPosition();
+        if (config.flipped)
+            position = 1.0f - position;
+
+        position /= config.limit;
+        return position;
+    };
 
     void enable() override { servo->enable(); }
 
-    ValveType getType() const override { return ValveType::TIMED; }
+    ValveType getType() const override { return ValveType::SERVO; }
+
+    void backstep() override
+    {
+        switch (direction)
+        {
+            case Direction::OPEN:
+                currentPosition -= Config::Servos::SERVO_BACKSTEP_AMOUNT;
+                break;
+
+            case Direction::CLOSE:
+                currentPosition += Config::Servos::SERVO_BACKSTEP_AMOUNT;
+                break;
+        }
+
+        // Clamp the position to the [0, 1] range
+        currentPosition = std::min(1.0f, std::max(0.0f, currentPosition));
+
+        setPosition(currentPosition);
+    }
 
 private:
     std::unique_ptr<Boardcore::Servo> servo;

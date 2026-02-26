@@ -22,54 +22,79 @@
 
 #pragma once
 
+#include <RIGv2/Registry/Registry.h>
+#include <utils/DependencyManager/DependencyManager.h>
+
 #include "ValveServo.h"
 #include "ValveServoPCA.h"
 #include "ValveSolenoid.h"
 
 namespace RIGv2
 {
-class Valve
+
+enum class ValveType
+{
+    SERVO,
+    SOLENOID,
+    SERVO_PCA
+};
+
+struct ValveConfig
+{
+    float limit                 = 1.0;    ///< Movement range limit
+    bool flipped                = false;  ///< Whether the servo is flipped
+    uint32_t defaultOpeningTime = 1000;   // Default opening time [ms]
+    float defaultMaxAperture    = 1.0;    // Max aperture
+
+    uint8_t openingEvent = 0;  ///< Event to fire after opening
+    uint8_t closingEvent = 0;  ///< Event to fire after closing
+    uint32_t openingTimeRegKey =
+        CONFIG_ID_DEFAULT_OPENING_TIME;  ///< Registry key for opening
+                                         ///< time
+    uint32_t maxApertureRegKey =
+        CONFIG_ID_DEFAULT_MAX_APERTURE;  ///< Registry key for max
+                                         ///< aperture
+};
+class Valve : public Boardcore::InjectableWithDeps<Registry>
 {
 public:
-    struct ValveConfig
-    {
-        float limit                 = 1.0;    ///< Movement range limit
-        bool flipped                = false;  ///< Whether the servo is flipped
-        uint32_t defaultOpeningTime = 1000;   // Default opening time [ms]
-        float defaultMaxAperture    = 1.0;    // Max aperture
-
-        uint8_t openingEvent = 0;  ///< Event to fire after opening
-        uint8_t closingEvent = 0;  ///< Event to fire after closing
-        uint32_t openingTimeRegKey =
-            CONFIG_ID_DEFAULT_OPENING_TIME;  ///< Registry key for opening
-                                             ///< time
-        uint32_t maxApertureRegKey =
-            CONFIG_ID_DEFAULT_MAX_APERTURE;  ///< Registry key for max
-                                             ///< aperture
-    };
-
-    Valve(std::unique_ptr<ValveInterface> interface, const ValveConfig& config)
-        : servo(std::move(interface)), config(config)
-    {
-    }
-    ~Valve() {};
+    virtual ~Valve() = default;
 
     // Move-only
-    Valve(Valve&&)                 = default;
-    Valve& operator=(Valve&&)      = default;
+    Valve(Valve&&)            = default;
+    Valve& operator=(Valve&&) = default;
+
+    // Delete copy to enforce unique ownership of hardware resources
     Valve(const Valve&)            = delete;
     Valve& operator=(const Valve&) = delete;
 
-    void unsafeSetServoPosition(float position);
+    uint8_t getClosingEvent() const;
+    uint8_t getOpeningEvent() const;
 
-    bool isServoOpen();
+    float getMaxAperture();
+    uint32_t getOpeningTime();
 
-    float getServoPosition();
+    bool setMaxAperture(float aperture);
+    bool setOpeningTime(uint32_t time);
 
-    const ValveConfig getConfig() const;
+    virtual ValveType getType() const = 0;
 
-private:
-    std::unique_ptr<ValveInterface> servo;
+    virtual bool setPosition(float position) = 0;
+    virtual float getPosition()              = 0;
+
+    virtual void enable();
+    virtual void backstep() = 0;
+
+    float currentPosition = 0.0f;  ///< Current position in range [0, 1]
+
+    enum class Direction
+    {
+        CLOSE,
+        OPEN,
+    } direction = Direction::CLOSE;  ///< Direction of the last valve move
+
+protected:
+    Valve(const ValveConfig& config) : config(config) {};
     ValveConfig config;
 };
 }  // namespace RIGv2

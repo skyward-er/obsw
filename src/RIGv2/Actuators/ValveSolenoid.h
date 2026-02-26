@@ -1,5 +1,3 @@
-// Gpio come source (costruttore)
-// Viene alzato a 1 o a 0 dopo setPosition.
 /* Copyright (c) 2025 Skyward Experimental Rocketry
  * Author: Riccardo Sironi
  *
@@ -24,37 +22,37 @@
 
 #pragma once
 
-#include <miosix.h>
-
-#include "ValveInterface.h"
+#include "Valve.h"
 
 namespace RIGv2
 {
-class ValveSolenoid : public ValveInterface
+class ValveSolenoid : public Valve
 {
 public:
     /**
      * @brief ValveSolenoid Constructor
      * @param pin Solenoid valve control pin
      */
-    ValveSolenoid(miosix::GpioPin pin) : pin(pin) {};
-    ~ValveSolenoid() {};
+    ValveSolenoid(const ValveConfig& config, miosix::GpioPin pin)
+        : Valve(config), pin(pin) {};
 
     /**
      * @brief Sets the state of the solenoid valve (open/closed).
      * @param position position values greater than 0.5f are treated as high.
      */
-    void setPosition(float position, bool limited = false)
+    bool setPosition(float position) override
     {
         if (position < 0.5f)
         {
             ValveSolenoid::pin.low();
+
         }  // set PIN to low
         else
         {
             ValveSolenoid::pin.high();
         }  // set PIN to high
-    };
+        return true;
+        };
 
     /**
      * @brief Returns the state of the solenoid valve (open/closed).
@@ -62,9 +60,22 @@ public:
      *
      * False if closed
      */
-    float getPosition() { return ValveSolenoid::pin.value(); };
+    float getPosition() override
+    {
+        float position = ValveSolenoid::pin.value();
+
+        if (config.flipped)
+            position = 1.0f - position;
+
+        return position;
+    };
 
     ValveType getType() const override { return ValveType::SOLENOID; }
+
+    void backstep() override
+    {
+        // Do nothing
+    }
 
 private:
     miosix::GpioPin pin;

@@ -22,40 +22,70 @@
 
 #pragma once
 
-#include "ValveInterface.h"
+#include "Valve.h"
 #include "drivers/PCA9685/PCA9685.h"
 
 namespace RIGv2
 {
-class ValveServoPCA : public ValveInterface
+class ValveServoPCA : public Valve
 {
 public:
-    ValveServoPCA::ValveServoPCA(Boardcore::PCA9685& pca,
-                                 Boardcore::PCA9685::Channels channel)
-        : pca(pca), channel(channel)
+    ValveServoPCA(const ValveConfig& config, Boardcore::PCA9685& pca,
+                  Boardcore::PCA9685::Channels channel)
+        : Valve(config), pca(pca), channel(channel)
     {
     }
 
-    void setPosition(float position, bool limited = true)
+    bool setPosition(float position) override
     {
-        if (limited)
-        {
-            if (position < 0.0f)
-                position = 0.0f;
-            else if (position > 1.0f)
-                position = 1.0f;
-        }
+        position *= config.limit;
+
+        if (config.flipped)
+            position = 1.0f - position;
+
+        if (position < 0.0f)
+            position = 0.0f;
+        else if (position > 1.0f)
+            position = 1.0f;
 
         lastPosition = position;
         if (!pca.setDutyCycle(channel, position))
         {
             // How can I handle this error?
+            return pca.setDutyCycle(channel, position);
         };
+        };
+
+    float getPosition() override
+    {
+        float position = lastPosition;
+        if (config.flipped)
+            position = 1.0f - position;
+
+        position /= config.limit;
+        return position;
     };
 
-    float getPosition() { return lastPosition; };
-
     ValveType getType() const override { return ValveType::SERVO_PCA; }
+
+    void backstep() override
+    {
+        switch (direction)
+        {
+            case Direction::OPEN:
+                currentPosition -= Config::Servos::SERVO_BACKSTEP_AMOUNT;
+                break;
+
+            case Direction::CLOSE:
+                currentPosition += Config::Servos::SERVO_BACKSTEP_AMOUNT;
+                break;
+        }
+
+        // Clamp the position to the [0, 1] range
+        currentPosition = std::min(1.0f, std::max(0.0f, currentPosition));
+
+        setPosition(currentPosition);
+    }
 
 private:
     Boardcore::PCA9685& pca;

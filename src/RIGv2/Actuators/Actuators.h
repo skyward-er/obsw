@@ -31,16 +31,14 @@
 #include <scheduler/SignaledDeadlineTask.h>
 #include <scheduler/TaskScheduler.h>
 
-#include <memory>
-
 #include "Valve.h"
 
 namespace RIGv2
 {
 
-class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler,
-                                                       CanHandler, Registry>,
-                  public Boardcore::SignaledDeadlineTask
+class Actuators
+    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>,
+      public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for the valve closed state
@@ -48,18 +46,38 @@ private:
 
     struct ServoInfo
     {
-        ServoInfo(Valve&& valve) : valve(std::move(valve)) {}
+        ServoInfo(std::unique_ptr<Valve>&& valve) : valve(std::move(valve)) {}
 
-        Valve valve;
+        // Move-only
+        ServoInfo(ServoInfo&& other)            = default;
+        ServoInfo& operator=(ServoInfo&& other) = default;
 
         // Disable Copy
         ServoInfo(const ServoInfo&)            = delete;
         ServoInfo& operator=(const ServoInfo&) = delete;
 
-        // Time when the valve should close, 0 if currently closed
-        TimePoint closeTs = ValveClosed;
+        std::unique_ptr<Valve> valve;
+
+        float animationStep      = 0.0f;  ///< Amount of one animation step
+        TimePoint animationEndTs = ValveClosed;  ///< End time of last animation
+
+        // Time when the valve should be moved next during an animation
+        TimePoint updateTs = ValveClosed;
         // Time when to backstep the valve to avoid straining the servo
         TimePoint backstepTs = ValveClosed;
+        // Time when the vavle should close
+        TimePoint closeTs = ValveClosed;
+
+        void openServoWithTime(float position, uint32_t time);
+        void openServoWithTime(uint32_t time);
+        void animateServo(float position, uint32_t time);
+        void closeServo();
+
+        void unsafeSetServoPosition(float position);
+        void backstep();
+        void move();
+
+        bool isServoOpen();
     };
 
     struct ValveInfo
@@ -69,19 +87,24 @@ private:
         std::chrono::milliseconds timing      = {};  ///< Opening time
         std::chrono::milliseconds timeToClose = {};  ///< Time until valve close
         float aperture                        = 0;   ///< Max valve aperture
+        float position                        = 0;
     };
 
 public:
     Actuators();
 
-    [[nodiscard]] bool start();
-
     bool isStarted();
+
+    [[nodiscard]] bool start();
 
     bool wiggleServo(ServosList servo);
     bool toggleServo(ServosList servo);
     bool openServo(ServosList servo);
+    bool moveServo(ServosList servo, float position);
+    bool moveServoWithTime(ServosList servo, float position, uint32_t time);
     bool openServoWithTime(ServosList servo, uint32_t time);
+    bool animateServo(ServosList servo, float position, uint32_t time);
+
     bool closeServo(ServosList servo);
     void closeAllServos();
     bool setMaxAperture(ServosList servo, float aperture);
@@ -96,10 +119,20 @@ public:
     void set3wayValveState(bool state);
     bool get3wayValveState();
 
-    // Chamber valve control
-    void openChamberWithTime(uint32_t time);
-    void closeChamber();
-    bool isChamberOpen();
+    void openOxSolenoidWithTime(uint32_t time);
+    void closeOxSolenoid();
+    void toggleOxSolenoid();
+    bool isOxSolenoidOpen();
+
+    void openFuelSolenoidWithTime(uint32_t time);
+    void closeFuelSolenoid();
+    void toggleFuelSolenoid();
+    bool isFuelSolenoidOpen();
+
+    void startSparkPlugWithTime(uint32_t time);
+    void stopSparkPlug();
+    void toggleSparkPlug();
+    bool isSparkSparking();
 
     void armLightOn();
     void armLightOff();
@@ -116,8 +149,6 @@ private:
     ServoInfo* getServo(ServosList servo);
 
     void unsafeSetServoPosition(uint8_t idx, float position);
-    void unsafeOpenChamber();
-    void unsafeCloseChamber();
 
     TimePoint nextTaskDeadline() override;
     void task() override;
@@ -126,6 +157,16 @@ private:
 
     miosix::FastMutex infosMutex;
     std::array<ServoInfo, 10> infos;
+    std::vector<ServoInfo> infos2;
+
+    void unsafeOpenOxSolenoid();
+    void unsafeCloseOxSolenoid();
+
+    void unsafeOpenFuelSolenoid();
+    void unsafeCloseFuelSolenoid();
+
+    void unsafeStartSparkPlug();
+    void unsafeStopSparkPlug();
 
     // N2 3-way valve info
     ServoInfo n2_3wayValveInfo;
@@ -134,6 +175,17 @@ private:
 
     // Time when the chamber valve should close, 0 if currently closed
     TimePoint chamberCloseTs = ValveClosed;
+
+    // PRZ 3-way valve info
+    ServoInfo prz_3wayValveInfo;
+    std::atomic<bool> prz_3wayValveState{false};
+    std::atomic<bool> prz_3wayValveStateChanged{true};
+
+    std::unique_ptr<Boardcore::SparkPlug> spark;
+
+    TimePoint fuelSolenoidCloseTs = ValveClosed;
+    TimePoint oxSolenoidCloseTs   = ValveClosed;
+    TimePoint sparkPlugCloseTs    = ValveClosed;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
