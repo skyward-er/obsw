@@ -286,16 +286,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
-        case MAVLINK_MSG_ID_SET_CHAMBER_TIME_TC:
-        {
-            // Chamber valve opening time
-            uint32_t timing = mavlink_msg_set_chamber_time_tc_get_timing(&msg);
-            getModule<GroundModeManager>()->setChamberTime(timing);
-
-            enqueueAck(msg);
-            break;
-        }
-
         case MAVLINK_MSG_ID_SET_COOLING_TIME_TC:
         {
             // Cooling procedure delay
@@ -354,9 +344,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             };
 
             ERegPIDConfig dischargeConfig = {
-                mavlink_msg_set_ereg_constants_tc_get_KpDiscarge(&msg),
-                mavlink_msg_set_ereg_constants_tc_get_KiDiscarge(&msg),
-                mavlink_msg_set_ereg_constants_tc_get_KdDiscarge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KpDischarge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KiDischarge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_KdDischarge(&msg),
             };
 
             if (mavlink_msg_set_ereg_constants_tc_get_Ereg(&msg) == EREG_OX &&
@@ -821,12 +811,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 tm.main_ox_valve_position = static_cast<uint8_t>(
                     sensors->getOxValvePosition().position);
 
-                tm.ox_solenoid   = getModule<Actuators>()->isOxSolenoidOpen();
-                tm.fuel_solenoid = getModule<Actuators>()->isFuelSolenoidOpen();
+                tm.ox_solenoid_state =
+                    getModule<Actuators>()->isOxSolenoidOpen();
+                tm.fuel_solenoid_state =
+                    getModule<Actuators>()->isFuelSolenoidOpen();
 
-                tm.biliquid_hsm_state =
+                tm.engine_hsm_state =
                     (uint8_t)getModule<Biliquid>()->getState();
-                tm.biliquid_sequence =
+                tm.firing_sequence =
                     (uint8_t)getModule<Biliquid>()->getCurrentSequence();
             }
 
