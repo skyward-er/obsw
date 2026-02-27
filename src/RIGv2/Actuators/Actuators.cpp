@@ -214,19 +214,27 @@ void Actuators::ServoInfo::move()
     valve->setPosition(valve->currentPosition);
 }
 
-Actuators::Actuators()
+Actuators::Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig)
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      infos{MAKE_SERVO(OX_FIL),       MAKE_SERVO(OX_REL),
-            MAKE_SMALL_SERVO(OX_DET), MAKE_SMALL_SERVO(N2_FIL),
-            MAKE_SMALL_SERVO(N2_REL), MAKE_SMALL_SERVO(N2_DET),
-            MAKE_SERVO(NITR),         MAKE_SERVO(OX_VEN),
-            MAKE_SMALL_SERVO(N2_QUE), MAKE_SERVO(MAIN)},
-      n2_3wayValveInfo(MAKE_SIMPLE_SERVO(N2_3W))
+      Expander0(i2c, i2cConfig), Expander1(i2c, i2cConfig),
+      prz_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W)),
+      spark(std::make_unique<SparkPlug>(
+          MIOSIX_SERVOS_SPARK_PLUG_TIM, (uint16_t)50,
+          TimerUtils::Channel::MIOSIX_SERVOS_SPARK_PLUG_CHANNEL))
 
 {
-    infos2.push_back(MAKE_SERVO(OX_FIL));
-    infos2.push_back(MAKE_SERVO(OX_REL));
+    infos.push_back(MAKE_SERVO(OX_FIL));
+    infos.push_back(MAKE_SERVO(OX_REL));
+    infos.push_back(MAKE_SMALL_SERVO(OX_DET));
+    infos.push_back(MAKE_SMALL_SERVO(N2_FIL));
+    infos.push_back(MAKE_SMALL_SERVO(N2_REL));
+    infos.push_back(MAKE_SMALL_SERVO(N2_DET));
+    infos.push_back(MAKE_SERVO(NITR));
+    infos.push_back(MAKE_SERVO(OX_VEN));
+    infos.push_back(MAKE_SMALL_SERVO(N2_QUE));
+    infos.push_back(MAKE_SERVO(MAIN));
+
     for (auto& servo : infos)
         servo.unsafeSetServoPosition(0.0f);
 
@@ -243,10 +251,13 @@ bool Actuators::start()
     {
         info.valve->enable();
         info.closeServo();
+        info.backstepTs = Clock::now() + milliseconds{2000};
     }
 
-    n2_3wayValveInfo.valve->enable();
-    n2_3wayValveInfo.closeServo();
+    prz_3wayValveInfo.valve->enable();
+    prz_3wayValveInfo.closeServo();
+
+    spark->enable();
 
     if (!SignaledDeadlineTask::start())
     {
@@ -254,6 +265,7 @@ bool Actuators::start()
         return false;
     }
 
+    signalTask();
     started = true;
     return true;
 }

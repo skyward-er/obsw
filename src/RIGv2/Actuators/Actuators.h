@@ -91,7 +91,7 @@ private:
     };
 
 public:
-    Actuators();
+    Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig);
 
     bool isStarted();
 
@@ -156,8 +156,7 @@ private:
     std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
-    std::array<ServoInfo, 10> infos;
-    std::vector<ServoInfo> infos2;
+    std::vector<ServoInfo> infos;
 
     void unsafeOpenOxSolenoid();
     void unsafeCloseOxSolenoid();
@@ -168,11 +167,6 @@ private:
     void unsafeStartSparkPlug();
     void unsafeStopSparkPlug();
 
-    // N2 3-way valve info
-    ServoInfo n2_3wayValveInfo;
-    std::atomic<bool> n2_3wayValveState{false};
-    std::atomic<bool> n2_3wayValveStateChanged{true};
-
     // Time when the chamber valve should close, 0 if currently closed
     TimePoint chamberCloseTs = ValveClosed;
 
@@ -182,6 +176,9 @@ private:
     std::atomic<bool> prz_3wayValveStateChanged{true};
 
     std::unique_ptr<Boardcore::SparkPlug> spark;
+
+    PCA9685 Expander0;
+    PCA9685 Expander1;
 
     TimePoint fuelSolenoidCloseTs = ValveClosed;
     TimePoint oxSolenoidCloseTs   = ValveClosed;

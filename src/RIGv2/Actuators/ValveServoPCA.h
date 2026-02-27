@@ -31,7 +31,7 @@ class ValveServoPCA : public Valve
 {
 public:
     ValveServoPCA(const ValveConfig& config, Boardcore::PCA9685& pca,
-                  Boardcore::PCA9685::Channels channel)
+                  Boardcore::PCA9685Utils::Channel channel)
         : Valve(config), pca(pca), channel(channel)
     {
     }
@@ -54,7 +54,7 @@ public:
             // How can I handle this error?
             return pca.setDutyCycle(channel, position);
         };
-        };
+    };
 
     float getPosition() override
     {
@@ -89,7 +89,7 @@ public:
 
 private:
     Boardcore::PCA9685& pca;
-    Boardcore::PCA9685::Channels channel;
+    Boardcore::PCA9685Utils::Channel channel;
     float lastPosition = 0.0f;
 };
 }  // namespace RIGv2
