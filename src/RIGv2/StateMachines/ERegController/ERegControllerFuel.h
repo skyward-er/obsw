@@ -50,6 +50,8 @@ public:
                          Boardcore::ERegPIDConfig newDischargeConfig);
 
     void changeTargetPressure(float newTargetPressure);
+    void setIntegralContribution(float newPilotContribution,
+                                 float newRampupContribution);
 
 private:
     void update();
@@ -58,7 +60,8 @@ private:
     void state_init(const Boardcore::Event& event);
     void state_closed(const Boardcore::Event& event);
     void state_pressurizing(const Boardcore::Event& event);
-    void state_discharging(const Boardcore::Event& event);
+    void state_pilot_flame(const Boardcore::Event& event);
+    void state_rampup(const Boardcore::Event& event);
 
     void updateAndLogStatus(ERegState state);
 
@@ -81,7 +84,9 @@ private:
     Boardcore::ERegPIDConfig dischargeConfig =
         Config::ERegFuel::DISCHARGING_CONFIG;
 
-    float targetPressure = Config::ERegFuel::TARGET_PRESSURE;
+    float targetPressure     = Config::ERegFuel::TARGET_PRESSURE;
+    float pilotFlameIntegral = Config::ERegFuel::PILOT_FLAME_INTEGRAL;
+    float rampupIntegral     = Config::ERegFuel::RAMPUP_INTEGRAL;
 };
 
 }  // namespace RIGv2

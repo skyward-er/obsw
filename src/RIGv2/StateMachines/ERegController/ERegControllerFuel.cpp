@@ -44,10 +44,6 @@ ERegControllerFuel::ERegControllerFuel()
                 Config::ERegFuel::VALVE_INFO, Config::ERegFuel::TARGET_PRESSURE}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_FUEL);
-
-    changePIDConfig(Config::ERegFuel::STABILIZING_CONFIG,
-                    Config::ERegFuel::DISCHARGING_CONFIG);
-    changeTargetPressure(Config::ERegFuel::TARGET_PRESSURE);
 }
 
 bool ERegControllerFuel::start()
@@ -118,7 +114,7 @@ void ERegControllerFuel::update()
         return;
     }
 
-    if (state == ERegState::DISCHARGING)
+    if (state == ERegState::PILOTFLAME || state == ERegState::RAMPUP)
     {
         regulator.setInput(logData.filteredDownstreamPressure,
                            logData.filteredUpstreamPressure);
@@ -184,9 +180,9 @@ void ERegControllerFuel::state_pressurizing(const Event& event)
 
             regulator.setReferencePoint(targetPressure);
             regulator.changePIDConfig(pressurizationConfig);
-            regulator.begin();
             lastDownstreamInput = -1.0f;
             lastUpstreamInput   = -1.0f;
+            regulator.begin();
             break;
         }
 
@@ -199,27 +195,50 @@ void ERegControllerFuel::state_pressurizing(const Event& event)
 
         case EREG_DISCHARGE:
         {
-            transition(&ERegControllerFuel::state_discharging);
+            transition(&ERegControllerFuel::state_pilot_flame);
             break;
         }
     }
 }
 
-void ERegControllerFuel::state_discharging(const Event& event)
+void ERegControllerFuel::state_pilot_flame(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::DISCHARGING);
-            regulator.setReferencePoint(targetPressure);
+            updateAndLogStatus(ERegState::PILOTFLAME);
+
             regulator.changePIDConfig(dischargeConfig);
+            regulator.setIntegralContribution(pilotFlameIntegral);
             break;
         }
 
-        case EREG_PRESSURIZE:
+        case EREG_RAMPUP:
         {
-            transition(&ERegControllerFuel::state_pressurizing);
+            transition(&ERegControllerFuel::state_rampup);
+            break;
+        }
+
+        case EREG_TOGGLE:
+        case EREG_CLOSE:
+        {
+            transition(&ERegControllerFuel::state_closed);
+            break;
+        }
+    }
+}
+
+void ERegControllerFuel::state_rampup(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ERegState::RAMPUP);
+
+            regulator.changePIDConfig(dischargeConfig);
+            regulator.setIntegralContribution(rampupIntegral);
             break;
         }
 
@@ -247,6 +266,13 @@ void ERegControllerFuel::changePIDConfig(ERegPIDConfig newPressurizationConfig,
 void ERegControllerFuel::changeTargetPressure(float newTargetPressure)
 {
     this->targetPressure = newTargetPressure;
+}
+
+void ERegControllerFuel::setIntegralContribution(float newPilotFlameIntegral,
+                                                 float newRampupIntegral)
+{
+    this->pilotFlameIntegral = newPilotFlameIntegral;
+    this->rampupIntegral     = newRampupIntegral;
 }
 
 void ERegControllerFuel::updateAndLogStatus(ERegState state)

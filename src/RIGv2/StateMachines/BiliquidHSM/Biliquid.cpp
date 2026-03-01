@@ -224,6 +224,7 @@ State Biliquid::state_seq_1(const Event& event)
             return HANDLED;
         }
 
+        // pilot flame phase
         case BILIQUID_STEP:
         {
             getModule<Actuators>()->moveServo(ServosList::MAIN_FUEL_VALVE,
@@ -239,8 +240,12 @@ State Biliquid::state_seq_1(const Event& event)
             return HANDLED;
         }
 
+        // rampup phase
         case BILIQUID_SEQ_2_OX:
         {
+            EventBroker::getInstance().post(EREG_RAMPUP, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_RAMPUP, TOPIC_EREG_FUEL);
+
             getModule<Actuators>()->animateServo(ServosList::MAIN_FUEL_VALVE,
                                                  1.0f, 500);
             getModule<Actuators>()->animateServo(ServosList::MAIN_OX_VALVE,

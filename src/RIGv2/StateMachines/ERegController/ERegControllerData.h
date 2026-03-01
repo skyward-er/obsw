@@ -37,7 +37,8 @@ enum class ERegState : uint8_t
     INIT = 0,
     CLOSED,
     PRESSURIZING,
-    DISCHARGING,
+    PILOTFLAME,
+    RAMPUP,
     INVALID,
 };
 
@@ -51,8 +52,10 @@ inline std::string to_string(ERegState state)
             return "CLOSED";
         case ERegState::PRESSURIZING:
             return "PRESSURIZING";
-        case ERegState::DISCHARGING:
-            return "DISCHARGING";
+        case ERegState::PILOTFLAME:
+            return "PILOTFLAME";
+        case ERegState::RAMPUP:
+            return "RAMPUP";
         default:
             return "UNKNOWN";
     }

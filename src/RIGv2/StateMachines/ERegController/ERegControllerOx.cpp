@@ -47,10 +47,6 @@ ERegControllerOx::ERegControllerOx()
       }
 {
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_OX);
-
-    changePIDConfig(Config::ERegOx::STABILIZING_CONFIG,
-                    Config::ERegOx::DISCHARGING_CONFIG);
-    changeTargetPressure(Config::ERegOx::TARGET_PRESSURE);
 }
 
 bool ERegControllerOx::start()
@@ -121,7 +117,7 @@ void ERegControllerOx::update()
         return;
     }
 
-    if (state == ERegState::DISCHARGING)
+    if (state == ERegState::RAMPUP || state == ERegState::PILOTFLAME)
     {
         regulator.setInput(logData.filteredDownstreamPressure,
                            logData.filteredUpstreamPressure);
@@ -187,9 +183,9 @@ void ERegControllerOx::state_pressurizing(const Event& event)
 
             regulator.changePIDConfig(pressurizationConfig);
             regulator.setReferencePoint(targetPressure);
-            regulator.begin();
             lastDownstreamInput = -1.0f;
             lastUpstreamInput   = -1.0f;
+            regulator.begin();
             break;
         }
 
@@ -202,21 +198,50 @@ void ERegControllerOx::state_pressurizing(const Event& event)
 
         case EREG_DISCHARGE:
         {
-            transition(&ERegControllerOx::state_discharging);
+            transition(&ERegControllerOx::state_pilot_flame);
             break;
         }
     }
 }
 
-void ERegControllerOx::state_discharging(const Event& event)
+void ERegControllerOx::state_pilot_flame(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::DISCHARGING);
+            updateAndLogStatus(ERegState::PILOTFLAME);
 
             regulator.changePIDConfig(dischargeConfig);
+            regulator.setIntegralContribution(pilotFlameIntegral);
+            break;
+        }
+
+        case EREG_RAMPUP:
+        {
+            transition(&ERegControllerOx::state_rampup);
+            break;
+        }
+
+        case EREG_TOGGLE:
+        case EREG_CLOSE:
+        {
+            transition(&ERegControllerOx::state_closed);
+            break;
+        }
+    }
+}
+
+void ERegControllerOx::state_rampup(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ERegState::RAMPUP);
+
+            regulator.changePIDConfig(dischargeConfig);
+            regulator.setIntegralContribution(rampupIntegral);
             break;
         }
 
@@ -244,6 +269,13 @@ void ERegControllerOx::changePIDConfig(ERegPIDConfig newPressurizationConfig,
 void ERegControllerOx::changeTargetPressure(float newTargetPressure)
 {
     this->targetPressure = newTargetPressure;
+}
+
+void ERegControllerOx::setIntegralContribution(float newPilotFlameIntegral,
+                                               float newRampupIntegral)
+{
+    this->pilotFlameIntegral = newPilotFlameIntegral;
+    this->rampupIntegral     = newRampupIntegral;
 }
 
 void ERegControllerOx::updateAndLogStatus(ERegState state)

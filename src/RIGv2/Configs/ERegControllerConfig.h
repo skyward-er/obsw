@@ -42,9 +42,11 @@ constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE    = 58;  // [Bar]
-constexpr Hertz UPDATE_RATE        = 100_hz;
-constexpr int MEDIAN_SAMPLE_NUMBER = 10;
+constexpr float TARGET_PRESSURE      = 58;  // [Bar]
+constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
+constexpr float RAMPUP_INTEGRAL      = 0.0f;
+constexpr Hertz UPDATE_RATE          = 100_hz;
+constexpr int MEDIAN_SAMPLE_NUMBER   = 10;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
@@ -88,9 +90,11 @@ constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE    = 58;  // [Bar]
-constexpr Hertz UPDATE_RATE        = 100_hz;
-constexpr int MEDIAN_SAMPLE_NUMBER = 10;
+constexpr float TARGET_PRESSURE      = 58;  // [Bar]
+constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
+constexpr float RAMPUP_INTEGRAL      = 0.0f;
+constexpr Hertz UPDATE_RATE          = 100_hz;
+constexpr int MEDIAN_SAMPLE_NUMBER   = 10;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 

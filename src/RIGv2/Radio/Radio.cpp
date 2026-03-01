@@ -338,25 +338,25 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SET_EREG_CONSTANTS_TC:
         {
             ERegPIDConfig pressurizationConfig = {
-                mavlink_msg_set_ereg_constants_tc_get_KpPressurization(&msg),
-                mavlink_msg_set_ereg_constants_tc_get_KiPressurization(&msg),
-                mavlink_msg_set_ereg_constants_tc_get_KdPressurization(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_kp_pressurization(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_ki_pressurization(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_kd_pressurization(&msg),
             };
 
             ERegPIDConfig dischargeConfig = {
-                mavlink_msg_set_ereg_constants_tc_get_KpDischarge(&msg),
-                mavlink_msg_set_ereg_constants_tc_get_KiDischarge(&msg),
-                mavlink_msg_set_ereg_constants_tc_get_KdDischarge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_kp_discharge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_ki_discharge(&msg),
+                mavlink_msg_set_ereg_constants_tc_get_kd_discharge(&msg),
             };
 
-            if (mavlink_msg_set_ereg_constants_tc_get_Ereg(&msg) == EREG_OX &&
+            if (mavlink_msg_set_ereg_constants_tc_get_ereg(&msg) == EREG_OX &&
                 getModule<ERegControllerOx>()->getState() == ERegState::CLOSED)
             {
                 getModule<ERegControllerOx>()->changePIDConfig(
                     pressurizationConfig, dischargeConfig);
                 return enqueueAck(msg);
             }
-            if (mavlink_msg_set_ereg_constants_tc_get_Ereg(&msg) == EREG_FUEL &&
+            if (mavlink_msg_set_ereg_constants_tc_get_ereg(&msg) == EREG_FUEL &&
                 getModule<ERegControllerFuel>()->getState() ==
                     ERegState::CLOSED)
             {
@@ -371,9 +371,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SET_EREG_TARGET_TC:
         {
             float targetPressure =
-                mavlink_msg_set_ereg_target_tc_get_PressureTarget(&msg);
+                mavlink_msg_set_ereg_target_tc_get_pressure_target(&msg);
 
-            if (mavlink_msg_set_ereg_target_tc_get_Ereg(&msg) == EREG_OX)
+            if (mavlink_msg_set_ereg_target_tc_get_ereg(&msg) == EREG_OX)
             {
                 getModule<ERegControllerOx>()->changeTargetPressure(
                     targetPressure);
@@ -385,6 +385,28 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             }
 
             return enqueueAck(msg);
+        }
+
+        case MAVLINK_MSG_ID_SET_EREG_STARTING_INTEGRAL_TC:
+        {
+            float pilotContribution =
+                mavlink_msg_set_ereg_starting_integral_tc_get_pilot_flame_contribution(
+                    &msg);
+            float rampupContribution =
+                mavlink_msg_set_ereg_starting_integral_tc_get_rampup_contribution(
+                    &msg);
+
+            if (mavlink_msg_set_ereg_starting_integral_tc_get_ereg(&msg) ==
+                EREG_OX)
+            {
+                getModule<ERegControllerOx>()->setIntegralContribution(
+                    pilotContribution, rampupContribution);
+            }
+            else
+            {
+                getModule<ERegControllerFuel>()->setIntegralContribution(
+                    pilotContribution, rampupContribution);
+            }
         }
 
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
