@@ -43,7 +43,7 @@ namespace Sensors
 
 namespace ADS131M08
 {
-constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_256;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 constexpr Hertz PERIOD = 1000_hz;

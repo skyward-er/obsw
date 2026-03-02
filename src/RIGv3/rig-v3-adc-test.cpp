@@ -120,35 +120,27 @@ int main()
                   << statusStr << std::endl;
     }
 
-    /*
-     * Print ADC data to stdout (serial port)
-     *
-     * Data format:
-     * - ASCII mode
-     * - Column delimiter: space
-     * - Prefix: $ (filter by prefix)
-     */
+    CpuMeter::resetCpuStats();
+
     while (true)
     {
-        miosix::Thread::sleep(1000);
+        miosix::Thread::sleep(5000);
 
-        auto sample1 = sensors->getADC1LastSample();
-
-        // Data frame marker
-        std::cout << "$" << std::fixed << std::setprecision(3)
-                  << sample1.timestamp / 1e6 << " ";
-        // Print as millivolts
-        for (int i = 0; i < 8; i++)
-            std::cout << sample1.voltage[i] * 1000.f << " ";
-        std::cout << "\n";
-
-        CpuMeterData cpuStats = CpuMeter::getCpuStats();
+        auto cpuStats = CpuMeter::getCpuStats();
         CpuMeter::resetCpuStats();
+        auto logStatus = sdLogger.getStats();
 
         std::cout << "CPU stats: " << std::fixed << std::setprecision(2)
                   << cpuStats.mean << "% (" << cpuStats.minValue << "%, "
                   << cpuStats.maxValue << "%) over " << cpuStats.nSamples
-                  << " samples, stdDev: " << cpuStats.stdDev << "\n";
+                  << " samples, stdDev: " << cpuStats.stdDev << "\n"
+                  << " ╰─ Logger stats: " << logStatus.queuedSamples
+                  << " samples queued, " << logStatus.buffersWritten
+                  << " buffers written, " << logStatus.writesFailed
+                  << " writes failed, " << logStatus.averageWriteTime
+                  << "ms average write time, " << logStatus.maxWriteTime
+                  << "ms max write time, last error: "
+                  << logStatus.lastWriteError << "\n";
     }
 
     return 0;
