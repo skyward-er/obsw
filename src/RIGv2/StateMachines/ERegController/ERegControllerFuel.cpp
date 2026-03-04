@@ -80,8 +80,8 @@ void ERegControllerFuel::update()
     downstreamPressureFilter.add(logData.downstreamPressure);
     upstreamPressureFilter.add(logData.upstreamPressure);
 
-    logData.filteredDownstreamPressure = downstreamPressureFilter.calcMedian();
-    logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMedian();
+    logData.filteredDownstreamPressure = downstreamPressureFilter.calcMean();
+    logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
     if (logData.filteredDownstreamPressure >

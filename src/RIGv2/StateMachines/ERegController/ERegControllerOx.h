@@ -28,7 +28,7 @@
 #include <RIGv2/StateMachines/ERegController/ERegControllerData.h>
 #include <algorithms/EReg/EReg.h>
 #include <algorithms/EReg/ERegData.h>
-#include <common/MedianFilter.h>
+#include <common/MeanFilter.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -71,10 +71,8 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ereg");
 
     Boardcore::EReg regulator;
-    MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER>
-        downstreamPressureFilter;
-    MedianFilter<float, Config::ERegOx::MEDIAN_SAMPLE_NUMBER>
-        upstreamPressureFilter;
+    MeanFilter<float, Config::ERegOx::FILTER_SAMPLES> downstreamPressureFilter;
+    MeanFilter<float, Config::ERegOx::FILTER_SAMPLES> upstreamPressureFilter;
 
     float lastDownstreamInput;  // Last sample used by ereg algorithm
     float lastUpstreamInput;    // Last sample used by ereg algorithm

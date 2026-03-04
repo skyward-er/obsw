@@ -46,7 +46,7 @@ constexpr float TARGET_PRESSURE      = 58;  // [Bar]
 constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
 constexpr float RAMPUP_INTEGRAL      = 0.0f;
 constexpr Hertz UPDATE_RATE          = 100_hz;
-constexpr int MEDIAN_SAMPLE_NUMBER   = 10;
+constexpr int FILTER_SAMPLES         = 3;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
@@ -94,7 +94,7 @@ constexpr float TARGET_PRESSURE      = 58;  // [Bar]
 constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
 constexpr float RAMPUP_INTEGRAL      = 0.0f;
 constexpr Hertz UPDATE_RATE          = 100_hz;
-constexpr int MEDIAN_SAMPLE_NUMBER   = 10;
+constexpr int FILTER_SAMPLES         = 3;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
