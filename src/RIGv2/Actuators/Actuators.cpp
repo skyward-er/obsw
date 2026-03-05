@@ -98,7 +98,8 @@ void Actuators::ServoInfo::openServoWithTime(uint32_t time)
         currentTime + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
 
     // Set opening position
-    valve->currentPosition = valve->getMaxAperture();
+    valve->currentPosition =
+        std::min(1.0f, std::max(0.0f, valve->getMaxAperture()));
 
     // Reset animation in case it was interrupted
     updateTs       = ValveClosed;
@@ -198,6 +199,11 @@ void Actuators::ServoInfo::move()
         {
             // Update the servo position
             valve->currentPosition += animationStep;
+
+            // Clamp position
+            valve->currentPosition =
+                std::min(1.0f, std::max(0.0f, valve->currentPosition));
+
             // Schedule the next update
             updateTs = currentTime + Config::Servos::ANIMATION_UPDATE_PERIOD;
         }
@@ -214,10 +220,11 @@ void Actuators::ServoInfo::move()
     valve->setPosition(valve->currentPosition);
 }
 
-Actuators::Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig)
+Actuators::Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig0,
+                     I2CDriver::I2CSlaveConfig i2cConfig1)
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      Expander0(i2c, i2cConfig), Expander1(i2c, i2cConfig),
+      Expander0(i2c, i2cConfig0), Expander1(i2c, i2cConfig1),
       prz_3wayValveInfo(MAKE_SIMPLE_SERVO(PRZ_3W)),
       spark(std::make_unique<SparkPlug>(
           MIOSIX_SERVOS_SPARK_PLUG_TIM, (uint16_t)50,
@@ -666,6 +673,8 @@ Actuators::ServoInfo* Actuators::getServo(ServosList servo)
 
 void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
 {
+    // Clamp the position to the [0, 1] range
+    position = std::min(1.0f, std::max(0.0f, position));
     infos[idx].valve->setPosition(position);
 
     // Log the update

@@ -23,73 +23,61 @@
 #pragma once
 
 #include "Valve.h"
-#include "drivers/PCA9685/PCA9685.h"
 
 namespace RIGv2
 {
-class ValveServoPCA : public Valve
+class ValveSolenoid : public Valve
 {
 public:
-    ValveServoPCA(const ValveConfig& config, Boardcore::PCA9685& pca,
-                  Boardcore::PCA9685Utils::Channel channel)
-        : Valve(config), pca(pca), channel(channel)
-    {
-    }
+    /**
+     * @brief ValveSolenoid Constructor
+     * @param pin Solenoid valve control pin
+     */
+    ValveSolenoid(const ValveConfig& config, miosix::GpioPin pin)
+        : Valve(config), pin(pin) {};
 
+    /**
+     * @brief Sets the state of the solenoid valve (open/closed).
+     * @param position position values greater than 0.5f are treated as high.
+     */
     bool setPosition(float position) override
     {
-        position *= config.limit;
-
-        if (config.flipped)
-            position = 1.0f - position;
-
-        if (position < 0.0f)
-            position = 0.0f;
-        else if (position > 1.0f)
-            position = 1.0f;
-
-        lastPosition = position;
-        if (!pca.setDutyCycle(channel, position))
+        if (position < 0.5f)
         {
-            // How can I handle this error?
-            return pca.setDutyCycle(channel, position);
-        };
+            ValveSolenoid::pin.low();
+
+        }  // set PIN to low
+        else
+        {
+            ValveSolenoid::pin.high();
+        }  // set PIN to high
+        return true;
     };
 
+    /**
+     * @brief Returns the state of the solenoid valve (open/closed).
+     * @returns True if open
+     *
+     * False if closed
+     */
     float getPosition() override
     {
-        float position = lastPosition;
+        float position = ValveSolenoid::pin.value();
+
         if (config.flipped)
             position = 1.0f - position;
 
-        position /= config.limit;
         return position;
     };
 
-    ValveType getType() const override { return ValveType::SERVO_PCA; }
+    ValveType getType() const override { return ValveType::SOLENOID; }
 
     void backstep() override
     {
-        switch (direction)
-        {
-            case Direction::OPEN:
-                currentPosition -= Config::Servos::SERVO_BACKSTEP_AMOUNT;
-                break;
-
-            case Direction::CLOSE:
-                currentPosition += Config::Servos::SERVO_BACKSTEP_AMOUNT;
-                break;
-        }
-
-        // Clamp the position to the [0, 1] range
-        currentPosition = std::min(1.0f, std::max(0.0f, currentPosition));
-
-        setPosition(currentPosition);
+        // Do nothing
     }
 
 private:
-    Boardcore::PCA9685& pca;
-    Boardcore::PCA9685Utils::Channel channel;
-    float lastPosition = 0.0f;
+    miosix::GpioPin pin;
 };
 }  // namespace RIGv2

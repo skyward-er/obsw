@@ -91,7 +91,8 @@ private:
     };
 
 public:
-    Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig);
+    Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig0,
+              I2CDriver::I2CSlaveConfig i2cConfig1);
 
     bool isStarted();
 

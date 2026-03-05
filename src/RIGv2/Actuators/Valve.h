@@ -25,9 +25,9 @@
 #include <RIGv2/Registry/Registry.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-#include "ValveServo.h"
-#include "ValveServoPCA.h"
-#include "ValveSolenoid.h"
+#include "ServoPCAValve.h"
+#include "ServoValve.h"
+#include "SolenoidValve.h"
 
 namespace RIGv2
 {
