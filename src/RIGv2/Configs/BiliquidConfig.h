@@ -36,6 +36,9 @@ using namespace Boardcore::Units::Frequency;
 
 static constexpr Hertz UPDATE_RATE = 100_hz;
 
+static constexpr float PILOT_FLAME_SERVO_POSITION_OX   = 0.3f;
+static constexpr float PILOT_FLAME_SERVO_POSITION_FUEL = 0.3f;
+
 // sequence 1 configs
 static constexpr int maxStepCount                = 5;
 static constexpr float PositionsOX[maxStepCount] = {0.20f, 0.25f, 0.30f, 0.35f,
