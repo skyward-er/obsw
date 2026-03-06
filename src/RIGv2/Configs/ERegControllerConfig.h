@@ -67,7 +67,7 @@ const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::ERegValveInfo VALVE_INFO = {
-    .minServoPosition = 0.15f,
+    .minServoPosition = 0.11f,
     .minValveAngle    = 12,
     .maxCv            = 0.912291f,
 
