@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Niccolò Betto, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,19 +41,45 @@ namespace Sensors
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-namespace ADS131M08
+namespace ADS131M08_FAST
 {
 constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 constexpr Hertz PERIOD = 1000_hz;
-}  // namespace ADS131M08
+}  // namespace ADS131M08_FAST
+
+namespace ADS131M08_SLOW
+{
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr bool GLOBAL_CHOP_MODE_EN = true;
+
+constexpr Hertz PERIOD = 100_hz;
+}  // namespace ADS131M08_SLOW
+
+namespace ADC_0
+{
+constexpr bool ENABLED = true;
+
+}  // namespace ADC_0
 
 namespace ADC_1
 {
 constexpr bool ENABLED = true;
 
 }  // namespace ADC_1
+
+namespace ADC_2
+{
+constexpr bool ENABLED = true;
+
+}  // namespace ADC_2
+
+namespace ADC_3
+{
+constexpr bool ENABLED = true;
+
+}  // namespace ADC_3
 
 namespace InternalADC
 {

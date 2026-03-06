@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Niccolò Betto, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <interfaces-impl/hwmapping.h>
 #include <drivers/spi/SPIBus.h>
+#include <interfaces-impl/hwmapping.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace RIGv3
@@ -34,25 +34,25 @@ class Buses : public Boardcore::Injectable
 public:
     Buses() : spi2(SPI2), spi3(SPI3), spi4(SPI4) {}
 
+    Boardcore::SPIBus& getADC0() { return spi2; }
     Boardcore::SPIBus& getADC1() { return spi2; }
     Boardcore::SPIBus& getADC2() { return spi3; }
-    Boardcore::SPIBus& getADC3() { return spi2; }
-    Boardcore::SPIBus& getADC4() { return spi3; }
+    Boardcore::SPIBus& getADC3() { return spi3; }
     Boardcore::SPIBus& getRadio() { return spi4; }
 
-    miosix::GpioPin getADC1CsPin()
+    miosix::GpioPin getADC0CsPin()
     {
         return miosix::interfaces::spi2::cs1::getPin();
+    }
+    miosix::GpioPin getADC1CsPin()
+    {
+        return miosix::interfaces::spi2::cs2::getPin();
     }
     miosix::GpioPin getADC2CsPin()
     {
         return miosix::interfaces::spi3::cs6::getPin();
     }
     miosix::GpioPin getADC3CsPin()
-    {
-        return miosix::interfaces::spi2::cs2::getPin();
-    }
-    miosix::GpioPin getADC4CsPin()
     {
         return miosix::interfaces::spi3::cs7::getPin();
     }

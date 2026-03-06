@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Niccolò Betto, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,21 @@
 namespace RIGv3
 {
 
+struct ADC0Data : Boardcore::ADS131M08Data
+{
+    explicit ADC0Data(const Boardcore::ADS131M08Data& data)
+        : Boardcore::ADS131M08Data(data)
+    {
+    }
+
+    ADC0Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADC0Data, EXTEND_DEF(Boardcore::ADS131M08Data));
+    }
+};
+
 struct ADC1Data : Boardcore::ADS131M08Data
 {
     explicit ADC1Data(const Boardcore::ADS131M08Data& data)
@@ -42,6 +57,36 @@ struct ADC1Data : Boardcore::ADS131M08Data
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ADC1Data, EXTEND_DEF(Boardcore::ADS131M08Data));
+    }
+};
+
+struct ADC2Data : Boardcore::ADS131M08Data
+{
+    explicit ADC2Data(const Boardcore::ADS131M08Data& data)
+        : Boardcore::ADS131M08Data(data)
+    {
+    }
+
+    ADC2Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADC2Data, EXTEND_DEF(Boardcore::ADS131M08Data));
+    }
+};
+
+struct ADC3Data : Boardcore::ADS131M08Data
+{
+    explicit ADC3Data(const Boardcore::ADS131M08Data& data)
+        : Boardcore::ADS131M08Data(data)
+    {
+    }
+
+    ADC3Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ADC3Data, EXTEND_DEF(Boardcore::ADS131M08Data));
     }
 };
 
