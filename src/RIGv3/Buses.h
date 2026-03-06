@@ -56,6 +56,10 @@ public:
     {
         return miosix::interfaces::spi2::cs4::getPin();
     }
+    miosix::GpioPin getADC1CsPin()
+    {
+        return miosix::interfaces::spi2::cs2::getPin();
+    }
     miosix::GpioPin getADC2CsPin()
     {
         return miosix::interfaces::spi2::cs1::getPin();
