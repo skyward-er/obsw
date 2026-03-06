@@ -47,14 +47,14 @@ static constexpr float PositionsOX[maxStepCount] = {0.20f, 0.25f, 0.30f, 0.35f,
 static constexpr float PositionsFUEL[maxStepCount] = {0.15f, 0.20f, 0.25f,
                                                       0.30f, 0.35f};
 
-// time to wait between steps in sequence 1
-static constexpr milliseconds DT{1500};
+// time to wait before starting the rampup
+static constexpr milliseconds DT{1000};
 
 // sequence 2 configs
 static constexpr float SEQ_2_FUEL_POSITION = 0.25883f;
 static constexpr float SEQ_2_OX_POSITION   = 0.32516f;
-static constexpr milliseconds SEQ_2_OX_DELAY{1000};
-static constexpr milliseconds SEQ_2_SHUTDOWN_DELAY{4500 + 500};
+static constexpr milliseconds RAMPUP_DURATION{500};
+static constexpr milliseconds SHUTDOWN_DELAY{4500};
 
 // sequence 3 configs
 static constexpr milliseconds SEQ_3_SHUTDOWN_DELAY{9000 + 500};

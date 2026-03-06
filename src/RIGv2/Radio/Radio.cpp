@@ -407,6 +407,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 getModule<ERegControllerFuel>()->setIntegralContribution(
                     pilotContribution, rampupContribution);
             }
+
+            return enqueueAck(msg);
         }
 
         case MAVLINK_MSG_ID_RAW_EVENT_TC:

@@ -42,7 +42,7 @@ constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 58;  // [Bar]
+constexpr float TARGET_PRESSURE      = 58.0f;  // [Bar]
 constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
 constexpr float RAMPUP_INTEGRAL      = 0.0f;
 constexpr Hertz UPDATE_RATE          = 100_hz;
@@ -67,7 +67,7 @@ const static Boardcore::ERegPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::ERegValveInfo VALVE_INFO = {
-    .minServoPosition = 0.1012f,
+    .minServoPosition = 0.15f,
     .minValveAngle    = 12,
     .maxCv            = 0.912291f,
 
@@ -90,7 +90,7 @@ constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 58;  // [Bar]
+constexpr float TARGET_PRESSURE      = 58.0f;  // [Bar]
 constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
 constexpr float RAMPUP_INTEGRAL      = 0.0f;
 constexpr Hertz UPDATE_RATE          = 100_hz;

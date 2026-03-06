@@ -213,6 +213,7 @@ void ERegControllerOx::state_pilot_flame(const Event& event)
             updateAndLogStatus(ERegState::PILOTFLAME);
 
             regulator.changePIDConfig(dischargeConfig);
+            regulator.setReferencePoint(targetPressure);
             regulator.setIntegralContribution(pilotFlameIntegral);
             break;
         }
@@ -274,8 +275,13 @@ void ERegControllerOx::changeTargetPressure(float newTargetPressure)
 void ERegControllerOx::setIntegralContribution(float newPilotFlameIntegral,
                                                float newRampupIntegral)
 {
-    this->pilotFlameIntegral = newPilotFlameIntegral;
-    this->rampupIntegral     = newRampupIntegral;
+    this->pilotFlameIntegral =
+        newPilotFlameIntegral *
+        std::sqrt(std::abs(lastUpstreamInput - lastDownstreamInput));
+
+    this->rampupIntegral =
+        newRampupIntegral *
+        std::sqrt(std::abs(lastUpstreamInput - lastDownstreamInput));
 }
 
 void ERegControllerOx::updateAndLogStatus(ERegState state)

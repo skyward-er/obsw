@@ -74,15 +74,16 @@ private:
     MeanFilter<float, Config::ERegOx::FILTER_SAMPLES> downstreamPressureFilter;
     MeanFilter<float, Config::ERegOx::FILTER_SAMPLES> upstreamPressureFilter;
 
-    float lastDownstreamInput;  // Last sample used by ereg algorithm
-    float lastUpstreamInput;    // Last sample used by ereg algorithm
+    float lastDownstreamInput = 0.0f;  // Last sample used by ereg algorithm
+    float lastUpstreamInput   = 0.0f;  // Last sample used by ereg algorithm
 
     Boardcore::ERegPIDConfig pressurizationConfig =
         Config::ERegOx::STABILIZING_CONFIG;
     Boardcore::ERegPIDConfig dischargeConfig =
         Config::ERegOx::DISCHARGING_CONFIG;
 
-    float targetPressure     = Config::ERegOx::TARGET_PRESSURE;
+    float targetPressure = Config::ERegOx::TARGET_PRESSURE;
+
     float pilotFlameIntegral = Config::ERegOx::PILOT_FLAME_INTEGRAL;
     float rampupIntegral     = Config::ERegOx::RAMPUP_INTEGRAL;
 };
