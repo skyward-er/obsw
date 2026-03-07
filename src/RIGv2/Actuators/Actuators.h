@@ -25,13 +25,12 @@
 #include <RIGv2/BoardScheduler.h>
 #include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Registry/Registry.h>
+#include <Valve/Valve.h>
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkOrion.h>
 #include <miosix.h>
 #include <scheduler/SignaledDeadlineTask.h>
 #include <scheduler/TaskScheduler.h>
-
-#include "Valve.h"
 
 namespace RIGv2
 {
