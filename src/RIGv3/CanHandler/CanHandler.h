@@ -1,0 +1,98 @@
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Authors: Davide Mor
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#pragma once
+
+#include <RIGv3/BoardScheduler.h>
+#include <RIGv3/Sensors/Sensors.h>
+#include <common/CanConfig.h>
+#include <common/MavlinkHydra.h>
+#include <common/canbus/MotorStatus.h>
+#include <drivers/canbus/CanProtocol/CanProtocol.h>
+#include <utils/DependencyManager/DependencyManager.h>
+
+namespace RIGv3
+{
+
+class Actuators;
+class GroundModeManager;
+
+class CanHandler
+    : public Boardcore::InjectableWithDeps<BoardScheduler, GroundModeManager,
+                                           Actuators, Sensors,
+                                           Common::MotorStatus>
+{
+public:
+    struct CanStatus
+    {
+        long long mainLastStatus = 0;
+
+        uint8_t mainState = 0;
+
+        bool mainArmed = false;
+
+        bool isMainConnected()
+        {
+            return miosix::getTime() <=
+                   (mainLastStatus +
+                    std::chrono::nanoseconds{Common::CanConfig::STATUS_TIMEOUT}
+                        .count());
+        }
+
+        uint8_t getMainState() { return mainState; }
+
+        bool isMainArmed() { return mainArmed; }
+    };
+
+    CanHandler();
+
+    [[nodiscard]] bool start();
+
+    bool isStarted();
+
+    void sendEvent(Common::CanConfig::EventId event);
+
+    void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
+    void sendServoCloseCommand(ServosList servo);
+
+    CanStatus getCanStatus();
+
+private:
+    void handleMessage(const Boardcore::Canbus::CanMessage& msg);
+    void handleEvent(const Boardcore::Canbus::CanMessage& msg);
+    void handleSensor(const Boardcore::Canbus::CanMessage& msg);
+    void handleActuator(const Boardcore::Canbus::CanMessage& msg);
+    void handleStatus(const Boardcore::Canbus::CanMessage& msg);
+
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+
+    std::atomic<bool> started{false};
+
+    Boardcore::Canbus::CanbusDriver driver;
+    Boardcore::Canbus::CanProtocol protocol;
+
+    miosix::FastMutex statusMutex;
+    CanStatus status;
+};
+
+}  // namespace RIGv3
