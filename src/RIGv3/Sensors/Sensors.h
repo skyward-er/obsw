@@ -197,8 +197,7 @@ private:
     std::unique_ptr<Boardcore::AnalogEncoder> oxRegPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> fuelRegPosition;
 
-    std::unique_ptr<Boardcore::SensorManager> SPI2Manager;
-    std::unique_ptr<Boardcore::SensorManager> SPI3Manager;
+    std::unique_ptr<Boardcore::SensorManager> manager;
 };
 
 }  // namespace RIGv3

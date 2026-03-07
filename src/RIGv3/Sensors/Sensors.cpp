@@ -326,11 +326,11 @@ void Sensors::calibrateEncoders()
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
 {
-    if (SPI2Manager)
+    if (manager)
     {
         std::vector<SensorInfo> infos{};
 
-#define PUSH_SENSOR_INFO(manager, instance, name)                \
+#define PUSH_SENSOR_INFO(instance, name)                         \
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
@@ -914,8 +914,7 @@ void Sensors::fuelRegPositionCallback()
 
 bool Sensors::sensorManagerInit()
 {
-    TaskScheduler& SPI2scheduler = getModule<BoardScheduler>()->SPI2sensors();
-    TaskScheduler& SPI3scheduler = getModule<BoardScheduler>()->SPI3sensors();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->sensors();
 
     SensorManager::SensorMap_t map;
 
@@ -1087,7 +1086,7 @@ bool Sensors::sensorManagerInit()
     {
         SensorInfo info("InternalADC", Config::Sensors::InternalADC::PERIOD,
                         [this]() { internalAdcCallback(); });
-        SPI3map.emplace(internalAdc.get(), info);
+        map.emplace(internalAdc.get(), info);
     }
 
     manager = std::make_unique<SensorManager>(map, &scheduler);
