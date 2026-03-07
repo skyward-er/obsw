@@ -1,5 +1,5 @@
-/* Copyright (c) 2026 Skyward Experimental Rocketry
- * Author: Niccolò Betto, Pietro Bortolus
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,8 +55,7 @@ public:
 
     Boardcore::TaskScheduler& tars1() { return high; }
     Boardcore::TaskScheduler& tars3() { return high; }
-    Boardcore::TaskScheduler& SPI2sensors() { return high; }
-    Boardcore::TaskScheduler& SPI3sensors() { return high; }
+    Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
 
     static Priority::PriorityLevel actuatorsPriority()

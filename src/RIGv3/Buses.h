@@ -36,8 +36,9 @@ public:
 
     Boardcore::SPIBus& getADC0() { return spi2; }
     Boardcore::SPIBus& getADC1() { return spi2; }
-    Boardcore::SPIBus& getADC2() { return spi3; }
-    Boardcore::SPIBus& getADC3() { return spi3; }
+    Boardcore::SPIBus& getADC2() { return spi2; }
+    Boardcore::SPIBus& getADC3() { return spi2; }
+    Boardcore::SPIBus& getExpander() { return spi3; }
     Boardcore::SPIBus& getRadio() { return spi4; }
 
     miosix::GpioPin getADC0CsPin()
@@ -50,11 +51,11 @@ public:
     }
     miosix::GpioPin getADC2CsPin()
     {
-        return miosix::interfaces::spi3::cs6::getPin();
+        return miosix::interfaces::spi2::cs3::getPin();
     }
     miosix::GpioPin getADC3CsPin()
     {
-        return miosix::interfaces::spi3::cs7::getPin();
+        return miosix::interfaces::spi2::cs4::getPin();
     }
 
 private:
