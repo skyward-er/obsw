@@ -79,8 +79,7 @@ private:
     std::unique_ptr<Boardcore::ADS131M08> adc2;
     std::unique_ptr<Boardcore::ADS131M08> adc3;
 
-    std::unique_ptr<Boardcore::SensorManager> SPI2Manager;
-    std::unique_ptr<Boardcore::SensorManager> SPI3Manager;
+    std::unique_ptr<Boardcore::SensorManager> manager;
 };
 
 }  // namespace RIGv3

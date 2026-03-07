@@ -41,8 +41,17 @@ bool Sensors::start()
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
+    if (Config::Sensors::ADC_0::ENABLED)
+        adc0Init();
+
     if (Config::Sensors::ADC_1::ENABLED)
         adc1Init();
+
+    if (Config::Sensors::ADC_2::ENABLED)
+        adc2Init();
+
+    if (Config::Sensors::ADC_3::ENABLED)
+        adc3Init();
 
     if (!sensorManagerInit())
     {
@@ -82,22 +91,22 @@ ADS131M08Data Sensors::getADC3LastSample()
 // need to figure out how to handle this with 2 sensor managers
 std::vector<SensorInfo> Sensors::getSensorInfos()
 {
-    if (SPI2Manager)
+    if (manager)
     {
         std::vector<SensorInfo> infos{};
 
-#define PUSH_SENSOR_INFO(manager, instance, name)                \
+#define PUSH_SENSOR_INFO(instance, name)                         \
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(SensorInfo{name, 0ns, nullptr, false})
 
-        PUSH_SENSOR_INFO(SPI2Manager, adc0, "ADS131M08_0");
-        PUSH_SENSOR_INFO(SPI2Manager, adc1, "ADS131M08_1");
-        PUSH_SENSOR_INFO(SPI3Manager, adc2, "ADS131M08_2");
-        PUSH_SENSOR_INFO(SPI3Manager, adc3, "ADS131M08_3");
-        PUSH_SENSOR_INFO(SPI3Manager, internalAdc, "InternalADC");
-#undef PUSH_SENSOR_INFO
+        PUSH_SENSOR_INFO(adc0, "ADS131M08_0");
+        PUSH_SENSOR_INFO(adc1, "ADS131M08_1");
+        PUSH_SENSOR_INFO(adc2, "ADS131M08_2");
+        PUSH_SENSOR_INFO(adc3, "ADS131M08_3");
+        PUSH_SENSOR_INFO(internalAdc, "InternalADC");
+
         return infos;
     }
     else
@@ -235,48 +244,45 @@ void Sensors::adc3Callback() { sdLogger.log(ADC3Data{getADC3LastSample()}); }
 
 bool Sensors::sensorManagerInit()
 {
-    TaskScheduler& SPI2scheduler = getModule<BoardScheduler>()->SPI2sensors();
-    TaskScheduler& SPI3scheduler = getModule<BoardScheduler>()->SPI3sensors();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->sensors();
 
-    SensorManager::SensorMap_t SPI2map;
-    SensorManager::SensorMap_t SPI3map;
+    SensorManager::SensorMap_t map;
 
     if (adc0)
     {
         SensorInfo info("ADC0", Config::Sensors::ADS131M08_FAST::PERIOD,
                         [this]() { adc0Callback(); });
-        SPI2map.emplace(std::make_pair(adc0.get(), info));
+        map.emplace(std::make_pair(adc0.get(), info));
     }
 
     if (adc1)
     {
         SensorInfo info("ADC1", Config::Sensors::ADS131M08_FAST::PERIOD,
                         [this]() { adc1Callback(); });
-        SPI2map.emplace(std::make_pair(adc1.get(), info));
+        map.emplace(std::make_pair(adc1.get(), info));
     }
 
     if (adc2)
     {
         SensorInfo info("ADC2", Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { adc2Callback(); });
-        SPI3map.emplace(std::make_pair(adc2.get(), info));
+        map.emplace(std::make_pair(adc2.get(), info));
     }
 
     if (adc3)
     {
         SensorInfo info("ADC3", Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { adc3Callback(); });
-        SPI3map.emplace(std::make_pair(adc3.get(), info));
+        map.emplace(std::make_pair(adc3.get(), info));
     }
 
     if (internalAdc)
     {
         SensorInfo info("InternalADC", Config::Sensors::InternalADC::PERIOD,
                         [this]() { internalAdcCallback(); });
-        SPI3map.emplace(internalAdc.get(), info);
+        map.emplace(internalAdc.get(), info);
     }
 
-    SPI2Manager = std::make_unique<SensorManager>(SPI2map, &SPI2scheduler);
-    SPI3Manager = std::make_unique<SensorManager>(SPI3map, &SPI3scheduler);
-    return SPI2Manager->start() && SPI3Manager->start();
+    manager = std::make_unique<SensorManager>(map, &scheduler);
+    return manager->start();
 }
