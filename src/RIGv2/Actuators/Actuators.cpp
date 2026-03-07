@@ -97,9 +97,11 @@ void Actuators::ServoInfo::openServoWithTime(uint32_t time)
     backstepTs =
         currentTime + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
 
+    float maxAperture = getMaxAperture();
+
     // Set opening position
-    valve->currentPosition =
-        std::min(1.0f, std::max(0.0f, valve->getMaxAperture()));
+
+    valve->currentPosition = std::min(1.0f, std::max(0.0f, maxAperture));
 
     // Reset animation in case it was interrupted
     updateTs       = ValveClosed;
@@ -220,6 +222,39 @@ void Actuators::ServoInfo::move()
     valve->setPosition(valve->currentPosition);
 }
 
+float Actuators::ServoInfo::getMaxAperture()
+{
+    getModule<Registry>()->getOrSetDefaultUnsafe(
+        valve->getMaxApertureRegKey(), valve->getDefaultMaxAperture());
+}
+
+uint32_t Actuators::ServoInfo::getOpeningTime()
+{
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        valve->getOpeningTimeRegKey(), valve->getDefaultOpeningTime());
+}
+
+bool Actuators::ServoInfo::setMaxAperture(float aperture)
+{
+    if (aperture >= 0.0 && aperture <= 1.0)
+    {
+        getModule<Registry>()->setUnsafe(valve->getMaxApertureRegKey(),
+                                         aperture);
+        return true;
+    }
+    else
+    {
+        // What? Who would ever set this to above 100%?
+        return false;
+    }
+}
+
+bool Actuators::ServoInfo::setOpeningTime(uint32_t time)
+{
+    getModule<Registry>()->setUnsafe(valve->getOpeningTimeRegKey(), time);
+    return true;
+}
+
 Actuators::Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig0,
                      I2CDriver::I2CSlaveConfig i2cConfig1)
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
@@ -305,7 +340,7 @@ bool Actuators::toggleServo(ServosList servo)
 
     if (info->closeTs == ValveClosed)
     {
-        uint32_t time = info->valve->getOpeningTime();
+        uint32_t time = info->getOpeningTime();
 
         // The servo is closed, open it
         getModule<CanHandler>()->sendServoOpenCommand(servo, time);
@@ -329,7 +364,7 @@ bool Actuators::openServo(ServosList servo)
     if (info == nullptr)
         return false;
 
-    uint32_t time = info->valve->getOpeningTime();
+    uint32_t time = info->getOpeningTime();
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->openServoWithTime(time);
@@ -427,7 +462,7 @@ bool Actuators::setMaxAperture(ServosList servo, float aperture)
 
     if (aperture >= 0.0 && aperture <= 1.0)
     {
-        info->valve->setMaxAperture(aperture);
+        info->setMaxAperture(aperture);
     }
     else
     {
@@ -443,7 +478,7 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
     if (info == nullptr)
         return false;
 
-    info->valve->setOpeningTime(time);
+    info->setOpeningTime(time);
 }
 
 bool Actuators::isServoOpen(ServosList servo)
@@ -463,7 +498,7 @@ uint32_t Actuators::getServoOpeningTime(ServosList servo)
     if (info == nullptr)
         return 0;
 
-    return info->valve->getOpeningTime();
+    return info->getOpeningTime();
 }
 
 float Actuators::getServoMaxAperture(ServosList servo)
@@ -473,7 +508,7 @@ float Actuators::getServoMaxAperture(ServosList servo)
     if (info == nullptr)
         return 0;
 
-    return info->valve->getMaxAperture();
+    return info->getMaxAperture();
 }
 
 Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
@@ -501,9 +536,9 @@ Actuators::ValveInfo Actuators::getValveInfo(ServosList servo)
     return ValveInfo{
         .valid       = true,
         .state       = isOpen,
-        .timing      = milliseconds{info->valve->getOpeningTime()},
+        .timing      = milliseconds{info->getOpeningTime()},
         .timeToClose = timeToClose,
-        .aperture    = info->valve->getMaxAperture(),
+        .aperture    = info->getMaxAperture(),
         .position    = info->valve->currentPosition,
     };
 }
@@ -542,7 +577,7 @@ uint32_t Actuators::getServoOpeningTime(ServosList servo)
     if (info == nullptr)
         return 0;
 
-    return info->valve->getOpeningTime();
+    return info->getOpeningTime();
 }
 
 void Actuators::openOxSolenoidWithTime(uint32_t time)
@@ -636,7 +671,8 @@ void Actuators::inject(DependencyInjector& injector)
 {
     Super::inject(injector);
     for (ServoInfo& info : infos)
-        info.valve->inject(injector);
+        info.inject(injector);
+    prz_3wayValveInfo.inject(injector);
 }
 
 Actuators::ServoInfo* Actuators::getServo(ServosList servo)

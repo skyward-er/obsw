@@ -41,10 +41,10 @@ class Actuators
       public Boardcore::SignaledDeadlineTask
 {
 private:
-    // Sentinel value for the valve closed state
+    ///< Sentinel value for the valve closed state
     static const TimePoint ValveClosed;
 
-    struct ServoInfo
+    struct ServoInfo : Boardcore::InjectableWithDeps<Registry>
     {
         ServoInfo(std::unique_ptr<Valve>&& valve) : valve(std::move(valve)) {}
 
@@ -76,6 +76,11 @@ private:
         void unsafeSetServoPosition(float position);
         void backstep();
         void move();
+
+        float getMaxAperture();
+        uint32_t getOpeningTime();
+        bool setMaxAperture(float aperture);
+        bool setOpeningTime(uint32_t time);
 
         bool isServoOpen();
     };
@@ -168,7 +173,7 @@ private:
     void unsafeStartSparkPlug();
     void unsafeStopSparkPlug();
 
-    // Time when the chamber valve should close, 0 if currently closed
+    ///< Time when the chamber valve should close, 0 if currently closed
     TimePoint chamberCloseTs = ValveClosed;
 
     // PRZ 3-way valve info

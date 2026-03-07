@@ -30,6 +30,8 @@ namespace RIGv2
 
 enum ConfigurationKeys
 {
+    // Invalid ID
+    INVALID_ID,
     // N2O
     CONFIG_ID_OX_FIL_OPENING_TIME,
     CONFIG_ID_OX_FIL_MAX_APERTURE,

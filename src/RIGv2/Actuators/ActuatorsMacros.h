@@ -62,7 +62,7 @@
 #define MAKE_SERVO(name)                                                       \
     ServoInfo                                                                  \
     {                                                                          \
-        std::make_unique<ValveServo>(                                          \
+        std::make_unique<ServoValve>(                                          \
             ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
                         .flipped = Config::Servos::name##_FLIPPED,             \
                         .defaultOpeningTime =                                  \
@@ -87,7 +87,7 @@
 #define MAKE_SMALL_SERVO(name)                                                 \
     ServoInfo                                                                  \
     {                                                                          \
-        std::make_unique<ValveServo>(                                          \
+        std::make_unique<ServoValve>(                                          \
             ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
                         .flipped = Config::Servos::name##_FLIPPED,             \
                         .defaultOpeningTime =                                  \
@@ -111,7 +111,7 @@
 #define MAKE_SIMPLE_SERVO(name)                                       \
     ServoInfo                                                         \
     {                                                                 \
-        std::make_unique<ValveServo>(                                 \
+        std::make_unique<ServoValve>(                                 \
             ValveConfig{                                              \
                 .limit        = Config::Servos::name##_LIMIT,         \
                 .flipped      = Config::Servos::name##_FLIPPED,       \
@@ -128,7 +128,7 @@
 #define MAKE_SOLENOID_SERVO(name, pin)                                         \
     ServoInfo                                                                  \
     {                                                                          \
-        std::make_unique<ValveSolenoid>(                                       \
+        std::make_unique<SolenoidValve>(                                       \
             ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
                         .flipped = Config::Servos::name##_FLIPPED,             \
                         .defaultOpeningTime =                                  \
@@ -146,7 +146,7 @@
 #define MAKE_PCA_SERVO(name, pca, channel)                                     \
     ServoInfo                                                                  \
     {                                                                          \
-        std::make_unique<ValveServoPCA>(                                       \
+        std::make_unique<ServoPCAValve>(                                       \
             ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
                         .flipped = Config::Servos::name##_FLIPPED,             \
                         .defaultOpeningTime =                                  \
