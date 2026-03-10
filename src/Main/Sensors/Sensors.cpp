@@ -560,7 +560,7 @@ PressureData Sensors::getCanPitotDynamicPressure()
     return PressureData{
         .pressureTimestamp = canPitotTotalPressure.pressureTimestamp,
         .pressure          = canPitotTotalPressure.pressure -
-                    canPitotStaticPressure.pressure - pitotDynamicBias,
+                             canPitotStaticPressure.pressure - pitotDynamicBias,
     };
 }
 
@@ -588,29 +588,29 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     {
         std::vector<SensorInfo> infos{};
 
-#define PUSH_SENSOR_INFO(instance, name)                         \
+#define PUSH_SENSOR_INFO(instance, name, manager)                \
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
 
-        PUSH_SENSOR_INFO(as5047d_left, "AS5047D_LEFT");
-        PUSH_SENSOR_INFO(as5047d_right, "AS5047D_RIGHT");
-        PUSH_SENSOR_INFO(lis2mdl_rcs, "LIS2MDL_RCS");
-        PUSH_SENSOR_INFO(lps22df, "LPS22DF");
-        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
-        PUSH_SENSOR_INFO(vn100, "VN100");
-        PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
-        PUSH_SENSOR_INFO(lis2mdl_int, "LIS2MDL_INT");
-        PUSH_SENSOR_INFO(ads131m08, "ADS131M08");
-        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
-        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
-        PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
-        PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
-        PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
-        PUSH_SENSOR_INFO(as5047d_abk, "AS5047D_ABK");
-        PUSH_SENSOR_INFO(internalAdc, "InternalADC");
-        PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
+        PUSH_SENSOR_INFO(as5047d_left, "AS5047D_LEFT", manager);
+        PUSH_SENSOR_INFO(as5047d_right, "AS5047D_RIGHT", manager);
+        PUSH_SENSOR_INFO(lis2mdl_rcs, "LIS2MDL_RCS", manager);
+        PUSH_SENSOR_INFO(lps22df, "LPS22DF", manager);
+        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL", manager);
+        PUSH_SENSOR_INFO(vn100, "VN100", manager);
+        PUSH_SENSOR_INFO(ubxgps, "UBXGPS", managerSpi3);
+        PUSH_SENSOR_INFO(lis2mdl_int, "LIS2MDL_INT", managerSpi3);
+        PUSH_SENSOR_INFO(ads131m08, "ADS131M08", manager);
+        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0", managerSpi3);
+        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1", managerSpi3);
+        PUSH_SENSOR_INFO(nd015a_0, "ND015A_0", managerSpi4);
+        PUSH_SENSOR_INFO(nd015a_1, "ND015A_1", managerSpi4);
+        PUSH_SENSOR_INFO(nd015a_2, "ND015A_2", managerSpi4);
+        PUSH_SENSOR_INFO(as5047d_abk, "AS5047D_ABK", manager);
+        PUSH_SENSOR_INFO(internalAdc, "InternalADC", manager);
+        PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU", manager);
 
         return infos;
     }
@@ -1080,7 +1080,11 @@ void Sensors::rotatedImuCallback() { sdLogger.log(getIMULastSample()); }
 
 bool Sensors::sensorManagerInit()
 {
+    // Da capire e finire
     SensorManager::SensorMap_t map;
+
+    SensorManager::SensorMap_t mapSpi3;
+    SensorManager::SensorMap_t mapSpi4;
 
     if (as5047d_left)
     {
@@ -1138,6 +1142,13 @@ bool Sensors::sensorManagerInit()
         map.emplace(lis2mdl_int.get(), info);
     }
 
+    if (lis2mdl_int)
+    {
+        SensorInfo info{"LIS2MDL_INT", Config::Sensors::LIS2MDL_INT::RATE,
+                        [this]() { lis2mdlIntCallback(); }};
+        map.emplace(lis2mdl_int.get(), info);
+    }
+
     if (lsm6dsrx_0)
     {
         SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
@@ -1170,21 +1181,21 @@ bool Sensors::sensorManagerInit()
     {
         SensorInfo info{"ND015A_0", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a0Callback(); }};
-        map.emplace(nd015a_0.get(), info);
+        mapSpi4.emplace(nd015a_0.get(), info);
     }
 
     if (nd015a_1)
     {
         SensorInfo info{"ND015A_1", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a1Callback(); }};
-        map.emplace(nd015a_1.get(), info);
+        mapSpi4.emplace(nd015a_1.get(), info);
     }
 
     if (nd015a_2)
     {
         SensorInfo info{"ND015A_2", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a2Callback(); }};
-        map.emplace(nd015a_2.get(), info);
+        mapSpi4.emplace(nd015a_2.get(), info);
     }
 
     if (as5047d_abk)
@@ -1201,6 +1212,13 @@ bool Sensors::sensorManagerInit()
         map.emplace(rotatedImu.get(), info);
     }
 
-    manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
-    return manager->start();
+    manager     = std::make_unique<SensorManager>(map, &getSensorsScheduler());
+    managerSpi3 = std::make_unique<SensorManager>(mapSpi3);
+    managerSpi4 = std::make_unique<SensorManager>(mapSpi4);
+
+    bool ok     = manager->start();
+    bool okSpi3 = managerSpi3->start();
+    bool okSpi4 = managerSpi4->start();
+
+    return ok && okSpi3 && okSpi4;
 }

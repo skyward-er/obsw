@@ -1167,7 +1167,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             // Cpu stuff
             CpuMeterData cpuStats = CpuMeter::getCpuStats();
-            CpuMeter::resetCpuStats();
+            //CpuMeter::resetCpuStats();
             tm.cpu_load  = cpuStats.mean;
             tm.free_heap = cpuStats.freeHeap;
 

@@ -42,6 +42,7 @@
 #include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/canbus/MotorStatus.h>
+#include <diagnostic/CpuMeter/CpuMeter.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -380,6 +381,14 @@ int main()
     while (true)
     {
         sdLogger.log(sdLogger.getStats());
+        CpuMeterData cpuStats = CpuMeter::getCpuStats();
+        CpuMeter::resetCpuStats();
+
+        printf(
+            "CPU Load: %.2f%% (min: %.2f%%, max: %.2f%%, stdDev: %.2f%%, "
+            "samples: %ld)\n",
+            cpuStats.mean, cpuStats.minValue, cpuStats.maxValue,
+            cpuStats.stdDev, cpuStats.nSamples);
 
         // Toggle LED
         gpioExpander.setPinValue(Main::Config::ExternalPin::LED_0.getPort(),
