@@ -73,7 +73,15 @@ set(RIG_V2_COMPUTER
 )
 
 set(RIG_V3_COMPUTER
+    src/common/canbus/MotorStatus.cpp
+    # src/RIGv3/Radio/Radio.cpp
     src/RIGv3/Sensors/Sensors.cpp
+    src/RIGv3/Actuators/Actuators.cpp
+    src/RIGv3/Registry/Registry.cpp
+    src/RIGv3/CanHandler/CanHandler.cpp
+    # src/RIGv3/StateMachines/GroundModeManager/GroundModeManager.cpp
+    # src/RIGv3/StateMachines/TARS1/TARS1.cpp
+    # src/RIGv3/StateMachines/TARS3/TARS3.cpp
 )
 
 set(CON_RIG_COMPUTER
