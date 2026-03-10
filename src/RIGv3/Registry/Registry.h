@@ -27,7 +27,6 @@
 
 namespace RIGv3
 {
-
 enum ConfigurationKeys
 {
 
