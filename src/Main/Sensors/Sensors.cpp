@@ -429,26 +429,26 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     {
         std::vector<SensorInfo> infos{};
 
-#define PUSH_SENSOR_INFO(instance, name)                         \
+#define PUSH_SENSOR_INFO(instance, name, manager)                \
     if (instance)                                                \
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
 
-        PUSH_SENSOR_INFO(lps22df, "LPS22DF");
-        PUSH_SENSOR_INFO(lis2mdl_ext, "LIS2MDL_EXT");
-        PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
-        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
-        PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
-        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
-        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
-        PUSH_SENSOR_INFO(vn100, "VN100");
-        PUSH_SENSOR_INFO(internalAdc, "InternalADC");
-        PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
-        PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
-        PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
-        PUSH_SENSOR_INFO(nd015a_3, "ND015A_3");
-        PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
+        PUSH_SENSOR_INFO(lps22df, "LPS22DF", manager);
+        PUSH_SENSOR_INFO(lis2mdl_ext, "LIS2MDL_EXT", manager);
+        PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL", managerSpi3);
+        PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL", manager);
+        PUSH_SENSOR_INFO(ubxgps, "UBXGPS", managerSpi3);
+        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0", managerSpi3);
+        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1", managerSpi3);
+        PUSH_SENSOR_INFO(vn100, "VN100", manager);
+        PUSH_SENSOR_INFO(internalAdc, "InternalADC", manager);
+        PUSH_SENSOR_INFO(nd015a_0, "ND015A_0", managerSpi4);
+        PUSH_SENSOR_INFO(nd015a_1, "ND015A_1", managerSpi4);
+        PUSH_SENSOR_INFO(nd015a_2, "ND015A_2", managerSpi4);
+        PUSH_SENSOR_INFO(nd015a_3, "ND015A_3", managerSpi4);
+        PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU", manager);
 
         return infos;
     }
@@ -749,6 +749,9 @@ bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
 
+    SensorManager::SensorMap_t mapSpi3;
+    SensorManager::SensorMap_t mapSpi4;
+
     if (lps22df)
     {
         SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::RATE,
@@ -767,35 +770,35 @@ bool Sensors::sensorManagerInit()
     {
         SensorInfo info{"LIS2MDL_EXT", Config::Sensors::LIS2MDL::RATE,
                         [this]() { lis2mdlExtCallback(); }};
-        map.emplace(lis2mdl_ext.get(), info);
+        mapSpi3.emplace(lis2mdl_ext.get(), info);
     }
 
     if (lis2mdl)
     {
         SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::RATE,
                         [this]() { lis2mdlCallback(); }};
-        map.emplace(lis2mdl.get(), info);
+        mapSpi3.emplace(lis2mdl.get(), info);
     }
 
     if (ubxgps)
     {
         SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::RATE,
                         [this]() { ubxgpsCallback(); }};
-        map.emplace(ubxgps.get(), info);
+        mapSpi3.emplace(ubxgps.get(), info);
     }
 
     if (lsm6dsrx_0)
     {
         SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
                         [this]() { lsm6dsrx0Callback(); }};
-        map.emplace(lsm6dsrx_0.get(), info);
+        mapSpi3.emplace(lsm6dsrx_0.get(), info);
     }
 
     if (lsm6dsrx_1)
     {
         SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
                         [this]() { lsm6dsrx1Callback(); }};
-        map.emplace(lsm6dsrx_1.get(), info);
+        mapSpi3.emplace(lsm6dsrx_1.get(), info);
     }
 
     if (vn100)
@@ -816,28 +819,28 @@ bool Sensors::sensorManagerInit()
     {
         SensorInfo info{"ND015A_0", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a0Callback(); }};
-        map.emplace(nd015a_0.get(), info);
+        mapSpi4.emplace(nd015a_0.get(), info);
     }
 
     if (nd015a_1)
     {
         SensorInfo info{"ND015A_1", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a1Callback(); }};
-        map.emplace(nd015a_1.get(), info);
+        mapSpi4.emplace(nd015a_1.get(), info);
     }
 
     if (nd015a_2)
     {
         SensorInfo info{"ND015A_2", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a2Callback(); }};
-        map.emplace(nd015a_2.get(), info);
+        mapSpi4.emplace(nd015a_2.get(), info);
     }
 
     if (nd015a_3)
     {
         SensorInfo info{"ND015A_3", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a3Callback(); }};
-        map.emplace(nd015a_3.get(), info);
+        mapSpi4.emplace(nd015a_3.get(), info);
     }
 
     if (rotatedImu)
@@ -847,6 +850,13 @@ bool Sensors::sensorManagerInit()
         map.emplace(rotatedImu.get(), info);
     }
 
-    manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
-    return manager->start();
+    manager     = std::make_unique<SensorManager>(map, &getSensorsScheduler());
+    managerSpi3 = std::make_unique<SensorManager>(mapSpi3);
+    managerSpi4 = std::make_unique<SensorManager>(mapSpi4);
+
+    bool ok     = manager->start();
+    bool okSpi3 = managerSpi3->start();
+    bool okSpi4 = managerSpi4->start();
+
+    return ok && okSpi3 && okSpi4;
 }

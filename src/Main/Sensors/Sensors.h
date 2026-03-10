@@ -141,6 +141,8 @@ protected:
     std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
+    std::unique_ptr<Boardcore::SensorManager> managerSpi3;
+    std::unique_ptr<Boardcore::SensorManager> managerSpi4;
 
 private:
     void lps22dfInit();
