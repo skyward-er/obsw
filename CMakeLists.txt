@@ -89,6 +89,10 @@ add_executable(rig-v3-adc-test src/RIGv3/rig-v3-adc-test.cpp ${RIG_V3_COMPUTER})
 target_include_directories(rig-v3-adc-test PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rig-v3-adc-test stm32f767zi_rig_v3)
 
+add_executable(rig-v3-entry src/RIGv3/rig-v3-entry.cpp ${RIG_V3_COMPUTER})
+target_include_directories(rig-v3-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(rig-v3-entry stm32f767zi_rig_v3)
+
 add_executable(rig-v3-adc-test src/RIGv3/rig-v3-adc-test.cpp ${RIG_V3_COMPUTER})
 target_include_directories(rig-v3-adc-test PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rig-v3-adc-test stm32f767zi_rig_v3)
