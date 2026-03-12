@@ -212,7 +212,7 @@ void Actuators::ValveInfo::advanceAnimation()
 
 float Actuators::ValveInfo::getMaxAperture()
 {
-    getModule<Registry>()->getOrSetDefaultUnsafe(
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
         valve->getMaxApertureRegKey(), valve->getDefaultMaxAperture());
 }
 
@@ -243,11 +243,15 @@ bool Actuators::ValveInfo::setOpeningTime(uint32_t time)
     return true;
 }
 
-Actuators::Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig0,
-                     I2CDriver::I2CSlaveConfig i2cConfig1)
+Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-      expander0(i2c, i2cConfig0), expander1(i2c, i2cConfig1),
+
+      expander0(getModule<Buses>()->getPCA9685(),
+                Config::Expanders::I2CExpander0Config),
+
+      expander1(getModule<Buses>()->getPCA9685(),
+                Config::Expanders::I2CExpander1Config),
 
       prz_3wayValveInfo(MAKE_SIMPLE_PCA_SERVO_VALVE(
           PRZ_3W, expander0, PCA9685Utils::Channel::CHANNEL_0)),
@@ -479,6 +483,7 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
         return false;
 
     info->setOpeningTime(time);
+    return true;
 }
 
 bool Actuators::isServoOpen(ServosList servo)
@@ -519,9 +524,8 @@ Actuators::ValveState Actuators::getValveInfo(ServosList servo)
     if (info == nullptr)
         return {};
 
-    bool isOpen           = info->isServoOpen();
-    auto timeToClose      = 0ms;
-    float currentPosition = 0.0f;
+    bool isOpen      = info->isServoOpen();
+    auto timeToClose = 0ms;
 
     if (isOpen)
     {
@@ -529,8 +533,6 @@ Actuators::ValveState Actuators::getValveInfo(ServosList servo)
         auto diff = info->closeTs - Clock::now() - 400ms;
         if (diff > 0ms)
             timeToClose = duration_cast<milliseconds>(diff);
-
-        currentPosition = info->valve->currentPosition;
     }
 
     return ValveState{
@@ -569,16 +571,6 @@ void Actuators::set3wayValveState(bool state)
 }
 
 bool Actuators::get3wayValveState() { return prz_3wayValveState; }
-
-uint32_t Actuators::getServoOpeningTime(ServosList servo)
-{
-    Lock<FastMutex> lock(infosMutex);
-    ValveInfo* info = getServo(servo);
-    if (info == nullptr)
-        return 0;
-
-    return info->getOpeningTime();
-}
 
 void Actuators::startSparkPlugWithTime(uint32_t time)
 {

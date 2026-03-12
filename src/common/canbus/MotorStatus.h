@@ -23,7 +23,7 @@
 #pragma once
 
 #include <common/CanConfig.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <logger/Logger.h>
 #include <miosix.h>
@@ -57,10 +57,14 @@ struct MotorStatus : public Boardcore::Injectable
         Boardcore::VoltageData batteryVoltage;
         Boardcore::CurrentData currentConsumption;
 
-        bool oxVentingValveOpen   = false;
-        bool nitrogenValveOpen    = false;
-        bool mainValveOpen        = false;
-        bool n2QuenchingValveOpen = false;
+        bool oxVentingValveOpen    = false;
+        bool fuelVentingValveOpen  = false;
+        bool przOxValveOpen        = false;
+        bool przFuelValveOpen      = false;
+        bool mainOxValveOpen       = false;
+        bool mainFuelValveOpen     = false;
+        bool ignitionOxValveOpen   = false;
+        bool ignitionFuelValveOpen = false;
     };
 
     /**

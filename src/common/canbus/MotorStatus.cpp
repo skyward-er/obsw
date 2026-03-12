@@ -134,16 +134,32 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
             data.oxVentingValveOpen = valveData.open;
             break;
 
-        case ServosList::MAIN_VALVE:
-            data.mainValveOpen = valveData.open;
+        case ServosList::FUEL_VENTING_VALVE:
+            data.fuelVentingValveOpen = valveData.open;
             break;
 
-        case ServosList::NITROGEN_VALVE:
-            data.nitrogenValveOpen = valveData.open;
+        case ServosList::PRZ_OX_VALVE:
+            data.przOxValveOpen = valveData.open;
             break;
 
-        case ServosList::N2_QUENCHING_VALVE:
-            data.n2QuenchingValveOpen = valveData.open;
+        case ServosList::PRZ_FUEL_VALVE:
+            data.przFuelValveOpen = valveData.open;
+            break;
+
+        case ServosList::MAIN_OX_VALVE:
+            data.mainOxValveOpen = valveData.open;
+            break;
+
+        case ServosList::MAIN_FUEL_VALVE:
+            data.mainFuelValveOpen = valveData.open;
+            break;
+
+        case ServosList::IGNITION_OX_VALVE:
+            data.ignitionOxValveOpen = valveData.open;
+            break;
+
+        case ServosList::IGNITION_FUEL_VALVE:
+            data.ignitionFuelValveOpen = valveData.open;
             break;
 
         default:
@@ -156,28 +172,24 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     }
 }
 
+// TODO: This needs to be updated with the latest sensors
 mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
 {
     miosix::Lock<miosix::FastMutex> lock(mutex);
 
     return {
-        .timestamp                   = TimestampTimer::getTimestamp(),
-        .n2_tank_pressure            = data.n2TankPressure.pressure,
-        .reg_out_pressure            = data.regulatorOutPressure.pressure,
-        .ox_tank_top_pressure        = data.oxTankTopPressure.pressure,
-        .ox_tank_bot_0_pressure      = data.oxTankBottom0Pressure.pressure,
-        .ox_tank_bot_1_pressure      = data.oxTankBottom1Pressure.pressure,
-        .combustion_chamber_pressure = data.combustionChamberPressure.pressure,
-        .thermocouple_temperature    = data.thermocoupleTemperature.temperature,
-        .battery_voltage             = data.batteryVoltage.voltage,
-        .current_consumption         = data.currentConsumption.current,
-        .log_number                  = data.device.logNumber,
-        .n2_quenching_valve_state    = data.n2QuenchingValveOpen,
-        .ox_venting_valve_state      = data.oxVentingValveOpen,
-        .nitrogen_valve_state        = data.nitrogenValveOpen,
-        .main_valve_state            = data.mainValveOpen,
-        .log_good                    = data.device.logGood,
-        .hil_state                   = data.device.hil,
+        .timestamp              = TimestampTimer::getTimestamp(),
+        .prz_tank_pressure      = data.n2TankPressure.pressure,
+        .ox_reg_out_pressure    = data.regulatorOutPressure.pressure,
+        .fuel_reg_out_pressure  = data.regulatorOutPressure.pressure,
+        .ox_tank_pressure       = data.oxTankTopPressure.pressure,
+        .fuel_tank_pressure     = data.oxTankBottom0Pressure.pressure,
+        .battery_voltage        = data.batteryVoltage.voltage,
+        .current_consumption    = data.currentConsumption.current,
+        .log_number             = data.device.logNumber,
+        .ox_venting_valve_state = data.oxVentingValveOpen,
+        .log_good               = data.device.logGood,
+        .hil_state              = data.device.hil,
     };
 }
 

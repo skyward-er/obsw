@@ -29,6 +29,7 @@
 #include <actuators/Servo/Servo.h>
 #include <actuators/SparkPlug.h>
 #include <common/MavlinkHydra.h>
+#include <drivers/PCA9685/PCA9685.h>
 #include <miosix.h>
 #include <scheduler/SignaledDeadlineTask.h>
 #include <scheduler/TaskScheduler.h>
@@ -37,7 +38,7 @@ namespace RIGv3
 {
 
 class Actuators
-    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>,
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler>,
       public Boardcore::SignaledDeadlineTask
 {
 private:
@@ -46,7 +47,10 @@ private:
 
     struct ValveInfo : Boardcore::InjectableWithDeps<Registry>
     {
-        ValveInfo(std::unique_ptr<Valve>&& valve) : valve(std::move(valve)) {}
+        ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+            : valve(std::move(valve))
+        {
+        }
 
         // Move-only
         ValveInfo(ValveInfo&& other)            = default;
@@ -56,7 +60,7 @@ private:
         ValveInfo(const ValveInfo&)            = delete;
         ValveInfo& operator=(const ValveInfo&) = delete;
 
-        std::unique_ptr<Valve> valve;
+        std::unique_ptr<Boardcore::Valve> valve;
 
         float animationStep      = 0.0f;  ///< Amount of one animation step
         TimePoint animationEndTs = ValveClosed;  ///< End time of last animation
@@ -65,10 +69,7 @@ private:
         TimePoint updateTs = ValveClosed;
         // Time when to backstep the valve to avoid straining the servo
         TimePoint backstepTs = ValveClosed;
-        // Time when the vavle should closefloat getMaxAperture();
-        uint32_t getOpeningTime();
-        bool setMaxAperture(float aperture);
-        bool setOpeningTime(uint32_t time);
+        // Time when the valve should close
         TimePoint closeTs = ValveClosed;
 
         void openServoWithTime(float position, uint32_t time);
@@ -98,8 +99,7 @@ private:
     };
 
 public:
-    Actuators(I2C& i2c, I2CDriver::I2CSlaveConfig i2cConfig0,
-              I2CDriver::I2CSlaveConfig i2cConfig1);
+    Actuators();
 
     bool isStarted();
 
@@ -156,15 +156,15 @@ private:
     void unsafeStartSparkPlug();
     void unsafeStopSparkPlug();
 
+    Boardcore::PCA9685 expander0;
+    Boardcore::PCA9685 expander1;
+
     // PRZ 3-way valve info
     ValveInfo prz_3wayValveInfo;
     std::atomic<bool> prz_3wayValveState{false};
     std::atomic<bool> prz_3wayValveStateChanged{true};
 
     std::unique_ptr<Boardcore::SparkPlug> spark;
-
-    PCA9685 expander0;
-    PCA9685 expander1;
 
     TimePoint fuelSolenoidCloseTs = ValveClosed;
     TimePoint oxSolenoidCloseTs   = ValveClosed;
