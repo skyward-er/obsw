@@ -22,6 +22,10 @@
 
 #pragma once
 
+#include <Valve/ServoPCAValve.h>
+#include <Valve/ServoValve.h>
+#include <Valve/SolenoidValve.h>
+
 /**
  * @file ActuatorsMacros.h
  * @brief Macros for the Actuators module

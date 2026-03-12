@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <drivers/i2c/I2C.h>
 #include <drivers/spi/SPIBus.h>
 #include <interfaces-impl/hwmapping.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -32,7 +33,12 @@ namespace RIGv3
 class Buses : public Boardcore::Injectable
 {
 public:
-    Buses() : spi2(SPI2), spi3(SPI3), spi4(SPI4) {}
+    Buses()
+        : i2c1(I2C1, miosix::interfaces::i2c1::scl::getPin(),
+               miosix::interfaces::i2c1::sda::getPin()),
+          spi2(SPI2), spi3(SPI3), spi4(SPI4)
+    {
+    }
 
     Boardcore::SPIBus& getADC0() { return spi2; }
     Boardcore::SPIBus& getADC1() { return spi2; }
@@ -40,6 +46,7 @@ public:
     Boardcore::SPIBus& getADC3() { return spi2; }
     Boardcore::SPIBus& getExpander() { return spi3; }
     Boardcore::SPIBus& getRadio() { return spi4; }
+    Boardcore::I2C& getPCA9685() { return i2c1; }
 
     miosix::GpioPin getADC0CsPin()
     {
@@ -59,6 +66,7 @@ public:
     }
 
 private:
+    Boardcore::I2C i2c1;
     Boardcore::SPIBus spi2;
     Boardcore::SPIBus spi3;
     Boardcore::SPIBus spi4;

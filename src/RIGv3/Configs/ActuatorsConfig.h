@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <drivers/i2c/I2CDriver.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -30,6 +31,23 @@ namespace RIGv3
 {
 namespace Config
 {
+
+namespace Expanders
+{
+constexpr Boardcore::I2CDriver::I2CSlaveConfig I2CExpander0Config{
+    .slaveAddress = MIOSIX_SERVO_EXPANDER_0_ADDR,
+    .addressing   = Boardcore::I2CDriver::Addressing::BIT7,
+    .speed        = Boardcore::I2CDriver::Speed::MAX_SPEED,
+    .MSBFirst     = false};
+
+constexpr Boardcore::I2CDriver::I2CSlaveConfig I2CExpander1Config{
+    .slaveAddress = MIOSIX_SERVO_EXPANDER_1_ADDR,
+    .addressing   = Boardcore::I2CDriver::Addressing::BIT7,
+    .speed        = Boardcore::I2CDriver::Speed::MAX_SPEED,
+    .MSBFirst     = false};
+
+}  // namespace Expanders
+
 namespace Servos
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;
