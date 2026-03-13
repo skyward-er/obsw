@@ -59,7 +59,7 @@ void AutomaticWingAlgorithm::step()
     {
         auto nas = getModule<NASController>();
         // The PI calculated result
-        float result = algorithmStep(nas->getReferenceValues(), gps);
+        Degree result = algorithmStep(nas->getReferenceValues(), gps);
 
         // Actuate the result
         // To see how to interpret the PI output
@@ -70,17 +70,17 @@ void AutomaticWingAlgorithm::step()
         //   |
         //   |
         //   ----> E
-        if (result > 0)
+        if (result > Degree(0))
         {
             // Activate the servo2 and reset servo1
-            getModule<Actuators>()->setServoAngle(servo1, 0.0f);
-            getModule<Actuators>()->setServoAngle(servo2, result);
+            getModule<Actuators>()->setServoAngle(servo1, 0.0_rad);
+            getModule<Actuators>()->setServoAngle(servo2, -Radian(result));
         }
         else
         {
             // Activate the servo1 and reset servo2
-            getModule<Actuators>()->setServoAngle(servo1, result * -1.0f);
-            getModule<Actuators>()->setServoAngle(servo2, 0.0f);
+            getModule<Actuators>()->setServoAngle(servo1, -Radian(result));
+            getModule<Actuators>()->setServoAngle(servo2, 0.0_rad);
         }
 
         // Log the servo positions
@@ -88,21 +88,21 @@ void AutomaticWingAlgorithm::step()
             miosix::Lock<FastMutex> l(mutex);
 
             data.timestamp   = TimestampTimer::getTimestamp();
-            data.servo1Angle = getModule<Actuators>()->getServoAngle(servo1);
-            data.servo2Angle = getModule<Actuators>()->getServoAngle(servo2);
+            data.servo1Angle = result > Degree(0) ? 0 : -result.value();
+            data.servo2Angle = result > Degree(0) ? -result.value() : 0;
             SDlogger->log(data);
         }
     }
     else
     {
         // If we loose fix we set both servo at 0
-        getModule<Actuators>()->setServoAngle(servo1, 0.0f);
-        getModule<Actuators>()->setServoAngle(servo2, 0.0f);
+        getModule<Actuators>()->setServoAngle(servo1, 0.0_rad);
+        getModule<Actuators>()->setServoAngle(servo2, 0.0_rad);
     }
 }
 
-float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
-                                            const GPSData& gps)
+Degree AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
+                                             const GPSData& gps)
 {
     Vector2f heading;  // used for logging purposes
 
@@ -126,7 +126,7 @@ float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
     float result = controller->update(error);
 
     // Convert the result from radians back to degrees
-    result = result * (180.f / Constants::PI);
+    auto resultDeg = Degree(Radian(result));
 
     // Logs the outputs
     {
@@ -136,10 +136,10 @@ float AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
         data.targetAngle   = targetAngle.value();
         data.velocityAngle = velocityAngle.value();
         data.error         = error;
-        data.pidOutput     = result;
+        data.pidOutput     = resultDeg.value();
     }
 
-    return result;
+    return resultDeg;
 }
 
 float AutomaticWingAlgorithm::angleDiff(Radian a, Radian b)
