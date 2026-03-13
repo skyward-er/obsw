@@ -91,9 +91,8 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_servo_tm_request_tc_get_servo_id(&msg));
 
             float position =
-                parent.getModule<Actuators>()->getServoPosition(servo);
-            if (position < 0)
-                return enqueueNack(msg);
+                Degree(parent.getModule<Actuators>()->getServoAngle(servo))
+                    .value();
 
             mavlink_message_t tmMsg;
             mavlink_servo_tm_t tm;
@@ -119,7 +118,8 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_servo_angle_tc_get_servo_id(&msg));
             float angle = mavlink_msg_set_servo_angle_tc_get_angle(&msg);
 
-            if (parent.getModule<Actuators>()->setServoAngle(servo, angle))
+            if (parent.getModule<Actuators>()->setServoAngle(
+                    servo, Radian(Degree(angle))))
                 return enqueueAck(msg);
             else
                 return enqueueNack(msg);
@@ -136,7 +136,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_reset_servo_tc_get_servo_id(&msg));
 
             bool reset =
-                parent.getModule<Actuators>()->setServoPosition(servo, 0.0f);
+                parent.getModule<Actuators>()->setServoAngle(servo, 0.0_rad);
             if (reset)
             {
                 // One of our servos was reset
@@ -569,10 +569,14 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.gps_fix = gps.fix;
 
             // Servos
-            tm.left_servo_angle = parent.getModule<Actuators>()->getServoAngle(
-                ServosList::PARAFOIL_LEFT_SERVO);
-            tm.right_servo_angle = parent.getModule<Actuators>()->getServoAngle(
-                ServosList::PARAFOIL_RIGHT_SERVO);
+            tm.left_servo_angle =
+                Degree(parent.getModule<Actuators>()->getServoAngle(
+                           ServosList::PARAFOIL_LEFT_SERVO))
+                    .value();
+            tm.right_servo_angle =
+                Degree(parent.getModule<Actuators>()->getServoAngle(
+                           ServosList::PARAFOIL_RIGHT_SERVO))
+                    .value();
 
             // Algorithms
             tm.nas_n      = nasState.n;
