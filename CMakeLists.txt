@@ -132,7 +132,7 @@ sbs_target(parafoil-progressive-rotation stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-milano src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-milano PRIVATE ${OBSW_INCLUDE_DIRS})
-target_compile_definitions(parafoil-guided-milano PRIVATE ALGORITHM_CLOSED_LOOP MILANO)
+target_compile_definitions(parafoil-guided-milano PRIVATE ALGORITHM_CLOSED_LOOP MILANO DISABLE_LANDING_FLARE)
 sbs_target(parafoil-guided-milano stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
