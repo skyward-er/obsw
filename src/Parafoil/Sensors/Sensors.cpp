@@ -458,8 +458,9 @@ void Sensors::lsm6dsrx0Callback()
 void Sensors::as5047d1Init()
 {
     AS5047DSPIConfig config;
-    config.daecEnabled = Config::Sensors::AS5047D_1::DAEC_EN;
-    config.dataType    = Config::Sensors::AS5047D_1::DATA_SELECT;
+    config.daecEnabled       = Config::Sensors::AS5047D_1::DAEC_EN;
+    config.dataType          = Config::Sensors::AS5047D_1::DATA_SELECT;
+    config.rotationDirection = Config::Sensors::AS5047D_1::ROTATION_DIRECTION;
 
     as5047d_1 =
         std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D(),
@@ -477,8 +478,9 @@ void Sensors::as5047d1Callback()
 void Sensors::as5047d2Init()
 {
     AS5047DSPIConfig config;
-    config.daecEnabled = Config::Sensors::AS5047D_2::DAEC_EN;
-    config.dataType    = Config::Sensors::AS5047D_2::DATA_SELECT;
+    config.daecEnabled       = Config::Sensors::AS5047D_2::DAEC_EN;
+    config.dataType          = Config::Sensors::AS5047D_2::DATA_SELECT;
+    config.rotationDirection = Config::Sensors::AS5047D_2::ROTATION_DIRECTION;
 
     as5047d_2 =
         std::make_unique<AS5047DSPI>(getModule<Buses>()->getAS5047D(),
