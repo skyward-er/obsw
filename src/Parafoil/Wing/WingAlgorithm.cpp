@@ -97,10 +97,10 @@ void WingAlgorithm::step()
     if (currentTimestamp - timeStart >= steps[stepIndex].timestamp)
     {
         // I need to execute the current step
-        getModule<Actuators>()->setServoAngle(servo1,
-                                              steps[stepIndex].servo1Angle);
-        getModule<Actuators>()->setServoAngle(servo2,
-                                              steps[stepIndex].servo2Angle);
+        getModule<Actuators>()->setServoAngle(
+            servo1, Radian(Degree(steps[stepIndex].servo1Angle)));
+        getModule<Actuators>()->setServoAngle(
+            servo2, Radian(Degree(steps[stepIndex].servo2Angle)));
 
         // Log the data setting the timestamp to the absolute one
         WingAlgorithmData data;
