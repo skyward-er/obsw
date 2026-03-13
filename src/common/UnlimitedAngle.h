@@ -48,7 +48,10 @@ public:
         return reading + Radian((Degree(360.0 * rounds)));
     }
 
-    Radian getLastReading() { return lastReading; }
+    Radian getLastReading()
+    {
+        return lastReading + Radian((Degree(360.0 * rounds)));
+    }
 
 private:
     const Radian threshold = Radian(Degree(320.0));
