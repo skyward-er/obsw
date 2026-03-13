@@ -33,6 +33,8 @@ class UnlimitedAngle
 public:
     UnlimitedAngle() : rounds(0), lastReading(0.0) {}
 
+    void setInitialState(Radian reading) { lastReading = reading; }
+
     Radian getUpdatedAngle(Radian reading)
     {
         auto angleDiff = reading - lastReading;
@@ -49,7 +51,7 @@ public:
     Radian getLastReading() { return lastReading; }
 
 private:
-    const Radian threshold = Radian(Degree(180.0));
+    const Radian threshold = Radian(Degree(320.0));
     int rounds;
     Radian lastReading;
 };
