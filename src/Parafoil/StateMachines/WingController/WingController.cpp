@@ -55,6 +55,7 @@ WingController::WingController()
           BoardScheduler::wingControllerPriority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
     EventBroker::getInstance().subscribe(this, TOPIC_ALT);
@@ -76,6 +77,14 @@ State WingController::Idle(const Boardcore::Event& event)
         {
             updateState(WingControllerState::IDLE);
             return HANDLED;
+        }
+
+        case FMM_ALGOS_CALIBRATE:
+        {
+            updateState(WingControllerState::CALIBRATE_SERVOS);
+            setWingServoZero();
+            servosStarted = true;
+            return transition(&WingController::Idle);
         }
 
         case FLIGHT_WING_DESCENT:
@@ -186,6 +195,14 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
             flareWing();
+
+            do
+            {
+                Thread::sleep(100);
+            } while (
+                getModule<Actuators>()->servoIsMoving(PARAFOIL_LEFT_SERVO) ||
+                getModule<Actuators>()->servoIsMoving(PARAFOIL_RIGHT_SERVO));
+
             dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_FLARE_STOP, TOPIC_DPL,
                 milliseconds{pump.flareTime}.count());
@@ -199,12 +216,22 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
             resetWing();
 
+            do
+            {
+                Thread::sleep(100);
+            } while (
+                getModule<Actuators>()->servoIsMoving(PARAFOIL_LEFT_SERVO) ||
+                getModule<Actuators>()->servoIsMoving(PARAFOIL_RIGHT_SERVO));
+
             if (++pumpCount >= Config::Wing::Deployment::PUMPS.size())
-                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+                EventBroker::getInstance().postDelayed(
+                    DPL_DONE, TOPIC_DPL, milliseconds{pump.resetTime}.count());
             else
+            {
                 dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
                     DPL_FLARE_START, TOPIC_DPL,
                     milliseconds{pump.resetTime}.count());
+            }
 
             return HANDLED;
         }
@@ -375,16 +402,30 @@ bool WingController::start()
     auto servoStateTask = scheduler.addTask(
         [this]
         {
-            if (!running)
+            if (!servosStarted)
                 return;
 
-            auto servo1Angle = getModule<Sensors>()->getAS5047D1LastSample();
-            auto servo2Angle = getModule<Sensors>()->getAS5047D2LastSample();
+            auto servo1Angle =
+                getModule<Sensors>()->getAS5047D1LastSample();  // Left Servo
+            auto servo2Angle =
+                getModule<Sensors>()->getAS5047D2LastSample();  // Right Servo
 
-            getModule<Actuators>()->updateServoState(PARAFOIL_LEFT_SERVO,
-                                                     Radian(servo1Angle.angle));
-            getModule<Actuators>()->updateServoState(PARAFOIL_RIGHT_SERVO,
-                                                     Radian(servo2Angle.angle));
+            getModule<Actuators>()->updateServoState(
+                PARAFOIL_RIGHT_SERVO,
+                Radian(servo1Angle.angle - servo1ZeroAngle.value()));
+            getModule<Actuators>()->updateServoState(
+                PARAFOIL_LEFT_SERVO,
+                Radian(servo2Angle.angle - servo2ZeroAngle.value()));
+
+            auto data = WingControllerServoData{
+                .timestamp          = TimestampTimer::getTimestamp(),
+                .servo1AngleReading = getModule<Actuators>()
+                                          ->getServoAngle(PARAFOIL_LEFT_SERVO)
+                                          .value(),
+                .servo2AngleReading = getModule<Actuators>()
+                                          ->getServoAngle(PARAFOIL_RIGHT_SERVO)
+                                          .value()};
+            Logger::getInstance().log(data);
         },
         Config::Wing::SERVO_UPDATE_RATE);
 
@@ -602,18 +643,18 @@ void WingController::loadAlgorithms()
 
         step.timestamp = microseconds{PROGRESSIVE_ROTATION_TIMEOUT}.count();
 
-        for (auto angle = 80; angle >= 0; angle -= WING_DECREMENT.value())
+        for (Degree angle = 720_deg; angle >= 0_deg; angle -= WING_DECREMENT)
         {
-            step.servo1Angle = angle;
-            step.servo2Angle = 0;
-            algorithm->addStep(step);
+            step.servo1Angle = angle.value();
+            step.servo2Angle = -angle.value();
             step.timestamp += microseconds{COMMAND_PERIOD}.count();
-
-            step.servo1Angle = 0;
-            step.servo2Angle = angle;
             algorithm->addStep(step);
-            step.timestamp += microseconds{COMMAND_PERIOD}.count();
         }
+
+        step.servo1Angle = 0;
+        step.servo2Angle = 0;
+        step.timestamp += microseconds{COMMAND_PERIOD}.count();
+        algorithm->addStep(step);
 
         algorithms[static_cast<size_t>(AlgorithmId::PROGRESSIVE_ROTATION)] =
             std::move(algorithm);
@@ -716,14 +757,16 @@ void WingController::update()
 
 void WingController::flareWing()
 {
-    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 1.0f);
-    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 1.0f);
+    getModule<Actuators>()->setServoAngle(
+        PARAFOIL_LEFT_SERVO, Config::Wing::LandingFlare::ANGLE_LEFT_SERVO);
+    getModule<Actuators>()->setServoAngle(
+        PARAFOIL_RIGHT_SERVO, Config::Wing::LandingFlare::ANGLE_RIGHT_SERVO);
 }
 
 void WingController::resetWing()
 {
-    getModule<Actuators>()->setServoPosition(PARAFOIL_LEFT_SERVO, 0.0f);
-    getModule<Actuators>()->setServoPosition(PARAFOIL_RIGHT_SERVO, 0.0f);
+    getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO, 0.0_rad);
+    getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO, 0.0_rad);
 }
 
 void WingController::updateState(WingControllerState newState)
@@ -731,10 +774,17 @@ void WingController::updateState(WingControllerState newState)
     state = newState;
 
     auto status = WingControllerStatus{
-        .timestamp = TimestampTimer::getTimestamp(),
-        .state     = newState,
-    };
+        .timestamp = TimestampTimer::getTimestamp(), .state = newState};
     Logger::getInstance().log(status);
 }
 
+void WingController::setWingServoZero()
+{
+    servo1ZeroAngle =
+        Radian(getModule<Sensors>()->getAS5047D1LastSample().angle);
+    servo2ZeroAngle =
+        Radian(getModule<Sensors>()->getAS5047D2LastSample().angle);
+}
+
 }  // namespace Parafoil
+

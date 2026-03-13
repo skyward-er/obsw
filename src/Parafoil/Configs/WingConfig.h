@@ -41,13 +41,13 @@ namespace Wing
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Angle;
 
-constexpr auto UPDATE_RATE                  = 1_hz;
+constexpr auto UPDATE_RATE                  = 10_hz;
 constexpr auto TARGET_UPDATE_RATE           = 10_hz;
-constexpr auto SERVO_UPDATE_RATE            = 10_hz;
+constexpr auto SERVO_UPDATE_RATE            = 50_hz;
 constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15s;
 constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5s;
 constexpr auto COMMAND_PERIOD               = 6s;
-constexpr auto WING_DECREMENT               = 20_deg;
+constexpr auto WING_DECREMENT               = 90_deg;
 
 /**
  * @brief The available algorithms for the wing controller.
@@ -68,8 +68,13 @@ namespace Default
 constexpr auto TARGET_LAT = 45.565652923793806f;
 constexpr auto TARGET_LON = 12.57763990872353f;
 #else  // Milan
+// B12
 constexpr auto TARGET_LAT = 45.5013853;
 constexpr auto TARGET_LON = 9.1544219;
+
+// Via Negri
+// constexpr auto TARGET_LAT = 45.50058226119641;
+// constexpr auto TARGET_LON = 9.157215417984244;
 #endif
 
 #if defined(ALGORITHM_CLOSED_LOOP)
@@ -119,21 +124,24 @@ constexpr auto CUTTERS_TIMEOUT = 1s;
 
 namespace PI
 {
-constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 0.65;
-constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 0.65;
-
-constexpr auto KP = 0.9f;
-constexpr auto KI = 0.05f;
+// constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 0.65;
+// constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 0.65;
+constexpr auto GAIN                 = 4.0f;
+constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 4;
+constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 4;
+constexpr auto KP                   = 0.9f * GAIN;
+constexpr auto KI                   = 0.05f * GAIN;
+// constexpr auto KI                   = 0.0f;
 }  // namespace PI
 
 namespace Guidance
 {
 /* linter off */ using namespace Boardcore::Units::Length;
 
-constexpr auto CONFIDENCE                 = 15;     // [samples]
-constexpr Meter M1_ALTITUDE_THRESHOLD     = 250_m;  // [m]
-constexpr Meter M2_ALTITUDE_THRESHOLD     = 150_m;  // [m]
-constexpr Meter TARGET_ALTITUDE_THRESHOLD = 50_m;   // [m]
+constexpr auto CONFIDENCE                = 15;     // [samples]
+constexpr auto M1_ALTITUDE_THRESHOLD     = 250_m;  // [m]
+constexpr auto M2_ALTITUDE_THRESHOLD     = 150_m;  // [m]
+constexpr auto TARGET_ALTITUDE_THRESHOLD = 50_m;   // [m]
 }  // namespace Guidance
 
 // Early Maneuver Guidance EMC point generation parameters
@@ -143,7 +151,7 @@ constexpr float SCALE_FACTOR     = 1.1;
 namespace Deployment
 {
 
-constexpr auto PUMP_DELAY = 5s;
+constexpr auto PUMP_DELAY = 2s;
 
 struct Pump
 {
@@ -152,10 +160,9 @@ struct Pump
 };
 
 // Pumps are ordered from the first to activate to the last
-constexpr std::array<Pump, 3> PUMPS = {
-    Pump{.flareTime = 1s, .resetTime = 500ms},
-    Pump{.flareTime = 2s, .resetTime = 1s},
-    Pump{.flareTime = 2s, .resetTime = 1s},
+constexpr std::array<Pump, 2> PUMPS = {
+    Pump{.flareTime = 100ms, .resetTime = 500ms},
+    Pump{.flareTime = 100ms, .resetTime = 500ms},
 };
 
 }  // namespace Deployment
@@ -171,10 +178,12 @@ constexpr auto ENABLED = false;
 constexpr auto ENABLED = true;
 #endif
 
-constexpr Meter ALTITUDE   = 15_m;  // [m]
-constexpr int CONFIDENCE   = 10;    // [samples]
-constexpr auto UPDATE_RATE = 10_hz;
-constexpr auto DURATION    = 5s;
+constexpr Meter ALTITUDE         = 15_m;  // [m]
+constexpr int CONFIDENCE         = 10;    // [samples]
+constexpr auto UPDATE_RATE       = 10_hz;
+constexpr auto DURATION          = 5s;
+constexpr auto ANGLE_LEFT_SERVO  = 720_deg;
+constexpr auto ANGLE_RIGHT_SERVO = -720_deg;
 
 }  // namespace LandingFlare
 

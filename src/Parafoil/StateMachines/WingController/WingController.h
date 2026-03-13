@@ -225,6 +225,11 @@ private:
 
     void updateState(WingControllerState newState);
 
+    /**
+     * Sets the reference point for the two servos
+     */
+    void setWingServoZero();
+
     struct Coordinates
     {
         float latitude;
@@ -266,6 +271,10 @@ private:
     uint16_t dplFlareTimeoutEventId    = 0;
     uint16_t ctrlFlareTimeoutEventId   = 0;
     uint16_t resetTimeoutEventId       = 0;
+
+    Radian servo1ZeroAngle = 0.0_rad;
+    Radian servo2ZeroAngle = 0.0_rad;
+    std::atomic<bool> servosStarted{false};
 
     std::atomic<bool> started{false};
     std::atomic<bool> running{false};  ///< Whether the algorithm is running

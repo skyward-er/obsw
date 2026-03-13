@@ -34,6 +34,7 @@ namespace Parafoil
 enum class WingControllerState : uint8_t
 {
     IDLE = 0,
+    CALIBRATE_SERVOS,
     FLYING_DEPLOYMENT,
     FLYING_CONTROLLED_DESCENT,
     ON_GROUND,
@@ -48,6 +49,20 @@ struct WingControllerStatus
     {
         return STRUCT_DEF(WingControllerStatus,
                           FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
+
+struct WingControllerServoData
+{
+    uint64_t timestamp       = 0;
+    float servo1AngleReading = 0;
+    float servo2AngleReading = 0;
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(WingControllerServoData,
+                          FIELD_DEF(timestamp) FIELD_DEF(servo1AngleReading)
+                              FIELD_DEF(servo2AngleReading));
     }
 };
 
