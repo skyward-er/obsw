@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+/* Copyright (c) 2024-2026 Skyward Experimental Rocketry
+ * Author: Niccolò Betto, Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,10 @@ namespace Parafoil
 
 Actuators::Actuators()
 {
-    // Left servo is servo 1
+    // Left servo is servo 2
     leftServo.servo = std::make_unique<ServoWinch>(
-        MIOSIX_PARAFOIL_SERVO_1_TIM,
-        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_1_CHANNEL,
+        MIOSIX_PARAFOIL_SERVO_2_TIM,
+        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_2_CHANNEL,
         config::LeftServo::MIN_PULSE, config::LeftServo::MAX_PULSE,
         config::LeftServo::HERTZ);
 
@@ -51,14 +51,19 @@ Actuators::Actuators()
         Units::Angle::Radian(config::LeftServo::SCHMITT_THRESHOLD_HIGH)
             .value());
 
+    leftServo.servoTrigger->setTargetState(
+        Radian(config::LeftServo::INITIAL_ANGLE).value());
+    leftServo.angleData.setInitialState(config::LeftServo::INITIAL_ANGLE);
+
     leftServo.highServoVelocity = config::LeftServo::HIGH_THRESHOLD_VELOCITY;
     leftServo.lowServoVelocity  = config::LeftServo::LOW_THRESHOLD_VELOCITY;
     leftServo.stopServoVelocity = config::LeftServo::STOP_THRESHOLD_VELOCITY;
+    leftServo.wiggleAngle       = config::LeftServo::WIGGLE_ANGLE;
 
-    // Right servo is servo 2
+    // Right servo is servo 1
     rightServo.servo = std::make_unique<ServoWinch>(
-        MIOSIX_PARAFOIL_SERVO_2_TIM,
-        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_2_CHANNEL,
+        MIOSIX_PARAFOIL_SERVO_1_TIM,
+        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_1_CHANNEL,
         config::RightServo::MIN_PULSE, config::RightServo::MAX_PULSE,
         config::RightServo::HERTZ);
 
@@ -70,6 +75,11 @@ Actuators::Actuators()
     rightServo.highServoVelocity = config::RightServo::HIGH_THRESHOLD_VELOCITY;
     rightServo.lowServoVelocity  = config::RightServo::LOW_THRESHOLD_VELOCITY;
     rightServo.stopServoVelocity = config::RightServo::STOP_THRESHOLD_VELOCITY;
+    rightServo.wiggleAngle       = config::RightServo::WIGGLE_ANGLE;
+
+    rightServo.servoTrigger->setTargetState(
+        Radian(config::RightServo::INITIAL_ANGLE).value());
+    rightServo.angleData.setInitialState(config::RightServo::INITIAL_ANGLE);
 
     auto frequency =
         static_cast<uint16_t>(Hertz{config::Buzzer::FREQUENCY}.value());
@@ -86,6 +96,9 @@ bool Actuators::start()
 
     leftServo.servo->enable();
     rightServo.servo->enable();
+
+    leftServo.servoTrigger->begin();
+    rightServo.servoTrigger->begin();
 
     leftServo.servo->setVelocity(0.5);
     rightServo.servo->setVelocity(0.5);
@@ -136,9 +149,21 @@ bool Actuators::start()
     return true;
 }
 
+bool Actuators::servoIsMoving(ServosList servoId)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return false;
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    return actuator->servoTrigger->getOutput() !=
+           SchmittTrigger::Activation::STOP;
+}
+
 bool Actuators::isStarted() { return started; }
 
-bool Actuators::setServoPosition(ServosList servoId, float position)
+bool Actuators::setServoVelocity(ServosList servoId, float velocity)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
@@ -146,12 +171,12 @@ bool Actuators::setServoPosition(ServosList servoId, float position)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    actuator->servo->setVelocity(position);
+    actuator->servo->setVelocity(velocity);
     Logger::getInstance().log(actuator->servo->getState());
     return true;
 }
 
-bool Actuators::setServoAngle(ServosList servoId, float angle)
+bool Actuators::setServoAngle(ServosList servoId, Radian angle)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
@@ -159,14 +184,14 @@ bool Actuators::setServoAngle(ServosList servoId, float angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    actuator->servoTrigger->setTargetState(angle);
+    actuator->servoTrigger->setTargetState(angle.value());
 
     Logger::getInstance().log(actuator->servo->getState());
 
     return true;
 }
 
-float Actuators::getServoPosition(ServosList servoId)
+float Actuators::getServoVelocity(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
@@ -177,15 +202,15 @@ float Actuators::getServoPosition(ServosList servoId)
     return actuator->servo->getVelocity();
 }
 
-float Actuators::getServoAngle(ServosList servoId)
+Radian Actuators::getServoAngle(ServosList servoId)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
-        return -1.f;
+        return 0_rad;
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    return actuator->angleData.getLastReading().value();
+    return actuator->angleData.getLastReading();
 }
 
 bool Actuators::wiggleServo(ServosList servoId)
@@ -194,13 +219,21 @@ bool Actuators::wiggleServo(ServosList servoId)
     if (!actuator)
         return false;
 
-    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+    setServoAngle(servoId, actuator->wiggleAngle);
 
-    actuator->servo->setVelocity(1.0f);
-    Thread::sleep(1000);
-    actuator->servo->setVelocity(0.0f);
-    Thread::sleep(1000);
-    actuator->servo->setVelocity(0.5f);
+    do
+    {
+        Thread::sleep(100);
+    } while (actuator->servoTrigger->getOutput() !=
+             SchmittTrigger::Activation::STOP);
+
+    setServoAngle(servoId, Radian(0));
+
+    do
+    {
+        Thread::sleep(100);
+    } while (actuator->servoTrigger->getOutput() !=
+             SchmittTrigger::Activation::STOP);
 
     return true;
 }
@@ -218,13 +251,11 @@ bool Actuators::disableServo(ServosList servoId)
     return true;
 }
 
-void Actuators::updateServoState(ServosList servoId, Units::Angle::Radian angle)
+void Actuators::updateServoState(ServosList servoId, Radian angle)
 {
     auto actuator = getServoActuator(servoId);
     if (!actuator)
         return;
-
-    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
     auto estimatedAngle = actuator->angleData.getUpdatedAngle(angle);
     actuator->servoTrigger->setCurrentState(estimatedAngle.value());

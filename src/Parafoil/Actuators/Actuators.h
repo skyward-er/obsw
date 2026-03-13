@@ -26,7 +26,10 @@
 #include <algorithms/SchmittTrigger/SchmittTrigger.h>
 #include <common/MavlinkOrion.h>
 #include <common/UnlimitedAngle.h>
+#include <units/Angle.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+using namespace Boardcore::Units::Angle;
 
 namespace Parafoil
 {
@@ -70,7 +73,14 @@ public:
 
         float stopServoVelocity;
 
+        /**
+         * The angle to which the wiggle procedure
+         */
+        Radian wiggleAngle;
+
         miosix::FastMutex mutex;
+
+        ServoActuator() : wiggleAngle{0_rad} {}
     };
 
     Actuators();
@@ -81,29 +91,29 @@ public:
 
     /**
      * @brief Moves the specified servo to the specified position.
-     * @param percentage Position to set in the range [0-1]
+     * @param percentage velocity to set in the range [0-1] (0.5 means stop,
+     * <0.5 means rotate CCW, >0.5 meas rotate CW)
      * @return `false` if the servo is invalid, `true` otherwise.
      */
-    bool setServoPosition(ServosList servoId, float position);
+    bool setServoVelocity(ServosList servoId, float velocity);
 
     /**
      * @brief Moves the specified servo to the specified angle.
-     * @param angle Angle to set in the range [0-180] [degrees]
+     * @param angle Angle to set, unlimited range.
      * @return `false` if the servo is invalid, `true` otherwise.
      */
-    bool setServoAngle(ServosList servoId, float angle);
+    bool setServoAngle(ServosList servoId, Radian angle);
 
     /**
-     * @brief Returns the current position of the specified servo in range
+     * @brief Returns the current velocity of the specified servo in range
      * [0-1], or a negative value (-1) if the servo is invalid.
      */
-    float getServoPosition(ServosList servoId);
+    float getServoVelocity(ServosList servoId);
 
     /**
-     * @brief Returns the current angle of the specified servo in range [0-180],
-     * or a negative value (-1) if the servo is invalid.
+     * @brief Returns the current angle of the specified servo
      */
-    float getServoAngle(ServosList servoId);
+    Radian getServoAngle(ServosList servoId);
 
     /**
      * @brief Wiggles the specified servo. This function is blocking, it
@@ -123,8 +133,14 @@ public:
      * a new angle reading (likely from an external encoder, like the AS5047D)
      * for the given servo
      */
-    void updateServoState(ServosList servoId,
-                          Boardcore::Units::Angle::Radian angle);
+    void updateServoState(ServosList servoId, Radian angle);
+
+    /**
+     * This method checks if the servo is moving
+     * @param servoId the servo to check
+     * @returns true if the servo is moving, false otherwise
+     */
+    bool servoIsMoving(ServosList servoId);
 
 private:
     ServoActuator* getServoActuator(ServosList servoId);
