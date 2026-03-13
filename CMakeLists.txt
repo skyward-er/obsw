@@ -120,6 +120,11 @@ sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
 #                            Parafoil entrypoints                             #
 #-----------------------------------------------------------------------------#
 
+add_executable(parafoil-manual-servo-test src/Parafoil/parafoil-manual-servo-test.cpp ${PARAFOIL_COMPUTER})
+target_include_directories(parafoil-manual-servo-test PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(parafoil-manual-servo-test PRIVATE MILANO)
+sbs_target(parafoil-manual-servo-test stm32f767zi_lyra_biscotto)
+
 add_executable(parafoil-progressive-rotation src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-progressive-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-progressive-rotation PRIVATE ALGORITHM_PROGRESSIVE_ROTATION MILANO)
