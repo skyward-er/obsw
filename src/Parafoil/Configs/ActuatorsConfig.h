@@ -46,26 +46,30 @@ namespace LeftServo
 {
 constexpr auto ROTATION                = 180.f;  // [deg]
 constexpr auto MIN_PULSE               = 500_us;
-constexpr auto MAX_PULSE               = 2460_us;
-constexpr auto HERTZ                   = 50_hz;
-constexpr auto SCHMITT_THRESHOLD_LOW   = Degree(3);
-constexpr auto SCHMITT_THRESHOLD_HIGH  = Degree(3);
+constexpr auto MAX_PULSE               = 2440_us;
+constexpr auto HERTZ                   = 333_hz;
+constexpr auto SCHMITT_THRESHOLD_LOW   = 10_deg;
+constexpr auto SCHMITT_THRESHOLD_HIGH  = 10_deg;
 constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
 constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
-constexpr auto STOP_THRESHOLD_VELOCITY = 0.4f;
+constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
+constexpr auto INITIAL_ANGLE           = 0.0_deg;
+constexpr auto WIGGLE_ANGLE            = 720_deg;
 }  // namespace LeftServo
 
 namespace RightServo
 {
 constexpr auto ROTATION                = 180.f;  // [deg]
-constexpr auto MIN_PULSE               = 2460_us;
-constexpr auto MAX_PULSE               = 500_us;
-constexpr auto HERTZ                   = 50_hz;
-constexpr auto SCHMITT_THRESHOLD_LOW   = Degree(3);
-constexpr auto SCHMITT_THRESHOLD_HIGH  = Degree(3);
+constexpr auto MIN_PULSE               = 500_us;
+constexpr auto MAX_PULSE               = 2440_us;
+constexpr auto HERTZ                   = 333_hz;
+constexpr auto SCHMITT_THRESHOLD_LOW   = 10_deg;
+constexpr auto SCHMITT_THRESHOLD_HIGH  = 10_deg;
 constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
 constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
-constexpr auto STOP_THRESHOLD_VELOCITY = 0.4f;
+constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
+constexpr auto INITIAL_ANGLE           = 0.0_deg;
+constexpr auto WIGGLE_ANGLE            = -720_deg;
 }  // namespace RightServo
 
 constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
