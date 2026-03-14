@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2025 Skyward Experimental Rocketry
+ * Author: Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,31 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <units/Frequency.h>
 
-namespace Common
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+
+namespace RIGv3
 {
-
-template <typename T, size_t Max>
-class MedianFilter
+namespace Config
 {
-public:
-    MedianFilter() {}
+namespace TARS3
+{
+/* linter off */ using namespace std::chrono;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-    void reset() { idx = 0; }
+constexpr Hertz SAMPLE_PERIOD         = 100_hz;
+constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-    void add(T value)
-    {
-        values[idx] = value;
-        idx         = (idx + 1) % Max;
-    }
+// Account for ~300ms of servo movement time
+constexpr auto WAIT_BETWEEN_CYCLES = 2000ms;
 
-    T calcMedian()
-    {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
-    }
+// Default cold refueling parameters
+constexpr float DEFAULT_PRESSURE_TARGET = 35.4f;  // [bar]
+constexpr float DEFAULT_MASS_TARGET     = 6.5f;   // [kg]
 
-private:
-    size_t idx                = 0;
-    std::array<T, Max> values = {0};
-};
-
-}  // namespace Common
+}  // namespace TARS3
+}  // namespace Config
+}  // namespace RIGv3
