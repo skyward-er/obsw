@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Authors: Davide Mor, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,41 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <units/Frequency.h>
 
-namespace Common
+#include <chrono>
+#include <cstdint>
+
+namespace RIGv3
+{
+namespace Config
+{
+namespace TARS1
 {
 
-template <typename T, size_t Max>
-class MedianFilter
-{
-public:
-    MedianFilter() {}
+/* linter off */ using namespace std::chrono;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
-    void reset() { idx = 0; }
+constexpr Hertz SAMPLE_PERIOD         = 100_hz;
+constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
-    void add(T value)
-    {
-        values[idx] = value;
-        idx         = (idx + 1) % Max;
-    }
+// Washing procedure parameters
+constexpr auto WASHING_OPENING_TIME = 5000ms;
+constexpr auto WASHING_TIME_DELAY   = 1000ms;
 
-    T calcMedian()
-    {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
-    }
+// Open the filling valve for a long time
+constexpr auto FILLING_OPENING_TIME = 600000ms;
+// Time to wait after opening the filling valve
+constexpr auto FILLING_STABILIZE_WAIT_TIME = 5000ms;
+// Time to wait between pressure stabilization checks
+constexpr auto PRESSURE_STABILIZE_WAIT_TIME = 2000ms;
 
-private:
-    size_t idx                = 0;
-    std::array<T, Max> values = {0};
-};
+constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
 
-}  // namespace Common
+constexpr float MASS_TOLERANCE     = 0.2;    // [kg]
+constexpr float PRESSURE_TOLERANCE = 0.035;  // [bar]
+
+constexpr bool STOP_ON_MASS_STABILIZATION = false;
+}  // namespace TARS1
+}  // namespace Config
+}  // namespace RIGv3

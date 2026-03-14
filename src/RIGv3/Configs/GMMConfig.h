@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,25 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
-#include <memory>
+#include <cstdint>
 
-namespace Common
+namespace RIGv3
+{
+namespace Config
+{
+namespace GroundModeManager
 {
 
-template <typename T, size_t Max>
-class MedianFilter
-{
-public:
-    MedianFilter() {}
+constexpr uint32_t DEFAULT_IGNITION_WAITING_TIME = 3700;  // [ms]
 
-    void reset() { idx = 0; }
+/// Delay between the main valve opening and the chamber valve opening
+constexpr uint32_t DEFAULT_CHAMBER_VALVE_DELAY = 6200;  // [ms]
+// Time the chamber valve stays open
+constexpr uint32_t DEFAULT_CHAMBER_VALVE_TIME = 6000;  // [ms]
 
-    void add(T value)
-    {
-        values[idx] = value;
-        idx         = (idx + 1) % Max;
-    }
+// Delay of cooling procedure after end of firing
+constexpr uint32_t DEFAULT_COOLING_DELAY = 200;  // [ms]
 
-    T calcMedian()
-    {
-        std::sort(values.begin(), values.end());
-        return values[idx / 2];
-    }
-
-private:
-    size_t idx                = 0;
-    std::array<T, Max> values = {0};
-};
-
-}  // namespace Common
+}  // namespace GroundModeManager
+}  // namespace Config
+}  // namespace RIGv3
