@@ -37,20 +37,25 @@
 namespace RIGv3
 {
 
-class Actuators
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler>,
-      public Boardcore::SignaledDeadlineTask
+class Actuators : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                       CanHandler, Registry>,
+                  public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for the valve closed state
     static const TimePoint ValveClosed;
 
-    struct ValveInfo : Boardcore::InjectableWithDeps<Registry>
+    struct ValveInfo
     {
         ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
             : valve(std::move(valve))
         {
         }
+
+        // The default constructor is needed since PCA valves require the
+        // expanders to be created which, in turn require the I2C bus form the
+        // Buses module which is injected in the Actuators module.
+        ValveInfo() = default;
 
         // Move-only
         ValveInfo(ValveInfo&& other)            = default;
@@ -60,7 +65,7 @@ private:
         ValveInfo(const ValveInfo&)            = delete;
         ValveInfo& operator=(const ValveInfo&) = delete;
 
-        std::unique_ptr<Boardcore::Valve> valve;
+        std::unique_ptr<Boardcore::Valve> valve{};
 
         float animationStep      = 0.0f;  ///< Amount of one animation step
         TimePoint animationEndTs = ValveClosed;  ///< End time of last animation
@@ -73,17 +78,11 @@ private:
         TimePoint closeTs = ValveClosed;
 
         void openServoWithTime(float position, uint32_t time);
-        void openServoWithTime(uint32_t time);
         void animateServo(float position, uint32_t time);
         void closeServo();
 
         void backstep();
         void advanceAnimation();
-
-        float getMaxAperture();
-        uint32_t getOpeningTime();
-        bool setMaxAperture(float aperture);
-        bool setOpeningTime(uint32_t time);
 
         bool isServoOpen();
     };
@@ -105,18 +104,18 @@ public:
 
     [[nodiscard]] bool start();
 
-    bool wiggleServo(ServosList servo);
-    bool toggleServo(ServosList servo);
-    bool openServo(ServosList servo);
-    bool moveServoWithTime(ServosList servo, float position, uint32_t time);
-    bool openServoWithTime(ServosList servo, uint32_t time);
-    bool animateServo(ServosList servo, float position, uint32_t time);
+    bool wiggleValve(ServosList servo);
+    bool toggleValve(ServosList servo);
+    bool openValve(ServosList servo);
+    bool openValveWithTime(ServosList servo, uint32_t time);
+    bool moveValveWithTime(ServosList servo, float position, uint32_t time);
+    bool animateValve(ServosList servo, float position, uint32_t time);
 
-    bool closeServo(ServosList servo);
-    void closeAllServos();
+    bool closeValve(ServosList servo);
+    void closeAllValves();
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint32_t time);
-    bool isServoOpen(ServosList servo);
+    bool isValveOpen(ServosList servo);
     uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
@@ -140,8 +139,6 @@ public:
     void clacsonOn();
     void clacsonOff();
 
-    void inject(Boardcore::DependencyInjector& injector) override;
-
 private:
     ValveInfo* getServo(ServosList servo);
 
@@ -152,12 +149,13 @@ private:
 
     miosix::FastMutex infosMutex;
     std::vector<ValveInfo> infos;
+    void initializeValves();
 
     void unsafeStartSparkPlug();
     void unsafeStopSparkPlug();
 
-    Boardcore::PCA9685 expander0;
-    Boardcore::PCA9685 expander1;
+    std::shared_ptr<Boardcore::PCA9685> expander0;
+    std::shared_ptr<Boardcore::PCA9685> expander1;
 
     // PRZ 3-way valve info
     ValveInfo prz_3wayValveInfo;

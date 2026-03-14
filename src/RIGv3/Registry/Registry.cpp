@@ -33,6 +33,64 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
 {
     switch (id)
     {
+        case CONFIG_ID_IGNITION_TIME:
+            return "IGNITION_TIME";
+        case CONFIG_ID_DEFAULT_OPENING_TIME:
+            return "DEFAULT_OPENING_TIME";
+        case CONFIG_ID_DEFAULT_MAX_APERTURE:
+            return "DEFAULT_MAX_APERTURE";
+        case CONFIG_ID_PRZ_FIL_OPENING_TIME:
+            return "PRZ_FIL_OPENING_TIME";
+        case CONFIG_ID_PRZ_FIL_MAX_APERTURE:
+            return "PRZ_FIL_MAX_APERTURE";
+        case CONFIG_ID_PRZ_REL_OPENING_TIME:
+            return "PRZ_REL_OPENING_TIME";
+        case CONFIG_ID_PRZ_REL_MAX_APERTURE:
+            return "PRZ_REL_MAX_APERTURE";
+        case CONFIG_ID_OX_FIL_OPENING_TIME:
+            return "OX_FIL_OPENING_TIME";
+        case CONFIG_ID_OX_FIL_MAX_APERTURE:
+            return "OX_FIL_MAX_APERTURE";
+        case CONFIG_ID_OX_REL_OPENING_TIME:
+            return "OX_REL_OPENING_TIME";
+        case CONFIG_ID_OX_REL_MAX_APERTURE:
+            return "OX_REL_MAX_APERTURE";
+        case CONFIG_ID_PRZ_OX_OPENING_TIME:
+            return "PRZ_OX_OPENING_TIME";
+        case CONFIG_ID_PRZ_OX_MAX_APERTURE:
+            return "PRZ_OX_MAX_APERTURE";
+        case CONFIG_ID_PRZ_FUEL_OPENING_TIME:
+            return "PRZ_FUEL_OPENING_TIME";
+        case CONFIG_ID_PRZ_FUEL_MAX_APERTURE:
+            return "PRZ_FUEL_MAX_APERTURE";
+        case CONFIG_ID_OX_VEN_OPENING_TIME:
+            return "OX_VEN_OPENING_TIME";
+        case CONFIG_ID_OX_VEN_MAX_APERTURE:
+            return "OX_VEN_MAX_APERTURE";
+        case CONFIG_ID_FUEL_VEN_OPENING_TIME:
+            return "FUEL_VEN_OPENING_TIME";
+        case CONFIG_ID_FUEL_VEN_MAX_APERTURE:
+            return "FUEL_VEN_MAX_APERTURE";
+        case CONFIG_ID_IGN_OX_OPENING_TIME:
+            return "IGN_OX_OPENING_TIME";
+        case CONFIG_ID_IGN_OX_MAX_APERTURE:
+            return "IGN_OX_MAX_APERTURE";
+        case CONFIG_ID_IGN_FUEL_OPENING_TIME:
+            return "IGN_FUEL_OPENING_TIME";
+        case CONFIG_ID_IGN_FUEL_MAX_APERTURE:
+            return "IGN_FUEL_MAX_APERTURE";
+        case CONFIG_ID_MAIN_OX_OPENING_TIME:
+            return "MAIN_OX_OPENING_TIME";
+        case CONFIG_ID_MAIN_OX_MAX_APERTURE:
+            return "MAIN_OX_MAX_APERTURE";
+        case CONFIG_ID_MAIN_FUEL_OPENING_TIME:
+            return "MAIN_FUEL_OPENING_TIME";
+        case CONFIG_ID_MAIN_FUEL_MAX_APERTURE:
+            return "MAIN_FUEL_MAX_APERTURE";
+        case CONFIG_ID_COOLING_DELAY:
+            return "COOLING_DELAY";
+        case CONFIG_ID_TARS3_MASS_TARGET:
+            return "TARS3_MASS_TARGET";
         case CONFIG_ID_TARS3_PRESSURE_TARGET:
             return "TARS3_PRESSURE_TARGET";
 
