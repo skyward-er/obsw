@@ -54,7 +54,7 @@ struct FlightModeManagerStatus
     static constexpr auto reflect()
     {
         return STRUCT_DEF(FlightModeManagerStatus,
-                          FIELD_DEF(timestamp) FIELD_DEF(state));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(state));
     }
 };
 

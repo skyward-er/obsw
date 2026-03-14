@@ -39,7 +39,7 @@ struct LogSniffing
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(LogSniffing, FIELD_DEF(timestamp) FIELD_DEF(msgId)
+        return STRUCT_DEF(LogSniffing, FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(msgId)
                                            FIELD_DEF(totalSniffed));
     }
 };

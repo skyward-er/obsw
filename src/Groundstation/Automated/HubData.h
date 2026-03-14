@@ -43,7 +43,7 @@ struct HubData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(HubData, FIELD_DEF(timestamp) FIELD_DEF(groundRx)
+        return STRUCT_DEF(HubData, FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(groundRx)
                                        FIELD_DEF(messageId) FIELD_DEF(rocketRx)
                                            FIELD_DEF(cpuMean));
     }

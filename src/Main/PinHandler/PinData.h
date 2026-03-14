@@ -43,7 +43,7 @@ struct PinChangeData
     {
         return STRUCT_DEF(
             PinChangeData,
-            FIELD_DEF(timestamp) FIELD_DEF(pinId) FIELD_DEF(lastState)
+            FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(pinId) FIELD_DEF(lastState)
                 FIELD_DEF(detectionDelayMs) FIELD_DEF(lastTransitionTs)
                     FIELD_DEF(lastStateChangeTs) FIELD_DEF(changesCount));
     }

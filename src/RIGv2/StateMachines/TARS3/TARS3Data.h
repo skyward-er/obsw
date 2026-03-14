@@ -72,7 +72,7 @@ struct Tars3ActionData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(Tars3ActionData,
-                          FIELD_DEF(timestamp) FIELD_DEF(action));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(action));
     }
 };
 
@@ -84,8 +84,8 @@ struct Tars3SampleData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(Tars3SampleData, FIELD_DEF(timestamp) FIELD_DEF(
-                                               pressure) FIELD_DEF(mass));
+        return STRUCT_DEF(Tars3SampleData, FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF_WITH_UNIT(
+                                               pressure, Bar) FIELD_DEF_WITH_UNIT(mass, kg));
     }
 };
 

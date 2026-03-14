@@ -53,7 +53,7 @@ struct ADAControllerStatus
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ADAControllerStatus,
-                          FIELD_DEF(timestamp) FIELD_DEF(state));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(state));
     }
 };
 
@@ -72,7 +72,7 @@ struct ADAControllerSampleData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ADAControllerSampleData,
-                          FIELD_DEF(timestamp) FIELD_DEF(ada0DetectedApogees)
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(ada0DetectedApogees)
                               FIELD_DEF(ada1DetectedApogees)
                                   FIELD_DEF(ada2DetectedApogees)
                                       FIELD_DEF(ada0DetectedDeployments)

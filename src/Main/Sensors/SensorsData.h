@@ -168,13 +168,13 @@ struct CalibrationData
     {
         return STRUCT_DEF(
             CalibrationData,
-            FIELD_DEF(timestamp) FIELD_DEF(acc0BiasX) FIELD_DEF(acc0BiasY)
-                FIELD_DEF(acc0BiasZ) FIELD_DEF(gyro0BiasX) FIELD_DEF(gyro0BiasY)
-                    FIELD_DEF(gyro0BiasZ) FIELD_DEF(acc1BiasX) FIELD_DEF(
-                        acc1BiasY) FIELD_DEF(acc1BiasZ) FIELD_DEF(gyro1BiasX)
-                        FIELD_DEF(gyro1BiasY) FIELD_DEF(gyro1BiasZ)
-                            FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
-                                FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
+            FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF_WITH_UNIT(acc0BiasX, m/s^2) FIELD_DEF_WITH_UNIT(acc0BiasY, m/s^2)
+                FIELD_DEF_WITH_UNIT(acc0BiasZ, m/s^2) FIELD_DEF_WITH_UNIT(gyro0BiasX, rad/s) FIELD_DEF_WITH_UNIT(gyro0BiasY, rad/s)
+                    FIELD_DEF_WITH_UNIT(gyro0BiasZ, rad/s) FIELD_DEF_WITH_UNIT(acc1BiasX, m/s^2) FIELD_DEF_WITH_UNIT(
+                        acc1BiasY, m/s^2) FIELD_DEF_WITH_UNIT(acc1BiasZ, m/s^2) FIELD_DEF_WITH_UNIT(gyro1BiasX, rad/s)
+                        FIELD_DEF_WITH_UNIT(gyro1BiasY, rad/s) FIELD_DEF_WITH_UNIT(gyro1BiasZ, rad/s)
+                            FIELD_DEF_WITH_UNIT(magBiasX, microTesla) FIELD_DEF_WITH_UNIT(magBiasY, microTesla)
+                                FIELD_DEF_WITH_UNIT(magBiasZ, microTesla) FIELD_DEF(magScaleX)
                                     FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
     }
 };

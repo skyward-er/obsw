@@ -46,9 +46,9 @@ struct WingAlgorithmData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(WingAlgorithmData,
-                          FIELD_DEF(timestamp) FIELD_DEF(servo1Angle)
-                              FIELD_DEF(servo2Angle) FIELD_DEF(targetAngle)
-                                  FIELD_DEF(velocityAngle) FIELD_DEF(targetX)
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF_WITH_UNIT(servo1Angle, degrees)
+                              FIELD_DEF_WITH_UNIT(servo2Angle, degrees) FIELD_DEF_WITH_UNIT(targetAngle, degrees)
+                                  FIELD_DEF_WITH_UNIT(velocityAngle, rad) FIELD_DEF(targetX)
                                       FIELD_DEF(targetY) FIELD_DEF(error)
                                           FIELD_DEF(pidOutput));
     }
