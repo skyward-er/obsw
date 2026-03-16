@@ -27,9 +27,9 @@
 // #include <RIGv3/Radio/Radio.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
-// #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
-// #include <RIGv3/StateMachines/TARS1/TARS1.h>
-// #include <RIGv3/StateMachines/TARS3/TARS3.h>
+#include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <RIGv3/StateMachines/TARS1/TARS1.h>
+#include <RIGv3/StateMachines/TARS3/TARS3.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -59,9 +59,9 @@ int main()
     auto actuators  = new Actuators();
     auto registry   = new Registry();
     auto canHandler = new CanHandler();
-    // auto gmm         = new GroundModeManager();
-    // auto tars1       = new TARS1();
-    // auto tars3       = new TARS3();
+    auto gmm        = new GroundModeManager();
+    auto tars1      = new TARS1();
+    auto tars3      = new TARS3();
     // auto radio       = new Radio();
     auto motorStatus = new MotorStatus();
 
@@ -85,8 +85,8 @@ int main()
         manager.insert<Sensors>(sensors) &&  // manager.insert<Radio>(radio) &&
         manager.insert<CanHandler>(canHandler) &&
         manager.insert<Registry>(registry) &&
-        // manager.insert<GroundModeManager>(gmm) &&
-        // manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
+        manager.insert<GroundModeManager>(gmm) &&
+        manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
         manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
     if (!initResult)
@@ -240,12 +240,21 @@ int main()
                   << statusStr << std::endl;
     }
 
+    float position;
     // Periodic statistics
     while (true)
     {
-        Thread::sleep(1000);
+        /* std::cout << "choose a valve to open (0-7): ";
+          std::cin >> valveNr; */
+        std::cout << "choose a position to move the valve to (0.0-1.0): \n";
+        std::cin >> position;
+
+        printf("animating main ox valve to position %f\n", position);
+        actuators->animateValve(ServosList::MAIN_OX_VALVE, position, 5000);
+
         sdLogger.log(sdLogger.getStats());
         // sdLogger.log(radio->getMavStatus());
+        Thread::sleep(3000);
     }
 
     return 0;

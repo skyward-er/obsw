@@ -37,13 +37,13 @@ namespace Expanders
 constexpr Boardcore::I2CDriver::I2CSlaveConfig I2CExpander0Config{
     .slaveAddress = MIOSIX_SERVO_EXPANDER_0_ADDR,
     .addressing   = Boardcore::I2CDriver::Addressing::BIT7,
-    .speed        = Boardcore::I2CDriver::Speed::MAX_SPEED,
+    .speed        = Boardcore::I2CDriver::Speed::STANDARD,
     .MSBFirst     = false};
 
 constexpr Boardcore::I2CDriver::I2CSlaveConfig I2CExpander1Config{
     .slaveAddress = MIOSIX_SERVO_EXPANDER_1_ADDR,
     .addressing   = Boardcore::I2CDriver::Addressing::BIT7,
-    .speed        = Boardcore::I2CDriver::Speed::MAX_SPEED,
+    .speed        = Boardcore::I2CDriver::Speed::STANDARD,
     .MSBFirst     = false};
 
 }  // namespace Expanders
@@ -108,7 +108,7 @@ constexpr float MAIN_FUEL_LIMIT = 1.0;
 constexpr float PRZ_OX_LIMIT    = 0.9;
 constexpr float OX_VEN_LIMIT    = 0.9;
 constexpr float PRZ_QUE_LIMIT   = 0.9;
-constexpr float MAIN_OX_LIMIT   = 0.9;
+constexpr float MAIN_OX_LIMIT   = 1.0;
 constexpr float FUEL_VEN_LIMIT  = 0.9;
 constexpr float IGN_FUEL_LIMIT  = 1.0;
 constexpr float IGN_OX_LIMIT    = 1.0;
@@ -124,7 +124,7 @@ constexpr bool MAIN_FUEL_FLIPPED = true;
 constexpr bool NITR_FLIPPED      = true;
 constexpr bool OX_VEN_FLIPPED    = true;
 constexpr bool PRZ_QUE_FLIPPED   = false;
-constexpr bool MAIN_OX_FLIPPED   = true;
+constexpr bool MAIN_OX_FLIPPED   = false;
 constexpr bool FUEL_VEN_FLIPPED  = true;
 constexpr bool IGN_OX_FLIPPED    = false;
 constexpr bool IGN_FUEL_FLIPPED  = false;

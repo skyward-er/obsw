@@ -31,25 +31,25 @@ namespace RIGv3
 struct ActuatorsData
 {
     uint64_t timestamp;
-    uint8_t servoIdx;
+    uint8_t valveIdx;
     float position;
 
     ActuatorsData()
     {
         timestamp = 0;
-        servoIdx  = 0;
+        valveIdx  = 0;
         position  = 0;
     }
 
-    ActuatorsData(uint64_t time, uint8_t servoIdx, float pos)
-        : timestamp(time), servoIdx(servoIdx), position(pos)
+    ActuatorsData(uint64_t time, uint8_t valveIdx, float pos)
+        : timestamp(time), valveIdx(valveIdx), position(pos)
     {
     }
 
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ActuatorsData, FIELD_DEF(timestamp) FIELD_DEF(
-                                             servoIdx) FIELD_DEF(position));
+                                             valveIdx) FIELD_DEF(position));
     }
 };
 
