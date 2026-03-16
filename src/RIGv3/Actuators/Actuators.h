@@ -105,6 +105,23 @@ private:
         void resetAnimation() override;
     };
 
+    struct ManualValveInfo : public ValveInfo
+    {
+        ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+            : ValveInfo(std::move(valve))
+        {
+        }
+
+        float stepCount  = 0;     ///< Number of steps for the current animation
+        float stepAmount = 0.0f;  ///< Amount of one animation step
+        // Time when the valve should be moved next during an animation
+        TimePoint updateTs = noActionNeeded;
+
+        void animateValve(float position, uint32_t time);
+        void advanceAnimation();
+        void resetAnimation() override;
+    };
+
     struct ValveState
     {
         bool valid = false;  ///< Whether the data in this struct is valid

@@ -256,7 +256,7 @@ void Actuators::initializeValves()
     // Since the 3way servo does not need to be closed after a set time
     // we can reuse the animateValve method
     prz_3wayValveInfo = MAKE_SIMPLE_PCA_SERVO_VALVE(
-        PRZ_3W, expander0, PCA9685Utils::Channel::CHANNEL_0);
+        PRZ_3W, expander1, PCA9685Utils::Channel::CHANNEL_7);
 
     // Solenoid valves connected directly to the micro
     valveInfos.push_back(
