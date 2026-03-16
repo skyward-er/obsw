@@ -503,7 +503,7 @@ bool Radio::enqueueValveInfoTm(ServosList valveId)
     mavlink_message_t msg;
     mavlink_valve_info_tm_t tm;
 
-    auto valveInfo = getModule<Actuators>()->getValveInfo(valveId);
+    auto valveInfo = getModule<Actuators>()->getValveState(valveId);
 
     if (!valveInfo.valid)
         return false;

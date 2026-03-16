@@ -42,8 +42,8 @@ class Actuators : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
                   public Boardcore::SignaledDeadlineTask
 {
 private:
-    // Sentinel value for the valve closed state
-    static const TimePoint ValveClosed;
+    // Sentinel value for when no action is needed
+    static const TimePoint noActionNeeded;
 
     struct ValveInfo
     {
@@ -67,24 +67,35 @@ private:
 
         std::unique_ptr<Boardcore::Valve> valve{};
 
-        float animationStep      = 0.0f;  ///< Amount of one animation step
-        TimePoint animationEndTs = ValveClosed;  ///< End time of last animation
-
-        // Time when the valve should be moved next during an animation
-        TimePoint updateTs = ValveClosed;
         // Time when to backstep the valve to avoid straining the servo
-        TimePoint backstepTs = ValveClosed;
+        TimePoint backstepTs = noActionNeeded;
         // Time when the valve should close
-        TimePoint closeTs = ValveClosed;
+        TimePoint closeTs = noActionNeeded;
 
-        void openServoWithTime(float position, uint32_t time);
-        void animateServo(float position, uint32_t time);
-        void closeServo();
+        void openValve();
+        void closeValve();
 
         void backstep();
-        void advanceAnimation();
+            virtual void resetAnimation() {};
 
         bool isServoOpen();
+    };
+
+    struct ManualValveInfo : public ValveInfo
+    {
+        ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+            : ValveInfo(std::move(valve))
+        {
+        }
+
+        float stepCount  = 0;     ///< Number of steps for the current animation
+        float stepAmount = 0.0f;  ///< Amount of one animation step
+        // Time when the valve should be moved next during an animation
+        TimePoint updateTs = noActionNeeded;
+
+        void animateValve(float position, uint32_t time);
+        void advanceAnimation();
+        void resetAnimation() override;
     };
 
     struct ValveState
@@ -108,7 +119,7 @@ public:
     bool toggleValve(ServosList servo);
     bool openValve(ServosList servo);
     bool openValveWithTime(ServosList servo, uint32_t time);
-    bool moveValveWithTime(ServosList servo, float position, uint32_t time);
+    bool moveValve(ServosList servo, float position);
     bool animateValve(ServosList servo, float position, uint32_t time);
 
     bool closeValve(ServosList servo);
@@ -119,7 +130,8 @@ public:
     uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
-    ValveState getValveInfo(ServosList servo);
+    ValveState getValveState(ServosList servo);
+    inline void logValveMovement(int idx, float position);
 
     // N2 3-way valve control
     void set3wayValveState(bool state);
@@ -133,14 +145,9 @@ public:
     void armLightOn();
     void armLightOff();
 
-    void igniterOn();
-    void igniterOff();
-
-    void clacsonOn();
-    void clacsonOff();
-
 private:
-    ValveInfo* getServo(ServosList servo);
+    ValveInfo* getValve(ServosList servo);
+    ManualValveInfo* getManualValve(ServosList servo);
 
     TimePoint nextTaskDeadline() override;
     void task() override;
@@ -148,7 +155,8 @@ private:
     std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
-    std::vector<ValveInfo> infos;
+    std::vector<ValveInfo> valveInfos;
+    std::vector<ManualValveInfo> manualValveInfos;
     void initializeValves();
 
     void unsafeStartSparkPlug();
@@ -164,9 +172,9 @@ private:
 
     std::unique_ptr<Boardcore::SparkPlug> spark;
 
-    TimePoint fuelSolenoidCloseTs = ValveClosed;
-    TimePoint oxSolenoidCloseTs   = ValveClosed;
-    TimePoint sparkPlugCloseTs    = ValveClosed;
+    TimePoint fuelSolenoidCloseTs = noActionNeeded;
+    TimePoint oxSolenoidCloseTs   = noActionNeeded;
+    TimePoint sparkPlugCloseTs    = noActionNeeded;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");

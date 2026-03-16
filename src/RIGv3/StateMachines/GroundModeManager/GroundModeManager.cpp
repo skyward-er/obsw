@@ -442,7 +442,7 @@ State GroundModeManager::state_cooling(const Event& event)
             updateAndLogStatus(GroundModeManagerState::COOLING);
 
             /* // Stop pressurizing the OX after the firing is over
-            getModule<Actuators>()->closeServo(ServosList::NITROGEN_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::NITROGEN_VALVE);
 
             uint32_t coolingDelay =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
