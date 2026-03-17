@@ -1,5 +1,5 @@
-/* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Davide Basso
+/* Copyright (c) 2025-2026 Skyward Experimental Rocketry
+ * Author: Davide Basso, Leonardo Montecchi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,13 @@
 
 #pragma once
 
+
+#include <Parafoil/Configs/WingConfig.h>
+#include <Parafoil/Sensors/Sensors.h>
+#include <units/Length.h>
+#include <utils/AeroUtils/AeroUtils.h>
+#include <utils/AltitudeMap/AltitudeMap.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include "AltitudeTrigger.h"
 
 namespace Parafoil
@@ -29,10 +36,11 @@ namespace Parafoil
 
 class BoardScheduler;
 class NASController;
+class Sensors;
 
 class LandingFlare : public Boardcore::InjectableWithDeps<
                          Boardcore::InjectableBase<AltitudeTrigger>,
-                         BoardScheduler, NASController>
+                         BoardScheduler, NASController, Sensors>
 {
 public:
     LandingFlare()
@@ -40,7 +48,36 @@ public:
               .threshold  = Config::Wing::LandingFlare::ALTITUDE,
               .confidence = Config::Wing::LandingFlare::CONFIDENCE,
               .updateRate = Config::Wing::LandingFlare::UPDATE_RATE,
-          }){};
+          }),map(Config::Wing::LandingFlare::ALTITUDE_MAP_ADDRESS) {};
+    
+    bool start();
+
+    /**
+     * @brief Set the landing target position in NED coordinates.
+     */
+    void setTargetGEO(Eigen::Vector2f targetGEO);
+
+private:
+
+    void update();
+
+    Boardcore::AltitudeMap map{nullptr};
+    /**
+     * @brief Converts NED coordinates to local coordinates in the target's frame of reference.
+     */
+    Eigen::Vector2f calculateLocalCoordinates(
+        Eigen::Vector2f currentPositionNED);
+
+    /**
+     * @brief Calculate the altitude above ground level (using the ground altitude variation) based on the current position.
+     */
+    float calculateAGLAltitude();
+
+    Eigen::Vector2f
+        targetNED;  ///< Target position in NED coordinates, used to calculate
+                    ///< the local coordinates for the altitude map
+    
+    float lastAGLaltitude = -1;  ///< Last calculated AGL altitude, used to return a valid altitude when the position is outside the map boundaries
 };
 
 }  // namespace Parafoil

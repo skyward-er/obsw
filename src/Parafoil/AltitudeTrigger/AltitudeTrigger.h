@@ -56,7 +56,7 @@ public:
      */
     void setDeploymentAltitude(Meter altitude);
 
-private:
+protected:
     /**
      * @brief Update method that posts a FLIGHT_WING_ALT_PASSED when the correct
      * altitude is reached

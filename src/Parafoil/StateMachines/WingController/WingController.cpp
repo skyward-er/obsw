@@ -462,6 +462,8 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
 
     targetPositionGEO = Coordinates{latitude, longitude};
 
+    getModule<LandingFlare>()->setTargetGEO({latitude, longitude});
+
     // Log early maneuver points to highlight any discrepancies if any
     auto earlyManeuverPoints = getEarlyManeuverPoints();
 

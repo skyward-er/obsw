@@ -118,6 +118,7 @@ set(PARAFOIL_COMPUTER
     src/Parafoil/StateMachines/NASController/NASController.cpp
     src/Parafoil/StateMachines/WingController/WingController.cpp
     src/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
+    src/Parafoil/AltitudeTrigger/LandingFlare.cpp
     src/Parafoil/Wing/AutomaticWingAlgorithm.cpp
     src/Parafoil/Wing/Guidance/EarlyManeuverGuidanceAlgorithm.cpp
     src/Parafoil/Wing/Guidance/ClosedLoopGuidanceAlgorithm.cpp

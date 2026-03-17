@@ -26,6 +26,7 @@
 #include <units/Frequency.h>
 #include <units/Length.h>
 #include <utils/Constants.h>
+#include "MapData.h"
 
 #include <array>
 #include <chrono>
@@ -184,6 +185,8 @@ constexpr auto UPDATE_RATE       = 10_hz;
 constexpr auto DURATION          = 5s;
 constexpr auto ANGLE_LEFT_SERVO  = 720_deg;
 constexpr auto ANGLE_RIGHT_SERVO = -720_deg;
+
+constexpr auto ALTITUDE_MAP_ADDRESS = map_data_bin;
 
 }  // namespace LandingFlare
 
