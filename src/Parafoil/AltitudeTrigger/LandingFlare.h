@@ -22,13 +22,13 @@
 
 #pragma once
 
-
 #include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <units/Length.h>
 #include <utils/AeroUtils/AeroUtils.h>
 #include <utils/AltitudeMap/AltitudeMap.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
 #include "AltitudeTrigger.h"
 
 namespace Parafoil
@@ -48,8 +48,9 @@ public:
               .threshold  = Config::Wing::LandingFlare::ALTITUDE,
               .confidence = Config::Wing::LandingFlare::CONFIDENCE,
               .updateRate = Config::Wing::LandingFlare::UPDATE_RATE,
-          }),map(Config::Wing::LandingFlare::ALTITUDE_MAP_ADDRESS) {};
-    
+          }),
+          map(Config::Wing::LandingFlare::ALTITUDE_MAP_ADDRESS) {};
+
     bool start();
 
     /**
@@ -58,26 +59,23 @@ public:
     void setTargetGEO(Eigen::Vector2f targetGEO);
 
 private:
-
     void update();
 
     Boardcore::AltitudeMap map{nullptr};
-    /**
-     * @brief Converts NED coordinates to local coordinates in the target's frame of reference.
-     */
-    Eigen::Vector2f calculateLocalCoordinates(
-        Eigen::Vector2f currentPositionNED);
 
     /**
-     * @brief Calculate the altitude above ground level (using the ground altitude variation) based on the current position.
+     * @brief Calculate the altitude above ground level (using the ground
+     * altitude variation) based on the current position.
      */
     float calculateAGLAltitude();
 
     Eigen::Vector2f
-        targetNED;  ///< Target position in NED coordinates, used to calculate
+        targetGEO;  ///< Target position in NED coordinates, used to calculate
                     ///< the local coordinates for the altitude map
-    
-    float lastAGLaltitude = -1;  ///< Last calculated AGL altitude, used to return a valid altitude when the position is outside the map boundaries
+
+    float lastGroundAltitude =
+        NAN;  ///< Last calculated AGL altitude, used to return a valid altitude
+              ///< when the position is outside the map boundaries
 };
 
 }  // namespace Parafoil

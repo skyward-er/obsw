@@ -33,16 +33,6 @@ using namespace Common;
 
 namespace Parafoil
 {
-    Eigen::Vector2f LandingFlare::calculateLocalCoordinates(
-    Eigen::Vector2f currentPositionNED)
-{
-    Eigen::Vector2f localPositionFromTarget;
-
-    localPositionFromTarget[0] = currentPositionNED[0] - targetNED[0];
-    localPositionFromTarget[1] = currentPositionNED[1] - targetNED[1];
-
-    return localPositionFromTarget;
-}
 
 bool LandingFlare::start()
 {
@@ -62,47 +52,38 @@ bool LandingFlare::start()
 
 void LandingFlare::setTargetGEO(Eigen::Vector2f targetGEO)
 {
-    auto ref      = getModule<NASController>()->getReferenceValues();
-    auto gps      = getModule<Sensors>()->getUBXGPSLastSample();
-
-    Eigen::Vector2f targetNED = Aeroutils::geodetic2NED(
-        {gps.latitude, gps.longitude}, {ref.refLatitude, ref.refLongitude});
-
-    this->targetNED = targetNED;
+    this->targetGEO = targetGEO;
 }
 
 float LandingFlare::calculateAGLAltitude()
 {
     auto nasState = getModule<NASController>()->getNasState();
-    auto ref      = getModule<NASController>()->getReferenceValues();
-    auto gps      = getModule<Sensors>()->getUBXGPSLastSample();  ///< Last calculated AGL altitude, used to return a valid altitude when the position is outside the map boundaries
+    auto gps      = getModule<Sensors>()
+                   ->getUBXGPSLastSample();  ///< Last calculated AGL altitude,
+                                             ///< used to return a valid
+                                             ///< altitude when the position is
+                                             ///< outside the map boundaries
 
+    if (lastGroundAltitude == NAN)
+    {
+        auto ref           = getModule<NASController>()->getReferenceValues();
+        lastGroundAltitude = ref.refAltitude;
+    }
+
+    // NED in the target's reference frame
     Eigen::Vector2f currentPositionNED = Aeroutils::geodetic2NED(
-        {gps.latitude, gps.longitude}, {ref.refLatitude, ref.refLongitude});
+        {gps.latitude, gps.longitude}, {targetGEO[0], targetGEO[1]});
 
-    // converts position from NED to the target reference frame
-    Eigen::Vector2f localPositionFromTarget =
-        calculateLocalCoordinates(currentPositionNED);
+    float altitude = -nasState.d;
+    if (!map.isInsideMap(currentPositionNED[0], currentPositionNED[1]))
+        return altitude - lastGroundAltitude;
 
-    float altitude                = -nasState.d;
-    if (!map.isInsideMap(localPositionFromTarget[0],
-                         localPositionFromTarget[1]))
-        return lastAGLaltitude;
+    float currentGroundAltitude =
+        map.getGroundAltitude(currentPositionNED[0], currentPositionNED[1]);
 
-    
-    Eigen::Vector2f referencePositionFromTarget =
-        calculateLocalCoordinates({0, 0});
+    float aboveGroundAltitude = altitude - currentGroundAltitude;
 
-    
-    float referenceGroundAltitude = map.getGroundAltitude(
-        referencePositionFromTarget[0], referencePositionFromTarget[1]);
-    float currentGroundAltitude = map.getGroundAltitude(
-        localPositionFromTarget[0], localPositionFromTarget[1]);
-
-    float aboveGroundAltitude =
-        altitude - referenceGroundAltitude - currentGroundAltitude;
-    
-    lastAGLaltitude = aboveGroundAltitude;
+    lastGroundAltitude = currentGroundAltitude;
 
     return aboveGroundAltitude;
 }
@@ -113,7 +94,8 @@ void LandingFlare::update()
         return;
 
     auto nasState = getModule<NASController>()->getNasState();
-    float altitude = -nasState.d;  // Altitude is given by the negative down position
+    float altitude =
+        -nasState.d;  // Altitude is given by the negative down position
 
     if (altitude < thresholdAltitude)
         confidence++;
@@ -129,4 +111,4 @@ void LandingFlare::update()
     }
 }
 
-}
+}  // namespace Parafoil

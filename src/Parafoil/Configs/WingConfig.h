@@ -26,10 +26,11 @@
 #include <units/Frequency.h>
 #include <units/Length.h>
 #include <utils/Constants.h>
-#include "MapData.h"
 
 #include <array>
 #include <chrono>
+
+#include "MapData.h"
 
 namespace Parafoil
 {
