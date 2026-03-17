@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,35 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <algorithm>
+#include <array>
+#include <memory>
 
 namespace Common
 {
 
-enum Topics : uint8_t
+template <typename T, size_t Max>
+class MeanFilter
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_ARP,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_EREG_OX,
-    TOPIC_EREG_FUEL,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
+public:
+    MeanFilter() {}
+
+    void reset() { idx = 0; }
+
+    void add(T value)
+    {
+        values[idx] = value;
+        idx         = (idx + 1) % Max;
+    }
+
+    T calcMean()
+    {
+        return std::accumulate(values.begin(), values.end(), T(0)) / Max;
+    }
+
+private:
+    size_t idx                = 0;
+    std::array<T, Max> values = {0};
 };
 
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,  TOPIC_ADA,    TOPIC_MEA,  TOPIC_ARP, TOPIC_DPL,
-    TOPIC_CAN,  TOPIC_FLIGHT, TOPIC_FMM,  TOPIC_FSR, TOPIC_NAS,
-    TOPIC_TMTC, TOPIC_MOTOR,  TOPIC_TARS, TOPIC_ALT, TOPIC_WING};
-
-}  // namespace Common
+}  // namespace RIGv2

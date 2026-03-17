@@ -74,7 +74,7 @@ set(RIG_V2_COMPUTER
 
 set(RIG_V3_COMPUTER
     src/common/canbus/MotorStatus.cpp
-    #src/RIGv3/Radio/Radio.cpp
+    src/RIGv3/Radio/Radio.cpp
     src/RIGv3/Sensors/Sensors.cpp
     src/RIGv3/Actuators/Actuators.cpp
     src/RIGv3/Registry/Registry.cpp
@@ -82,6 +82,9 @@ set(RIG_V3_COMPUTER
     src/RIGv3/StateMachines/GroundModeManager/GroundModeManager.cpp
     src/RIGv3/StateMachines/TARS1/TARS1.cpp
     src/RIGv3/StateMachines/TARS3/TARS3.cpp
+    src/RIGv3/StateMachines/EngineController/EngineController.cpp
+    src/RIGv3/StateMachines/EregController/EregControllerOX.cpp
+    src/RIGv3/StateMachines/EregController/EregControllerFUEL.cpp
 )
 
 set(CON_RIG_COMPUTER
