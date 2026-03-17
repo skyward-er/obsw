@@ -57,6 +57,7 @@ void LandingFlare::setTargetGEO(Eigen::Vector2f targetGEO)
 
 float LandingFlare::calculateAGLAltitude()
 {
+    auto ref      = getModule<NASController>()->getReferenceValues();
     auto nasState = getModule<NASController>()->getNasState();
     auto gps      = getModule<Sensors>()
                    ->getUBXGPSLastSample();  ///< Last calculated AGL altitude,
@@ -64,24 +65,21 @@ float LandingFlare::calculateAGLAltitude()
                                              ///< altitude when the position is
                                              ///< outside the map boundaries
 
-    if (lastGroundAltitude == NAN)
-    {
-        auto ref           = getModule<NASController>()->getReferenceValues();
-        lastGroundAltitude = ref.refAltitude;
-    }
-
     // NED in the target's reference frame
     Eigen::Vector2f currentPositionNED = Aeroutils::geodetic2NED(
         {gps.latitude, gps.longitude}, {targetGEO[0], targetGEO[1]});
 
     float altitude = -nasState.d;
-    if (!map.isInsideMap(currentPositionNED[0], currentPositionNED[1]))
-        return altitude - lastGroundAltitude;
 
-    float currentGroundAltitude =
-        map.getGroundAltitude(currentPositionNED[0], currentPositionNED[1]);
+    // Fallback if currentPositionNED is outside the map boundariess
+    float currentGroundAltitude = lastGroundAltitude;
 
-    float aboveGroundAltitude = altitude - currentGroundAltitude;
+    if (map.isInsideMap(currentPositionNED[0], currentPositionNED[1]))
+        currentGroundAltitude =
+            map.getGroundAltitude(currentPositionNED[0], currentPositionNED[1]);
+
+    float aboveGroundAltitude =
+        altitude + ref.refAltitude - currentGroundAltitude;
 
     lastGroundAltitude = currentGroundAltitude;
 

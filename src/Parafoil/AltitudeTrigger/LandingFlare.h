@@ -74,8 +74,8 @@ private:
                     ///< the local coordinates for the altitude map
 
     float lastGroundAltitude =
-        NAN;  ///< Last calculated AGL altitude, used to return a valid altitude
-              ///< when the position is outside the map boundaries
+        0;  ///< Last calculated AGL altitude, used to return a valid altitude
+            ///< when the position is outside the map boundaries
 };
 
 }  // namespace Parafoil
