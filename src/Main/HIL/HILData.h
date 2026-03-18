@@ -164,7 +164,7 @@ struct NASStateHIL
         : n(nasState.n), e(nasState.e), d(nasState.d), vn(nasState.vn),
           ve(nasState.ve), vd(nasState.vd), qx(nasState.qx), qy(nasState.qy),
           qz(nasState.qz), qw(nasState.qw),
-          updating(state >= Main::NASControllerState::ACTIVE)
+          updating(state >= Main::NASControllerState::ACTIVE_ASCENT)
     {
     }
 

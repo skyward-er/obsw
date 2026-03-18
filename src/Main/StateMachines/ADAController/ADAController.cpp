@@ -37,6 +37,7 @@ using namespace Main;
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
+using namespace Constants;
 
 // The default Kalman is empty, as calibrate will update it correctly
 const ADA::KalmanFilter::KalmanConfig DEFAULT_KALMAN_CONFIG{};
@@ -200,6 +201,32 @@ float ADAController::getMaxPressure()
 
     return *std::max_element(pressures.begin(), pressures.end(), absCompare);
 }
+
+ADAController::detectedApogees ADAController::getDetectedApogees()
+{
+    detectedApogees apogees;
+    apogees.ada0DetectedApogees = ada0DetectedApogees;
+    apogees.ada0DetectedApogees = ada0DetectedApogees;
+    apogees.ada0DetectedApogees = ada0DetectedApogees;
+    return apogees;
+}
+
+float ADAController::getVerticalSpeedCov()
+{
+    ReferenceValues ref = ada0.getReferenceValues();
+    ADAState state = ada0.getState();
+    const float * QMatrix = ada0.getFlatq();
+    float n = 1/(a*R/g);
+    float cov2 = -(ref.refTemperature*pow(state.x0/ref.refPressure,(1/n)/(a*n*state.x0)));
+    float cov1 = cov2*state.x1/n/state.x0*(1-n);
+    Eigen::Matrix<float, 1, 2> cov;
+    cov << cov1, cov2;
+    Eigen::Matrix<float, 2, 2> covariances; 
+    covariances << QMatrix[0], QMatrix[3], 
+                   QMatrix[1], QMatrix[4];
+    return cov * covariances * cov.transpose();
+}
+
 
 void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 {
@@ -387,6 +414,11 @@ void ADAController::calibrate()
     ada1.update(ref.refPressure);
     ada2.update(ref.refPressure);
 }
+
+ const float* ADAController::getQflattened() const
+ {
+    return ada0.getFlatq();
+ }
 
 void ADAController::state_init(const Event& event)
 {

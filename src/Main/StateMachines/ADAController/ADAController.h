@@ -30,7 +30,7 @@
 #include <algorithms/ADA/ADA.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
-
+#include <utils/Constants.h>
 #include <bitset>
 
 namespace Main
@@ -48,6 +48,12 @@ public:
         ADA0 = 0,
         ADA1 = 1,
         ADA2 = 2,
+    };
+
+    struct detectedApogees{
+            uint32_t ada0DetectedApogees;
+            uint32_t ada1DetectedApogees;
+            uint32_t ada2DetectedApogees;
     };
 
     ADAController();
@@ -73,6 +79,21 @@ public:
      * @brief Returns the maximum pressure (in module) of the ADAs.
      */
     float getMaxPressure();
+
+    /**
+     * @brief Returns the number of detected apogees
+     */
+    detectedApogees getDetectedApogees();
+
+    /**
+     * @brief Returns a pointer to the flatted Q matrix
+     */
+    const float* getQflattened() const;
+
+    /**
+     * @brief Returns the vertical speed covariance
+     */
+    float getVerticalSpeedCov();
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 

@@ -21,7 +21,6 @@
  */
 
 #include "NASController.h"
-
 #include <Main/Configs/NASConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
 #include <algorithms/NAS/StateInitializer.h>
@@ -123,7 +122,7 @@ void NASController::update()
 
     Lock<FastMutex> lock{nasMutex};
 
-    if (curState == NASControllerState::ACTIVE)
+    if (curState == NASControllerState::ACTIVE_ASCENT)
     {
         Sensors* sensors = getModule<Sensors>();
 
@@ -211,6 +210,76 @@ void NASController::update()
 
         getModule<StatsRecorder>()->updateNas(state);
         sdLogger.log(state);
+    }
+    else{
+        Boardcore::ADAState ada = getModule<ADAController>()->getADAState(ADAController::ADANumber::ADA0);
+        const float * covariance = getModule<ADAController>()->getQflattened();
+        Sensors* sensors = getModule<Sensors>();
+        auto gps          = sensors->getUBXGPSLastSample();
+        auto baro         = sensors->getAtmosPressureLastSample();
+        
+        // Fill ADA bus
+        Bus_AdaState adaBusInput;
+        adaBusInput.covariance[0] = covariance[0];  
+        adaBusInput.covariance[1] = covariance[1];
+        adaBusInput.covariance[2] = covariance[2];
+        adaBusInput.covariance[3] = covariance[3];
+        adaBusInput.covariance[4] = covariance[4];
+        adaBusInput.covariance[5] = covariance[5];
+        adaBusInput.covariance[6] = covariance[6];
+        adaBusInput.covariance[7] = covariance[7];
+        adaBusInput.covariance[8] = covariance[8];
+        adaBusInput.verticalSpeedCovariance = 0; //To do What is 
+        adaBusInput.mslAltitude = ada.mslAltitude;
+        adaBusInput.aglAltitude = ada.aglAltitude;
+        adaBusInput.verticalSpeed = ada.verticalSpeed;
+        adaBusInput.x0 = ada.x0;
+        adaBusInput.x1 = ada.x1;
+        adaBusInput.x2 = ada.x2;
+        adaBusInput.apogeeCounter = getModule<ADAController>()->getDetectedApogees().ada0DetectedApogees;
+        adaBusInput.parachuteCounter = 0; //Not actually used by the algorithm 
+
+        //Fill GPS bus
+        Bus_GPS gpsBusInput;
+        gpsBusInput.Measure[0] = gps.latitude; 
+        gpsBusInput.Measure[1] = gps.longitude;
+        gpsBusInput.Measure[2] = gps.height;
+        gpsBusInput.Measure[3] = gps.velocityNorth;
+        gpsBusInput.Measure[4] = gps.velocityEast;
+        gpsBusInput.Measure[5] = gps.velocityDown;
+        gpsBusInput.Measure[6] = gps.fix;
+        gpsBusInput.Measure[7] = gps.satellites;
+        gpsBusInput.Measure[8] = gps.speed;
+        gpsBusInput.Measure[9] = gps.track;
+        //Add the others
+        gpsBusInput.Timestamp = gps.gpsTimestamp;
+        
+        //Fill baro bus
+        Bus_Baro baroBusInput;
+        baroBusInput.Measure = baro.pressure;
+        baroBusInput.Timestamp = baro.pressureTimestamp;
+
+        //Run nasdaq
+        nasdaq.setADA_States(adaBusInput);
+        nasdaq.setGPS(gpsBusInput);
+        nasdaq.setBaro(baroBusInput);
+        nasdaq.step();
+        
+        //Get and log output
+        NASDAQ0::ExtY_NASDAQ0_T nasdaqOutput = nasdaq.getExternalOutputs();
+        NASDAQState nasdaqState; 
+        nasdaqState.n = nasdaqOutput.Position[0];
+        nasdaqState.e = nasdaqOutput.Position[1];
+        nasdaqState.d = nasdaqOutput.Position[2];
+        nasdaqState.vn = nasdaqOutput.Velocity[0];
+        nasdaqState.ve = nasdaqOutput.Velocity[1];
+        nasdaqState.vd = nasdaqOutput.Velocity[2];
+        nasdaqState.c0 = nasdaqOutput.Covariance[0];
+        nasdaqState.c1 = nasdaqOutput.Covariance[1];
+        nasdaqState.c2 = nasdaqOutput.Covariance[2];
+        nasdaqState.c3 = nasdaqOutput.Covariance[3];
+        nasdaqState.c4 = nasdaqOutput.Covariance[4];
+        sdLogger.log(nasdaqState);
     }
 }
 
@@ -318,19 +387,43 @@ void NASController::state_ready(const Event& event)
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
-            transition(&NASController::state_active);
+            transition(&NASController::state_active_ascent);
             break;
         }
     }
 }
 
-void NASController::state_active(const Event& event)
+void NASController::state_active_ascent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(NASControllerState::ACTIVE);
+            updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
+            break;
+        }
+        case ADA_APOGEE_DETECTED:
+        {
+            nasdaq.initialize();
+            transition(&NASController::state_active_descent);
+            break;
+        }
+        case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            transition(&NASController::state_ready);
+            break;
+        }
+    }
+}
+
+void NASController::state_active_descent(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(NASControllerState::ACTIVE_DESCENT);
             break;
         }
         case FLIGHT_LANDING_DETECTED:

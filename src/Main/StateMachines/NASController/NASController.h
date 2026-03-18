@@ -25,9 +25,12 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
+#include <utils/DependencyManager/DependencyManager.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/NAS/NAS.h>
+#include <algorithms/NASDAQ/NASDAQ0.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -38,7 +41,7 @@ namespace Main
 class NASController
     : public Boardcore::FSM<NASController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder, AlgoReference>,
+                                           StatsRecorder, AlgoReference, ADAController>,
       public ReferenceSubscriber
 {
 public:
@@ -66,7 +69,8 @@ private:
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
+    void state_active_ascent(const Boardcore::Event& event);
+    void state_active_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
     void updateAndLogStatus(NASControllerState state);
@@ -78,6 +82,7 @@ private:
 
     miosix::FastMutex nasMutex;
     Boardcore::NAS nas;
+    NASDAQ0 nasdaq;
 
     int magDecimateCount  = 0;
     int acc1gSamplesCount = 0;
