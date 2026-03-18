@@ -80,7 +80,7 @@ constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
 
 namespace ADC_1
 {
-constexpr bool ENABLED = true;
+constexpr bool ENABLED = false;
 
 }  // namespace ADC_1
 
