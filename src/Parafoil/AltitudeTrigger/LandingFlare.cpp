@@ -55,33 +55,29 @@ void LandingFlare::setTargetGEO(Eigen::Vector2f targetGEO)
     this->targetGEO = targetGEO;
 }
 
-float LandingFlare::calculateAGLAltitude()
+Eigen::Vector2f LandingFlare::findCurrentPositionNED()
 {
-    auto ref      = getModule<NASController>()->getReferenceValues();
-    auto nasState = getModule<NASController>()->getNasState();
-    auto gps      = getModule<Sensors>()
-                   ->getUBXGPSLastSample();  ///< Last calculated AGL altitude,
-                                             ///< used to return a valid
-                                             ///< altitude when the position is
-                                             ///< outside the map boundaries
+    auto gps = getModule<Sensors>()->getUBXGPSLastSample();
 
     // NED in the target's reference frame
     Eigen::Vector2f currentPositionNED = Aeroutils::geodetic2NED(
         {gps.latitude, gps.longitude}, {targetGEO[0], targetGEO[1]});
 
-    float altitude = -nasState.d;
+    return currentPositionNED;
+}
 
-    // Fallback if currentPositionNED is outside the map boundariess
-    float currentGroundAltitude = lastGroundAltitude;
+float LandingFlare::calculateAboveGroundAltitude()
+{
+    auto nasState  = getModule<NASController>()->getNasState();
+    float altitude = -nasState.d;  // NED altitude, positive downwards so we
+                                   // negate it to get the altitude
 
-    if (map.isInsideMap(currentPositionNED[0], currentPositionNED[1]))
-        currentGroundAltitude =
-            map.getGroundAltitude(currentPositionNED[0], currentPositionNED[1]);
+    Eigen::Vector2f currentPositionNED = findCurrentPositionNED();
 
-    float aboveGroundAltitude =
-        altitude + ref.refAltitude - currentGroundAltitude;
+    float currentGroundAltitude = map.getClosestGroundAltitude(
+        currentPositionNED[0], currentPositionNED[1]);
 
-    lastGroundAltitude = currentGroundAltitude;
+    float aboveGroundAltitude = altitude - currentGroundAltitude;
 
     return aboveGroundAltitude;
 }
@@ -91,11 +87,9 @@ void LandingFlare::update()
     if (!running)
         return;
 
-    auto nasState = getModule<NASController>()->getNasState();
-    float altitude =
-        -nasState.d;  // Altitude is given by the negative down position
+    float AGLAltitude = calculateAboveGroundAltitude();
 
-    if (altitude < thresholdAltitude)
+    if (AGLAltitude < thresholdAltitude)
         confidence++;
     else
         confidence = 0;

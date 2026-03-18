@@ -65,17 +65,18 @@ private:
 
     /**
      * @brief Calculate the altitude above ground level (using the ground
-     * altitude variation) based on the current position.
+     * altitude variation) based on the current gps position.
      */
-    float calculateAGLAltitude();
+    float calculateAboveGroundAltitude();
+
+    /**
+     * @brief Find the current position in NED coordinates using gps.
+     */
+    Eigen::Vector2f findCurrentPositionNED();
 
     Eigen::Vector2f
-        targetGEO;  ///< Target position in NED coordinates, used to calculate
-                    ///< the local coordinates for the altitude map
-
-    float lastGroundAltitude =
-        0;  ///< Last calculated AGL altitude, used to return a valid altitude
-            ///< when the position is outside the map boundaries
+        targetGEO;  ///< Target position in gps GEO coordinates, used to
+                    ///< calculate the local coordinates for the altitude map
 };
 
 }  // namespace Parafoil
