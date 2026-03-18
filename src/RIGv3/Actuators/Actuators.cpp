@@ -39,17 +39,6 @@ using namespace RIGv3;
 
 const Actuators::TimePoint Actuators::noActionNeeded = TimePoint{};
 
-bool Actuators::ValveInfo::isServoOpen()
-{
-    if (valve->getType() == ValveType::SERVO)
-        return closeTs != noActionNeeded;
-    else
-        // if the valve is closed getPosition() is going to return 0. Otherwise,
-        // the function returns true.
-        // We also check for floating point inaccuracy
-        return valve->getPosition();
-}
-
 void Actuators::ValveInfo::backstep()
 {
     valve->backstep();
@@ -65,6 +54,7 @@ void Actuators::ValveInfo::openValve()
 
     resetAnimation();
 
+    isValveClosed = false;
     valve->setPosition(valve->currentPosition);
 
     const uint8_t openingEvent = valve->getOpeningEvent();
@@ -82,6 +72,7 @@ void Actuators::ValveInfo::closeValve()
 
     resetAnimation();
 
+    isValveClosed = true;
     valve->setPosition(valve->currentPosition);
 
     const uint8_t closingEvent = valve->getClosingEvent();
@@ -425,14 +416,14 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
     return true;
 }
 
-bool Actuators::isValveOpen(ServosList servo)
+bool Actuators::isValveClosed(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
     ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
 
-    return info->isServoOpen();
+    return info->isValveClosed;
 }
 
 uint32_t Actuators::getServoOpeningTime(ServosList servo)
@@ -467,7 +458,7 @@ Actuators::ValveState Actuators::getValveState(ServosList servo)
     if (info == nullptr)
         return {};
 
-    bool isOpen      = info->isServoOpen();
+    bool isOpen      = info->isValveClosed;
     auto timeToClose = 0ms;
 
     if (isOpen)
@@ -660,15 +651,15 @@ void Actuators::task()
             // Backstep the servo a little to avoid strain
             info.backstep();
         }
-        else if (info.closeTs != noActionNeeded && currentTime < info.closeTs)
+        else if (info.isValveClosed && currentTime <= info.closeTs)
         {
-            // Open the servo
+            // Open the servo only if it's not already open
             info.openValve();
             logValveMovement(idx, info.valve->currentPosition);
         }
-        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
+        else if (!info.isValveClosed && currentTime > info.closeTs)
         {
-            // Close the servo
+            // Close the servo only if it's not already closed
             info.closeValve();
             logValveMovement(idx, info.valve->currentPosition);
         }
@@ -689,19 +680,17 @@ void Actuators::task()
             logValveMovement(idx + valveInfos.size(),
                              info.valve->currentPosition);
         }
-        else if (info.closeTs != noActionNeeded && currentTime < info.closeTs)
+        else if (info.isValveClosed && currentTime <= info.closeTs)
         {
-            // Open the servo
+            // Open the servo only if it's not already open
             info.openValve();
-            logValveMovement(idx + valveInfos.size(),
-                             info.valve->currentPosition);
+            logValveMovement(idx, info.valve->currentPosition);
         }
-        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
+        else if (!info.isValveClosed && currentTime > info.closeTs)
         {
-            // Close the servo
+            // Close the servo only if it's not already closed
             info.closeValve();
-            logValveMovement(idx + valveInfos.size(),
-                             info.valve->currentPosition);
+            logValveMovement(idx, info.valve->currentPosition);
         }
     }
 
