@@ -60,6 +60,7 @@ void Actuators::ValveInfo::openValve()
 
     resetAnimation();
 
+    isValveClosed = false;
     valve->setPosition(valve->currentPosition);
 
     const uint8_t openingEvent = valve->getOpeningEvent();
@@ -77,6 +78,7 @@ void Actuators::ValveInfo::closeValve()
 
     resetAnimation();
 
+    isValveClosed = true;
     valve->setPosition(valve->currentPosition);
 
     const uint8_t closingEvent = valve->getClosingEvent();
@@ -430,7 +432,7 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
     return true;
 }
 
-bool Actuators::isValveOpen(ServosList servo)
+bool Actuators::isValveClosed(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
     ValveInfo* info = getValve(servo);
@@ -661,7 +663,7 @@ void Actuators::task()
             info.openValve();
             logValveMovement(idx, info.valve->currentPosition);
         }
-        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
+        else if (!info.isValveClosed && currentTime > info.closeTs)
         {
             // Close the valve only if it's not already closed
             info.closeValve();
@@ -691,7 +693,7 @@ void Actuators::task()
             logValveMovement(valveInfos.size() + idx,
                              info.valve->currentPosition);
         }
-        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
+        else if (!info.isValveClosed && currentTime > info.closeTs)
         {
             // Close the valve only if it's not already closed
             info.closeValve();
