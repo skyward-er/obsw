@@ -211,7 +211,8 @@ void NASController::update()
         getModule<StatsRecorder>()->updateNas(state);
         sdLogger.log(state);
     }
-    else{
+    else if(curState == NASControllerState::ACTIVE_DESCENT)
+    {
         Boardcore::ADAState ada = getModule<ADAController>()->getADAState(ADAController::ADANumber::ADA0);
         const float * covariance = getModule<ADAController>()->getQflattened();
         Sensors* sensors = getModule<Sensors>();
@@ -268,6 +269,7 @@ void NASController::update()
         //Get and log output
         NASDAQ0::ExtY_NASDAQ0_T nasdaqOutput = nasdaq.getExternalOutputs();
         NASDAQState nasdaqState; 
+        nasdaqState.timestamp = TimestampTimer::getTimestamp();
         nasdaqState.n = nasdaqOutput.Position[0];
         nasdaqState.e = nasdaqOutput.Position[1];
         nasdaqState.d = nasdaqOutput.Position[2];
@@ -402,9 +404,8 @@ void NASController::state_active_ascent(const Event& event)
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
             break;
         }
-        case ADA_APOGEE_DETECTED:
+        case FLIGHT_APOGEE_DETECTED:
         {
-            nasdaq.initialize();
             transition(&NASController::state_active_descent);
             break;
         }
@@ -424,6 +425,7 @@ void NASController::state_active_descent(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(NASControllerState::ACTIVE_DESCENT);
+            nasdaq.initialize();
             break;
         }
         case FLIGHT_LANDING_DETECTED:
