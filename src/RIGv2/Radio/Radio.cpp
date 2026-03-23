@@ -1178,10 +1178,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The N2 release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            EventBroker::getInstance().post(EREG_DISCHARGE, TOPIC_EREG_OX);
-            getModule<Actuators>()->toggleServo(ServosList::MAIN_OX_VALVE);
+
+            getModule<Actuators>()->toggleServo(ServosList::PRZ_RELEASE_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+            enqueueValveInfoTm(ServosList::PRZ_RELEASE_VALVE);
         }
 
         if (BUTTON_PRESSED(n2_detach_btn))  // fully open/close MAIN-FUEL
