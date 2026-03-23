@@ -201,6 +201,13 @@ int main()
         std::cerr << "*** Failed to start GMM ***" << std::endl;
     }
 
+    std::cout << "Starting TARS 1" << std::endl;
+    if (!tars1->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start TARS 1 ***" << std::endl;
+    }
+
     /*     std::cout << "Starting TARS 3" << std::endl;
         if (!tars3->start())
         {

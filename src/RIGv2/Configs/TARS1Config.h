@@ -47,9 +47,11 @@ constexpr auto WASHING_TIME_DELAY   = 1000ms;
 // Open the filling valve for a long time
 constexpr auto FILLING_OPENING_TIME = 600000ms;
 // Time to wait after opening the filling valve
-constexpr auto FILLING_STABILIZE_WAIT_TIME = 5000ms;
+constexpr auto FILLING_STABILIZE_WAIT_TIME = 90000ms;
 // Time to wait between pressure stabilization checks
 constexpr auto PRESSURE_STABILIZE_WAIT_TIME = 2000ms;
+
+constexpr int MAX_FILLING_VENTING_CICLES = 10;
 
 constexpr int NUM_MASS_STABLE_ITERATIONS = 2;
 

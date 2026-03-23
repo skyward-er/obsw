@@ -49,6 +49,8 @@ public:
 
     Tars1Action getLastAction() const { return lastAction; }
 
+    int getCycleCount() const { return cycleCount; }
+
 private:
     void sample();
 
@@ -91,6 +93,7 @@ private:
     std::atomic<Tars1Action> lastAction{Tars1Action::READY};
 
     std::chrono::milliseconds ventingTime{0};
+    std::chrono::milliseconds fillingTime{0};
 
     float previousMass = 0;
     float currentMass  = 0;
@@ -99,6 +102,8 @@ private:
     float currentPressure  = 0;
 
     int massStableCounter = 0;
+
+    int cycleCount = 0;
 
     int medianSamples = 0;
     MedianFilter<float, Config::TARS1::MEDIAN_SAMPLE_NUMBER> massFilter;

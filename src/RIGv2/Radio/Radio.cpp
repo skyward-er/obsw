@@ -766,7 +766,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Internal states
             tm.gmm_state    = getModule<GroundModeManager>()->getState();
             tm.tars1_state  = (uint8_t)getModule<TARS1>()->getLastAction();
-            tm.tars3_state  = (uint8_t)getModule<TARS3>()->getLastAction();
+            tm.tars3_state  = (uint8_t)getModule<TARS1>()->getCycleCount();
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
                               GroundModeManagerState::ARMED;
 
