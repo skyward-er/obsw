@@ -64,7 +64,8 @@ public:
 private:
     void update();
     void calibrate();
-
+    void initNasdaq();
+    
     // FSM states
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
@@ -95,6 +96,8 @@ private:
     uint64_t lastBaroTimestamp     = 0;
     uint64_t staticPitotTimestamp  = 0;
     uint64_t dynamicPitotTimestamp = 0;
+    int ADA_DIAG_COV_LEN = 9;
+    int NAS_COV_LEN = 36;
 };
 
 }  // namespace Main

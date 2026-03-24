@@ -218,19 +218,11 @@ void NASController::update()
         Sensors* sensors = getModule<Sensors>();
         auto gps          = sensors->getUBXGPSLastSample();
         auto baro         = sensors->getAtmosPressureLastSample();
-        
+
         // Fill ADA bus
         Bus_AdaState adaBusInput;
-        adaBusInput.covariance[0] = covariance[0];  
-        adaBusInput.covariance[1] = covariance[1];
-        adaBusInput.covariance[2] = covariance[2];
-        adaBusInput.covariance[3] = covariance[3];
-        adaBusInput.covariance[4] = covariance[4];
-        adaBusInput.covariance[5] = covariance[5];
-        adaBusInput.covariance[6] = covariance[6];
-        adaBusInput.covariance[7] = covariance[7];
-        adaBusInput.covariance[8] = covariance[8];
-        adaBusInput.verticalSpeedCovariance = 0; //To do What is 
+        for (int i = 0; i < ADA_DIAG_COV_LEN; i++) adaBusInput.covariance[i] = covariance[i];  
+        adaBusInput.verticalSpeedCovariance = getModule<ADAController>()->getVerticalSpeedCov();
         adaBusInput.mslAltitude = ada.mslAltitude;
         adaBusInput.aglAltitude = ada.aglAltitude;
         adaBusInput.verticalSpeed = ada.verticalSpeed;
@@ -252,7 +244,6 @@ void NASController::update()
         gpsBusInput.Measure[7] = gps.satellites;
         gpsBusInput.Measure[8] = gps.speed;
         gpsBusInput.Measure[9] = gps.track;
-        //Add the others
         gpsBusInput.Timestamp = gps.gpsTimestamp;
         
         //Fill baro bus
@@ -320,6 +311,34 @@ void NASController::calibrate()
     Lock<FastMutex> lock{nasMutex};
     nas.setX(init.getInitX());
     nas.setReferenceValues(ref);
+}
+
+void NASController::initNasdaq(){
+
+    //Get last NAS state
+    Lock<FastMutex> lock{nasMutex};
+    NASState nasState = nas.getState();
+
+    //Extract nasdaq config
+    NASDAQ0::P_NASDAQ0_T nasdaqConfig = nasdaq.getBlockParameters();
+
+    //Set initial state
+    nasdaqConfig.NASStateInterface_InitialCondit[0] = nasState.n;
+    nasdaqConfig.NASStateInterface_InitialCondit[1] = nasState.e;
+    nasdaqConfig.NASStateInterface_InitialCondit[2] = nasState.d;
+    nasdaqConfig.NASStateInterface_InitialCondit[3] = nasState.vn;
+    nasdaqConfig.NASStateInterface_InitialCondit[4] = nasState.ve;
+    nasdaqConfig.NASStateInterface_InitialCondit[5] = nasState.vd;
+
+    //Set nas covariance 
+    const float * nasCovariances = nas.getFlatqLin();
+    for(int i = 0; i < NAS_COV_LEN; i++) nasdaqConfig.NASVarianceInterface_InitialCon[i] = nasCovariances[i];
+    
+    //Set modified nasdaq config 
+    nasdaq.setBlockParameters(&nasdaqConfig);
+
+    //Call the autocoded initialization algorithm 
+    nasdaq.initialize();
 }
 
 void NASController::state_init(const Event& event)
@@ -425,7 +444,7 @@ void NASController::state_active_descent(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(NASControllerState::ACTIVE_DESCENT);
-            nasdaq.initialize();
+            initNasdaq();
             break;
         }
         case FLIGHT_LANDING_DETECTED:
