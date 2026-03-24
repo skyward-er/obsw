@@ -31,6 +31,7 @@
 
 namespace Parafoil
 {
+using namespace Boardcore::Units::Length;
 class BoardScheduler;
 class Sensors;
 class FlightStatsRecorder;
@@ -66,6 +67,8 @@ public:
     void setReferenceTemperature(float temperature);
     void setReferenceCoordinates(float latitude, float longitude);
 
+    Meter getAltitude();
+
 private:
     void calibrate();
 
@@ -99,6 +102,7 @@ private:
     uint64_t lastBaroTimestamp     = 0;
     uint64_t staticPitotTimestamp  = 0;
     uint64_t dynamicPitotTimestamp = 0;
+    std::list<Meter> altitudeSamples;
 
     std::atomic<bool> started{false};
 

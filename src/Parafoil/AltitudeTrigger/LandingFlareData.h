@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,43 +23,26 @@
 #pragma once
 
 #include <cstdint>
-#include <ostream>
+#include <iostream>
 #include <reflect.hpp>
 #include <string>
 
 namespace Parafoil
 {
 
-enum class NASControllerState : uint8_t
+struct LandingFlareData
 {
-    INIT = 0,
-    CALIBRATING,
-    READY,
-    ACTIVE,
-    END
-};
-
-struct NASControllerStatus
-{
-    uint64_t timestamp       = 0;
-    NASControllerState state = NASControllerState::INIT;
-
+    uint64_t timestamp        = 0;
+    bool flare_detected = 0;
+    float detection_altitude = 0;
+    float estimated_agl_u = 0;
+    float map_n = 0;
+    float map_e = 0;
+    float map_u = 0;
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(NASControllerStatus,
-                          FIELD_DEF(timestamp) FIELD_DEF(state));
-    }
-};
-
-struct AltitudeData
-{
-    uint64_t timestamp = 0;
-    float relAltitude  = 0;
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(AltitudeData,
-                          FIELD_DEF(timestamp) FIELD_DEF(relAltitude));
+        return STRUCT_DEF(LandingFlareData,
+                          FIELD_DEF(timestamp) FIELD_DEF(flare_detected) FIELD_DEF(detection_altitude) FIELD_DEF(estimated_agl_u) FIELD_DEF(map_n) FIELD_DEF(map_e) FIELD_DEF(map_u));
     }
 };
 

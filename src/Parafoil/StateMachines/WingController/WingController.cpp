@@ -45,6 +45,7 @@ using namespace Boardcore;
 using namespace Common;
 using namespace Parafoil::Config::Actuators;
 using namespace Parafoil::Config::Wing;
+namespace LandingFlareConfig = Parafoil::Config::Wing::LandingFlare;
 using namespace Boardcore::Units::Length;
 
 namespace Parafoil
@@ -59,6 +60,9 @@ WingController::WingController()
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
     EventBroker::getInstance().subscribe(this, TOPIC_ALT);
+
+    tinyPullThresholdsIt =
+        LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS.begin();
 
     // Instantiate the algorithms
     loadAlgorithms();
@@ -153,10 +157,10 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             //     DPL_CUT_TIMEOUT, TOPIC_DPL,
             //     milliseconds{Config::Wing::CUTTERS_TIMEOUT}.count());
 
-            auto nasState = getModule<NASController>()->getNasState();
-            auto altitude = -nasState.d;  // [m]
+            auto altitude = getModule<NASController>()->getAltitude();  // [m]
+
             getModule<FlightStatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), Meter{altitude});
+                TimestampTimer::getTimestamp(), altitude);
 
             if (Config::Wing::Deployment::PUMPS.size() >
                 0)  // If there is at least one pump specified
@@ -195,13 +199,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
             flareWing();
-
-            do
-            {
-                Thread::sleep(100);
-            } while (
-                getModule<Actuators>()->servoIsMoving(PARAFOIL_LEFT_SERVO) ||
-                getModule<Actuators>()->servoIsMoving(PARAFOIL_RIGHT_SERVO));
+            waitForServosToStop();
 
             dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
                 DPL_FLARE_STOP, TOPIC_DPL,
@@ -215,13 +213,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
             resetWing();
-
-            do
-            {
-                Thread::sleep(100);
-            } while (
-                getModule<Actuators>()->servoIsMoving(PARAFOIL_LEFT_SERVO) ||
-                getModule<Actuators>()->servoIsMoving(PARAFOIL_RIGHT_SERVO));
+            waitForServosToStop();
 
             if (++pumpCount >= Config::Wing::Deployment::PUMPS.size())
                 EventBroker::getInstance().postDelayed(
@@ -259,8 +251,21 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             startAlgorithm();
 
             // Enable the landing flare altitude trigger
-            if (Config::Wing::LandingFlare::ENABLED)
+            if (LandingFlareConfig::ENABLED)
+            {
+                Coordinates targetReading = targetPositionGEO.load();
+                getModule<LandingFlare>()->setTargetGEO(
+                    {targetReading.latitude, targetReading.longitude});
+                if (LandingFlareConfig::TinyPull::ENABLED)
+                {
+                    tinyPullThresholdsIt =
+                        LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS
+                            .begin();
+                    getModule<LandingFlare>()->setDeploymentAltitude(
+                        *tinyPullThresholdsIt);
+                }
                 getModule<LandingFlare>()->enable();
+            }
 
             return HANDLED;
         }
@@ -269,7 +274,7 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         {
             stopAlgorithm();
 
-            if (Config::Wing::LandingFlare::ENABLED)
+            if (LandingFlareConfig::ENABLED)
             {
                 EventBroker::getInstance().removeDelayed(
                     ctrlFlareTimeoutEventId);
@@ -287,17 +292,30 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
 
         case WING_ALGORITHM_ENDED:
         {
-            return transition(&WingController::OnGround);
+            pauseAlgorithm();
+            return HANDLED;
         }
 
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         {
             pauseAlgorithm();
-            flareWing();
 
-            ctrlFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
-                WING_LANDING_FLARE_STOP, TOPIC_FLIGHT,
-                milliseconds{Config::Wing::LandingFlare::DURATION}.count());
+            if (LandingFlareConfig::TinyPull::ENABLED)
+            {
+                tinyPull();
+                waitForServosToStop();
+                EventBroker::getInstance().post(WING_LANDING_FLARE_STOP,
+                                                TOPIC_FLIGHT);
+                return HANDLED;
+            }
+            else
+            {
+                flareWing();
+                ctrlFlareTimeoutEventId =
+                    EventBroker::getInstance().postDelayed(
+                        WING_LANDING_FLARE_STOP, TOPIC_FLIGHT,
+                        milliseconds{LandingFlareConfig::DURATION}.count());
+            }
 
             return HANDLED;
         }
@@ -305,7 +323,22 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         case WING_LANDING_FLARE_STOP:
         {
             resetWing();
-            resumeAlgorithm();
+            waitForServosToStop();
+            if (LandingFlareConfig::TinyPull::ENABLED)
+            {
+                tinyPullThresholdsIt++;
+                if (tinyPullThresholdsIt ==
+                    LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS.end())
+                {
+                    return HANDLED;
+                }
+
+                getModule<LandingFlare>()->disable();
+                getModule<LandingFlare>()->setDeploymentAltitude(
+                    *tinyPullThresholdsIt);
+                getModule<LandingFlare>()->enable();
+            }
+            // resumeAlgorithm();
 
             return HANDLED;
         }
@@ -387,9 +420,8 @@ bool WingController::start()
             if (!running)
                 return;
 
-            auto nasState  = getModule<NASController>()->getNasState();
-            float altitude = -nasState.d;
-            emGuidance.updateActiveTarget(Meter{altitude});
+            auto altitude = getModule<NASController>()->getAltitude();
+            emGuidance.updateActiveTarget(altitude);
         },
         Config::Wing::TARGET_UPDATE_RATE);
 
@@ -598,37 +630,23 @@ void WingController::loadAlgorithms()
                                                          PARAFOIL_RIGHT_SERVO);
         WingAlgorithmData step;
 
-        step.timestamp   = 0;
-        step.servo1Angle = LeftServo::ROTATION / 2;
-        step.servo2Angle = 0;
-        algorithm->addStep(step);
+        step.timestamp = 0;
+        for (auto& rightAngle : Rotation::ROTATION_RIGHT)
+        {
+            step.servo1Angle = 0;
+            step.servo2Angle = rightAngle.value();
+            algorithm->addStep(step);
+            step.timestamp += microseconds{Rotation::ROTATION_PERIOD}.count();
+        }
 
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = RightServo::ROTATION / 2;
-        algorithm->addStep(step);
+        for (auto& leftAngle : Rotation::ROTATION_LEFT)
+        {
+            step.servo1Angle = leftAngle.value();
+            step.servo2Angle = 0;
+            algorithm->addStep(step);
+            step.timestamp += microseconds{Rotation::ROTATION_PERIOD}.count();
+        }
 
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = LeftServo::ROTATION;
-        step.servo2Angle = RightServo::ROTATION;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = RightServo::ROTATION / 2;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        algorithm->addStep(step);
-
-        step.timestamp += microseconds{ROTATION_PERIOD}.count();
         step.servo1Angle = 0;
         step.servo2Angle = 0;
         algorithm->addStep(step);
@@ -649,13 +667,12 @@ void WingController::loadAlgorithms()
         {
             step.servo1Angle = angle.value();
             step.servo2Angle = -angle.value();
-            step.timestamp += microseconds{COMMAND_PERIOD}.count();
             algorithm->addStep(step);
+            step.timestamp += microseconds{COMMAND_PERIOD}.count();
         }
 
         step.servo1Angle = 0;
         step.servo2Angle = 0;
-        step.timestamp += microseconds{COMMAND_PERIOD}.count();
         algorithm->addStep(step);
 
         algorithms[static_cast<size_t>(AlgorithmId::PROGRESSIVE_ROTATION)] =
@@ -759,10 +776,18 @@ void WingController::update()
 
 void WingController::flareWing()
 {
+    getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO,
+                                          LandingFlareConfig::ANGLE_LEFT_SERVO);
     getModule<Actuators>()->setServoAngle(
-        PARAFOIL_LEFT_SERVO, Config::Wing::LandingFlare::ANGLE_LEFT_SERVO);
+        PARAFOIL_RIGHT_SERVO, LandingFlareConfig::ANGLE_RIGHT_SERVO);
+}
+
+void WingController::tinyPull()
+{
     getModule<Actuators>()->setServoAngle(
-        PARAFOIL_RIGHT_SERVO, Config::Wing::LandingFlare::ANGLE_RIGHT_SERVO);
+        PARAFOIL_LEFT_SERVO, LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO);
+    getModule<Actuators>()->setServoAngle(
+        PARAFOIL_RIGHT_SERVO, LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO);
 }
 
 void WingController::resetWing()
@@ -786,6 +811,20 @@ void WingController::setWingServoZero()
         Radian(getModule<Sensors>()->getAS5047D1LastSample().angle);
     servo2ZeroAngle =
         Radian(getModule<Sensors>()->getAS5047D2LastSample().angle);
+}
+
+inline bool WingController::servosAreMoving()
+{
+    return getModule<Actuators>()->servoIsMoving(PARAFOIL_LEFT_SERVO) ||
+           getModule<Actuators>()->servoIsMoving(PARAFOIL_RIGHT_SERVO);
+}
+
+inline void WingController::waitForServosToStop()
+{
+    do
+    {
+        Thread::sleep((1 / 50_hz).value());
+    } while (servosAreMoving());
 }
 
 }  // namespace Parafoil

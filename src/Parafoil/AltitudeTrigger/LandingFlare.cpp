@@ -66,18 +66,19 @@ Eigen::Vector2f LandingFlare::findCurrentPositionNED()
     return currentPositionNED;
 }
 
-float LandingFlare::calculateAboveGroundAltitude()
+float LandingFlare::calculateAboveGroundAltitude(LandingFlareData& data)
 {
-    auto nasState  = getModule<NASController>()->getNasState();
-    float altitude = -nasState.d;  // NED altitude, positive downwards so we
-                                   // negate it to get the altitude
-
+    auto altitude = getModule<NASController>()->getAltitude();
     Eigen::Vector2f currentPositionNED = findCurrentPositionNED();
 
     float currentGroundAltitude = map.getClosestGroundAltitude(
         currentPositionNED[0], currentPositionNED[1]);
 
-    float aboveGroundAltitude = altitude - currentGroundAltitude;
+    data.map_n = currentPositionNED[0];
+    data.map_e = currentPositionNED[1];
+    data.map_u = currentGroundAltitude;
+
+    float aboveGroundAltitude = altitude.value() - currentGroundAltitude;
 
     return aboveGroundAltitude;
 }
@@ -87,7 +88,18 @@ void LandingFlare::update()
     if (!running)
         return;
 
-    float AGLAltitude = calculateAboveGroundAltitude();
+    LandingFlareData data{
+        .timestamp          = TimestampTimer::getTimestamp(),
+        .flare_detected     = false,
+        .detection_altitude = 0,
+        .estimated_agl_u    = 0,
+        .map_n              = 0,
+        .map_e              = 0,
+        .map_u              = 0,
+    };
+
+    float AGLAltitude    = calculateAboveGroundAltitude(data);
+    data.estimated_agl_u = AGLAltitude;
 
     if (AGLAltitude < thresholdAltitude)
         confidence++;
@@ -96,11 +108,15 @@ void LandingFlare::update()
 
     if (confidence >= confidenceThreshold)
     {
-        confidence = 0;
+        data.flare_detected     = true;
+        data.detection_altitude = AGLAltitude;
+        confidence              = 0;
         EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
                                         TOPIC_ALT);
         running = false;
     }
+
+    Logger::getInstance().log(data);
 }
 
 }  // namespace Parafoil

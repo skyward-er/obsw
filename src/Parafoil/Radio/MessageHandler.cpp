@@ -551,7 +551,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.pressure_static  = pressStatic.pressure;
             tm.pressure_dynamic = pressDynamic.pressure;
             tm.airspeed_pitot   = airspeedPitot;
-            tm.altitude_agl     = -nasState.d;
+            tm.altitude_agl     = nas->getAltitude().value();
 
             // Sensors
             tm.acc_x   = imu.accelerationX;

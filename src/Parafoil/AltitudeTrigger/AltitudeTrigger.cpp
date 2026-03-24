@@ -85,10 +85,9 @@ void AltitudeTrigger::update()
         return;
 
     // NED frame, flip the D sign to get above-ground-level altitude
-    auto nasState  = getModule<NASController>()->getNasState();
-    float altitude = -nasState.d;
+    auto altitude = getModule<NASController>()->getAltitude();
 
-    if (altitude < thresholdAltitude)
+    if (altitude.value() < thresholdAltitude)
         confidence++;
     else
         confidence = 0;

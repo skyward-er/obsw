@@ -49,10 +49,12 @@ NASController::NASController()
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    altitudeSamples.clear();
 }
 
 bool NASController::start()
 {
+    altitudeSamples.clear();
     // Setup the NAS
     Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
     // Create the initial quaternion
@@ -207,6 +209,7 @@ void NASController::End(const Event& event)
 
 void NASController::calibrate()
 {
+    altitudeSamples.clear();
     Sensors* sensors = getModule<Sensors>();
 
     Vector3f accSum = Vector3f::Zero();
@@ -258,6 +261,7 @@ void NASController::calibrate()
 
     // Update the algorithm reference values
     nas.setX(init.getInitX());
+    nas.resetCovariance();
     nas.setReferenceValues(reference);
 }
 
@@ -352,8 +356,21 @@ void NASController::update()
     // dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
     dynamicPitotTimestamp = 0;
 
-    auto state = nas.getState();
+    auto altitudeSlm = Aeroutils::relAltitude(baro.pressure, ref.mslPressure,
+                                              ref.mslTemperature);
+    Meter altitude   = Meter(altitudeSlm) - Meter(ref.refAltitude);
 
+    altitudeSamples.push_back(altitude);
+    if (altitudeSamples.size() > 10)
+        altitudeSamples.erase(altitudeSamples.begin());
+
+    auto altitudeData =
+        AltitudeData{.timestamp   = TimestampTimer::getTimestamp(),
+                     .relAltitude = altitude.value()};
+
+    Logger::getInstance().log(altitudeData);
+
+    auto state = nas.getState();
     getModule<FlightStatsRecorder>()->updateNas(state, ref.refTemperature);
     Logger::getInstance().log(state);
 }
@@ -395,6 +412,17 @@ void NASController::setReferenceCoordinates(float latitude, float longitude)
     ref.refLatitude  = latitude;
     ref.refLongitude = longitude;
     nas.setReferenceValues(ref);
+}
+
+Meter NASController::getAltitude()
+{
+    miosix::Lock<miosix::FastMutex> l(nasMutex);
+    if (altitudeSamples.size() == 0)
+        return 0.0_m;
+    Meter sum = 0_m;
+    for (auto& sample : altitudeSamples)
+        sum += sample;
+    return sum / altitudeSamples.size();
 }
 
 }  // namespace Parafoil

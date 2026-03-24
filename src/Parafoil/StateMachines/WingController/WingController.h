@@ -219,6 +219,11 @@ private:
     void flareWing();
 
     /**
+     * @brief Pulls the two ropes a little bit
+     */
+    void tinyPull();
+
+    /**
      * @brief Reset the wing to the initial position.
      */
     void resetWing();
@@ -226,9 +231,19 @@ private:
     void updateState(WingControllerState newState);
 
     /**
-     * Sets the reference point for the two servos
+     * @brief Sets the reference point for the two servos
      */
     void setWingServoZero();
+
+    /**
+     * @brief Checks if either one of the servos are moving
+     */
+    inline bool servosAreMoving();
+
+    /**
+     * @brief waits for servos to stop
+     */
+    inline void waitForServosToStop();
 
     struct Coordinates
     {
@@ -265,6 +280,8 @@ private:
     ClosedLoopGuidanceAlgorithm clGuidance;
 
     uint16_t pumpCount = 0;
+
+    std::initializer_list<Meter>::const_iterator tinyPullThresholdsIt;
 
     uint16_t calibrationTimeoutEventId = 0;
     uint16_t cuttersOffEventId         = 0;

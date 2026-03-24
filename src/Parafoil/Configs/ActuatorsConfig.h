@@ -44,7 +44,6 @@ namespace Actuators
 
 namespace LeftServo
 {
-constexpr auto ROTATION                = 180.f;  // [deg]
 constexpr auto MIN_PULSE               = 500_us;
 constexpr auto MAX_PULSE               = 2440_us;
 constexpr auto HERTZ                   = 333_hz;
@@ -59,7 +58,6 @@ constexpr auto WIGGLE_ANGLE            = 720_deg;
 
 namespace RightServo
 {
-constexpr auto ROTATION                = 180.f;  // [deg]
 constexpr auto MIN_PULSE               = 500_us;
 constexpr auto MAX_PULSE               = 2440_us;
 constexpr auto HERTZ                   = 333_hz;

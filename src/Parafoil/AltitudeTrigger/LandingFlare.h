@@ -30,6 +30,7 @@
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include "AltitudeTrigger.h"
+#include "LandingFlareData.h"
 
 namespace Parafoil
 {
@@ -67,7 +68,7 @@ private:
      * @brief Calculate the altitude above ground level (using the ground
      * altitude variation) based on the current gps position.
      */
-    float calculateAboveGroundAltitude();
+    float calculateAboveGroundAltitude(LandingFlareData &data);
 
     /**
      * @brief Find the current position in NED coordinates using gps.

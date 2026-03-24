@@ -47,7 +47,7 @@ constexpr auto UPDATE_RATE                  = 10_hz;
 constexpr auto TARGET_UPDATE_RATE           = 10_hz;
 constexpr auto SERVO_UPDATE_RATE            = 50_hz;
 constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15s;
-constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 5s;
+constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 500ms;
 constexpr auto COMMAND_PERIOD               = 6s;
 constexpr auto WING_DECREMENT               = 90_deg;
 
@@ -180,18 +180,51 @@ constexpr auto ENABLED = false;
 constexpr auto ENABLED = true;
 #endif
 
-constexpr Meter ALTITUDE         = 15_m;  // [m]
-constexpr int CONFIDENCE         = 10;    // [samples]
-constexpr auto UPDATE_RATE       = 10_hz;
+#if defined(JESOLO)
+constexpr Meter ALTITUDE = 30_m;  // [m]
+#elif defined(MILANO)
+constexpr Meter ALTITUDE = 2.0_m;  // [m]
+#else
+constexpr Meter ALTITUDE = 30_m;  // [m]
+#endif
+constexpr int CONFIDENCE         = 10;  // [samples]
+constexpr auto UPDATE_RATE       = 50_hz;
 constexpr auto DURATION          = 5s;
 constexpr auto ANGLE_LEFT_SERVO  = 720_deg;
 constexpr auto ANGLE_RIGHT_SERVO = -720_deg;
+
+namespace TinyPull
+{
+#if defined(TINY_PULL)
+constexpr auto ENABLED = true;
+#else
+constexpr auto ENABLED = false;
+#endif
+constexpr auto ANGLE_LEFT_SERVO  = 90_deg;
+constexpr auto ANGLE_RIGHT_SERVO = -90_deg;
+#if defined(JESOLO)
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {30_m, 25_m, 20_m,
+                                                              15_m, 10_m, 5_m};
+#elif defined(MILANO)
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {8_m, 4_m};
+#else
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {30_m, 25_m, 20_m,
+                                                              15_m, 10_m, 5_m};
+#endif
+}  // namespace TinyPull
 
 constexpr auto ALTITUDE_MAP_ADDRESS = map_data_bin;
 
 }  // namespace LandingFlare
 
-constexpr auto ROTATION_PERIOD = 10s;  ///< Period of the rotation maneuver
+namespace Rotation
+{
+constexpr auto ROTATION_PERIOD = 8s;  ///< Period of the rotation maneuver
+constexpr std::initializer_list<Degree> ROTATION_LEFT = {
+    0.65 * 720_deg, 0.65 * 360_deg, 0.65 * 180_deg, 0_deg};
+constexpr std::initializer_list<Degree> ROTATION_RIGHT = {
+    0.65 * -720_deg, 0.65 * -360_deg, 0.65 * -180_deg, 0_deg};
+}  // namespace Rotation
 
 }  // namespace Wing
 
