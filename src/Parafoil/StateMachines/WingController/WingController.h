@@ -245,6 +245,8 @@ private:
      */
     inline void waitForServosToStop();
 
+    void setWingLimits();
+
     struct Coordinates
     {
         float latitude;

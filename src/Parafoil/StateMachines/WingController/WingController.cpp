@@ -60,6 +60,7 @@ WingController::WingController()
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
     EventBroker::getInstance().subscribe(this, TOPIC_ALT);
+    EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
 
     tinyPullThresholdsIt =
         LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS.begin();
@@ -89,6 +90,17 @@ State WingController::Idle(const Boardcore::Event& event)
             setWingServoZero();
             servosStarted = true;
             return transition(&WingController::Idle);
+        }
+
+        case TMTC_ENTER_TEST_MODE:
+        {
+            setWingLimits();
+            return HANDLED;
+        }
+
+        case TMTC_EXIT_TEST_MODE:
+        {
+            return HANDLED;
         }
 
         case FLIGHT_WING_DESCENT:
@@ -161,6 +173,8 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
             getModule<FlightStatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
+
+            setWingLimits();
 
             if (Config::Wing::Deployment::PUMPS.size() >
                 0)  // If there is at least one pump specified
@@ -300,8 +314,11 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
         {
             pauseAlgorithm();
 
+            resetWing();
+            waitForServosToStop();
             if (LandingFlareConfig::TinyPull::ENABLED)
             {
+                getModule<LandingFlare>()->disable();
                 tinyPull();
                 waitForServosToStop();
                 EventBroker::getInstance().post(WING_LANDING_FLARE_STOP,
@@ -333,7 +350,6 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
                     return HANDLED;
                 }
 
-                getModule<LandingFlare>()->disable();
                 getModule<LandingFlare>()->setDeploymentAltitude(
                     *tinyPullThresholdsIt);
                 getModule<LandingFlare>()->enable();
@@ -663,7 +679,8 @@ void WingController::loadAlgorithms()
 
         step.timestamp = microseconds{PROGRESSIVE_ROTATION_TIMEOUT}.count();
 
-        for (Degree angle = 720_deg; angle >= 0_deg; angle -= WING_DECREMENT)
+        for (Degree angle = INITIAL_ANGLE; angle >= 0_deg;
+             angle -= WING_DECREMENT)
         {
             step.servo1Angle = angle.value();
             step.servo2Angle = -angle.value();
@@ -823,8 +840,24 @@ inline void WingController::waitForServosToStop()
 {
     do
     {
-        Thread::sleep((1 / 50_hz).value());
+        Thread::sleep((1000 / 10_hz).value());
     } while (servosAreMoving());
+}
+
+void WingController::setWingLimits()
+{
+    getModule<Actuators>()->setServoMinAngle(PARAFOIL_LEFT_SERVO,
+                                             SERVO_LEFT_MIN_ANGLE);
+    getModule<Actuators>()->setServoMinAngle(PARAFOIL_RIGHT_SERVO,
+                                             SERVO_RIGHT_MIN_ANGLE);
+
+    getModule<Actuators>()->setServoMaxAngle(PARAFOIL_LEFT_SERVO,
+                                             SERVO_LEFT_MAX_ANGLE);
+    getModule<Actuators>()->setServoMaxAngle(PARAFOIL_RIGHT_SERVO,
+                                             SERVO_RIGHT_MAX_ANGLE);
+
+    resetWing();
+    waitForServosToStop();
 }
 
 }  // namespace Parafoil

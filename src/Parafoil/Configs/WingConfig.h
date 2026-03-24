@@ -43,13 +43,22 @@ namespace Wing
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Angle;
 
-constexpr auto UPDATE_RATE                  = 10_hz;
-constexpr auto TARGET_UPDATE_RATE           = 10_hz;
-constexpr auto SERVO_UPDATE_RATE            = 50_hz;
-constexpr auto STRAIGHT_FLIGHT_TIMEOUT      = 15s;
+constexpr auto UPDATE_RATE             = 10_hz;
+constexpr auto TARGET_UPDATE_RATE      = 10_hz;
+constexpr auto SERVO_UPDATE_RATE       = 50_hz;
+constexpr auto STRAIGHT_FLIGHT_TIMEOUT = 15s;
+
+// progressive rotation
 constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 500ms;
 constexpr auto COMMAND_PERIOD               = 6s;
 constexpr auto WING_DECREMENT               = 90_deg;
+constexpr auto INITIAL_ANGLE                = 720_deg;
+
+constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
+constexpr auto SERVO_LEFT_MAX_ANGLE = 1080_deg;
+
+constexpr auto SERVO_RIGHT_MAX_ANGLE = 0_deg;
+constexpr auto SERVO_RIGHT_MIN_ANGLE = -1080_deg;
 
 /**
  * @brief The available algorithms for the wing controller.
@@ -132,8 +141,8 @@ constexpr auto GAIN                 = 4.0f;
 constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 4;
 constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 4;
 constexpr auto KP                   = 0.9f * GAIN;
-constexpr auto KI                   = 0.05f * GAIN;
-// constexpr auto KI                   = 0.0f;
+constexpr auto KI                   = 0.0f;
+// constexpr auto KI                   = 0.05f * GAIN;
 }  // namespace PI
 
 namespace Guidance
@@ -183,19 +192,25 @@ constexpr auto ENABLED = true;
 #if defined(JESOLO)
 constexpr Meter ALTITUDE = 30_m;  // [m]
 #elif defined(MILANO)
-constexpr Meter ALTITUDE = 2.0_m;  // [m]
+constexpr Meter ALTITUDE = 5.0_m;  // [m]
 #else
 constexpr Meter ALTITUDE = 30_m;  // [m]
 #endif
 constexpr int CONFIDENCE         = 10;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
-constexpr auto DURATION          = 5s;
-constexpr auto ANGLE_LEFT_SERVO  = 720_deg;
-constexpr auto ANGLE_RIGHT_SERVO = -720_deg;
+constexpr auto DURATION          = 30s;
+constexpr auto ANGLE_LEFT_SERVO  = 1080_deg;
+constexpr auto ANGLE_RIGHT_SERVO = -1080_deg;
 
 namespace TinyPull
 {
+
 #if defined(TINY_PULL)
+#if !defined(MILANO) && !defined(JESOLO)
+#error \
+    "Tiny Pulls should be used only for testing and can be enabled only in MILANO and JESOLO"
+#endif
+
 constexpr auto ENABLED = true;
 #else
 constexpr auto ENABLED = false;
@@ -206,7 +221,7 @@ constexpr auto ANGLE_RIGHT_SERVO = -90_deg;
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {30_m, 25_m, 20_m,
                                                               15_m, 10_m, 5_m};
 #elif defined(MILANO)
-constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {8_m, 4_m};
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {5_m, 4_m, 3_m};
 #else
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {30_m, 25_m, 20_m,
                                                               15_m, 10_m, 5_m};
@@ -220,10 +235,10 @@ constexpr auto ALTITUDE_MAP_ADDRESS = map_data_bin;
 namespace Rotation
 {
 constexpr auto ROTATION_PERIOD = 8s;  ///< Period of the rotation maneuver
-constexpr std::initializer_list<Degree> ROTATION_LEFT = {
-    0.65 * 720_deg, 0.65 * 360_deg, 0.65 * 180_deg, 0_deg};
-constexpr std::initializer_list<Degree> ROTATION_RIGHT = {
-    0.65 * -720_deg, 0.65 * -360_deg, 0.65 * -180_deg, 0_deg};
+constexpr std::initializer_list<Degree> ROTATION_LEFT  = {720_deg, 360_deg,
+                                                          180_deg, 0_deg};
+constexpr std::initializer_list<Degree> ROTATION_RIGHT = {-720_deg, -360_deg,
+                                                          -180_deg, 0_deg};
 }  // namespace Rotation
 
 }  // namespace Wing

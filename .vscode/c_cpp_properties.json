@@ -417,7 +417,8 @@
                 "${defaultIncludePaths}",
                 "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/cortexM7_stm32f7/common",
                 "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_biscotto/config",
-                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_biscotto"
+                "${workspaceFolder}/skyward-boardcore/src/bsps/stm32f767zi_lyra_biscotto",
+                "${workspaceFolder}/build"
             ]
         },
         {

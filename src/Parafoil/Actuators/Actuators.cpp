@@ -184,7 +184,23 @@ bool Actuators::setServoAngle(ServosList servoId, Radian angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    actuator->servoTrigger->setTargetState(angle.value());
+    // actuator->servoTrigger->setTargetState(
+    //     (angle).value());
+
+    if (servoId == ServosList::PARAFOIL_LEFT_SERVO)
+    {
+        actuator->servoTrigger->setTargetState(
+            std::min(actuator->maxAngle.value(),
+                     std::max(angle.value() + actuator->minAngle.value(),
+                              actuator->minAngle.value())));
+    }
+    else if (servoId == ServosList::PARAFOIL_RIGHT_SERVO)
+    {
+        actuator->servoTrigger->setTargetState(
+            std::min(actuator->maxAngle.value(),
+                     std::max(angle.value() + actuator->maxAngle.value(),
+                              actuator->minAngle.value())));
+    }
 
     Logger::getInstance().log(actuator->servo->getState());
 
@@ -404,6 +420,30 @@ void Actuators::updateStatusLed()
             1000ms / static_cast<milliseconds::rep>(
                          Hertz{config::StatusLed::UPDATE_RATE}.value());
         statusLedCounter += period.count();
+    }
+}
+
+void Actuators::setServoMinAngle(ServosList servoId, Radian minAngle)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return;
+
+    {
+        miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+        actuator->minAngle = minAngle;
+    }
+}
+
+void Actuators::setServoMaxAngle(ServosList servoId, Radian maxAngle)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return;
+
+    {
+        miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+        actuator->maxAngle = maxAngle;
     }
 }
 

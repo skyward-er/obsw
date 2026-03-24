@@ -78,9 +78,21 @@ public:
          */
         Radian wiggleAngle;
 
+        /**
+         * minimum angle that the servo will reach
+         */
+        Radian minAngle;
+
+        /**
+         * maximum angle that the servo will reach
+         */
+        Radian maxAngle;
+
         miosix::FastMutex mutex;
 
-        ServoActuator() : wiggleAngle{0_rad} {}
+        ServoActuator() : wiggleAngle{0_rad}, minAngle{0_rad}, maxAngle{0_rad}
+        {
+        }
     };
 
     Actuators();
@@ -141,6 +153,9 @@ public:
      * @returns true if the servo is moving, false otherwise
      */
     bool servoIsMoving(ServosList servoId);
+
+    void setServoMinAngle(ServosList servoId, Radian minAngle);
+    void setServoMaxAngle(ServosList servoId, Radian maxAngle);
 
 private:
     ServoActuator* getServoActuator(ServosList servoId);

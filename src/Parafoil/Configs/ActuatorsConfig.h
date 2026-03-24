@@ -53,7 +53,7 @@ constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
 constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
 constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
 constexpr auto INITIAL_ANGLE           = 0.0_deg;
-constexpr auto WIGGLE_ANGLE            = 720_deg;
+constexpr auto WIGGLE_ANGLE            = 1080_deg;
 }  // namespace LeftServo
 
 namespace RightServo
@@ -67,7 +67,7 @@ constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
 constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
 constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
 constexpr auto INITIAL_ANGLE           = 0.0_deg;
-constexpr auto WIGGLE_ANGLE            = -720_deg;
+constexpr auto WIGGLE_ANGLE            = -1080_deg;
 }  // namespace RightServo
 
 constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
