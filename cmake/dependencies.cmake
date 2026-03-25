@@ -107,6 +107,11 @@ set(PAYLOAD_COMPUTER
     src/Payload/Wing/WingAlgorithm.cpp
 )
 
+set(PITOT_COMPUTER
+    src/Pitot/CanHandler/CanHandler.cpp
+    src/Pitot/Sensors/Sensors.cpp
+)
+
 set(GROUNDSTATION_ROVIE
     src/Groundstation/Rovie/Radio/Radio.cpp
     src/Groundstation/Rovie/Ports/Ethernet.cpp

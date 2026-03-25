@@ -76,7 +76,8 @@ enum class Board : uint8_t
     RIG,
     MAIN,
     PAYLOAD,
-    MOTOR
+    MOTOR,
+    PITOT
 };
 
 enum class SensorId : uint8_t
