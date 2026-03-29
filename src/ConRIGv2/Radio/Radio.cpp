@@ -23,7 +23,6 @@
 #include "Radio.h"
 
 #include <ConRIGv2/Configs/HubConfig.h>
-#include <common/MavlinkOrion.h>
 #include <common/Radio.h>
 #include <diagnostic/SkywardStack.h>
 #include <drivers/interrupt/external_interrupts.h>
@@ -183,36 +182,38 @@ void Radio::updateButtonState(const mavlink_conrig_state_tc_t& state)
     // that we don't lose any button pressess
     buttonState.ox_filling_btn |= state.ox_filling_btn;
     buttonState.ox_release_btn |= state.ox_release_btn;
-    buttonState.n2_filling_btn |= state.n2_filling_btn;
-    buttonState.n2_release_btn |= state.n2_release_btn;
-    buttonState.n2_detach_btn |= state.n2_detach_btn;
+    buttonState.prz_filling_btn |= state.prz_filling_btn;
+    buttonState.prz_release_btn |= state.prz_release_btn;
+    buttonState.prz_ox_btn |= state.prz_ox_btn;
+    buttonState.prz_fuel_btn |= state.prz_fuel_btn;
     buttonState.ox_venting_btn |= state.ox_venting_btn;
-    buttonState.nitrogen_btn |= state.nitrogen_btn;
-    buttonState.ox_detach_btn |= state.ox_detach_btn;
-    buttonState.n2_quenching_btn |= state.n2_quenching_btn;
+    buttonState.detach_btn |= state.detach_btn;
+    buttonState.spare_0_btn |= state.spare_0_btn;
+    buttonState.spare_1_btn |= state.spare_1_btn;
+    buttonState.spare_2_btn |= state.spare_2_btn;
+    buttonState.spare_3_btn |= state.spare_3_btn;
+    buttonState.spare_4_btn |= state.spare_4_btn;
+    buttonState.spare_5_btn |= state.spare_5_btn;
     buttonState.ignition_btn |= state.ignition_btn;
 
     // Don't merge lever states
-    buttonState.n2_3way_switch = state.n2_3way_switch;
-    buttonState.tars_switch    = state.tars_switch;
-    buttonState.arm_switch     = state.arm_switch;
-    buttonState.clacson_switch = state.clacson_switch;
+    buttonState.prz_3way_switch = state.prz_3way_switch;
+    buttonState.tars_switch     = state.tars_switch;
+    buttonState.arm_switch      = state.arm_switch;
 }
 
 void Radio::resetButtonState(const Lock<FastMutex>& /*lock*/)
 {
     // Save lever states
-    auto n2_3way_switch = buttonState.n2_3way_switch;
-    auto tars_switch    = buttonState.tars_switch;
-    auto arm_switch     = buttonState.arm_switch;
-    auto clacson_switch = buttonState.clacson_switch;
+    auto prz_3way_switch = buttonState.prz_3way_switch;
+    auto tars_switch     = buttonState.tars_switch;
+    auto arm_switch      = buttonState.arm_switch;
     // Reset button state
     buttonState = {};
     // Restore lever states
-    buttonState.n2_3way_switch = n2_3way_switch;
-    buttonState.tars_switch    = tars_switch;
-    buttonState.arm_switch     = arm_switch;
-    buttonState.clacson_switch = clacson_switch;
+    buttonState.prz_3way_switch = prz_3way_switch;
+    buttonState.tars_switch     = tars_switch;
+    buttonState.arm_switch      = arm_switch;
 }
 
 bool Radio::start()
