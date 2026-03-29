@@ -40,12 +40,12 @@ class Buses : public Boardcore::Injectable
 public:
     Buses() {}
 
-    Boardcore::SPIBus& getND015X() { return spi4; }
+    Boardcore::SPIBus& getND015X() { return spi1; }
 
     // Boardcore::USART& HILUart() { return usart4; }
 
 private:
-    Boardcore::SPIBus spi4{SPI4};
+    Boardcore::SPIBus spi1{SPI1};
 
     // Boardcore::USART usart4{UART4, 230400, 1024};
 };
