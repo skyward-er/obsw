@@ -45,18 +45,23 @@ void printStateDiff(const mavlink_conrig_state_tc_t& oldState,
                  << "(" << (int)state.btn << ")"
 
     std::cout << "Button state changed: \n"
-              << BUTTON(arm_switch) << "\n"
               << BUTTON(ox_filling_btn) << "\n"
               << BUTTON(ox_release_btn) << "\n"
-              << BUTTON(ox_detach_btn) << "\n"
+              << BUTTON(prz_filling_btn) << "\n"
+              << BUTTON(prz_release_btn) << "\n"
+              << BUTTON(prz_ox_btn) << "\n"
+              << BUTTON(prz_fuel_btn) << "\n"
               << BUTTON(ox_venting_btn) << "\n"
-              << BUTTON(n2_filling_btn) << "\n"
-              << BUTTON(n2_release_btn) << "\n"
-              << BUTTON(n2_detach_btn) << "\n"
-              << BUTTON(n2_quenching_btn) << "\n"
-              << BUTTON(n2_3way_switch) << "\n"
+              << BUTTON(detach_btn) << "\n"
+              << BUTTON(spare_0_btn) << "\n"
+              << BUTTON(spare_1_btn) << "\n"
+              << BUTTON(spare_2_btn) << "\n"
+              << BUTTON(spare_3_btn) << "\n"
+              << BUTTON(spare_4_btn) << "\n"
+              << BUTTON(spare_5_btn) << "\n"
+              << BUTTON(arm_switch) << "\n"
+              << BUTTON(prz_3way_switch) << "\n"
               << BUTTON(tars_switch) << "\n"
-              << BUTTON(nitrogen_btn) << "\n"
               << BUTTON(ignition_btn) << "\n";
 #undef BUTTON
 }
@@ -96,9 +101,9 @@ void Buttons::periodicStatusCheck()
     }
 
     // Handle switches (levers)
-    state.arm_switch     = btns::arm::value();
-    state.n2_3way_switch = btns::n2_3way::value();
-    state.clacson_switch = btns::clacson::value();
+    state.arm_switch      = btns::arm::value();
+    state.prz_3way_switch = btns::prz_3way::value();
+
     // The tars switch has 2 position that close the circuit on different pins
     // We still want to ensure only one can be active at any time via software
     // If for some reason both TARS pins are high, reuse the old state because
@@ -119,13 +124,18 @@ void Buttons::periodicStatusCheck()
 
     CHECK_BUTTON(btns::ox_filling::value(), ox_filling_btn);
     CHECK_BUTTON(btns::ox_release::value(), ox_release_btn);
-    CHECK_BUTTON(btns::ox_detach::value(), ox_detach_btn);
+    CHECK_BUTTON(btns::prz_filling::value(), prz_filling_btn);
+    CHECK_BUTTON(btns::prz_release::value(), prz_release_btn);
+    CHECK_BUTTON(btns::prz_ox::value(), prz_ox_btn);
+    CHECK_BUTTON(btns::prz_fuel::value(), prz_fuel_btn);
     CHECK_BUTTON(btns::ox_venting::value(), ox_venting_btn);
-    CHECK_BUTTON(btns::n2_filling::value(), n2_filling_btn);
-    CHECK_BUTTON(btns::n2_release::value(), n2_release_btn);
-    CHECK_BUTTON(btns::n2_detach::value(), n2_detach_btn);
-    CHECK_BUTTON(btns::n2_quenching::value(), n2_quenching_btn);
-    CHECK_BUTTON(btns::nitrogen::value(), nitrogen_btn);
+    CHECK_BUTTON(btns::detach::value(), detach_btn);
+    CHECK_BUTTON(!btns::spare_0::value(), spare_0_btn);
+    CHECK_BUTTON(btns::spare_1::value(), spare_1_btn);
+    CHECK_BUTTON(btns::spare_2::value(), spare_2_btn);
+    CHECK_BUTTON(!btns::spare_3::value(), spare_3_btn);
+    CHECK_BUTTON(!btns::spare_4::value(), spare_4_btn);
+    CHECK_BUTTON(!btns::spare_5::value(), spare_5_btn);
 
 #undef CHECK_BUTTON
 
