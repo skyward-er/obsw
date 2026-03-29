@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <radio/SerialTransceiver/SerialTransceiver.h>

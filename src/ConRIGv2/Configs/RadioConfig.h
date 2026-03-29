@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <units/Frequency.h>
 
 #include <chrono>

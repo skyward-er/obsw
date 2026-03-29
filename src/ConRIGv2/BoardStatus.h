@@ -24,7 +24,7 @@
 #include <ActiveObject.h>
 #include <ConRIGv2/Hub/Hub.h>
 #include <ConRIGv2/Radio/Radio.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
