@@ -68,7 +68,6 @@ bool Sensors::start()
     if (Config::Sensors::ADC_3::ENABLED)
     {
         adc3Init();
-        rocketWeightInit();
         mainOxPositionInit();
         mainFuelPositionInit();
         oxRegPositionInit();
@@ -184,11 +183,6 @@ ADS131M08Data Sensors::getADC3LastSample()
     return adc3 ? adc3->getLastSample() : ADS131M08Data{};
 }
 
-LoadCellData Sensors::getRocketWeight()
-{
-    return rocketWeight ? rocketWeight->getLastSample() : LoadCellData{};
-}
-
 ServoPositionData Sensors::getMainOxPosition()
 {
     return mainOxPosition ? mainOxPosition->getLastSample()
@@ -300,20 +294,17 @@ void Sensors::calibrate()
     applyShuntResistance(2, fuelTankPressure, FUEL_TANK_PT_CHANNEL);
     applyShuntResistance(2, igniterChamberPressure, IGNITER_CHAMBER_PT_CHANNEL);
     applyShuntResistance(2, mainChamberPressure, MAIN_CHAMBER_PT_CHANNEL);
-
-    calibrateEncoders();
 }
 
 void Sensors::calibrateLoadcells()
 {
-    Stats oxVesselStats, oxTankStats;
+    Stats oxVesselStats;
 
     for (unsigned int i = 0;
          i < Config::Sensors::LoadCell::CALIBRATE_SAMPLE_COUNT; i++)
     {
         // Tank readings WITHOUT offsets
         oxVesselStats.add(oxVesselWeight->getLastSample().load);
-        oxTankStats.add(oxTankWeight->getLastSample().load);
 
         Thread::sleep(
             milliseconds{Config::Sensors::LoadCell::CALIBRATE_SAMPLE_PERIOD}
@@ -321,7 +312,6 @@ void Sensors::calibrateLoadcells()
     }
 
     oxVesselWeight->updateOffset(oxVesselStats.getStats().mean);
-    oxTankWeight->updateOffset(oxTankStats.getStats().mean);
 }
 
 void Sensors::calibrateEncoders()
@@ -361,7 +351,6 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(igniterChamberPressure, "IgniterChamberPressure");
         PUSH_SENSOR_INFO(mainChamberPressure, "MainChamberPressure");
         PUSH_SENSOR_INFO(adc3, "ADS131M08_3");
-        PUSH_SENSOR_INFO(rocketWeight, "RocketWeight");
         PUSH_SENSOR_INFO(mainOxPosition, "MainOxPosition");
         PUSH_SENSOR_INFO(mainFuelPosition, "MainFuelPosition");
         PUSH_SENSOR_INFO(oxRegPosition, "OxRegPosition");
@@ -400,9 +389,9 @@ void Sensors::adc0Init()
 
     ADS131M08::Config config = {};
     // Setup global configurations
-    config.oversamplingRatio = Config::Sensors::ADS131M08_FAST::OSR;
+    config.oversamplingRatio = Config::Sensors::ADS131M08_SLOW::OSR;
     config.globalChopModeEnabled =
-        Config::Sensors::ADS131M08_FAST::GLOBAL_CHOP_MODE_EN;
+        Config::Sensors::ADS131M08_SLOW::GLOBAL_CHOP_MODE_EN;
 
     // Disable all channels
     for (auto& channel : config.channelsConfig)
@@ -428,7 +417,7 @@ void Sensors::adc0Init()
          .offset  = 0,
          .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC_0::OX_VESSEL_LC_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_0::OX_VESSEL_PT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
@@ -557,10 +546,8 @@ void Sensors::oxVesselWeightInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_0::OX_VESSEL_LC_CHANNEL);
         },
-        Config::Sensors::LoadCell::VESSEL_P0_VOLTAGE,
-        Config::Sensors::LoadCell::VESSEL_P0_MASS,
-        Config::Sensors::LoadCell::VESSEL_P1_VOLTAGE,
-        Config::Sensors::LoadCell::VESSEL_P1_MASS);
+        Config::Sensors::LoadCell::VESSEL_SCALE,
+        Config::Sensors::LoadCell::VESSEL_OFFSET);
 }
 
 void Sensors::oxVesselWeightCallback()
@@ -576,9 +563,9 @@ void Sensors::adc1Init()
 
     ADS131M08::Config config = {};
     // Setup global configurations
-    config.oversamplingRatio = Config::Sensors::ADS131M08_FAST::OSR;
+    config.oversamplingRatio = Config::Sensors::ADS131M08_SLOW::OSR;
     config.globalChopModeEnabled =
-        Config::Sensors::ADS131M08_FAST::GLOBAL_CHOP_MODE_EN;
+        Config::Sensors::ADS131M08_SLOW::GLOBAL_CHOP_MODE_EN;
 
     // Disable all channels
     for (auto& channel : config.channelsConfig)
@@ -603,9 +590,9 @@ void Sensors::adc2Init()
 
     ADS131M08::Config config = {};
     // Setup global configurations
-    config.oversamplingRatio = Config::Sensors::ADS131M08_SLOW::OSR;
+    config.oversamplingRatio = Config::Sensors::ADS131M08_FAST::OSR;
     config.globalChopModeEnabled =
-        Config::Sensors::ADS131M08_SLOW::GLOBAL_CHOP_MODE_EN;
+        Config::Sensors::ADS131M08_FAST::GLOBAL_CHOP_MODE_EN;
 
     // Disable all channels
     for (auto& channel : config.channelsConfig)
@@ -803,19 +790,13 @@ void Sensors::adc3Init()
 
     ADS131M08::Config config = {};
     // Setup global configurations
-    config.oversamplingRatio = Config::Sensors::ADS131M08_SLOW::OSR;
+    config.oversamplingRatio = Config::Sensors::ADS131M08_FAST::OSR;
     config.globalChopModeEnabled =
-        Config::Sensors::ADS131M08_SLOW::GLOBAL_CHOP_MODE_EN;
+        Config::Sensors::ADS131M08_FAST::GLOBAL_CHOP_MODE_EN;
 
     // Disable all channels
     for (auto& channel : config.channelsConfig)
         channel.enabled = false;
-
-    config.channelsConfig[(int)Config::Sensors::ADC_3::ROCKET_LC_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
-        .offset  = 0,
-        .gain    = 1.0};
 
     config.channelsConfig[(
         int)Config::Sensors::ADC_3::MAIN_OX_ENCODER_CHANNEL] = {
@@ -849,25 +830,6 @@ void Sensors::adc3Init()
                                        spiConfig, config);
 }
 void Sensors::adc3Callback() { sdLogger.log(ADC3Data{getADC3LastSample()}); }
-
-void Sensors::rocketWeightInit()
-{
-    rocketWeight = std::make_unique<TwoPointAnalogLoadCell>(
-        [this]()
-        {
-            auto sample = getADC3LastSample();
-            return sample.getVoltage(Config::Sensors::ADC_3::ROCKET_LC_CHANNEL);
-        },
-        Config::Sensors::LoadCell::VESSEL_P0_VOLTAGE,
-        Config::Sensors::LoadCell::VESSEL_P0_MASS,
-        Config::Sensors::LoadCell::VESSEL_P1_VOLTAGE,
-        Config::Sensors::LoadCell::VESSEL_P1_MASS);
-}
-
-void Sensors::rocketWeightCallback()
-{
-    sdLogger.log(RocketWeightData{getRocketWeight()});
-}
 
 void Sensors::mainOxPositionInit()
 {
@@ -961,7 +923,7 @@ bool Sensors::sensorManagerInit()
 
     if (adc0)
     {
-        SensorInfo info("ADC0", Config::Sensors::ADS131M08_FAST::PERIOD,
+        SensorInfo info("ADC0", Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { adc0Callback(); });
         map.emplace(std::make_pair(adc0.get(), info));
     }
@@ -969,7 +931,7 @@ bool Sensors::sensorManagerInit()
     if (przVessel1Pressure)
     {
         SensorInfo info("PrzVessel1Pressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { przVessel1PressureCallback(); });
         map.emplace(std::make_pair(przVessel1Pressure.get(), info));
     }
@@ -977,7 +939,7 @@ bool Sensors::sensorManagerInit()
     if (przVessel2Pressure)
     {
         SensorInfo info("PrzVessel2Pressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { przVessel2PressureCallback(); });
         map.emplace(std::make_pair(przVessel2Pressure.get(), info));
     }
@@ -985,7 +947,7 @@ bool Sensors::sensorManagerInit()
     if (przFillingPressure)
     {
         SensorInfo info("PrzFillingPressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { przFillingPressureCallback(); });
         map.emplace(std::make_pair(przFillingPressure.get(), info));
     }
@@ -993,7 +955,7 @@ bool Sensors::sensorManagerInit()
     if (oxVesselPressure)
     {
         SensorInfo info("OxVesselPressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { oxVesselPressureCallback(); });
         map.emplace(std::make_pair(oxVesselPressure.get(), info));
     }
@@ -1001,7 +963,7 @@ bool Sensors::sensorManagerInit()
     if (oxFillingPressure)
     {
         SensorInfo info("OxFillingPressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { oxFillingPressureCallback(); });
         map.emplace(std::make_pair(oxFillingPressure.get(), info));
     }
@@ -1009,14 +971,14 @@ bool Sensors::sensorManagerInit()
     if (oxVesselWeight)
     {
         SensorInfo info("OxVesselWeight",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { oxVesselWeightCallback(); });
         map.emplace(std::make_pair(oxVesselWeight.get(), info));
     }
 
     if (adc1)
     {
-        SensorInfo info("ADC1", Config::Sensors::ADS131M08_FAST::PERIOD,
+        SensorInfo info("ADC1", Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { adc1Callback(); });
         map.emplace(std::make_pair(adc1.get(), info));
     }
@@ -1089,13 +1051,6 @@ bool Sensors::sensorManagerInit()
         SensorInfo info("ADC3", Config::Sensors::ADS131M08_FAST::PERIOD,
                         [this]() { adc3Callback(); });
         map.emplace(std::make_pair(adc3.get(), info));
-    }
-
-    if (rocketWeight)
-    {
-        SensorInfo info("RocketWeight", Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { rocketWeightCallback(); });
-        map.emplace(std::make_pair(rocketWeight.get(), info));
     }
 
     if (mainOxPosition)
