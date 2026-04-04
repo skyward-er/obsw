@@ -1190,13 +1190,13 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
         }
 
-        if (BUTTON_PRESSED(ox_venting_btn))
+        if (BUTTON_PRESSED(prz_release_btn))
         {
-            // The OX venting switch was pressed
+            // The PRZ release switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::OX_VENTING_VALVE);
+            getModule<Actuators>()->toggleValve(ServosList::PRZ_RELEASE_VALVE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::OX_VENTING_VALVE);
+            enqueueValveInfoTm(ServosList::PRZ_RELEASE_VALVE);
         }
 
         if (BUTTON_PRESSED(detach_btn))

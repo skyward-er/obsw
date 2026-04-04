@@ -281,7 +281,6 @@ int main()
                   << statusStr << std::endl;
     }
 
-    float position;
     // Periodic statistics
     while (true)
     {
