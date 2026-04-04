@@ -35,16 +35,16 @@
 namespace RIGv3
 {
 
-class ERegControllerFuel
-    : public Boardcore::FSM<ERegControllerFuel>,
+class EregControllerFuel
+    : public Boardcore::FSM<EregControllerFuel>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors>
 {
 public:
-    ERegControllerFuel();
+    EregControllerFuel();
 
     [[nodiscard]] bool start() override;
 
-    ERegState getState();
+    EregState getState();
 
     void changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
                          Boardcore::EregPIDConfig newDischargeConfig);
@@ -61,32 +61,33 @@ private:
     void state_closed(const Boardcore::Event& event);
     void state_pressurizing(const Boardcore::Event& event);
     void state_pilot_flame(const Boardcore::Event& event);
-    void state_rampup(const Boardcore::Event& event);
+    void state_firing(const Boardcore::Event& event);
 
-    void updateAndLogStatus(ERegState state);
+    void updateAndLogStatus(EregState state);
 
-    std::atomic<ERegState> state{ERegState::INIT};
+    std::atomic<EregState> state{EregState::INIT};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("ereg");
 
     Boardcore::Ereg regulator;
-    MeanFilter<float, Config::ERegFuel::FILTER_SAMPLES>
+    Common::MeanFilter<float, Config::EregFuel::FILTER_SAMPLES>
         downstreamPressureFilter;
-    MeanFilter<float, Config::ERegFuel::FILTER_SAMPLES> upstreamPressureFilter;
+    Common::MeanFilter<float, Config::EregFuel::FILTER_SAMPLES>
+        upstreamPressureFilter;
 
     float lastDownstreamInput = 0.0f;  // Last sample used by ereg algorithm
     float lastUpstreamInput   = 0.0f;  // Last sample used by ereg algorithm
 
     Boardcore::EregPIDConfig pressurizationConfig =
-        Config::ERegFuel::STABILIZING_CONFIG;
+        Config::EregFuel::STABILIZING_CONFIG;
     Boardcore::EregPIDConfig dischargeConfig =
-        Config::ERegFuel::DISCHARGING_CONFIG;
+        Config::EregFuel::DISCHARGING_CONFIG;
 
-    float targetPressure = Config::ERegFuel::TARGET_PRESSURE;
+    float targetPressure = Config::EregFuel::TARGET_PRESSURE;
 
-    float pilotFlameIntegral = Config::ERegFuel::PILOT_FLAME_INTEGRAL;
-    float rampupIntegral     = Config::ERegFuel::RAMPUP_INTEGRAL;
+    float pilotFlameIntegral = Config::EregFuel::PILOT_FLAME_INTEGRAL;
+    float rampupIntegral     = Config::EregFuel::RAMPUP_INTEGRAL;
 };
 
 }  // namespace RIGv3

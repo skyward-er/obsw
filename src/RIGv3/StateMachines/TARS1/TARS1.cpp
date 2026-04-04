@@ -70,8 +70,9 @@ void TARS1::sample()
 {
     Sensors* sensors = getModule<Sensors>();
 
-    /* pressureFilter.add(sensors->getOxTankBottomPressureDirectOrCan().pressure);
-    massFilter.add(sensors->getOxTankWeight().load); */
+    // TODO: udpdate this once there is a way to get the pressure via canBus
+    pressureFilter.add(sensors->getOxTankPressure().pressure);
+    // massFilter.add(sensors->getOxTankWeight().load);
     medianSamples++;
 
     if (medianSamples == Config::TARS1::MEDIAN_SAMPLE_NUMBER)

@@ -37,24 +37,25 @@ using namespace RIGv3;
 using namespace miosix;
 using namespace Common;
 
-ERegControllerOx::ERegControllerOx()
-    : FSM{&ERegControllerOx::state_init, STACK_DEFAULT_FOR_PTHREAD,
+EregControllerOx::EregControllerOx()
+    : FSM{&EregControllerOx::state_init, STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::eregControllerPriority()},
       regulator{
-          Config::ERegOx::STABILIZING_CONFIG,
-          Config::ERegOx::VALVE_INFO,
-          Config::ERegOx::TARGET_PRESSURE,
+          Config::EregOx::STABILIZING_CONFIG,
+          Config::EregOx::VALVE_INFO,
+          Config::EregOx::TARGET_PRESSURE,
       }
 {
+    EventBroker::getInstance().subscribe(this, TOPIC_FIRING_SEQUENCE);
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_OX);
 }
 
-bool ERegControllerOx::start()
+bool EregControllerOx::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->eregOx();
 
     uint8_t result =
-        scheduler.addTask([this]() { update(); }, Config::ERegOx::UPDATE_RATE);
+        scheduler.addTask([this]() { update(); }, Config::EregOx::UPDATE_RATE);
 
     if (result == 0)
     {
@@ -64,14 +65,14 @@ bool ERegControllerOx::start()
 
     if (!FSM::start())
     {
-        LOG_ERR(logger, "Failed to start ERegControllerOx FSM");
+        LOG_ERR(logger, "Failed to start EregControllerOx FSM");
         return false;
     }
 
     return true;
 }
 
-void ERegControllerOx::update()
+void EregControllerOx::update()
 {
     EregOxData logData;
 
@@ -88,20 +89,22 @@ void ERegControllerOx::update()
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
     if (logData.filteredDownstreamPressure >
-        Config::ERegOx::TARGET_PRESSURE * 1.2)
+        Config::EregOx::TARGET_PRESSURE * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
-        getModule<Actuators>()->closeValve(Config::ERegOx::EREG_SERVO);
-        getModule<Actuators>()->openValveWithTime(OX_VENTING_VALVE, 5000);
+        // TODO: put venting valve in the config
+        getModule<Actuators>()->closeValve(Config::EregOx::EREG_SERVO);
+        getModule<Actuators>()->openValveWithTime(ServosList::OX_VENTING_VALVE,
+                                                  5000);
         return;
     }
 
-    if (state == ERegState::PRESSURIZING &&
+    if (state == EregState::PRESSURIZING &&
         (abs(logData.filteredDownstreamPressure - lastDownstreamInput) >
-             Config::ERegOx::PRESSURE_THRESHOLD ||
+             Config::EregOx::PRESSURE_THRESHOLD ||
          abs(logData.filteredUpstreamPressure - lastUpstreamInput) >
-             Config::ERegOx::PRESSURE_THRESHOLD))
+             Config::EregOx::PRESSURE_THRESHOLD))
     {
         lastDownstreamInput = logData.filteredDownstreamPressure;
         lastUpstreamInput   = logData.filteredUpstreamPressure;
@@ -111,13 +114,13 @@ void ERegControllerOx::update()
         regulator.update();
 
         logData.servoPosition = regulator.getOutput();
-        getModule<Actuators>()->moveValve(Config::ERegOx::EREG_SERVO,
+        getModule<Actuators>()->moveValve(Config::EregOx::EREG_SERVO,
                                           logData.servoPosition);
         sdLogger.log(logData);
         return;
     }
 
-    if (state == ERegState::RAMPUP || state == ERegState::PILOTFLAME)
+    if (state == EregState::PILOTFLAME || state == EregState::FIRING)
     {
         regulator.setInput(logData.filteredDownstreamPressure,
                            logData.filteredUpstreamPressure);
@@ -125,64 +128,64 @@ void ERegControllerOx::update()
         regulator.update();
 
         logData.servoPosition = regulator.getOutput();
-        getModule<Actuators>()->moveValve(Config::ERegOx::EREG_SERVO,
+        getModule<Actuators>()->moveValve(Config::EregOx::EREG_SERVO,
                                           logData.servoPosition);
         sdLogger.log(logData);
         return;
     }
 }
 
-ERegState ERegControllerOx::getState() { return state; }
+EregState EregControllerOx::getState() { return state; }
 
-void ERegControllerOx::state_init(const Event& event)
+void EregControllerOx::state_init(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::INIT);
+            updateAndLogStatus(EregState::INIT);
 
             regulator.init();
 
-            // Immediately transition to ready
-            transition(&ERegControllerOx::state_closed);
+            // Immediately transition to closed state
+            transition(&EregControllerOx::state_closed);
             break;
         }
     }
 }
 
-void ERegControllerOx::state_closed(const Event& event)
+void EregControllerOx::state_closed(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::CLOSED);
+            updateAndLogStatus(EregState::CLOSED);
 
             regulator.end();
-            getModule<Actuators>()->closeValve(Config::ERegOx::EREG_SERVO);
+            getModule<Actuators>()->closeValve(Config::EregOx::EREG_SERVO);
             break;
         }
 
         case EREG_TOGGLE:
         case EREG_PRESSURIZE:
         {
-            transition(&ERegControllerOx::state_pressurizing);
+            transition(&EregControllerOx::state_pressurizing);
             break;
         }
     }
 }
 
-void ERegControllerOx::state_pressurizing(const Event& event)
+void EregControllerOx::state_pressurizing(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::PRESSURIZING);
+            updateAndLogStatus(EregState::PRESSURIZING);
 
-            regulator.changePIDConfig(pressurizationConfig);
             regulator.setReferencePoint(targetPressure);
+            regulator.changePIDConfig(pressurizationConfig);
             lastDownstreamInput = -1.0f;
             lastUpstreamInput   = -1.0f;
             regulator.begin();
@@ -191,55 +194,57 @@ void ERegControllerOx::state_pressurizing(const Event& event)
 
         case EREG_TOGGLE:
         case EREG_CLOSE:
+        case FIRING_SEQUENCE_ABORT:
         {
-            transition(&ERegControllerOx::state_closed);
+            transition(&EregControllerOx::state_closed);
             break;
         }
 
-        case EREG_DISCHARGE:
+        case FIRING_SEQUENCE_IGNITER_OK:
         {
-            transition(&ERegControllerOx::state_pilot_flame);
+            transition(&EregControllerOx::state_pilot_flame);
             break;
         }
     }
 }
 
-void ERegControllerOx::state_pilot_flame(const Event& event)
+void EregControllerOx::state_pilot_flame(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::PILOTFLAME);
+            updateAndLogStatus(EregState::PILOTFLAME);
 
-            regulator.changePIDConfig(dischargeConfig);
             regulator.setReferencePoint(targetPressure);
+            regulator.changePIDConfig(dischargeConfig);
             regulator.setIntegralContribution(pilotFlameIntegral);
             break;
         }
 
-        case EREG_RAMPUP:
+        case FIRING_SEQUENCE_PILOT_FLAME_OK:
         {
-            transition(&ERegControllerOx::state_rampup);
+            transition(&EregControllerOx::state_firing);
             break;
         }
 
         case EREG_TOGGLE:
         case EREG_CLOSE:
+        case FIRING_SEQUENCE_ABORT:
         {
-            transition(&ERegControllerOx::state_closed);
+            transition(&EregControllerOx::state_closed);
             break;
         }
     }
 }
 
-void ERegControllerOx::state_rampup(const Event& event)
+void EregControllerOx::state_firing(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ERegState::RAMPUP);
+            updateAndLogStatus(EregState::FIRING);
 
             regulator.changePIDConfig(dischargeConfig);
             regulator.setIntegralContribution(rampupIntegral);
@@ -248,14 +253,15 @@ void ERegControllerOx::state_rampup(const Event& event)
 
         case EREG_TOGGLE:
         case EREG_CLOSE:
+        case FIRING_SEQUENCE_ABORT:
         {
-            transition(&ERegControllerOx::state_closed);
+            transition(&EregControllerOx::state_closed);
             break;
         }
     }
 }
 
-void ERegControllerOx::changePIDConfig(EregPIDConfig newPressurizationConfig,
+void EregControllerOx::changePIDConfig(EregPIDConfig newPressurizationConfig,
                                        EregPIDConfig newDischargeConfig)
 {
     this->pressurizationConfig.KP = newPressurizationConfig.KP;
@@ -267,19 +273,19 @@ void ERegControllerOx::changePIDConfig(EregPIDConfig newPressurizationConfig,
     this->dischargeConfig.KD = newDischargeConfig.KD;
 }
 
-void ERegControllerOx::changeTargetPressure(float newTargetPressure)
+void EregControllerOx::changeTargetPressure(float newTargetPressure)
 {
     this->targetPressure = newTargetPressure;
 }
 
-void ERegControllerOx::setIntegralContribution(float newPilotFlameIntegral,
+void EregControllerOx::setIntegralContribution(float newPilotFlameIntegral,
                                                float newRampupIntegral)
 {
     this->pilotFlameIntegral = newPilotFlameIntegral;
     this->rampupIntegral     = newRampupIntegral;
 }
 
-void ERegControllerOx::updateAndLogStatus(ERegState state)
+void EregControllerOx::updateAndLogStatus(EregState state)
 {
     this->state = state;
     // printf("changing to state: %s\n", to_string(state).c_str());

@@ -53,9 +53,13 @@ public:
         };
     };
 
+    Boardcore::TaskScheduler& actuators() { return critical; }
+    Boardcore::TaskScheduler& firingSequenceHSM() { return high; }
+    Boardcore::TaskScheduler& eregOx() { return high; }
+    Boardcore::TaskScheduler& eregFuel() { return high; }
+    Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& tars1() { return high; }
     Boardcore::TaskScheduler& tars3() { return high; }
-    Boardcore::TaskScheduler& sensors() { return high; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
 
     static Priority::PriorityLevel actuatorsPriority()
@@ -63,19 +67,29 @@ public:
         return Priority::CRITICAL;  // Max priority for valve control
     }
 
+    static Priority::PriorityLevel firingSequenceHSMPriority()
+    {
+        return Priority::HIGH;
+    }
+
     static Priority::PriorityLevel groundModeManagerPriority()
     {
-        return Priority::CRITICAL;
+        return Priority::HIGH;
+    }
+
+    static Priority::PriorityLevel eregControllerPriority()
+    {
+        return Priority::HIGH;
     }
 
     static Priority::PriorityLevel tars1Priority()
     {
-        return Priority::CRITICAL;  // TARS1 FSM priority
+        return Priority::HIGH;  // TARS1 FSM priority
     }
 
     static Priority::PriorityLevel tars3Priority()
     {
-        return Priority::CRITICAL;  // TARS3 FSM priority
+        return Priority::HIGH;  // TARS3 FSM priority
     }
 
     static Priority::PriorityLevel canHandlerPriority()

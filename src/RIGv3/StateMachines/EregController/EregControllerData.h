@@ -32,30 +32,30 @@
 namespace RIGv3
 {
 
-enum class ERegState : uint8_t
+enum class EregState : uint8_t
 {
     INIT = 0,
     CLOSED,
     PRESSURIZING,
     PILOTFLAME,
-    RAMPUP,
+    FIRING,
     INVALID,
 };
 
-inline std::string to_string(ERegState state)
+inline std::string to_string(EregState state)
 {
     switch (state)
     {
-        case ERegState::INIT:
+        case EregState::INIT:
             return "INIT";
-        case ERegState::CLOSED:
+        case EregState::CLOSED:
             return "CLOSED";
-        case ERegState::PRESSURIZING:
+        case EregState::PRESSURIZING:
             return "PRESSURIZING";
-        case ERegState::PILOTFLAME:
+        case EregState::PILOTFLAME:
             return "PILOTFLAME";
-        case ERegState::RAMPUP:
-            return "RAMPUP";
+        case EregState::FIRING:
+            return "FIRING";
         default:
             return "UNKNOWN";
     }
@@ -64,11 +64,11 @@ inline std::string to_string(ERegState state)
 struct ERegStateData
 {
     uint64_t timestamp;
-    ERegState state;
+    EregState state;
 
-    ERegStateData() : timestamp{0}, state{ERegState::INIT} {}
+    ERegStateData() : timestamp{0}, state{EregState::INIT} {}
 
-    ERegStateData(uint64_t timestamp, ERegState state)
+    ERegStateData(uint64_t timestamp, EregState state)
         : timestamp{timestamp}, state{state}
     {
     }

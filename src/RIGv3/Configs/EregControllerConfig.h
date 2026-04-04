@@ -31,7 +31,7 @@ namespace RIGv3
 {
 namespace Config
 {
-namespace ERegFuel
+namespace EregFuel
 {
 
 using namespace Boardcore::Units::Frequency;
@@ -78,9 +78,9 @@ const static Boardcore::EregValveInfo VALVE_INFO = {
                        11.8442e-3f},
 };
 
-}  // namespace ERegFuel
+}  // namespace EregFuel
 
-namespace ERegOx
+namespace EregOx
 {
 
 using namespace Boardcore::Units::Frequency;
@@ -126,7 +126,7 @@ const static Boardcore::EregValveInfo VALVE_INFO = {
                        16.5135e-3f, 2.7180e-3f},
 };
 
-}  // namespace ERegOx
+}  // namespace EregOx
 }  // namespace Config
 }  // namespace RIGv3
 
