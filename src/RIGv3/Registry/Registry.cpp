@@ -33,8 +33,18 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
 {
     switch (id)
     {
-        case CONFIG_ID_IGNITION_TIME:
-            return "IGNITION_TIME";
+        case CONFIG_ID_FULL_THROTTLE_TIME:
+            return "FULL_THROTTLE_TIME";
+        case CONFIG_ID_LOW_THROTTLE_TIME:
+            return "LOW_THROTTLE_TIME";
+        case CONFIG_ID_PILOT_FLAME_OX_POSITION:
+            return "PILOT_FLAME_OX_POSITION";
+        case CONFIG_ID_PILOT_FLAME_FUEL_POSITION:
+            return "PILOT_FLAME_FUEL_POSITION";
+        case CONFIG_ID_LOW_THROTTLE_OX_POSITION:
+            return "LOW_THROTTLE_OX_POSITION";
+        case CONFIG_ID_LOW_THROTTLE_FUEL_POSITION:
+            return "LOW_THROTTLE_FUEL_POSITION";
         case CONFIG_ID_DEFAULT_OPENING_TIME:
             return "DEFAULT_OPENING_TIME";
         case CONFIG_ID_DEFAULT_MAX_APERTURE:
@@ -87,8 +97,10 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
             return "MAIN_FUEL_OPENING_TIME";
         case CONFIG_ID_MAIN_FUEL_MAX_APERTURE:
             return "MAIN_FUEL_MAX_APERTURE";
-        case CONFIG_ID_COOLING_DELAY:
-            return "COOLING_DELAY";
+        case CONFIG_ID_PURGE_OPENING_TIME:
+            return "PURGE_OPENING_TIME";
+        case CONFIG_ID_PURGE_MAX_APERTURE:
+            return "PURGE_MAX_APERTURE";
         case CONFIG_ID_TARS3_MASS_TARGET:
             return "TARS3_MASS_TARGET";
         case CONFIG_ID_TARS3_PRESSURE_TARGET:

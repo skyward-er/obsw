@@ -64,9 +64,6 @@ private:
     Boardcore::State state_disarmed(const Boardcore::Event& event);
     Boardcore::State state_armed(const Boardcore::Event& event);
     Boardcore::State state_firing(const Boardcore::Event& event);
-    Boardcore::State state_igniting(const Boardcore::Event& event);
-    Boardcore::State state_oxidizer(const Boardcore::Event& event);
-    Boardcore::State state_cooling(const Boardcore::Event& event);
 
     void updateAndLogStatus(GroundModeManagerState state);
 
@@ -74,8 +71,6 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("gmm");
 
     std::atomic<GroundModeManagerState> state{GroundModeManagerState::IDLE};
-
-    uint16_t openOxidantDelayEventId = -1;
 };
 
 }  // namespace RIGv3

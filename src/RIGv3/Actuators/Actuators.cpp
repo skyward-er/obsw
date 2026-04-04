@@ -39,6 +39,8 @@ using namespace RIGv3;
 
 const Actuators::TimePoint Actuators::noActionNeeded = TimePoint{};
 
+bool Actuators::ValveInfo::isValveOpen() { return valve->getPosition(); }
+
 void Actuators::ValveInfo::backstep()
 {
     valve->backstep();
@@ -54,7 +56,6 @@ void Actuators::ValveInfo::openValve()
 
     resetAnimation();
 
-    isValveClosed = false;
     valve->setPosition(valve->currentPosition);
 
     const uint8_t openingEvent = valve->getOpeningEvent();
@@ -72,7 +73,6 @@ void Actuators::ValveInfo::closeValve()
 
     resetAnimation();
 
-    isValveClosed = true;
     valve->setPosition(valve->currentPosition);
 
     const uint8_t closingEvent = valve->getClosingEvent();
@@ -214,11 +214,11 @@ void Actuators::initializeValves()
 {
     // Servo valves connected to the PCA9685 expanders
     prz_3wayValveInfo = MAKE_SIMPLE_PCA_SERVO_VALVE(
-        PRZ_3W, expander1, PCA9685Utils::Channel::CHANNEL_7);
+        PRZ_3W, expander0, PCA9685Utils::Channel::CHANNEL_0);
 
-    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
         PRZ_FIL, expander0, PCA9685Utils::Channel::CHANNEL_1));
-    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
         PRZ_REL, expander0, PCA9685Utils::Channel::CHANNEL_2));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         OX_FIL, expander0, PCA9685Utils::Channel::CHANNEL_3));
@@ -249,6 +249,7 @@ void Actuators::initializeValves()
     // Solenoid valves connected to the gpio expander
     // infos.push_back(MAKE_SOLENOID_VALVE(PRZ_DET, ));
     // infos.push_back(MAKE_SOLENOID_VALVE(OX_DET, ));
+    // infos.push_back(MAKE_SOLENOID_VALVE(PURGE,  ));
 }
 
 bool Actuators::wiggleValve(ServosList servo)
@@ -416,19 +417,18 @@ bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
     return true;
 }
 
-bool Actuators::isValveClosed(ServosList servo)
+bool Actuators::isValveOpen(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
     ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
 
-    return info->isValveClosed;
+    return info->isValveOpen();
 }
 
 uint32_t Actuators::getServoOpeningTime(ServosList servo)
 {
-    Lock<FastMutex> lock(infosMutex);
     ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return 0;
@@ -458,7 +458,7 @@ Actuators::ValveState Actuators::getValveState(ServosList servo)
     if (info == nullptr)
         return {};
 
-    bool isOpen      = info->isValveClosed;
+    bool isOpen      = info->isValveOpen();
     auto timeToClose = 0ms;
 
     if (isOpen)
@@ -564,6 +564,8 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
             return &valveInfos[6];
         case IGNITION_FUEL_VALVE:
             return &valveInfos[7];
+        case PURGE_VALVE:
+            return &valveInfos[8];
 
         case PRZ_OX_VALVE:
             return &manualValveInfos[0];
@@ -635,6 +637,9 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     if (prz_3wayValveInfo.backstepTs != noActionNeeded)
         nextDeadline = std::min(nextDeadline, prz_3wayValveInfo.backstepTs);
 
+    if (sparkPlugCloseTs != noActionNeeded)
+        nextDeadline = std::min(nextDeadline, sparkPlugCloseTs);
+
     return nextDeadline;
 }
 
@@ -651,13 +656,13 @@ void Actuators::task()
             // Backstep the servo a little to avoid strain
             info.backstep();
         }
-        else if (info.isValveClosed && currentTime <= info.closeTs)
+        else if (info.closeTs != noActionNeeded && currentTime <= info.closeTs)
         {
             // Open the servo only if it's not already open
             info.openValve();
             logValveMovement(idx, info.valve->currentPosition);
         }
-        else if (!info.isValveClosed && currentTime > info.closeTs)
+        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
         {
             // Close the servo only if it's not already closed
             info.closeValve();
@@ -677,20 +682,22 @@ void Actuators::task()
         {
             // Animate servo step
             info.advanceAnimation();
-            logValveMovement(idx + valveInfos.size(),
+            logValveMovement(valveInfos.size() + idx,
                              info.valve->currentPosition);
         }
-        else if (info.isValveClosed && currentTime <= info.closeTs)
+        else if (info.closeTs != noActionNeeded && currentTime <= info.closeTs)
         {
             // Open the servo only if it's not already open
             info.openValve();
-            logValveMovement(idx, info.valve->currentPosition);
+            logValveMovement(valveInfos.size() + idx,
+                             info.valve->currentPosition);
         }
-        else if (!info.isValveClosed && currentTime > info.closeTs)
+        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
         {
             // Close the servo only if it's not already closed
             info.closeValve();
-            logValveMovement(idx, info.valve->currentPosition);
+            logValveMovement(valveInfos.size() + idx,
+                             info.valve->currentPosition);
         }
     }
 

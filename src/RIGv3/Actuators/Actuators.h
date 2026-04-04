@@ -78,7 +78,7 @@ private:
         void backstep();
         virtual void resetAnimation() {};
 
-        bool isValveClosed{true};
+        bool isValveOpen();
     };
 
     struct ManualValveInfo : public ValveInfo
@@ -126,7 +126,7 @@ public:
     void closeAllValves();
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint32_t time);
-    bool isValveClosed(ServosList servo);
+    bool isValveOpen(ServosList servo);
     uint32_t getServoOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
