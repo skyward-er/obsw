@@ -82,9 +82,9 @@ set(RIG_V3_COMPUTER
     src/RIGv3/StateMachines/GroundModeManager/GroundModeManager.cpp
     src/RIGv3/StateMachines/TARS1/TARS1.cpp
     src/RIGv3/StateMachines/TARS3/TARS3.cpp
-    src/RIGv3/StateMachines/EngineController/EngineController.cpp
-    src/RIGv3/StateMachines/EregController/EregControllerOX.cpp
-    src/RIGv3/StateMachines/EregController/EregControllerFUEL.cpp
+    src/RIGv3/StateMachines/FiringSequenceHSM/FiringSequenceHSM.cpp
+    src/RIGv3/StateMachines/EregController/EregControllerOx.cpp
+    src/RIGv3/StateMachines/EregController/EregControllerFuel.cpp
 )
 
 set(CON_RIG_COMPUTER
