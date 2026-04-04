@@ -22,52 +22,14 @@
 
 #pragma once
 
-#include <Pitot/Buses.h>
-#include <Pitot/Sensors/SensorData.h>
-#include <utils/DependencyManager/DependencyManager.h>
-//#include <algorithm/SchmittTrigger.h>
-
-#include "HeatingPadConfig.h"
+#include <units/Frequency.h>
 
 namespace Pitot
 {
-    
-class BoardScheduler;
-class Sensors;
-
-class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
-{
-    public:
-        explicit HeatingPadController(HeatingPadConfig config);
-
-        HeatingPadController() {}
-
-        bool start();
-        bool isStarted();
-
-        void enable();
-        void disable();
-        bool isEnabled();
-
-        void setTargetTemperature(float temperature);
-        
-        bool heatingPadSense();
-
-        void enableHeatingPad();
-        void disableHeatingPad();
-
-        void update();
-
-    private:
-
-        float targetTemperature{0}; //K
-        Boardcore::Units::Frequency::Hertz updateRate{0}; // Hz
-
-        Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-        Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HeatingPadController");
-
-        std::atomic<bool> started{false};
-        std::atomic<bool> running{false};
-};
+    struct HeatingPadConfig
+    {
+        float targetTemperature; // K
+        Boardcore::Units::Frequency::Hertz updateRate; // Hz
+    };
 
 }  // namespace Pitot

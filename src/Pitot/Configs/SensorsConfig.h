@@ -73,17 +73,16 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace ND030D
 
-namespace InternalADC
+namespace HeatingPadNTC
 {
-constexpr auto VBAT_CH     = Boardcore::InternalADC::Channel::CH8;
-constexpr auto CAM_VBAT_CH = Boardcore::InternalADC::Channel::CH9;
+    constexpr auto ENABLED = true;
+    constexpr auto CH  = Boardcore::InternalADC::Channel::CH9;
+    constexpr float REF_VOLTAGE = V_DDA_VOLTAGE;
+    constexpr float REF_RESISTANCE = 10000.0f; // ohms
+    constexpr float REF_TEMPERATURE = 298.15f; // K, 25°C
+    constexpr float BETA  = 3435.0f;
+} // namespace HeatingPadNTC
 
-constexpr auto VBAT_SCALE     = 7500.0f / 2400.0f;
-constexpr auto CAM_VBAT_SCALE = 7500.0f / 2400.0f;
-
-constexpr auto RATE    = 10_hz;
-constexpr auto ENABLED = true;
-}  // namespace InternalADC
 
 }  // namespace Sensors
 }  // namespace Config
