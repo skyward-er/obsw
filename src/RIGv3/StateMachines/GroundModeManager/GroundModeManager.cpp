@@ -41,16 +41,6 @@ GroundModeManager::GroundModeManager()
 
 GroundModeManagerState GroundModeManager::getState() { return state; }
 
-void GroundModeManager::setIgnitionTime(uint32_t time)
-{
-    getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITION_TIME, time);
-}
-
-void GroundModeManager::setCoolingDelay(uint32_t time)
-{
-    getModule<Registry>()->setUnsafe(CONFIG_ID_COOLING_DELAY, time);
-}
-
 State GroundModeManager::state_idle(const Event& event)
 {
     switch (event)
@@ -203,7 +193,8 @@ State GroundModeManager::state_disarmed(const Event& event)
 
         case TMTC_CALIBRATE:
         {
-            // getModule<Sensors>()->calibrateLoadcells();
+            getModule<Sensors>()->calibrateLoadcells();
+            getModule<Sensors>()->calibrateEncoders();
             return HANDLED;
         }
 
@@ -278,6 +269,8 @@ State GroundModeManager::state_armed(const Event& event)
 
         case MOTOR_IGNITION:
         {
+            EventBroker::getInstance().post(FIRING_SEQUENCE_START,
+                                            TOPIC_FIRING_SEQUENCE);
             return transition(&GroundModeManager::state_firing);
         }
 
@@ -298,14 +291,18 @@ State GroundModeManager::state_firing(const Event& event)
             return HANDLED;
         }
 
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+
         case EV_EXIT:
         {
             // Stop ignition and close all servos
             /* getModule<Actuators>()->igniterOff(); */
-            getModule<Actuators>()->closeAllValves();
 
             // Disable all events
-            EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
+            // EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
 
             return HANDLED;
         }
@@ -315,169 +312,11 @@ State GroundModeManager::state_firing(const Event& event)
             return tranSuper(&GroundModeManager::state_top);
         }
 
-        case EV_INIT:
+        case TMTC_DISARM:  // Abort signal
         {
-            return transition(&GroundModeManager::state_igniting);
-        }
-
-        case MOTOR_COOLING_TIMEOUT:  // Normal firing end
-        case TMTC_DISARM:            // Abort signal
-        {
+            EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
+                                            TOPIC_FIRING_SEQUENCE);
             return transition(&GroundModeManager::state_disarmed);
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State GroundModeManager::state_igniting(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(GroundModeManagerState::IGNITING);
-
-            // Start ignition
-            /* getModule<Actuators>()->igniterOn(); */
-
-            uint32_t ignitionTime =
-                getModule<Registry>()->getOrSetDefaultUnsafe(
-                    CONFIG_ID_IGNITION_TIME,
-                    Config::GroundModeManager::DEFAULT_IGNITION_WAITING_TIME);
-
-            // Send event to open the oxidant
-            openOxidantDelayEventId = EventBroker::getInstance().postDelayed(
-                MOTOR_OPEN_OXIDANT, TOPIC_MOTOR, ignitionTime);
-
-            return HANDLED;
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&GroundModeManager::state_firing);
-        }
-
-        case EV_INIT:
-        {
-            return HANDLED;
-        }
-
-        case MOTOR_OPEN_OXIDANT:
-        {
-            /* getModule<Actuators>()->igniterOff(); */
-            return transition(&GroundModeManager::state_oxidizer);
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State GroundModeManager::state_oxidizer(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(GroundModeManagerState::OXIDIZER);
-
-            /* getModule<Actuators>()->openValve(ServosList::MAIN_VALVE);
-
-            uint32_t chamberDelay =
-                getModule<Registry>()->getOrSetDefaultUnsafe(
-                    CONFIG_ID_CHAMBER_DELAY,
-                    Config::GroundModeManager::DEFAULT_CHAMBER_VALVE_DELAY);
-
-            EventBroker::getInstance().postDelayed(MOTOR_OPEN_CHAMBER,
-                                                   TOPIC_MOTOR, chamberDelay);
-          */
-
-            return HANDLED;
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&GroundModeManager::state_firing);
-        }
-
-        case EV_INIT:
-        {
-            return HANDLED;
-        }
-
-            /* case MOTOR_MAIN_CLOSE:
-            {
-                return transition(&GroundModeManager::state_cooling);
-            } */
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State GroundModeManager::state_cooling(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(GroundModeManagerState::COOLING);
-
-            /* // Stop pressurizing the OX after the firing is over
-            getModule<Actuators>()->closeValve(ServosList::NITROGEN_VALVE);
-
-            uint32_t coolingDelay =
-                getModule<Registry>()->getOrSetDefaultUnsafe(
-                    CONFIG_ID_COOLING_DELAY,
-                    Config::GroundModeManager::DEFAULT_COOLING_DELAY);
-
-            EventBroker::getInstance().postDelayed(MOTOR_START_COOLING,
-                                                   TOPIC_MOTOR, coolingDelay);
-          */
-
-            return HANDLED;
-        }
-
-        case MOTOR_START_COOLING:
-        {
-            // Open the quenching valve
-            /* getModule<Actuators>()->openValve(ServosList::N2_QUENCHING_VALVE);
-             */
-
-            return HANDLED;
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&GroundModeManager::state_firing);
-        }
-
-        case EV_INIT:
-        {
-            return HANDLED;
         }
 
         default:
