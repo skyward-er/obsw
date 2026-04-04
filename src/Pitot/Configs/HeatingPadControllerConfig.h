@@ -36,8 +36,12 @@ namespace Pitot
             /* linter-off */ using namespace Boardcore::Units::Frequency;
 
             constexpr auto UPDATE_RATE = 10_hz;
-            constexpr auto TARGET_TEMPERATURE = 308.15f; // K, 35°C
 
+            // Schmitt Trigger parameters
+            constexpr auto TARGET_TEMPERATURE = 308.15f; // K, 35°C
+            constexpr auto THRESHOLD_LOW = 303.15f; // K, 30°C
+            constexpr auto THRESHOLD_HIGH = 313.15f; // K, 40°C
+            
         }  // namespace HeatingPadController
     }  // namespace Config
 } // namespace Pitot

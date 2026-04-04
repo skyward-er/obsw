@@ -25,9 +25,9 @@
 #include <Pitot/Buses.h>
 #include <Pitot/Sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>
-//#include <algorithm/SchmittTrigger.h>
+#include <algorithms/SchmittTrigger/SchmittTrigger.h>
 
-#include "HeatingPadConfig.h"
+#include "HeatingPadConfigData.h"
 
 namespace Pitot
 {
@@ -50,7 +50,7 @@ class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler
         bool isEnabled();
 
         void setTargetTemperature(float temperature);
-        
+
         bool heatingPadSense();
 
         void enableHeatingPad();
@@ -60,8 +60,9 @@ class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler
 
     private:
 
-        float targetTemperature{0}; //K
-        Boardcore::Units::Frequency::Hertz updateRate{0}; // Hz
+        Boardcore::Units::Frequency::Hertz updateRate{0};
+
+        Boardcore::SchmittTrigger schmittTrigger{0, 0};
 
         Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
         Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HeatingPadController");

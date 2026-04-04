@@ -28,8 +28,10 @@ namespace Pitot
 {
     struct HeatingPadConfig
     {
-        float targetTemperature; // K
         Boardcore::Units::Frequency::Hertz updateRate; // Hz
+        float targetTemperature; // K
+        float thresholdLow; // K
+        float thresholdHigh; // K
     };
 
 }  // namespace Pitot
