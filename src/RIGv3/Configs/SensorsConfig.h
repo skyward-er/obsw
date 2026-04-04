@@ -80,7 +80,7 @@ constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
 
 namespace ADC_1
 {
-constexpr bool ENABLED = false;
+constexpr bool ENABLED = true;
 
 }  // namespace ADC_1
 
@@ -154,10 +154,6 @@ constexpr float REG_OUT_MAX_PRESSURE         = 250.0f;  // bar
 constexpr float OX_TANK_MAX_PRESSURE         = 100.0f;  // bar
 constexpr float FUEL_TANK_MAX_PRESSURE       = 100.0f;  // bar
 constexpr float IGNITER_CHAMBER_MAX_PRESSURE = 40.0f;   // bar
-constexpr float MAIN_CHAMBER_MAX_PRESSURE    = 100.0f;  // bar
-
-}  // namespace Trafag
-
 namespace Encoder
 {
 // Default shunt resistance

@@ -294,8 +294,6 @@ void Sensors::calibrate()
     applyShuntResistance(2, fuelTankPressure, FUEL_TANK_PT_CHANNEL);
     applyShuntResistance(2, igniterChamberPressure, IGNITER_CHAMBER_PT_CHANNEL);
     applyShuntResistance(2, mainChamberPressure, MAIN_CHAMBER_PT_CHANNEL);
-
-    calibrateEncoders();
 }
 
 void Sensors::calibrateLoadcells()
