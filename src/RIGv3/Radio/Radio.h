@@ -29,6 +29,9 @@
 #include <RIGv3/Configs/RadioConfig.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
+#include <RIGv3/StateMachines/EregController/EregControllerFuel.h>
+#include <RIGv3/StateMachines/EregController/EregControllerOx.h>
+#include <RIGv3/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv3/StateMachines/TARS1/TARS1.h>
 #include <RIGv3/StateMachines/TARS3/TARS3.h>
@@ -46,10 +49,10 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio
-    : public Boardcore::InjectableWithDeps<
-          Buses, BoardScheduler, Registry, Actuators, Sensors, CanHandler,
-          GroundModeManager, TARS1, TARS3, Common::MotorStatus>
+class Radio : public Boardcore::InjectableWithDeps<
+                  Buses, BoardScheduler, Registry, Actuators, Sensors,
+                  CanHandler, GroundModeManager, TARS1, TARS3, EregControllerOx,
+                  EregControllerFuel, FiringSequenceHSM, Common::MotorStatus>
 {
 public:
     Radio() {}

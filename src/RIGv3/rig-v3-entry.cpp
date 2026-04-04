@@ -24,9 +24,12 @@
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Buses.h>
 #include <RIGv3/CanHandler/CanHandler.h>
-// #include <RIGv3/Radio/Radio.h>
+#include <RIGv3/Radio/Radio.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
+#include <RIGv3/StateMachines/EregController/EregControllerFuel.h>
+#include <RIGv3/StateMachines/EregController/EregControllerOx.h>
+#include <RIGv3/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv3/StateMachines/TARS1/TARS1.h>
 #include <RIGv3/StateMachines/TARS3/TARS3.h>
@@ -55,38 +58,44 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
-    auto sensors    = new Sensors();
-    auto actuators  = new Actuators();
-    auto registry   = new Registry();
-    auto canHandler = new CanHandler();
-    auto gmm        = new GroundModeManager();
-    auto tars1      = new TARS1();
-    auto tars3      = new TARS3();
-    // auto radio       = new Radio();
-    auto motorStatus = new MotorStatus();
+    auto sensors           = new Sensors();
+    auto actuators         = new Actuators();
+    auto registry          = new Registry();
+    auto canHandler        = new CanHandler();
+    auto gmm               = new GroundModeManager();
+    auto tars1             = new TARS1();
+    auto tars3             = new TARS3();
+    auto eregOx            = new EregControllerOx();
+    auto eregFuel          = new EregControllerFuel();
+    auto firingSequenceHSM = new FiringSequenceHSM();
+    auto radio             = new Radio();
+    auto motorStatus       = new MotorStatus();
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();
 
-    /* // Setup event sniffer
+    // Setup event sniffer
     EventSniffer sniffer(broker,
                          [&](uint8_t event, uint8_t topic)
                          {
                              EventData data{TimestampTimer::getTimestamp(),
                                             event, topic};
                              sdLogger.log(data);
-                         }); */
+                         });
 
     // Insert modules
     initResult &=
         manager.insert<Buses>(buses) &&
         manager.insert<BoardScheduler>(scheduler) &&
         manager.insert<Actuators>(actuators) &&
-        manager.insert<Sensors>(sensors) &&  // manager.insert<Radio>(radio) &&
+        manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
         manager.insert<CanHandler>(canHandler) &&
         manager.insert<Registry>(registry) &&
         manager.insert<GroundModeManager>(gmm) &&
         manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
+        manager.insert<EregControllerOx>(eregOx) &&
+        manager.insert<EregControllerFuel>(eregFuel) &&
+        manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
         manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
     if (!initResult)
@@ -167,11 +176,11 @@ int main()
     else
     {
         std::cout << "\tCalibrating sensors" << std::endl;
-        // sensors->calibrate();
+        sensors->calibrate();
         led1Off();
     }
 
-    /* std::cout << "Starting Radio" << std::endl;
+    std::cout << "Starting Radio" << std::endl;
     led2On();
     if (!radio->start())
     {
@@ -181,7 +190,7 @@ int main()
     else
     {
         led2Off();
-    } */
+    }
 
     std::cout << "Starting CanHandler" << std::endl;
     led3On();
@@ -195,7 +204,7 @@ int main()
         led3Off();
     }
 
-    /* std::cout << "Starting GroundModeManager" << std::endl;
+    std::cout << "Starting GroundModeManager" << std::endl;
     if (!gmm->start())
     {
         initResult = false;
@@ -215,7 +224,28 @@ int main()
         initResult = false;
         std::cerr << "*** Failed to start TARS3 ***" << std::endl;
     }
- */
+
+    std::cout << "Starting FiringSequenceHSM" << std::endl;
+    if (!firingSequenceHSM->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start FiringSequenceHSM ***" << std::endl;
+    }
+
+    std::cout << "Starting eregControllerOX" << std::endl;
+    if (!eregOx->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start eregControllerOx ***" << std::endl;
+    }
+
+    std::cout << "Starting eregControllerFuel" << std::endl;
+    if (!eregFuel->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
+    }
+
     if (initResult)
     {
         broker.post(FMM_INIT_OK, TOPIC_MOTOR);
@@ -240,20 +270,11 @@ int main()
                   << statusStr << std::endl;
     }
 
-    float position;
     // Periodic statistics
     while (true)
     {
-        /* std::cout << "choose a valve to open (0-7): ";
-          std::cin >> valveNr; */
-        std::cout << "choose a position to move the valve to (0.0-1.0): \n";
-        std::cin >> position;
-
-        printf("animating main ox valve to position %f\n", position);
-        actuators->animateValve(ServosList::MAIN_OX_VALVE, position, 5000);
-
         sdLogger.log(sdLogger.getStats());
-        // sdLogger.log(radio->getMavStatus());
+        sdLogger.log(radio->getMavStatus());
         Thread::sleep(3000);
     }
 
