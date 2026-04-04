@@ -26,18 +26,23 @@
 #include <Pitot/Sensors/Sensors.h>
 #include <interfaces-impl/hwmapping.h>
 
+
 #include "HeatingPadController.h"
 
 namespace Pitot
 {
     HeatingPadController::HeatingPadController(HeatingPadConfig config)
-        : targetTemperature(config.targetTemperature), updateRate(config.updateRate)
+        : updateRate(config.updateRate)
     {
+        schmittTrigger.setThresholds(config.thresholdLow, config.thresholdHigh);
+        schmittTrigger.setTargetState(config.targetTemperature);
     }
 
     HeatingPadController::HeatingPadController()
-        : targetTemperature(Config::HeatingPadController::TARGET_TEMPERATURE), updateRate(Config::HeatingPadController::UPDATE_RATE)
+        : updateRate(Config::HeatingPadController::UPDATE_RATE)
     {
+        schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD_LOW, Config::HeatingPadController::THRESHOLD_HIGH);
+        schmittTrigger.setTargetState(Config::HeatingPadController::TARGET_TEMPERATURE);
     }
 
     bool HeatingPadController::start()
@@ -49,6 +54,13 @@ namespace Pitot
             LOG_ERR(logger, "Heating pad not detected!");
             return false;
         }
+
+        if(!schmittTrigger.init()){
+            LOG_ERR(logger, "Failed to initialize Schmitt trigger!");
+            return false;
+        }
+
+        schmittTrigger.begin();
 
         auto& scheduler = getModule<BoardScheduler>()->heatingPadController();
         auto task = scheduler.addTask([this] { update(); }, updateRate);
@@ -76,7 +88,7 @@ namespace Pitot
 
     void HeatingPadController::setTargetTemperature(float temperature)
     {
-        targetTemperature = temperature;
+        schmittTrigger.setTargetState(temperature);
     }
 
     bool HeatingPadController::heatingPadSense()
@@ -108,9 +120,22 @@ namespace Pitot
         }
         
         float temperature = getModule<Sensors>()->getHeatingPadNTCTemperatureLastSample().temperature; //K
+        schmittTrigger.setCurrentState(temperature);
 
-        //Schmitt Trigger
+        schmittTrigger.update();
+        auto activation = schmittTrigger.getOutput();
 
+        switch (activation)
+        {       
+            case Boardcore::SchmittTrigger::Activation::HIGH:
+                enableHeatingPad();
+                break;
+            case Boardcore::SchmittTrigger::Activation::LOW:
+                disableHeatingPad();
+                break;
+            case Boardcore::SchmittTrigger::Activation::STOP:
+                break;
+        }
     }
 
 }  // namespace Pitot
