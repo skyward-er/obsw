@@ -50,19 +50,19 @@ public:
 
     miosix::GpioPin getADC0CsPin()
     {
-        return miosix::interfaces::spi2::cs1::getPin();
+        return miosix::interfaces::spi2::cs3::getPin();
     }
     miosix::GpioPin getADC1CsPin()
     {
-        return miosix::interfaces::spi2::cs2::getPin();
+        return miosix::interfaces::spi2::cs4::getPin();
     }
     miosix::GpioPin getADC2CsPin()
     {
-        return miosix::interfaces::spi2::cs3::getPin();
+        return miosix::interfaces::spi2::cs1::getPin();
     }
     miosix::GpioPin getADC3CsPin()
     {
-        return miosix::interfaces::spi2::cs4::getPin();
+        return miosix::interfaces::spi2::cs2::getPin();
     }
 
 private:

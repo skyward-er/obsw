@@ -43,7 +43,7 @@ namespace Sensors
 
 namespace ADS131M08_FAST
 {
-constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_4096;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 constexpr Hertz PERIOD = 1000_hz;
@@ -51,7 +51,7 @@ constexpr Hertz PERIOD = 1000_hz;
 
 namespace ADS131M08_SLOW
 {
-constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_16256;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 constexpr Hertz PERIOD = 100_hz;
@@ -80,7 +80,7 @@ constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
 
 namespace ADC_1
 {
-constexpr bool ENABLED = false;
+constexpr bool ENABLED = true;
 
 }  // namespace ADC_1
 
@@ -114,11 +114,10 @@ constexpr bool ENABLED = true;
 
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
-constexpr auto ROCKET_LC_CHANNEL         = Channel::CHANNEL_0;
-constexpr auto MAIN_OX_ENCODER_CHANNEL   = Channel::CHANNEL_1;
-constexpr auto MAIN_FUEL_ENCODER_CHANNEL = Channel::CHANNEL_2;
-constexpr auto PRZ_OX_ENCODER_CHANNEL    = Channel::CHANNEL_3;
-constexpr auto PRZ_FUEL_ENCODER_CHANNEL  = Channel::CHANNEL_4;
+constexpr auto MAIN_OX_ENCODER_CHANNEL   = Channel::CHANNEL_0;
+constexpr auto MAIN_FUEL_ENCODER_CHANNEL = Channel::CHANNEL_1;
+constexpr auto PRZ_OX_ENCODER_CHANNEL    = Channel::CHANNEL_2;
+constexpr auto PRZ_FUEL_ENCODER_CHANNEL  = Channel::CHANNEL_3;
 
 }  // namespace ADC_3
 
@@ -131,38 +130,38 @@ constexpr Hertz PERIOD = 10_hz;
 namespace Trafag
 {
 // Default shunt resistance, used before calibration or if it's out of bounds
-constexpr float DEFAULT_SHUNT_RESISTANCE = 29.5;
+constexpr float DEFAULT_SHUNT_RESISTANCE = 49.0f;
 // Bounds of the shunt resistance, outside of which the calibration is ignored
-constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 28.5;
-constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 30.0;
+constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 46.0f;
+constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 51.0f;
 
 constexpr auto CALIBRATE_SAMPLE_COUNT         = 10;
 constexpr auto CALIBRATE_WAIT_BETWEEN_SAMPLES = 100ms;
 
 // Current at 0 bar relative to atmospheric pressure
-constexpr float MIN_CURRENT = 4;  // [mA]
+constexpr float MIN_CURRENT = 4.0f;  // [mA]
 // Current at MAX_PRESSURE bar relative to atmospheric pressure
-constexpr float MAX_CURRENT = 20;  // [mA]
+constexpr float MAX_CURRENT = 20.0f;  // [mA]
 
-constexpr float PRZ_VESSEL_1_MAX_PRESSURE = 400;  // bar
-constexpr float PRZ_VESSEL_2_MAX_PRESSURE = 400;  // bar
-constexpr float PRZ_FILLING_MAX_PRESSURE  = 400;  // bar
-constexpr float OX_VESSEL_MAX_PRESSURE    = 100;  // bar
-constexpr float OX_FILLING_MAX_PRESSURE   = 100;  // bar
+constexpr float PRZ_VESSEL_1_MAX_PRESSURE = 400.0f;  // bar
+constexpr float PRZ_VESSEL_2_MAX_PRESSURE = 400.0f;  // bar
+constexpr float PRZ_FILLING_MAX_PRESSURE  = 400.0f;  // bar
+constexpr float OX_VESSEL_MAX_PRESSURE    = 100.0f;  // bar
+constexpr float OX_FILLING_MAX_PRESSURE   = 100.0f;  // bar
 
-constexpr float PRZ_TANK_MAX_PRESSURE        = 400;  // bar
-constexpr float REG_OUT_MAX_PRESSURE         = 250;  // bar
-constexpr float OX_TANK_MAX_PRESSURE         = 100;  // bar
-constexpr float FUEL_TANK_MAX_PRESSURE       = 400;  // bar
-constexpr float IGNITER_CHAMBER_MAX_PRESSURE = 400;  // bar
-constexpr float MAIN_CHAMBER_MAX_PRESSURE    = 400;  // bar
+constexpr float PRZ_TANK_MAX_PRESSURE        = 400.0f;  // bar
+constexpr float REG_OUT_MAX_PRESSURE         = 250.0f;  // bar
+constexpr float OX_TANK_MAX_PRESSURE         = 100.0f;  // bar
+constexpr float FUEL_TANK_MAX_PRESSURE       = 400.0f;  // bar
+constexpr float IGNITER_CHAMBER_MAX_PRESSURE = 100.0f;  // bar
+constexpr float MAIN_CHAMBER_MAX_PRESSURE    = 100.0f;  // bar
 
 }  // namespace Trafag
 
 namespace Encoder
 {
 // Default shunt resistance
-constexpr float DEFAULT_SHUNT_RESISTANCE = 29.5f;
+constexpr float DEFAULT_SHUNT_RESISTANCE = 49.5f;
 
 constexpr float FULLSCALE_VOLTAGE = 4.7f;
 
@@ -214,6 +213,9 @@ constexpr float VESSEL_P0_MASS    = 1.866;
 constexpr float VESSEL_P1_VOLTAGE = 0.0010;
 constexpr float VESSEL_P1_MASS    = 6.916;
 */
+
+constexpr float VESSEL_SCALE  = 1460.390297f;
+constexpr float VESSEL_OFFSET = -268.6896489f;
 
 // LC Vessel sensor calibration data (post 07/09/2024)
 // - 0kg      V: 0.000630177
