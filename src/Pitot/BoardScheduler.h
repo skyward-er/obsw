@@ -53,8 +53,8 @@ public:
     };
 
     Boardcore::TaskScheduler& sensors() { return high; }
-    Boardcore::TaskScheduler& pinHandler() { return high; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
+    Boardcore::TaskScheduler& heatingPadController() { return medium; }
 
     /**
      * @brief Starts all the schedulers

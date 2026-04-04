@@ -23,17 +23,7 @@
 #include <Pitot/BoardScheduler.h>
 #include <Pitot/Buses.h>
 #include <Pitot/CanHandler/CanHandler.h>
-// #include <Pitot/FlightStatsRecorder/FlightStatsRecorder.h>
-
-// #include <Pitot/HIL/HIL.h>
-// #include <Pitot/PersistentVars/PersistentVars.h>
-// #include <Pitot/Sensors/HILSensors.h>
-
-// #include <Pitot/PinHandler/PinHandler.h>
 #include <Pitot/Sensors/Sensors.h>
-
-// #include <Pitot/StateMachines/FlightModeManager/FlightModeManager.h>
-
 #include <common/Topics.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
@@ -62,24 +52,7 @@ int main()
     auto scheduler = new BoardScheduler();
 
     Sensors* sensors;
-    // auto pinHandler        = new PinHandler();
     auto canHandler = new CanHandler();
-    // PitotHIL* hil        = nullptr;
-
-    /*// HIL
-    if (PersistentVars::getHilMode())
-    {
-        std::cout << "PAYLOAD SimulatorData: " << sizeof(SimulatorData)
-                  << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
-
-        hil = new PayloadHIL();
-        initResult &= manager.insert<PayloadHIL>(hil);
-        sensors = new HILSensors(Config::HIL::ENABLE_HW);
-    }
-    else
-    {
-        sensors = new Sensors();
-    }*/
 
     sensors = new Sensors();
 
@@ -98,7 +71,8 @@ int main()
     // Insert modules
     initResult &= manager.insert<Buses>(buses) &&
                   manager.insert<BoardScheduler>(scheduler) &&
-                  manager.insert<Sensors>(sensors) && manager.inject();
+                  manager.insert<Sensors>(sensors) &&
+                  manager.insert<CanHandler>(canHandler) && manager.inject();
 
     if (!initResult)
     {
@@ -157,21 +131,6 @@ int main()
         std::cerr << "*** Failed to start Scheduler ***" << std::endl;
     }
 
-    /*if (hil)
-    {
-        std::cout << "Starting HIL" << std::endl;
-        if (!hil->start())
-        {
-            initResult = false;
-            std::cerr << "*** Failed to start HIL ***" << std::endl;
-        }
-
-        std::cout << "Waiting simulation start..." << std::endl;
-        hil->waitStartSimulation();
-    }*/
-
-    // Wait for simulation start before starting sensors to avoid initializing
-    // them with invalid data
     std::cout << "Starting Sensors" << std::endl;
     led1On();
     if (!sensors->start())
@@ -206,10 +165,6 @@ int main()
         std::cout << "\t" << std::setw(20) << std::left << info.id << " "
                   << statusStr << std::endl;
     }
-
-    std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
-              << sensors->getBatteryVoltageLastSample().voltage << " V"
-              << std::endl;
 
     // Collect stack usage statistics
     while (true)

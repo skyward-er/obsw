@@ -22,52 +22,23 @@
 
 #pragma once
 
-#include <Pitot/Buses.h>
-#include <Pitot/Sensors/SensorData.h>
-#include <utils/DependencyManager/DependencyManager.h>
-//#include <algorithm/SchmittTrigger.h>
+#include <chrono>
+#include <units/Frequency.h>
 
-#include "HeatingPadConfig.h"
 
 namespace Pitot
 {
-    
-class BoardScheduler;
-class Sensors;
+    namespace Config
+    {
+        namespace HeatingPadController
+        {
+            /* linter-off */ using namespace std::chrono_literals;
+            /* linter-off */ using namespace Boardcore::Units::Frequency;
 
-class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
-{
-    public:
-        explicit HeatingPadController(HeatingPadConfig config);
+            constexpr auto UPDATE_RATE = 10_hz;
+            constexpr auto TARGET_TEMPERATURE = 308.15f; // K, 35°C
 
-        HeatingPadController() {}
+        }  // namespace HeatingPadController
+    }  // namespace Config
+} // namespace Pitot
 
-        bool start();
-        bool isStarted();
-
-        void enable();
-        void disable();
-        bool isEnabled();
-
-        void setTargetTemperature(float temperature);
-        
-        bool heatingPadSense();
-
-        void enableHeatingPad();
-        void disableHeatingPad();
-
-        void update();
-
-    private:
-
-        float targetTemperature{0}; //K
-        Boardcore::Units::Frequency::Hertz updateRate{0}; // Hz
-
-        Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-        Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HeatingPadController");
-
-        std::atomic<bool> started{false};
-        std::atomic<bool> running{false};
-};
-
-}  // namespace Pitot
