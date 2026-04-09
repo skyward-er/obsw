@@ -61,7 +61,8 @@ struct GroundModeManagerData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(GroundModeManagerData,
-                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(state));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                              FIELD_DEF(state));
     }
 };
 

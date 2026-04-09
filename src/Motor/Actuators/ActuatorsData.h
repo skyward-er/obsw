@@ -48,8 +48,9 @@ struct ActuatorsData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(ActuatorsData, FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(
-                                             servoIdx) FIELD_DEF(position));
+        return STRUCT_DEF(ActuatorsData,
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                              FIELD_DEF(servoIdx) FIELD_DEF(position));
     }
 };
 

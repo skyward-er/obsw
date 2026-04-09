@@ -47,7 +47,8 @@ struct NASControllerStatus
     static constexpr auto reflect()
     {
         return STRUCT_DEF(NASControllerStatus,
-                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(state));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                              FIELD_DEF(state));
     }
 };
 

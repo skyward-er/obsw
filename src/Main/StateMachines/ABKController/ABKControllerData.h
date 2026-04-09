@@ -49,7 +49,8 @@ struct ABKControllerStatus
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ABKControllerStatus,
-                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(state));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                              FIELD_DEF(state));
     }
 };
 

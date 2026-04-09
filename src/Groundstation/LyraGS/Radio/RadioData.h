@@ -49,8 +49,8 @@ struct MainRadioLog
     {
         return STRUCT_DEF(
             MainRadioLog,
-            FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(main_packet_tx_error_count)
-                FIELD_DEF(main_tx_bitrate)
+            FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                FIELD_DEF(main_packet_tx_error_count) FIELD_DEF(main_tx_bitrate)
                     FIELD_DEF(main_packet_rx_success_count)
                         FIELD_DEF(main_packet_rx_drop_count)
                             FIELD_DEF(main_rx_bitrate) FIELD_DEF(main_rx_rssi));

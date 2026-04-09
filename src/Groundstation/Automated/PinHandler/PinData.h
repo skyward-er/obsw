@@ -38,8 +38,9 @@ struct PinChangeData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(PinChangeData, FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(pinID)
-                                             FIELD_DEF(changesCount));
+        return STRUCT_DEF(PinChangeData,
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                              FIELD_DEF(pinID) FIELD_DEF(changesCount));
     }
 };
 

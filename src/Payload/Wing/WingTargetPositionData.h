@@ -45,11 +45,12 @@ struct WingTargetPositionData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(WingTargetPositionData,
-                          FIELD_DEF_WITH_UNIT(targetLat, degrees) FIELD_DEF_WITH_UNIT(targetLon, degrees)
-                              FIELD_DEF(targetN) FIELD_DEF(targetE)
-                                  FIELD_DEF(emcN) FIELD_DEF(emcE) FIELD_DEF(m1N)
-                                      FIELD_DEF(m1E) FIELD_DEF(m2N)
-                                          FIELD_DEF(m2E));
+                          FIELD_DEF_WITH_UNIT(targetLat, degrees)
+                              FIELD_DEF_WITH_UNIT(targetLon, degrees)
+                                  FIELD_DEF(targetN) FIELD_DEF(targetE)
+                                      FIELD_DEF(emcN) FIELD_DEF(emcE)
+                                          FIELD_DEF(m1N) FIELD_DEF(m1E)
+                                              FIELD_DEF(m2N) FIELD_DEF(m2E));
     }
 };
 
@@ -62,8 +63,9 @@ struct EarlyManeuversActiveTargetData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(EarlyManeuversActiveTargetData,
-                          FIELD_DEF_WITH_UNIT(timestamp, microseconds) FIELD_DEF(target)
-                              FIELD_DEF_WITH_UNIT(altitude, meters));
+                          FIELD_DEF_WITH_UNIT(timestamp, microseconds)
+                              FIELD_DEF(target)
+                                  FIELD_DEF_WITH_UNIT(altitude, meters));
     }
 };
 
