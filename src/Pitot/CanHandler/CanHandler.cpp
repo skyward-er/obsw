@@ -105,18 +105,18 @@ bool CanHandler::start()
         return false;
     }
 
-    // Add the status task
-    /*auto statusTask = scheduler.addTask(
+// Add the status task
+    auto statusTask = scheduler.addTask(
         [this]
         {
             auto logStats = Logger::getInstance().getStats();
-            auto state    = getModule<FlightModeManager>()->getState();
+            //auto state    = getModule<FlightModeManager>()->getState();
             auto status   = DeviceStatus{
                   .timestamp = TimestampTimer::getTimestamp(),
                   .logNumber = static_cast<int16_t>(logStats.logNumber),
-                  .state     = static_cast<uint8_t>(state),
-                  .armed     = state == FlightModeManagerState::ARMED,
-                  .hil       = PersistentVars::getHilMode(),
+                  .state     = Config::CanHandler::Status::STATE,
+                  .armed     = Config::CanHandler::Status::ARMED,
+                  .hil       = Config::CanHandler::Status::HIL,
                   .logGood   = logStats.lastWriteError == 0,
             };
 
@@ -127,13 +127,14 @@ bool CanHandler::start()
                                   status);
         },
         STATUS_SEND_PERIOD);
-
+    
     if (statusTask == 0)
     {
         LOG_ERR(logger, "Failed to add periodic status task");
         return false;
     }
-    */
+
+
     // Add the pitot task
     auto pitotTask = scheduler.addTask(
         [this]()
@@ -158,7 +159,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(SensorId::PITOT_DYNAMIC_PRESSURE),
                 dynamicPressure);
         },
-        Config::CanHandler::Pitot::SEND_RATE);
+        Config::CanHandler::SEND_RATE);
 
     if (pitotTask == 0)
     {

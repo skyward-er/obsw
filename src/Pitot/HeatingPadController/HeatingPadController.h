@@ -66,6 +66,7 @@ class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler
 
         Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
         Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HeatingPadController");
+        miosix::FastMutex heatingPadMutex;
 
         std::atomic<bool> started{false};
         std::atomic<bool> running{false};
