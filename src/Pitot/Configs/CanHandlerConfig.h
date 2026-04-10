@@ -36,10 +36,16 @@ namespace CanHandler
 /* linter-off */ using namespace std::chrono_literals;
 /* linter-off */ using namespace Boardcore::Units::Frequency;
 
-namespace Pitot
-{
 constexpr auto SEND_RATE = 25_hz;
-}
+
+namespace Status
+{
+
+constexpr auto HIL = false;
+constexpr auto ARMED = true;
+constexpr auto STATE = false;
+
+}  // namespace Status
 
 }  // namespace CanHandler
 }  // namespace Config

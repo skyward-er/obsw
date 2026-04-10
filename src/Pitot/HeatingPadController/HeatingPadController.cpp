@@ -88,6 +88,7 @@ namespace Pitot
 
     void HeatingPadController::setTargetTemperature(float temperature)
     {
+        miosix::Lock<FastMutex> lock(heatingPadMutex);
         schmittTrigger.setTargetState(temperature);
     }
 
@@ -121,9 +122,14 @@ namespace Pitot
         
         float temperature = getModule<Sensors>()->getHeatingPadNTCTemperatureLastSample().temperature; //K
         schmittTrigger.setCurrentState(temperature);
+        Boardcore::SchmittTrigger::Activation activation;
 
-        schmittTrigger.update();
-        auto activation = schmittTrigger.getOutput();
+        {
+            miosix::Lock<miosix::FastMutex> lock(heatingPadMutex);
+            schmittTrigger.setCurrentState(temperature);
+            schmittTrigger.update();
+            activation = schmittTrigger.getOutput();
+        }
 
         switch (activation)
         {       
