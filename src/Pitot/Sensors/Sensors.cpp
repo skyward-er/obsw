@@ -50,8 +50,8 @@ bool Sensors::start()
     if (Config::Sensors::ND015A::ENABLED)
         nd015aInit();
 
-    if (Config::Sensors::ND030D::ENABLED)
-        nd030dInit();
+    if (Config::Sensors::ND030A::ENABLED)
+        nd030aInit();
 
     // Return immediately if the hook fails as we cannot know what the hook does
     if (!postSensorCreationHook())
@@ -87,7 +87,7 @@ void Sensors::calibrate()
     float dynPressureOffset =
         dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
 
-    nd030d->updateOffset(dynPressureOffset);
+    nd030a->updateOffset(dynPressureOffset);
 }
 
 Boardcore::VoltageData Sensors::getHeatingPadNTCVoltageLastSample()
@@ -121,9 +121,9 @@ ND015XData Sensors::getND015ADataLastSample()
     return nd015a ? nd015a->getLastSample() : ND015XData{};
 }
 
-ND030XData Sensors::getND030DDataLastSample()
+ND030XData Sensors::getND030ADataLastSample()
 {
-    return nd030d ? nd030d->getLastSample() : ND030XData{};
+    return nd030a ? nd030a->getLastSample() : ND030XData{};
 }
 
 StaticPressureData Sensors::getStaticPressureLastSample()
@@ -133,7 +133,8 @@ StaticPressureData Sensors::getStaticPressureLastSample()
 
 DynamicPressureData Sensors::getDynamicPressureLastSample()
 {
-    return DynamicPressureData{getND030DDataLastSample()};
+    float dynamicPressure = getND030ADataLastSample().pressure - getND015ADataLastSample().pressure;
+    return DynamicPressureData{PressureData{getND030ADataLastSample().pressureTimestamp, dynamicPressure}};
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
@@ -148,7 +149,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
         PUSH_SENSOR_INFO(nd015a, "ND015A");
-        PUSH_SENSOR_INFO(nd030d, "ND030D");
+        PUSH_SENSOR_INFO(nd030a, "ND030A");
 
         return infos;
     }
@@ -186,20 +187,20 @@ void Sensors::nd015aCallback()
     sdLogger.log(StaticPressureData{getND015ADataLastSample()});
 }
 
-void Sensors::nd030dInit()
+void Sensors::nd030aInit()
 {
-    SPIBusConfig spiConfig = ND030D::getDefaultSPIConfig();
+    SPIBusConfig spiConfig = ND030A::getDefaultSPIConfig();
 
-    nd030d = std::make_unique<ND030D>(
-        getModule<Buses>()->getND030D(), sensors::ND030D::cs::getPin(),
-        spiConfig, Config::Sensors::ND030D::FSR, Config::Sensors::ND030D::IOW,
-        Config::Sensors::ND030D::BWL, Config::Sensors::ND030D::NTC,
-        Config::Sensors::ND030D::ODR);
+    nd030a = std::make_unique<ND030A>(
+        getModule<Buses>()->getND030A(), sensors::ND030A::cs::getPin(),
+        spiConfig, Config::Sensors::ND030A::FSR, Config::Sensors::ND030A::IOW,
+        Config::Sensors::ND030A::BWL, Config::Sensors::ND030A::NTC,
+        Config::Sensors::ND030A::ODR);
 }
 
-void Sensors::nd030dCallback()
+void Sensors::nd030aCallback()
 {
-    sdLogger.log(DynamicPressureData{getND030DDataLastSample()});
+    sdLogger.log(DynamicPressureData{getND030ADataLastSample()});
 }
 
 bool Sensors::sensorManagerInit()
@@ -213,11 +214,11 @@ bool Sensors::sensorManagerInit()
         map.emplace(nd015a.get(), info);
     }
 
-    if (nd030d)
+    if (nd030a)
     {
-        SensorInfo info{"ND030D", Config::Sensors::ND030D::RATE,
-                        [this]() { nd030dCallback(); }};
-        map.emplace(nd030d.get(), info);
+        SensorInfo info{"ND030A", Config::Sensors::ND030A::RATE,
+                        [this]() { nd030aCallback(); }};
+        map.emplace(nd030a.get(), info);
     }
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
