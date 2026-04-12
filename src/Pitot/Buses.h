@@ -41,7 +41,7 @@ public:
     Buses() {}
 
     Boardcore::SPIBus& getND015A() { return spi1; }
-    Boardcore::SPIBus& getND030D() { return spi1; }
+    Boardcore::SPIBus& getND030A() { return spi1; }
 
     Boardcore::SPIBus& getThermocouple() { return spi4; }
 

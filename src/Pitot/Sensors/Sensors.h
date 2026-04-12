@@ -26,7 +26,7 @@
 #include <Pitot/Configs/SensorsConfig.h>
 #include <Pitot/Sensors/SensorData.h>
 #include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030D/ND030D.h>
+#include <sensors/ND030X/ND030X.h>
 #include <sensors/SensorManager.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -53,7 +53,7 @@ public:
     Boardcore::InternalADCData getinternalADCLastSample();
 
     Boardcore::ND015XData getND015ADataLastSample();
-    Boardcore::ND030XData getND030DDataLastSample();
+    Boardcore::ND030XData getND030ADataLastSample();
 
     StaticPressureData getStaticPressureLastSample();
     DynamicPressureData getDynamicPressureLastSample();
@@ -70,7 +70,7 @@ protected:
 
     // Digital sensors
     std::unique_ptr<Boardcore::ND015A> nd015a;
-    std::unique_ptr<Boardcore::ND030D> nd030d;
+    std::unique_ptr<Boardcore::ND030A> nd030a;
     std::unique_ptr<Boardcore::InternalADC> internalADC;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
@@ -83,8 +83,8 @@ private:
     void nd015aInit();
     void nd015aCallback();
 
-    void nd030dInit();
-    void nd030dCallback();
+    void nd030aInit();
+    void nd030aCallback();
 
     bool sensorManagerInit();
 
