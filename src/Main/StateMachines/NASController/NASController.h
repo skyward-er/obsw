@@ -37,8 +37,8 @@ namespace Main
 
 class NASController
     : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder, AlgoReference>,
+      public Boardcore::InjectableWithDeps<
+          BoardScheduler, Sensors, StatsRecorder, AlgoReference, ADAController>,
       public ReferenceSubscriber
 {
 public:
@@ -66,7 +66,8 @@ private:
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
+    void state_active_ascent(const Boardcore::Event& event);
+    void state_active_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
     void updateAndLogStatus(NASControllerState state);
