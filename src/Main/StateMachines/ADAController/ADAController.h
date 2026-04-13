@@ -49,6 +49,12 @@ public:
 
     Boardcore::ADAState getADAState();
 
+    // NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS CONTROLLER
+    int ADAController::getVerticalVelocityCovariance();
+
+    // NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS CONTROLLER
+    ADAState ADAController::getADAStateTemp();
+
     ADAControllerState getState();
 
     float getDeploymentAltitude();
