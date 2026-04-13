@@ -24,6 +24,7 @@
 
 #include <Main/Configs/NASConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
@@ -123,7 +124,7 @@ void NASController::update()
 
     Lock<FastMutex> lock{nasMutex};
 
-    if (curState == NASControllerState::ACTIVE)
+    if (curState == NASControllerState::ACTIVE_ASCENT)
     {
         Sensors* sensors = getModule<Sensors>();
 
@@ -211,6 +212,27 @@ void NASController::update()
 
         getModule<StatsRecorder>()->updateNas(state);
         sdLogger.log(state);
+    }
+
+    if (curState == NASControllerState::ACTIVE_DESCENT)
+    {
+        Sensors* sensors      = getModule<Sensors>();
+        ADAController* adaRef = getModule<ADAController>();
+
+        auto prevState = nas.getState();
+
+        // Pack up inputs
+        auto baro =
+            sensors->getAtmosPressureLastSample();  // check for struct
+                                                    // alignment with chad,
+                                                    // might need to break it up
+        auto gps = sensors->getUBXGPSLastSample();
+
+        auto adaVerticalSpeed =
+            adaRef->getMaxVerticalSpeed();  // Check if this is the correct data
+                                            // wanted by GNC
+        auto adaTimestamp;
+        auto adaCovariance;
     }
 }
 
@@ -318,19 +340,24 @@ void NASController::state_ready(const Event& event)
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
-            transition(&NASController::state_active);
+            transition(&NASController::state_active_ascent);
             break;
         }
     }
 }
 
-void NASController::state_active(const Event& event)
+void NASController::state_active_ascent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(NASControllerState::ACTIVE);
+            updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
+            break;
+        }
+        case FLIGHT_APOGEE_DETECTED:
+        {
+            transition(&NASController::state_active_descent);
             break;
         }
         case FLIGHT_LANDING_DETECTED:
@@ -343,6 +370,28 @@ void NASController::state_active(const Event& event)
         {
             transition(&NASController::state_ready);
             break;
+        }
+    }
+}
+
+void NASController::state_active_descent(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(NASControllerState::ACTIVE_DESCENT);
+            break;
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+        case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            transition(&NASController::state_ready);
         }
     }
 }
