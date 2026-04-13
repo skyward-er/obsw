@@ -115,19 +115,17 @@ void StatsRecorder::updateAcc(const AccelerometerData& data)
     }
 }
 
-void StatsRecorder::updateNas(const NASState& data)
+void StatsRecorder::updateANAS(const ANASState& data)
 {
     auto state = getModule<FlightModeManager>()->getState();
 
     Lock<FastMutex> lock{statsMutex};
     if (state == FlightModeManagerState::POWERED_ASCENT ||
-        state == FlightModeManagerState::UNPOWERED_ASCENT ||
-        state == FlightModeManagerState::DROGUE_DESCENT ||
-        state == FlightModeManagerState::TERMINAL_DESCENT)
+        state == FlightModeManagerState::UNPOWERED_ASCENT)
     {
-        // Record this event only during flight
         float speed = Vector3f{data.vn, data.vd, data.ve}.norm();
-        float alt   = -data.d;
+        // Check se position è giusto
+        float alt = -data.d;
 
         if (speed > stats.maxSpeed)
         {
@@ -136,8 +134,8 @@ void StatsRecorder::updateNas(const NASState& data)
             stats.maxSpeedTs  = data.timestamp;
         }
 
-        // TODO: Grab ref temperature from global ReferenceValues
         float mach = Aeroutils::computeMach(
+            // check se position è giusto;
             data.d, speed,
             ReferenceConfig::defaultReferenceValues.refTemperature);
 
@@ -146,6 +144,44 @@ void StatsRecorder::updateNas(const NASState& data)
             stats.maxMach   = mach;
             stats.maxMachTs = data.timestamp;
         }
+    }
+}
+
+void StatsRecorder::updateNASDAQ(const NASDAQState& data)
+{
+    auto state = getModule<FlightModeManager>()->getState();
+
+    Lock<FastMutex> lock{statsMutex};
+
+    if (state == FlightModeManagerState::DROGUE_DESCENT ||
+        state == FlightModeManagerState::TERMINAL_DESCENT)
+    {
+        float vertSpeed = data.vz;
+        float hSpeed    = Vector2f(data.vx, data.vy).norm();
+
+        if (vertSpeed > stats.maxDescentVertSpeed)
+        {
+            stats.maxDescentVertSpeed   = vertSpeed;
+            stats.maxDescentVertSpeedTs = data.timestamp;
+        }
+
+        if (hSpeed > stats.maxDescentHorizSpeed)
+        {
+            stats.maxDescentHorizSpeed   = hSpeed;
+            stats.maxDescentHorizSpeedTs = data.timestamp;
+        }
+
+        // Update running averages accumulators
+        stats.descentVertSpeedSum += vertSpeed;
+        stats.descentVertSpeedCount++;
+        stats.descentHorizSpeedSum += hSpeed;
+        stats.descentHorizSpeedCount++;
+
+        // Compute averages
+        stats.avgDescentVertSpeed =
+            stats.descentVertSpeedSum / stats.descentVertSpeedCount;
+        stats.avgDescentHorizSpeed =
+            stats.descentHorizSpeedSum / stats.descentHorizSpeedCount;
     }
 }
 

@@ -37,48 +37,18 @@ namespace NAS
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE         = 50_hz;
-constexpr float UPDATE_RATE_SECONDS = 1.0 / UPDATE_RATE.value();  // [s]
+constexpr Hertz UPDATE_RATE_ANAS         = 50_hz;
+constexpr Hertz UPDATE_RATE_NASDAQ = 100_hz;
+constexpr float UPDATE_RATE_ANAS_SECONDS = 1.0 / UPDATE_RATE_ANAS.value();  // [s]
+constexpr float UPDATE_RATE_NASDAQ_SECONDS = 1.0 / UPDATE_RATE_NASDAQ.value();  // [s]
 
 constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
 constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
 
-static const Boardcore::NASConfig CONFIG = {
-    .T                   = UPDATE_RATE_SECONDS,
-    .SIGMA_BETA          = 0.0001,
-    .SIGMA_W             = 0.0031,
-    .SIGMA_ACC           = 0.035,
-    .SIGMA_MAG           = 0.0038,
-    .SIGMA_GPS           = {0.0179f, 0.0179f, 0.0996f, 0.0996f},
-    .SIGMA_BAR           = 68.0f,
-    .SIGMA_POS           = 0.02,
-    .SIGMA_VEL           = 0.01,
-    .SIGMA_PITOT_STATIC  = 25.0,
-    .SIGMA_PITOT_DYNAMIC = 75.0,
-    .P_POS               = 0.0,
-    .P_POS_VERTICAL      = 0.0,
-    .P_VEL               = 0.0,
-    .P_VEL_VERTICAL      = 0.0,
-    .P_ATT               = 0.1,
-    .P_BIAS              = 0.01,
-    .SATS_NUM            = 6.0,
-    .NED_MAG             = Common::ReferenceConfig::nedMag};
+constexpr int INITIAL_POSITION = 0;
+constexpr int INITIAL_VELOCITY = 0;
 
-// Only use one out of every 50 samples (1 Hz)
-constexpr int MAGNETOMETER_DECIMATE = 50;
-
-// Maximum allowed acceleration to correct with GPS
-constexpr float DISABLE_GPS_ACCELERATION = 34.0f;  // [m/s^2]
-
-// How much confidence (in m/s^2) to apply to the accelerometer to check if it
-// is 1g
-constexpr float ACCELERATION_1G_CONFIDENCE = 0.5;
-// How many samples will determine that we are in fact measuring gravity
-// acceleration
-constexpr int ACCELERATION_1G_SAMPLES = 200;
-
-// Mach number under which we disable the pitot correction
-constexpr float PITOT_MACH_THRESHOLD = 0.35;
+constexpr float INITIAL_COVARIANCE_DIAGONAL = 0.1;
 
 }  // namespace NAS
 
