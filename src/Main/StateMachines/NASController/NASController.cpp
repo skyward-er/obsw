@@ -24,11 +24,11 @@
 
 #include <Main/Configs/NASConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <algorithms/NAS/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
@@ -43,7 +43,9 @@ using namespace Eigen;
 NASController::NASController()
     : FSM{&NASController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::NAS_PRIORITY},
-      nas{Config::NAS::CONFIG}
+
+        anas{},
+        nasdaq{}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -53,12 +55,20 @@ bool NASController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
-    size_t result =
-        scheduler.addTask([this]() { update(); }, Config::NAS::UPDATE_RATE);
 
-    if (result == 0)
+    anasID =
+        scheduler.addTask([this]() { updateANAS(); }, Config::NAS::UPDATE_RATE_ANAS);
+
+    if (anasID == 0)
     {
-        LOG_ERR(logger, "Failed to add NAS update task");
+        LOG_ERR(logger, "Failed to add ANAS update task");
+        return false;
+    }
+
+    nasdaqID = scheduler.addTask([this]() { updateNASDAQ(); }, Config::NAS::UPDATE_RATE_NASDAQ); 
+
+    if (nasdaqID == 0) {
+        LOG_ERR(logger, "Failed to add NASDAQ update task");
         return false;
     }
 
@@ -67,6 +77,8 @@ bool NASController::start()
         LOG_ERR(logger, "Failed to start NAS FSM");
         return false;
     }
+
+    // Verrà cannonato, tutto questo verrà fatto dentro calibrate
 
     // Initialize reference
     auto algoRef        = getModule<AlgoReference>();
@@ -86,15 +98,39 @@ bool NASController::start()
 
     nas.setX(x);
 
+
+    scheduler.disableTask(anasID);
+    scheduler.disableTask(nasdaqID);
+
     return true;
 }
 
 NASControllerState NASController::getState() { return state; }
 
-NASState NASController::getNASState()
+ANASState NASController::getANASState()
 {
     Lock<FastMutex> lock{nasMutex};
-    return nas.getState();
+
+    auto rawOutput = anas.getNASOut();
+
+    // Devo passare questo o il timestamp interno?
+    uint64_t timestamp = miosix::getTime();
+
+    ANASState state(timestamp, rawOutput.Position, rawOutput.Velocity,
+                    rawOutput.Quaternion);
+
+    return state;
+}
+
+NASDAQState NASController::getNASDAQState()
+{
+    Lock<FastMutex> lock{nasMutex};
+
+    auto rawOutput = nasdaq.getNASDAQ_Out();
+
+    uint64_t timestamp = miosix::getTime();
+
+    NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
 }
 
 void NASController::setOrientation(Eigen::Quaternion<float> quat)
@@ -111,23 +147,30 @@ void NASController::setOrientation(Eigen::Quaternion<float> quat)
     nas.setX(x);
 }
 
+// Da cambiare
 void NASController::onReferenceChanged(const ReferenceValues& ref)
 {
     Lock<FastMutex> l(nasMutex);
     nas.setReferenceValues(ref);
 }
 
-void NASController::update()
+// Set Block Parameters e reference ANAS
+void NASController::onANASReferenceChanged() {}
+
+void NASController::onNASDAQReferenceChanged() {}
+
+
+void NASController::updateANAS()
 {
-    NASControllerState curState = state;
 
-    Lock<FastMutex> lock{nasMutex};
-
-    if (curState == NASControllerState::ACTIVE)
+    if (state == NASControllerState::ACTIVE_ASCENT)
     {
+
+        Lock<FastMutex> lock{nasMutex};
+
         Sensors* sensors = getModule<Sensors>();
 
-        auto prevState    = nas.getState();
+        auto prevState    = getANASState();
         auto ref          = getModule<AlgoReference>()->getReferenceValues();
         float mslAltitude = ref.refAltitude - prevState.d;
         float mach        = Aeroutils::computeMach(-mslAltitude, -prevState.vd,
@@ -138,84 +181,105 @@ void NASController::update()
         auto staticPitot  = sensors->getCanPitotStaticPressure();
         auto dynamicPitot = sensors->getCanPitotDynamicPressure();
 
-        // Calculate acceleration
-        Vector3f acc    = static_cast<AccelerometerData>(imu);
-        float accLength = acc.norm();
+        ANAS0_types_h_::NASIn inputs = {
+            .AccMeasure   = {imu.accelerationX, imu.accelerationY,
+                             imu.accelerationZ},
+            .AccTimestamp = imu.accelerationTimestamp,
 
-        // Perform initial NAS prediction
-        // TODO: What about stale data?
-        nas.predictGyro(imu);
-        nas.predictAcc(imu);
+            .GyroMeasure   = {imu.angularSpeedX, imu.angularSpeedY,
+                              imu.angularSpeedZ},
+            .GyroTimestamp = (imu.angularSpeedTimestamp),
 
-        // Then perform necessary corrections
-        // Disable magnetometer correction
-        // if (lastMagTimestamp < imu.magneticFieldTimestamp &&
-        //     magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
-        // {
-        //     nas.correctMag(imu);
-        //     magDecimateCount = 0;
-        // }
-        // else
-        // {
-        //     magDecimateCount++;
-        // }
+            .BaroMeasure   = baro.pressure,
+            .BaroTimestamp = baro.pressureTimestamp,
 
-        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
-            accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
-        {
-            nas.correctGPS(gps);
-        }
+            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
+            .GPSTimestamp     = gps.gpsTimestamp,
+            .GPSHorizAccuracy = gps.hAcc,
+            .GPSVertAccuracy  = gps.sAcc,
 
-        if (lastBaroTimestamp < baro.pressureTimestamp)
-            nas.correctBaro(baro.pressure);
+            .PitotMeasure   = {staticPitot.pressure, dynamicPitot.pressure},
+            .PitotTimestamp = staticPitot.pressureTimestamp,
+            .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
+                               imu.magneticFieldZ},
+            .MagTimestamp   = {imu.magneticFieldTimestamp}};
 
-        // Correct with pitot if one pressure sample is new
-        if (dynamicPitot.pressure > 0 &&
-            (staticPitotTimestamp < staticPitot.pressureTimestamp ||
-             dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
-            mach > Config::NAS::PITOT_MACH_THRESHOLD)
-        {
-            nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
-        }
+        anas.setNASIn(inputs);
+        anas.step();
 
-        // Correct with accelerometer if the acceleration is in specs
-        if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-            nas.correctAcc(imu);
+        ANASLogsData logs(miosix::getTime(), anas.getNASLogs());
 
-        // Check if the accelerometer is measuring 1g
-        if (accLength <
-                (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
-            accLength >
-                (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
-        {
-            if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-                acc1gSamplesCount++;
-            else
-                acc1g = true;
-        }
-        else
-        {
-            acc1gSamplesCount = 0;
-            acc1g             = false;
-        }
+        getModule<StatsRecorder>()->updateANAS(getANASState());
 
-        lastGyroTimestamp     = imu.angularSpeedTimestamp;
-        lastAccTimestamp      = imu.accelerationTimestamp;
-        lastMagTimestamp      = imu.magneticFieldTimestamp;
-        lastGpsTimestamp      = gps.gpsTimestamp;
-        lastBaroTimestamp     = baro.pressureTimestamp;
-        staticPitotTimestamp  = staticPitot.pressureTimestamp;
-        dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
-
-        auto state = nas.getState();
-
-        getModule<StatsRecorder>()->updateNas(state);
-        sdLogger.log(state);
+        sdLogger.log(getANASState());
+        sdLogger.log(logs);
     }
 }
 
+void NASController::updateNASDAQ() {
+    
+    if (state == NASControllerState::DESCENT)
+    {
+
+        Lock<FastMutex> lock{nasMutex};
+
+        Sensors* sensors      = getModule<Sensors>();
+        ADAController* adaRef = getModule<ADAController>();
+
+        // Pack up inputs
+        auto baro =
+            sensors->getAtmosPressureLastSample();  // check for struct
+                                                    // alignment with chad,
+                                                    // might need to break it up
+        auto gps = sensors->getUBXGPSLastSample();
+
+        auto adaVerticalSpeed =
+            adaRef->getMaxVerticalSpeed();  // Check if this is the correct data
+                                            // wanted by GNC
+
+        auto adaTimestamp  = adaRef->getADAStateTemp().timestamp;
+        auto adaCovariance = adaRef->getVerticalVelocityCovariance();
+
+        NASDAQ0_types_h_::NASDAQInADA ADAIn = {
+            .VerticalSpeed           = adaVerticalSpeed,
+            .VerticalSpeedCovariance = adaCovariance,
+            .Timestamp               = miosix::getTime()};
+
+        NASDAQ0_types_h_::NASDAQInSensors sensorIn = {
+            .BaroMeasure   = baro.pressure,
+            .BaroTimestamp = baro.pressureTimestamp,
+            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
+            .GPSTimestamp = gps.gpsTimestamp};
+
+        // Feed inputs
+
+        nasdaq.setNASDAQ_In_ADA(ADAIn);
+        nasdaq.setNASDAQ_In_Sensors(sensorIn);
+
+        // Step
+        nasdaq.step();
+
+        // Update and log
+
+        NASDAQLogsWrapper logs(miosix::getTime(), nasdaq.getNASDAQ_Logs_OBSW());
+
+        sdLogger.log(getNASDAQState());
+        sdLogger.log(logs);
+
+        // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
+        // dello stato della state
+
+        getModule<StatsRecorder>()->updateNASDAQ(getNASDAQState());
+    }
+}
+
+// Serve, ma ho bisogno dell'anas per caricare i reference values
+// Da rivedere
 void NASController::calibrate()
 {
+
+    // Aggiungere posizione e velocità (file di config a zero) quaternioni invece da triad e setta i param iniziali
+    // Set stato e covarianza
     Sensors* sensors = getModule<Sensors>();
 
     Vector3f accAcc = Vector3f::Zero();
@@ -318,19 +382,28 @@ void NASController::state_ready(const Event& event)
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
-            transition(&NASController::state_active);
+            transition(&NASController::state_active_ascent);
             break;
         }
     }
 }
 
-void NASController::state_active(const Event& event)
+void NASController::state_active_ascent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(NASControllerState::ACTIVE);
+            TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+
+            scheduler.enableTask(anasID);
+
+            updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
+            break;
+        }
+        case FLIGHT_APOGEE_DETECTED:
+        {
+            transition(&NASController::state_descent);
             break;
         }
         case FLIGHT_LANDING_DETECTED:
@@ -343,6 +416,41 @@ void NASController::state_active(const Event& event)
         {
             transition(&NASController::state_ready);
             break;
+        }
+    }
+}
+
+void NASController::state_descent(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+
+            TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+
+            ANAS_NASDAQ ANASOutNASDAQIn = {
+
+                .LinearCovariance = *anas.getNASFinal().LinearCovariance,
+                .Position         = *anas.getNASOut().Position,
+                .Velocity         = *anas.getNASOut().Velocity};
+
+            nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
+            scheduler.enableTask(nasdaqID);
+            scheduler.disableTask(anasID);
+
+            updateAndLogStatus(NASControllerState::DESCENT);
+            break;
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+        case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            transition(&NASController::state_ready);
         }
     }
 }
@@ -362,6 +470,6 @@ void NASController::state_end(const Event& event)
 void NASController::updateAndLogStatus(NASControllerState state)
 {
     this->state              = state;
-    NASControllerStatus data = {TimestampTimer::getTimestamp(), state};
+    NASControllerStatus data = {miosix::getTime(), state};
     sdLogger.log(data);
 }
