@@ -144,6 +144,10 @@ void ADAController::setShadowModeTime(milliseconds time)
     shadowModeTime = time;
 }
 
+// NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS
+// CONTROLLER
+int ADAController::getVerticalVelocityCovariance() { return; };
+
 ADAControllerState ADAController::getState() { return state; }
 
 void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)

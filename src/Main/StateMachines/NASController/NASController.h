@@ -25,9 +25,15 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/NAS/NAS.h>
+#include <algorithms/ANAS/ANAS0.h>
+#include <algorithms/ANAS/ANAS0_types.h>
+#include <algorithms/ANAS/ANASData.h>
+#include <algorithms/NASDAQ/NASDAQ0.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
+#include <algorithms/NASDAQ/NASDAQ0_types.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -37,16 +43,20 @@ namespace Main
 
 class NASController
     : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder, AlgoReference>,
+      public Boardcore::InjectableWithDeps<
+          BoardScheduler, Sensors, StatsRecorder, AlgoReference, ADAController>,
       public ReferenceSubscriber
 {
 public:
     NASController();
+    virtual ~NASController() noexcept = default;
 
     [[nodiscard]] bool start() override;
 
     Boardcore::NASState getNASState();
+
+    Boardcore::ANASState NASController::getANASState();
+    Boardcore::NASDAQState NASController::getNASDAQState();
 
     NASControllerState getState();
 
@@ -58,15 +68,21 @@ public:
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
+    void NASController::onANASReferenceChanged();
+    void NASController::onNASDAQReferenceChanged();
+
 private:
-    void update();
+    void updateANAS();
+    void updateNASDAQ();
+
     void calibrate();
 
     // FSM states
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
+    void state_active_ascent(const Boardcore::Event& event);
+    void state_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
     void updateAndLogStatus(NASControllerState state);
@@ -77,7 +93,6 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
 
     miosix::FastMutex nasMutex;
-    Boardcore::NAS nas;
 
     int magDecimateCount  = 0;
     int acc1gSamplesCount = 0;
@@ -90,6 +105,12 @@ private:
     uint64_t lastBaroTimestamp     = 0;
     uint64_t staticPitotTimestamp  = 0;
     uint64_t dynamicPitotTimestamp = 0;
+
+    ANAS0 anas;
+    NASDAQ0 nasdaq;
+
+    size_t anasID;
+    size_t nasdaqID;
 };
 
 }  // namespace Main
