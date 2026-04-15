@@ -102,8 +102,12 @@ inline const char* servoToString(ServosList servo)
             return "OX_RELEASE_VALVE";
         case ServosList::OX_DETACH_SERVO:
             return "OX_DETACH_SERVO";
+        case ServosList::FUEL_DETACH_SERVO:
+            return "FUEL_DETACH_SERVO";
         case ServosList::OX_VENTING_VALVE:
             return "OX_VENTING_VALVE";
+        case ServosList::FUEL_VENTING_VALVE:
+            return "FUEL_VENTING_VALVE";
         case ServosList::PRZ_FILLING_VALVE:
             return "PRZ_FILLING_VALVE";
         case ServosList::PRZ_RELEASE_VALVE:
@@ -112,14 +116,20 @@ inline const char* servoToString(ServosList servo)
             return "PRZ_DETACH_SERVO";
         case ServosList::PRZ_3WAY_VALVE:
             return "PRZ_3WAY_VALVE";
-        case ServosList::MAIN_OX_VALVE:
-            return "MAIN_OX_VALVE";
         case ServosList::MAIN_FUEL_VALVE:
             return "MAIN_FUEL_VALVE";
+        case ServosList::MAIN_OX_VALVE:
+            return "MAIN_OX_VALVE";
         case ServosList::PRZ_FUEL_VALVE:
             return "PRZ_FUEL_VALVE";
         case ServosList::PRZ_OX_VALVE:
             return "PRZ_OX_VALVE";
+        case ServosList::IGNITION_FUEL_VALVE:
+            return "IGNITION_FUEL_VALVE";
+        case ServosList::IGNITION_OX_VALVE:
+            return "IGNITION_OX_VALVE";
+        case ServosList::PURGE_VALVE:
+            return "PRUGE_VALVE";
         default:
             return "UNKNOWN_SERVO";
     }
