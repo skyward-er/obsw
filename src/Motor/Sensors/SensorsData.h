@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Fabrizio Monti, Niccolò Betto
+ * Authors: Davide Mor, Fabrizio Monti, Niccolò Betto, RIccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,82 +29,82 @@
 namespace Motor
 {
 
-struct RegulatorOutPressureData : Boardcore::PressureData
+struct RegulatorOutOxPressureData : Boardcore::PressureData
 {
-    explicit RegulatorOutPressureData(const Boardcore::PressureData& data)
+    explicit RegulatorOutOxPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    RegulatorOutPressureData() {}
+    RegulatorOutOxPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(RegulatorOutPressureData,
+        return STRUCT_DEF(RegulatorOutOxPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
 
-struct OxTankTopPressureData : Boardcore::PressureData
+struct RegulatorOutFuelPressureData : Boardcore::PressureData
 {
-    explicit OxTankTopPressureData(const Boardcore::PressureData& data)
+    explicit RegulatorOutFuelPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    OxTankTopPressureData() {}
+    RegulatorOutFuelPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(OxTankTopPressureData,
+        return STRUCT_DEF(RegulatorOutFuelPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
 
-struct OxTankBottom0PressureData : Boardcore::PressureData
+struct OxTankPressureData : Boardcore::PressureData
 {
-    explicit OxTankBottom0PressureData(const Boardcore::PressureData& data)
+    explicit OxTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    OxTankBottom0PressureData() {}
+    OxTankPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(OxTankBottom0PressureData,
+        return STRUCT_DEF(OxTankPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
 
-struct OxTankBottom1PressureData : Boardcore::PressureData
+struct PrzTankPressureData : Boardcore::PressureData
 {
-    explicit OxTankBottom1PressureData(const Boardcore::PressureData& data)
+    explicit PrzTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    OxTankBottom1PressureData() {}
+    PrzTankPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(OxTankBottom1PressureData,
+        return STRUCT_DEF(PrzTankPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
 
-struct N2TankPressureData : Boardcore::PressureData
+struct FuelTankPressureData : Boardcore::PressureData
 {
-    explicit N2TankPressureData(const Boardcore::PressureData& data)
+    explicit FuelTankPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData{data}
     {
     }
 
-    N2TankPressureData() {}
+    FuelTankPressureData() {}
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(N2TankPressureData,
+        return STRUCT_DEF(FuelTankPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
@@ -121,6 +121,118 @@ struct CCPressureData : Boardcore::PressureData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(CCPressureData, EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct IgniterPressureData : Boardcore::PressureData
+{
+    explicit IgniterPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData{data}
+    {
+    }
+
+    IgniterPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(IgniterPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct MainFuelPositionData : Boardcore::ServoPositionData
+{
+    explicit MainFuelPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    MainFuelPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(MainFuelPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct PrzOxPositionData : Boardcore::ServoPositionData
+{
+    explicit PrzOxPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    PrzOxPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(PrzOxPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct PrzFuelPositionData : Boardcore::ServoPositionData
+{
+    explicit PrzFuelPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    PrzFuelPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(PrzFuelPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct VentingOxPositionData : Boardcore::ServoPositionData
+{
+    explicit VentingOxPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    VentingOxPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(VentingOxPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct VentingFuelPositionData : Boardcore::ServoPositionData
+{
+    explicit VentingFuelPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    VentingFuelPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(VentingFuelPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct PrzOxPositionData : Boardcore::ServoPositionData
+{
+    explicit PrzOxPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    PrzOxPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(PrzOxPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
     }
 };
 

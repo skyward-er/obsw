@@ -53,14 +53,18 @@ constexpr auto SAFETY_VENTING_TIMEOUT  = 45min;
 constexpr auto SAFETY_VENTING_DURATION = 10min;  // How long to vent
 
 constexpr float OX_VENTING_LIMIT   = 0.9f;
-constexpr float MAIN_LIMIT         = 0.9f;
-constexpr float NITROGEN_LIMIT     = 0.9f;
-constexpr float N2_QUENCHING_LIMIT = 1.0f;
+constexpr float FUEL_VENTING_LIMIT = 0.9f;
+constexpr float MAIN_OX_LIMIT      = 0.9f;
+constexpr float MAIN_FUEL_LIMIT    = 0.9f;
+constexpr float PRZ_OX_LIMIT       = 0.9f;
+constexpr float PRZ_FUEL_LIMIT     = 0.85f;
 
 constexpr bool OX_VENTING_FLIPPED   = true;
-constexpr bool MAIN_FLIPPED         = true;
-constexpr bool NITROGEN_FLIPPED     = true;
-constexpr bool N2_QUENCHING_FLIPPED = false;
+constexpr bool FUEL_VENTING_FLIPPED = true;
+constexpr bool MAIN_OX_FLIPPED      = true;
+constexpr bool MAIN_FUEL_FLIPPED    = true;
+constexpr bool PRZ_OX_FLIPPED       = true;
+constexpr bool PRZ_FUEL_FLIPPED     = true;
 
 }  // namespace Servos
 }  // namespace Config
