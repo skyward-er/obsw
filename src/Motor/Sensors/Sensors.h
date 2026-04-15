@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
+/* Copyright (c) 2024 Skyward Experimental Rocketry, Riccardo Sironi
  * Authors: Davide Mor, Fabrizio Monti, Niccolò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,12 +27,8 @@
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
-#include <sensors/H3LIS331DL/H3LIS331DL.h>
-#include <sensors/LIS2MDL/LIS2MDL.h>
-#include <sensors/LPS22DF/LPS22DF.h>
-#include <sensors/LSM6DSRX/LSM6DSRX.h>
-#include <sensors/MAX31856/MAX31856.h>
 #include <sensors/SensorManager.h>
+#include <sensors/analog/AnalogEncoder.h>
 #include <sensors/analog/TrafagPressureSensor.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -55,22 +51,25 @@ public:
     void calibrate();
 
     Boardcore::InternalADCData getInternalADCLastSample();
-    Boardcore::ADS131M08Data getADS131M08LastSample();
-    Boardcore::LPS22DFData getLPS22DFLastSample();
-    Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRXLastSample();
+    Boardcore::ADS131M08Data Sensors::getADC1LastSample();
+    Boardcore::ADS131M08Data Sensors::getADC2LastSample();
 
-    Boardcore::PressureData getRegulatorOutPressure();
-    Boardcore::PressureData getOxTankTopPressure();
-    Boardcore::PressureData getOxTankBottom0Pressure();
-    Boardcore::PressureData getOxTankBottom1Pressure();
-    Boardcore::PressureData getN2TankPressure();
     Boardcore::PressureData getCCPressure();
-    Boardcore::TemperatureData getThermocoupleTemperature();
+    Boardcore::PressureData getOxTankPressure();
+    Boardcore::PressureData getFuelTankPressure();
+    Boardcore::PressureData getPrzTankPressure();
+    Boardcore::PressureData getRegulatorOutOxPressure();
+    Boardcore::PressureData getRegulatorOutFuelPressure();
+    Boardcore::PressureData getIgniterPressure();
 
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::CurrentData getCurrentConsumption();
+
+    Boardcore::ServoPositionData getMainFuelPosition();
+    Boardcore::ServoPositionData getPrzOxPosition();
+    Boardcore::ServoPositionData getPrzFuelPosition();
+    Boardcore::ServoPositionData getVentingOxPosition();
+    Boardcore::ServoPositionData getVentingFuelPosition();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -79,64 +78,72 @@ protected:
 
     Boardcore::TaskScheduler& getSensorsScheduler();
 
-    // Digital sensors
-    std::unique_ptr<Boardcore::LPS22DF> lps22df;
-    std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
-    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx;
-    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
+    std::unique_ptr<Boardcore::ADS131M08> adc1;
+    std::unique_ptr<Boardcore::ADS131M08> adc2;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
-    std::unique_ptr<Boardcore::MAX31856> thermocouple;
 
     // Analog sensors
-    std::unique_ptr<Boardcore::TrafagPressureSensor> n2TankPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> regulatorOutPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankTopPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottom0Pressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankBottom1Pressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> fuelTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> przTankPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> regOutOxPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> regOutFuelPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> igniterPressure;
+
+    std::unique_ptr<Boardcore::AnalogEncoder> mainFuelPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> przOxPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> przFuelPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> ventingOxPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> ventingFuelPosition;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
-    void lps22dfInit();
-    void lps22dfCallback();
-
-    void h3lis331dlInit();
-    void h3lis331dlCallback();
-
-    void lis2mdlInit();
-    void lis2mdlCallback();
-
-    /// @brief Initialize both lsm6dsrx sensors.
-    void lsm6dsrxInit();
-    void lsm6dsrxCallback();
-
-    void ads131m08Init();
-    void ads131m08Callback();
-
     void internalAdcInit();
     void internalAdcCallback();
 
-    void thermocoupleInit();
-    void thermocoupleCallback();
+    void ads131m08_1Init();
+    void ads131m08_1Callback();
 
-    void regulatorOutPressureInit();
-    void regulatorOutPressureCallback();
+    void ads131m08_2Init();
+    void ads131m08_2Callback();
 
-    void oxTankTopPressureInit();
-    void oxTankTopPressureCallback();
+    void regulatorOutOxPressureInit();
+    void regulatorOutOxPressureCallback();
 
-    /// @brief Initialize both ox bottom pressure sensors.
-    void oxTankBottomPressureInit();
-    void oxTankBottom0PressureCallback();
-    void oxTankBottom1PressureCallback();
+    void regulatorOutFuelPressureInit();
+    void regulatorOutFuelPressureCallback();
 
-    void n2TankPressureInit();
-    void n2TankPressureCallback();
+    void oxTankPressureInit();
+    void oxTankPressureCallback();
+
+    void fuelTankPressureInit();
+    void fuelTankPressureCallback();
+
+    void przTankPressureInit();
+    void przTankPressureCallback();
+
+    void igniterPressureInit();
+    void igniterPressureCallback();
 
     void ccPressureInit();
     void ccPressureCallback();
+
+    void mainFuelPositionInit();
+    void mainFuelPositionCallback();
+
+    void przOxPositionInit();
+    void przOxPositionCallback();
+
+    void przFuelPositionInit();
+    void przFuelPositionCallback();
+
+    void ventingOxPositionInit();
+    void ventingOxPositionCallback();
+
+    void ventingFuelPositionInit();
+    void ventingFuelPositionCallback();
 
     bool sensorManagerInit();
 
