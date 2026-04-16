@@ -26,6 +26,12 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
 
+/**
+ * NOTE: Some fields in the telemetry message are currently commented out since
+ * they caused issues with the main and motor boards. Once the code of the main
+ * and motor boards is completed they will need to be updated to include the
+ * missing fields.
+ */
 using namespace Boardcore;
 
 namespace Common
@@ -134,33 +140,33 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
             data.oxVentingValveOpen = valveData.open;
             break;
 
-        case ServosList::FUEL_VENTING_VALVE:
-            data.fuelVentingValveOpen = valveData.open;
-            break;
+            /*case ServosList::FUEL_VENTING_VALVE:
+                data.fuelVentingValveOpen = valveData.open;
+                break;
 
-        case ServosList::PRZ_OX_VALVE:
-            data.przOxValveOpen = valveData.open;
-            break;
+            case ServosList::PRZ_OX_VALVE:
+                data.przOxValveOpen = valveData.open;
+                break;
 
-        case ServosList::PRZ_FUEL_VALVE:
-            data.przFuelValveOpen = valveData.open;
-            break;
+            case ServosList::PRZ_FUEL_VALVE:
+                data.przFuelValveOpen = valveData.open;
+                break;
 
-        case ServosList::MAIN_OX_VALVE:
-            data.mainOxValveOpen = valveData.open;
-            break;
+            case ServosList::MAIN_OX_VALVE:
+                data.mainOxValveOpen = valveData.open;
+                break;
 
-        case ServosList::MAIN_FUEL_VALVE:
-            data.mainFuelValveOpen = valveData.open;
-            break;
+            case ServosList::MAIN_FUEL_VALVE:
+                data.mainFuelValveOpen = valveData.open;
+                break;
 
-        case ServosList::IGNITION_OX_VALVE:
-            data.ignitionOxValveOpen = valveData.open;
-            break;
+            case ServosList::IGNITION_OX_VALVE:
+                data.ignitionOxValveOpen = valveData.open;
+                break;
 
-        case ServosList::IGNITION_FUEL_VALVE:
-            data.ignitionFuelValveOpen = valveData.open;
-            break;
+            case ServosList::IGNITION_FUEL_VALVE:
+                data.ignitionFuelValveOpen = valveData.open;
+                break; */
 
         default:
         {
@@ -178,12 +184,12 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
     miosix::Lock<miosix::FastMutex> lock(mutex);
 
     return {
-        .timestamp              = TimestampTimer::getTimestamp(),
-        .prz_tank_pressure      = data.n2TankPressure.pressure,
+        .timestamp = TimestampTimer::getTimestamp(),
+        /* .prz_tank_pressure      = data.n2TankPressure.pressure,
         .ox_reg_out_pressure    = data.regulatorOutPressure.pressure,
         .fuel_reg_out_pressure  = data.regulatorOutPressure.pressure,
         .ox_tank_pressure       = data.oxTankTopPressure.pressure,
-        .fuel_tank_pressure     = data.oxTankBottom0Pressure.pressure,
+        .fuel_tank_pressure     = data.oxTankBottom0Pressure.pressure, */
         .battery_voltage        = data.batteryVoltage.voltage,
         .current_consumption    = data.currentConsumption.current,
         .log_number             = data.device.logNumber,
