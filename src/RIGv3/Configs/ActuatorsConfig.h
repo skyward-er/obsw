@@ -32,6 +32,8 @@ namespace RIGv3
 namespace Config
 {
 
+constexpr uint32_t SPARK_PLUG_TIMEOUT = 1000;  // ms
+
 namespace Expanders
 {
 constexpr Boardcore::I2CDriver::I2CSlaveConfig I2CExpander0Config{
@@ -81,8 +83,11 @@ constexpr uint32_t DEFAULT_OX_VEN_OPENING_TIME    = 15000;
 constexpr uint32_t DEFAULT_PRZ_QUE_OPENING_TIME   = 15000;
 constexpr uint32_t DEFAULT_MAIN_OX_OPENING_TIME   = 15000;
 constexpr uint32_t DEFAULT_FUEL_VEN_OPENING_TIME  = 15000;
-constexpr uint32_t DEFAULT_IGN_OX_OPENING_TIME    = 15000;
-constexpr uint32_t DEFAULT_IGN_FUEL_OPENING_TIME  = 15000;
+constexpr uint32_t DEFAULT_IGN_OX_OPENING_TIME    = 5000;
+constexpr uint32_t DEFAULT_IGN_FUEL_OPENING_TIME  = 5000;
+constexpr uint32_t DEFAULT_PRZ_DET_OPENING_TIME   = 15000;
+constexpr uint32_t DEFAULT_OX_DET_OPENING_TIME    = 15000;
+constexpr uint32_t DEFAULT_PURGE_OPENING_TIME     = 5000;
 
 constexpr float DEFAULT_OX_FIL_MAX_APERTURE    = 1.0;
 constexpr float DEFAULT_OX_REL_MAX_APERTURE    = 0.55;
@@ -97,6 +102,9 @@ constexpr float DEFAULT_MAIN_OX_MAX_APERTURE   = 1.0;
 constexpr float DEFAULT_FUEL_VEN_MAX_APERTURE  = 1.0;
 constexpr float DEFAULT_IGN_OX_MAX_APERTURE    = 1.0;
 constexpr float DEFAULT_IGN_FUEL_MAX_APERTURE  = 1.0;
+constexpr float DEFAULT_PRZ_DET_MAX_APERTURE   = 1.0;
+constexpr float DEFAULT_OX_DET_MAX_APERTURE    = 1.0;
+constexpr float DEFAULT_PURGE_MAX_APERTURE     = 1.0;
 
 constexpr float OX_FIL_LIMIT    = 0.9;
 constexpr float OX_REL_LIMIT    = 0.9;
@@ -112,6 +120,9 @@ constexpr float MAIN_OX_LIMIT   = 1.0;
 constexpr float FUEL_VEN_LIMIT  = 0.9;
 constexpr float IGN_FUEL_LIMIT  = 1.0;
 constexpr float IGN_OX_LIMIT    = 1.0;
+constexpr float PRZ_DET_LIMIT   = 1.0;
+constexpr float OX_DET_LIMIT    = 1.0;
+constexpr float PURGE_LIMIT     = 1.0;
 
 constexpr bool OX_FIL_FLIPPED    = true;
 constexpr bool OX_REL_FLIPPED    = true;
@@ -128,6 +139,9 @@ constexpr bool MAIN_OX_FLIPPED   = true;
 constexpr bool FUEL_VEN_FLIPPED  = true;
 constexpr bool IGN_OX_FLIPPED    = false;
 constexpr bool IGN_FUEL_FLIPPED  = false;
+constexpr bool PRZ_DET_FLIPPED   = false;
+constexpr bool OX_DET_FLIPPED    = false;
+constexpr bool PURGE_FLIPPED     = false;
 
 }  // namespace Servos
 }  // namespace Config

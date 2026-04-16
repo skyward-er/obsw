@@ -24,6 +24,7 @@
 
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/CanHandler/CanHandler.h>
+#include <RIGv3/Expander/GpioExpander.h>
 #include <RIGv3/Registry/Registry.h>
 #include <Valve/Valve.h>
 #include <actuators/Servo/Servo.h>
@@ -37,9 +38,10 @@
 namespace RIGv3
 {
 
-class Actuators : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
-                                                       CanHandler, Registry>,
-                  public Boardcore::SignaledDeadlineTask
+class Actuators
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler,
+                                           Registry, GpioExpander>,
+      public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for when no action is needed
@@ -88,6 +90,11 @@ private:
         {
         }
 
+        // The default constructor is needed since PCA valves require the
+        // expanders to be created which, in turn require the I2C bus form the
+        // Buses module which is injected in the Actuators module.
+        ManualValveInfo() = default;
+
         float stepCount  = 0;     ///< Number of steps for the current animation
         float stepAmount = 0.0f;  ///< Amount of one animation step
         // Time when the valve should be moved next during an animation
@@ -127,7 +134,7 @@ public:
     bool setMaxAperture(ServosList servo, float aperture);
     bool setOpeningTime(ServosList servo, uint32_t time);
     bool isValveOpen(ServosList servo);
-    uint32_t getServoOpeningTime(ServosList servo);
+    uint32_t getValveOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
 
     ValveState getValveState(ServosList servo);
@@ -166,7 +173,7 @@ private:
     std::shared_ptr<Boardcore::PCA9685> expander1;
 
     // PRZ 3-way valve info
-    ValveInfo prz_3wayValveInfo;
+    ManualValveInfo prz_3wayValveInfo;
     std::atomic<bool> prz_3wayValveState{false};
     std::atomic<bool> prz_3wayValveStateChanged{true};
 

@@ -24,6 +24,7 @@
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Buses.h>
 #include <RIGv3/CanHandler/CanHandler.h>
+#include <RIGv3/Expander/GpioExpander.h>
 #include <RIGv3/Radio/Radio.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
@@ -58,6 +59,7 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
+    auto gpioExpander      = new GpioExpander();
     auto sensors           = new Sensors();
     auto actuators         = new Actuators();
     auto registry          = new Registry();
@@ -87,6 +89,7 @@ int main()
     initResult &=
         manager.insert<Buses>(buses) &&
         manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<GpioExpander>(gpioExpander) &&
         manager.insert<Actuators>(actuators) &&
         manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
         manager.insert<CanHandler>(canHandler) &&
@@ -158,6 +161,13 @@ int main()
     if (registry->load() != RegistryError::OK)
         std::cout << "* Warning: could not load a saved registry *"
                   << std::endl;
+
+    std::cout << "Starting GpioExpander" << std::endl;
+    if (!gpioExpander->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start GpioExpander ***" << std::endl;
+    }
 
     std::cout << "Starting Actuators" << std::endl;
     if (!actuators->start())

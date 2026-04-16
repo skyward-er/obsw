@@ -145,7 +145,7 @@ constexpr float MAX_CURRENT = 20.0f;  // [mA]
 
 constexpr float PRZ_VESSEL_1_MAX_PRESSURE = 400.0f;  // bar
 constexpr float PRZ_VESSEL_2_MAX_PRESSURE = 400.0f;  // bar
-constexpr float PRZ_FILLING_MAX_PRESSURE  = 400.0f;  // bar
+constexpr float PRZ_FILLING_MAX_PRESSURE  = 250.0f;  // bar
 constexpr float OX_VESSEL_MAX_PRESSURE    = 100.0f;  // bar
 constexpr float OX_FILLING_MAX_PRESSURE   = 100.0f;  // bar
 

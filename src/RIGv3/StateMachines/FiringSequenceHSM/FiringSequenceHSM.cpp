@@ -134,8 +134,6 @@ void FiringSequenceHSM::checkIgniterPressure()
             if (igniterFlameSamples >=
                 Config::FiringSequence::IGNITER_CONFIRMATION_SAMPLES)
             {
-                printf("Igniter flame confirmed\n");
-                Thread::sleep(10);
                 EventBroker::getInstance().post(FIRING_SEQUENCE_IGNITER_OK,
                                                 TOPIC_FIRING_SEQUENCE);
             }
@@ -153,13 +151,25 @@ void FiringSequenceHSM::checkPilotFlamePressure()
     PressureData chamberPressure =
         getModule<Sensors>()->getMainChamberPressure();
 
-    if (chamberPressure.pressure >=
-        Config::FiringSequence::MAIN_CHAMBER_SAFETY_THRESHOLD)
+    if (state != FiringSequenceState::READY)
     {
-        // If the pressure exceeds the safety threshold, abort
-        EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
-                                        TOPIC_FIRING_SEQUENCE);
-        return;
+        if (chamberPressure.pressure >=
+            Config::FiringSequence::MAIN_CHAMBER_SAFETY_THRESHOLD)
+        {
+            ccSafetySamples++;
+            if (ccSafetySamples >=
+                Config::FiringSequence::MAIN_CHAMBER_SAFETY_SAMPLES)
+            {
+                // If the pressure exceeds the safety threshold, abort
+                EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
+                                                TOPIC_FIRING_SEQUENCE);
+                return;
+            }
+        }
+        else
+        {
+            ccSafetySamples = 0;
+        }
     }
 
     if (state == FiringSequenceState::PILOT_FLAME_WAIT)
@@ -208,6 +218,7 @@ State FiringSequenceHSM::state_ready(const Event& event)
                     "Firing parameters not set, cannot start firing sequence");
                 return HANDLED;
             } */
+
             return transition(&FiringSequenceHSM::state_igniter);
         }
 

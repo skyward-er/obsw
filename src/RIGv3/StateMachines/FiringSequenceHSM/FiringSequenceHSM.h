@@ -80,6 +80,7 @@ private:
 
     uint16_t nextEventId = -1;
 
+    uint8_t ccSafetySamples     = 0;
     uint8_t igniterFlameSamples = 0;
     uint8_t pilotFlameSamples   = 0;
 

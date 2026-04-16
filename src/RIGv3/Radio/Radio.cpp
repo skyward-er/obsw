@@ -1206,23 +1206,17 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             getModule<Actuators>()->toggleValve(ServosList::OX_DETACH_SERVO);
             getModule<Actuators>()->toggleValve(ServosList::PRZ_DETACH_SERVO);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::OX_DETACH_SERVO);
+            enqueueValveInfoTm(ServosList::PRZ_DETACH_SERVO);
         }
 
         if (BUTTON_PRESSED(spare_0_btn))
         {
             // The detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-
-            getModule<Actuators>()->animateValve(ServosList::MAIN_OX_VALVE,
-                                                 1.0f, 5000);
-            getModule<Actuators>()->animateValve(ServosList::MAIN_FUEL_VALVE,
-                                                 1.0f, 5000);
-
-            EventBroker::getInstance().postDelayed(TMTC_ARM, TOPIC_MOTOR, 5100);
-            EventBroker::getInstance().postDelayed(TMTC_DISARM, TOPIC_MOTOR,
-                                                   5200);
-
+            getModule<Actuators>()->toggleValve(ServosList::PURGE_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::PURGE_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_1_btn))
@@ -1231,6 +1225,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleValve(ServosList::MAIN_OX_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_2_btn))
@@ -1239,6 +1234,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleValve(ServosList::MAIN_FUEL_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_3_btn))
@@ -1247,6 +1243,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleValve(ServosList::FUEL_VENTING_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::FUEL_VENTING_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_4_btn))
@@ -1263,6 +1260,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
         }
 
         if (SWITCH_CHANGED(tars_switch))

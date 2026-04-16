@@ -64,6 +64,10 @@ public:
     {
         return miosix::interfaces::spi2::cs2::getPin();
     }
+    miosix::GpioPin getGpioExpanderCsPin()
+    {
+        return miosix::gpioExpander::cs::getPin();
+    }
 
 private:
     Boardcore::I2C i2c1;

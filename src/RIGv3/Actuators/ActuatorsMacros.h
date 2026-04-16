@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Valve/ExternalSolenoidValve.h>
 #include <Valve/ServoPCAValve.h>
 #include <Valve/ServoValve.h>
 #include <Valve/SolenoidValve.h>
@@ -184,7 +185,7 @@
     }
 
 #define MAKE_SIMPLE_PCA_SERVO_VALVE(name, pca, channel)         \
-    ValveInfo                                                   \
+    ManualValveInfo                                             \
     {                                                           \
         std::make_unique<ServoPCAValve>(                        \
             ValveConfig{                                        \
@@ -212,4 +213,21 @@
                         .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,  \
                         .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE}, \
             pin)                                                               \
+    }
+
+#define MAKE_EXTERNAL_SOLENOID_VALVE(name, pin, expander)                      \
+    ValveInfo                                                                  \
+    {                                                                          \
+        std::make_unique<ExternalSolenoidValve>(                               \
+            ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
+                        .flipped = Config::Servos::name##_FLIPPED,             \
+                        .defaultOpeningTime =                                  \
+                            Config::Servos::DEFAULT_##name##_OPENING_TIME,     \
+                        .defaultMaxAperture =                                  \
+                            Config::Servos::DEFAULT_##name##_MAX_APERTURE,     \
+                        .openingEvent      = Common::MOTOR_##name##_OPEN,      \
+                        .closingEvent      = Common::MOTOR_##name##_CLOSE,     \
+                        .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,  \
+                        .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE}, \
+            pin, expander)                                                     \
     }
