@@ -73,6 +73,13 @@ class WingController
                                            NASController, FlightStatsRecorder,
                                            Sensors, LandingFlare>
 {
+private:
+    enum class FlareType
+    {
+        FULL,
+        PUMP
+    };
+
 public:
     /**
      * @brief Initializes the wing controller.
@@ -216,7 +223,7 @@ private:
      * @brief Flare the wing.
      * Pulls the two ropes as skydiving people do.
      */
-    void flareWing();
+    void flareWing(WingController::FlareType type);
 
     /**
      * @brief Pulls the two ropes a little bit

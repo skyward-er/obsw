@@ -212,7 +212,7 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
         {
             auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
-            flareWing();
+            flareWing(FlareType::PUMP);
             waitForServosToStop();
 
             dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
@@ -327,7 +327,7 @@ State WingController::FlyingControlledDescent(const Boardcore::Event& event)
             }
             else
             {
-                flareWing();
+                flareWing(FlareType::FULL);
                 ctrlFlareTimeoutEventId =
                     EventBroker::getInstance().postDelayed(
                         WING_LANDING_FLARE_STOP, TOPIC_FLIGHT,
@@ -791,12 +791,27 @@ void WingController::update()
         getCurrentAlgorithm().step();
 }
 
-void WingController::flareWing()
+void WingController::flareWing(WingController::FlareType type)
 {
-    getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO,
-                                          LandingFlareConfig::ANGLE_LEFT_SERVO);
+    switch (type)
+    {
+        case FlareType::FULL:
+{
+            getModule<Actuators>()->setServoAngle(
+                PARAFOIL_LEFT_SERVO, LandingFlareConfig::ANGLE_LEFT_SERVO);
     getModule<Actuators>()->setServoAngle(
         PARAFOIL_RIGHT_SERVO, LandingFlareConfig::ANGLE_RIGHT_SERVO);
+            return;
+        }
+        case FlareType::PUMP:
+        {
+            getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO,
+                                                  Deployment::PUMP_ANGLE_LEFT);
+            getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO,
+                                                  Deployment::PUMP_ANGLE_RIGHT);
+            return;
+        }
+    }
 }
 
 void WingController::tinyPull()

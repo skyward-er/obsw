@@ -162,8 +162,9 @@ constexpr float SCALE_FACTOR     = 1.1;
 namespace Deployment
 {
 
-constexpr auto PUMP_DELAY = 2s;
-
+constexpr auto PUMP_DELAY       = 2s;
+constexpr auto PUMP_ANGLE_LEFT  = 720_deg;
+constexpr auto PUMP_ANGLE_RIGHT = -720_deg;
 struct Pump
 {
     std::chrono::milliseconds flareTime;
