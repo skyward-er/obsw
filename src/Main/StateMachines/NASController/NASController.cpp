@@ -118,6 +118,8 @@ NASDAQState NASController::getNASDAQState()
     NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
 }
 
+// TODO Aggiungere getter per ANAS e NASDAQ
+
 void NASController::setOrientation(Eigen::Quaternion<float> quat)
 {
     // Need to lock mutex because the only invocation comes from the radio
