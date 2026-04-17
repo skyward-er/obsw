@@ -98,7 +98,6 @@ private:
 
     ANAS0 anas;
     NASDAQ0 nasdaq;
-    
 };
 
 }  // namespace Main

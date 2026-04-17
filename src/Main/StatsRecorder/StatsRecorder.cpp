@@ -118,33 +118,36 @@ void StatsRecorder::updateAcc(const AccelerometerData& data)
     }
 }
 
-void StatsRecorder::updateANAS(const NASOut& data) {
-
+void StatsRecorder::updateANAS(const NASOut& data)
+{
     auto state = getModule<FlightModeManager>()->getState();
 
     Lock<FastMutex> lock{statsMutex};
-    if (state == FlightModeManagerState::POWERED_ASCENT || state == FlightModeManagerState::UNPOWERED_ASCENT) {
+    if (state == FlightModeManagerState::POWERED_ASCENT ||
+        state == FlightModeManagerState::UNPOWERED_ASCENT)
+    {
         float speed = Vector3f::Map(data.Velocity).norm();
         // Check se position è giusto
         float alt = data.Position[2];
 
-        if (speed > stats.maxSpeed) {
-            stats.maxSpeed = speed;
+        if (speed > stats.maxSpeed)
+        {
+            stats.maxSpeed    = speed;
             stats.maxSpeedAlt = alt;
-            stats.maxSpeedTs = data.Timestamp;
+            stats.maxSpeedTs  = data.Timestamp;
         }
 
         float mach = Aeroutils::computeMach(
             // check se position è giusto;
-            data.Position[1], speed, ReferenceConfig::defaultReferenceValues.refTemperature
-        );
+            data.Position[1], speed,
+            ReferenceConfig::defaultReferenceValues.refTemperature);
 
-        if (mach > stats.maxMach) {
-            stats.maxMach = mach;
+        if (mach > stats.maxMach)
+        {
+            stats.maxMach   = mach;
             stats.maxMachTs = data.Timestamp;
         }
     }
-
 }
 
 // TODO
