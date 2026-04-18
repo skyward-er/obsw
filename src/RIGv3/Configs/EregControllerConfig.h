@@ -42,9 +42,9 @@ constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 70.0f;  // [Bar]
-constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
-constexpr float RAMPUP_INTEGRAL      = 0.0f;
+constexpr float TARGET_PRESSURE      = 67.0f;  // [Bar]
+constexpr float PILOT_FLAME_INTEGRAL = 0.1844f;
+constexpr float RAMPUP_INTEGRAL      = 1.4346f;
 constexpr Hertz UPDATE_RATE          = 100_hz;
 constexpr int FILTER_SAMPLES         = 3;
 
@@ -89,9 +89,9 @@ constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 70.0f;  // [Bar]
-constexpr float PILOT_FLAME_INTEGRAL = 0.0f;
-constexpr float RAMPUP_INTEGRAL      = 0.0f;
+constexpr float TARGET_PRESSURE      = 66.0f;  // [Bar]
+constexpr float PILOT_FLAME_INTEGRAL = 0.0502f;
+constexpr float RAMPUP_INTEGRAL      = 0.2511f;
 constexpr Hertz UPDATE_RATE          = 100_hz;
 constexpr int FILTER_SAMPLES         = 3;
 
@@ -106,7 +106,7 @@ const static Boardcore::EregPIDConfig STABILIZING_CONFIG = {
 };
 
 const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
-    .KP = 0.19f,
+    .KP = 1.4f,
     .KI = 0.2f,
     .KD = 0.02f,
 

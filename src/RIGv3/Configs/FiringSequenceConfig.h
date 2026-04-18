@@ -34,7 +34,7 @@ namespace FiringSequence
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto UPDATE_RATE = 100_hz;
+constexpr auto UPDATE_RATE = 10_hz;
 
 constexpr auto IGN_OX_OPENING_TIME   = 2500ms;
 constexpr auto IGN_FUEL_DELAY        = 100ms;
@@ -50,14 +50,14 @@ constexpr auto FULL_THROTTLE_TIME   = 4200ms;
 constexpr auto LOW_THROTTLE_TIME    = 100ms;
 
 // placeholder values
-constexpr float PILOT_OX_POSITION          = 0.5f;
-constexpr float PILOT_FUEL_POSITION        = 0.5f;
+constexpr float PILOT_OX_POSITION          = 0.266f;
+constexpr float PILOT_FUEL_POSITION        = 0.281f;
 constexpr float LOW_THROTTLE_OX_POSITION   = 0.0f;
 constexpr float LOW_THROTTLE_FUEL_POSITION = 0.0f;
 
 constexpr float IGNITER_PRESSURE_THRESHOLD         = 15.0f;  // bar
 constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 3;
-constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 6.0f;  // bar
+constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 2.5f;  // bar
 constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 3;
 
 }  // namespace FiringSequence
