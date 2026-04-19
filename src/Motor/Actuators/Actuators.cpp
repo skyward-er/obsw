@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto
+ * Authors: Davide Mor, Niccolò Betto, Riccardo Sironi, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,11 @@
 #include "Actuators.h"
 
 #include <Motor/Actuators/ActuatorsData.h>
+#include <Motor/Actuators/ActuatorsMacros.h>
 #include <Motor/Configs/ActuatorsConfig.h>
+#include <common/Events.h>
+#include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 
 #include <chrono>
@@ -31,112 +35,157 @@
 using namespace std::chrono;
 using namespace miosix;
 using namespace Boardcore;
+using namespace Common;
 using namespace Motor;
 
-const Actuators::TimePoint Actuators::ValveClosed = TimePoint{};
+const Actuators::TimePoint Actuators::noActionNeeded = TimePoint{};
 
-void Actuators::ServoInfo::openServoWithTime(uint32_t time)
+bool Actuators::ValveInfo::isValveOpen() { return valve->getPosition(); }
+
+void Actuators::ValveInfo::backstep()
 {
-    auto currentTime = Clock::now();
-
-    closeTs    = currentTime + milliseconds{time};
-    backstepTs = currentTime + Config::Servos::SERVO_BACKSTEP_DELAY;
+    valve->backstep();
+    backstepTs = noActionNeeded;  // Reset backstep time
 }
 
-void Actuators::ServoInfo::closeServo()
+void Actuators::ValveInfo::openValve()
 {
-    closeTs    = ValveClosed;
-    backstepTs = Clock::now() + Config::Servos::SERVO_BACKSTEP_DELAY;
+    valve->currentPosition = valve->getDefaultMaxAperture();
+    valve->direction       = Valve::Direction::OPEN;
+    backstepTs =
+        Clock::now() + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+
+    resetAnimation();
+
+    valve->setPosition(valve->currentPosition);
+
+    const uint8_t openingEvent = valve->getOpeningEvent();
+    if (openingEvent != 0)
+        EventBroker::getInstance().post(openingEvent, TOPIC_MOTOR);
 }
 
-void Actuators::ServoInfo::unsafeSetServoPosition(float position)
+void Actuators::ValveInfo::closeValve()
 {
-    // Check that the servo is actually there, just to be safe
-    if (!servo)
+    valve->currentPosition = 0.0f;
+    valve->direction       = Valve::Direction::CLOSE;
+    closeTs                = noActionNeeded;
+    backstepTs =
+        Clock::now() + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
+
+    resetAnimation();
+
+    valve->setPosition(valve->currentPosition);
+
+    const uint8_t closingEvent = valve->getClosingEvent();
+    if (closingEvent != 0)
+        EventBroker::getInstance().post(closingEvent, TOPIC_MOTOR);
+}
+
+void Actuators::ManualValveInfo::animateValve(float position, uint32_t time)
+{
+    // Nothing to animate
+    if (valve->currentPosition == position)
         return;
 
-    position *= limit;
-    if (flipped)
-        position = 1.0f - position;
+    valve->direction = position >= valve->currentPosition
+                           ? Valve::Direction::OPEN
+                           : Valve::Direction::CLOSE;
 
-    servo->setPosition(position);
+    // Account for the backstep amount, which will be applied later
+    switch (valve->direction)
+    {
+        case Valve::Direction::OPEN:
+            position += Config::Servos::SERVO_BACKSTEP_AMOUNT;
+            break;
+        case Valve::Direction::CLOSE:
+            position -= Config::Servos::SERVO_BACKSTEP_AMOUNT;
+            break;
+    }
+
+    // Clamp the position to the [0, 1] range
+    position = std::min(1.0f, std::max(0.0f, position));
+
+    float delta        = position - valve->currentPosition;
+    auto backstepDelay = milliseconds{static_cast<int>(
+        Config::Servos::SERVO_BACKSTEP_DELAY.count() * std::abs(delta))};
+
+    auto currentTime = Clock::now();
+    updateTs         = currentTime;  // Start the animation immediately
+    backstepTs       = currentTime + nanoseconds{msToNs(time)} + backstepDelay;
+    closeTs = noActionNeeded;  // The animate function does not close the servo
+                               // automatically
+
+    // we add one step since the first one will be taken immediately after
+    // calling this function
+    stepCount  = time / Config::Servos::ANIMATION_UPDATE_PERIOD.count() + 1;
+    stepAmount = delta / stepCount;
 }
 
-float Actuators::ServoInfo::getServoPosition()
+void Actuators::ManualValveInfo::advanceAnimation()
 {
-    // Check that the servo is actually there, just to be safe
-    if (!servo)
-        return 0.0f;
+    // Update the servo position
+    valve->currentPosition += stepAmount;
 
-    float position = servo->getPosition();
-    if (flipped)
-        position = 1.0f - position;
+    // Clamp position
+    valve->currentPosition =
+        std::min(1.0f, std::max(0.0f, valve->currentPosition));
 
-    position /= limit;
-    return position;
+    stepCount--;
+    if (stepCount == 0)
+    {
+        // The animation is done, reset updateTs
+        updateTs = noActionNeeded;
+    }
+    else
+    {
+        // The animation is not done, schedule the next update
+        updateTs = Clock::now() + Config::Servos::ANIMATION_UPDATE_PERIOD;
+    }
+
+    valve->setPosition(valve->currentPosition);
+}
+
+void Actuators::ManualValveInfo::resetAnimation()
+{
+    stepCount  = 0;
+    stepAmount = 0.0f;
+    updateTs   = noActionNeeded;
 }
 
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
-                           BoardScheduler::actuatorsPriority())
+                           BoardScheduler::actuatorsPriority()),
+      spark(std::make_unique<SparkPlug>(
+          MIOSIX_IGNITER_TIM, (uint16_t)50,
+          TimerUtils::Channel::MIOSIX_IGNITER_CHANNEL))
 {
-    {
-        ServoInfo* info = getServo(ServosList::OX_VENTING_VALVE);
-        info->servo     = std::make_unique<Servo>(
-            MIOSIX_SERVOS_0_TIM, TimerUtils::Channel::MIOSIX_SERVOS_0_CHANNEL,
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-            Config::Servos::FREQUENCY);
-
-        info->limit   = Config::Servos::OX_VENTING_LIMIT;
-        info->flipped = Config::Servos::OX_VENTING_FLIPPED;
-        info->unsafeSetServoPosition(0.0f);
-    }
-    {
-        ServoInfo* info = getServo(ServosList::MAIN_VALVE);
-        info->servo     = std::make_unique<Servo>(
-            MIOSIX_SERVOS_5_TIM, TimerUtils::Channel::MIOSIX_SERVOS_5_CHANNEL,
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-            Config::Servos::FREQUENCY);
-
-        info->limit   = Config::Servos::MAIN_LIMIT;
-        info->flipped = Config::Servos::MAIN_FLIPPED;
-        info->unsafeSetServoPosition(0.0f);
-    }
-    {
-        ServoInfo* info = getServo(ServosList::NITROGEN_VALVE);
-        info->servo     = std::make_unique<Servo>(
-            MIOSIX_SERVOS_4_TIM, TimerUtils::Channel::MIOSIX_SERVOS_4_CHANNEL,
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,
-            Config::Servos::FREQUENCY);
-
-        info->limit   = Config::Servos::NITROGEN_LIMIT;
-        info->flipped = Config::Servos::NITROGEN_FLIPPED;
-        info->unsafeSetServoPosition(0.0f);
-    }
-    {
-        ServoInfo* info = getServo(ServosList::N2_QUENCHING_VALVE);
-        info->servo     = std::make_unique<Servo>(
-            MIOSIX_SERVOS_3_TIM, TimerUtils::Channel::MIOSIX_SERVOS_3_CHANNEL,
-            Config::Servos::SMALL_MIN_PULSE, Config::Servos::SMALL_MAX_PULSE,
-            Config::Servos::FREQUENCY);
-
-        info->limit   = Config::Servos::N2_QUENCHING_LIMIT;
-        info->flipped = Config::Servos::N2_QUENCHING_FLIPPED;
-        info->unsafeSetServoPosition(0.0f);
-    }
 }
+
+bool Actuators::isStarted() { return started; }
 
 bool Actuators::start()
 {
+    initializeValves();
+
     // Enable all servos and close them to force a backstep
-    for (ServoInfo& info : infos)
+    for (auto& info : valveInfos)
     {
-        info.servo->enable();
-        info.closeServo();
+        info.valve->enable();
+        info.closeValve();
+        info.backstepTs = Clock::now() + milliseconds{2000};
+    }
+
+    for (auto& info : manualValveInfos)
+    {
+        info.valve->enable();
+        info.closeValve();
+        info.backstepTs = Clock::now() + milliseconds{2000};
     }
 
     // Reset the safety venting timestamp
     safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
+
+    spark->enable();
 
     if (!SignaledDeadlineTask::start())
     {
@@ -144,85 +193,309 @@ bool Actuators::start()
         return false;
     }
 
+    signalTask();
+    started = true;
     return true;
 }
 
-bool Actuators::openServoWithTime(ServosList servo, uint32_t time)
+void Actuators::initializeValves()
 {
-    Lock<FastMutex> lock(infosMutex);
-    ServoInfo* info = getServo(servo);
+    valveInfos.push_back(MAKE_SERVO_VALVE(OX_VEN));
+    valveInfos.push_back(MAKE_SERVO_VALVE(FUEL_VEN));
+
+    // "Manual" servo valves, instead of only being fully open or closed, can be
+    // moved to any position in the range [0, 1].
+    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(MAIN_OX));
+    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(MAIN_FUEL));
+    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(PRZ_OX));
+    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(PRZ_FUEL));
+
+    // Solenoid valves connected directly to the micro
+    valveInfos.push_back(
+        MAKE_SOLENOID_VALVE(IGN_OX, actuators::oxSolenoid::getPin()));
+    valveInfos.push_back(
+        MAKE_SOLENOID_VALVE(IGN_FUEL, actuators::fuelSolenoid::getPin()));
+}
+bool Actuators::wiggleValve(ServosList servo)
+{
+    // Wiggle means open the servo for 1s
+    return openValveWithTime(servo, 1000);
+}
+
+bool Actuators::toggleValve(ServosList servo)
+{
+    ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
 
-    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
-    info->openServoWithTime(time);
+    if (info->closeTs == noActionNeeded)
+    {
+        // The servo is closed, open it
+        openValve(servo);
+    }
+    else
+    {
+        // The servo is open, close it
+        closeValve(servo);
+    }
+
+    return true;
+}
+
+bool Actuators::openValve(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return false;
+
+    uint32_t time = getServoOpeningTime(servo);
+
+    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+
+    info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
+
     signalTask();
     return true;
 }
 
-bool Actuators::closeServo(ServosList servo)
+bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo* info = getServo(servo);
+    ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
 
-    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
-    info->closeServo();
+    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+
+    // tell the task to open this valve
+    info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
+
     signalTask();
     return true;
 }
 
-float Actuators::getServoPosition(ServosList servo)
+bool Actuators::closeValve(ServosList servo)
 {
     Lock<FastMutex> lock(infosMutex);
-    ServoInfo* info = getServo(servo);
-    if (info == nullptr)
-        return 0.0f;
-
-    return info->getServoPosition();
-}
-
-bool Actuators::isServoOpen(ServosList servo)
-{
-    Lock<FastMutex> lock(infosMutex);
-    ServoInfo* info = getServo(servo);
+    ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
 
-    return info->closeTs != ValveClosed;
+    getModule<CanHandler>()->sendServoCloseCommand(servo);
+
+    // tell the task to close this valve
+    info->closeTs = Clock::now();
+
+    signalTask();
+    return true;
 }
 
-Actuators::ServoInfo* Actuators::getServo(ServosList servo)
+bool Actuators::moveValve(ServosList servo, float position)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ManualValveInfo* info = getManualValve(servo);
+    if (info == nullptr)
+        return false;
+
+    // moveValve is the same as doing an animation with time = 0
+    info->animateValve(position, 0);
+
+    signalTask();
+    return true;
+}
+
+bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ManualValveInfo* info = getManualValve(servo);
+    if (info == nullptr)
+        return false;
+
+    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+    info->animateValve(position, time);
+    signalTask();
+    return true;
+}
+
+void Actuators::closeAllValves()
+{
+    Lock<FastMutex> lock(infosMutex);
+    for (auto& valve : valveInfos)
+        valve.closeValve();
+
+    for (auto& valve : manualValveInfos)
+        valve.closeValve();
+
+    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_OX_VALVE);
+    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_FUEL_VALVE);
+    getModule<CanHandler>()->sendServoCloseCommand(
+        ServosList::OX_VENTING_VALVE);
+    getModule<CanHandler>()->sendServoCloseCommand(
+        ServosList::FUEL_VENTING_VALVE);
+
+    signalTask();
+}
+
+bool Actuators::setMaxAperture(ServosList servo, float aperture)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return false;
+
+    if (aperture >= 0.0 && aperture <= 1.0)
+    {
+        getModule<Registry>()->setUnsafe(info->valve->getMaxApertureRegKey(),
+                                         aperture);
+    }
+    else
+    {
+        // What? Who would ever set this to above 100%?
+        return false;
+    }
+    return true;
+}
+
+bool Actuators::setOpeningTime(ServosList servo, uint32_t time)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return false;
+
+    getModule<Registry>()->setUnsafe(info->valve->getOpeningTimeRegKey(), time);
+    return true;
+}
+
+bool Actuators::isValveOpen(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return false;
+
+    return info->isValveOpen();
+}
+
+uint32_t Actuators::getServoOpeningTime(ServosList servo)
+{
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return 0;
+
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        info->valve->getOpeningTimeRegKey(),
+        info->valve->getDefaultOpeningTime());
+}
+
+float Actuators::getServoMaxAperture(ServosList servo)
+{
+    // Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return 0;
+
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        info->valve->getMaxApertureRegKey(),
+        info->valve->getDefaultMaxAperture());
+}
+
+float Actuators::getValvePosition(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return false;
+
+    return info->valve->getPosition();
+}
+
+Actuators::ValveState Actuators::getValveState(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return {};
+
+    bool isOpen      = info->isValveOpen();
+    auto timeToClose = 0ms;
+
+    if (isOpen)
+    {
+        // Subtract 400ms to account for radio latency (empirically tested)
+        auto diff = info->closeTs - Clock::now() - 400ms;
+        if (diff > 0ms)
+            timeToClose = duration_cast<milliseconds>(diff);
+    }
+
+    return ValveState{
+        .valid       = true,
+        .state       = isOpen,
+        .timing      = milliseconds{getServoOpeningTime(servo)},
+        .timeToClose = timeToClose,
+        .aperture    = getServoMaxAperture(servo),
+        .position    = info->valve->currentPosition,
+    };
+}
+
+void Actuators::logValveMovement(int idx, float position)
+{
+    ActuatorsData data(TimestampTimer::getTimestamp(), idx, position);
+    sdLogger.log(data);
+}
+
+void Actuators::startSparkPlugWithTime(uint32_t time)
+{
+    unsafeStartSparkPlug();
+    sparkPlugCloseTs = Clock::now() + nanoseconds{msToNs(time)};
+    signalTask();
+}
+
+void Actuators::stopSparkPlug()
+{
+    unsafeStopSparkPlug();
+    sparkPlugCloseTs = noActionNeeded;
+    signalTask();
+}
+
+void Actuators::toggleSparkPlug()
+{
+    if (sparkPlugCloseTs != noActionNeeded)
+    {
+        stopSparkPlug();
+        return;
+    }
+    startSparkPlugWithTime(5000);
+}
+
+bool Actuators::isSparkSparking() { return sparkPlugCloseTs != noActionNeeded; }
+void Actuators::unsafeStartSparkPlug() { spark->start(); };
+void Actuators::unsafeStopSparkPlug() { spark->stop(); };
+
+Actuators::ValveInfo* Actuators::getValve(ServosList servo)
 {
     switch (servo)
     {
         case OX_VENTING_VALVE:
-            return &infos[0];  // Servo 0
-        case MAIN_VALVE:
-            return &infos[1];  // Servo 5
-        case NITROGEN_VALVE:
-            return &infos[2];  // Servo 4
-        case N2_QUENCHING_VALVE:
-            return &infos[3];  // Servo 3
+            return &valveInfos[0];
+        case FUEL_VENTING_VALVE:
+            return &valveInfos[1];
+        case MAIN_OX_VALVE:
+            return &valveInfos[2];
+        case MAIN_FUEL_VALVE:
+            return &valveInfos[3];
+        case PRZ_OX_VALVE:
+            return &valveInfos[4];
+        case PRZ_FUEL_VALVE:
+            return &valveInfos[5];
 
         default:
             // Oh FUCK
             LOG_ERR(logger, "Invalid servo requested");
             return nullptr;
     }
-}
-
-void Actuators::unsafeSetServoPosition(uint8_t idx, float position)
-{
-    infos[idx].unsafeSetServoPosition(position);
-
-    // Log the update
-    ActuatorsData data;
-    data.timestamp = TimestampTimer::getTimestamp();
-    data.servoIdx  = idx;
-    data.position  = position;
-    sdLogger.log(data);
 }
 
 SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
@@ -232,82 +505,107 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
     // Start with the maximum value
     auto nextDeadline = TimePoint::max();
 
-    // Get the closest deadline from all valves
-    for (auto& info : infos)
+    // Get the closest deadline from all normal valves
+    for (auto& info : valveInfos)
     {
-        if (info.closeTs != ValveClosed)
-            nextDeadline = std::min(nextDeadline, info.closeTs);
-
-        if (info.backstepTs != ValveClosed)
+        if (info.backstepTs != noActionNeeded)
             nextDeadline = std::min(nextDeadline, info.backstepTs);
+
+        if (info.closeTs != noActionNeeded)
+            nextDeadline = std::min(nextDeadline, info.closeTs);
     }
 
-    nextDeadline = std::min(nextDeadline, safetyVentingTs);
+    // Get the closest deadline from all manual valves
+    for (auto& info : manualValveInfos)
+    {
+        if (info.updateTs != noActionNeeded)
+            nextDeadline = std::min(nextDeadline, info.updateTs);
+
+        if (info.backstepTs != noActionNeeded)
+            nextDeadline = std::min(nextDeadline, info.backstepTs);
+
+        if (info.closeTs != noActionNeeded)
+            nextDeadline = std::min(nextDeadline, info.closeTs);
+    }
+
+    if (sparkPlugCloseTs != noActionNeeded)
+        nextDeadline = std::min(nextDeadline, sparkPlugCloseTs);
 
     return nextDeadline;
 }
 
 void Actuators::task()
 {
-    Lock<FastMutex> lock(infosMutex);
-
     auto currentTime = Clock::now();
 
-    // Iterate over all servos
-    for (uint8_t idx = 0; idx < infos.size(); idx++)
+    Lock<FastMutex> lock(infosMutex);
+    for (size_t idx = 0; idx < valveInfos.size(); idx++)
     {
-        if (currentTime < infos[idx].closeTs)
+        auto& info = valveInfos[idx];
+        if (info.backstepTs != noActionNeeded && currentTime > info.backstepTs)
         {
-            // The valve should be open
-            if (currentTime < infos[idx].backstepTs)
-            {
-                // We should open the valve all the way
-                unsafeSetServoPosition(idx, 1.0f);
-            }
-            else
-            {
-                // Backstep the valve a little to avoid strain
-                unsafeSetServoPosition(
-                    idx, 1.0 - Config::Servos::SERVO_BACKSTEP_AMOUNT);
-
-                infos[idx].backstepTs = ValveClosed;  // Reset backstep time
-            }
+            // Backstep the servo a little to avoid strain
+            info.backstep();
         }
-        else
+        else if (info.closeTs != noActionNeeded && currentTime <= info.closeTs)
         {
-            // Ok the valve should be closed
-            if (infos[idx].closeTs != ValveClosed)
-            {
-                // Perform the servo closing
-                infos[idx].closeServo();
-            }
-
-            if (currentTime < infos[idx].backstepTs)
-            {
-                // We should close the valve all the way
-                unsafeSetServoPosition(idx, 0.0);
-            }
-            else
-            {
-                // Backstep the valve a little to avoid strain
-                unsafeSetServoPosition(idx,
-                                       Config::Servos::SERVO_BACKSTEP_AMOUNT);
-
-                infos[idx].backstepTs = ValveClosed;  // Reset backstep time
-            }
+            // Open the servo only if it's not already open
+            info.openValve();
+            logValveMovement(idx, info.valve->currentPosition);
+        }
+        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
+        {
+            // Close the servo only if it's not already closed
+            info.closeValve();
+            logValveMovement(idx, info.valve->currentPosition);
         }
     }
+
+    for (size_t idx = 0; idx < manualValveInfos.size(); idx++)
+    {
+        auto& info = manualValveInfos[idx];
+        if (info.backstepTs != noActionNeeded && currentTime > info.backstepTs)
+        {
+            // Backstep the servo a little to avoid strain
+            info.backstep();
+        }
+        else if (info.updateTs != noActionNeeded && currentTime > info.updateTs)
+        {
+            // Animate servo step
+            info.advanceAnimation();
+            logValveMovement(valveInfos.size() + idx,
+                             info.valve->currentPosition);
+        }
+        else if (info.closeTs != noActionNeeded && currentTime <= info.closeTs)
+        {
+            // Open the servo only if it's not already open
+            info.openValve();
+            logValveMovement(valveInfos.size() + idx,
+                             info.valve->currentPosition);
+        }
+        else if (info.closeTs != noActionNeeded && currentTime > info.closeTs)
+        {
+            // Close the servo only if it's not already closed
+            info.closeValve();
+            logValveMovement(valveInfos.size() + idx,
+                             info.valve->currentPosition);
+        }
+    }
+
+    // handle spark plug timing
+    if (sparkPlugCloseTs != noActionNeeded && currentTime > sparkPlugCloseTs)
+        stopSparkPlug();
 
     // Check if we reached the inactivity timeout and should vent
     if (currentTime >= safetyVentingTs)
     {
-        getServo(ServosList::OX_VENTING_VALVE)
-            ->openServoWithTime(
-                milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
+        openValveWithTime(
+            ServosList::OX_VENTING_VALVE,
+            milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
 
-        getServo(ServosList::NITROGEN_VALVE)
-            ->openServoWithTime(
-                milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
+        openValveWithTime(
+            ServosList::FUEL_VENTING_VALVE,
+            milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
 
         // Reset the safety venting timestamp
         safetyVentingTs = currentTime + Config::Servos::SAFETY_VENTING_TIMEOUT;
