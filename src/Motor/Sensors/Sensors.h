@@ -103,11 +103,11 @@ private:
     void internalAdcInit();
     void internalAdcCallback();
 
-    void ads131m08_1Init();
-    void ads131m08_1Callback();
+    void adc1Init();
+    void adc1Callback();
 
-    void ads131m08_2Init();
-    void ads131m08_2Callback();
+    void adc2Init();
+    void adc2Callback();
 
     void regulatorOutOxPressureInit();
     void regulatorOutOxPressureCallback();

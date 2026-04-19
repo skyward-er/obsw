@@ -22,8 +22,12 @@
 
 #pragma once
 
+#include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
+#include <units/Frequency.h>
 #include <units/Units.h>
+
+#include <chrono>
 
 namespace Motor
 {

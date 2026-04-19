@@ -66,7 +66,7 @@
 #define MAKE_SERVO_VALVE(name)                                                 \
     ValveInfo                                                                  \
     {                                                                          \
-        std::make_unique<ValveServo>(                                          \
+        std::make_unique<ServoValve>(                                          \
             ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
                         .flipped = Config::Servos::name##_FLIPPED,             \
                         .defaultOpeningTime =                                  \
