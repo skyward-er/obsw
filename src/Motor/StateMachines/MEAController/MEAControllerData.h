@@ -22,27 +22,35 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <cstdint>
+#include <ostream>
+#include <reflect.hpp>
+#include <string>
 
 namespace Motor
 {
 
-class Buses : public Boardcore::Injectable
+enum class MEAControllerState : uint8_t
 {
-public:
-    Buses() {}
-
-    Boardcore::SPIBus& getADC1() { return spi3; }
-    Boardcore::SPIBus& getADC2() { return spi4; }
-
-    Boardcore::USART& getHILUart() { return usart4; }
-
-private:
-    Boardcore::SPIBus spi3{SPI3};
-    Boardcore::SPIBus spi4{SPI4};
-
-    Boardcore::USART usart4{UART4, 230400, 1024};
+    INIT = 0,
+    READY,
+    ARMED,
+    SHADOW_MODE,
+    ACTIVE,
+    ACTIVE_UNPOWERED,
+    END
 };
+
+struct MEAControllerStatus
+{
+    uint64_t timestamp       = 0;
+    MEAControllerState state = MEAControllerState::INIT;
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(MEAControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
+
 }  // namespace Motor

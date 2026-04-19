@@ -28,6 +28,9 @@
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
+#include <Motor/StateMachines/EregController/EregControllerFuel.h>
+#include <Motor/StateMachines/EregController/EregControllerOx.h>
+#include <Motor/StateMachines/MEAController/MEAController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
@@ -77,6 +80,9 @@ int main()
     Sensors* sensors = nullptr;
     auto actuators   = new Actuators();
     auto canHandler  = new CanHandler();
+    auto eregOx      = new EregControllerOx();
+    auto eregFuel    = new EregControllerFuel();
+    auto mea         = new MEAController();
 
     auto& sdLogger = Logger::getInstance();
 
@@ -97,7 +103,10 @@ int main()
                   manager.insert<BoardScheduler>(scheduler) &&
                   manager.insert<Sensors>(sensors) &&
                   manager.insert<Actuators>(actuators) &&
-                  manager.insert<CanHandler>(canHandler) && manager.inject();
+                  manager.insert<CanHandler>(canHandler) &&
+                  manager.insert<EregControllerOx>(eregOx) &&
+                  manager.insert<EregControllerFuel>(eregFuel) &&
+                  manager.insert<MEAController>(mea) && manager.inject();
 
     if (!initResult)
     {
@@ -225,6 +234,27 @@ int main()
                   << statusStr << std::endl;
     }
 
+    std::cout << "Starting eregControllerOX" << std::endl;
+    if (!eregOx->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start eregControllerOx ***" << std::endl;
+    }
+
+    std::cout << "Starting eregControllerFuel" << std::endl;
+    if (!eregFuel->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
+    }
+
+    std::cout << "Starting MEA" << std::endl;
+    if (!mea->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start MEA ***" << std::endl;
+    }
+
     std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
               << sensors->getBatteryVoltage().voltage << " V" << std::endl;
 
@@ -239,8 +269,8 @@ int main()
         CpuMeter::resetCpuStats();
 
         // Toggle LED
-        gpios::boardLed::value() ? gpios::boardLed::low()
-                                 : gpios::boardLed::high();
+        gpios::debugLedGreen::value() ? gpios::debugLedGreen::low()
+                                      : gpios::debugLedGreen::high();
         Thread::sleep(1000);
     }
 
