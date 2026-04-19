@@ -39,7 +39,7 @@ bool Sensors::start()
 {
     if (Config::Sensors::ADC_1::ENABLED)
     {
-        ads131m08_1Init();
+        adc1Init();
         ccPressureInit();
         fuelTankPressureInit();
         oxTankPressureInit();
@@ -51,7 +51,7 @@ bool Sensors::start()
 
     if (Config::Sensors::ADC_2::ENABLED)
     {
-        ads131m08_2Init();
+        adc2Init();
         mainFuelPositionInit();
         przFuelPositionInit();
         przOxPositionInit();
@@ -256,8 +256,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     else                                                         \
         infos.push_back(SensorInfo{name, 0ns, nullptr, false})
 
-        PUSH_SENSOR_INFO(adc1, "ADS131M08");
-        PUSH_SENSOR_INFO(adc2, "ADS131M08");
+        PUSH_SENSOR_INFO(adc1, "ADS131M08_1");
+        PUSH_SENSOR_INFO(adc2, "ADS131M08_2");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(ccPressure, "CCPressure");
         PUSH_SENSOR_INFO(oxTankPressure, "OxTankPressure");
@@ -285,7 +285,7 @@ TaskScheduler& Sensors::getSensorsScheduler()
     return getModule<BoardScheduler>()->sensors();
 }
 
-void Sensors::ads131m08_1Init()
+void Sensors::adc1Init()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -344,56 +344,51 @@ void Sensors::ads131m08_1Init()
         .offset  = 0,
         .gain    = 1.0};
 
-    adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_1(),
+    adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADC1(),
                                        sensors::ADC_1::cs::getPin(), spiConfig,
                                        config);
 }
 
-void Sensors::ads131m08_1Callback() { sdLogger.log(getADC1LastSample()); }
+void Sensors::adc1Callback() { sdLogger.log(getADC1LastSample()); }
 
-void Sensors::ads131m08_2Init()
+void Sensors::adc2Init()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
 
     ADS131M08::Config config = {};
     // Setup global configurations
-    config.oversamplingRatio = Config::Sensors::ADC_2::OSR;
-    config.globalChopModeEnabled =
-        Config::Sensors::ADC_2::GLOBAL_CHOP_MODE_EN;
+    config.oversamplingRatio     = Config::Sensors::ADC_2::OSR;
+    config.globalChopModeEnabled = Config::Sensors::ADC_2::GLOBAL_CHOP_MODE_EN;
 
     // Disable all channels
     for (auto& channel : config.channelsConfig)
         channel.enabled = false;
 
     // Configure all required channels
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::FUEL_MAIN_EN_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::FUEL_MAIN_EN_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::PRZ_OX_EN_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::PRZ_OX_EN_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::PRZ_FUEL_EN_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::PRZ_FUEL_EN_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::OX_VENTING_EN_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
-        .offset  = 0,
-        .gain    = 1.0};
+    config.channelsConfig[(int)Config::Sensors::ADC_2::OX_VENTING_EN_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
 
     config.channelsConfig[(
         int)Config::Sensors::ADC_2::FUEL_VENTING_EN_CHANNEL] = {
@@ -402,12 +397,12 @@ void Sensors::ads131m08_2Init()
         .offset  = 0,
         .gain    = 1.0};
 
-    adc2 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08_2(),
+    adc2 = std::make_unique<ADS131M08>(getModule<Buses>()->getADC2(),
                                        sensors::ADC_1::cs::getPin(), spiConfig,
                                        config);
 }
 
-void Sensors::ads131m08_2Callback() { sdLogger.log(getADC2LastSample()); }
+void Sensors::adc2Callback() { sdLogger.log(getADC2LastSample()); }
 
 void Sensors::internalAdcInit()
 {
@@ -584,8 +579,7 @@ void Sensors::przOxPositionInit()
         [this]()
         {
             auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::PRZ_OX_EN_CHANNEL);
+            return sample.getVoltage(Config::Sensors::ADC_2::PRZ_OX_EN_CHANNEL);
         });
 }
 
@@ -648,17 +642,16 @@ bool Sensors::sensorManagerInit()
 
     if (adc1)
     {
-        SensorInfo ads131m08_1Info{"ADC1", Config::Sensors::ADC_1::RATE,
-                                   [this]() { ads131m08_1Callback(); }};
-        map.emplace(adc1.get(), ads131m08_1Info);
+        SensorInfo adc1Info{"ADC1", Config::Sensors::ADC_1::RATE,
+                            [this]() { adc1Callback(); }};
+        map.emplace(adc1.get(), adc1Info);
     }
 
     if (adc2)
     {
-        SensorInfo ads131m08_2Info{"ADC_2",
-                                   Config::Sensors::ADC_2::RATE,
-                                   [this]() { ads131m08_2Callback(); }};
-        map.emplace(adc2.get(), ads131m08_2Info);
+        SensorInfo adc2Info{"ADC_2", Config::Sensors::ADC_2::RATE,
+                            [this]() { adc2Callback(); }};
+        map.emplace(adc2.get(), adc2Info);
     }
 
     if (internalAdc)
@@ -742,8 +735,7 @@ bool Sensors::sensorManagerInit()
 
     if (ventingFuelPosition)
     {
-        SensorInfo info{"VentingFuelPosition",
-                        Config::Sensors::ADC_2::RATE,
+        SensorInfo info{"VentingFuelPosition", Config::Sensors::ADC_2::RATE,
                         [this]() { ventingFuelPositionCallback(); }};
         map.emplace(std::make_pair(ventingFuelPosition.get(), info));
     }
