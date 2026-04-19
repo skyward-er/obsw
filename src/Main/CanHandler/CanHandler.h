@@ -38,10 +38,13 @@ namespace Main
 
 class FlightModeManager;
 class Actuators;
+class NASController;
+class AlgoReference;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
-                                           FlightModeManager,
+                                           FlightModeManager, NASController,
+                                           AlgoReference,
                                            Common::MotorStatus>
 {
     using Clock     = std::chrono::steady_clock;

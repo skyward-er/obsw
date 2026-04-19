@@ -49,22 +49,48 @@ constexpr unsigned int FREQUENCY = 333;
 constexpr auto SERVO_BACKSTEP_DELAY   = 500ms;
 constexpr float SERVO_BACKSTEP_AMOUNT = 0.02;  // 2%
 
+constexpr auto ANIMATION_UPDATE_PERIOD = 10ms;
+
+constexpr auto MOVE_SERVO_TIMEOUT = 10000ms;
+
 constexpr auto SAFETY_VENTING_TIMEOUT  = 45min;
 constexpr auto SAFETY_VENTING_DURATION = 10min;  // How long to vent
 
-constexpr float OX_VENTING_LIMIT   = 0.9f;
-constexpr float FUEL_VENTING_LIMIT = 0.9f;
-constexpr float MAIN_OX_LIMIT      = 0.9f;
-constexpr float MAIN_FUEL_LIMIT    = 0.9f;
-constexpr float PRZ_OX_LIMIT       = 0.9f;
-constexpr float PRZ_FUEL_LIMIT     = 0.85f;
+constexpr uint32_t DEFAULT_OX_VEN_OPENING_TIME    = 15000;
+constexpr uint32_t DEFAULT_FUEL_VEN_OPENING_TIME  = 15000;
+constexpr uint32_t DEFAULT_MAIN_OX_OPENING_TIME   = 15000;
+constexpr uint32_t DEFAULT_MAIN_FUEL_OPENING_TIME = 15000;
+constexpr uint32_t DEFAULT_PRZ_OX_OPENING_TIME    = 15000;
+constexpr uint32_t DEFAULT_PRZ_FUEL_OPENING_TIME  = 15000;
+constexpr uint32_t DEFAULT_IGN_OX_OPENING_TIME    = 15000;
+constexpr uint32_t DEFAULT_IGN_FUEL_OPENING_TIME  = 15000;
 
-constexpr bool OX_VENTING_FLIPPED   = true;
-constexpr bool FUEL_VENTING_FLIPPED = true;
-constexpr bool MAIN_OX_FLIPPED      = true;
-constexpr bool MAIN_FUEL_FLIPPED    = true;
-constexpr bool PRZ_OX_FLIPPED       = true;
-constexpr bool PRZ_FUEL_FLIPPED     = true;
+constexpr float DEFAULT_OX_VEN_MAX_APERTURE    = 1.0;
+constexpr float DEFAULT_FUEL_VEN_MAX_APERTURE  = 1.0;
+constexpr float DEFAULT_MAIN_OX_MAX_APERTURE   = 1.0;
+constexpr float DEFAULT_MAIN_FUEL_MAX_APERTURE = 1.0;
+constexpr float DEFAULT_PRZ_OX_MAX_APERTURE    = 1.0;
+constexpr float DEFAULT_PRZ_FUEL_MAX_APERTURE  = 1.0;
+constexpr float DEFAULT_IGN_OX_MAX_APERTURE    = 1.0;
+constexpr float DEFAULT_IGN_FUEL_MAX_APERTURE  = 1.0;
+
+constexpr float OX_VEN_LIMIT    = 0.9f;
+constexpr float FUEL_VEN_LIMIT  = 0.9f;
+constexpr float MAIN_OX_LIMIT   = 0.9f;
+constexpr float MAIN_FUEL_LIMIT = 0.9f;
+constexpr float PRZ_OX_LIMIT    = 0.9f;
+constexpr float PRZ_FUEL_LIMIT  = 0.85f;
+constexpr float IGN_FUEL_LIMIT  = 1.0;
+constexpr float IGN_OX_LIMIT    = 1.0;
+
+constexpr bool OX_VEN_FLIPPED    = true;
+constexpr bool FUEL_VEN_FLIPPED  = true;
+constexpr bool MAIN_OX_FLIPPED   = true;
+constexpr bool MAIN_FUEL_FLIPPED = true;
+constexpr bool PRZ_OX_FLIPPED    = true;
+constexpr bool PRZ_FUEL_FLIPPED  = true;
+constexpr bool IGN_OX_FLIPPED    = false;
+constexpr bool IGN_FUEL_FLIPPED  = false;
 
 }  // namespace Servos
 }  // namespace Config
