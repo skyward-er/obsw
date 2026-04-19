@@ -53,6 +53,7 @@ set(GROUNDSTATION_COMMON
 )
 
 set(MOTOR_SOURCES
+    src/common/canbus/MainStatus.cpp
     src/Motor/PersistentVars/PersistentVars.cpp
     src/Motor/HIL/HIL.cpp
     src/Motor/Actuators/Actuators.cpp

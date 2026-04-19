@@ -34,8 +34,8 @@ class Buses : public Boardcore::Injectable
 public:
     Buses() {}
 
-    Boardcore::SPIBus& getADS131M08_1() { return spi3; }
-    Boardcore::SPIBus& getADS131M08_2() { return spi4; }
+    Boardcore::SPIBus& getADC1() { return spi3; }
+    Boardcore::SPIBus& getADC2() { return spi4; }
 
     Boardcore::USART& getHILUart() { return usart4; }
 
