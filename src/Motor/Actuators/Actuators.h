@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto
+ * Authors: Davide Mor, Niccolò Betto, Riccardo Sironi, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,67 +24,151 @@
 
 #include <Motor/BoardScheduler.h>
 #include <Motor/CanHandler/CanHandler.h>
+#include <Motor/Registry/Registry.h>
+#include <Valve/Valve.h>
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkOrion.h>
+#include <actuators/SparkPlug.h>
+#include <common/MavlinkHydra.h>
 #include <scheduler/SignaledDeadlineTask.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Motor
 {
 
-class Actuators
-    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>,
-      public Boardcore::SignaledDeadlineTask
+class Actuators : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                       CanHandler, Registry>,
+                  public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for the valve closed state
-    static const TimePoint ValveClosed;
+    static const TimePoint noActionNeeded;
 
-    struct ServoInfo
+    struct ValveInfo
     {
-        std::unique_ptr<Boardcore::Servo> servo;
-        // Hard limit of the aperture
-        float limit = 1.0;
-        // Should this servo be reversed?
-        bool flipped = false;
+        ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+            : valve(std::move(valve))
+        {
+        }
 
-        // Time when the valve should close, 0 if currently closed
-        TimePoint closeTs = ValveClosed;
+        // The default constructor is needed since PCA valves require the
+        // expanders to be created which, in turn require the I2C bus form the
+        // Buses module which is injected in the Actuators module.
+        ValveInfo() = default;
+
+        // Move-only
+        ValveInfo(ValveInfo&& other)            = default;
+        ValveInfo& operator=(ValveInfo&& other) = default;
+
+        // Disable Copy
+        ValveInfo(const ValveInfo&)            = delete;
+        ValveInfo& operator=(const ValveInfo&) = delete;
+
+        std::unique_ptr<Boardcore::Valve> valve{};
+
         // Time when to backstep the valve to avoid straining the servo
-        TimePoint backstepTs = ValveClosed;
+        TimePoint backstepTs = noActionNeeded;
+        // Time when the valve should close
+        TimePoint closeTs = noActionNeeded;
 
-        void openServoWithTime(uint32_t time);
-        void closeServo();
-        void unsafeSetServoPosition(float position);
-        float getServoPosition();
+        void openValve();
+        void closeValve();
+
+        void backstep();
+        virtual void resetAnimation() {};
+
+        bool isValveOpen();
+    };
+
+    struct ManualValveInfo : public ValveInfo
+    {
+        ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+            : ValveInfo(std::move(valve))
+        {
+        }
+
+        float stepCount  = 0;     ///< Number of steps for the current animation
+        float stepAmount = 0.0f;  ///< Amount of one animation step
+        // Time when the valve should be moved next during an animation
+        TimePoint updateTs = noActionNeeded;
+
+        void animateValve(float position, uint32_t time);
+        void advanceAnimation();
+        void resetAnimation() override;
+    };
+
+    struct ValveState
+    {
+        bool valid = false;  ///< Whether the data in this struct is valid
+        bool state = false;  ///< Whether the valve is open or closed
+        std::chrono::milliseconds timing      = {};  ///< Opening time
+        std::chrono::milliseconds timeToClose = {};  ///< Time until valve close
+        float aperture                        = 0;   ///< Max valve aperture
+        float position                        = 0;
     };
 
 public:
     Actuators();
 
+    bool isStarted();
+
     [[nodiscard]] bool start();
 
-    bool openServoWithTime(ServosList servo, uint32_t time);
-    bool closeServo(ServosList servo);
-    bool isServoOpen(ServosList servo);
-    float getServoPosition(ServosList servo);
+    bool wiggleValve(ServosList servo);
+    bool toggleValve(ServosList servo);
+    bool openValve(ServosList servo);
+    bool openValveWithTime(ServosList servo, uint32_t time);
+    bool moveValve(ServosList servo, float position);
+    bool animateValve(ServosList servo, float position, uint32_t time);
+
+    bool closeValve(ServosList servo);
+    void closeAllValves();
+    bool setMaxAperture(ServosList servo, float aperture);
+    bool setOpeningTime(ServosList servo, uint32_t time);
+    bool isValveOpen(ServosList servo);
+    uint32_t getServoOpeningTime(ServosList servo);
+    float getServoMaxAperture(ServosList servo);
+    float getValvePosition(ServosList servo);
+
+    ValveState getValveState(ServosList servo);
+    inline void logValveMovement(int idx, float position);
+
+    void startSparkPlugWithTime(uint32_t time);
+    void stopSparkPlug();
+    void toggleSparkPlug();
+    bool isSparkSparking();
+
+    void armLightOn();
+    void armLightOff();
 
 private:
-    ServoInfo* getServo(ServosList servo);
+    ValveInfo* getValve(ServosList servo);
+    ManualValveInfo* getManualValve(ServosList servo);
 
-    void unsafeSetServoPosition(uint8_t idx, float position);
+    void unsafeStartSparkPlug();
+    void unsafeStopSparkPlug();
 
     TimePoint nextTaskDeadline() override;
     void task() override;
 
-    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
+    std::atomic<bool> started{false};
 
     miosix::FastMutex infosMutex;
-    std::array<ServoInfo, 4> infos;
+    std::vector<ValveInfo> valveInfos;
+    std::vector<ManualValveInfo> manualValveInfos;
+
+    void initializeValves();
+
+    std::unique_ptr<Boardcore::SparkPlug> spark;
 
     // Timestamp for automatic venting after inactivity for safety reasons
     TimePoint safetyVentingTs;
+
+    TimePoint fuelSolenoidCloseTs = noActionNeeded;
+    TimePoint oxSolenoidCloseTs   = noActionNeeded;
+    TimePoint sparkPlugCloseTs    = noActionNeeded;
+
+    Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
 };
 
 }  // namespace Motor

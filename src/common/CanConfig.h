@@ -52,6 +52,12 @@ constexpr auto STATUS_TIMEOUT = 2s;
 // Period at which the status message is sent
 constexpr auto STATUS_SEND_PERIOD = 1s;
 
+#ifdef ROCCARASO
+constexpr auto DEFAULT_MEA_SHADOW_MODE_TIMEOUT = 2200ms;
+#else
+constexpr auto DEFAULT_MEA_SHADOW_MODE_TIMEOUT = 4000ms;
+#endif
+
 enum class Priority : uint8_t
 {
     CRITICAL = 0,
@@ -77,6 +83,24 @@ enum class Board : uint8_t
     MAIN,
     PAYLOAD,
     MOTOR
+};
+
+enum class AlgoId : uint8_t
+{
+    NAS_VERTICAL_SPEED,
+    NAS_ALT_MSL,
+    NAS_STATE,
+    MEA_SHADOW_MODE_DELAY,
+};
+
+enum class NasControllerState : uint8_t
+{
+    INIT = 0,
+    CALIBRATING,
+    READY,
+    ACTIVE,
+    END,
+    UNKNOWN = 0xFF,
 };
 
 enum class SensorId : uint8_t
@@ -127,6 +151,27 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
 };
 
 }  // namespace CanConfig
+
+inline CanConfig::NasControllerState nasControllerStateFromCanValue(
+    uint8_t state)
+{
+    switch (state)
+    {
+        case static_cast<uint8_t>(CanConfig::NasControllerState::INIT):
+            return CanConfig::NasControllerState::INIT;
+        case static_cast<uint8_t>(
+            CanConfig::NasControllerState::CALIBRATING):
+            return CanConfig::NasControllerState::CALIBRATING;
+        case static_cast<uint8_t>(CanConfig::NasControllerState::READY):
+            return CanConfig::NasControllerState::READY;
+        case static_cast<uint8_t>(CanConfig::NasControllerState::ACTIVE):
+            return CanConfig::NasControllerState::ACTIVE;
+        case static_cast<uint8_t>(CanConfig::NasControllerState::END):
+            return CanConfig::NasControllerState::END;
+        default:
+            return CanConfig::NasControllerState::UNKNOWN;
+    }
+}
 
 inline Events canEventToEvent(uint8_t canEvent)
 {
