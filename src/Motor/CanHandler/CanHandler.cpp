@@ -26,8 +26,10 @@
 #include <Motor/Configs/CanHandlerConfig.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <events/EventBroker.h>
 #include <events/EventData.h>
 
+using namespace miosix;
 using namespace Motor;
 using namespace Boardcore;
 using namespace Canbus;
@@ -42,8 +44,6 @@ CanHandler::CanHandler()
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::MAIN),
-                       static_cast<uint8_t>(CanConfig::Board::BROADCAST));
-    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
 }
 
@@ -212,8 +212,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::OX_VENTING_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getServoPosition(ServosList::OX_VENTING_VALVE),
-                    actuators->isServoOpen(ServosList::OX_VENTING_VALVE)});
+                    actuators->getValvePosition(ServosList::OX_VENTING_VALVE),
+                    actuators->isValveOpen(ServosList::OX_VENTING_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -223,8 +223,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::FUEL_VENTING_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getServoPosition(ServosList::FUEL_VENTING_VALVE),
-                    actuators->isServoOpen(ServosList::FUEL_VENTING_VALVE)});
+                    actuators->getValvePosition(ServosList::FUEL_VENTING_VALVE),
+                    actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -234,8 +234,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::MAIN_OX_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getServoPosition(ServosList::MAIN_OX_VALVE),
-                    actuators->isServoOpen(ServosList::MAIN_OX_VALVE)});
+                    actuators->getValvePosition(ServosList::MAIN_OX_VALVE),
+                    actuators->isValveOpen(ServosList::MAIN_OX_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -245,8 +245,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::MAIN_FUEL_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getServoPosition(ServosList::MAIN_FUEL_VALVE),
-                    actuators->isServoOpen(ServosList::MAIN_FUEL_VALVE)});
+                    actuators->getValvePosition(ServosList::MAIN_FUEL_VALVE),
+                    actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -256,8 +256,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::PRZ_OX_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getServoPosition(ServosList::PRZ_OX_VALVE),
-                    actuators->isServoOpen(ServosList::PRZ_OX_VALVE)});
+                    actuators->getValvePosition(ServosList::PRZ_OX_VALVE),
+                    actuators->isValveOpen(ServosList::PRZ_OX_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -267,8 +267,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::PRZ_FUEL_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getServoPosition(ServosList::PRZ_FUEL_VALVE),
-                    actuators->isServoOpen(ServosList::PRZ_FUEL_VALVE)});
+                    actuators->getValvePosition(ServosList::PRZ_FUEL_VALVE),
+                    actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
         },
         Config::CanHandler::VALVE_STATE_SEND_RATE);
 
@@ -289,8 +289,46 @@ bool CanHandler::start()
 
 void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
 
+void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(servo),
+        ServoCommand{TimestampTimer::getTimestamp(), openingTime});
+}
+
+void CanHandler::sendServoCloseCommand(ServosList servo)
+{
+    // Closing a servo means opening it for 0s
+    sendServoOpenCommand(servo, 0);
+}
+
+void CanHandler::sendEvent(CanConfig::EventId event)
+{
+    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(),
+                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(event)});
+
+    protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+                          static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
+                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(event));
+}
+
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
+    auto source = static_cast<CanConfig::Board>(msg.getSource());
+    if (source == CanConfig::Board::MAIN)
+    {
+        getModule<Common::MainStatus>()->handleCanMessage(msg);
+        return;
+    }
+
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
 
@@ -302,9 +340,21 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::PrimaryType::COMMAND:
+        case CanConfig::PrimaryType::SENSORS:
         {
-            handleCommand(msg);
+            handleSensor(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::STATUS:
+        {
+            handleStatus(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::ACTUATORS:
+        {
+            handleActuator(msg);
             break;
         }
 
@@ -314,6 +364,12 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
             break;
         }
     }
+}
+
+void CanHandler::handleSensor(const Canbus::CanMessage& msg)
+{
+    auto sensor = static_cast<CanConfig::SensorId>(msg.getSecondaryType());
+    LOG_WARN(logger, "Received unsupported sensor data: {}", sensor);
 }
 
 void CanHandler::handleEvent(const Canbus::CanMessage& msg)
@@ -340,14 +396,33 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
                           msg.getDestination(), msg.getSecondaryType()});
 }
 
-void CanHandler::handleCommand(const Canbus::CanMessage& msg)
+void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
-    ServosList servo        = static_cast<ServosList>(msg.getSecondaryType());
-    CanServoCommand command = servoCommandFromCanMessage(msg);
-    sdLogger.log(command);
-
-    if (command.openingTime == 0)
-        getModule<Actuators>()->closeServo(servo);
-    else
-        getModule<Actuators>()->openServoWithTime(servo, command.openingTime);
+    CanServoFeedback data = servoFeedbackFromCanMessage(msg);
+    sdLogger.log(data);
 }
+
+void CanHandler::handleStatus(const Canbus::CanMessage& msg)
+{
+    CanConfig::Board source = static_cast<CanConfig::Board>(msg.getSource());
+    CanDeviceStatus deviceStatus = deviceStatusFromCanMessage(msg);
+
+    Lock<FastMutex> lock{statusMutex};
+
+    switch (source)
+    {
+        case CanConfig::Board::MAIN:
+        {
+            status.mainLastStatus = getTime();
+            status.mainArmed      = deviceStatus.armed;
+            status.mainState      = deviceStatus.state;
+            break;
+        }
+
+        default:
+        {
+            LOG_WARN(logger, "Received unsupported status: {}", source);
+        }
+    }
+}
+
