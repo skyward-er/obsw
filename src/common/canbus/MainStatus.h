@@ -1,5 +1,5 @@
-/* Copyright (c) 2025 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Author: Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,39 +36,32 @@
 namespace Common
 {
 /**
- * @brief State and data about the motor board.
+ * @brief State and data about the main board.
  *
- * Collects information about the motor board state and sensor data received
+ * Collects information about the main board state and sensor data received
  * from the CAN bus.
  */
-struct MotorStatus : public Boardcore::Injectable
+struct MainStatus : public Boardcore::Injectable
 {
     struct Data
     {
         Boardcore::DeviceStatus device;
 
-        Boardcore::PressureData oxTankPressure;
-        Boardcore::PressureData fuelTankPressure;
-        Boardcore::PressureData przTankPressure;
-        Boardcore::PressureData regulatorOutOxPressure;
-        Boardcore::PressureData regulatorOutFuelPressure;
-        Boardcore::PressureData combustionChamberPressure;
-        Boardcore::PressureData igniterPressure;
-        Boardcore::VoltageData batteryVoltage;
-        Boardcore::CurrentData currentConsumption;
-
-        bool oxVentingValveOpen    = false;
-        bool fuelVentingValveOpen  = false;
-        bool przOxValveOpen        = false;
-        bool przFuelValveOpen      = false;
-        bool mainOxValveOpen       = false;
-        bool mainFuelValveOpen     = false;
-        bool ignitionOxValveOpen   = false;
-        bool ignitionFuelValveOpen = false;
+        float nasVd             = 0.0f;
+        float nasAltitudeMsl    = 0.0f;
+        uint64_t nasTimestamp   = 0;
+        uint64_t nasRxTimestamp = 0;
+        CanConfig::NasControllerState nasState =
+            CanConfig::NasControllerState::INIT;
+        uint64_t nasStateTimestamp = 0;
+        std::chrono::milliseconds shadowModeDelayMs =
+            std::chrono::milliseconds::zero();
+        uint64_t shadowModeDelayTimestamp   = 0;
+        uint64_t shadowModeDelayRxTimestamp = 0;
     };
 
     /**
-     * @brief Proxy object that provides locked access to MotorStatus::Data
+     * @brief Proxy object that provides locked access to MainStatus::Data
      */
     class LockedData
     {
@@ -87,19 +80,19 @@ struct MotorStatus : public Boardcore::Injectable
     };
 
     /**
-     * @brief Locks motor status data and returns a proxy object to access it in
+     * @brief Locks main status data and returns a proxy object to access it in
      * a thread-safe manner.
      */
     LockedData lockData() { return LockedData(data, mutex); }
 
     /**
-     * @brief Returns whether the motor board was detected on the CAN bus at
+     * @brief Returns whether the main board was detected on the CAN bus at
      * any point in time.
      */
     bool detected() const { return lastStatus.load() != TimePoint{}; }
 
     /**
-     * @brief Returns whether the motor board is currently connected.
+     * @brief Returns whether the main board is currently connected.
      */
     bool connected() const
     {
@@ -114,13 +107,13 @@ struct MotorStatus : public Boardcore::Injectable
     }
 
     /**
-     * @brief Handles a CAN message from the motor board.
+     * @brief Handles a CAN message from the main board.
      *
      * @return True if the message was handled, false otherwise.
      */
     void handleCanMessage(const Boardcore::Canbus::CanMessage& msg);
 
-    mavlink_motor_tm_t getMotorTelemetry();
+    // mavlink_motor_tm_t getMotorTelemetry();
 
 private:
     using Clock     = std::chrono::steady_clock;

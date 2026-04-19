@@ -26,6 +26,8 @@
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/Sensors.h>
 #include <common/CanConfig.h>
+#include <common/MavlinkHydra.h>
+#include <common/canbus/MainStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -37,24 +39,56 @@ namespace Motor
 class Actuators;
 
 class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
+                                           Common::MainStatus>
 {
 public:
+    struct CanStatus
+    {
+        long long mainLastStatus = 0;
+
+        uint8_t mainState = 0;
+
+        bool mainArmed = false;
+
+        bool isMainConnected()
+        {
+            return miosix::getTime() <=
+                   (mainLastStatus +
+                    std::chrono::nanoseconds{Common::CanConfig::STATUS_TIMEOUT}
+                        .count());
+        }
+
+        uint8_t getMainState() { return mainState; }
+
+        bool isMainArmed() { return mainArmed; }
+    };
+
     CanHandler();
 
     [[nodiscard]] bool start();
 
     void setInitStatus(uint8_t status);
 
+    void sendEvent(Common::CanConfig::EventId event);
+
+    void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
+    void sendServoCloseCommand(ServosList servo);
+
 private:
     void handleMessage(const Boardcore::Canbus::CanMessage& msg);
     void handleEvent(const Boardcore::Canbus::CanMessage& msg);
-    void handleCommand(const Boardcore::Canbus::CanMessage& msg);
+    void handleSensor(const Boardcore::Canbus::CanMessage& msg);
+    void handleActuator(const Boardcore::Canbus::CanMessage& msg);
+    void handleStatus(const Boardcore::Canbus::CanMessage& msg);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
 
     std::atomic<uint8_t> initStatus{0};
+
+    miosix::FastMutex statusMutex;
+    CanStatus status;
 
     Boardcore::Canbus::CanbusDriver driver;
     Boardcore::Canbus::CanProtocol protocol;

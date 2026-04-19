@@ -78,25 +78,17 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
 
     switch (sensor)
     {
-        CASE_PRESSURE(CanConfig::SensorId::N2_TANK_PRESSURE, n2TankPressure);
-        CASE_PRESSURE(CanConfig::SensorId::REGULATOR_OUT_PRESSURE,
-                      regulatorOutPressure);
-        CASE_PRESSURE(CanConfig::SensorId::OX_TANK_TOP_PRESSURE,
-                      oxTankTopPressure);
-        CASE_PRESSURE(CanConfig::SensorId::OX_TANK_BOTTOM_0_PRESSURE,
-                      oxTankBottom0Pressure);
-        CASE_PRESSURE(CanConfig::SensorId::OX_TANK_BOTTOM_1_PRESSURE,
-                      oxTankBottom1Pressure);
+        CASE_PRESSURE(CanConfig::SensorId::FUEL_TANK_PRESSURE,
+                      fuelTankPressure);
+        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_OX_PRESSURE,
+                      regulatorOutOxPressure);
+        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_FUEL_PRESSURE,
+                      regulatorOutFuelPressure);
+        CASE_PRESSURE(CanConfig::SensorId::PRZ_TANK_PRESSURE, przTankPressure);
+        CASE_PRESSURE(CanConfig::SensorId::OX_TANK_PRESSURE, oxTankPressure);
         CASE_PRESSURE(CanConfig::SensorId::COMBUSTION_CHAMBER_PRESSURE,
                       combustionChamberPressure);
-
-        case CanConfig::SensorId::THERMOCOUPLE_TEMPERATURE:
-        {
-            auto temperatureData         = temperatureDataFromCanMessage(msg);
-            data.thermocoupleTemperature = temperatureData;
-            sdLogger.log(temperatureData);
-            break;
-        }
+        CASE_PRESSURE(CanConfig::SensorId::IGNITER_PRESSURE, igniterPressure);
 
         case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
         {
@@ -172,18 +164,17 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     }
 }
 
-// TODO: This needs to be updated with the latest sensors
 mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
 {
     miosix::Lock<miosix::FastMutex> lock(mutex);
 
     return {
         .timestamp              = TimestampTimer::getTimestamp(),
-        .prz_tank_pressure      = data.n2TankPressure.pressure,
-        .ox_reg_out_pressure    = data.regulatorOutPressure.pressure,
-        .fuel_reg_out_pressure  = data.regulatorOutPressure.pressure,
-        .ox_tank_pressure       = data.oxTankTopPressure.pressure,
-        .fuel_tank_pressure     = data.oxTankBottom0Pressure.pressure,
+        .prz_tank_pressure      = data.przTankPressure.pressure,
+        .ox_reg_out_pressure    = data.regulatorOutOxPressure.pressure,
+        .fuel_reg_out_pressure  = data.regulatorOutFuelPressure.pressure,
+        .ox_tank_pressure       = data.oxTankPressure.pressure,
+        .fuel_tank_pressure     = data.fuelTankPressure.pressure,
         .battery_voltage        = data.batteryVoltage.voltage,
         .current_consumption    = data.currentConsumption.current,
         .log_number             = data.device.logNumber,
