@@ -54,11 +54,25 @@ public:
     };
 
     Boardcore::TaskScheduler& sensors() { return high; }
+    Boardcore::TaskScheduler& eregOx() { return high; }
+    Boardcore::TaskScheduler& eregFuel() { return high; }
+    Boardcore::TaskScheduler& mea() { return high; }
+
     Boardcore::TaskScheduler& canHandler() { return medium; }
 
     static Priority::PriorityLevel actuatorsPriority()
     {
         return Priority::CRITICAL;  // Max priority for valve control
+    }
+
+    static Priority::PriorityLevel eregControllerPriority()
+    {
+        return Priority::HIGH;
+    }
+
+    static Priority::PriorityLevel meaControllerPriority()
+    {
+        return Priority::HIGH;
     }
 
     static Priority::PriorityLevel canHandlerPriority()
