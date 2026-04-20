@@ -68,7 +68,7 @@ constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 using namespace Boardcore::ADS131M08Defs;
-
+constexpr auto OX_MAIN_EN_CHANNEL      = Channel::CHANNEL_1;
 constexpr auto FUEL_MAIN_EN_CHANNEL    = Channel::CHANNEL_1;
 constexpr auto PRZ_OX_EN_CHANNEL       = Channel::CHANNEL_2;
 constexpr auto PRZ_FUEL_EN_CHANNEL     = Channel::CHANNEL_3;

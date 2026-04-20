@@ -140,6 +140,22 @@ struct IgniterPressureData : Boardcore::PressureData
     }
 };
 
+struct MainOxPositionData : Boardcore::ServoPositionData
+{
+    explicit MainOxPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    MainOxPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(MainOxPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
 struct MainFuelPositionData : Boardcore::ServoPositionData
 {
     explicit MainFuelPositionData(const Boardcore::ServoPositionData& data)
