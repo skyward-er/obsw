@@ -40,13 +40,13 @@ bool Sensors::start()
     if (Config::Sensors::ADC_1::ENABLED)
     {
         adc1Init();
-        ccPressureInit();
+        mainCCPressureInit();
         fuelTankPressureInit();
         oxTankPressureInit();
         przTankPressureInit();
         regulatorOutFuelPressureInit();
         regulatorOutOxPressureInit();
-        igniterPressureInit();
+        ignCCPressureInit();
     }
 
     if (Config::Sensors::ADC_2::ENABLED)
@@ -133,13 +133,13 @@ void Sensors::calibrate()
 
     using namespace Config::Sensors::ADC_1;
 
-    applyShuntResistance(ccPressure, CC_PT_CHANNEL);
+    applyShuntResistance(mainCCPressure, CC_PT_CHANNEL);
     applyShuntResistance(fuelTankPressure, FUEL_TANK_PT_CHANNEL);
     applyShuntResistance(przTankPressure, PRZ_TANK_PT_CHANNEL);
     applyShuntResistance(oxTankPressure, OX_TANK_PT_CHANNEL);
     applyShuntResistance(regOutFuelPressure, REGULATOR_OUT_FUEL_PT_CHANNEL);
     applyShuntResistance(regOutOxPressure, REGULATOR_OUT_OX_PT_CHANNEL);
-    applyShuntResistance(igniterPressure, IGNITER_PT_CHANNEL);
+    applyShuntResistance(ignCCPressure, IGNITER_PT_CHANNEL);
 }
 
 InternalADCData Sensors::getInternalADCLastSample()
@@ -159,7 +159,7 @@ ADS131M08Data Sensors::getADC2LastSample()
 
 PressureData Sensors::getCCPressure()
 {
-    return ccPressure ? ccPressure->getLastSample() : PressureData{};
+    return mainCCPressure ? mainCCPressure->getLastSample() : PressureData{};
 }
 
 PressureData Sensors::getOxTankPressure()
@@ -192,7 +192,13 @@ PressureData Sensors::getRegulatorOutOxPressure()
 
 PressureData Sensors::getIgniterPressure()
 {
-    return igniterPressure ? igniterPressure->getLastSample() : PressureData{};
+    return ignCCPressure ? ignCCPressure->getLastSample() : PressureData{};
+}
+
+ServoPositionData Sensors::getMainOxPosition()
+{
+    return mainOxPosition ? mainOxPosition->getLastSample()
+                          : ServoPositionData{};
 }
 
 ServoPositionData Sensors::getMainFuelPosition()
@@ -259,14 +265,15 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(adc1, "ADS131M08_1");
         PUSH_SENSOR_INFO(adc2, "ADS131M08_2");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
-        PUSH_SENSOR_INFO(ccPressure, "CCPressure");
+        PUSH_SENSOR_INFO(mainCCPressure, "MainCCPressure");
         PUSH_SENSOR_INFO(oxTankPressure, "OxTankPressure");
         PUSH_SENSOR_INFO(fuelTankPressure, "FuelTankPressure");
         PUSH_SENSOR_INFO(przTankPressure, "PrzTankPressure");
         PUSH_SENSOR_INFO(regOutOxPressure, "RegulatorOutOxPressure");
         PUSH_SENSOR_INFO(regOutFuelPressure, "RegulatorOutFuelPressure");
-        PUSH_SENSOR_INFO(igniterPressure, "IgniterPressure");
-        PUSH_SENSOR_INFO(mainFuelPosition, "MainFuelPosition");
+        PUSH_SENSOR_INFO(ignCCPressure, "IgnCCPressure");
+        PUSH_SENSOR_INFO(mainOxPosition, "MainOxPosition");
+        PUSH_SENSOR_INFO(mainOxPosition, "MainOxPosition");
         PUSH_SENSOR_INFO(przFuelPosition, "PrzFuelPosition");
         PUSH_SENSOR_INFO(przOxPosition, "PrzOxPosition");
         PUSH_SENSOR_INFO(ventingFuelPosition, "VentingFuelPosition");
@@ -518,9 +525,9 @@ void Sensors::fuelTankPressureCallback()
     sdLogger.log(FuelTankPressureData{getFuelTankPressure()});
 }
 
-void Sensors::igniterPressureInit()
+void Sensors::ignCCPressureInit()
 {
-    igniterPressure = std::make_unique<TrafagPressureSensor>(
+    ignCCPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADC1LastSample();
@@ -533,14 +540,14 @@ void Sensors::igniterPressureInit()
         Config::Sensors::Trafag::MAX_CURRENT);
 }
 
-void Sensors::igniterPressureCallback()
+void Sensors::ignCCPressureCallback()
 {
     sdLogger.log(IgniterPressureData{getIgniterPressure()});
 }
 
-void Sensors::ccPressureInit()
+void Sensors::mainCCPressureInit()
 {
-    ccPressure = std::make_unique<TrafagPressureSensor>(
+    mainCCPressure = std::make_unique<TrafagPressureSensor>(
         [this]()
         {
             auto sample = getADC1LastSample();
@@ -552,9 +559,25 @@ void Sensors::ccPressureInit()
         Config::Sensors::Trafag::MAX_CURRENT);
 }
 
-void Sensors::ccPressureCallback()
+void Sensors::mainCCPressureCallback()
 {
     sdLogger.log(CCPressureData{getCCPressure()});
+}
+
+void Sensors::mainOxPositionInit()
+{
+    mainOxPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC2LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_2::OX_MAIN_EN_CHANNEL);
+        });
+}
+
+void Sensors::mainOxPositionCallback()
+{
+    sdLogger.log(MainOxPositionData{getMainOxPosition()});
 }
 
 void Sensors::mainFuelPositionInit()
@@ -691,18 +714,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(std::make_pair(fuelTankPressure.get(), info));
     }
 
-    if (ccPressure)
+    if (mainCCPressure)
     {
-        SensorInfo info{"CCPressure", Config::Sensors::ADC_1::RATE,
-                        [this]() { ccPressureCallback(); }};
-        map.emplace(std::make_pair(ccPressure.get(), info));
+        SensorInfo info{"MainCCPressure", Config::Sensors::ADC_1::RATE,
+                        [this]() { mainCCPressureCallback(); }};
+        map.emplace(std::make_pair(mainCCPressure.get(), info));
     }
 
-    if (igniterPressure)
+    if (ignCCPressure)
     {
-        SensorInfo info{"IgniterPressure", Config::Sensors::ADC_1::RATE,
-                        [this]() { igniterPressureCallback(); }};
-        map.emplace(std::make_pair(igniterPressure.get(), info));
+        SensorInfo info{"IgnCCPressure", Config::Sensors::ADC_1::RATE,
+                        [this]() { ignCCPressureCallback(); }};
+        map.emplace(std::make_pair(ignCCPressure.get(), info));
     }
 
     if (mainFuelPosition)
