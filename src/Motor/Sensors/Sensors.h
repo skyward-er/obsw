@@ -53,7 +53,6 @@ public:
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::ADS131M08Data Sensors::getADC1LastSample();
     Boardcore::ADS131M08Data Sensors::getADC2LastSample();
-
     Boardcore::PressureData getCCPressure();
     Boardcore::PressureData getOxTankPressure();
     Boardcore::PressureData getFuelTankPressure();
@@ -65,6 +64,7 @@ public:
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::CurrentData getCurrentConsumption();
 
+    Boardcore::ServoPositionData getMainOxPosition();
     Boardcore::ServoPositionData getMainFuelPosition();
     Boardcore::ServoPositionData getPrzOxPosition();
     Boardcore::ServoPositionData getPrzFuelPosition();
@@ -83,14 +83,15 @@ protected:
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     // Analog sensors
-    std::unique_ptr<Boardcore::TrafagPressureSensor> ccPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> mainCCPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> oxTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> fuelTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> przTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> regOutOxPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> regOutFuelPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> igniterPressure;
+    std::unique_ptr<Boardcore::TrafagPressureSensor> ignCCPressure;
 
+    std::unique_ptr<Boardcore::AnalogEncoder> mainOxPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> mainFuelPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> przOxPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> przFuelPosition;
@@ -124,11 +125,14 @@ private:
     void przTankPressureInit();
     void przTankPressureCallback();
 
-    void igniterPressureInit();
-    void igniterPressureCallback();
+    void ignCCPressureInit();
+    void ignCCPressureCallback();
 
-    void ccPressureInit();
-    void ccPressureCallback();
+    void mainCCPressureInit();
+    void mainCCPressureCallback();
+
+    void mainOxPositionInit();
+    void mainOxPositionCallback();
 
     void mainFuelPositionInit();
     void mainFuelPositionCallback();
@@ -147,6 +151,7 @@ private:
 
     bool sensorManagerInit();
 
+    // TODO Da implementare. Capire bene cosa serve per il safety venting
     void checkOxTankOverpressure();
     // The last time point when the OX tank was ok (below threshold)
     std::chrono::steady_clock::time_point oxTankPressureOkTime = {};

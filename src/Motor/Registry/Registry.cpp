@@ -49,22 +49,6 @@ const char* Motor::configurationIdToName(ConfigurationId id)
             return "DEFAULT_OPENING_TIME";
         case CONFIG_ID_DEFAULT_MAX_APERTURE:
             return "DEFAULT_MAX_APERTURE";
-        case CONFIG_ID_PRZ_FIL_OPENING_TIME:
-            return "PRZ_FIL_OPENING_TIME";
-        case CONFIG_ID_PRZ_FIL_MAX_APERTURE:
-            return "PRZ_FIL_MAX_APERTURE";
-        case CONFIG_ID_PRZ_REL_OPENING_TIME:
-            return "PRZ_REL_OPENING_TIME";
-        case CONFIG_ID_PRZ_REL_MAX_APERTURE:
-            return "PRZ_REL_MAX_APERTURE";
-        case CONFIG_ID_OX_FIL_OPENING_TIME:
-            return "OX_FIL_OPENING_TIME";
-        case CONFIG_ID_OX_FIL_MAX_APERTURE:
-            return "OX_FIL_MAX_APERTURE";
-        case CONFIG_ID_OX_REL_OPENING_TIME:
-            return "OX_REL_OPENING_TIME";
-        case CONFIG_ID_OX_REL_MAX_APERTURE:
-            return "OX_REL_MAX_APERTURE";
         case CONFIG_ID_PRZ_OX_OPENING_TIME:
             return "PRZ_OX_OPENING_TIME";
         case CONFIG_ID_PRZ_OX_MAX_APERTURE:
