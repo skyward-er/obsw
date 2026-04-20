@@ -70,7 +70,7 @@ private:
      * @brief Calculate the altitude above ground level (using the ground
      * altitude variation) based on the current gps position.
      */
-    float calculateAboveGroundAltitude(LandingFlareData& data);
+    Meter calculateAboveGroundAltitude(LandingFlareData& data);
 
     /**
      * @brief Find the current position in NED coordinates using gps.
@@ -81,7 +81,7 @@ private:
         targetGEO;  ///< Target position in gps GEO coordinates, used to
                     ///< calculate the local coordinates for the altitude map
 
-    float detectionAltitude    = 0.0;
+    Meter detectionAltitude    = 0.0_m;
     bool flareAltitudeDetected = false;
 };
 

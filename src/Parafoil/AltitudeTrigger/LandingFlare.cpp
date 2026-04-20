@@ -59,7 +59,7 @@ void LandingFlare::enable()
 {
     AltitudeTrigger::enable();
     flareAltitudeDetected = false;
-    detectionAltitude     = 0.0;
+    detectionAltitude     = 0.0_m;
 }
 
 Eigen::Vector2f LandingFlare::findCurrentPositionNED()
@@ -73,19 +73,19 @@ Eigen::Vector2f LandingFlare::findCurrentPositionNED()
     return currentPositionNED;
 }
 
-float LandingFlare::calculateAboveGroundAltitude(LandingFlareData& data)
+Meter LandingFlare::calculateAboveGroundAltitude(LandingFlareData& data)
 {
     auto altitude = getModule<NASController>()->getAltitude();
     Eigen::Vector2f currentPositionNED = findCurrentPositionNED();
 
-    float currentGroundAltitude = map.getClosestGroundAltitude(
+    Meter currentGroundAltitude = map.getClosestGroundAltitude(
         currentPositionNED[0], currentPositionNED[1]);
 
     data.map_n = currentPositionNED[0];
     data.map_e = currentPositionNED[1];
-    data.map_u = currentGroundAltitude;
+    data.map_u = currentGroundAltitude.value();
 
-    float aboveGroundAltitude = altitude.value() - currentGroundAltitude;
+    Meter aboveGroundAltitude = altitude - currentGroundAltitude;
 
     return aboveGroundAltitude;
 }
@@ -102,16 +102,20 @@ void LandingFlare::update()
         .map_u              = 0,
     };
 
-    float AGLAltitude = calculateAboveGroundAltitude(data);
+    Meter AGLAltitude = calculateAboveGroundAltitude(data);
 
-    data.estimated_agl_u    = AGLAltitude;
+    data.estimated_agl_u    = AGLAltitude.value();
     data.flare_detected     = flareAltitudeDetected;
-    data.detection_altitude = detectionAltitude;
+    data.detection_altitude = detectionAltitude.value();
 
     if (!running)
+    {
+        // if not running log anyways data
+        Logger::getInstance().log(data);
         return;
+    }
 
-    if (AGLAltitude < thresholdAltitude)
+    if (AGLAltitude.value() < thresholdAltitude)
         confidence++;
     else
         confidence = 0;
@@ -121,12 +125,14 @@ void LandingFlare::update()
         detectionAltitude       = AGLAltitude;
         flareAltitudeDetected   = true;
         data.flare_detected     = flareAltitudeDetected;
-        data.detection_altitude = detectionAltitude;
+        data.detection_altitude = detectionAltitude.value();
         confidence              = 0;
         EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
                                         TOPIC_ALT);
         running = false;
     }
+
+    Logger::getInstance().log(data);
 }
 
 }  // namespace Parafoil
