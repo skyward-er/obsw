@@ -121,6 +121,7 @@ sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
 #                            Parafoil entrypoints                             #
 #-----------------------------------------------------------------------------#
 
+
 add_executable(parafoil-manual-servo-test src/Parafoil/parafoil-manual-servo-test.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-manual-servo-test PRIVATE ${OBSW_INCLUDE_DIRS})
 target_compile_definitions(parafoil-manual-servo-test PRIVATE MILANO)
@@ -152,8 +153,36 @@ add_executable(parafoil-sequence-rotation-jesolo src/Parafoil/parafoil-entry.cpp
 target_sources(parafoil-sequence-rotation-jesolo PRIVATE ${MAP_HDR})
 target_include_directories(parafoil-sequence-rotation-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_include_directories(parafoil-sequence-rotation-jesolo PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-target_compile_definitions(parafoil-sequence-rotation-jesolo PRIVATE ALGORITHM_ROTATION JESOLO TINY_PULL)
+target_compile_definitions(parafoil-sequence-rotation-jesolo PRIVATE ALGORITHM_ROTATION JESOLO)
 sbs_target(parafoil-sequence-rotation-jesolo stm32f767zi_lyra_biscotto)
+
+add_executable(parafoil-file-sequence src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_sources(parafoil-file-sequence PRIVATE ${MAP_HDR})
+target_include_directories(parafoil-file-sequence PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(parafoil-file-sequence PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(parafoil-file-sequence PRIVATE ALGORITHM_FILE_SEQUENCE MILANO DISABLE_LANDING_FLARE)
+sbs_target(parafoil-file-sequence stm32f767zi_lyra_biscotto)
+
+add_executable(parafoil-file-sequence-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_sources(parafoil-file-sequence-jesolo PRIVATE ${MAP_HDR})
+target_include_directories(parafoil-file-sequence-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(parafoil-file-sequence-jesolo PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(parafoil-file-sequence-jesolo PRIVATE ALGORITHM_FILE_SEQUENCE JESOLO)
+sbs_target(parafoil-file-sequence-jesolo stm32f767zi_lyra_biscotto)
+
+add_executable(parafoil-sequence src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_sources(parafoil-sequence PRIVATE ${MAP_HDR})
+target_include_directories(parafoil-sequence PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(parafoil-sequence PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(parafoil-sequence PRIVATE ALGORITHM_SEQUENCE MILANO DISABLE_LANDING_FLARE)
+sbs_target(parafoil-sequence stm32f767zi_lyra_biscotto)
+
+add_executable(parafoil-sequence-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_sources(parafoil-sequence-jesolo PRIVATE ${MAP_HDR})
+target_include_directories(parafoil-sequence-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(parafoil-sequence-jesolo PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(parafoil-sequence-jesolo PRIVATE ALGORITHM_SEQUENCE JESOLO)
+sbs_target(parafoil-sequence-jesolo stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-milano src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_sources(parafoil-guided-milano PRIVATE ${MAP_HDR})
@@ -196,7 +225,10 @@ target_compile_definitions(parafoil-t-approach-dynamic PRIVATE
 )
 sbs_target(parafoil-t-approach-dynamic stm32f767zi_lyra_biscotto)
 
+
 add_executable(parafoil-ground-test src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_sources(parafoil-ground-test PRIVATE ${MAP_HDR})
 target_include_directories(parafoil-ground-test PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(parafoil-ground-test PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_definitions(parafoil-ground-test PRIVATE ALGORITHM_PROGRESSIVE_ROTATION MILANO DISABLE_LANDING_FLARE)
 sbs_target(parafoil-ground-test stm32f767zi_lyra_biscotto)

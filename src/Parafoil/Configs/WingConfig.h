@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto
+/* Copyright (c) 2024-2026 Skyward Experimental Rocketry
+ * Authors: Federico Mandelli, Angelo Prete, Niccolò Betto, Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -99,10 +99,15 @@ constexpr auto ALGORITHM = AlgorithmId::SEQUENCE;
 constexpr auto ALGORITHM = AlgorithmId::ROTATION;
 #elif defined(ALGORITHM_PROGRESSIVE_ROTATION)
 constexpr auto ALGORITHM = AlgorithmId::PROGRESSIVE_ROTATION;
+#elif defined(ALGORITHM_FILE_SEQUENCE)
+constexpr auto ALGORITHM = AlgorithmId::FROM_FILE;
 #else
 constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
 #endif
 }  // namespace Default
+
+constexpr std::initializer_list<float> PROGRESSIVE_ASYMMETRIC_SEQUENCE = {
+    0.8f, 0.6f, 0.4f};
 
 /**
  * @brief Dynamic target configuration. If enabled, the target is not fixed to

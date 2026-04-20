@@ -621,17 +621,25 @@ void WingController::loadAlgorithms()
                                                          PARAFOIL_RIGHT_SERVO);
         WingAlgorithmData step;
 
-        step.timestamp   = 0;
-        step.servo1Angle = 0;
-        step.servo2Angle = 120;
-        algorithm->addStep(step);
+        step.timestamp = 0;
+        for (auto& wingPercentage : PROGRESSIVE_ASYMMETRIC_SEQUENCE)
+        {
+            for (size_t i = 0; i < 2; i++)
+            {
+                step.servo1Angle =
+                    wingPercentage * SERVO_LEFT_MAX_ANGLE.value();
+                step.servo2Angle = 0;
+                algorithm->addStep(step);
 
-        step.timestamp += microseconds{STRAIGHT_FLIGHT_TIMEOUT}.count();
-        step.servo1Angle = 0;
-        step.servo2Angle = 0;
-        algorithm->addStep(step);
+                step.timestamp += microseconds{seconds{5}}.count();
+                step.servo1Angle = 0;
+                step.servo2Angle =
+                    wingPercentage * SERVO_RIGHT_MIN_ANGLE.value();
+                algorithm->addStep(step);
+                step.timestamp += microseconds{seconds{5}}.count();
+            }
+        }
 
-        step.timestamp += microseconds{STRAIGHT_FLIGHT_TIMEOUT}.count();
         step.servo1Angle = 0;
         step.servo2Angle = 0;
         algorithm->addStep(step);
