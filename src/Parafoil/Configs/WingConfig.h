@@ -50,9 +50,9 @@ constexpr auto STRAIGHT_FLIGHT_TIMEOUT = 15s;
 
 // progressive rotation
 constexpr auto PROGRESSIVE_ROTATION_TIMEOUT = 500ms;
-constexpr auto COMMAND_PERIOD               = 6s;
-constexpr auto WING_DECREMENT               = 90_deg;
-constexpr auto INITIAL_ANGLE                = 720_deg;
+constexpr auto COMMAND_PERIOD               = 8s;
+constexpr auto WING_DECREMENT               = 180_deg;
+constexpr auto INITIAL_ANGLE                = 1080_deg;
 
 constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = 1080_deg;
@@ -197,17 +197,17 @@ constexpr auto ENABLED = true;
 #endif
 
 #if defined(JESOLO)
-constexpr Meter ALTITUDE = 30_m;  // [m]
+constexpr Meter ALTITUDE = 50_m;  // [m]
 #elif defined(MILANO)
 constexpr Meter ALTITUDE = 5.0_m;  // [m]
 #else
 constexpr Meter ALTITUDE = 30_m;  // [m]
 #endif
-constexpr int CONFIDENCE         = 10;  // [samples]
+constexpr int CONFIDENCE         = 15;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
-constexpr auto DURATION          = 30s;
-constexpr auto ANGLE_LEFT_SERVO  = 1080_deg;
-constexpr auto ANGLE_RIGHT_SERVO = -1080_deg;
+constexpr auto DURATION          = 120s;
+constexpr auto ANGLE_LEFT_SERVO  = 540_deg;
+constexpr auto ANGLE_RIGHT_SERVO = -540_deg;
 
 namespace TinyPull
 {
@@ -225,13 +225,13 @@ constexpr auto ENABLED = false;
 constexpr auto ANGLE_LEFT_SERVO  = 90_deg;
 constexpr auto ANGLE_RIGHT_SERVO = -90_deg;
 #if defined(JESOLO)
-constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {30_m, 25_m, 20_m,
-                                                              15_m, 10_m, 5_m};
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
+    50_m, 45_m, 40_m, 35_m, 30_m, 25_m, 20_m};
 #elif defined(MILANO)
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {5_m, 4_m, 3_m};
 #else
-constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {30_m, 25_m, 20_m,
-                                                              15_m, 10_m, 5_m};
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
+    50_m, 45_m, 40_m, 35_m, 30_m, 25_m, 20_m};
 #endif
 }  // namespace TinyPull
 
@@ -241,11 +241,12 @@ constexpr auto ALTITUDE_MAP_ADDRESS = map_data_bin;
 
 namespace Rotation
 {
-constexpr auto ROTATION_PERIOD = 8s;  ///< Period of the rotation maneuver
-constexpr std::initializer_list<Degree> ROTATION_LEFT  = {720_deg, 360_deg,
-                                                          180_deg, 0_deg};
-constexpr std::initializer_list<Degree> ROTATION_RIGHT = {-720_deg, -360_deg,
-                                                          -180_deg, 0_deg};
+constexpr auto ROTATION_PERIOD = 6s;  ///< Period of the rotation maneuver
+// constexpr std::initializer_list<Degree> ROTATION_LEFT  = {720_deg, 360_deg,
+//                                                           180_deg, 0_deg};
+constexpr std::initializer_list<Degree> ROTATION_LEFT  = {0_deg};
+constexpr std::initializer_list<Degree> ROTATION_RIGHT = {
+    -720_deg, -540_deg, -360_deg, -180_deg, 0_deg};
 }  // namespace Rotation
 
 }  // namespace Wing
