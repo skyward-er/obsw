@@ -101,7 +101,7 @@ MEAController::MEAController()
 
 bool MEAController::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->sensors();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->mea();
 
     uint8_t result =
         scheduler.addTask([this]() { update(); }, Config::MEA::UPDATE_RATE);
