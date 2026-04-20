@@ -92,9 +92,6 @@ float LandingFlare::calculateAboveGroundAltitude(LandingFlareData& data)
 
 void LandingFlare::update()
 {
-    if (!running)
-        return;
-
     LandingFlareData data{
         .timestamp          = TimestampTimer::getTimestamp(),
         .flare_detected     = false,
@@ -105,8 +102,14 @@ void LandingFlare::update()
         .map_u              = 0,
     };
 
-    float AGLAltitude    = calculateAboveGroundAltitude(data);
-    data.estimated_agl_u = AGLAltitude;
+    float AGLAltitude = calculateAboveGroundAltitude(data);
+
+    data.estimated_agl_u    = AGLAltitude;
+    data.flare_detected     = flareAltitudeDetected;
+    data.detection_altitude = detectionAltitude;
+
+    if (!running)
+        return;
 
     if (AGLAltitude < thresholdAltitude)
         confidence++;
@@ -115,18 +118,15 @@ void LandingFlare::update()
 
     if (confidence >= confidenceThreshold)
     {
-        if (running)
-        {
-            detectionAltitude     = AGLAltitude;
-            flareAltitudeDetected = true;
-            confidence            = 0;
-            EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
-                                            TOPIC_ALT);
-            running = false;
-        }
+        detectionAltitude       = AGLAltitude;
+        flareAltitudeDetected   = true;
+        data.flare_detected     = flareAltitudeDetected;
+        data.detection_altitude = detectionAltitude;
+        confidence              = 0;
+        EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
+                                        TOPIC_ALT);
+        running = false;
     }
-    data.flare_detected     = flareAltitudeDetected;
-    data.detection_altitude = detectionAltitude;
 }
 
 }  // namespace Parafoil
