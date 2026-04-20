@@ -1,5 +1,5 @@
-/* Copyright (c) 2022 Skyward Experimental Rocketry
- * Author: Matteo Pignataro
+/* Copyright (c) 2022-2026 Skyward Experimental Rocketry
+ * Author: Matteo Pignataro, Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Configs/WingConfig.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <drivers/timer/TimestampTimer.h>
 
@@ -32,8 +33,10 @@ std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
     input >> data.timestamp;
     input.ignore(1, ',');
     input >> data.servo1Angle;
+    data.servo1Angle *= Config::Wing::SERVO_LEFT_MAX_ANGLE.value();
     input.ignore(1, ',');
     input >> data.servo2Angle;
+    data.servo2Angle *= -Config::Wing::SERVO_RIGHT_MIN_ANGLE.value();
     return input;
 }
 

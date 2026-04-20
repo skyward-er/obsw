@@ -695,6 +695,14 @@ void WingController::loadAlgorithms()
         algorithms[static_cast<size_t>(AlgorithmId::PROGRESSIVE_ROTATION)] =
             std::move(algorithm);
     }
+
+    // File Sequence
+    {
+        auto algorithm = std::make_unique<FileWingAlgorithm>(
+            PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, "/sd/wing_sequence.csv");
+        algorithms[static_cast<size_t>(AlgorithmId::FROM_FILE)] =
+            std::move(algorithm);
+    }
 }
 
 WingAlgorithm& WingController::getCurrentAlgorithm()
@@ -796,11 +804,11 @@ void WingController::flareWing(WingController::FlareType type)
     switch (type)
     {
         case FlareType::FULL:
-{
+        {
             getModule<Actuators>()->setServoAngle(
                 PARAFOIL_LEFT_SERVO, LandingFlareConfig::ANGLE_LEFT_SERVO);
-    getModule<Actuators>()->setServoAngle(
-        PARAFOIL_RIGHT_SERVO, LandingFlareConfig::ANGLE_RIGHT_SERVO);
+            getModule<Actuators>()->setServoAngle(
+                PARAFOIL_RIGHT_SERVO, LandingFlareConfig::ANGLE_RIGHT_SERVO);
             return;
         }
         case FlareType::PUMP:

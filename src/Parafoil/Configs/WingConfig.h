@@ -70,6 +70,7 @@ enum class AlgorithmId : size_t
     SEQUENCE,
     ROTATION,
     PROGRESSIVE_ROTATION,
+    FROM_FILE,
     LAST  ///< Used to count the number of algorithms
 };
 
