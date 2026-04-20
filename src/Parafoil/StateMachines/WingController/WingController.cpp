@@ -453,10 +453,8 @@ bool WingController::start()
             if (!servosStarted)
                 return;
 
-            auto servo1Angle =
-                getModule<Sensors>()->getAS5047D1LastSample();  // Left Servo
-            auto servo2Angle =
-                getModule<Sensors>()->getAS5047D2LastSample();  // Right Servo
+            auto servo1Angle = getModule<Sensors>()->getAS5047D1LastSample();
+            auto servo2Angle = getModule<Sensors>()->getAS5047D2LastSample();
 
             getModule<Actuators>()->updateServoState(
                 PARAFOIL_RIGHT_SERVO,
