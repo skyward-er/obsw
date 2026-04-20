@@ -631,10 +631,21 @@ void WingController::loadAlgorithms()
 
                 step.timestamp += microseconds{seconds{5}}.count();
                 step.servo1Angle = 0;
+                step.servo2Angle = 0;
+                algorithm->addStep(step);
+
+                step.timestamp += microseconds{seconds{2}}.count();
+                step.servo1Angle = 0;
                 step.servo2Angle =
                     wingPercentage * SERVO_RIGHT_MIN_ANGLE.value();
                 algorithm->addStep(step);
+
                 step.timestamp += microseconds{seconds{5}}.count();
+                step.servo1Angle = 0;
+                step.servo2Angle = 0;
+                algorithm->addStep(step);
+
+                step.timestamp += microseconds{seconds{2}}.count();
             }
         }
 
