@@ -1,4 +1,4 @@
-/* Copyright (c) 2023-2024 Skyward Experimental Rocketry
+/* Copyright (c) 2023-2026 Skyward Experimental Rocketry
  * Authors: Federico Mandelli, Nicclò Betto
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -47,7 +47,7 @@ public:
     bool start();
     bool isStarted();
 
-    void enable();
+    virtual void enable();
     void disable();
     bool isEnabled();
 

@@ -59,6 +59,8 @@ public:
      */
     void setTargetGEO(Eigen::Vector2f targetGEO);
 
+    void enable() override;
+
 private:
     void update();
 
@@ -68,7 +70,7 @@ private:
      * @brief Calculate the altitude above ground level (using the ground
      * altitude variation) based on the current gps position.
      */
-    float calculateAboveGroundAltitude(LandingFlareData &data);
+    float calculateAboveGroundAltitude(LandingFlareData& data);
 
     /**
      * @brief Find the current position in NED coordinates using gps.
@@ -78,6 +80,9 @@ private:
     Eigen::Vector2f
         targetGEO;  ///< Target position in gps GEO coordinates, used to
                     ///< calculate the local coordinates for the altitude map
+
+    float detectionAltitude    = 0.0;
+    bool flareAltitudeDetected = false;
 };
 
 }  // namespace Parafoil

@@ -55,6 +55,13 @@ void LandingFlare::setTargetGEO(Eigen::Vector2f targetGEO)
     this->targetGEO = targetGEO;
 }
 
+void LandingFlare::enable()
+{
+    AltitudeTrigger::enable();
+    flareAltitudeDetected = false;
+    detectionAltitude     = 0.0;
+}
+
 Eigen::Vector2f LandingFlare::findCurrentPositionNED()
 {
     auto gps = getModule<Sensors>()->getUBXGPSLastSample();
@@ -108,15 +115,18 @@ void LandingFlare::update()
 
     if (confidence >= confidenceThreshold)
     {
-        data.flare_detected     = true;
-        data.detection_altitude = AGLAltitude;
-        confidence              = 0;
-        EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
-                                        TOPIC_ALT);
-        running = false;
+        if (running)
+        {
+            detectionAltitude     = AGLAltitude;
+            flareAltitudeDetected = true;
+            confidence            = 0;
+            EventBroker::getInstance().post(ALTITUDE_TRIGGER_ALTITUDE_REACHED,
+                                            TOPIC_ALT);
+            running = false;
+        }
     }
-
-    Logger::getInstance().log(data);
+    data.flare_detected     = flareAltitudeDetected;
+    data.detection_altitude = detectionAltitude;
 }
 
 }  // namespace Parafoil
