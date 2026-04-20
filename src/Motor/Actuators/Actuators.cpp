@@ -482,14 +482,30 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
             return &valveInfos[0];
         case FUEL_VENTING_VALVE:
             return &valveInfos[1];
-        case MAIN_OX_VALVE:
+        case IGNITION_OX_VALVE:
             return &valveInfos[2];
-        case MAIN_FUEL_VALVE:
+        case IGNITION_FUEL_VALVE:
             return &valveInfos[3];
+
+        default:
+            // Oh FUCK
+            LOG_ERR(logger, "Invalid servo requested");
+            return nullptr;
+    }
+}
+
+Actuators::ManualValveInfo* Actuators::getManualValve(ServosList servo)
+{
+    switch (servo)
+    {
+        case MAIN_OX_VALVE:
+            return &manualValveInfos[0];
+        case MAIN_FUEL_VALVE:
+            return &manualValveInfos[1];
         case PRZ_OX_VALVE:
-            return &valveInfos[4];
+            return &manualValveInfos[2];
         case PRZ_FUEL_VALVE:
-            return &valveInfos[5];
+            return &manualValveInfos[3];
 
         default:
             // Oh FUCK

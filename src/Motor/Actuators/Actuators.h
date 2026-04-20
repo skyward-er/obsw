@@ -163,9 +163,7 @@ private:
     // Timestamp for automatic venting after inactivity for safety reasons
     TimePoint safetyVentingTs;
 
-    TimePoint fuelSolenoidCloseTs = noActionNeeded;
-    TimePoint oxSolenoidCloseTs   = noActionNeeded;
-    TimePoint sparkPlugCloseTs    = noActionNeeded;
+    TimePoint sparkPlugCloseTs = noActionNeeded;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
