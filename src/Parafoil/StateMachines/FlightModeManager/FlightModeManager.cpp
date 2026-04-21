@@ -290,6 +290,8 @@ State FlightModeManager::PreFlightAlgorithmCalibration(const Event& event)
             // Calibrate after a delay to allow calibrated sensors to stabilize
             EventBroker::getInstance().postDelayed(NAS_CALIBRATE, TOPIC_NAS,
                                                    100);
+            EventBroker::getInstance().postDelayed(ADA_CALIBRATE, TOPIC_ADA,
+                                                   100);
             return HANDLED;
         }
 
@@ -393,6 +395,11 @@ State FlightModeManager::ReadyTestMode(const Event& event)
         case EV_INIT:
         {
             return HANDLED;
+        }
+
+        case TMTC_EXIT_TEST_MODE:
+        {
+            return transition(&FlightModeManager::Ready);
         }
 
         case TMTC_FORCE_LANDING:

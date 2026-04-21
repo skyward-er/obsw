@@ -28,6 +28,7 @@
 #include <Parafoil/PinHandler/PinHandler.h>
 #include <Parafoil/Radio/Radio.h>
 #include <Parafoil/Sensors/Sensors.h>
+#include <Parafoil/StateMachines/ADAController/ADAController.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
 #include <Parafoil/StateMachines/WingController/WingController.h>
@@ -67,6 +68,7 @@ int main()
     auto wingController    = new WingController();
     auto actuators         = new Actuators();
     auto statsRecorder     = new FlightStatsRecorder();
+    auto adaController     = new ADAController();
 
     sensors = new Sensors();
 
@@ -88,6 +90,7 @@ int main()
                   manager.insert<Sensors>(sensors) &&
                   manager.insert<FlightModeManager>(flightModeManager) &&
                   manager.insert<NASController>(nasController) &&
+                  manager.insert<ADAController>(adaController) &&
                   manager.insert<PinHandler>(pinHandler) &&
                   manager.insert<Radio>(radio) &&
                   manager.insert<LandingFlare>(landingFlare) &&
@@ -167,6 +170,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start NasController ***" << std::endl;
+    }
+
+    std::cout << "Starting ADAController" << std::endl;
+    if (!adaController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ADAController ***" << std::endl;
     }
 
     std::cout << "Starting AltitudeTrigger" << std::endl;

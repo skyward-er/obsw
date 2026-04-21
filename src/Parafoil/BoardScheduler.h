@@ -58,9 +58,10 @@ public:
     Boardcore::TaskScheduler& radio() { return medium; }
     Boardcore::TaskScheduler& canHandler() { return medium; }
     Boardcore::TaskScheduler& altitudeTrigger() { return medium; }
-    Boardcore::TaskScheduler& wingController() { return medium; }
+    Boardcore::TaskScheduler& wingController() { return critical; }
     Boardcore::TaskScheduler& actuators() { return low; }
     Boardcore::TaskScheduler& flightStatsRecorder() { return low; }
+    Boardcore::TaskScheduler& adaController() { return critical; }
 
     static Priority::PriorityLevel flightModeManagerPriority()
     {
@@ -69,12 +70,17 @@ public:
 
     static Priority::PriorityLevel nasControllerPriority()
     {
-        return Priority::MEDIUM;
+        return Priority::CRITICAL;
     }
 
     static Priority::PriorityLevel wingControllerPriority()
     {
-        return Priority::MEDIUM;
+        return Priority::CRITICAL;
+    }
+
+    static Priority::PriorityLevel adaControllerPriority()
+    {
+        return Priority::CRITICAL;
     }
 
     /**

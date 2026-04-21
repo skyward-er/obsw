@@ -22,7 +22,9 @@
 
 #pragma once
 
+#include <Parafoil/StateMachines/ADAController/ADAController.h>
 #include <algorithms/NAS/NAS.h>
+#include <algorithms/NASDAQ/NASDAQ0.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -35,11 +37,12 @@ using namespace Boardcore::Units::Length;
 class BoardScheduler;
 class Sensors;
 class FlightStatsRecorder;
+class ADAController;
 
 class NASController
     : public Boardcore::FSM<NASController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           FlightStatsRecorder>
+                                           FlightStatsRecorder, ADAController>
 {
 public:
     /**
@@ -71,6 +74,7 @@ public:
 
 private:
     void calibrate();
+    void initNasdaq();
 
     /**
      * @brief Update the NAS estimation
@@ -90,6 +94,7 @@ private:
 
     Boardcore::NAS nas;  ///< The NAS algorithm instance
     miosix::FastMutex nasMutex;
+    NASDAQ0 nasdaq;  ///< The NASDAQ algorithm instance
 
     int magDecimateCount  = 0;
     int acc1gSamplesCount = 0;

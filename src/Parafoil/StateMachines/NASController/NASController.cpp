@@ -92,6 +92,33 @@ bool NASController::start()
     return true;
 }
 
+void NASController::initNasdaq()
+{
+    // Get last NAS state
+    Lock<FastMutex> lock{nasMutex};
+
+    // Extract nasdaq config
+    NASDAQ0::P_NASDAQ0_T nasdaqConfig = nasdaq.getBlockParameters();
+
+    // Set initial state
+    nasdaqConfig.NASStateInterface_InitialCondit[0] = 0;
+    nasdaqConfig.NASStateInterface_InitialCondit[1] = 0;
+    nasdaqConfig.NASStateInterface_InitialCondit[2] = 0;
+    nasdaqConfig.NASStateInterface_InitialCondit[3] = 0;
+    nasdaqConfig.NASStateInterface_InitialCondit[4] = 0;
+    nasdaqConfig.NASStateInterface_InitialCondit[5] = 0;
+
+    // Set nas covariance
+    for (size_t i = 0; i < Config::NASDAQ::NAS_COV_LEN; i++)
+        nasdaqConfig.NASVarianceInterface_InitialCon[i] = 0.1;
+
+    // Set modified nasdaq config
+    nasdaq.setBlockParameters(&nasdaqConfig);
+
+    // Call the autocoded initialization algorithm
+    nasdaq.initialize();
+}
+
 NASState NASController::getNasState()
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
@@ -177,6 +204,7 @@ void NASController::Active(const Event& event)
     {
         case EV_ENTRY:
         {
+            initNasdaq();
             updateState(NASControllerState::ACTIVE);
             break;
         }
@@ -271,90 +299,70 @@ void NASController::update()
     if (state != NASControllerState::ACTIVE)
         return;
 
-    auto* sensors = getModule<Sensors>();
+    Boardcore::ADAState ada = getModule<ADAController>()->getADAState();
+    const float* covariance = getModule<ADAController>()->getQflattened();
+    Sensors* sensors        = getModule<Sensors>();
+    auto gps                = sensors->getUBXGPSLastSample();
+    auto baro               = sensors->getStaticPressureLastSample();
 
-    auto imu          = sensors->getIMULastSample();
-    auto gps          = sensors->getUBXGPSLastSample();
-    auto baro         = sensors->getStaticPressureLastSample();
-    auto staticPitot  = baro;
-    auto dynamicPitot = sensors->getDynamicPressureLastSample();
+    // Fill ADA bus
+    Bus_AdaState adaBusInput;
+    for (size_t i = 0; i < Config::NASDAQ::ADA_DIAG_COV_LEN; i++)
+        adaBusInput.covariance[i] = covariance[i];
+    adaBusInput.verticalSpeedCovariance =
+        getModule<ADAController>()->getVerticalSpeedCov();
+    adaBusInput.mslAltitude   = ada.mslAltitude;
+    adaBusInput.aglAltitude   = ada.aglAltitude;
+    adaBusInput.verticalSpeed = ada.verticalSpeed;
+    adaBusInput.x0            = ada.x0;
+    adaBusInput.x1            = ada.x1;
+    adaBusInput.x2            = ada.x2;
+    adaBusInput.apogeeCounter =
+        getModule<ADAController>()->getDetectedApogees().ada0DetectedApogees;
+    adaBusInput.parachuteCounter = 0;  // Not actually used by the algorithm
 
-    // Calculate acceleration
-    Vector3f acc    = static_cast<AccelerometerData>(imu);
-    float accLength = acc.norm();
+    // Fill GPS bus
+    Bus_GPS gpsBusInput;
+    gpsBusInput.Measure[0] = gps.latitude;
+    gpsBusInput.Measure[1] = gps.longitude;
+    gpsBusInput.Measure[2] = gps.height;
+    gpsBusInput.Measure[3] = gps.velocityNorth;
+    gpsBusInput.Measure[4] = gps.velocityEast;
+    gpsBusInput.Measure[5] = gps.velocityDown;
+    gpsBusInput.Measure[6] = gps.fix;
+    gpsBusInput.Measure[7] = gps.satellites;
+    gpsBusInput.Measure[8] = gps.speed;
+    gpsBusInput.Measure[9] = gps.track;
+    gpsBusInput.Timestamp  = gps.gpsTimestamp;
 
-    miosix::Lock<miosix::FastMutex> l(nasMutex);
+    // Fill baro bus
+    Bus_Baro baroBusInput;
+    baroBusInput.Measure   = baro.pressure;
+    baroBusInput.Timestamp = baro.pressureTimestamp;
 
-    auto prevState    = nas.getState();
-    auto ref          = nas.getReferenceValues();
-    float mslAltitude = ref.refAltitude - prevState.d;
-    float mach =
-        Aeroutils::computeMach(-mslAltitude, -prevState.vd, ref.mslTemperature);
+    // Run nasdaq
+    nasdaq.setADA_States(adaBusInput);
+    nasdaq.setGPS(gpsBusInput);
+    nasdaq.setBaro(baroBusInput);
+    nasdaq.step();
 
-    // Perform initial NAS prediction
-    nas.predictGyro(imu);
-    nas.predictAcc(imu);
+    // Get and log output
+    NASDAQ0::ExtY_NASDAQ0_T nasdaqOutput = nasdaq.getExternalOutputs();
+    NASDAQState nasdaqState;
+    nasdaqState.timestamp = TimestampTimer::getTimestamp();
+    nasdaqState.n         = nasdaqOutput.Position[0];
+    nasdaqState.e         = nasdaqOutput.Position[1];
+    nasdaqState.d         = nasdaqOutput.Position[2];
+    nasdaqState.vn        = nasdaqOutput.Velocity[0];
+    nasdaqState.ve        = nasdaqOutput.Velocity[1];
+    nasdaqState.vd        = nasdaqOutput.Velocity[2];
+    nasdaqState.c0        = nasdaqOutput.Covariance[0];
+    nasdaqState.c1        = nasdaqOutput.Covariance[1];
+    nasdaqState.c2        = nasdaqOutput.Covariance[2];
+    nasdaqState.c3        = nasdaqOutput.Covariance[3];
+    nasdaqState.c4        = nasdaqOutput.Covariance[4];
 
-    // Then perform necessary corrections
-    // Disable magnetometer correction
-    // if (lastMagTimestamp < imu.magneticFieldTimestamp &&
-    //     magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
-    // {
-    //     nas.correctMag(imu);
-    //     magDecimateCount = 0;
-    // }
-    // else
-    // {
-    //     magDecimateCount++;
-    // }
-
-    if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
-        accLength < Config::NAS::DISABLE_GPS_ACCELERATION_THRESHOLD)
-    {
-        nas.correctGPS(gps);
-    }
-
-    if (lastBaroTimestamp < baro.pressureTimestamp)
-        nas.correctBaro(baro.pressure);
-
-    // Correct with pitot if one pressure sample is new
-    if (dynamicPitot.pressure > 0 &&
-        (staticPitotTimestamp < staticPitot.pressureTimestamp ||
-         dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
-        mach > Config::NAS::PITOT_MACH_THRESHOLD)
-    {
-        nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
-    }
-
-    // Correct with accelerometer if the acceleration is in specs
-    if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-        nas.correctAcc(imu);
-
-    // Check if the accelerometer is measuring 1g
-    if (accLength <
-            (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
-        accLength >
-            (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
-    {
-        if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-            acc1gSamplesCount++;
-        else
-            acc1g = true;
-    }
-    else
-    {
-        acc1gSamplesCount = 0;
-        acc1g             = false;
-    }
-
-    lastGyroTimestamp    = imu.angularSpeedTimestamp;
-    lastAccTimestamp     = imu.accelerationTimestamp;
-    lastMagTimestamp     = imu.magneticFieldTimestamp;
-    lastGpsTimestamp     = gps.gpsTimestamp;
-    lastBaroTimestamp    = baro.pressureTimestamp;
-    staticPitotTimestamp = staticPitot.pressureTimestamp;
-    // dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
-    dynamicPitotTimestamp = 0;
+    auto ref = nas.getReferenceValues();
 
     auto altitudeSlm = Aeroutils::relAltitude(baro.pressure, ref.mslPressure,
                                               ref.mslTemperature);
@@ -369,10 +377,12 @@ void NASController::update()
                      .relAltitude = altitude.value()};
 
     Logger::getInstance().log(altitudeData);
+    Logger::getInstance().log(nasdaqState);
+    // logging the NAS is done only to not break the logs
 
-    auto state = nas.getState();
-    getModule<FlightStatsRecorder>()->updateNas(state, ref.refTemperature);
-    Logger::getInstance().log(state);
+    auto nasState = nas.getState();
+    getModule<FlightStatsRecorder>()->updateNas(nasState, ref.refTemperature);
+    Logger::getInstance().log(nasState);
 }
 
 void NASController::updateState(NASControllerState newState)
@@ -417,12 +427,17 @@ void NASController::setReferenceCoordinates(float latitude, float longitude)
 Meter NASController::getAltitude()
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
-    if (altitudeSamples.size() == 0)
-        return 0.0_m;
-    Meter sum = 0_m;
-    for (auto& sample : altitudeSamples)
-        sum += sample;
-    return sum / altitudeSamples.size();
+
+    // The NASDAQ altitude is in NED frame, so it is negative when we are above
+    // the reference altitude
+    return -Meter{nasdaq.getExternalOutputs().Position[2]};
+
+    // if (altitudeSamples.size() == 0)
+    //     return 0.0_m;
+    // Meter sum = 0_m;
+    // for (auto& sample : altitudeSamples)
+    //     sum += sample;
+    // return sum / altitudeSamples.size();
 }
 
 }  // namespace Parafoil

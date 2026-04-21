@@ -82,5 +82,14 @@ constexpr int ACCELERATION_1G_SAMPLES = 200;
 constexpr float PITOT_MACH_THRESHOLD = 0.35;
 
 }  // namespace NAS
+
+namespace NASDAQ
+{
+
+constexpr size_t ADA_DIAG_COV_LEN = 9;
+constexpr size_t NAS_COV_LEN      = 36;
+
+}  // namespace NASDAQ
+
 }  // namespace Config
 }  // namespace Parafoil
