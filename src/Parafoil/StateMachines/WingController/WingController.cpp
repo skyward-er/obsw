@@ -100,6 +100,7 @@ State WingController::Idle(const Boardcore::Event& event)
 
         case TMTC_EXIT_TEST_MODE:
         {
+            resetWing();
             return HANDLED;
         }
 
