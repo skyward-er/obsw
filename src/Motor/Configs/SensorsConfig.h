@@ -68,7 +68,7 @@ constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 using namespace Boardcore::ADS131M08Defs;
-constexpr auto OX_MAIN_EN_CHANNEL      = Channel::CHANNEL_1;
+constexpr auto OX_MAIN_EN_CHANNEL      = Channel::CHANNEL_0;
 constexpr auto FUEL_MAIN_EN_CHANNEL    = Channel::CHANNEL_1;
 constexpr auto PRZ_OX_EN_CHANNEL       = Channel::CHANNEL_2;
 constexpr auto PRZ_FUEL_EN_CHANNEL     = Channel::CHANNEL_3;
@@ -97,12 +97,12 @@ constexpr float MIN_CURRENT = 4;  // [mA]
 // Current at MAX_PRESSURE bar relative to atmospheric pressure
 constexpr float MAX_CURRENT = 20;  // [mA]
 
-constexpr float FUEL_TANK_MAX_PRESSURE          = 400;  // bar
+constexpr float FUEL_TANK_MAX_PRESSURE          = 100;  // bar
 constexpr float PRZ_TANK_MAX_PRESSURE           = 400;  // bar
-constexpr float REGULATOR_OUT_FUEL_MAX_PRESSURE = 100;  // bar
-constexpr float REGULATOR_OUT_OX_MAX_PRESSURE   = 100;  // bar
+constexpr float REGULATOR_OUT_FUEL_MAX_PRESSURE = 250;  // bar
+constexpr float REGULATOR_OUT_OX_MAX_PRESSURE   = 250;  // bar
 constexpr float OX_TANK_MAX_PRESSURE            = 100;  // bar
-constexpr float CC_MAX_PRESSURE                 = 40;   // bar
+constexpr float CC_MAX_PRESSURE                 = 100;  // bar
 constexpr float IGNITER_MAX_PRESSURE            = 40;   // bar
 
 }  // namespace Trafag
@@ -126,7 +126,8 @@ namespace OxTankOverpressure
 {
 constexpr auto CHECK_RATE = 10_hz;
 
-constexpr float PRESSURE_THRESHOLD = 69.0;  // bar
+// 1.2 times the setpoint regulation - 67 * 1.2 = 80.4
+constexpr float PRESSURE_THRESHOLD = 80.4;  // bar
 constexpr auto HYSTERESIS          = 1s;
 constexpr auto VENTING_DURATION    = 1s;
 }  // namespace OxTankOverpressure
