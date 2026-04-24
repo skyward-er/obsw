@@ -157,7 +157,7 @@ ADS131M08Data Sensors::getADC2LastSample()
     return adc2 ? adc2->getLastSample() : ADS131M08Data{};
 }
 
-PressureData Sensors::getCCPressure()
+PressureData Sensors::getMainCCPressure()
 {
     return mainCCPressure ? mainCCPressure->getLastSample() : PressureData{};
 }
@@ -190,7 +190,7 @@ PressureData Sensors::getRegulatorOutOxPressure()
                             : PressureData{};
 }
 
-PressureData Sensors::getIgniterPressure()
+PressureData Sensors::getIgniterChamberPressure()
 {
     return ignCCPressure ? ignCCPressure->getLastSample() : PressureData{};
 }
@@ -542,7 +542,7 @@ void Sensors::ignCCPressureInit()
 
 void Sensors::ignCCPressureCallback()
 {
-    sdLogger.log(IgniterPressureData{getIgniterPressure()});
+    sdLogger.log(IgniterPressureData{getIgniterChamberPressure()});
 }
 
 void Sensors::mainCCPressureInit()
@@ -561,7 +561,7 @@ void Sensors::mainCCPressureInit()
 
 void Sensors::mainCCPressureCallback()
 {
-    sdLogger.log(CCPressureData{getCCPressure()});
+    sdLogger.log(CCPressureData{getMainCCPressure()});
 }
 
 void Sensors::mainOxPositionInit()

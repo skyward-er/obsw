@@ -104,7 +104,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(
                     CanConfig::SensorId::COMBUSTION_CHAMBER_PRESSURE),
-                static_cast<PressureData>(sensors->getCCPressure()));
+                static_cast<PressureData>(sensors->getMainCCPressure()));
         },
         Config::CanHandler::CRITICAL_PRESSURE_SEND_RATE);
 
@@ -160,7 +160,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::IGNITER_PRESSURE),
-                static_cast<PressureData>(sensors->getIgniterPressure()));
+                static_cast<PressureData>(
+                    sensors->getIgniterChamberPressure()));
         },
         Config::CanHandler::SECONDARY_PRESSURE_SEND_RATE);
 
