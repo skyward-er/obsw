@@ -53,13 +53,13 @@ public:
     Boardcore::InternalADCData getInternalADCLastSample();
     Boardcore::ADS131M08Data Sensors::getADC1LastSample();
     Boardcore::ADS131M08Data Sensors::getADC2LastSample();
-    Boardcore::PressureData getCCPressure();
+    Boardcore::PressureData getMainCCPressure();
     Boardcore::PressureData getOxTankPressure();
     Boardcore::PressureData getFuelTankPressure();
     Boardcore::PressureData getPrzTankPressure();
     Boardcore::PressureData getRegulatorOutOxPressure();
     Boardcore::PressureData getRegulatorOutFuelPressure();
-    Boardcore::PressureData getIgniterPressure();
+    Boardcore::PressureData getIgniterChamberPressure();
 
     Boardcore::VoltageData getBatteryVoltage();
     Boardcore::CurrentData getCurrentConsumption();
