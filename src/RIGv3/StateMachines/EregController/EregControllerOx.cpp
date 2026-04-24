@@ -43,7 +43,7 @@ EregControllerOx::EregControllerOx()
       regulator{
           Config::EregOx::STABILIZING_CONFIG,
           Config::EregOx::VALVE_INFO,
-          Config::EregOx::TARGET_PRESSURE,
+          Config::EregOx::FIRST_PRESSURIZATION_TARGET_PRESSURE,
       }
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FIRING_SEQUENCE);
@@ -59,7 +59,7 @@ bool EregControllerOx::start()
 
     if (result == 0)
     {
-        LOG_ERR(logger, "Failed to add EReg update task");
+        LOG_ERR(logger, "Failed to add Ereg update task");
         return false;
     }
 
@@ -69,7 +69,44 @@ bool EregControllerOx::start()
         return false;
     }
 
+    loadFromRegistry();
     return true;
+}
+
+void EregControllerOx::loadFromRegistry()
+{
+    // Load ereg parameters from registry or set to default if not present
+
+    pressurizationConfig.KP = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KP,
+        Config::EregOx::STABILIZING_CONFIG.KP);
+    pressurizationConfig.KI = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KI,
+        Config::EregOx::STABILIZING_CONFIG.KI);
+    pressurizationConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KD,
+        Config::EregOx::STABILIZING_CONFIG.KD);
+
+    dischargeConfig.KP = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_KP, Config::EregOx::DISCHARGING_CONFIG.KP);
+    dischargeConfig.KI = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_KI, Config::EregOx::DISCHARGING_CONFIG.KI);
+    dischargeConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_KD, Config::EregOx::DISCHARGING_CONFIG.KD);
+
+    firstPressurizationTargetPressure =
+        getModule<Registry>()->getOrSetDefaultUnsafe(
+            CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_TARGET,
+            Config::EregOx::FIRST_PRESSURIZATION_TARGET_PRESSURE);
+    rampupTargetPressure = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_TARGET,
+        Config::EregOx::RAMPUP_TARGET_PRESSURE);
+
+    pilotFlamePrecharge = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_PILOT_PRECHARGE,
+        Config::EregOx::PILOT_FLAME_PRECHARGE);
+    rampupPrecharge = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_PRECHARGE, Config::EregOx::RAMPUP_PRECHARGE);
 }
 
 void EregControllerOx::update()
@@ -88,14 +125,16 @@ void EregControllerOx::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure > targetPressure * 1.2)
+    if (logData.filteredDownstreamPressure >
+        std::max(firstPressurizationTargetPressure, rampupTargetPressure) * 1.2)
     {
+        // Oh fuck the pressure is too high
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
-        // TODO: put venting valve in the config
         getModule<Actuators>()->closeValve(Config::EregOx::EREG_SERVO);
-        getModule<Actuators>()->openValveWithTime(ServosList::OX_VENTING_VALVE,
-                                                  5000);
+        getModule<Actuators>()->openValveWithTime(
+            Config::EregOx::VENTING_SERVO,
+            Config::EregOx::VENTING_TIME.count());
         return;
     }
 
@@ -183,7 +222,7 @@ void EregControllerOx::state_pressurizing(const Event& event)
         {
             updateAndLogStatus(EregState::PRESSURIZING);
 
-            regulator.setReferencePoint(targetPressure);
+            regulator.setReferencePoint(firstPressurizationTargetPressure);
             regulator.changePIDConfig(pressurizationConfig);
             lastDownstreamInput = -1.0f;
             lastUpstreamInput   = -1.0f;
@@ -215,9 +254,8 @@ void EregControllerOx::state_pilot_flame(const Event& event)
         {
             updateAndLogStatus(EregState::PILOTFLAME);
 
-            regulator.setReferencePoint(targetPressure);
             regulator.changePIDConfig(dischargeConfig);
-            regulator.setIntegralContribution(pilotFlameIntegral);
+            regulator.setIntegralContribution(pilotFlamePrecharge);
             break;
         }
 
@@ -230,6 +268,7 @@ void EregControllerOx::state_pilot_flame(const Event& event)
         case EREG_TOGGLE:
         case EREG_CLOSE:
         case FIRING_SEQUENCE_ABORT:
+        case FIRING_SEQUENCE_PILOT_FLAME_TIMEOUT:
         {
             transition(&EregControllerOx::state_closed);
             break;
@@ -245,8 +284,9 @@ void EregControllerOx::state_firing(const Event& event)
         {
             updateAndLogStatus(EregState::FIRING);
 
+            regulator.setReferencePoint(rampupTargetPressure);
             regulator.changePIDConfig(dischargeConfig);
-            regulator.setIntegralContribution(rampupIntegral);
+            regulator.setIntegralContribution(rampupPrecharge);
             break;
         }
 
@@ -263,31 +303,57 @@ void EregControllerOx::state_firing(const Event& event)
 void EregControllerOx::changePIDConfig(EregPIDConfig newPressurizationConfig,
                                        EregPIDConfig newDischargeConfig)
 {
-    this->pressurizationConfig.KP = newPressurizationConfig.KP;
-    this->pressurizationConfig.KI = newPressurizationConfig.KI;
-    this->pressurizationConfig.KD = newPressurizationConfig.KD;
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KP,
+                                     newPressurizationConfig.KP);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KI,
+                                     newPressurizationConfig.KI);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KD,
+                                     newPressurizationConfig.KD);
 
-    this->dischargeConfig.KP = newDischargeConfig.KP;
-    this->dischargeConfig.KI = newDischargeConfig.KI;
-    this->dischargeConfig.KD = newDischargeConfig.KD;
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_KP,
+                                     newDischargeConfig.KP);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_KI,
+                                     newDischargeConfig.KI);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_KD,
+                                     newDischargeConfig.KD);
+
+    pressurizationConfig.KP = newPressurizationConfig.KP;
+    pressurizationConfig.KI = newPressurizationConfig.KI;
+    pressurizationConfig.KD = newPressurizationConfig.KD;
+
+    dischargeConfig.KP = newDischargeConfig.KP;
+    dischargeConfig.KI = newDischargeConfig.KI;
+    dischargeConfig.KD = newDischargeConfig.KD;
 }
 
-void EregControllerOx::changeTargetPressure(float newTargetPressure)
+void EregControllerOx::changeTargetPressure(
+    float newFirstPressurizationTargetPressure, float newRampupTargetPressure)
 {
-    this->targetPressure = newTargetPressure;
+    getModule<Registry>()->setUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_TARGET,
+        newFirstPressurizationTargetPressure);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_TARGET,
+                                     newRampupTargetPressure);
+
+    firstPressurizationTargetPressure = newFirstPressurizationTargetPressure;
+    rampupTargetPressure              = newRampupTargetPressure;
 }
 
-void EregControllerOx::setIntegralContribution(float newPilotFlameIntegral,
-                                               float newRampupIntegral)
+void EregControllerOx::setIntegralPrecharge(float newPilotPrecharge,
+                                            float newRampupPrecharge)
 {
-    this->pilotFlameIntegral = newPilotFlameIntegral;
-    this->rampupIntegral     = newRampupIntegral;
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_PILOT_PRECHARGE,
+                                     newPilotPrecharge);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_PRECHARGE,
+                                     newRampupPrecharge);
+
+    pilotFlamePrecharge = newPilotPrecharge;
+    rampupPrecharge     = newRampupPrecharge;
 }
 
 void EregControllerOx::updateAndLogStatus(EregState state)
 {
-    this->state = state;
-    // printf("changing to state: %s\n", to_string(state).c_str());
+    this->state          = state;
     EregOxStateData data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }

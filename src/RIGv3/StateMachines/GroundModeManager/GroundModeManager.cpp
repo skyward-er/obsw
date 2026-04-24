@@ -165,7 +165,7 @@ State GroundModeManager::state_disarmed(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(GroundModeManagerState::DISARMED);
-            /* getModule<Actuators>()->armLightOff(); */
+            getModule<Actuators>()->armLightOff();
             getModule<Registry>()->disarm();
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return HANDLED;
@@ -242,7 +242,7 @@ State GroundModeManager::state_armed(const Event& event)
             EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
 
             // Power on the arm light last to indicate that the system is armed
-            /* getModule<Actuators>()->armLightOn(); */
+            getModule<Actuators>()->armLightOn();
 
             return HANDLED;
         }
@@ -300,12 +300,6 @@ State GroundModeManager::state_firing(const Event& event)
 
         case EV_EXIT:
         {
-            // Stop ignition and close all servos
-            /* getModule<Actuators>()->igniterOff(); */
-
-            // Disable all events
-            // EventBroker::getInstance().removeDelayed(openOxidantDelayEventId);
-
             return HANDLED;
         }
 
