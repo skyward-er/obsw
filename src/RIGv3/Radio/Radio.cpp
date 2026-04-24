@@ -268,6 +268,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_FIRING_PARAMETERS_TC:
         {
+            uint32_t pilotFuelLeadTime =
+                mavlink_msg_set_firing_parameters_tc_get_pilot_fuel_lead_time(
+                    &msg);
+
             uint32_t fullThrottleTime =
                 mavlink_msg_set_firing_parameters_tc_get_full_throttle_time(
                     &msg);
@@ -288,9 +292,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                     &msg);
 
             getModule<FiringSequenceHSM>()->setFiringParams(
-                fullThrottleTime, lowThrottleTime, pilotFlameOxPosition,
-                pilotFlameFuelPosition, lowThrottleOxPosition,
-                lowThrottleFuelPosition);
+                pilotFuelLeadTime, fullThrottleTime, lowThrottleTime,
+                pilotFlameOxPosition, pilotFlameFuelPosition,
+                lowThrottleOxPosition, lowThrottleFuelPosition);
 
             enqueueAck(msg);
             break;
@@ -386,41 +390,43 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_EREG_TARGET_TC:
         {
-            float targetPressure =
-                mavlink_msg_set_ereg_target_tc_get_pressure_target(&msg);
+            float firstPressurizationTargetPressure =
+                mavlink_msg_set_ereg_target_tc_get_first_pressurization_target(
+                    &msg);
+
+            float rampupTargetPressure =
+                mavlink_msg_set_ereg_target_tc_get_rampup_target(&msg);
 
             if (mavlink_msg_set_ereg_target_tc_get_ereg(&msg) == EREG_OX)
             {
                 getModule<EregControllerOx>()->changeTargetPressure(
-                    targetPressure);
+                    firstPressurizationTargetPressure, rampupTargetPressure);
             }
             else
             {
                 getModule<EregControllerFuel>()->changeTargetPressure(
-                    targetPressure);
+                    firstPressurizationTargetPressure, rampupTargetPressure);
             }
 
             return enqueueAck(msg);
         }
 
-        case MAVLINK_MSG_ID_SET_EREG_STARTING_INTEGRAL_TC:
+        case MAVLINK_MSG_ID_SET_EREG_PRECHARGE_TC:
         {
             float pilotContribution =
-                mavlink_msg_set_ereg_starting_integral_tc_get_pilot_flame_contribution(
+                mavlink_msg_set_ereg_precharge_tc_get_pilot_flame_precharge(
                     &msg);
             float rampupContribution =
-                mavlink_msg_set_ereg_starting_integral_tc_get_rampup_contribution(
-                    &msg);
+                mavlink_msg_set_ereg_precharge_tc_get_rampup_precharge(&msg);
 
-            if (mavlink_msg_set_ereg_starting_integral_tc_get_ereg(&msg) ==
-                EREG_OX)
+            if (mavlink_msg_set_ereg_precharge_tc_get_ereg(&msg) == EREG_OX)
             {
-                getModule<EregControllerOx>()->setIntegralContribution(
+                getModule<EregControllerOx>()->setIntegralPrecharge(
                     pilotContribution, rampupContribution);
             }
             else
             {
-                getModule<EregControllerFuel>()->setIntegralContribution(
+                getModule<EregControllerFuel>()->setIntegralPrecharge(
                     pilotContribution, rampupContribution);
             }
 
@@ -823,13 +829,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     sensors->getMainChamberPressure().pressure;
                 tm.ign_cc_pressure =
                     sensors->getIgniterChamberPressure().pressure;
+                tm.inj_ox_pressure   = sensors->getInjOxPressure().pressure;
+                tm.inj_fuel_pressure = sensors->getInjFuelPressure().pressure;
 
+                auto actuators = getModule<Actuators>();
                 // valve states
-                tm.ox_venting_valve_state = getModule<Actuators>()->isValveOpen(
-                    ServosList::OX_VENTING_VALVE);
+                tm.ox_venting_valve_state =
+                    actuators->isValveOpen(ServosList::OX_VENTING_VALVE);
                 tm.fuel_venting_valve_state =
-                    getModule<Actuators>()->isValveOpen(
-                        ServosList::FUEL_VENTING_VALVE);
+                    actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE);
 
                 tm.prz_ox_valve_state =
                     (getModule<EregControllerOx>()->getState() !=
@@ -843,22 +851,23 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                 tm.prz_fuel_valve_position = static_cast<uint8_t>(
                     sensors->getFuelRegPosition().position);
 
-                tm.main_ox_valve_state = getModule<Actuators>()->isValveOpen(
-                    ServosList::MAIN_OX_VALVE);
-                tm.main_fuel_valve_state = getModule<Actuators>()->isValveOpen(
-                    ServosList::MAIN_FUEL_VALVE);
+                tm.main_ox_valve_state =
+                    actuators->isValveOpen(ServosList::MAIN_OX_VALVE);
+                tm.main_fuel_valve_state =
+                    actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE);
 
                 tm.main_fuel_valve_position = static_cast<uint8_t>(
                     sensors->getMainFuelPosition().position);
                 tm.main_ox_valve_position =
                     static_cast<uint8_t>(sensors->getMainOxPosition().position);
 
-                tm.ox_solenoid_state = getModule<Actuators>()->isValveOpen(
-                    ServosList::IGNITION_OX_VALVE);
-                tm.fuel_solenoid_state = getModule<Actuators>()->isValveOpen(
-                    ServosList::IGNITION_FUEL_VALVE);
-                tm.spark_igniter_state =
-                    getModule<Actuators>()->isSparkSparking();
+                tm.ox_solenoid_state =
+                    actuators->isValveOpen(ServosList::IGNITION_OX_VALVE);
+                tm.fuel_solenoid_state =
+                    actuators->isValveOpen(ServosList::IGNITION_FUEL_VALVE);
+                tm.spark_igniter_state = actuators->isSparkSparking();
+                tm.purge_solenoid_state =
+                    actuators->isValveOpen(ServosList::PURGE_VALVE);
 
                 tm.firing_sequence_hsm_state =
                     (uint8_t)getModule<FiringSequenceHSM>()->getState();

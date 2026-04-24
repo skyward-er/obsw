@@ -157,11 +157,9 @@ void Actuators::ManualValveInfo::resetAnimation()
 Actuators::Actuators()
     : SignaledDeadlineTask(miosix::STACK_DEFAULT_FOR_PTHREAD,
                            BoardScheduler::actuatorsPriority()),
-
       spark(std::make_unique<SparkPlug>(
           MIOSIX_IGNITER_TIM, (uint16_t)50,
           TimerUtils::Channel::MIOSIX_IGNITER_CHANNEL))
-
 {
 }
 
@@ -263,6 +261,20 @@ void Actuators::initializeValves()
         MAKE_SOLENOID_VALVE(IGN_OX, actuators::oxSolenoid::getPin()));
     valveInfos.push_back(
         MAKE_SOLENOID_VALVE(IGN_FUEL, actuators::fuelSolenoid::getPin()));
+}
+
+void Actuators::armLightOn()
+{
+    getModule<GpioExpander>()->getExpander().setPinValue(
+        Config::GpioExpander::ARMING_LIGHT_PIN.getPort(),
+        Config::GpioExpander::ARMING_LIGHT_PIN.getPin(), 1);
+}
+
+void Actuators::armLightOff()
+{
+    getModule<GpioExpander>()->getExpander().setPinValue(
+        Config::GpioExpander::ARMING_LIGHT_PIN.getPort(),
+        Config::GpioExpander::ARMING_LIGHT_PIN.getPin(), 0);
 }
 
 bool Actuators::wiggleValve(ServosList servo)

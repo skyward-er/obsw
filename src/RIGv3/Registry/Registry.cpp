@@ -33,6 +33,48 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
 {
     switch (id)
     {
+        case CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KP:
+            return "EREG_OX_FIRST_PRESSURIZATION_KP";
+        case CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KI:
+            return "EREG_OX_FIRST_PRESSURIZATION_KI";
+        case CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KD:
+            return "EREG_OX_FIRST_PRESSURIZATION_KD";
+        case CONFIG_ID_EREG_OX_RAMPUP_KP:
+            return "EREG_OX_RAMPUP_KP";
+        case CONFIG_ID_EREG_OX_RAMPUP_KI:
+            return "EREG_OX_RAMPUP_KI";
+        case CONFIG_ID_EREG_OX_RAMPUP_KD:
+            return "EREG_OX_RAMPUP_KD";
+        case CONFIG_ID_EREG_OX_PILOT_PRECHARGE:
+            return "EREG_OX_PILOT_PRECHARGE";
+        case CONFIG_ID_EREG_OX_RAMPUP_PRECHARGE:
+            return "EREG_OX_RAMPUP_PRECHARGE";
+        case CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_TARGET:
+            return "EREG_OX_FIRST_PRESSURIZATION_TARGET";
+        case CONFIG_ID_EREG_OX_RAMPUP_TARGET:
+            return "EREG_OX_RAMPUP_TARGET";
+        case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KP:
+            return "EREG_FUEL_FIRST_PRESSURIZATION_KP";
+        case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KI:
+            return "EREG_FUEL_FIRST_PRESSURIZATION_KI";
+        case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KD:
+            return "EREG_FUEL_FIRST_PRESSURIZATION_KD";
+        case CONFIG_ID_EREG_FUEL_RAMPUP_KP:
+            return "EREG_FUEL_RAMPUP_KP";
+        case CONFIG_ID_EREG_FUEL_RAMPUP_KI:
+            return "EREG_FUEL_RAMPUP_KI";
+        case CONFIG_ID_EREG_FUEL_RAMPUP_KD:
+            return "EREG_FUEL_RAMPUP_KD";
+        case CONFIG_ID_EREG_FUEL_PILOT_PRECHARGE:
+            return "EREG_FUEL_PILOT_PRECHARGE";
+        case CONFIG_ID_EREG_FUEL_RAMPUP_PRECHARGE:
+            return "EREG_FUEL_RAMPUP_PRECHARGE";
+        case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_TARGET:
+            return "EREG_FUEL_FIRST_PRESSURIZATION_TARGET";
+        case CONFIG_ID_EREG_FUEL_RAMPUP_TARGET:
+            return "EREG_FUEL_RAMPUP_TARGET";
+        case CONFIG_ID_PILOT_FUEL_LEAD_TIME:
+            return "PILOT_FUEL_LEAD_TIME";
         case CONFIG_ID_FULL_THROTTLE_TIME:
             return "FULL_THROTTLE_TIME";
         case CONFIG_ID_LOW_THROTTLE_TIME:
@@ -45,6 +87,10 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
             return "LOW_THROTTLE_OX_POSITION";
         case CONFIG_ID_LOW_THROTTLE_FUEL_POSITION:
             return "LOW_THROTTLE_FUEL_POSITION";
+        case CONFIG_ID_IGNITER_PRESSURE_THRESHOLD:
+            return "IGNITER_PRESSURE_THRESHOLD";
+        case CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD:
+            return "PILOT_FLAME_PRESSURE_THRESHOLD";
         case CONFIG_ID_DEFAULT_OPENING_TIME:
             return "DEFAULT_OPENING_TIME";
         case CONFIG_ID_DEFAULT_MAX_APERTURE:
@@ -97,6 +143,14 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
             return "MAIN_FUEL_OPENING_TIME";
         case CONFIG_ID_MAIN_FUEL_MAX_APERTURE:
             return "MAIN_FUEL_MAX_APERTURE";
+        case CONFIG_ID_PRZ_DET_OPENING_TIME:
+            return "PRZ_DET_OPENING_TIME";
+        case CONFIG_ID_PRZ_DET_MAX_APERTURE:
+            return "PRZ_DET_MAX_APERTURE";
+        case CONFIG_ID_OX_DET_OPENING_TIME:
+            return "OX_DET_OPENING_TIME";
+        case CONFIG_ID_OX_DET_MAX_APERTURE:
+            return "OX_DET_MAX_APERTURE";
         case CONFIG_ID_PURGE_OPENING_TIME:
             return "PURGE_OPENING_TIME";
         case CONFIG_ID_PURGE_MAX_APERTURE:

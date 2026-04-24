@@ -178,10 +178,7 @@ private:
     std::atomic<bool> prz_3wayValveStateChanged{true};
 
     std::unique_ptr<Boardcore::SparkPlug> spark;
-
-    TimePoint fuelSolenoidCloseTs = noActionNeeded;
-    TimePoint oxSolenoidCloseTs   = noActionNeeded;
-    TimePoint sparkPlugCloseTs    = noActionNeeded;
+    TimePoint sparkPlugCloseTs = noActionNeeded;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");

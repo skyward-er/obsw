@@ -72,6 +72,8 @@ bool Sensors::start()
         mainFuelPositionInit();
         oxRegPositionInit();
         fuelRegPositionInit();
+        injOxPressureInit();
+        injFuelPressureInit();
     }
     if (!sensorManagerInit())
     {
@@ -206,6 +208,16 @@ ServoPositionData Sensors::getFuelRegPosition()
                            : ServoPositionData{};
 }
 
+PressureData Sensors::getInjOxPressure()
+{
+    return injOxPressure ? injOxPressure->getLastSample() : PressureData{};
+}
+
+PressureData Sensors::getInjFuelPressure()
+{
+    return injFuelPressure ? injFuelPressure->getLastSample() : PressureData{};
+}
+
 CurrentData Sensors::getUmbilicalCurrent()
 {
     // TODO: Implement umbilical current
@@ -295,6 +307,10 @@ void Sensors::calibrate()
     applyShuntResistance(2, igniterChamberPressure, IGNITER_CHAMBER_PT_CHANNEL);
     applyShuntResistance(2, mainChamberPressure, MAIN_CHAMBER_PT_CHANNEL);
 
+    using namespace Config::Sensors::ADC_3;
+    applyShuntResistance(3, injOxPressure, INJ_OX_PT_CHANNEL);
+    applyShuntResistance(3, injFuelPressure, INJ_FUEL_PT_CHANNEL);
+
     calibrateEncoders();
 }
 
@@ -357,6 +373,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(mainFuelPosition, "MainFuelPosition");
         PUSH_SENSOR_INFO(oxRegPosition, "OxRegPosition");
         PUSH_SENSOR_INFO(fuelRegPosition, "FuelRegPosition");
+        PUSH_SENSOR_INFO(injOxPressure, "InjOxPressure");
+        PUSH_SENSOR_INFO(injFuelPressure, "InjFuelPressure");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
 
         return infos;
@@ -821,6 +839,16 @@ void Sensors::adc3Init()
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
+    config.channelsConfig[(int)Config::Sensors::ADC_3::INJ_OX_PT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+    config.channelsConfig[(int)Config::Sensors::ADC_3::INJ_FUEL_PT_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
 
     adc3 = std::make_unique<ADS131M08>(getModule<Buses>()->getADC3(),
                                        getModule<Buses>()->getADC3CsPin(),
@@ -910,6 +938,45 @@ void Sensors::fuelRegPositionInit()
 void Sensors::fuelRegPositionCallback()
 {
     sdLogger.log(FuelRegPositionData{getFuelRegPosition()});
+}
+
+void Sensors::injOxPressureInit()
+{
+    injOxPressure = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADC3LastSample();
+            return sample.getVoltage(Config::Sensors::ADC_3::INJ_OX_PT_CHANNEL);
+        },
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::INJ_OX_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+}
+
+void Sensors::injOxPressureCallback()
+{
+    sdLogger.log(InjOxPressureData{getInjOxPressure()});
+}
+
+void Sensors::injFuelPressureInit()
+{
+    injFuelPressure = std::make_unique<TrafagPressureSensor>(
+        [this]()
+        {
+            auto sample = getADC3LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_3::INJ_FUEL_PT_CHANNEL);
+        },
+        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Trafag::INJ_FUEL_MAX_PRESSURE,
+        Config::Sensors::Trafag::MIN_CURRENT,
+        Config::Sensors::Trafag::MAX_CURRENT);
+}
+
+void Sensors::injFuelPressureCallback()
+{
+    sdLogger.log(InjFuelPressureData{getInjFuelPressure()});
 }
 
 bool Sensors::sensorManagerInit()
@@ -1080,6 +1147,22 @@ bool Sensors::sensorManagerInit()
                         Config::Sensors::ADS131M08_FAST::PERIOD,
                         [this]() { fuelRegPositionCallback(); });
         map.emplace(std::make_pair(fuelRegPosition.get(), info));
+    }
+
+    if (injOxPressure)
+    {
+        SensorInfo info("InjOxPressure",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { injOxPressureCallback(); });
+        map.emplace(std::make_pair(injOxPressure.get(), info));
+    }
+
+    if (injFuelPressure)
+    {
+        SensorInfo info("InjFuelPressure",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { injFuelPressureCallback(); });
+        map.emplace(std::make_pair(injFuelPressure.get(), info));
     }
 
     if (internalAdc)
