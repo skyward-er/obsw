@@ -38,15 +38,18 @@ namespace EregOx
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace std::chrono;
 
-constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
+constexpr ServosList EREG_SERVO    = ServosList::PRZ_OX_VALVE;
+constexpr ServosList VENTING_SERVO = ServosList::OX_VENTING_VALVE;
+constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 67.0f;  // [Bar]
-constexpr float PILOT_FLAME_INTEGRAL = 0.1844f;
-constexpr float RAMPUP_INTEGRAL      = 1.4346f;
-constexpr Hertz UPDATE_RATE          = 100_hz;
-constexpr int FILTER_SAMPLES         = 3;
+constexpr float FIRST_PRESSURIZATION_TARGET_PRESSURE = 67.0f;  // [Bar]
+constexpr float RAMPUP_TARGET_PRESSURE               = 67.0f;  // [Bar]
+constexpr float PILOT_FLAME_PRECHARGE                = 0.1844f;
+constexpr float RAMPUP_PRECHARGE                     = 1.4346f;
+constexpr Hertz UPDATE_RATE                          = 100_hz;
+constexpr int FILTER_SAMPLES                         = 3;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
@@ -85,15 +88,18 @@ namespace EregFuel
 using namespace Boardcore::Units::Frequency;
 using namespace std::chrono;
 
-constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
+constexpr ServosList EREG_SERVO    = ServosList::PRZ_FUEL_VALVE;
+constexpr ServosList VENTING_SERVO = ServosList::FUEL_VENTING_VALVE;
+constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 66.0f;  // [Bar]
-constexpr float PILOT_FLAME_INTEGRAL = 0.0502f;
-constexpr float RAMPUP_INTEGRAL      = 0.2511f;
-constexpr Hertz UPDATE_RATE          = 100_hz;
-constexpr int FILTER_SAMPLES         = 3;
+constexpr float FIRST_PRESSURIZATION_TARGET_PRESSURE = 66.0f;  // [Bar]
+constexpr float RAMPUP_TARGET_PRESSURE               = 66.0f;  // [Bar]
+constexpr float PILOT_FLAME_PRECHARGE                = 0.0502f;
+constexpr float RAMPUP_PRECHARGE                     = 0.2511f;
+constexpr Hertz UPDATE_RATE                          = 100_hz;
+constexpr int FILTER_SAMPLES                         = 3;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 

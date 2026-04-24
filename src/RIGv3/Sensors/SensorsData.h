@@ -283,6 +283,38 @@ struct MainChamberPressureData : Boardcore::PressureData
     }
 };
 
+struct InjOxPressureData : Boardcore::PressureData
+{
+    explicit InjOxPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    InjOxPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(InjOxPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct InjFuelPressureData : Boardcore::PressureData
+{
+    explicit InjFuelPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    InjFuelPressureData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(InjFuelPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
 struct ADC3Data : Boardcore::ADS131M08Data
 {
     explicit ADC3Data(const Boardcore::ADS131M08Data& data)

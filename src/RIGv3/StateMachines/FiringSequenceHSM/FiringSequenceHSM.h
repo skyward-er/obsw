@@ -43,8 +43,8 @@ class FiringSequenceHSM
 public:
     FiringSequenceHSM();
 
-    void setFiringParams(uint32_t fullThrottleTime, uint32_t lowThrottleTime,
-                         float pilotFlameOxPosition,
+    void setFiringParams(uint32_t pilotFuelLeadTime, uint32_t fullThrottleTime,
+                         uint32_t lowThrottleTime, float pilotFlameOxPosition,
                          float pilotFlameFuelPosition,
                          float lowThrottleOxPosition,
                          float lowThrottleFuelPosition);

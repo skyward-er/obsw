@@ -37,7 +37,8 @@ namespace RIGv3
 
 class EregControllerOx
     : public Boardcore::FSM<EregControllerOx>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors>
+      public Boardcore::InjectableWithDeps<BoardScheduler, Registry, Actuators,
+                                           Sensors>
 {
 public:
     EregControllerOx();
@@ -49,12 +50,14 @@ public:
     void changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
                          Boardcore::EregPIDConfig newDischargeConfig);
 
-    void changeTargetPressure(float newTargetPressure);
-    void setIntegralContribution(float newPilotContribution,
-                                 float newRampupContribution);
+    void changeTargetPressure(float newFirstPressurizationTargetPressure,
+                              float newRampupTargetPressure);
+    void setIntegralPrecharge(float newPilotPrecharge,
+                              float newRampupPrecharge);
 
 private:
     void update();
+    void loadFromRegistry();
 
     // FSM states
     void state_init(const Boardcore::Event& event);
@@ -76,18 +79,20 @@ private:
     Common::MeanFilter<float, Config::EregOx::FILTER_SAMPLES>
         upstreamPressureFilter;
 
-    float lastDownstreamInput = 0.0f;  // Last sample used by ereg algorithm
-    float lastUpstreamInput   = 0.0f;  // Last sample used by ereg algorithm
+    float lastDownstreamInput = 0.0f;
+    float lastUpstreamInput   = 0.0f;
 
     Boardcore::EregPIDConfig pressurizationConfig =
         Config::EregOx::STABILIZING_CONFIG;
     Boardcore::EregPIDConfig dischargeConfig =
         Config::EregOx::DISCHARGING_CONFIG;
 
-    float targetPressure = Config::EregOx::TARGET_PRESSURE;
+    float firstPressurizationTargetPressure =
+        Config::EregOx::FIRST_PRESSURIZATION_TARGET_PRESSURE;
+    float rampupTargetPressure = Config::EregOx::RAMPUP_TARGET_PRESSURE;
 
-    float pilotFlameIntegral = Config::EregOx::PILOT_FLAME_INTEGRAL;
-    float rampupIntegral     = Config::EregOx::RAMPUP_INTEGRAL;
+    float pilotFlamePrecharge = Config::EregOx::PILOT_FLAME_PRECHARGE;
+    float rampupPrecharge     = Config::EregOx::RAMPUP_PRECHARGE;
 };
 
 }  // namespace RIGv3
