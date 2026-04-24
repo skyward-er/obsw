@@ -54,6 +54,7 @@ public:
     };
 
     Boardcore::TaskScheduler& sensors() { return high; }
+    Boardcore::TaskScheduler& firingSequenceHSM() { return high; }
     Boardcore::TaskScheduler& eregOx() { return high; }
     Boardcore::TaskScheduler& eregFuel() { return high; }
     Boardcore::TaskScheduler& mea() { return high; }
@@ -78,6 +79,11 @@ public:
     static Priority::PriorityLevel canHandlerPriority()
     {
         return Priority::MEDIUM;
+    }
+
+    static Priority::PriorityLevel firingSequenceHSMPriority()
+    {
+        return Priority::HIGH;
     }
 
     /**
