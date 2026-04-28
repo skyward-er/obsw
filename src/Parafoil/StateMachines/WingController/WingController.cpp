@@ -80,7 +80,6 @@ State WingController::Idle(const Boardcore::Event& event)
     {
         case EV_ENTRY:
         {
-
             Coordinates targetReading = targetPositionGEO.load();
             getModule<LandingFlare>()->setTargetGEO(
                 {targetReading.latitude, targetReading.longitude});
@@ -621,36 +620,37 @@ void WingController::loadAlgorithms()
                                                          PARAFOIL_RIGHT_SERVO);
         WingAlgorithmData step;
 
-        step.timestamp = 0;
-        for (auto& wingPercentage : PROGRESSIVE_ASYMMETRIC_SEQUENCE)
+        for (auto& sequenceData : PROGRESSIVE_ASYMMETRIC_SEQUENCE)
         {
-            for (size_t i = 0; i < 2; i++)
+            step.timestamp =
+                microseconds{milliseconds{sequenceData.timestamp}}.count();
+
+            auto servoData =
+                sequenceData.algorithmData - 0.5f;  // Center the data around 0
+            servoData *= 2;  // Scale the data to cover the full range [-1, 1]
+
+            if (servoData > 0)
             {
-                step.servo1Angle =
-                    wingPercentage * SERVOS_MAX_ANGLE.value();
-                step.servo2Angle = 0;
-                algorithm->addStep(step);
-
-                step.timestamp += microseconds{seconds{5}}.count();
-                step.servo1Angle = 0;
-                step.servo2Angle = 0;
-                algorithm->addStep(step);
-
-                step.timestamp += microseconds{seconds{2}}.count();
                 step.servo1Angle = 0;
                 step.servo2Angle =
-                    wingPercentage * -SERVOS_MAX_ANGLE.value();
-                algorithm->addStep(step);
-
-                step.timestamp += microseconds{seconds{5}}.count();
+                    -servoData *
+                    SERVOS_MAX_ANGLE.value();  // Scale to max angle
+            }
+            else if (servoData < 0)
+            {
+                step.servo1Angle = -servoData * SERVOS_MAX_ANGLE.value();
+                step.servo2Angle = 0;
+            }
+            else
+            {
                 step.servo1Angle = 0;
                 step.servo2Angle = 0;
-                algorithm->addStep(step);
-
-                step.timestamp += microseconds{seconds{2}}.count();
             }
+
+            algorithm->addStep(step);
         }
 
+        step.timestamp += microseconds{seconds{5}}.count();
         step.servo1Angle = 0;
         step.servo2Angle = 0;
         algorithm->addStep(step);
@@ -826,8 +826,10 @@ void WingController::flareWing(WingController::FlareType type)
         {
             auto data = PumpCommandData{
                 .timestamp = TimestampTimer::getTimestamp(),
-                .angleLeft = Radian{LandingFlareConfig::ANGLE_LEFT_SERVO}.value(),
-                .angleRight = Radian{LandingFlareConfig::ANGLE_RIGHT_SERVO}.value(),
+                .angleLeft =
+                    Radian{LandingFlareConfig::ANGLE_LEFT_SERVO}.value(),
+                .angleRight =
+                    Radian{LandingFlareConfig::ANGLE_RIGHT_SERVO}.value(),
             };
             getModule<Actuators>()->setServoAngle(
                 PARAFOIL_LEFT_SERVO, LandingFlareConfig::ANGLE_LEFT_SERVO);
@@ -840,16 +842,16 @@ void WingController::flareWing(WingController::FlareType type)
         case FlareType::PUMP:
         {
             auto data = PumpCommandData{
-                .timestamp = TimestampTimer::getTimestamp(),
-                .angleLeft = Radian{Deployment::PUMP_ANGLE_LEFT}.value(),
+                .timestamp  = TimestampTimer::getTimestamp(),
+                .angleLeft  = Radian{Deployment::PUMP_ANGLE_LEFT}.value(),
                 .angleRight = Radian{Deployment::PUMP_ANGLE_RIGHT}.value(),
             };
-            
+
             getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO,
                                                   Deployment::PUMP_ANGLE_LEFT);
             getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO,
                                                   Deployment::PUMP_ANGLE_RIGHT);
-            
+
             Logger::getInstance().log(data);
             return;
         }
@@ -862,11 +864,13 @@ void WingController::tinyPull()
         PARAFOIL_LEFT_SERVO, LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO);
     getModule<Actuators>()->setServoAngle(
         PARAFOIL_RIGHT_SERVO, LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO);
-    
+
     auto data = PumpCommandData{
         .timestamp = TimestampTimer::getTimestamp(),
-        .angleLeft = Radian{LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO}.value(),
-        .angleRight = Radian{LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO}.value(),
+        .angleLeft =
+            Radian{LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO}.value(),
+        .angleRight =
+            Radian{LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO}.value(),
     };
     Logger::getInstance().log(data);
 }
