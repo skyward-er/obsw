@@ -20,8 +20,13 @@
  * THE SOFTWARE.
  */
 
+#include <Parafoil/Configs/ActuatorsConfig.h>
+#include <Parafoil/StateMachines/WingController/WingControllerData.h>
+#include <Parafoil/Wing/WingAlgorithmData.h>
 #include <actuators/Servo/ServoWinch.h>
 #include <algorithms/SchmittTrigger/SchmittTrigger.h>
+#include <common/UnlimitedAngle.h>
+#include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/AS5047D/AS5047DSPI.h>
@@ -36,6 +41,8 @@ using namespace Boardcore;
 using namespace Boardcore::Units::Angle;
 using namespace miosix;
 
+namespace actuatorsConfig = Parafoil::Config::Actuators;
+
 constexpr Degree SERVO1_ZERO_CALIBRATE = Degree(32.1f);
 constexpr Degree SERV02_ZERO_CALIBRATE = Degree(351.2f);
 
@@ -44,32 +51,6 @@ GpioPin misoPin = GpioPin(GPIOA_BASE, 6);
 GpioPin mosiPin = GpioPin(GPIOA_BASE, 7);
 GpioPin csPin   = GpioPin(GPIOA_BASE, 15);
 GpioPin csPin2  = GpioPin(GPIOB_BASE, 7);
-
-class UnlimitedAngle
-{
-public:
-    UnlimitedAngle() : rounds(0), lastReading(0.0) {}
-
-    void setInitialState(Radian reading) { lastReading = reading; }
-
-    Radian getUpdatedAngle(Radian reading)
-    {
-        auto angleDiff = reading - lastReading;
-
-        if (angleDiff > threshold)
-            rounds--;
-        else if (angleDiff < -threshold)
-            rounds++;
-
-        lastReading = reading;
-        return reading + Radian((Degree(360.0 * rounds)));
-    }
-
-private:
-    const Radian threshold = Radian(Degree(300.0));
-    int rounds;
-    Radian lastReading;
-};
 
 // Timer 4 CH2
 GpioPin pin1(GPIOD_BASE, 13);
@@ -105,171 +86,193 @@ int main()
 
     SPIBus spiBus(SPI1);
 
-    ServoWinch s1(TIM4, TimerUtils::Channel::CHANNEL_2, 500_us, 2440_us,
-                  333_hz);
-    SchmittTrigger trigger(Radian(Degree(10)).value(),
-                           Radian(Degree(10)).value());
-    AS5047DSPIConfig config;
-    config.dataType          = AS5047DDefs::DataSelect::DAECANG;
-    config.daecEnabled       = AS5047DDefs::DAECStatus::DAEC_ON;
-    config.rotationDirection = AS5047DDefs::ABIRotationDirection::NORMAL;
-    AS5047DSPI as5047d(spiBus, csPin, config);
-    UnlimitedAngle angleSampler;
+    // Initial setup for servo right
+    ServoWinch servoRight(MIOSIX_PARAFOIL_SERVO_1_TIM,
+                          TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_1_CHANNEL,
+                          actuatorsConfig::RightServo::MIN_PULSE,
+                          actuatorsConfig::RightServo::MAX_PULSE,
+                          actuatorsConfig::RightServo::HERTZ);
+    SchmittTrigger triggerServoRight(
+        Radian(actuatorsConfig::RightServo::SCHMITT_THRESHOLD_LOW).value(),
+        Radian(actuatorsConfig::RightServo::SCHMITT_THRESHOLD_HIGH).value());
+    AS5047DSPIConfig configRight;
+    configRight.dataType          = AS5047DDefs::DataSelect::DAECANG;
+    configRight.daecEnabled       = AS5047DDefs::DAECStatus::DAEC_ON;
+    configRight.rotationDirection = AS5047DDefs::ABIRotationDirection::NORMAL;
+    AS5047DSPI as5047dServoRight(spiBus, csPin, configRight);
+    Common::UnlimitedAngle angleSamplerRight;
 
-    ServoWinch s2(TIM3, TimerUtils::Channel::CHANNEL_1, 500_us, 2440_us,
-                  333_hz);
-    SchmittTrigger trigger2(Radian(Degree(10)).value(),
-                            Radian(Degree(10)).value());
-    AS5047DSPIConfig config2;
-    config2.dataType          = AS5047DDefs::DataSelect::DAECANG;
-    config2.daecEnabled       = AS5047DDefs::DAECStatus::DAEC_ON;
-    config2.rotationDirection = AS5047DDefs::ABIRotationDirection::NORMAL;
-    AS5047DSPI as5047d2(spiBus, csPin2, config2);
-    UnlimitedAngle angleSampler2;
+    // Initial setup for servo left
+    ServoWinch servoLeft(MIOSIX_PARAFOIL_SERVO_2_TIM,
+                         TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_2_CHANNEL,
+                         actuatorsConfig::LeftServo::MIN_PULSE,
+                         actuatorsConfig::LeftServo::MAX_PULSE,
+                         actuatorsConfig::LeftServo::HERTZ);
+    SchmittTrigger triggerServoLeft(
+        Radian(actuatorsConfig::LeftServo::SCHMITT_THRESHOLD_LOW).value(),
+        Radian(actuatorsConfig::LeftServo::SCHMITT_THRESHOLD_HIGH).value());
+    AS5047DSPIConfig configLeft;
+    configLeft.dataType          = AS5047DDefs::DataSelect::DAECANG;
+    configLeft.daecEnabled       = AS5047DDefs::DAECStatus::DAEC_ON;
+    configLeft.rotationDirection = AS5047DDefs::ABIRotationDirection::NORMAL;
+    AS5047DSPI as5047dServoLeft(spiBus, csPin2, configLeft);
+    Common::UnlimitedAngle angleSamplerLeft;
 
     delayMs(10);
-    if (!as5047d.init())
+    if (!as5047dServoRight.init())
     {
-        printf("Failed initialization encoder 1\n");
+        printf("Failed initialization servo right encoder\n");
         for (;;)
         {
         }
     }
 
-    if (!as5047d2.init())
+    if (!as5047dServoLeft.init())
     {
-        printf("Failed initialization encoder 2\n");
+        printf("Failed initialization servo left encoder\n");
         for (;;)
         {
         }
     }
 
     // Enable the timers
-    s1.enable();
-    s2.enable();
+    servoRight.enable();
+    servoLeft.enable();
 
-    as5047d.sample();
+    as5047dServoRight.sample();
     delayMs(1);
-    as5047d2.sample();
+    as5047dServoLeft.sample();
 
-    AS5047DData zeroAngle  = as5047d.getLastSample();
-    AS5047DData zeroAngle2 = as5047d2.getLastSample();
+    AS5047DData zeroAngleRight = as5047dServoRight.getLastSample();
+    AS5047DData zeroAngleLeft  = as5047dServoLeft.getLastSample();
 
-    trigger.begin();
-    trigger2.begin();
-    trigger.setTargetState(Radian(0).value());
-    trigger2.setTargetState(Radian(0).value());
-    angleSampler.setInitialState(Radian(0));
-    angleSampler2.setInitialState(Radian(0));
-
-    printf("Initial reading: T4CH2: %f, %f\r\n",
-           Degree(Radian(zeroAngle.angle)).value(),
-           Degree(Radian(zeroAngle2.angle)).value());
-    printf(
-        "timestamp,servo1_raw,servo1,servo1_state,servo2_raw,servo2,servo2_"
-        "state\r\n");
+    triggerServoRight.begin();
+    triggerServoLeft.begin();
+    triggerServoRight.setTargetState(Radian(0).value());
+    triggerServoLeft.setTargetState(Radian(0).value());
+    angleSamplerRight.setInitialState(Radian(0));
+    angleSamplerLeft.setInitialState(Radian(0));
 
     TaskScheduler scheduler;
     scheduler.addTask(
         [&]()
         {
-            as5047d.sample();
-            AS5047DData data  = as5047d.getLastSample();
-            auto angleReading = angleSampler.getUpdatedAngle(
-                Radian(data.angle - zeroAngle.angle));
-            trigger.setCurrentState(angleReading.value());
-            trigger.update();
-            SchmittTrigger::Activation output = trigger.getOutput();
-            switch (output)
+            as5047dServoRight.sample();
+            AS5047DData dataRight  = as5047dServoRight.getLastSample();
+            auto angleReadingRight = angleSamplerRight.getUpdatedAngle(
+                Radian(dataRight.angle - zeroAngleRight.angle));
+            triggerServoRight.setCurrentState(angleReadingRight.value());
+            triggerServoRight.update();
+            SchmittTrigger::Activation outputRight =
+                triggerServoRight.getOutput();
+
+            switch (outputRight)
             {
                 case SchmittTrigger::Activation::HIGH:
                 {
-                    s1.setVelocity(1.0);
+                    servoRight.setVelocity(
+                        actuatorsConfig::RightServo::HIGH_THRESHOLD_VELOCITY);
                     break;
                 }
                 case SchmittTrigger::Activation::LOW:
                 {
-                    s1.setVelocity(0.0);
+                    servoRight.setVelocity(
+                        actuatorsConfig::RightServo::LOW_THRESHOLD_VELOCITY);
                     break;
                 }
                 case SchmittTrigger::Activation::STOP:
                 {
-                    s1.setVelocity(0.5);
+                    servoRight.setVelocity(
+                        actuatorsConfig::RightServo::STOP_THRESHOLD_VELOCITY);
                     break;
                 }
             }
 
-            as5047d2.sample();
-            AS5047DData data2  = as5047d2.getLastSample();
-            auto angleReading2 = angleSampler2.getUpdatedAngle(
-                Radian(data2.angle - zeroAngle2.angle));
+            as5047dServoLeft.sample();
+            AS5047DData dataLeft  = as5047dServoLeft.getLastSample();
+            auto angleReadingLeft = angleSamplerLeft.getUpdatedAngle(
+                Radian(dataLeft.angle - zeroAngleLeft.angle));
 
-            trigger2.setCurrentState(angleReading2.value());
-            trigger2.update();
+            triggerServoLeft.setCurrentState(angleReadingLeft.value());
+            triggerServoLeft.update();
 
-            SchmittTrigger::Activation output2 = trigger2.getOutput();
-            switch (output2)
+            SchmittTrigger::Activation outputLeft =
+                triggerServoLeft.getOutput();
+            switch (outputLeft)
             {
                 case SchmittTrigger::Activation::HIGH:
                 {
-                    s2.setVelocity(1.0);
+                    servoLeft.setVelocity(
+                        actuatorsConfig::LeftServo::HIGH_THRESHOLD_VELOCITY);
                     break;
                 }
                 case SchmittTrigger::Activation::LOW:
                 {
-                    s2.setVelocity(0.0);
+                    servoLeft.setVelocity(
+                        actuatorsConfig::LeftServo::LOW_THRESHOLD_VELOCITY);
                     break;
                 }
                 case SchmittTrigger::Activation::STOP:
                 {
-                    s2.setVelocity(0.5);
+                    servoLeft.setVelocity(
+                        actuatorsConfig::LeftServo::STOP_THRESHOLD_VELOCITY);
                     break;
                 }
             }
 
-            printf("%lld,%f,%f,%f,%d,%f,%f,%f,%d\r\n", data2.timestamp,
-                   Degree(Radian(data.angle)).value(),
-                   Degree(angleReading).value(),
-                   Degree(Radian(trigger.getCurrentTarget())).value(), output,
-                   Degree(Radian(data2.angle)).value(),
-                   Degree(angleReading2).value(),
-                   Degree(Radian(trigger2.getCurrentTarget())).value(),
-                   output2);
+            auto dataLogger = Parafoil::WingControllerServoData{
+                .timestamp          = TimestampTimer::getTimestamp(),
+                .servo1AngleReading = Degree(angleReadingLeft).value(),
+                .servo2AngleReading = Degree(angleReadingRight).value()};
+
+            Logger::getInstance().log(dataLogger);
         },
-        10_hz);
+        50_hz);
 
-    int currAngle = 0;
+    std::cout << "Starting Logger" << std::endl;
+    if (!Logger::getInstance().start())
+    {
+        std::cerr << "*** Failed to start Logger ***" << std::endl;
+
+        if (!Logger::getInstance().testSDCard())
+            std::cerr << "\tReason: SD card not present or not writable"
+                      << std::endl;
+        else
+            std::cerr << "\tReason: Logger initialization error" << std::endl;
+    }
+    else
+    {
+        std::cout << "Logger Ok!\n"
+                  << "\tLog number: "
+                  << Logger::getInstance().getCurrentLogNumber() << std::endl;
+    }
 
     scheduler.start();
 
-    // s1.setVelocity(0.5);
-    // s2.setVelocity(0.5);
-    // Thread::sleep(1000);
-    // s1.setVelocity(0.5);
-    // s2.setVelocity(0.5);
-    // Thread::sleep(1000);
-
-    for (currAngle = 0; currAngle < 100; currAngle++)
+    unsigned int currAngle  = 0;
+    constexpr auto size     = sizeof anglesRight / sizeof(anglesRight[0]);
+    constexpr auto sizeLeft = sizeof anglesLeft / sizeof(anglesLeft[0]);
+    static_assert(size == sizeLeft,
+                  "anglesRight size does not match anglesLeft size, check "
+                  "test-parafoil-data.h");
+    static_assert(size > 0,
+                  "anglesRight and anglesLeft arrays must not be empty, check "
+                  "test-parafoil-data.h");
+    for (currAngle = 0; currAngle < size; currAngle++)
     {
-        trigger.setTargetState(Radian(Degree(-500)).value());
-        trigger2.setTargetState(Radian(Degree(500)).value());
+        triggerServoRight.setTargetState(-anglesRight[currAngle]);
+        triggerServoLeft.setTargetState(anglesLeft[currAngle]);
+        Logger::getInstance().log(Parafoil::WingAlgorithmData{
+            .timestamp   = TimestampTimer::getTimestamp(),
+            .servo1Angle = Degree(anglesLeft[currAngle]).value(),
+            .servo2Angle = Degree(-anglesRight[currAngle]).value()});
 
-        // s1.setVelocity(0.40);
-        // s2.setVelocity(0.40);
-        Thread::sleep(2000);
-
-        trigger.setTargetState(0);
-        trigger2.setTargetState(0);
-
-        // s1.setVelocity(0.60);
-        // s2.setVelocity(0.60);
-
-        Thread::sleep(2000);
+        Thread::sleep(20);
     }
 
     scheduler.stop();
-    s1.setVelocity(0.5);
-    s2.setVelocity(0.5);
+    servoRight.setVelocity(0.5);
+    servoLeft.setVelocity(0.5);
 
     while (true)
     {

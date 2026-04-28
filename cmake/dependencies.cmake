@@ -117,6 +117,7 @@ set(PARAFOIL_COMPUTER
     src/Parafoil/StateMachines/FlightModeManager/FlightModeManager.cpp
     src/Parafoil/StateMachines/NASController/NASController.cpp
     src/Parafoil/StateMachines/WingController/WingController.cpp
+    src/Parafoil/StateMachines/ADAController/ADAController.cpp
     src/Parafoil/AltitudeTrigger/AltitudeTrigger.cpp
     src/Parafoil/AltitudeTrigger/LandingFlare.cpp
     src/Parafoil/Wing/AutomaticWingAlgorithm.cpp

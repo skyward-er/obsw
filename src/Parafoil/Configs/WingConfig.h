@@ -30,7 +30,11 @@
 #include <array>
 #include <chrono>
 
+#ifndef DISABLE_MAP
 #include "MapData.h"
+#else
+#warning Map data is disabled. Do not use the landing flare feature, as it relies on the map to determine the flare trigger altitude.
+#endif
 
 namespace Parafoil
 {
@@ -54,7 +58,7 @@ constexpr auto COMMAND_PERIOD               = 8s;
 constexpr auto WING_DECREMENT               = 180_deg;
 constexpr auto INITIAL_ANGLE                = 1080_deg;
 
-constexpr auto SERVOS_MAX_ANGLE = 1080_deg;
+constexpr auto SERVOS_MAX_ANGLE         = 1080_deg;
 constexpr auto SERVO_LIMITER_PERCENTAGE = 0.9f;
 
 constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
@@ -150,13 +154,15 @@ namespace PI
 // constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 0.65;
 // constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 0.65;
 
-//constexpr auto GAIN                 = 6.0f * SERVO_LIMITER_PERCENTAGE;
-constexpr auto GAIN                 = 6.0f;
-constexpr auto SATURATION_MIN_LIMIT = -(SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE);
-constexpr auto SATURATION_MAX_LIMIT = SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
-//constexpr auto KP                   = 0.9f * GAIN;
-constexpr auto KP                   = GAIN;
-constexpr auto KI                   = 0.0f;
+// constexpr auto GAIN                 = 6.0f * SERVO_LIMITER_PERCENTAGE;
+constexpr auto GAIN = 6.0f;
+constexpr auto SATURATION_MIN_LIMIT =
+    -(SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE);
+constexpr auto SATURATION_MAX_LIMIT =
+    SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
+// constexpr auto KP                   = 0.9f * GAIN;
+constexpr auto KP = GAIN;
+constexpr auto KI = 0.0f;
 // constexpr auto KI                   = 0.05f * GAIN;
 }  // namespace PI
 
@@ -244,8 +250,11 @@ constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
 #endif
 }  // namespace TinyPull
 
+#ifndef DISABLE_MAP
 constexpr auto ALTITUDE_MAP_ADDRESS = map_data_bin;
-
+#else
+constexpr auto ALTITUDE_MAP_ADDRESS = nullptr;
+#endif
 }  // namespace LandingFlare
 
 namespace Rotation
