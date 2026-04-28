@@ -174,7 +174,7 @@ add_executable(parafoil-sequence src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMP
 target_sources(parafoil-sequence PRIVATE ${MAP_HDR})
 target_include_directories(parafoil-sequence PRIVATE ${OBSW_INCLUDE_DIRS})
 target_include_directories(parafoil-sequence PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-target_compile_definitions(parafoil-sequence PRIVATE ALGORITHM_SEQUENCE MILANO)
+target_compile_definitions(parafoil-sequence PRIVATE ALGORITHM_SEQUENCE MILANO DISABLE_LANDING_FLARE)
 sbs_target(parafoil-sequence stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-sequence-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
