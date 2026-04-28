@@ -48,6 +48,7 @@ public:
     [[nodiscard]] bool start();
 
     Tars1Action getLastAction() const { return lastAction; }
+    uint16_t getCycleCount() const { return cycleCount; }
 
 private:
     void sample();
@@ -63,14 +64,6 @@ private:
      * @brief Super state for when TARS1 is refueling.
      */
     Boardcore::State Refueling(const Boardcore::Event& event);
-
-    /**
-     * @brief TARS1 is washing the OX tank.
-     * Super state: Refueling
-     *
-     * Opens both the venting and filling valves to wash the OX tank.
-     */
-    Boardcore::State RefuelingWashing(const Boardcore::Event& event);
 
     /**
      * @brief TARS1 is filling the OX tank and waiting for the system to
@@ -91,23 +84,10 @@ private:
     std::atomic<Tars1Action> lastAction{Tars1Action::READY};
 
     std::chrono::milliseconds ventingTime{0};
+    std::chrono::milliseconds fillingTime{0};
+    std::chrono::milliseconds stabilizationTime{0};
 
-    float previousMass = 0;
-    float currentMass  = 0;
-
-    float previousPressure = 0;
-    float currentPressure  = 0;
-
-    int massStableCounter = 0;
-
-    int medianSamples = 0;
-    Common::MedianFilter<float, Config::TARS1::MEDIAN_SAMPLE_NUMBER> massFilter;
-    Common::MedianFilter<float, Config::TARS1::MEDIAN_SAMPLE_NUMBER>
-        pressureFilter;
-
-    miosix::FastMutex sampleMutex;
-    float massSample     = 0;
-    float pressureSample = 0;
+    uint16_t cycleCount = 0;
 
     uint16_t delayedEventId = 0;
 
