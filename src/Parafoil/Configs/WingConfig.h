@@ -54,11 +54,14 @@ constexpr auto COMMAND_PERIOD               = 8s;
 constexpr auto WING_DECREMENT               = 180_deg;
 constexpr auto INITIAL_ANGLE                = 1080_deg;
 
+constexpr auto SERVOS_MAX_ANGLE = 1080_deg;
+constexpr auto SERVO_LIMITER_PERCENTAGE = 0.9f;
+
 constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
-constexpr auto SERVO_LEFT_MAX_ANGLE = 1080_deg;
+constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
 constexpr auto SERVO_RIGHT_MAX_ANGLE = 0_deg;
-constexpr auto SERVO_RIGHT_MIN_ANGLE = -1080_deg;
+constexpr auto SERVO_RIGHT_MIN_ANGLE = -SERVOS_MAX_ANGLE;
 
 /**
  * @brief The available algorithms for the wing controller.
@@ -81,12 +84,12 @@ constexpr auto TARGET_LAT = 45.565652923793806f;
 constexpr auto TARGET_LON = 12.57763990872353f;
 #else  // Milan
 // B12
-constexpr auto TARGET_LAT = 45.5013853;
-constexpr auto TARGET_LON = 9.1544219;
+// constexpr auto TARGET_LAT = 45.5013853;
+// constexpr auto TARGET_LON = 9.1544219;
 
 // Via Negri
-// constexpr auto TARGET_LAT = 45.50058226119641;
-// constexpr auto TARGET_LON = 9.157215417984244;
+constexpr auto TARGET_LAT = 45.50058226119641;
+constexpr auto TARGET_LON = 9.157215417984244;
 #endif
 
 #if defined(ALGORITHM_CLOSED_LOOP)
@@ -107,7 +110,10 @@ constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
 }  // namespace Default
 
 constexpr std::initializer_list<float> PROGRESSIVE_ASYMMETRIC_SEQUENCE = {
-    0.8f, 0.6f, 0.4f};
+    0.9f, 0.8f, 0.6f};
+
+// constexpr std::initializer_list<float> PROGRESSIVE_ASYMMETRIC_SEQUENCE = {
+//     0.7f, 0.5f, 0.25f};
 
 /**
  * @brief Dynamic target configuration. If enabled, the target is not fixed to
@@ -143,10 +149,13 @@ namespace PI
 {
 // constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 0.65;
 // constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 0.65;
-constexpr auto GAIN                 = 4.0f;
-constexpr auto SATURATION_MIN_LIMIT = -Boardcore::Constants::PI * 4;
-constexpr auto SATURATION_MAX_LIMIT = Boardcore::Constants::PI * 4;
-constexpr auto KP                   = 0.9f * GAIN;
+
+//constexpr auto GAIN                 = 6.0f * SERVO_LIMITER_PERCENTAGE;
+constexpr auto GAIN                 = 6.0f;
+constexpr auto SATURATION_MIN_LIMIT = -(SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE);
+constexpr auto SATURATION_MAX_LIMIT = SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
+//constexpr auto KP                   = 0.9f * GAIN;
+constexpr auto KP                   = GAIN;
 constexpr auto KI                   = 0.0f;
 // constexpr auto KI                   = 0.05f * GAIN;
 }  // namespace PI
@@ -206,8 +215,8 @@ constexpr Meter ALTITUDE = 30_m;  // [m]
 constexpr int CONFIDENCE         = 15;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
 constexpr auto DURATION          = 120s;
-constexpr auto ANGLE_LEFT_SERVO  = 540_deg;
-constexpr auto ANGLE_RIGHT_SERVO = -540_deg;
+constexpr auto ANGLE_LEFT_SERVO  = 900_deg;
+constexpr auto ANGLE_RIGHT_SERVO = -900_deg;
 
 namespace TinyPull
 {

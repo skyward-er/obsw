@@ -78,4 +78,16 @@ struct WingControllerAlgorithmData
     }
 };
 
+struct PumpCommandData
+{
+    uint64_t timestamp = 0;
+    float angleLeft   = 0;
+    float angleRight  = 0;
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(PumpCommandData, FIELD_DEF(timestamp) FIELD_DEF(angleLeft) FIELD_DEF(angleRight));
+    }
+};
+
 }  // namespace Parafoil

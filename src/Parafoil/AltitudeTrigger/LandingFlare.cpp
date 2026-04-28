@@ -79,7 +79,7 @@ Meter LandingFlare::calculateAboveGroundAltitude(LandingFlareData& data)
     Eigen::Vector2f currentPositionNED = findCurrentPositionNED();
 
     Meter currentGroundAltitude = map.getClosestGroundAltitude(
-        currentPositionNED[0], currentPositionNED[1]);
+        currentPositionNED[1], currentPositionNED[0]);  // Note the order: map takes (x, y) = (e, n)
 
     data.map_n = currentPositionNED[0];
     data.map_e = currentPositionNED[1];

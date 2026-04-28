@@ -47,8 +47,8 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
     auto samplePeriod = 1.0f / Hertz{UPDATE_RATE}.value();
 
     controller = std::make_unique<PIController>(Kp, Ki, samplePeriod,
-                                                PI::SATURATION_MIN_LIMIT,
-                                                PI::SATURATION_MAX_LIMIT);
+                                                PI::SATURATION_MIN_LIMIT.value(),
+                                                PI::SATURATION_MAX_LIMIT.value());
 }
 
 void AutomaticWingAlgorithm::step()
