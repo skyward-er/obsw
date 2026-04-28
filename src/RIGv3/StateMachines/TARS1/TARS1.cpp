@@ -46,17 +46,6 @@ TARS1::TARS1()
 
 bool TARS1::start()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->tars1();
-
-    uint8_t result =
-        scheduler.addTask([this]() { sample(); }, Config::TARS1::SAMPLE_PERIOD);
-
-    if (result == 0)
-    {
-        LOG_ERR(logger, "Failed to add TARS1 sample task");
-        return false;
-    }
-
     if (!HSM::start())
     {
         LOG_ERR(logger, "Failed to activate TARS1 thread");
@@ -64,31 +53,6 @@ bool TARS1::start()
     }
 
     return true;
-}
-
-void TARS1::sample()
-{
-    Sensors* sensors = getModule<Sensors>();
-
-    // TODO: udpdate this once there is a way to get the pressure via canBus
-    pressureFilter.add(sensors->getOxTankPressure().pressure);
-    // massFilter.add(sensors->getOxTankWeight().load);
-    medianSamples++;
-
-    if (medianSamples == Config::TARS1::MEDIAN_SAMPLE_NUMBER)
-    {
-        float pressure = pressureFilter.calcMedian();
-        float mass     = massFilter.calcMedian();
-        medianSamples  = 0;
-
-        logSample(pressure, mass);
-
-        {
-            Lock<FastMutex> lock(sampleMutex);
-            pressureSample = pressure;
-            massSample     = mass;
-        }
-    }
 }
 
 void TARS1::updateAndLogAction(Tars1Action action)
@@ -158,23 +122,30 @@ State TARS1::Refueling(const Event& event)
         case EV_INIT:
         {
             // Reset TARS state
-            massStableCounter = 0;
-            previousMass      = 0.0f;
-            currentMass       = 0.0f;
-            previousPressure  = 0.0f;
-            currentPressure   = 0.0f;
+            cycleCount = 0;
 
             ventingTime = milliseconds{
-                actuators->getValveOpeningTime(ServosList::OX_VENTING_VALVE)};
+                actuators->getValveOpeningTime(ServosList::PRZ_RELEASE_VALVE)};
+
+            fillingTime = milliseconds{
+                actuators->getValveOpeningTime(ServosList::PRZ_FILLING_VALVE)};
+
+            stabilizationTime = milliseconds{
+                actuators->getValveOpeningTime(ServosList::OX_RELEASE_VALVE)};
+
+            LOG_INFO(logger, "Calculated filling time: {} ms",
+                     fillingTime.count());
+            LOG_INFO(logger, "Calculated venting time: {} ms",
+                     ventingTime.count());
 
             // Initialize the valves to a known closed state
-            actuators->closeValve(ServosList::OX_FILLING_VALVE);
-            actuators->closeValve(ServosList::OX_VENTING_VALVE);
+            actuators->closeValve(ServosList::PRZ_FILLING_VALVE);
+            actuators->closeValve(ServosList::PRZ_RELEASE_VALVE);
 
             LOG_INFO(logger, "TARS1 refueling start");
             updateAndLogAction(Tars1Action::START);
 
-            return transition(&TARS1::RefuelingWashing);
+            return transition(&TARS1::RefuelingFilling);
         }
 
         case EV_ENTRY:
@@ -188,7 +159,7 @@ State TARS1::Refueling(const Event& event)
             updateAndLogAction(Tars1Action::MANUAL_ACTION_STOP);
 
             // Close the filling valve as safety measure on manual action
-            getModule<Actuators>()->closeValve(ServosList::OX_FILLING_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::PRZ_FILLING_VALVE);
             return transition(&TARS1::Ready);
         }
 
@@ -197,8 +168,8 @@ State TARS1::Refueling(const Event& event)
             LOG_INFO(logger, "TARS1 stopped because of stop command");
             updateAndLogAction(Tars1Action::MANUAL_STOP);
 
-            getModule<Actuators>()->closeValve(ServosList::OX_FILLING_VALVE);
-            getModule<Actuators>()->closeValve(ServosList::OX_VENTING_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::PRZ_FILLING_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::PRZ_RELEASE_VALVE);
             return transition(&TARS1::Ready);
         }
 
@@ -207,8 +178,8 @@ State TARS1::Refueling(const Event& event)
             LOG_INFO(logger, "TARS1 stopped because mass target reached");
             updateAndLogAction(Tars1Action::AUTOMATIC_STOP);
 
-            actuators->closeValve(ServosList::OX_FILLING_VALVE);
-            actuators->closeValve(ServosList::OX_VENTING_VALVE);
+            actuators->closeValve(ServosList::PRZ_FILLING_VALVE);
+            actuators->closeValve(ServosList::PRZ_RELEASE_VALVE);
             return transition(&TARS1::Ready);
         }
 
@@ -231,158 +202,38 @@ State TARS1::Refueling(const Event& event)
     }
 }
 
-State TARS1::RefuelingWashing(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            LOG_INFO(logger, "Washing the OX tank for {} ms",
-                     milliseconds{Config::TARS1::WASHING_OPENING_TIME}.count());
-            updateAndLogAction(Tars1Action::WASHING);
-
-            // Start washing
-            getModule<Actuators>()->openValveWithTime(
-                ServosList::OX_VENTING_VALVE,
-                milliseconds{Config::TARS1::WASHING_OPENING_TIME}.count());
-
-            // Wait a bit before opening the filling valve so that the servo
-            // don't actuate at the same time
-            delayedEventId = EventBroker::getInstance().postDelayed(
-                TARS_WASHING_CONTINUE, TOPIC_TARS,
-                milliseconds{Config::TARS1::WASHING_TIME_DELAY}.count());
-
-            return HANDLED;
-        }
-
-        case TARS_WASHING_CONTINUE:
-        {
-            getModule<Actuators>()->openValveWithTime(
-                ServosList::OX_FILLING_VALVE,
-                milliseconds{Config::TARS1::WASHING_OPENING_TIME}.count());
-            // Wait double the time we opened the valve for washing completion
-            delayedEventId = EventBroker::getInstance().postDelayed(
-                TARS_WASHING_DONE, TOPIC_TARS,
-                milliseconds{Config::TARS1::WASHING_OPENING_TIME * 2}.count());
-
-            return HANDLED;
-        }
-
-        case TARS_WASHING_DONE:
-        {
-            LOG_INFO(logger, "Washing procedure done");
-            return transition(&TARS1::RefuelingFilling);
-        }
-
-        case EV_INIT:
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&TARS1::Refueling);
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
 State TARS1::RefuelingFilling(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            LOG_INFO(logger, "Filling for {} ms",
-                     milliseconds{Config::TARS1::FILLING_OPENING_TIME}.count());
+            LOG_INFO(logger, "Filling for {} ms", fillingTime.count());
             updateAndLogAction(Tars1Action::FILLING);
+
+            cycleCount++;
 
             // Open the filling valve
             getModule<Actuators>()->openValveWithTime(
-                ServosList::OX_FILLING_VALVE,
-                milliseconds{Config::TARS1::FILLING_OPENING_TIME}.count());
-
-            // Wait for pressure stabilization while the filling valve is open
-            delayedEventId = EventBroker::getInstance().postDelayed(
-                TARS_CHECK_PRESSURE_STABILIZE, TOPIC_TARS,
-                milliseconds{Config::TARS1::FILLING_STABILIZE_WAIT_TIME}
-                    .count());
-            LOG_INFO(logger, "Waiting for pressure stabilization");
+                ServosList::PRZ_FILLING_VALVE, fillingTime.count());
 
             return HANDLED;
         }
 
-        case TARS_CHECK_PRESSURE_STABILIZE:
+        case MOTOR_PRZ_FIL_CLOSE:
         {
-            {
-                Lock<FastMutex> lock(sampleMutex);
-                previousPressure = currentPressure;
-                currentPressure  = pressureSample;
-            }
-
-            float pressureChange = std::abs(currentPressure - previousPressure);
-            bool pressureStable =
-                pressureChange < Config::TARS1::PRESSURE_TOLERANCE;
-
-            LOG_INFO(logger, "Pressure change: {} Bar, pressureStable: {}",
-                     pressureChange, pressureStable);
-
-            if (pressureStable)
-            {
-                if (Config::TARS1::STOP_ON_MASS_STABILIZATION)
-                {
-                    {
-                        Lock<FastMutex> lock(sampleMutex);
-                        previousMass = currentMass;
-                        currentMass  = massSample;
-                    }
-
-                    float massChange = std::abs(currentMass - previousMass);
-                    bool massStable =
-                        massChange < Config::TARS1::MASS_TOLERANCE;
-
-                    LOG_INFO(logger, "Mass change: {} kg, massStable: {}",
-                             massChange, massStable);
-
-                    if (massStable)
-                    {
-                        if (massStableCounter >=
-                            Config::TARS1::NUM_MASS_STABLE_ITERATIONS)
-                        {
-                            EventBroker::getInstance().post(TARS_FILLING_DONE,
-                                                            TOPIC_TARS);
-                            return HANDLED;
-                        }
-                        else
-                        {
-                            massStableCounter++;
-                        }
-                    }
-                    else
-                    {
-                        massStableCounter = 0;
-                    }
-                }
-
-                // Proceed to vent the gaseous part of the OX so that we can
-                // fill more liquid afterwards
-                return transition(&TARS1::RefuelingVenting);
-            }
-            else
-            {
-                // Pressure is not stable yet, we can fill more OX
-                delayedEventId = EventBroker::getInstance().postDelayed(
-                    TARS_CHECK_PRESSURE_STABILIZE, TOPIC_TARS,
-                    milliseconds{Config::TARS1::PRESSURE_STABILIZE_WAIT_TIME}
-                        .count());
-            }
+            delayedEventId = EventBroker::getInstance().postDelayed(
+                TARS_PRESSURE_STABILIZED, TOPIC_TARS,
+                stabilizationTime.count());
 
             return HANDLED;
+        }
+
+        case TARS_PRESSURE_STABILIZED:
+        {
+            LOG_INFO(logger, "Pressure stabilized, starting venting");
+
+            return transition(&TARS1::RefuelingVenting);
         }
 
         case EV_EMPTY:
@@ -397,9 +248,6 @@ State TARS1::RefuelingFilling(const Event& event)
 
         case EV_EXIT:
         {
-            // Close the filling valve since we're opening it for a long time
-            // and we don't want to vent while it's open
-            getModule<Actuators>()->closeValve(ServosList::OX_FILLING_VALVE);
             return HANDLED;
         }
 
@@ -420,14 +268,30 @@ State TARS1::RefuelingVenting(const Event& event)
             updateAndLogAction(Tars1Action::VENTING);
 
             getModule<Actuators>()->openValveWithTime(
-                ServosList::OX_VENTING_VALVE, ventingTime.count());
+                ServosList::PRZ_RELEASE_VALVE, ventingTime.count());
 
             return HANDLED;
         }
 
-        case MOTOR_OX_VEN_CLOSE:
+        case MOTOR_PRZ_REL_CLOSE:
+        {
+            delayedEventId = EventBroker::getInstance().postDelayed(
+                TARS_PRESSURE_STABILIZED, TOPIC_TARS,
+                stabilizationTime.count());
+
+            return HANDLED;
+        }
+
+        case TARS_PRESSURE_STABILIZED:
         {
             LOG_INFO(logger, "Venting done");
+
+            if (cycleCount >= Config::TARS1::MAX_FILLING_CYCLES)
+            {
+                LOG_ERR(logger, "Completed all filling cycles");
+                updateAndLogAction(Tars1Action::AUTOMATIC_STOP);
+                return transition(&TARS1::Ready);
+            }
 
             return transition(&TARS1::RefuelingFilling);
         }

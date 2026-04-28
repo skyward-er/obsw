@@ -788,7 +788,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Internal states
             tm.gmm_state    = getModule<GroundModeManager>()->getState();
             tm.tars1_state  = (uint8_t)getModule<TARS1>()->getLastAction();
-            tm.tars3_state  = (uint8_t)getModule<TARS3>()->getLastAction();
+            tm.tars3_state  = (uint8_t)getModule<TARS1>()->getCycleCount();
             tm.arming_state = getModule<GroundModeManager>()->getState() ==
                               GroundModeManagerState::ARMED;
 
@@ -1288,8 +1288,8 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
                     break;
 
                 case TARSList::TARS_3:
-                    EventBroker::getInstance().post(MOTOR_START_TARS3,
-                                                    TOPIC_TMTC);
+                    /* EventBroker::getInstance().post(MOTOR_START_TARS3,
+                                                    TOPIC_TMTC); */
                     break;
             }
 

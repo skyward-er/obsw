@@ -235,7 +235,7 @@ int main()
         std::cerr << "*** Failed to start TARS3 ***" << std::endl;
     }
 
-    std::cout << "Starting FiringSequenceHSM" << std::endl;
+    /* std::cout << "Starting FiringSequenceHSM" << std::endl;
     if (!firingSequenceHSM->start())
     {
         initResult = false;
@@ -254,7 +254,7 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
-    }
+    } */
 
     if (initResult)
     {

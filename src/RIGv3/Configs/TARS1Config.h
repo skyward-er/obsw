@@ -37,6 +37,10 @@ namespace TARS1
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
+constexpr uint16_t MAX_FILLING_CYCLES = 5;
+
+constexpr auto PRESSURE_STABILIZATION_TIME = 5000ms;
+
 constexpr Hertz SAMPLE_PERIOD         = 100_hz;
 constexpr size_t MEDIAN_SAMPLE_NUMBER = 10;
 
