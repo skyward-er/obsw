@@ -193,7 +193,7 @@ void Sensors::nd030aInit()
 
     nd030a = std::make_unique<ND030A>(
         getModule<Buses>()->getND030A(), sensors::ND030A::cs::getPin(),
-        spiConfig, Config::Sensors::ND030A::FSR, Config::Sensors::ND030A::IOW,
+        spiConfig, Config::Sensors::ND030A::IOW,
         Config::Sensors::ND030A::BWL, Config::Sensors::ND030A::NTC,
         Config::Sensors::ND030A::ODR);
 }
