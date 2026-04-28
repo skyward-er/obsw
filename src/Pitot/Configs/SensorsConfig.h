@@ -28,7 +28,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030D/ND030D.h>
+#include <sensors/ND030X/ND030A.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -60,18 +60,17 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace ND015A
 
-namespace ND030D
+namespace ND030A
 {
-constexpr auto FSR = Boardcore::ND030D::FullScaleRange::FS_10;
-constexpr auto IOW = Boardcore::ND030D::IOWatchdogEnable::DISABLED;
-constexpr auto BWL = Boardcore::ND030D::BWLimitFilter::BWL_200;
-constexpr auto NTC = Boardcore::ND030D::NotchEnable::DISABLED;
+constexpr auto IOW = Boardcore::ND030A::IOWatchdogEnable::DISABLED;
+constexpr auto BWL = Boardcore::ND030A::BWLimitFilter::BWL_200;
+constexpr auto NTC = Boardcore::ND030A::NotchEnable::DISABLED;
 
 constexpr uint8_t ODR = 0x00;  // Auto select based on BW
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace ND030D
+}  // namespace ND030A
 
 namespace HeatingPadNTC
 {

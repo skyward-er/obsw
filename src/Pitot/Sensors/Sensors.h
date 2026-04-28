@@ -26,7 +26,7 @@
 #include <Pitot/Configs/SensorsConfig.h>
 #include <Pitot/Sensors/SensorData.h>
 #include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030X/ND030X.h>
+#include <sensors/ND030X/ND030A.h>
 #include <sensors/SensorManager.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
