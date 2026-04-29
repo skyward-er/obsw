@@ -23,7 +23,7 @@
 #pragma once
 
 #include <algorithms/ADA/ADAData.h>
-#include <algorithms/ANAS/ANAS0_types.h>
+#include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NAS/NASState.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
@@ -110,7 +110,7 @@ public:
 
     void updateAcc(const Boardcore::AccelerometerData& data);
     void updateNas(const Boardcore::NASState& data);
-    void updateANAS(const NASOut& data);
+    void updateANAS(const ANASState& data);
 
     // TODO Aggiorna questo appena hai NASDAQ
     void StatsRecorder::updateNASDAQ(const NASDAQOut& data);

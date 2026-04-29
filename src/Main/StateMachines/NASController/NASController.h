@@ -25,10 +25,12 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/ANAS/ANAS0.h>
 #include <algorithms/ANAS/ANAS0_types.h>
+#include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQ0.h>
 #include <algorithms/NASDAQ/NASDAQ0_types.h>
 #include <diagnostic/PrintLogger.h>
@@ -51,6 +53,8 @@ public:
     [[nodiscard]] bool start() override;
 
     Boardcore::NASState getNASState();
+
+    Boardcore::ANASState NASController::getANASState();
 
     NASControllerState getState();
 
@@ -82,7 +86,6 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
 
     miosix::FastMutex nasMutex;
-    Boardcore::NAS nas;
 
     int magDecimateCount  = 0;
     int acc1gSamplesCount = 0;

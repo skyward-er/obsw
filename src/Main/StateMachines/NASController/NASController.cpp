@@ -44,6 +44,7 @@ using namespace Eigen;
 NASController::NASController()
     : FSM{&NASController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::NAS_PRIORITY},
+      // Da cambiare
       nas{Config::NAS::CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
@@ -92,13 +93,24 @@ bool NASController::start()
 
 NASControllerState NASController::getState() { return state; }
 
-NASState NASController::getNASState()
+
+
+ANASState NASController::getANASState()
 {
     Lock<FastMutex> lock{nasMutex};
-    return nas.getState();
+
+    auto rawOutput = anas.getNASOut();
+
+    // Devo passare questo o il timestamp interno?
+    uint64_t timestamp = TimestampTimer::getTimestamp();
+
+    ANASState state(timestamp, rawOutput.Position, rawOutput.Velocity,
+                    rawOutput.Quaternion);
+
+    return state;
 }
 
-// TODO Aggiungere getter per ANAS e NASDAQ
+// TODO Aggiungere getter per NASDAQ
 
 void NASController::setOrientation(Eigen::Quaternion<float> quat)
 {
@@ -114,6 +126,7 @@ void NASController::setOrientation(Eigen::Quaternion<float> quat)
     nas.setX(x);
 }
 
+// Da cambiare
 void NASController::onReferenceChanged(const ReferenceValues& ref)
 {
     Lock<FastMutex> l(nasMutex);
@@ -130,7 +143,7 @@ void NASController::update()
     {
         Sensors* sensors = getModule<Sensors>();
 
-        auto prevState    = nas.getState();
+        auto prevState    = getANASState();
         auto ref          = getModule<AlgoReference>()->getReferenceValues();
         float mslAltitude = ref.refAltitude - prevState.d;
         float mach        = Aeroutils::computeMach(-mslAltitude, -prevState.vd,
@@ -141,31 +154,37 @@ void NASController::update()
         auto staticPitot  = sensors->getCanPitotStaticPressure();
         auto dynamicPitot = sensors->getCanPitotDynamicPressure();
 
-
         ANAS0_types_h_::NASIn inputs = {
-            .AccMeasure = { imu.accelerationX, imu.accelerationY, imu.accelerationZ },
+            .AccMeasure   = {imu.accelerationX, imu.accelerationY,
+                             imu.accelerationZ},
             .AccTimestamp = imu.accelerationTimestamp,
-            .GyroMeasure = { imu.angularSpeedX, imu.angularSpeedY, imu.angularSpeedZ },
 
-            // ASSOLUTAMENTE DA CAMBIARE STO SCHIFO
-            .GyroTimestamp = static_cast<uint32_t>(imu.angularSpeedTimestamp),
-            .BaroMeasure = baro.pressure,
+            .GyroMeasure   = {imu.angularSpeedX, imu.angularSpeedY,
+                              imu.angularSpeedZ},
+            .GyroTimestamp = (imu.angularSpeedTimestamp),
+
+            .BaroMeasure   = baro.pressure,
             .BaroTimestamp = baro.pressureTimestamp,
-            .GPSMeasure = { gps.latitude, gps.longitude, gps.height, gps.speed },
-            .GPSTimestamp = gps.gpsTimestamp,
-            .GPSHorizAccuracy = 0.0, // idk, gnc stuff, chiedo a nick
-            .GPSVertAccuracy = 0.0, // stessa roba
-            .PitotMeasure = { staticPitot.pressure, dynamicPitot.pressure }, // chiedi se corrispondono a queste
-            .PitotTimestamp = staticPitot.pressureTimestamp, // Chiedi per quale usare
-            .MagMeasure = { imu.magneticFieldX, imu.magneticFieldY, imu.magneticFieldZ },
-            .MagTimestamp = { imu.magneticFieldTimestamp }
-        };
+
+            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
+            .GPSTimestamp     = gps.gpsTimestamp,
+            .GPSHorizAccuracy = gps.hAcc,
+            .GPSVertAccuracy  = gps.sAcc,
+
+            .PitotMeasure =
+                {staticPitot.pressure,
+                 dynamicPitot.pressure},  // chiedi se corrispondono a queste
+            .PitotTimestamp = staticPitot.pressureTimestamp,
+            .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
+                               imu.magneticFieldZ},
+            .MagTimestamp   = {imu.magneticFieldTimestamp}};
+
+        // Guarda CANHandler per frequenza
+        // Aggiorna wrapper per log
 
         anas.setNASIn(inputs);
 
-        // TODO Check di questo
-        auto state = anas.getNASOut();
-
+        auto state = getANASState();
 
         getModule<StatsRecorder>()->updateANAS(state);
         sdLogger.log(state);
@@ -197,8 +216,7 @@ void NASController::update()
             .gps              = gps,
             .adaVerticalSpeed = adaVerticalSpeed,
             .adaTimestamp     = adaTimestamp,
-            .adaCovariance    = adaCovariance
-        };
+            .adaCovariance    = adaCovariance};
 
         nasdaq.setInternalInputs(&inputs);
 
@@ -208,8 +226,8 @@ void NASController::update()
     }
 }
 
-
-// Serve Ancora?
+// Serve, ma ho bisogno dell'anas per caricare i reference values
+// Da rivedere
 void NASController::calibrate()
 {
     Sensors* sensors = getModule<Sensors>();
