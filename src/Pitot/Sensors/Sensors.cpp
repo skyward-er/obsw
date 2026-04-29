@@ -92,14 +92,14 @@ void Sensors::calibrate()
 
 Boardcore::VoltageData Sensors::getHeatingPadNTCVoltageLastSample()
 {
-    auto sample   = getinternalADCLastSample();
+    auto sample   = getInternalADCLastSample();
     float voltage = sample.voltage[(int)Config::Sensors::HeatingPadNTC::CH];
     return {sample.timestamp, voltage};
 }
 
 Boardcore::TemperatureData Sensors::getHeatingPadNTCTemperatureLastSample()
 {
-    auto sample = getinternalADCLastSample();
+    auto sample = getInternalADCLastSample();
     float voltage = sample.voltage[(int)Config::Sensors::HeatingPadNTC::CH];
 
     float resistance = (Config::Sensors::HeatingPadNTC::REF_RESISTANCE *
@@ -148,6 +148,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         infos.push_back(manager->getSensorInfo(instance.get())); \
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
+        PUSH_SENSOR_INFO(internalADC, "InternalADC");
         PUSH_SENSOR_INFO(nd015a, "ND015A");
         PUSH_SENSOR_INFO(nd030a, "ND030A");
 
@@ -169,7 +170,7 @@ void Sensors::internalADCInit(){
     internalADC->enableChannel(Config::Sensors::HeatingPadNTC::CH);
 }
 void Sensors::internalADCCallback(){
-
+    sdLogger.log(getInternalADCLastSample());
 }
 
 void Sensors::nd015aInit()
