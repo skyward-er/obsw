@@ -50,7 +50,7 @@ public:
 
     void calibrate();
 
-    Boardcore::InternalADCData getinternalADCLastSample();
+    Boardcore::InternalADCData getInternalADCLastSample();
 
     Boardcore::ND015XData getND015ADataLastSample();
     Boardcore::ND030XData getND030ADataLastSample();
