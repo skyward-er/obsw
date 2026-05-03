@@ -141,8 +141,8 @@ bool CanHandler::start()
         {
             auto staticPressure =
                 getModule<Sensors>()->getStaticPressureLastSample();
-            auto dynamicPressure =
-                getModule<Sensors>()->getDynamicPressureLastSample();
+            auto totalPressure =
+                getModule<Sensors>()->getTotalPressureLastSample();
 
             protocol->enqueueData(
                 static_cast<uint8_t>(Priority::MEDIUM),
@@ -156,8 +156,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(PrimaryType::SENSORS),
                 static_cast<uint8_t>(Board::PITOT),
                 static_cast<uint8_t>(Board::BROADCAST),
-                static_cast<uint8_t>(SensorId::PITOT_DYNAMIC_PRESSURE),
-                dynamicPressure);
+                static_cast<uint8_t>(SensorId::PITOT_TOTAL_PRESSURE),
+                totalPressure);
         },
         Config::CanHandler::SEND_RATE);
 

@@ -21,13 +21,16 @@
  */
 
 #pragma once
-
+//Debugging
+#include <Pitot/HeatingPadController/HeatingPadController.h>
+//Debugging END
 #include <Pitot/Buses.h>
 #include <Pitot/Configs/SensorsConfig.h>
 #include <Pitot/Sensors/SensorData.h>
 #include <sensors/ND015X/ND015A.h>
 #include <sensors/ND030X/ND030A.h>
 #include <sensors/SensorManager.h>
+#include <sensors/analog/HeatingPadNTC.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <mutex>
@@ -39,7 +42,7 @@ namespace Pitot
 class BoardScheduler;
 class Buses;
 
-class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, HeatingPadController>
 {
 public:
     Sensors() {}
@@ -56,10 +59,10 @@ public:
     Boardcore::ND030XData getND030ADataLastSample();
 
     StaticPressureData getStaticPressureLastSample();
-    DynamicPressureData getDynamicPressureLastSample();
+    TotalPressureData getTotalPressureLastSample();
 
     Boardcore::VoltageData getHeatingPadNTCVoltageLastSample();
-    Boardcore::TemperatureData getHeatingPadNTCTemperatureLastSample();
+    Boardcore::TemperatureData getHeatingPadNTCLastSample();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -73,12 +76,18 @@ protected:
     std::unique_ptr<Boardcore::ND030A> nd030a;
     std::unique_ptr<Boardcore::InternalADC> internalADC;
 
+    // Analog sensors
+    std::unique_ptr<Boardcore::HeatingPadNTC> heatingPadNTC;
+
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
 
     void internalADCInit();
     void internalADCCallback();
+
+    void heatingPadNTCInit();
+    void heatingPadNTCCallback();
 
     void nd015aInit();
     void nd015aCallback();

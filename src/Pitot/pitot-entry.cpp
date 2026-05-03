@@ -23,6 +23,7 @@
 #include <Pitot/BoardScheduler.h>
 #include <Pitot/Buses.h>
 #include <Pitot/CanHandler/CanHandler.h>
+#include <Pitot/HeatingPadController/HeatingPadController.h>
 #include <Pitot/Sensors/Sensors.h>
 #include <common/Topics.h>
 #include <events/EventBroker.h>
@@ -53,6 +54,7 @@ int main()
 
     Sensors* sensors;
     auto canHandler = new CanHandler();
+    auto heatingPad = new HeatingPadController();
 
     sensors = new Sensors();
 
@@ -72,7 +74,9 @@ int main()
     initResult &= manager.insert<Buses>(buses) &&
                   manager.insert<BoardScheduler>(scheduler) &&
                   manager.insert<Sensors>(sensors) &&
-                  manager.insert<CanHandler>(canHandler) && manager.inject();
+                  manager.insert<CanHandler>(canHandler) &&
+                  manager.insert<HeatingPadController>(heatingPad) &&
+                  manager.inject();
 
     if (!initResult)
     {
@@ -141,6 +145,13 @@ int main()
     else
     {
         led1Off();
+    }
+
+    std::cout << "Starting HeatingPadController" << std::endl;
+    if (!heatingPad->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start HeatingPadController ***" << std::endl;
     }
 
     if (initResult)

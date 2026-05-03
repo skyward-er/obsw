@@ -47,19 +47,35 @@ struct StaticPressureData : public Boardcore::PressureData
     }
 };
 
-struct DynamicPressureData : public Boardcore::PressureData
+struct TotalPressureData : public Boardcore::PressureData
 {
-    DynamicPressureData() = default;
+    TotalPressureData() = default;
 
-    explicit DynamicPressureData(const Boardcore::PressureData& data)
+    explicit TotalPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(DynamicPressureData,
+        return STRUCT_DEF(TotalPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct HeatingPadTemperatureData : public Boardcore::TemperatureData
+{
+    HeatingPadTemperatureData() = default;
+
+    explicit HeatingPadTemperatureData(const Boardcore::TemperatureData& data)
+        : Boardcore::TemperatureData(data)
+    {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(HeatingPadTemperatureData,
+                          EXTEND_DEF(Boardcore::TemperatureData));
     }
 };
 
