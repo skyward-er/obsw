@@ -40,7 +40,7 @@ class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler
     public:
         explicit HeatingPadController(HeatingPadConfig config);
 
-        HeatingPadController() {}
+        HeatingPadController();
 
         bool start();
         bool isStarted();
@@ -56,6 +56,11 @@ class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler
         void enableHeatingPad();
         void disableHeatingPad();
 
+        //DEBUGGING
+        bool getHeatingPadSense();
+        bool getPinEnabled();
+        int getSchmittTriggerOutput();
+        
         void update();
 
     private:
@@ -64,9 +69,12 @@ class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler
 
         Boardcore::SchmittTrigger schmittTrigger{0, 0};
 
+
         Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
         Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HeatingPadController");
         miosix::FastMutex heatingPadMutex;
+
+        std::atomic<bool> pinEnabled{false};
 
         std::atomic<bool> started{false};
         std::atomic<bool> running{false};

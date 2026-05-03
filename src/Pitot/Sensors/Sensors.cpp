@@ -44,8 +44,12 @@ bool Sensors::isStarted() { return started; }
 
 bool Sensors::start()
 {
-    if (Config::Sensors::HeatingPadNTC::ENABLED)
+    if (Config::Sensors::InternalADC::ENABLED)
         internalADCInit();
+
+    if(Config::Sensors::HeatingPadNTC::ENABLED){
+        heatingPadNTCInit();
+    }
 
     if (Config::Sensors::ND015A::ENABLED)
         nd015aInit();
@@ -72,22 +76,22 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
-    float dynPressureAccum = 0.0f;
+    float totPressureAccum = 0.0f;
 
     for (int i = 0; i < Config::Sensors::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        auto dynPressure = getDynamicPressureLastSample();
+        auto totPressure = getTotalPressureLastSample();
 
-        dynPressureAccum += dynPressure.pressure;
+        totPressureAccum += totPressure.pressure;
 
         Thread::sleep(
             milliseconds{Config::Sensors::CALIBRATION_SLEEP_TIME}.count());
     }
 
-    float dynPressureOffset =
-        dynPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
+    float totPressureOffset =
+        totPressureAccum / Config::Sensors::CALIBRATION_SAMPLES_COUNT;
 
-    nd030a->updateOffset(dynPressureOffset);
+    nd030a->updateOffset(totPressureOffset);
 }
 
 Boardcore::VoltageData Sensors::getHeatingPadNTCVoltageLastSample()
@@ -97,23 +101,14 @@ Boardcore::VoltageData Sensors::getHeatingPadNTCVoltageLastSample()
     return {sample.timestamp, voltage};
 }
 
-Boardcore::TemperatureData Sensors::getHeatingPadNTCTemperatureLastSample()
+Boardcore::TemperatureData Sensors::getHeatingPadNTCLastSample()
 {
-    auto sample = getInternalADCLastSample();
-    float voltage = sample.voltage[(int)Config::Sensors::HeatingPadNTC::CH];
+    return heatingPadNTC ? heatingPadNTC->getLastSample() : TemperatureData{};
+}
 
-    float resistance = (Config::Sensors::HeatingPadNTC::REF_RESISTANCE *
-                        voltage) /
-                       (Config::Sensors::HeatingPadNTC::REF_VOLTAGE - voltage);
-
-    float temperature = 1.0f /
-                        ((1.0f / Config::Sensors::HeatingPadNTC::REF_TEMPERATURE) +
-                         (1.0f / Config::Sensors::HeatingPadNTC::BETA) *
-                             std::log(resistance /
-                                      Config::Sensors::HeatingPadNTC::
-                                          REF_RESISTANCE));
-
-    return {sample.timestamp, temperature};
+InternalADCData Sensors::getInternalADCLastSample()
+{
+    return internalADC ? internalADC->getLastSample() : InternalADCData{};
 }
 
 ND015XData Sensors::getND015ADataLastSample()
@@ -131,10 +126,9 @@ StaticPressureData Sensors::getStaticPressureLastSample()
     return StaticPressureData{getND015ADataLastSample()};
 }
 
-DynamicPressureData Sensors::getDynamicPressureLastSample()
+TotalPressureData Sensors::getTotalPressureLastSample()
 {
-    float dynamicPressure = getND030ADataLastSample().pressure - getND015ADataLastSample().pressure;
-    return DynamicPressureData{PressureData{getND030ADataLastSample().pressureTimestamp, dynamicPressure}};
+    return TotalPressureData{getND030ADataLastSample()};
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
@@ -149,6 +143,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
         PUSH_SENSOR_INFO(internalADC, "InternalADC");
+        PUSH_SENSOR_INFO(heatingPadNTC, "HeatingPadNTC");
         PUSH_SENSOR_INFO(nd015a, "ND015A");
         PUSH_SENSOR_INFO(nd030a, "ND030A");
 
@@ -169,8 +164,26 @@ void Sensors::internalADCInit(){
     internalADC = std::make_unique<InternalADC>(ADC2);
     internalADC->enableChannel(Config::Sensors::HeatingPadNTC::CH);
 }
+
 void Sensors::internalADCCallback(){
-    sdLogger.log(getInternalADCLastSample());
+    sdLogger.log(InternalADCData{getInternalADCLastSample()});
+}
+
+void Sensors::heatingPadNTCInit()
+{
+    heatingPadNTC = std::make_unique<HeatingPadNTC>(
+        [this]()
+        {
+            auto sample = getInternalADCLastSample();
+            return VoltageData{sample.timestamp, sample.voltage[(int)Config::Sensors::HeatingPadNTC::CH]};
+        }, Config::Sensors::HeatingPadNTC::REF_VOLTAGE, Config::Sensors::HeatingPadNTC::REF_RESISTANCE, Config::Sensors::HeatingPadNTC::REF_TEMPERATURE, Config::Sensors::HeatingPadNTC::BETA);
+}
+
+void Sensors::heatingPadNTCCallback()
+{
+    auto heatingPad = getModule<HeatingPadController>();
+    printf("HeatingPadSense: %d | heatingPadEnable: %d | SchmittTriggerOut: %d | NTC temperature: %f K\n", heatingPad->getHeatingPadSense(), heatingPad->getPinEnabled(), heatingPad->getSchmittTriggerOutput(), heatingPad->getSchmittTriggerOutput(), getHeatingPadNTCLastSample().temperature);
+    sdLogger.log(HeatingPadTemperatureData{getHeatingPadNTCLastSample()});
 }
 
 void Sensors::nd015aInit()
@@ -180,7 +193,8 @@ void Sensors::nd015aInit()
     nd015a = std::make_unique<ND015A>(
         getModule<Buses>()->getND015A(), sensors::ND015A::cs::getPin(),
         spiConfig, Config::Sensors::ND015A::IOW, Config::Sensors::ND015A::BWL,
-        Config::Sensors::ND015A::NTC, Config::Sensors::ND015A::ODR);
+        Config::Sensors::ND015A::NTC, Config::Sensors::ND015A::
+        ODR);
 }
 
 void Sensors::nd015aCallback()
@@ -201,12 +215,24 @@ void Sensors::nd030aInit()
 
 void Sensors::nd030aCallback()
 {
-    sdLogger.log(DynamicPressureData{getND030ADataLastSample()});
+    sdLogger.log(TotalPressureData{getND030ADataLastSample()});
 }
 
 bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
+
+    if(internalADC)
+    {
+        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE, [this]() { internalADCCallback(); }};
+        map.emplace(internalADC.get(), info);
+    }
+
+    if(heatingPadNTC)
+    {
+        SensorInfo info{"HeatingPadNTC", Config::Sensors::HeatingPadNTC::RATE, [this]() { heatingPadNTCCallback(); }};
+        map.emplace(heatingPadNTC.get(), info);
+    }
 
     if (nd015a)
     {

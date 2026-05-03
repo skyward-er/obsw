@@ -36,6 +36,7 @@ namespace Pitot
             /* linter-off */ using namespace Boardcore::Units::Frequency;
 
             constexpr auto UPDATE_RATE = 10_hz;
+            constexpr auto SENSE_ACTIVE = 1;
 
             // Schmitt Trigger parameters
             constexpr auto TARGET_TEMPERATURE = 308.15f; // K, 35°C

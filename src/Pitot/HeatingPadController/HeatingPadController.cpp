@@ -50,10 +50,11 @@ namespace Pitot
         if (started)
             return false;
         
-        if(!heatingPadSense()){
+        //DEBUGGING
+        /*if(!heatingPadSense()){
             LOG_ERR(logger, "Heating pad not detected!");
             return false;
-        }
+        }*/
 
         if(!schmittTrigger.init()){
             LOG_ERR(logger, "Failed to initialize Schmitt trigger!");
@@ -92,9 +93,28 @@ namespace Pitot
         schmittTrigger.setTargetState(temperature);
     }
 
+    //debugging
+
+    bool HeatingPadController::getHeatingPadSense()
+    {
+        return miosix::HeatingPad::sense::value();
+    }
+
+    bool HeatingPadController::getPinEnabled()
+    {
+        return pinEnabled;
+    }
+
+    int HeatingPadController::getSchmittTriggerOutput()
+    {
+        return static_cast<int>(schmittTrigger.getOutput());
+    }
+
+    //debugging end
+
     bool HeatingPadController::heatingPadSense()
     {
-        if(miosix::HeatingPad::sense::value() == 1)
+        if(miosix::HeatingPad::sense::value() == Config::HeatingPadController::SENSE_ACTIVE)
             return true;
         else
             return false;
@@ -102,10 +122,12 @@ namespace Pitot
 
     void HeatingPadController::enableHeatingPad()
     {
+        pinEnabled = true;
         miosix::HeatingPad::enable::high();
     }
     void HeatingPadController::disableHeatingPad()
     {
+        pinEnabled = false;
         miosix::HeatingPad::enable::low();
     }
 
@@ -113,20 +135,20 @@ namespace Pitot
     {
         if (!running)
             return;
-        
-        if(!heatingPadSense()){
+
+        //DEBUGGING
+        /*if(!heatingPadSense()){
             LOG_ERR(logger, "Heating pad not detected!");
             disableHeatingPad();
             return;
-        }
+        }*/
         
-        float temperature = getModule<Sensors>()->getHeatingPadNTCTemperatureLastSample().temperature; //K
+        float temperature = getModule<Sensors>()->getHeatingPadNTCLastSample().temperature; //K
         schmittTrigger.setCurrentState(temperature);
         Boardcore::SchmittTrigger::Activation activation;
 
         {
             miosix::Lock<miosix::FastMutex> lock(heatingPadMutex);
-            schmittTrigger.setCurrentState(temperature);
             schmittTrigger.update();
             activation = schmittTrigger.getOutput();
         }

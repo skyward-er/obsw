@@ -124,6 +124,7 @@ set(PAYLOAD_COMPUTER
 
 set(PITOT_COMPUTER
     src/Pitot/CanHandler/CanHandler.cpp
+    src/Pitot/HeatingPadController/HeatingPadController.cpp
     src/Pitot/Sensors/Sensors.cpp
 )
 

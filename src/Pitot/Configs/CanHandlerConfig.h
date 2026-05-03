@@ -42,8 +42,8 @@ namespace Status
 {
 
 constexpr auto HIL = false;
-constexpr auto ARMED = true;
-constexpr auto STATE = false;
+constexpr auto ARMED = false;
+constexpr uint8_t STATE = 1;
 
 }  // namespace Status
 

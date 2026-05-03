@@ -48,6 +48,12 @@ namespace Sensors
 constexpr auto CALIBRATION_SAMPLES_COUNT = 20;
 constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
 
+namespace InternalADC
+{
+    constexpr auto ENABLED = true;
+    constexpr auto RATE = 100_hz;
+}  // namespace InternalADC
+
 namespace ND015A
 {
 constexpr auto IOW = Boardcore::ND015A::IOWatchdogEnable::DISABLED;
@@ -74,8 +80,11 @@ constexpr auto ENABLED = true;
 
 namespace HeatingPadNTC
 {
+    constexpr auto RATE    = 10_hz;
     constexpr auto ENABLED = true;
+
     constexpr auto CH  = Boardcore::InternalADC::Channel::CH9;
+
     constexpr float REF_VOLTAGE = V_DDA_VOLTAGE;
     constexpr float REF_RESISTANCE = 10000.0f; // ohms
     constexpr float REF_TEMPERATURE = 298.15f; // K, 25°C
