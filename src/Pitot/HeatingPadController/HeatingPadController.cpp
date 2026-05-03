@@ -41,7 +41,7 @@ namespace Pitot
     HeatingPadController::HeatingPadController()
         : updateRate(Config::HeatingPadController::UPDATE_RATE)
     {
-        schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD_LOW, Config::HeatingPadController::THRESHOLD_HIGH);
+        schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD, Config::HeatingPadController::THRESHOLD);
         schmittTrigger.setTargetState(Config::HeatingPadController::TARGET_TEMPERATURE);
     }
 
