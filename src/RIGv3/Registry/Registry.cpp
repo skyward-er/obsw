@@ -73,8 +73,14 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
             return "EREG_FUEL_FIRST_PRESSURIZATION_TARGET";
         case CONFIG_ID_EREG_FUEL_RAMPUP_TARGET:
             return "EREG_FUEL_RAMPUP_TARGET";
-        case CONFIG_ID_PILOT_FUEL_LEAD_TIME:
-            return "PILOT_FUEL_LEAD_TIME";
+        case CONFIG_ID_FUEL_LEAD:
+            return "FUEL_LEAD";
+        case CONFIG_ID_PILOT_LEAD_TIME:
+            return "PILOT_LEAD_TIME";
+        case CONFIG_ID_OX_RAMP_TIME:
+            return "OX_RAMP_TIME";
+        case CONFIG_ID_FUEL_RAMP_TIME:
+            return "FUEL_RAMP_TIME";
         case CONFIG_ID_FULL_THROTTLE_TIME:
             return "FULL_THROTTLE_TIME";
         case CONFIG_ID_LOW_THROTTLE_TIME:
