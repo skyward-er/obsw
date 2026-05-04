@@ -43,8 +43,10 @@ class FiringSequenceHSM
 public:
     FiringSequenceHSM();
 
-    void setFiringParams(uint32_t pilotFuelLeadTime, uint32_t fullThrottleTime,
-                         uint32_t lowThrottleTime, float pilotFlameOxPosition,
+    void setFiringParams(uint8_t fuelLead, uint32_t pilotLeadTime,
+                         uint32_t oxRampTime, uint32_t fuelRampTime,
+                         uint32_t fullThrottleTime, uint32_t lowThrottleTime,
+                         float pilotFlameOxPosition,
                          float pilotFlameFuelPosition,
                          float lowThrottleOxPosition,
                          float lowThrottleFuelPosition);
@@ -88,5 +90,6 @@ private:
     float pilotFlamePressureThreshold = 0.0f;
 
     bool paramsSet = false;
+    bool fuelLead  = true;
 };
 }  // namespace RIGv3

@@ -268,9 +268,17 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_FIRING_PARAMETERS_TC:
         {
-            uint32_t pilotFuelLeadTime =
-                mavlink_msg_set_firing_parameters_tc_get_pilot_fuel_lead_time(
-                    &msg);
+            uint8_t fuelLead =
+                mavlink_msg_set_firing_parameters_tc_get_fuel_lead(&msg);
+
+            uint32_t pilotLeadTime =
+                mavlink_msg_set_firing_parameters_tc_get_pilot_lead_time(&msg);
+
+            uint32_t oxRampTime =
+                mavlink_msg_set_firing_parameters_tc_get_ox_ramp_time(&msg);
+
+            uint32_t fuelRampTime =
+                mavlink_msg_set_firing_parameters_tc_get_fuel_ramp_time(&msg);
 
             uint32_t fullThrottleTime =
                 mavlink_msg_set_firing_parameters_tc_get_full_throttle_time(
@@ -292,9 +300,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                     &msg);
 
             getModule<FiringSequenceHSM>()->setFiringParams(
-                pilotFuelLeadTime, fullThrottleTime, lowThrottleTime,
-                pilotFlameOxPosition, pilotFlameFuelPosition,
-                lowThrottleOxPosition, lowThrottleFuelPosition);
+                fuelLead, pilotLeadTime, oxRampTime, fuelRampTime,
+                fullThrottleTime, lowThrottleTime, pilotFlameOxPosition,
+                pilotFlameFuelPosition, lowThrottleOxPosition,
+                lowThrottleFuelPosition);
 
             enqueueAck(msg);
             break;
