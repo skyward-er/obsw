@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Parafoil/Configs/ActuatorsConfig.h>
 #include <actuators/Servo/ServoWinch.h>
 #include <algorithms/SchmittTrigger/SchmittTrigger.h>
 #include <common/MavlinkOrion.h>
@@ -88,9 +89,13 @@ public:
          */
         Radian maxAngle;
 
+        Config::Actuators::ServoDirection direction;
+
         miosix::FastMutex mutex;
 
-        ServoActuator() : wiggleAngle{0_rad}, minAngle{0_rad}, maxAngle{0_rad}
+        ServoActuator()
+            : wiggleAngle{0_rad}, minAngle{0_rad}, maxAngle{0_rad},
+              direction{Config::Actuators::ServoDirection::CW}
         {
         }
     };

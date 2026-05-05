@@ -454,15 +454,16 @@ bool WingController::start()
             if (!servosStarted)
                 return;
 
-            auto servo1Angle = getModule<Sensors>()->getAS5047D1LastSample();
-            auto servo2Angle = getModule<Sensors>()->getAS5047D2LastSample();
+            auto servoRightAngle =
+                getModule<Sensors>()->getAS5047D1LastSample();
+            auto servoLeftAngle = getModule<Sensors>()->getAS5047D2LastSample();
 
             getModule<Actuators>()->updateServoState(
                 PARAFOIL_RIGHT_SERVO,
-                Radian(servo1Angle.angle - servo1ZeroAngle.value()));
+                Radian(servoRightAngle.angle - servo1ZeroAngle.value()));
             getModule<Actuators>()->updateServoState(
                 PARAFOIL_LEFT_SERVO,
-                Radian(servo2Angle.angle - servo2ZeroAngle.value()));
+                Radian(servoLeftAngle.angle - servo2ZeroAngle.value()));
 
             auto data = WingControllerServoData{
                 .timestamp          = TimestampTimer::getTimestamp(),
@@ -636,7 +637,7 @@ void WingController::loadAlgorithms()
 
                 step.timestamp += microseconds{seconds{2}}.count();
                 step.servo1Angle = 0;
-                step.servo2Angle = wingPercentage * -SERVOS_MAX_ANGLE.value();
+                step.servo2Angle = wingPercentage * SERVOS_MAX_ANGLE.value();
                 algorithm->addStep(step);
 
                 step.timestamp += microseconds{seconds{5}}.count();
@@ -699,7 +700,7 @@ void WingController::loadAlgorithms()
              angle -= WING_DECREMENT)
         {
             step.servo1Angle = angle.value();
-            step.servo2Angle = -angle.value();
+            step.servo2Angle = angle.value();
             algorithm->addStep(step);
             step.timestamp += microseconds{COMMAND_PERIOD}.count();
         }

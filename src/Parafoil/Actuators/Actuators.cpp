@@ -23,7 +23,6 @@
 #include "Actuators.h"
 
 #include <Parafoil/BoardScheduler.h>
-#include <Parafoil/Configs/ActuatorsConfig.h>
 #include <drivers/timer/PWM.h>
 #include <drivers/timer/TimerUtils.h>
 #include <interfaces-impl/hwmapping.h>
@@ -59,6 +58,7 @@ Actuators::Actuators()
     leftServo.lowServoVelocity  = config::LeftServo::LOW_THRESHOLD_VELOCITY;
     leftServo.stopServoVelocity = config::LeftServo::STOP_THRESHOLD_VELOCITY;
     leftServo.wiggleAngle       = config::LeftServo::WIGGLE_ANGLE;
+    leftServo.direction         = config::LeftServo::DIRECTION;
 
     // Right servo is servo 1
     rightServo.servo = std::make_unique<ServoWinch>(
@@ -80,6 +80,7 @@ Actuators::Actuators()
     rightServo.servoTrigger->setTargetState(
         Radian(config::RightServo::INITIAL_ANGLE).value());
     rightServo.angleData.setInitialState(config::RightServo::INITIAL_ANGLE);
+    rightServo.direction = config::RightServo::DIRECTION;
 
     auto frequency =
         static_cast<uint16_t>(Hertz{config::Buzzer::FREQUENCY}.value());
@@ -184,23 +185,14 @@ bool Actuators::setServoAngle(ServosList servoId, Radian angle)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    // actuator->servoTrigger->setTargetState(
-    //     (angle).value());
+    auto capped_angle =
+        std::min(actuator->maxAngle,
+                 std::max(angle + actuator->minAngle, actuator->minAngle));
 
-    if (servoId == ServosList::PARAFOIL_LEFT_SERVO)
-    {
-        actuator->servoTrigger->setTargetState(
-            std::min(actuator->maxAngle.value(),
-                     std::max(angle.value() + actuator->minAngle.value(),
-                              actuator->minAngle.value())));
-    }
-    else if (servoId == ServosList::PARAFOIL_RIGHT_SERVO)
-    {
-        actuator->servoTrigger->setTargetState(
-            std::min(actuator->maxAngle.value(),
-                     std::max(angle.value() + actuator->maxAngle.value(),
-                              actuator->minAngle.value())));
-    }
+    if (actuator->direction == config::ServoDirection::CCW)
+        capped_angle *= -1;
+
+    actuator->servoTrigger->setTargetState(capped_angle.value());
 
     Logger::getInstance().log(actuator->servo->getState());
 
@@ -226,7 +218,8 @@ Radian Actuators::getServoAngle(ServosList servoId)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
-    return actuator->angleData.getLastReading();
+    return actuator->angleData.getLastReading() *
+           (actuator->direction == config::ServoDirection::CW ? 1 : -1);
 }
 
 bool Actuators::wiggleServo(ServosList servoId)

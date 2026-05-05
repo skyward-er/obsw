@@ -36,7 +36,7 @@ std::istream& operator>>(std::istream& input, WingAlgorithmData& data)
     data.servo1Angle *= Config::Wing::SERVO_LEFT_MAX_ANGLE.value();
     input.ignore(1, ',');
     input >> data.servo2Angle;
-    data.servo2Angle *= -Config::Wing::SERVO_RIGHT_MIN_ANGLE.value();
+    data.servo2Angle *= Config::Wing::SERVO_RIGHT_MAX_ANGLE.value();
     return input;
 }
 

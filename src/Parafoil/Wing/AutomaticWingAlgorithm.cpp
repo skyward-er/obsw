@@ -46,9 +46,9 @@ AutomaticWingAlgorithm::AutomaticWingAlgorithm(float Kp, float Ki,
     // PIController needs the sample period in floating point seconds
     auto samplePeriod = 1.0f / Hertz{UPDATE_RATE}.value();
 
-    controller = std::make_unique<PIController>(Kp, Ki, samplePeriod,
-                                                PI::SATURATION_MIN_LIMIT.value(),
-                                                PI::SATURATION_MAX_LIMIT.value());
+    controller = std::make_unique<PIController>(
+        Kp, Ki, samplePeriod, PI::SATURATION_MIN_LIMIT.value(),
+        PI::SATURATION_MAX_LIMIT.value());
 }
 
 void AutomaticWingAlgorithm::step()
@@ -74,7 +74,7 @@ void AutomaticWingAlgorithm::step()
         {
             // Activate the servo2 and reset servo1
             getModule<Actuators>()->setServoAngle(servo1, 0.0_rad);
-            getModule<Actuators>()->setServoAngle(servo2, -Radian(result));
+            getModule<Actuators>()->setServoAngle(servo2, Radian(result));
         }
         else
         {
@@ -89,7 +89,7 @@ void AutomaticWingAlgorithm::step()
 
             data.timestamp   = TimestampTimer::getTimestamp();
             data.servo1Angle = result > Degree(0) ? 0 : -result.value();
-            data.servo2Angle = result > Degree(0) ? -result.value() : 0;
+            data.servo2Angle = result > Degree(0) ? result.value() : 0;
             SDlogger->log(data);
         }
     }

@@ -40,7 +40,11 @@ namespace Actuators
 /* linter off */ using namespace Boardcore::Units::Angle;
 /* linter off */ using namespace Boardcore::Units::Time;
 
-// On Lyra 6-gear planetary multiplier: 100us ~= 1cm
+enum class ServoDirection
+{
+    CW,
+    CCW
+};
 
 namespace LeftServo
 {
@@ -54,6 +58,7 @@ constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
 constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
 constexpr auto INITIAL_ANGLE           = 0.0_deg;
 constexpr auto WIGGLE_ANGLE            = 1080_deg;
+constexpr auto DIRECTION               = ServoDirection::CW;
 }  // namespace LeftServo
 
 namespace RightServo
@@ -67,7 +72,8 @@ constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
 constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
 constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
 constexpr auto INITIAL_ANGLE           = 0.0_deg;
-constexpr auto WIGGLE_ANGLE            = -1080_deg;
+constexpr auto WIGGLE_ANGLE            = 1080_deg;
+constexpr auto DIRECTION               = ServoDirection::CCW;
 }  // namespace RightServo
 
 constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]

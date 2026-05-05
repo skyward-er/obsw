@@ -64,8 +64,8 @@ constexpr auto SERVO_LIMITER_PERCENTAGE = 0.9f;
 constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
-constexpr auto SERVO_RIGHT_MAX_ANGLE = 0_deg;
-constexpr auto SERVO_RIGHT_MIN_ANGLE = -SERVOS_MAX_ANGLE;
+constexpr auto SERVO_RIGHT_MIN_ANGLE = 0_deg;
+constexpr auto SERVO_RIGHT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
 /**
  * @brief The available algorithms for the wing controller.
@@ -107,7 +107,8 @@ constexpr auto ALGORITHM = AlgorithmId::ROTATION;
 #elif defined(ALGORITHM_PROGRESSIVE_ROTATION)
 constexpr auto ALGORITHM = AlgorithmId::PROGRESSIVE_ROTATION;
 #elif defined(ALGORITHM_FILE_SEQUENCE)
-constexpr auto ALGORITHM = AlgorithmId::FROM_FILE;
+#error Algorithm file sequence not implemented
+// constexpr auto ALGORITHM = AlgorithmId::FROM_FILE;
 #else
 constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
 #endif
@@ -185,7 +186,7 @@ namespace Deployment
 
 constexpr auto PUMP_DELAY       = 2s;
 constexpr auto PUMP_ANGLE_LEFT  = 720_deg;
-constexpr auto PUMP_ANGLE_RIGHT = -720_deg;
+constexpr auto PUMP_ANGLE_RIGHT = 720_deg;
 struct Pump
 {
     std::chrono::milliseconds flareTime;
@@ -222,7 +223,7 @@ constexpr int CONFIDENCE         = 15;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
 constexpr auto DURATION          = 120s;
 constexpr auto ANGLE_LEFT_SERVO  = 900_deg;
-constexpr auto ANGLE_RIGHT_SERVO = -900_deg;
+constexpr auto ANGLE_RIGHT_SERVO = 900_deg;
 
 namespace TinyPull
 {
@@ -238,7 +239,7 @@ constexpr auto ENABLED = true;
 constexpr auto ENABLED = false;
 #endif
 constexpr auto ANGLE_LEFT_SERVO  = 90_deg;
-constexpr auto ANGLE_RIGHT_SERVO = -90_deg;
+constexpr auto ANGLE_RIGHT_SERVO = 90_deg;
 #if defined(JESOLO)
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
     50_m, 45_m, 40_m, 35_m, 30_m, 25_m, 20_m};
@@ -264,7 +265,7 @@ constexpr auto ROTATION_PERIOD = 6s;  ///< Period of the rotation maneuver
 //                                                           180_deg, 0_deg};
 constexpr std::initializer_list<Degree> ROTATION_LEFT  = {0_deg};
 constexpr std::initializer_list<Degree> ROTATION_RIGHT = {
-    -720_deg, -540_deg, -360_deg, -180_deg, 0_deg};
+    720_deg, 540_deg, 360_deg, 180_deg, 0_deg};
 }  // namespace Rotation
 
 }  // namespace Wing
