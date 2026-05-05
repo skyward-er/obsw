@@ -80,7 +80,6 @@ State WingController::Idle(const Boardcore::Event& event)
     {
         case EV_ENTRY:
         {
-
             Coordinates targetReading = targetPositionGEO.load();
             getModule<LandingFlare>()->setTargetGEO(
                 {targetReading.latitude, targetReading.longitude});
@@ -626,8 +625,7 @@ void WingController::loadAlgorithms()
         {
             for (size_t i = 0; i < 2; i++)
             {
-                step.servo1Angle =
-                    wingPercentage * SERVOS_MAX_ANGLE.value();
+                step.servo1Angle = wingPercentage * SERVOS_MAX_ANGLE.value();
                 step.servo2Angle = 0;
                 algorithm->addStep(step);
 
@@ -638,8 +636,7 @@ void WingController::loadAlgorithms()
 
                 step.timestamp += microseconds{seconds{2}}.count();
                 step.servo1Angle = 0;
-                step.servo2Angle =
-                    wingPercentage * -SERVOS_MAX_ANGLE.value();
+                step.servo2Angle = wingPercentage * -SERVOS_MAX_ANGLE.value();
                 algorithm->addStep(step);
 
                 step.timestamp += microseconds{seconds{5}}.count();
@@ -715,13 +712,14 @@ void WingController::loadAlgorithms()
             std::move(algorithm);
     }
 
-    // File Sequence
-    {
-        auto algorithm = std::make_unique<FileWingAlgorithm>(
-            PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO, "/sd/wing_sequence.csv");
-        algorithms[static_cast<size_t>(AlgorithmId::FROM_FILE)] =
-            std::move(algorithm);
-    }
+    // // File Sequence
+    // {
+    //     auto algorithm = std::make_unique<FileWingAlgorithm>(
+    //         PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO,
+    //         "/sd/wing_sequence.csv");
+    //     algorithms[static_cast<size_t>(AlgorithmId::FROM_FILE)] =
+    //         std::move(algorithm);
+    // }
 }
 
 WingAlgorithm& WingController::getCurrentAlgorithm()
@@ -826,8 +824,10 @@ void WingController::flareWing(WingController::FlareType type)
         {
             auto data = PumpCommandData{
                 .timestamp = TimestampTimer::getTimestamp(),
-                .angleLeft = Radian{LandingFlareConfig::ANGLE_LEFT_SERVO}.value(),
-                .angleRight = Radian{LandingFlareConfig::ANGLE_RIGHT_SERVO}.value(),
+                .angleLeft =
+                    Radian{LandingFlareConfig::ANGLE_LEFT_SERVO}.value(),
+                .angleRight =
+                    Radian{LandingFlareConfig::ANGLE_RIGHT_SERVO}.value(),
             };
             getModule<Actuators>()->setServoAngle(
                 PARAFOIL_LEFT_SERVO, LandingFlareConfig::ANGLE_LEFT_SERVO);
@@ -840,16 +840,16 @@ void WingController::flareWing(WingController::FlareType type)
         case FlareType::PUMP:
         {
             auto data = PumpCommandData{
-                .timestamp = TimestampTimer::getTimestamp(),
-                .angleLeft = Radian{Deployment::PUMP_ANGLE_LEFT}.value(),
+                .timestamp  = TimestampTimer::getTimestamp(),
+                .angleLeft  = Radian{Deployment::PUMP_ANGLE_LEFT}.value(),
                 .angleRight = Radian{Deployment::PUMP_ANGLE_RIGHT}.value(),
             };
-            
+
             getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO,
                                                   Deployment::PUMP_ANGLE_LEFT);
             getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO,
                                                   Deployment::PUMP_ANGLE_RIGHT);
-            
+
             Logger::getInstance().log(data);
             return;
         }
@@ -862,11 +862,13 @@ void WingController::tinyPull()
         PARAFOIL_LEFT_SERVO, LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO);
     getModule<Actuators>()->setServoAngle(
         PARAFOIL_RIGHT_SERVO, LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO);
-    
+
     auto data = PumpCommandData{
         .timestamp = TimestampTimer::getTimestamp(),
-        .angleLeft = Radian{LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO}.value(),
-        .angleRight = Radian{LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO}.value(),
+        .angleLeft =
+            Radian{LandingFlareConfig::TinyPull::ANGLE_LEFT_SERVO}.value(),
+        .angleRight =
+            Radian{LandingFlareConfig::TinyPull::ANGLE_RIGHT_SERVO}.value(),
     };
     Logger::getInstance().log(data);
 }
