@@ -50,11 +50,10 @@ namespace Pitot
         if (started)
             return false;
         
-        //DEBUGGING
-        /*if(!heatingPadSense()){
+        if(!heatingPadSense()){
             LOG_ERR(logger, "Heating pad not detected!");
             return false;
-        }*/
+        }
 
         if(!schmittTrigger.init()){
             LOG_ERR(logger, "Failed to initialize Schmitt trigger!");
@@ -70,6 +69,7 @@ namespace Pitot
             return false;
 
         started = true;
+        enable();
         return true;
     }
 
@@ -136,12 +136,9 @@ namespace Pitot
         if (!running)
             return;
 
-        //DEBUGGING
-        /*if(!heatingPadSense()){
-            LOG_ERR(logger, "Heating pad not detected!");
-            disableHeatingPad();
-            return;
-        }*/
+        if(!heatingPadSense() != pinEnabled){
+            LOG_WARN(logger, "Heating pad sense mismatch: SENSE:{}, ENABLED:{} ", heatingPadSense(), pinEnabled);
+        }
         
         float temperature = getModule<Sensors>()->getHeatingPadNTCLastSample().temperature; //K
         schmittTrigger.setCurrentState(temperature);
