@@ -182,9 +182,6 @@ int main()
     {
         sdLogger.log(sdLogger.getStats());
 
-        // Toggle LED
-        gpios::boardLed::value() ? gpios::boardLed::low()
-                                 : gpios::boardLed::high();
         Thread::sleep(1000);
     }
 
