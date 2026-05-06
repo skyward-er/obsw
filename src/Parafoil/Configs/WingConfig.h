@@ -163,8 +163,8 @@ constexpr auto SATURATION_MAX_LIMIT =
     SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
 constexpr auto KP = 0.9f * GAIN;
 // constexpr auto KP = GAIN*0.9;
-constexpr auto KI = 0.0f;
-// constexpr auto KI                   = 0.05f * GAIN;
+// constexpr auto KI = 0.0f;
+constexpr auto KI = 0.05f * GAIN;
 }  // namespace PI
 
 namespace Guidance

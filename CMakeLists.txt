@@ -192,7 +192,7 @@ target_compile_definitions(parafoil-guided-milano PRIVATE ALGORITHM_CLOSED_LOOP 
 sbs_target(parafoil-guided-milano stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
-target_sources(parafoil-guided-milano PRIVATE ${MAP_HDR})
+target_sources(parafoil-guided-jesolo PRIVATE ${MAP_HDR})
 target_include_directories(parafoil-guided-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_include_directories(parafoil-guided-jesolo PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_definitions(parafoil-guided-jesolo PRIVATE ALGORITHM_CLOSED_LOOP JESOLO)
