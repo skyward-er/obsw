@@ -106,12 +106,19 @@ Degree AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
 {
     Vector2f heading;  // used for logging purposes
 
+#ifdef USE_NASDAQ
+    auto nasdaqState     = getModule<NASController>()->getNasdaqState();
+    auto currentPosition = Eigen::Vector2f(nasdaqState.n, nasdaqState.e);
+    Radian targetAngle   = guidance.calculateTargetAngle(
+        {currentPosition.x(), currentPosition.y(), -nasdaqState.d}, heading);
+    Vector2f relativeVelocity(nasdaqState.vn, nasdaqState.ve);
+#else
     auto currentPosition = Aeroutils::geodetic2NED(
         {gps.latitude, gps.longitude}, {ref.refLatitude, ref.refLongitude});
     Radian targetAngle = guidance.calculateTargetAngle(
         {currentPosition.x(), currentPosition.y(), gps.height}, heading);
-
     Vector2f relativeVelocity(gps.velocityNorth, gps.velocityEast);
+#endif
 
     // Compute the angle of the current velocity
     // All angle are computed as angle from the north direction

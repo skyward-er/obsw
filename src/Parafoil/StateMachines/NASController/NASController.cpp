@@ -119,10 +119,25 @@ void NASController::initNasdaq()
     nasdaq.initialize();
 }
 
-NASState NASController::getNasState()
+NASDAQState NASController::getNasdaqState()
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
-    return nas.getState();
+    NASDAQ0::ExtY_NASDAQ0_T nasdaqOutput = nasdaq.getExternalOutputs();
+    NASDAQState nasdaqState;
+    nasdaqState.timestamp = TimestampTimer::getTimestamp();
+    nasdaqState.n         = nasdaqOutput.Position[0];
+    nasdaqState.e         = nasdaqOutput.Position[1];
+    nasdaqState.d         = nasdaqOutput.Position[2];
+    nasdaqState.vn        = nasdaqOutput.Velocity[0];
+    nasdaqState.ve        = nasdaqOutput.Velocity[1];
+    nasdaqState.vd        = nasdaqOutput.Velocity[2];
+    nasdaqState.c0        = nasdaqOutput.Covariance[0];
+    nasdaqState.c1        = nasdaqOutput.Covariance[1];
+    nasdaqState.c2        = nasdaqOutput.Covariance[2];
+    nasdaqState.c3        = nasdaqOutput.Covariance[3];
+    nasdaqState.c4        = nasdaqOutput.Covariance[4];
+
+    return nasdaqState;
 }
 
 ReferenceValues NASController::getReferenceValues()
@@ -291,6 +306,21 @@ void NASController::calibrate()
     nas.setX(init.getInitX());
     nas.resetCovariance();
     nas.setReferenceValues(reference);
+
+    auto nasdaqConfig                          = nasdaq.getBlockParameters();
+    nasdaqConfig.StandardAirPressureP0_Value   = reference.refPressure;
+    nasdaqConfig.StandardAirPressureP0_Value_a = reference.refPressure;
+    if (gps.fix == 3)
+    {
+        nasdaqConfig.nasdaq.gps.lat0 = reference.refLatitude;
+        nasdaqConfig.nasdaq.gps.lon0 = reference.refLongitude;
+        nasdaqConfig.Bias_Bias       = reference.refLatitude;
+        nasdaqConfig.Bias_Bias_g     = reference.refLatitude;
+        nasdaqConfig.Bias1_Bias      = reference.refLongitude;
+    }
+    nasdaq.setBlockParameters(&nasdaqConfig);
+
+    nasdaq.initialize();
 }
 
 void NASController::update()
@@ -428,16 +458,18 @@ Meter NASController::getAltitude()
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
+#ifdef USE_NASDAQ
     // The NASDAQ altitude is in NED frame, so it is negative when we are above
     // the reference altitude
     return -Meter{nasdaq.getExternalOutputs().Position[2]};
-
-    // if (altitudeSamples.size() == 0)
-    //     return 0.0_m;
-    // Meter sum = 0_m;
-    // for (auto& sample : altitudeSamples)
-    //     sum += sample;
-    // return sum / altitudeSamples.size();
+#else
+    if (altitudeSamples.size() == 0)
+        return 0.0_m;
+    Meter sum = 0_m;
+    for (auto& sample : altitudeSamples)
+        sum += sample;
+    return sum / altitudeSamples.size();
+#endif
 }
 
 }  // namespace Parafoil

@@ -59,7 +59,7 @@ constexpr auto WING_DECREMENT               = 180_deg;
 constexpr auto INITIAL_ANGLE                = 1080_deg;
 
 constexpr auto SERVOS_MAX_ANGLE         = 1080_deg;
-constexpr auto SERVO_LIMITER_PERCENTAGE = 0.9f;
+constexpr auto SERVO_LIMITER_PERCENTAGE = 0.6f;
 
 constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
@@ -91,9 +91,9 @@ constexpr auto TARGET_LON = 12.57763990872353f;
 // constexpr auto TARGET_LAT = 45.5013853;
 // constexpr auto TARGET_LON = 9.1544219;
 
-// Via Negri
-constexpr auto TARGET_LAT = 45.50058226119641;
-constexpr auto TARGET_LON = 9.157215417984244;
+// Giretto Auto, Incrocio ferrovia punta della goccia bovisa
+constexpr auto TARGET_LAT = 45.49841;
+constexpr auto TARGET_LON = 9.1567161;
 #endif
 
 #if defined(ALGORITHM_CLOSED_LOOP)
@@ -161,8 +161,8 @@ constexpr auto SATURATION_MIN_LIMIT =
     -(SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE);
 constexpr auto SATURATION_MAX_LIMIT =
     SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
-// constexpr auto KP                   = 0.9f * GAIN;
-constexpr auto KP = GAIN;
+constexpr auto KP = 0.9f * GAIN;
+// constexpr auto KP = GAIN*0.9;
 constexpr auto KI = 0.0f;
 // constexpr auto KI                   = 0.05f * GAIN;
 }  // namespace PI

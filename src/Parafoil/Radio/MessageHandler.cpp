@@ -493,7 +493,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_nas_tm_t tm;
 
             auto state    = parent.getModule<NASController>()->getState();
-            auto nasState = parent.getModule<NASController>()->getNasState();
+            auto nasState = parent.getModule<NASController>()->getNasdaqState();
             auto ref = parent.getModule<NASController>()->getReferenceValues();
 
             tm.timestamp       = nasState.timestamp;
@@ -503,13 +503,13 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_vn          = nasState.vn;
             tm.nas_ve          = nasState.ve;
             tm.nas_vd          = nasState.vd;
-            tm.nas_qx          = nasState.qx;
-            tm.nas_qy          = nasState.qy;
-            tm.nas_qz          = nasState.qz;
-            tm.nas_qw          = nasState.qw;
-            tm.nas_bias_x      = nasState.bx;
-            tm.nas_bias_y      = nasState.by;
-            tm.nas_bias_z      = nasState.bz;
+            tm.nas_qx          = nasState.c0;
+            tm.nas_qy          = nasState.c1;
+            tm.nas_qz          = nasState.c2;
+            tm.nas_qw          = nasState.c3;
+            tm.nas_bias_x      = nasState.c4;
+            tm.nas_bias_y      = 0;
+            tm.nas_bias_z      = 0;
             tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
             tm.ref_latitude    = ref.refLatitude;
@@ -536,7 +536,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto pressDigi    = sensors->getLPS22DFLastSample();
             auto pressStatic  = sensors->getStaticPressureLastSample();
             auto pressDynamic = sensors->getDynamicPressureLastSample();
-            auto nasState     = nas->getNasState();
+            auto nasState     = nas->getNasdaqState();
             auto ref          = nas->getReferenceValues();
 
             float airspeedPitot =
@@ -585,13 +585,13 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_vn     = nasState.vn;
             tm.nas_ve     = nasState.ve;
             tm.nas_vd     = nasState.vd;
-            tm.nas_qx     = nasState.qx;
-            tm.nas_qy     = nasState.qy;
-            tm.nas_qz     = nasState.qz;
-            tm.nas_qw     = nasState.qw;
-            tm.nas_bias_x = nasState.bx;
-            tm.nas_bias_y = nasState.by;
-            tm.nas_bias_z = nasState.bz;
+            tm.nas_qx     = nasState.c0;
+            tm.nas_qy     = nasState.c1;
+            tm.nas_qz     = nasState.c2;
+            tm.nas_qw     = nasState.c3;
+            tm.nas_bias_x = nasState.c4;
+            tm.nas_bias_y = 0;
+            tm.nas_bias_z = 0;
             tm.wes_n      = -1.0f;
             tm.wes_e      = -1.0f;
 

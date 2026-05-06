@@ -59,7 +59,7 @@ public:
      */
     bool start() override;
 
-    Boardcore::NASState getNasState();
+    Boardcore::NASDAQState getNasdaqState();
     Boardcore::ReferenceValues getReferenceValues();
 
     NASControllerState getState();
