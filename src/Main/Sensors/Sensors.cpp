@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
+/* Copyright (c) 2024-2026 Skyward Experimental Rocketry
  * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -51,19 +51,17 @@ bool Sensors::start()
     gyroCalibration1.fromFile(
         Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
 
-    if (Config::Sensors::LPS22DF::ENABLED &&
-        !Config::Sensors::USING_DUAL_MAGNETOMETER)
+    if (Config::Sensors::LPS22DF::ENABLED)
         lps22dfInit();
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
         h3lis331dlInit();
 
-    if (Config::Sensors::LIS2MDL::ENABLED &&
-        Config::Sensors::USING_DUAL_MAGNETOMETER)
-        lis2mdlExtInit();
+    if (Config::Sensors::LIS2MDL::ENABLED)
+        lis2mdlRcsInit();
 
     if (Config::Sensors::LIS2MDL::ENABLED)
-        lis2mdlInit();
+        lis2mdlIntInit();
 
     if (Config::Sensors::UBXGPS::ENABLED)
         ubxgpsInit();
@@ -82,7 +80,6 @@ bool Sensors::start()
         nd015a0Init();
         nd015a1Init();
         nd015a2Init();
-        nd015a3Init();
     }
 
     if (Config::Sensors::InternalADC::ENABLED)
@@ -106,7 +103,7 @@ bool Sensors::start()
     magCalibrationTaskId = getSensorsScheduler().addTask(
         [this]()
         {
-            auto mag = getLIS2MDLExtLastSample();
+            auto mag = getLIS2MDLRcsLastSample();
 
             std::lock_guard<std::mutex> lock{magCalibrationMutex};
             magCalibrator.feed(mag);
@@ -220,14 +217,14 @@ H3LIS331DLData Sensors::getH3LIS331DLLastSample()
     return h3lis331dl ? h3lis331dl->getLastSample() : H3LIS331DLData{};
 }
 
-LIS2MDLData Sensors::getLIS2MDLExtLastSample()
+LIS2MDLData Sensors::getLIS2MDLRcsLastSample()
 {
-    return lis2mdl_ext ? lis2mdl_ext->getLastSample() : LIS2MDLData{};
+    return lis2mdl_rcs ? lis2mdl_rcs->getLastSample() : LIS2MDLData{};
 }
 
-LIS2MDLData Sensors::getLIS2MDLLastSample()
+LIS2MDLData Sensors::getLIS2MDLIntLastSample()
 {
-    return lis2mdl ? lis2mdl->getLastSample() : LIS2MDLData{};
+    return lis2mdl_int ? lis2mdl_int->getLastSample() : LIS2MDLData{};
 }
 
 UBXGPSData Sensors::getUBXGPSLastSample()
@@ -284,17 +281,12 @@ ND015XData Sensors::getND015A1LastSample()
 
 ND015XData Sensors::getND015A2LastSample()
 {
-    return nd015a_3 ? nd015a_2->getLastSample() : ND015XData{};
+    return nd015a_2 ? nd015a_2->getLastSample() : ND015XData{};
 }
 
-ND015XData Sensors::getND015A3LastSample()
+LIS2MDLData Sensors::getCalibratedLIS2MDLRcsLastSample()
 {
-    return nd015a_3 ? nd015a_3->getLastSample() : ND015XData{};
-}
-
-LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
-{
-    auto sample = getLIS2MDLExtLastSample();
+    auto sample = getLIS2MDLRcsLastSample();
 
     {
         std::lock_guard<std::mutex> lock{magCalibrationMutex};
@@ -308,9 +300,9 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLExtLastSample()
     return sample;
 }
 
-LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
+LIS2MDLData Sensors::getCalibratedLIS2MDLIntLastSample()
 {
-    auto sample = getLIS2MDLLastSample();
+    auto sample = getLIS2MDLIntLastSample();
 
     {
         std::lock_guard<std::mutex> lock{magCalibrationMutex};
@@ -320,6 +312,36 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
         sample.magneticFieldY = corrected.y();
         sample.magneticFieldZ = corrected.z();
     }
+
+    return sample;
+}
+
+VN100SpiData Sensors::getCalibratedVN100LastSample()
+{
+    auto sample = getVN100LastSample();
+
+    std::lock_guard<std::mutex> lock{magCalibrationMutex};
+
+    auto correctedAcc = accVN100Calibration.correct(
+        AccelerometerData(sample.accelerationTimestamp, sample.accelerationX,
+                          sample.accelerationY, sample.accelerationZ));
+    sample.accelerationX = correctedAcc.x();
+    sample.accelerationY = correctedAcc.y();
+    sample.accelerationZ = correctedAcc.z();
+
+    auto correctedGyro = gyroVN100Calibration.correct(
+        GyroscopeData(sample.angularSpeedTimestamp, sample.angularSpeedX,
+                      sample.angularSpeedY, sample.angularSpeedZ));
+    sample.angularSpeedX = correctedGyro.x();
+    sample.angularSpeedY = correctedGyro.y();
+    sample.angularSpeedZ = correctedGyro.z();
+
+    auto corrected = magVN100Calibration.correct(
+        MagnetometerData(sample.magneticFieldTimestamp, sample.magneticFieldX,
+                         sample.magneticFieldY, sample.magneticFieldZ));
+    sample.magneticFieldX = corrected.x();
+    sample.magneticFieldY = corrected.y();
+    sample.magneticFieldZ = corrected.z();
 
     return sample;
 }
@@ -369,29 +391,18 @@ IMUData Sensors::getIMULastSample()
     return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
 }
 
-PressureData Sensors::getAtmosPressureLastSample(
-    Config::Sensors::Atmos::AtmosSensor sensor)
+PressureData Sensors::getAtmosPressureLastSample()
 {
-    switch (sensor)
-    {
-        case (Config::Sensors::Atmos::AtmosSensor::SENSOR_0):
-            return getND015A0LastSample();
-        case (Config::Sensors::Atmos::AtmosSensor::SENSOR_1):
-            return getND015A1LastSample();
-        case (Config::Sensors::Atmos::AtmosSensor::SENSOR_2):
-            return getND015A2LastSample();
-        default:
-        {
-            LOG_ERR(logger,
-                    "Invalid ATMOS_SENSOR value, using ND015A_0 sensor");
-            return getND015A0LastSample();
-        }
-    }
-}
+    auto atmosPressure = PressureData{};
 
-PressureData Sensors::getDplBayPressureLastSample()
-{
-    return getND015A3LastSample();
+    atmosPressureFilter.add(getND015A0LastSample().pressure);
+    atmosPressureFilter.add(getND015A1LastSample().pressure);
+    atmosPressureFilter.add(getND015A2LastSample().pressure);
+
+    atmosPressure.pressureTimestamp = getND015A0LastSample().pressureTimestamp;
+    atmosPressure.pressure          = atmosPressureFilter.calcMedian();
+
+    return atmosPressure;
 }
 
 TemperatureData Sensors::getTemperatureLastSample()
@@ -399,10 +410,10 @@ TemperatureData Sensors::getTemperatureLastSample()
     return getLSM6DSRX0LastSample();
 }
 
-PressureData Sensors::getCanPitotDynamicPressure()
+PressureData Sensors::getCanPitotTotalPressure()
 {
     std::lock_guard<std::mutex> lock{canMutex};
-    return canPitotDynamicPressure;
+    return canPitotTotalPressure;
 }
 
 PressureData Sensors::getCanPitotStaticPressure()
@@ -411,10 +422,10 @@ PressureData Sensors::getCanPitotStaticPressure()
     return canPitotStaticPressure;
 }
 
-void Sensors::setCanPitotDynamicPressure(PressureData data)
+void Sensors::setCanPitotTotalPressure(PressureData data)
 {
     std::lock_guard<std::mutex> lock{canMutex};
-    canPitotDynamicPressure = data;
+    canPitotTotalPressure = data;
 }
 
 void Sensors::setCanPitotStaticPressure(PressureData data)
@@ -435,19 +446,18 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
 
+        PUSH_SENSOR_INFO(lis2mdl_rcs, "LIS2MDL_RCS");
         PUSH_SENSOR_INFO(lps22df, "LPS22DF");
-        PUSH_SENSOR_INFO(lis2mdl_ext, "LIS2MDL_EXT");
-        PUSH_SENSOR_INFO(lis2mdl, "LIS2MDL");
         PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
+        PUSH_SENSOR_INFO(vn100, "VN100");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
+        PUSH_SENSOR_INFO(lis2mdl_int, "LIS2MDL_INT");
         PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
         PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
-        PUSH_SENSOR_INFO(vn100, "VN100");
-        PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
         PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
         PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
-        PUSH_SENSOR_INFO(nd015a_3, "ND015A_3");
+        PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
 
         return infos;
@@ -500,7 +510,7 @@ void Sensors::h3lis331dlCallback()
     sdLogger.log(sample);
 }
 
-void Sensors::lis2mdlExtInit()
+void Sensors::lis2mdlRcsInit()
 {
     SPIBusConfig spiConfig = LIS2MDL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
@@ -510,17 +520,17 @@ void Sensors::lis2mdlExtInit()
     config.odr                = Config::Sensors::LIS2MDL::ODR;
     config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
 
-    lis2mdl_ext = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
-                                            sensors::LIS2MDL_EXT::cs::getPin(),
+    lis2mdl_rcs = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDLRcs(),
+                                            sensors::LIS2MDL_RCS::cs::getPin(),
                                             spiConfig, config);
 }
 
-void Sensors::lis2mdlExtCallback()
+void Sensors::lis2mdlRcsCallback()
 {
-    sdLogger.log(LIS2MDLExternalData{getLIS2MDLExtLastSample()});
+    sdLogger.log(LIS2MDLExternalData{getLIS2MDLRcsLastSample()});
 }
 
-void Sensors::lis2mdlInit()
+void Sensors::lis2mdlIntInit()
 {
     SPIBusConfig spiConfig = LIS2MDL::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
@@ -530,12 +540,12 @@ void Sensors::lis2mdlInit()
     config.odr                = Config::Sensors::LIS2MDL::ODR;
     config.temperatureDivider = Config::Sensors::LIS2MDL::TEMP_DIVIDER;
 
-    lis2mdl = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDL(),
-                                        sensors::LIS2MDL::cs::getPin(),
-                                        spiConfig, config);
+    lis2mdl_int = std::make_unique<LIS2MDL>(getModule<Buses>()->getLIS2MDLInt(),
+                                            sensors::LIS2MDL_INT::cs::getPin(),
+                                            spiConfig, config);
 }
 
-void Sensors::lis2mdlCallback() { sdLogger.log(getLIS2MDLLastSample()); }
+void Sensors::lis2mdlIntCallback() { sdLogger.log(getLIS2MDLIntLastSample()); }
 
 void Sensors::ubxgpsInit()
 {
@@ -699,21 +709,6 @@ void Sensors::nd015a2Callback()
     sdLogger.log(StaticPressure2Data{getND015A2LastSample()});
 }
 
-void Sensors::nd015a3Init()
-{
-    SPIBusConfig spiConfig = ND015A::getDefaultSPIConfig();
-
-    nd015a_3 = std::make_unique<ND015A>(
-        getModule<Buses>()->getND015A(), sensors::ND015A_3::cs::getPin(),
-        spiConfig, Config::Sensors::ND015A::IOW, Config::Sensors::ND015A::BWL,
-        Config::Sensors::ND015A::NTC, Config::Sensors::ND015A::ODR);
-}
-
-void Sensors::nd015a3Callback()
-{
-    sdLogger.log(DplBayPressureData{getND015A3LastSample()});
-}
-
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
@@ -723,8 +718,8 @@ void Sensors::rotatedImuInit()
                             ? getCalibratedLSM6DSRX0LastSample()
                             : getLSM6DSRX0LastSample();
             auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
-                            ? getCalibratedLIS2MDLLastSample()
-                            : getLIS2MDLLastSample();
+                            ? getCalibratedLIS2MDLRcsLastSample()
+                            : getLIS2MDLRcsLastSample();
 
             return IMUData{imu6, imu6, mag};
         });
@@ -749,6 +744,13 @@ bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
 
+    if (lis2mdl_rcs)
+    {
+        SensorInfo info{"LIS2MDL_GRS", Config::Sensors::LIS2MDL::RATE,
+                        [this]() { lis2mdlRcsCallback(); }};
+        map.emplace(lis2mdl_rcs.get(), info);
+    }
+
     if (lps22df)
     {
         SensorInfo info{"LPS22DF", Config::Sensors::LPS22DF::RATE,
@@ -763,18 +765,11 @@ bool Sensors::sensorManagerInit()
         map.emplace(h3lis331dl.get(), info);
     }
 
-    if (lis2mdl_ext)
+    if (vn100)
     {
-        SensorInfo info{"LIS2MDL_EXT", Config::Sensors::LIS2MDL::RATE,
-                        [this]() { lis2mdlExtCallback(); }};
-        map.emplace(lis2mdl_ext.get(), info);
-    }
-
-    if (lis2mdl)
-    {
-        SensorInfo info{"LIS2MDL", Config::Sensors::LIS2MDL::RATE,
-                        [this]() { lis2mdlCallback(); }};
-        map.emplace(lis2mdl.get(), info);
+        SensorInfo info{"VN100", Config::Sensors::VN100::RATE,
+                        [this]() { vn100Callback(); }};
+        map.emplace(vn100.get(), info);
     }
 
     if (ubxgps)
@@ -782,6 +777,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"UBXGPS", Config::Sensors::UBXGPS::RATE,
                         [this]() { ubxgpsCallback(); }};
         map.emplace(ubxgps.get(), info);
+    }
+
+    if (lis2mdl_int)
+    {
+        SensorInfo info{"LIS2MDL_INT", Config::Sensors::LIS2MDL::RATE,
+                        [this]() { lis2mdlIntCallback(); }};
+        map.emplace(lis2mdl_int.get(), info);
     }
 
     if (lsm6dsrx_0)
@@ -796,13 +798,6 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
                         [this]() { lsm6dsrx1Callback(); }};
         map.emplace(lsm6dsrx_1.get(), info);
-    }
-
-    if (vn100)
-    {
-        SensorInfo info{"VN100", Config::Sensors::VN100::RATE,
-                        [this]() { vn100Callback(); }};
-        map.emplace(vn100.get(), info);
     }
 
     if (internalAdc)
@@ -831,13 +826,6 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"ND015A_2", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a2Callback(); }};
         map.emplace(nd015a_2.get(), info);
-    }
-
-    if (nd015a_3)
-    {
-        SensorInfo info{"ND015A_3", Config::Sensors::ND015A::RATE,
-                        [this]() { nd015a3Callback(); }};
-        map.emplace(nd015a_3.get(), info);
     }
 
     if (rotatedImu)
