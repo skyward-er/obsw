@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
+/* Copyright (c) 2024-2026 Skyward Experimental Rocketry
  * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,6 +27,7 @@
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/Sensors/SensorsData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
+#include <common/MedianFilter.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
@@ -70,43 +71,39 @@ public:
     void disableMagCalibrator();
     bool saveMagCalibration();
 
+    Boardcore::LIS2MDLData getLIS2MDLRcsLastSample();
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLExtLastSample();
-    Boardcore::LIS2MDLData getLIS2MDLLastSample();
+    Boardcore::VN100SpiData getVN100LastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
+    Boardcore::LIS2MDLData getLIS2MDLIntLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
     Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
-    Boardcore::VN100SpiData getVN100LastSample();
+    Boardcore::ND015XData getND015A0LastSample();
+    Boardcore::ND015XData getND015A1LastSample();
+    Boardcore::ND015XData getND015A2LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
-    Boardcore::LIS2MDLData getCalibratedLIS2MDLExtLastSample();
-    Boardcore::LIS2MDLData getCalibratedLIS2MDLLastSample();
+    Boardcore::VN100SpiData getCalibratedVN100LastSample();
+    Boardcore::LIS2MDLData getCalibratedLIS2MDLRcsLastSample();
+    Boardcore::LIS2MDLData getCalibratedLIS2MDLIntLastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
     Boardcore::IMUData getIMULastSample();
 
-    Boardcore::ND015XData getND015A0LastSample();
-    Boardcore::ND015XData getND015A1LastSample();
-    Boardcore::ND015XData getND015A2LastSample();
-    Boardcore::ND015XData getND015A3LastSample();
-
     Boardcore::VoltageData getBatteryVoltageLastSample();
     Boardcore::VoltageData getCamBatteryVoltageLastSample();
 
-    Boardcore::PressureData getAtmosPressureLastSample(
-        Config::Sensors::Atmos::AtmosSensor =
-            Config::Sensors::Atmos::ATMOS_SENSOR);
-    Boardcore::PressureData getDplBayPressureLastSample();
+    Boardcore::PressureData getAtmosPressureLastSample();
     Boardcore::TemperatureData getTemperatureLastSample();
 
-    Boardcore::PressureData getCanPitotDynamicPressure();
+    Boardcore::PressureData getCanPitotTotalPressure();
     Boardcore::PressureData getCanPitotStaticPressure();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
     // Methods for CanHandler
-    void setCanPitotDynamicPressure(Boardcore::PressureData data);
+    void setCanPitotTotalPressure(Boardcore::PressureData data);
     void setCanPitotStaticPressure(Boardcore::PressureData data);
 
 protected:
@@ -119,23 +116,23 @@ protected:
 
     std::mutex canMutex;
     // Payload
-    Boardcore::PressureData canPitotDynamicPressure;
+    Boardcore::PressureData canPitotTotalPressure;
     Boardcore::PressureData canPitotStaticPressure;
 
     // Digital sensors
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_rcs;
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
-    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_ext;
-    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl;
+    std::unique_ptr<Boardcore::VN100Spi> vn100;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
+    std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_int;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
-    std::unique_ptr<Boardcore::VN100Spi> vn100;
-    std::unique_ptr<Boardcore::InternalADC> internalAdc;
     std::unique_ptr<Boardcore::ND015A> nd015a_0;
     std::unique_ptr<Boardcore::ND015A> nd015a_1;
     std::unique_ptr<Boardcore::ND015A> nd015a_2;
-    std::unique_ptr<Boardcore::ND015A> nd015a_3;
+
+    std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     // Virtual sensors
     std::unique_ptr<Boardcore::RotatedIMU> rotatedImu;
@@ -143,27 +140,27 @@ protected:
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
+    void lis2mdlRcsInit();
+    void lis2mdlRcsCallback();
+
     void lps22dfInit();
     void lps22dfCallback();
 
     void h3lis331dlInit();
     void h3lis331dlCallback();
 
-    void lis2mdlExtInit();
-    void lis2mdlExtCallback();
-
-    void lis2mdlInit();
-    void lis2mdlCallback();
+    void vn100Init();
+    void vn100Callback();
 
     void ubxgpsInit();
     void ubxgpsCallback();
 
+    void lis2mdlIntInit();
+    void lis2mdlIntCallback();
+
     void lsm6dsrx0Init();
 
     void lsm6dsrx1Init();
-
-    void vn100Init();
-    void vn100Callback();
 
     void internalAdcInit();
     void internalAdcCallback();
@@ -176,9 +173,6 @@ private:
 
     void nd015a2Init();
     void nd015a2Callback();
-
-    void nd015a3Init();
-    void nd015a3Callback();
 
     void rotatedImuInit();
     void rotatedImuCallback();
@@ -198,8 +192,15 @@ private:
     Boardcore::TwelveParametersCorrector accCalibration1;
     Boardcore::TwelveParametersCorrector gyroCalibration1;
 
+    std::mutex vn100CalibrationMutex;
+    Boardcore::TwelveParametersCorrector accVN100Calibration;
+    Boardcore::TwelveParametersCorrector gyroVN100Calibration;
+    Boardcore::SixParametersCorrector magVN100Calibration;
+
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
+
+    Common::MedianFilter<float, 3> atmosPressureFilter;
 
     std::atomic<bool> started{false};
 };
