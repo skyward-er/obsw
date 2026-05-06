@@ -26,6 +26,7 @@
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/FMMConfig.h>
+#include <Main/Expander/GpioExpander.h>
 #include <Main/HIL/HIL.h>
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
@@ -65,6 +66,7 @@ int main()
 
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
+    auto expander  = new GpioExpander();
 
     Sensors* sensors = nullptr;
     auto actuators   = new Actuators();
@@ -111,6 +113,7 @@ int main()
     // Insert modules
     initResult &= manager.insert<Buses>(buses) &&
                   manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<GpioExpander>(expander) &&
                   manager.insert<Sensors>(sensors) &&
                   manager.insert<Radio>(radio) &&
                   manager.insert<Actuators>(actuators) &&
@@ -164,6 +167,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start EventBroker ***" << std::endl;
+    }
+
+    std::cout << "Starting GpioExpander" << std::endl;
+    if (!expander->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start GpioExpander ***" << std::endl;
     }
 
     std::cout << "Starting Actuators" << std::endl;
@@ -339,9 +349,8 @@ int main()
         std::cerr << "*** Init failure ***" << std::endl;
     }
 
-    auto sensorConfig = Config::Sensors::USING_DUAL_MAGNETOMETER
-                            ? "LIS2MDL IN + LIS2MDL EXT"
-                            : "LPS22DF + LIS2MDL IN/EXT";
+    auto sensorConfig =
+        Config::Sensors::USING_VN100 ? "USING VN100" : "USING LIS2MDL";
 
     std::cout << "Sensor status (config: " << sensorConfig << "):" << std::endl;
     for (auto info : sensors->getSensorInfos())
@@ -359,13 +368,19 @@ int main()
               << sensors->getBatteryVoltageLastSample().voltage << " V"
               << std::endl;
 
+    bool ledValue      = false;
+    auto& gpioExpander = expander->getExpander();
+
     while (true)
     {
         sdLogger.log(sdLogger.getStats());
 
         // Toggle LED
-        gpios::boardLed::value() ? gpios::boardLed::low()
-                                 : gpios::boardLed::high();
+        gpioExpander.setPinValue(Config::GpioExpander::LED_0.getPort(),
+                                 Config::GpioExpander::LED_0.getPin(),
+                                 ledValue);
+        ledValue = !ledValue;
+
         Thread::sleep(1000);
     }
 

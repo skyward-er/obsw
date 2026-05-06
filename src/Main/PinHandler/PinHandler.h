@@ -23,6 +23,8 @@
 #pragma once
 
 #include <Main/BoardScheduler.h>
+#include <Main/Expander/GpioExpander.h>
+#include <drivers/MCP23S17/MCP23S17.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/PinObserver/PinObserver.h>
 
@@ -31,7 +33,8 @@
 namespace Main
 {
 
-class PinHandler : public Boardcore::InjectableWithDeps<BoardScheduler>
+class PinHandler
+    : public Boardcore::InjectableWithDeps<BoardScheduler, GpioExpander>
 {
 public:
     enum class PinList : uint8_t
@@ -78,6 +81,7 @@ private:
     std::atomic<bool> started{false};
 
     std::unique_ptr<Boardcore::PinObserver> pinObserver;
+    Boardcore::MCP23S17* expander;
 };
 
 }  // namespace Main

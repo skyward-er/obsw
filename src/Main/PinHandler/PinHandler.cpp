@@ -39,6 +39,8 @@ bool PinHandler::isStarted() { return started; }
 
 bool PinHandler::start()
 {
+    expander = &getModule<GpioExpander>()->getExpander();
+
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getPinObserverScheduler();
 
