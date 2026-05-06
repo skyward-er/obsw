@@ -44,12 +44,7 @@ namespace Sensors
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-// Switches between LPS22DF + LIS2MDL IN/EXT configuration and the dual
-// magnetometer configuration, LIS2MDL IN + LIS2MDL EXT.
-// The dual mag configuration is used during testing to compare magnetometer
-// positioning.
-// NOTE: Ensure the configuration pins on the board are soldered accordingly.
-constexpr auto USING_DUAL_MAGNETOMETER = false;
+constexpr auto USING_VN100 = false;
 
 constexpr auto CALIBRATION_SAMPLES_COUNT = 20;
 constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
@@ -57,6 +52,14 @@ constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
 constexpr auto MAG_CALIBRATION_RATE = 50_hz;
 static const std::string MAG_CALIBRATION_FILENAME{"/sd/magCalibration.csv"};
 
+namespace LIS2MDL
+{
+constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
+constexpr auto TEMP_DIVIDER = 10U;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace LIS2MDL
 namespace LPS22DF
 {
 constexpr auto AVG = Boardcore::LPS22DF::AVG_4;
@@ -74,21 +77,26 @@ constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace H3LIS331DL
-
-namespace LIS2MDL
+namespace VN100
 {
-constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
-constexpr auto TEMP_DIVIDER = 10U;
-
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace LIS2MDL
+}  // namespace VN100
 
 namespace UBXGPS
 {
 constexpr auto RATE    = 10_hz;
 constexpr auto ENABLED = true;
 }  // namespace UBXGPS
+
+namespace LIS2MDL_INT
+{
+constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
+constexpr auto TEMP_DIVIDER = 10U;
+
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = true;
+}  // namespace LIS2MDL_INT
 
 namespace LSM6DSRX_0
 {
@@ -127,12 +135,6 @@ constexpr auto GYR_OP_MODE =
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace LSM6DSRX_1
-
-namespace VN100
-{
-constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
-}  // namespace VN100
 
 namespace ND015A
 {
