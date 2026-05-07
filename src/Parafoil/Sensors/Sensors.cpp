@@ -99,21 +99,21 @@ bool Sensors::start()
         return false;
     }
 
-    magCalibrationTaskId = getSensorsScheduler().addTask(
-        [this]()
-        {
-            auto mag = getLIS2MDLExtLastSample();
+    // magCalibrationTaskId = getSensorsScheduler().addTask(
+    //     [this]()
+    //     {
+    //         auto mag = getLIS2MDLExtLastSample();
 
-            std::lock_guard<std::mutex> lock{magCalibrationMutex};
-            magCalibrator.feed(mag);
-        },
-        Config::Sensors::MAG_CALIBRATION_RATE);
+    //         std::lock_guard<std::mutex> lock{magCalibrationMutex};
+    //         magCalibrator.feed(mag);
+    //     },
+    //     Config::Sensors::MAG_CALIBRATION_RATE);
 
-    if (magCalibrationTaskId == 0)
-    {
-        LOG_ERR(logger, "Failed to add mag calibration task");
-        return false;
-    }
+    // if (magCalibrationTaskId == 0)
+    // {
+    //     LOG_ERR(logger, "Failed to add mag calibration task");
+    //     return false;
+    // }
 
     // Immediately disable the task
     getSensorsScheduler().disableTask(magCalibrationTaskId);
