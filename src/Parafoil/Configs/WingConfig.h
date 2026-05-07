@@ -252,7 +252,6 @@ constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
 #elif defined(CASALE_MONFERRATO)
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
     50_m, 45_m, 40_m, 35_m, 30_m, 25_m, 20_m};
-cons
 #elif defined(MILANO)
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {5_m, 4_m, 3_m};
 #else
