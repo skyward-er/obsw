@@ -92,8 +92,8 @@ constexpr auto TARGET_LON = 12.57763990872353f;
 // constexpr auto TARGET_LON = 9.1544219;
 
 // Giretto Auto, Incrocio ferrovia punta della goccia bovisa
-constexpr auto TARGET_LAT = 45.49841;
-constexpr auto TARGET_LON = 9.1567161;
+constexpr auto TARGET_LAT = 45.49856;
+constexpr auto TARGET_LON = 9.15916;
 #endif
 
 #if defined(ALGORITHM_CLOSED_LOOP)
@@ -163,8 +163,8 @@ constexpr auto SATURATION_MAX_LIMIT =
     SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
 constexpr auto KP = 0.9f * GAIN;
 // constexpr auto KP = GAIN*0.9;
-// constexpr auto KI = 0.0f;
-constexpr auto KI = 0.05f * GAIN;
+constexpr auto KI = 0.0f;
+//constexpr auto KI = 0.05f * GAIN;
 }  // namespace PI
 
 namespace Guidance

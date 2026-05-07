@@ -271,7 +271,7 @@ void ADAController::state_ready(const Event& event)
         }
 
         case ADA_FORCE_START:
-        case FLIGHT_ARMED:
+        case FLIGHT_WING_DESCENT:
         {
             transition(&ADAController::state_armed);
             break;
