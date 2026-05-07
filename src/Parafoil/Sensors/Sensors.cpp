@@ -409,9 +409,9 @@ void Sensors::ubxgpsInit()
     SPIBusConfig spiConfig = UBXGPSSpi::getDefaultSPIConfig();
     spiConfig.clockDivider = SPI::ClockDivider::DIV_64;
 
-    ubxgps = std::make_unique<UBXGPSSpi>(getModule<Buses>()->getUBXGps(),
-                                         sensors::UBXGps::cs::getPin(),
-                                         spiConfig, 5);
+    ubxgps = std::make_unique<UBXGPSSpi>(
+        getModule<Buses>()->getUBXGps(), sensors::UBXGps::cs::getPin(),
+        spiConfig, Config::Sensors::UBXGPS::SAMPLE_RATE);
 }
 
 void Sensors::ubxgpsCallback() { sdLogger.log(getUBXGPSLastSample()); }

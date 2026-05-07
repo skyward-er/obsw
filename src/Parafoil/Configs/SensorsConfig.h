@@ -89,8 +89,9 @@ constexpr auto ENABLED = true;
 
 namespace UBXGPS
 {
-constexpr auto RATE    = 10_hz;
-constexpr auto ENABLED = true;
+constexpr auto SAMPLE_RATE = 10;
+constexpr auto RATE        = 10_hz;
+constexpr auto ENABLED     = true;
 }  // namespace UBXGPS
 
 namespace LSM6DSRX_0
