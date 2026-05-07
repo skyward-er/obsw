@@ -112,11 +112,15 @@ void NASController::initNasdaq()
     for (size_t i = 0; i < Config::NASDAQ::NAS_COV_LEN; i++)
         nasdaqConfig.NASVarianceInterface_InitialCon[i] = 0.1;
 
-    // Set modified nasdaq config
+    // Set modified nasdaq config(
     nasdaq.setBlockParameters(&nasdaqConfig);
 
-    // Call the autocoded initialization algorithm
-    nasdaq.initialize();
+    UBXGPSData gps = getModule<Sensors>()->getUBXGPSLastSample();
+    if (gps.fix == 3)
+    {
+        // Call the autocoded initialization algorithm
+        nasdaq.initialize();
+    }
 }
 
 NASDAQState NASController::getNasdaqState()
@@ -339,6 +343,12 @@ void NASController::update()
     Sensors* sensors        = getModule<Sensors>();
     auto gps                = sensors->getUBXGPSLastSample();
     auto baro               = sensors->getStaticPressureLastSample();
+
+    if (gps.fix != 3)
+    {
+        LOG_WARN(logger, "No GPS fix, skipping NASDAQ update");
+        return;
+    }
 
     // Fill ADA bus
     Bus_AdaState adaBusInput;
