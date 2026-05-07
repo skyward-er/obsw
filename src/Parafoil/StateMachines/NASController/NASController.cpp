@@ -188,6 +188,8 @@ void NASController::Calibrating(const Event& event)
 
             calibrate();
 
+            initNasdaq();
+
             EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             break;
         }
@@ -219,7 +221,6 @@ void NASController::Active(const Event& event)
     {
         case EV_ENTRY:
         {
-            initNasdaq();
             updateState(NASControllerState::ACTIVE);
             break;
         }
@@ -227,6 +228,12 @@ void NASController::Active(const Event& event)
         case NAS_CALIBRATE:
         {
             transition(&NASController::Calibrating);
+            break;
+        }
+
+        case FLIGHT_WING_DESCENT:
+        {
+            // initNasdaq();
             break;
         }
 
@@ -319,8 +326,6 @@ void NASController::calibrate()
         nasdaqConfig.Bias1_Bias      = reference.refLongitude;
     }
     nasdaq.setBlockParameters(&nasdaqConfig);
-
-    nasdaq.initialize();
 }
 
 void NASController::update()
