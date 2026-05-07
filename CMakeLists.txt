@@ -141,7 +141,6 @@ target_include_directories(parafoil-progressive-rotation-jesolo PRIVATE "${CMAKE
 target_compile_definitions(parafoil-progressive-rotation-jesolo PRIVATE ALGORITHM_PROGRESSIVE_ROTATION JESOLO TINY_PULL)
 sbs_target(parafoil-progressive-rotation-jesolo stm32f767zi_lyra_biscotto)
 
-
 add_executable(parafoil-sequence-rotation src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_sources(parafoil-sequence-rotation PRIVATE ${MAP_HDR})
 target_include_directories(parafoil-sequence-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -197,6 +196,13 @@ target_include_directories(parafoil-guided-jesolo PRIVATE ${OBSW_INCLUDE_DIRS})
 target_include_directories(parafoil-guided-jesolo PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_definitions(parafoil-guided-jesolo PRIVATE ALGORITHM_CLOSED_LOOP JESOLO)
 sbs_target(parafoil-guided-jesolo stm32f767zi_lyra_biscotto)
+
+add_executable(parafoil-guided-casale-monferrato src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
+target_sources(parafoil-guided-casale-monferrato PRIVATE ${MAP_HDR})
+target_include_directories(parafoil-guided-casale-monferrato PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(parafoil-guided-casale-monferrato PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_compile_definitions(parafoil-guided-casale-monferrato PRIVATE ALGORITHM_CLOSED_LOOP CASALE_MONFERRATO)
+sbs_target(parafoil-guided-casale-monferrato stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-guided-dynamic src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
 target_include_directories(parafoil-guided-dynamic PRIVATE ${OBSW_INCLUDE_DIRS})

@@ -61,10 +61,10 @@ constexpr auto INITIAL_ANGLE                = 1080_deg;
 constexpr auto SERVOS_MAX_ANGLE         = 1080_deg;
 constexpr auto SERVO_LIMITER_PERCENTAGE = 0.6f;
 
-constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
+constexpr auto SERVO_LEFT_MIN_ANGLE = 45_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
-constexpr auto SERVO_RIGHT_MIN_ANGLE = 0_deg;
+constexpr auto SERVO_RIGHT_MIN_ANGLE = 45_deg;
 constexpr auto SERVO_RIGHT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
 /**
@@ -86,6 +86,10 @@ namespace Default
 #if defined(JESOLO)
 constexpr auto TARGET_LAT = 45.565652923793806f;
 constexpr auto TARGET_LON = 12.57763990872353f;
+#elif defined(CASALE_MONFERRATO)
+// Casale Monferrato, Aeroporto FKappa
+constexpr auto TARGET_LAT = 45.1106929f;
+constexpr auto TARGET_LON = 8.4559285;
 #else  // Milan
 // B12
 // constexpr auto TARGET_LAT = 45.5013853;
@@ -162,9 +166,9 @@ constexpr auto SATURATION_MIN_LIMIT =
 constexpr auto SATURATION_MAX_LIMIT =
     SERVOS_MAX_ANGLE * SERVO_LIMITER_PERCENTAGE;
 constexpr auto KP = 0.9f * GAIN;
-// constexpr auto KP = GAIN*0.9;
 constexpr auto KI = 0.0f;
-//constexpr auto KI = 0.05f * GAIN;
+// constexpr auto KI = 0.05f * GAIN;
+// constexpr auto KI = 0.025f * GAIN;
 }  // namespace PI
 
 namespace Guidance
@@ -214,24 +218,26 @@ constexpr auto ENABLED = true;
 
 #if defined(JESOLO)
 constexpr Meter ALTITUDE = 50_m;  // [m]
+#elif defined(CASALE_MONFERRATO)
+constexpr Meter ALTITUDE = 50_m;  // [m]
 #elif defined(MILANO)
-constexpr Meter ALTITUDE = 5.0_m;  // [m]
+constexpr Meter ALTITUDE = 3.0_m;  // [m]
 #else
 constexpr Meter ALTITUDE = 30_m;  // [m]
 #endif
 constexpr int CONFIDENCE         = 15;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
 constexpr auto DURATION          = 120s;
-constexpr auto ANGLE_LEFT_SERVO  = 900_deg;
-constexpr auto ANGLE_RIGHT_SERVO = 900_deg;
+constexpr auto ANGLE_LEFT_SERVO  = 540_deg;
+constexpr auto ANGLE_RIGHT_SERVO = 540_deg;
 
 namespace TinyPull
 {
 
 #if defined(TINY_PULL)
-#if !defined(MILANO) && !defined(JESOLO)
+#if !defined(MILANO) && !defined(JESOLO) && !defined(CASALE_MONFERRATO)
 #error \
-    "Tiny Pulls should be used only for testing and can be enabled only in MILANO and JESOLO"
+    "Tiny Pulls should be used only for testing and can be enabled only in MILANO, JESOLO and CASALE_MONFERRATO"
 #endif
 
 constexpr auto ENABLED = true;
@@ -243,6 +249,10 @@ constexpr auto ANGLE_RIGHT_SERVO = 90_deg;
 #if defined(JESOLO)
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
     50_m, 45_m, 40_m, 35_m, 30_m, 25_m, 20_m};
+#elif defined(CASALE_MONFERRATO)
+constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {
+    50_m, 45_m, 40_m, 35_m, 30_m, 25_m, 20_m};
+cons
 #elif defined(MILANO)
 constexpr std::initializer_list<Meter> ALTITUDE_THRESHOLDS = {5_m, 4_m, 3_m};
 #else
