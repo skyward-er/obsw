@@ -53,7 +53,7 @@ void Actuators::ValveInfo::backstep()
 
 void Actuators::ValveInfo::openValve()
 {
-    valve->currentPosition = valve->getDefaultMaxAperture();
+    valve->currentPosition = maxAperature;
     valve->direction       = Valve::Direction::OPEN;
     backstepTs =
         Clock::now() + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
@@ -216,7 +216,6 @@ bool Actuators::start()
 void Actuators::initializeValves()
 {
     // Servo valves connected to the PCA9685 expanders
-
     valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
         PRZ_FIL, expander0, PCA9685Utils::Channel::CHANNEL_1));
     valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
@@ -311,7 +310,10 @@ bool Actuators::openValve(ServosList servo)
     if (info == nullptr)
         return false;
 
-    uint32_t time = getValveOpeningTime(servo);
+    uint32_t time      = getValveOpeningTime(servo);
+    info->maxAperature = getModule<Registry>()->getOrSetDefaultUnsafe(
+        info->valve->getMaxApertureRegKey(),
+        info->valve->getDefaultMaxAperture());
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
 
@@ -329,6 +331,9 @@ bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
         return false;
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+    info->maxAperature = getModule<Registry>()->getOrSetDefaultUnsafe(
+        info->valve->getMaxApertureRegKey(),
+        info->valve->getDefaultMaxAperture());
 
     // tell the task to open this valve
     info->closeTs = Clock::now() + nanoseconds{msToNs(time)};

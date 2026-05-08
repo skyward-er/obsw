@@ -81,6 +81,8 @@ private:
         virtual void resetAnimation() {};
 
         bool isValveOpen();
+
+        float maxAperature = valve->getDefaultMaxAperture();
     };
 
     struct ManualValveInfo : public ValveInfo
