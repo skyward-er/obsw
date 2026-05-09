@@ -152,7 +152,7 @@ void MEAController::update()
         curState == MEAControllerState::ACTIVE_UNPOWERED)
     {
         // Perform updates only during this phases
-        PressureData baro = getModule<Sensors>()->getCCPressure();
+        PressureData baro = getModule<Sensors>()->getMainCCPressure();
         float aperture =
             getModule<Actuators>()->isValveOpen(ServosList::MAIN_OX_VALVE)
                 ? 1.0f

@@ -194,6 +194,7 @@ bool Actuators::start()
     }
 
     signalTask();
+
     started = true;
     return true;
 }
@@ -205,16 +206,16 @@ void Actuators::initializeValves()
 
     // "Manual" servo valves, instead of only being fully open or closed, can be
     // moved to any position in the range [0, 1].
-    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(MAIN_OX));
-    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(MAIN_FUEL));
     manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(PRZ_OX));
     manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(PRZ_FUEL));
+    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(MAIN_OX));
+    manualValveInfos.push_back(MAKE_MANUAL_SERVO_VALVE(MAIN_FUEL));
 
     // Solenoid valves connected directly to the micro
     valveInfos.push_back(
-        MAKE_SOLENOID_VALVE(IGN_OX, actuators::oxSolenoid::getPin()));
+        MAKE_SOLENOID_VALVE(IGN_OX, solenoidal::igniterOx::getPin()));
     valveInfos.push_back(
-        MAKE_SOLENOID_VALVE(IGN_FUEL, actuators::fuelSolenoid::getPin()));
+        MAKE_SOLENOID_VALVE(IGN_FUEL, solenoidal::igniterFuel::getPin()));
 }
 bool Actuators::wiggleValve(ServosList servo)
 {
@@ -251,8 +252,6 @@ bool Actuators::openValve(ServosList servo)
 
     uint32_t time = getServoOpeningTime(servo);
 
-    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-
     info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
 
     signalTask();
@@ -265,8 +264,6 @@ bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
     ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
-
-    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
 
     // tell the task to open this valve
     info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
@@ -281,8 +278,6 @@ bool Actuators::closeValve(ServosList servo)
     ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
-
-    getModule<CanHandler>()->sendServoCloseCommand(servo);
 
     // tell the task to close this valve
     info->closeTs = Clock::now();
@@ -312,7 +307,6 @@ bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
     if (info == nullptr)
         return false;
 
-    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
     info->animateValve(position, time);
     signalTask();
     return true;
@@ -326,14 +320,6 @@ void Actuators::closeAllValves()
 
     for (auto& valve : manualValveInfos)
         valve.closeValve();
-
-    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_OX_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_FUEL_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(
-        ServosList::OX_VENTING_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(
-        ServosList::FUEL_VENTING_VALVE);
-
     signalTask();
 }
 
@@ -487,6 +473,14 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
         case IGNITION_FUEL_VALVE:
             return &valveInfos[3];
 
+        case PRZ_OX_VALVE:
+            return &manualValveInfos[0];
+        case PRZ_FUEL_VALVE:
+            return &manualValveInfos[1];
+        case MAIN_OX_VALVE:
+            return &manualValveInfos[2];
+        case MAIN_FUEL_VALVE:
+            return &manualValveInfos[3];
         default:
             // Oh FUCK
             LOG_ERR(logger, "Invalid servo requested");

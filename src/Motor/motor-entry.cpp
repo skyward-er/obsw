@@ -24,12 +24,13 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
-#include <Motor/HIL/HIL.h>
+// #include <Motor/HIL/HIL.h>
 #include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/HILSensors.h>
+// #include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
+#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <interfaces-impl/hwmapping.h>
@@ -43,6 +44,7 @@
 using namespace std::chrono;
 using namespace Boardcore;
 using namespace Motor;
+using namespace Common;
 using namespace miosix;
 
 namespace Motor
@@ -77,35 +79,41 @@ int main()
     Buses* buses              = new Buses();
     BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors* sensors = nullptr;
-    auto actuators   = new Actuators();
-    auto canHandler  = new CanHandler();
-    auto eregOx      = new EregControllerOx();
-    auto eregFuel    = new EregControllerFuel();
-    auto mea         = new MEAController();
+    Sensors* sensors       = nullptr;
+    auto actuators         = new Actuators();
+    auto canHandler        = new CanHandler();
+    auto eregOx            = new EregControllerOx();
+    auto eregFuel          = new EregControllerFuel();
+    auto mea               = new MEAController();
+    auto registry          = new Registry();
+    auto mainStatus        = new MainStatus();
+    auto firingSequenceHSM = new FiringSequenceHSM();
 
     auto& sdLogger = Logger::getInstance();
 
-    // HIL
-    MotorHIL* hil = nullptr;
-    if (PersistentVars::getHilMode())
-    {
-        hil = new MotorHIL();
-        initResult &= manager.insert<MotorHIL>(hil);
-        sensors = new HILSensors(Config::HIL::ENABLE_HW);
-    }
-    else
-    {
-        sensors = new Sensors();
-    }
+    // // HIL
+    // MotorHIL* hil = nullptr;
+    // if (PersistentVars::getHilMode())
+    // {
+    //     hil = new MotorHIL();
+    //     initResult &= manager.insert<MotorHIL>(hil);
+    //     sensors = new HILSensors(Config::HIL::ENABLE_HW);
+    // }
+    // else
+    // {
+    sensors = new Sensors();
+    // }
 
     initResult &= manager.insert<Buses>(buses) &&
                   manager.insert<BoardScheduler>(scheduler) &&
+                  manager.insert<Registry>(registry) &&
                   manager.insert<Sensors>(sensors) &&
+                  manager.insert<MainStatus>(mainStatus) &&
                   manager.insert<Actuators>(actuators) &&
                   manager.insert<CanHandler>(canHandler) &&
                   manager.insert<EregControllerOx>(eregOx) &&
                   manager.insert<EregControllerFuel>(eregFuel) &&
+                  manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
                   manager.insert<MEAController>(mea) && manager.inject();
 
     if (!initResult)
@@ -183,17 +191,17 @@ int main()
         setStatus(StatusBit::CAN_HANDLER);
     }
 
-    if (hil)
-    {
-        if (!hil->start())
-        {
-            initResult = false;
-            std::cerr << "*** Error failed to start HIL ***" << std::endl;
-        }
+    // if (hil)
+    // {
+    //     if (!hil->start())
+    //     {
+    //         initResult = false;
+    //         std::cerr << "*** Error failed to start HIL ***" << std::endl;
+    //     }
 
-        // Waiting for start of simulation
-        hil->waitStartSimulation();
-    }
+    //     // Waiting for start of simulation
+    //     hil->waitStartSimulation();
+    // }
 
     std::cout << "Starting Sensors" << std::endl;
     led1On();
@@ -234,6 +242,26 @@ int main()
                   << statusStr << std::endl;
     }
 
+    std::cout << "Starting Registry" << std::endl;
+    if (!registry->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Registry ***" << std::endl;
+    }
+
+    // Perform an initial registry load
+    std::cout << "Loading backed registry" << std::endl;
+    if (registry->load() != RegistryError::OK)
+        std::cout << "* Warning: could not load a saved registry *"
+                  << std::endl;
+
+    std::cout << "Starting FiringSequenceHSM" << std::endl;
+    if (!firingSequenceHSM->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start FiringSequenceHSM ***" << std::endl;
+    }
+
     std::cout << "Starting eregControllerOX" << std::endl;
     if (!eregOx->start())
     {
@@ -258,6 +286,19 @@ int main()
     std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
               << sensors->getBatteryVoltage().voltage << " V" << std::endl;
 
+    std::cout << "Servo Current Consumption : " << std::fixed
+              << std::setprecision(2)
+              << sensors->getServoCurrentConsumption().current << " A"
+              << std::endl;
+    std::cout << "Igniter Current Consumption : " << std::fixed
+              << std::setprecision(2)
+              << sensors->getIgniterCurrentConsumption().current << " A"
+              << std::endl;
+    std::cout << "Solenoid Current Consumption : " << std::fixed
+              << std::setprecision(2)
+              << sensors->getSolenoidCurrentConsumption().current << " A"
+              << std::endl;
+
     // From here on main thread will do non-critical stuff, set lowest priority
     Thread::setPriority(BoardScheduler::Priority::LOW);
 
@@ -271,7 +312,12 @@ int main()
         // Toggle LED
         gpios::debugLedGreen::value() ? gpios::debugLedGreen::low()
                                       : gpios::debugLedGreen::high();
-        Thread::sleep(1000);
+        // gpios::debugLedOrange::value() ? gpios::debugLedOrange::low()
+        //                                : gpios::debugLedOrange::high();
+        // gpios::debugLedYellow::value() ? gpios::debugLedYellow::low()
+        //                                : gpios::debugLedYellow::high();
+        // gpios::debugLedRed::value() ? gpios::debugLedRed::low()
+        //                             : gpios::debugLedRed::high();
     }
 
     return 0;
