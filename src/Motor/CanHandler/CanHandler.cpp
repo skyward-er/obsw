@@ -190,7 +190,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::MOTOR_BOARD_CURRENT),
-                static_cast<CurrentData>(sensors->getCurrentConsumption()));
+                static_cast<CurrentData>(
+                    sensors->getServoCurrentConsumption()));
         },
         Config::CanHandler::SENSORS_SEND_RATE);
 
@@ -290,37 +291,6 @@ bool CanHandler::start()
 
 void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
 
-void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
-{
-    protocol.enqueueData(
-        static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
-        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
-        static_cast<uint8_t>(CanConfig::Board::MOTOR),
-        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-        static_cast<uint8_t>(servo),
-        ServoCommand{TimestampTimer::getTimestamp(), openingTime});
-}
-
-void CanHandler::sendServoCloseCommand(ServosList servo)
-{
-    // Closing a servo means opening it for 0s
-    sendServoOpenCommand(servo, 0);
-}
-
-void CanHandler::sendEvent(CanConfig::EventId event)
-{
-    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(),
-                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                          static_cast<uint8_t>(event)});
-
-    protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
-                          static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
-                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                          static_cast<uint8_t>(event));
-}
-
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
     auto source = static_cast<CanConfig::Board>(msg.getSource());
@@ -344,6 +314,12 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
         case CanConfig::PrimaryType::SENSORS:
         {
             handleSensor(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::COMMAND:
+        {
+            handleCommand(msg);
             break;
         }
 
@@ -371,6 +347,18 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 {
     auto sensor = static_cast<CanConfig::SensorId>(msg.getSecondaryType());
     LOG_WARN(logger, "Received unsupported sensor data: {}", sensor);
+}
+
+void CanHandler::handleCommand(const Canbus::CanMessage& msg)
+{
+    ServosList servo        = static_cast<ServosList>(msg.getSecondaryType());
+    CanServoCommand command = servoCommandFromCanMessage(msg);
+    sdLogger.log(command);
+
+    if (command.openingTime == 0)
+        getModule<Actuators>()->closeValve(servo);
+    else
+        getModule<Actuators>()->openValveWithTime(servo, command.openingTime);
 }
 
 void CanHandler::handleEvent(const Canbus::CanMessage& msg)
