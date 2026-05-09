@@ -24,6 +24,7 @@
 
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
+#include <Motor/Registry/Registry.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
 #include <sensors/ADS131M08/ADS131M08.h>
@@ -40,8 +41,8 @@ namespace Motor
 
 class Actuators;
 
-class Sensors
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Actuators>
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                     Actuators, Registry>
 {
 public:
     Sensors() {}
@@ -49,10 +50,11 @@ public:
     [[nodiscard]] bool start();
 
     void calibrate();
+    void calibrateEncoders();
 
     Boardcore::InternalADCData getInternalADCLastSample();
-    Boardcore::ADS131M08Data Sensors::getADC1LastSample();
-    Boardcore::ADS131M08Data Sensors::getADC2LastSample();
+    Boardcore::ADS131M08Data getADC1LastSample();
+    Boardcore::ADS131M08Data getADC2LastSample();
     Boardcore::PressureData getMainCCPressure();
     Boardcore::PressureData getOxTankPressure();
     Boardcore::PressureData getFuelTankPressure();
@@ -62,7 +64,9 @@ public:
     Boardcore::PressureData getIgniterChamberPressure();
 
     Boardcore::VoltageData getBatteryVoltage();
-    Boardcore::CurrentData getCurrentConsumption();
+    Boardcore::CurrentData getServoCurrentConsumption();
+    Boardcore::CurrentData getIgniterCurrentConsumption();
+    Boardcore::CurrentData getSolenoidCurrentConsumption();
 
     Boardcore::ServoPositionData getMainOxPosition();
     Boardcore::ServoPositionData getMainFuelPosition();

@@ -26,7 +26,7 @@
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/CanConfig.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -44,8 +44,7 @@ class AlgoReference;
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
                                            FlightModeManager, NASController,
-                                           AlgoReference,
-                                           Common::MotorStatus>
+                                           AlgoReference, Common::MotorStatus>
 {
     using Clock     = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;

@@ -81,6 +81,8 @@ const char* Motor::configurationIdToName(ConfigurationId id)
             return "MAIN_FUEL_OPENING_TIME";
         case CONFIG_ID_MAIN_FUEL_MAX_APERTURE:
             return "MAIN_FUEL_MAX_APERTURE";
+        case CONFIG_ID_TRAFAG_SHUNT_RESISTANCE:
+            return "CONFIG_ID_TRAFAG_SHUNT_RESISTANCE";
 
         default:
             return "<invalid>";

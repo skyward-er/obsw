@@ -860,38 +860,22 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
-            tm.airspeed_pitot = airspeedPitot;
             tm.ada_vert_speed = adaVertSpeed;
             tm.mea_mass       = meaState.estimatedMass;
             tm.mea_apogee     = meaState.estimatedApogee;
 
             // Sensors
-            tm.pressure_digi   = pressDigi.pressure;
-            tm.pressure_static = pressStatic.pressure;
-            tm.pressure_dpl    = pressDpl.pressure;
-            tm.pressure_ada    = adaPressure;
-
-            tm.acc_x = imu.accelerationX;
-            tm.acc_y = imu.accelerationY;
-            tm.acc_z = imu.accelerationZ;
-
-            tm.gyro_x = imu.angularSpeedX;
-            tm.gyro_y = imu.angularSpeedY;
-            tm.gyro_z = imu.angularSpeedZ;
+            tm.pressure_digi = pressDigi.pressure;
+            tm.pressure_dpl  = pressDpl.pressure;
+            tm.pressure_ada  = adaPressure;
 
             tm.mag_x = imu.magneticFieldX;
             tm.mag_y = imu.magneticFieldY;
             tm.mag_z = imu.magneticFieldZ;
 
-            tm.gps_alt = gps.height;
             tm.gps_lat = gps.latitude;
             tm.gps_lon = gps.longitude;
             tm.gps_fix = gps.fix;
-
-            tm.vn100_qx = vn100.quaternionX;
-            tm.vn100_qy = vn100.quaternionY;
-            tm.vn100_qz = vn100.quaternionZ;
-            tm.vn100_qw = vn100.quaternionW;
 
             // Actuators
             tm.abk_angle =
@@ -908,9 +892,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.nas_qy       = nasState.qy;
             tm.nas_qz       = nasState.qz;
             tm.nas_qw       = nasState.qw;
-            tm.nas_bias_x   = nasState.bx;
-            tm.nas_bias_y   = nasState.by;
-            tm.nas_bias_z   = nasState.bz;
             tm.altitude_agl = -nasState.d;
 
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
@@ -1367,6 +1348,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
+        // TODO: Fix this! This field doesn't exist anymore!!!
         case MAV_TANK_TOP_PRESS_ID:
         {
             mavlink_message_t msg;
@@ -1374,7 +1356,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
             {
                 auto motor   = getModule<MotorStatus>()->lockData();
-                auto sample  = motor->oxTankTopPressure;
+                auto sample  = motor->oxTankPressure;
                 tm.pressure  = sample.pressure;
                 tm.timestamp = sample.pressureTimestamp;
             }
@@ -1388,6 +1370,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
+        // TODO: Fix this. This field doesn't exist anymore!!!
         case MAV_TANK_BOTTOM_PRESS_ID:
         {
             PressureData bottom0;
@@ -1395,8 +1378,8 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
             {
                 auto motor = getModule<MotorStatus>()->lockData();
-                bottom0    = motor->oxTankBottom0Pressure;
-                bottom1    = motor->oxTankBottom1Pressure;
+                bottom0    = motor->oxTankPressure;
+                bottom1    = motor->oxTankPressure;
             }
 
             {

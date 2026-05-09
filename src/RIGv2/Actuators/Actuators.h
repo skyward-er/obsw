@@ -26,7 +26,7 @@
 #include <RIGv2/CanHandler/CanHandler.h>
 #include <RIGv2/Registry/Registry.h>
 #include <actuators/Servo/Servo.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <miosix.h>
 #include <scheduler/SignaledDeadlineTask.h>
 #include <scheduler/TaskScheduler.h>

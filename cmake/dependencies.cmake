@@ -28,7 +28,7 @@ set(MAIN_COMPUTER
     src/common/canbus/MotorStatus.cpp
     src/Main/Data/ABKTrajectorySet.cxx
     src/Main/PersistentVars/PersistentVars.cpp
-    src/Main/HIL/HIL.cpp
+    #src/Main/HIL/HIL.cpp
     src/Main/Sensors/Sensors.cpp
     src/Main/AlgoReference/AlgoReference.cpp
     src/Main/Radio/Radio.cpp
@@ -55,10 +55,17 @@ set(GROUNDSTATION_COMMON
 set(MOTOR_SOURCES
     src/common/canbus/MainStatus.cpp
     src/Motor/PersistentVars/PersistentVars.cpp
-    src/Motor/HIL/HIL.cpp
+    #src/Motor/HIL/HIL.cpp
     src/Motor/Actuators/Actuators.cpp
     src/Motor/Sensors/Sensors.cpp
     src/Motor/CanHandler/CanHandler.cpp
+    src/Motor/StateMachines/EregController/EregControllerOx.cpp
+    src/Motor/StateMachines/EregController/EregControllerFuel.cpp
+    src/Motor/StateMachines/MEAController/MEAController.cpp
+    src/Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.cpp
+    src/Motor/Registry/Registry.cpp
+
+
 )
 
 set(RIG_V2_COMPUTER

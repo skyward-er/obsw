@@ -24,7 +24,8 @@
 
 // temporary ifdef to avoid including MavlinkHydra in all files including
 // MotorStatus.h
-#ifdef _BOARD_STM32F767ZI_RIG_V3
+#if defined(_BOARD_STM32F767ZI_RIG_V3) || \
+    defined(_BOARD_STM32F767ZI_HYDRA_ENGINE)
 #include <common/MavlinkHydra.h>
 #else
 #include <common/MavlinkOrion.h>

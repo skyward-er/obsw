@@ -71,7 +71,7 @@ sbs_target(payload-entry-euroc stm32f767zi_orion_biscotto)
 
 add_executable(motor-entry src/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(motor-entry stm32f767zi_orion_engine)
+sbs_target(motor-entry stm32f767zi_hydra_engine)
 
 #add_executable(rig-v2-entry src/RIGv2/rig-v2-entry.cpp ${RIG_V2_COMPUTER})
 #target_include_directories(rig-v2-entry PRIVATE ${OBSW_INCLUDE_DIRS})
@@ -89,13 +89,6 @@ add_executable(rig-v3-adc-test src/RIGv3/rig-v3-adc-test.cpp ${RIG_V3_COMPUTER})
 target_include_directories(rig-v3-adc-test PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(rig-v3-adc-test stm32f767zi_rig_v3)
 
-add_executable(rig-v3-entry src/RIGv3/rig-v3-entry.cpp ${RIG_V3_COMPUTER})
-target_include_directories(rig-v3-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(rig-v3-entry stm32f767zi_rig_v3)
-
-add_executable(rig-v3-adc-test src/RIGv3/rig-v3-adc-test.cpp ${RIG_V3_COMPUTER})
-target_include_directories(rig-v3-adc-test PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(rig-v3-adc-test stm32f767zi_rig_v3)
 
 add_executable(con_rig-entry src/ConRIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})

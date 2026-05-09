@@ -236,20 +236,4 @@ struct VentingFuelPositionData : Boardcore::ServoPositionData
     }
 };
 
-struct PrzOxPositionData : Boardcore::ServoPositionData
-{
-    explicit PrzOxPositionData(const Boardcore::ServoPositionData& data)
-        : Boardcore::ServoPositionData{data}
-    {
-    }
-
-    PrzOxPositionData() {}
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(PrzOxPositionData,
-                          EXTEND_DEF(Boardcore::ServoPositionData));
-    }
-};
-
 }  // namespace Motor

@@ -84,7 +84,7 @@ constexpr bool ENABLED = true;
 namespace Trafag
 {
 // Default shunt resistance, used before calibration or if it's out of bounds
-constexpr float DEFAULT_SHUNT_RESISTANCE = 29.5;
+constexpr float DEFAULT_SHUNT_RESISTANCE = 49.5;
 // Bounds of the shunt resistance, outside of which the calibration is ignored
 constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 28.5;
 constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 30.0;
@@ -107,14 +107,29 @@ constexpr float IGNITER_MAX_PRESSURE            = 40;   // bar
 
 }  // namespace Trafag
 
+namespace Encoder
+{
+// Default shunt resistance
+constexpr float DEFAULT_SHUNT_RESISTANCE = 49.5f;
+
+constexpr float FULLSCALE_VOLTAGE = 4.7f;
+
+constexpr int SENSOR_RESISTANCE = 31240;  // Ohm
+constexpr int CURRENT_GAIN      = 100;
+
+constexpr float MAX_ANGLE = 360.0f;  // degrees
+
+}  // namespace Encoder
 namespace InternalADC
 {
-constexpr auto CURRENT_CH = Boardcore::InternalADC::Channel::CH9;
-constexpr auto VBAT_CH    = Boardcore::InternalADC::Channel::CH14;
+constexpr auto SERVO_CURRENT_CH    = Boardcore::InternalADC::Channel::CH9;
+constexpr auto IGNITER_CURRENT_CH  = Boardcore::InternalADC::Channel::CH8;
+constexpr auto SOLENOID_CURRENT_CH = Boardcore::InternalADC::Channel::CH13;
+constexpr auto VBAT_CH             = Boardcore::InternalADC::Channel::CH14;
 
 // Voltage divider with an offset: (R1 + R2) / R1 * 5
-constexpr float CURRENT_SCALE  = (7500.0 + 5100.0) / 7500.0 * 5.0;
-constexpr float CURRENT_OFFSET = -0.5 * 5.0;
+constexpr float CURRENT_SCALE  = 16.8f;
+constexpr float CURRENT_OFFSET = -5.0f;
 
 constexpr float VBAT_SCALE = 9040.0 / 3000.0;
 
