@@ -62,6 +62,9 @@ enum ConfigurationKeys
     CONFIG_ID_MAIN_OX_MAX_APERTURE,
     CONFIG_ID_MAIN_FUEL_OPENING_TIME,
     CONFIG_ID_MAIN_FUEL_MAX_APERTURE,
+
+    // Trafag Shunt resistance
+    CONFIG_ID_TRAFAG_SHUNT_RESISTANCE
 };
 
 const char* configurationIdToName(Boardcore::ConfigurationId id);

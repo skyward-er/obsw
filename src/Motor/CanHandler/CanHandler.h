@@ -72,15 +72,13 @@ public:
 
     void sendEvent(Common::CanConfig::EventId event);
 
-    void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
-    void sendServoCloseCommand(ServosList servo);
-
 private:
     void handleMessage(const Boardcore::Canbus::CanMessage& msg);
     void handleEvent(const Boardcore::Canbus::CanMessage& msg);
     void handleSensor(const Boardcore::Canbus::CanMessage& msg);
     void handleActuator(const Boardcore::Canbus::CanMessage& msg);
     void handleStatus(const Boardcore::Canbus::CanMessage& msg);
+    void handleCommand(const Boardcore::Canbus::CanMessage& msg);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");

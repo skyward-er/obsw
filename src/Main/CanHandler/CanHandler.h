@@ -44,8 +44,7 @@ class AlgoReference;
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
                                            FlightModeManager, NASController,
-                                           AlgoReference,
-                                           Common::MotorStatus>
+                                           AlgoReference, Common::MotorStatus>
 {
     using Clock     = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
