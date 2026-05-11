@@ -59,26 +59,18 @@ struct ADAControllerStatus
 
 struct ADAControllerSampleData
 {
-    uint64_t timestamp               = 0;
-    uint32_t ada0DetectedApogees     = 0;
-    uint32_t ada1DetectedApogees     = 0;
-    uint32_t ada2DetectedApogees     = 0;
-    uint32_t ada0DetectedDeployments = 0;
-    uint32_t ada1DetectedDeployments = 0;
-    uint32_t ada2DetectedDeployments = 0;
+    uint64_t timestamp              = 0;
+    uint32_t adaDetectedApogees     = 0;
+    uint32_t adaDetectedDeployments = 0;
 
     ADAControllerState state = ADAControllerState::INIT;
 
     static constexpr auto reflect()
     {
         return STRUCT_DEF(ADAControllerSampleData,
-                          FIELD_DEF(timestamp) FIELD_DEF(ada0DetectedApogees)
-                              FIELD_DEF(ada1DetectedApogees)
-                                  FIELD_DEF(ada2DetectedApogees)
-                                      FIELD_DEF(ada0DetectedDeployments)
-                                          FIELD_DEF(ada1DetectedDeployments)
-                                              FIELD_DEF(ada2DetectedDeployments)
-                                                  FIELD_DEF(state));
+                          FIELD_DEF(timestamp) FIELD_DEF(adaDetectedApogees)
+                              FIELD_DEF(adaDetectedDeployments)
+                                  FIELD_DEF(state));
     }
 };
 
