@@ -23,9 +23,10 @@
 #pragma once
 
 #include <Main/BoardScheduler.h>
-#include <Main/Expander/GpioExpander.h>
+#include <Main/GpioExpander.h>
 #include <drivers/MCP23S17/MCP23S17.h>
 #include <utils/DependencyManager/DependencyManager.h>
+#include <utils/PinObserver/ExternalPinObserver.h>
 #include <utils/PinObserver/PinObserver.h>
 
 #include <memory>
@@ -40,10 +41,9 @@ public:
     enum class PinList : uint8_t
     {
         RAMP_PIN = 0,
-        DETACH_MAIN_PIN,
         DETACH_PAYLOAD_PIN,
         EXPULSION_SENSE,
-        CUTTER_SENSE,
+        RELEASER_SENSE,
     };
 
     PinHandler() {}
@@ -64,14 +64,13 @@ private:
 
     void onRampPinTransition(Boardcore::PinTransition transition,
                              const Boardcore::PinData& data);
-    void onDetachMainTransition(Boardcore::PinTransition transition,
-                                const Boardcore::PinData& data);
+
     void onDetachPayloadTransition(Boardcore::PinTransition transition,
                                    const Boardcore::PinData& data);
     void onExpulsionSenseTransition(Boardcore::PinTransition transition,
                                     const Boardcore::PinData& data);
-    void onCutterSenseTransition(Boardcore::PinTransition transition,
-                                 const Boardcore::PinData& data);
+    void onReleaserSenseTransition(Boardcore::PinTransition transition,
+                                   const Boardcore::PinData& data);
 
     std::atomic<std::chrono::milliseconds> rampPinDetectionDelay = {};
 
@@ -81,6 +80,7 @@ private:
     std::atomic<bool> started{false};
 
     std::unique_ptr<Boardcore::PinObserver> pinObserver;
+    std::unique_ptr<Boardcore::ExternalPinObserver> externalPinObserver;
     Boardcore::MCP23S17* expander;
 };
 

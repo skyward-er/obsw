@@ -35,6 +35,8 @@ class Buses : public Boardcore::Injectable
 public:
     Buses() {}
 
+    Boardcore::SPIBus& getAS5047DLeft() { return spi1; }
+    Boardcore::SPIBus& getAS5047DRight() { return spi1; }
     Boardcore::SPIBus& getLIS2MDLRcs() { return spi1; }
     Boardcore::SPIBus& getLPS22DF() { return spi1; }
     Boardcore::SPIBus& getH3LIS331DL() { return spi1; }
