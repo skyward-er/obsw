@@ -51,6 +51,12 @@ bool Sensors::start()
     gyroCalibration1.fromFile(
         Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
 
+    if (Config::Sensors::AS5047D_LEFT::ENABLED)
+        as5047dLeftInit();
+
+    if (Config::Sensors::AS5047D_RIGHT::ENABLED)
+        as5047dRightInit();
+
     if (Config::Sensors::LPS22DF::ENABLED)
         lps22dfInit();
 
@@ -205,6 +211,16 @@ bool Sensors::saveMagCalibration()
     {
         return false;
     }
+}
+
+Boardcore::AS5047DData Sensors::getAS5047DLeftLastSample()
+{
+    return as5047d_left ? as5047d_left->getLastSample() : AS5047DData{};
+}
+
+Boardcore::AS5047DData Sensors::getAS5047DRightLastSample()
+{
+    return as5047d_right ? as5047d_right->getLastSample() : AS5047DData{};
 }
 
 LPS22DFData Sensors::getLPS22DFLastSample()
@@ -428,6 +444,16 @@ void Sensors::setCanPitotTotalPressure(PressureData data)
     canPitotTotalPressure = data;
 }
 
+PressureData Sensors::getCanPitotDynamicPressure()
+{
+    std::lock_guard<std::mutex> lock{canMutex};
+    return PressureData{
+        .pressureTimestamp = canPitotTotalPressure.pressureTimestamp,
+        .pressure =
+            canPitotTotalPressure.pressure - canPitotStaticPressure.pressure,
+    };
+}
+
 void Sensors::setCanPitotStaticPressure(PressureData data)
 {
     std::lock_guard<std::mutex> lock{canMutex};
@@ -446,6 +472,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
     else                                                         \
         infos.push_back(SensorInfo{name, 0, nullptr, false})
 
+        PUSH_SENSOR_INFO(as5047d_left, "AS5047D_LEFT");
+        PUSH_SENSOR_INFO(as5047d_right, "AS5047D_RIGHT");
         PUSH_SENSOR_INFO(lis2mdl_rcs, "LIS2MDL_RCS");
         PUSH_SENSOR_INFO(lps22df, "LPS22DF");
         PUSH_SENSOR_INFO(h3lis331dl, "H3LIS331DL");
@@ -471,6 +499,48 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
 TaskScheduler& Sensors::getSensorsScheduler()
 {
     return getModule<BoardScheduler>()->getSensorsScheduler();
+}
+
+void ::Sensors::as5047dLeftInit()
+{
+    SPIBusConfig spiConfig = AS5047DSPI::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    AS5047DSPIConfig config;
+    config.daecEnabled = Config::Sensors::AS5047D_LEFT::DAEC_EN;
+    config.dataType    = Config::Sensors::AS5047D_LEFT::DATA_SELECT;
+    config.rotationDirection =
+        Config::Sensors::AS5047D_LEFT::ROTATION_DIRECTION;
+
+    as5047d_left = std::make_unique<AS5047DSPI>(
+        getModule<Buses>()->getAS5047DLeft(), sensors::AS5047D_1::cs::getPin(),
+        spiConfig, config);
+}
+
+void Sensors::as5047dLeftCallback()
+{
+    sdLogger.log(AS5047DLeftData(getAS5047DLeftLastSample()));
+}
+
+void Sensors::as5047dRightInit()
+{
+    SPIBusConfig spiConfig = AS5047DSPI::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    AS5047DSPIConfig config;
+    config.daecEnabled = Config::Sensors::AS5047D_RIGHT::DAEC_EN;
+    config.dataType    = Config::Sensors::AS5047D_RIGHT::DATA_SELECT;
+    config.rotationDirection =
+        Config::Sensors::AS5047D_RIGHT::ROTATION_DIRECTION;
+
+    as5047d_right = std::make_unique<AS5047DSPI>(
+        getModule<Buses>()->getAS5047DRight(), sensors::AS5047D_0::cs::getPin(),
+        spiConfig, config);
+}
+
+void Sensors::as5047dRightCallback()
+{
+    sdLogger.log(AS5047DRightData(getAS5047DRightLastSample()));
 }
 
 void Sensors::lps22dfInit()
@@ -744,9 +814,23 @@ bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
 
+    if (as5047d_left)
+    {
+        SensorInfo info{"AS5047D_LEFT", Config::Sensors::AS5047D_LEFT::RATE,
+                        [this]() { as5047dLeftCallback(); }};
+        map.emplace(as5047d_left.get(), info);
+    }
+
+    if (as5047d_right)
+    {
+        SensorInfo info{"AS5047D_RIGHT", Config::Sensors::AS5047D_RIGHT::RATE,
+                        [this]() { as5047dRightCallback(); }};
+        map.emplace(as5047d_right.get(), info);
+    }
+
     if (lis2mdl_rcs)
     {
-        SensorInfo info{"LIS2MDL_GRS", Config::Sensors::LIS2MDL::RATE,
+        SensorInfo info{"LIS2MDL_RCS", Config::Sensors::LIS2MDL::RATE,
                         [this]() { lis2mdlRcsCallback(); }};
         map.emplace(lis2mdl_rcs.get(), info);
     }
