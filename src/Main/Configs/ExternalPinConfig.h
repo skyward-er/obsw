@@ -28,7 +28,7 @@ namespace Main
 {
 namespace Config
 {
-namespace GpioExpander
+namespace ExternalPin
 {
 // Port A
 static constexpr Boardcore::ExternalGpioPin EXT_STATUS_LED(
@@ -66,6 +66,6 @@ static constexpr Boardcore::ExternalGpioPin RF_RX_ENABLE(
 static constexpr Boardcore::ExternalGpioPin RF_FE_PROT(
     Boardcore::MCP23S17Defs::PORT::PORT_B, Boardcore::MCP23S17Defs::PIN::PIN7);
 
-}  // namespace GpioExpander
+}  // namespace ExternalPin
 }  // namespace Config
 }  // namespace Main
