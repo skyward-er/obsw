@@ -84,8 +84,7 @@ ADAController::ADAController()
           Config::Scheduler::ADA_PRIORITY},
       deploymentAltitude{Config::ADA::DEPLOYMENT_ALTITUDE_TARGET},
       shadowModeTime{Config::ADA::SHADOW_MODE_TIMEOUT},
-      ada0{DEFAULT_KALMAN_CONFIG}, ada1{DEFAULT_KALMAN_CONFIG},
-      ada2{DEFAULT_KALMAN_CONFIG}
+      ada{DEFAULT_KALMAN_CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -112,40 +111,17 @@ bool ADAController::start()
 
     auto algoRef        = getModule<AlgoReference>();
     ReferenceValues ref = algoRef->getReferenceValues();
-    ada0.setReferenceValues(ref);
-    ada1.setReferenceValues(ref);
-    ada2.setReferenceValues(ref);
+    ada.setReferenceValues(ref);
 
     algoRef->subscribeReferenceChanges(this);
 
     return true;
 }
 
-ADAState ADAController::getADAState(ADANumber num)
+ADAState ADAController::getADAState()
 {
     Lock<FastMutex> lock{adaMutex};
-    switch (num)
-    {
-        case ADANumber::ADA0:
-        {
-            return ada0.getState();
-        }
-
-        case ADANumber::ADA1:
-        {
-            return ada1.getState();
-        }
-
-        case ADANumber::ADA2:
-        {
-            return ada2.getState();
-        }
-
-        default:
-        {
-            return ada0.getState();
-        }
-    }
+    return ada.getState();
 }
 
 float ADAController::getDeploymentAltitude()
@@ -168,45 +144,18 @@ void ADAController::setShadowModeTime(milliseconds time)
     shadowModeTime = time;
 }
 
+float ADAController::getVerticalSpeed()
+{
+    Lock<FastMutex> lock{adaMutex};
+    return ada.getState().verticalSpeed;
+}
+
 ADAControllerState ADAController::getState() { return state; }
-
-float ADAController::getMaxVerticalSpeed()
-{
-    auto absCompare = [](float a, float b)
-    { return std::abs(a) < std::abs(b); };
-
-    // Lock the mutex in the smallest scope
-    auto speeds = [&]() -> std::array<float, 3>
-    {
-        Lock<FastMutex> lock{adaMutex};
-        return {ada0.getState().verticalSpeed, ada1.getState().verticalSpeed,
-                ada2.getState().verticalSpeed};
-    }();
-
-    return *std::max_element(speeds.begin(), speeds.end(), absCompare);
-}
-
-float ADAController::getMaxPressure()
-{
-    auto absCompare = [](float a, float b)
-    { return std::abs(a) < std::abs(b); };
-
-    // Lock the mutex in the smallest scope
-    auto pressures = [&]() -> std::array<float, 3>
-    {
-        Lock<FastMutex> lock{adaMutex};
-        return {ada0.getState().x0, ada1.getState().x0, ada2.getState().x0};
-    }();
-
-    return *std::max_element(pressures.begin(), pressures.end(), absCompare);
-}
 
 void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 {
     miosix::Lock<miosix::FastMutex> l(adaMutex);
-    ada0.setReferenceValues(ref);
-    ada1.setReferenceValues(ref);
-    ada2.setReferenceValues(ref);
+    ada.setReferenceValues(ref);
 }
 
 void ADAController::update()
@@ -223,56 +172,23 @@ void ADAController::update()
         curState == ADAControllerState::ACTIVE_DROGUE_DESCENT ||
         curState == ADAControllerState::ACTIVE_TERMINAL_DESCENT)
     {
-        PressureData baro0 = getModule<Sensors>()->getAtmosPressureLastSample(
-            Config::Sensors::Atmos::AtmosSensor::SENSOR_0);
-        PressureData baro1 = getModule<Sensors>()->getAtmosPressureLastSample(
-            Config::Sensors::Atmos::AtmosSensor::SENSOR_1);
-        PressureData baro2 = getModule<Sensors>()->getAtmosPressureLastSample(
-            Config::Sensors::Atmos::AtmosSensor::SENSOR_2);
+        PressureData baro = getModule<Sensors>()->getAtmosPressureLastSample();
 
-        if (baro0.pressureTimestamp > lastBaro0Timestamp)
+        if (baro.pressureTimestamp > lastBaroTimestamp)
         {
             // Barometer is valid, correct with it
-            ada0.update(baro0.pressure);
+            ada.update(baro.pressure);
         }
         else
         {
             // Do not perform correction
-            ada0.update();
+            ada.update();
         }
 
-        lastBaro0Timestamp = baro0.pressureTimestamp;
-
-        if (baro1.pressureTimestamp > lastBaro1Timestamp)
-        {
-            // Barometer is valid, correct with it
-            ada1.update(baro1.pressure);
-        }
-        else
-        {
-            // Do not perform correction
-            ada1.update();
-        }
-
-        lastBaro1Timestamp = baro1.pressureTimestamp;
-
-        if (baro2.pressureTimestamp > lastBaro2Timestamp)
-        {
-            // Barometer is valid, correct with it
-            ada2.update(baro2.pressure);
-        }
-        else
-        {
-            // Do not perform correction
-            ada2.update();
-        }
-
-        lastBaro2Timestamp = baro2.pressureTimestamp;
+        lastBaroTimestamp = baro.pressureTimestamp;
     }
 
-    auto ada0State = ada0.getState();
-    auto ada1State = ada1.getState();
-    auto ada2State = ada2.getState();
+    auto adaState = ada.getState();
 
     // Then run detections
     if (curState == ADAControllerState::SHADOW_MODE ||
@@ -285,33 +201,21 @@ void ADAController::update()
     else                                                                      \
         ada##DetectedApogees = 0
 
-        UPDATE_APOGEE_CONFIDENCE(ada0);
-        UPDATE_APOGEE_CONFIDENCE(ada1);
-        UPDATE_APOGEE_CONFIDENCE(ada2);
+        UPDATE_APOGEE_CONFIDENCE(ada);
 
         if (curState == ADAControllerState::ACTIVE_ASCENT)
         {
             // Throw events only in ACTIVE_ASCENT
             // Detections are "sticky": once an ADA detects an apogee it will
             // be considered as having detected it for the whole flight
-            if (ada0DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
-                apogeeDetections.set(static_cast<size_t>(ADANumber::ADA0));
-
-            if (ada1DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
-                apogeeDetections.set(static_cast<size_t>(ADANumber::ADA1));
-
-            if (ada2DetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
-                apogeeDetections.set(static_cast<size_t>(ADANumber::ADA2));
-
-            if (apogeeDetections.count() >= 2)
+            if (adaDetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
             {
                 auto gps = getModule<Sensors>()->getUBXGPSLastSample();
 
                 // Notify stats recorder
                 getModule<StatsRecorder>()->apogeeDetected(
                     TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                    ada0State.aglAltitude, ada1State.aglAltitude,
-                    ada2State.aglAltitude);
+                    adaState.aglAltitude);
 
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
             }
@@ -326,25 +230,13 @@ void ADAController::update()
     else                                                  \
         ada##DetectedDeployments = 0
 
-        UPDATE_DEPLOYMENT_CONFIDENCE(ada0);
-        UPDATE_DEPLOYMENT_CONFIDENCE(ada1);
-        UPDATE_DEPLOYMENT_CONFIDENCE(ada2);
+        UPDATE_DEPLOYMENT_CONFIDENCE(ada);
 
-        if (ada0DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
-            deploymentDetections.set(static_cast<size_t>(ADANumber::ADA0));
-
-        if (ada1DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
-            deploymentDetections.set(static_cast<size_t>(ADANumber::ADA1));
-
-        if (ada2DetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
-            deploymentDetections.set(static_cast<size_t>(ADANumber::ADA2));
-
-        if (deploymentDetections.count() >= 2)
+        if (adaDetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
         {
             // Notify stats recorder
             getModule<StatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), ada0State.mslAltitude,
-                ada1State.mslAltitude, ada2State.mslAltitude);
+                TimestampTimer::getTimestamp(), adaState.mslAltitude);
 
             EventBroker::getInstance().post(ADA_DEPLOY_ALTITUDE_DETECTED,
                                             TOPIC_ADA);
@@ -353,19 +245,12 @@ void ADAController::update()
 
     // Log this sample step
     ADAControllerSampleData data = {TimestampTimer::getTimestamp(),
-                                    ada0DetectedApogees,
-                                    ada1DetectedApogees,
-                                    ada2DetectedApogees,
-                                    ada0DetectedDeployments,
-                                    ada1DetectedDeployments,
-                                    ada2DetectedDeployments,
+                                    adaDetectedApogees, adaDetectedDeployments,
                                     curState};
     sdLogger.log(data);
 
     // Logs ADA states as separate structs
-    sdLogger.log(ADA0State(ada0State));
-    sdLogger.log(ADA1State(ada1State));
-    sdLogger.log(ADA2State(ada2State));
+    sdLogger.log(ADAState(adaState));
 }
 
 void ADAController::calibrate()
@@ -373,19 +258,13 @@ void ADAController::calibrate()
     ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
 
     Lock<FastMutex> lock{adaMutex};
-    ada0.setReferenceValues(ref);
-    ada1.setReferenceValues(ref);
-    ada2.setReferenceValues(ref);
+    ada.setReferenceValues(ref);
 
     // Recomputing Kalman config also resets the ADA state
     auto kalmanConfig = computeADAKalmanConfig(ref.refPressure);
-    ada0.setKalmanConfig(kalmanConfig);
-    ada1.setKalmanConfig(kalmanConfig);
-    ada2.setKalmanConfig(kalmanConfig);
+    ada.setKalmanConfig(kalmanConfig);
 
-    ada0.update(ref.refPressure);
-    ada1.update(ref.refPressure);
-    ada2.update(ref.refPressure);
+    ada.update(ref.refPressure);
 }
 
 void ADAController::state_init(const Event& event)
