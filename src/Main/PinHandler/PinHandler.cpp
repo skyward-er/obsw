@@ -22,6 +22,7 @@
 
 #include "PinHandler.h"
 
+#include <Main/Configs/ExternalPinConfig.h>
 #include <Main/Configs/PinHandlerConfig.h>
 #include <Main/PinHandler/PinData.h>
 #include <common/Events.h>
@@ -34,6 +35,7 @@ using namespace Main;
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
+using namespace Config::ExternalPin;
 
 bool PinHandler::isStarted() { return started; }
 
@@ -46,6 +48,10 @@ bool PinHandler::start()
 
     pinObserver = std::make_unique<PinObserver>(
         scheduler, milliseconds{Config::PinHandler::POLL_INTERVAL}.count());
+
+    externalPinObserver = std::make_unique<ExternalPinObserver>(
+        scheduler, expander,
+        milliseconds{Config::PinHandler::POLL_INTERVAL}.count());
 
 #define CHECK_RESULT(x)                                       \
     if (!x)                                                   \
@@ -60,29 +66,20 @@ bool PinHandler::start()
         { onRampPinTransition(transition, pinData); },
         Config::PinHandler::RAMP_PIN_THRESHOLD))
 
-    CHECK_RESULT(pinObserver->registerPinCallback(
-        sense::detachMain::getPin(),
-        [this](PinTransition transition, auto pinData)
-        { onDetachMainTransition(transition, pinData); },
-        Config::PinHandler::MAIN_DETACH_PIN_THRESHOLD));
-
-    CHECK_RESULT(pinObserver->registerPinCallback(
-        sense::detachPayload::getPin(),
-        [this](PinTransition transition, auto pinData)
+    CHECK_RESULT(externalPinObserver->registerPinCallback(
+        DETACH_PAYLOAD, [this](PinTransition transition, auto pinData)
         { onDetachPayloadTransition(transition, pinData); },
-        Config::PinHandler::PAYLOAD_DETACH_PIN_THRESHOLD));
+        Config::PinHandler::RAMP_PIN_THRESHOLD))
 
-    CHECK_RESULT(pinObserver->registerPinCallback(
-        sense::expulsionSense::getPin(),
-        [this](PinTransition transition, auto pinData)
+    CHECK_RESULT(externalPinObserver->registerPinCallback(
+        EXPULSION_SENSE, [this](PinTransition transition, auto pinData)
         { onExpulsionSenseTransition(transition, pinData); },
-        Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD));
+        Config::PinHandler::RAMP_PIN_THRESHOLD))
 
-    CHECK_RESULT(pinObserver->registerPinCallback(
-        sense::cutterSense::getPin(),
-        [this](PinTransition transition, auto pinData)
-        { onCutterSenseTransition(transition, pinData); },
-        Config::PinHandler::CUTTER_SENSE_PIN_THRESHOLD));
+    CHECK_RESULT(externalPinObserver->registerPinCallback(
+        RELEASER_SENSE, [this](PinTransition transition, auto pinData)
+        { onReleaserSenseTransition(transition, pinData); },
+        Config::PinHandler::RAMP_PIN_THRESHOLD))
 
     started = true;
     return true;
@@ -94,14 +91,12 @@ PinData PinHandler::getPinData(PinList pin)
     {
         case PinList::RAMP_PIN:
             return pinObserver->getPinData(sense::detachRamp::getPin());
-        case PinList::DETACH_MAIN_PIN:
-            return pinObserver->getPinData(sense::detachMain::getPin());
         case PinList::DETACH_PAYLOAD_PIN:
-            return pinObserver->getPinData(sense::detachPayload::getPin());
+            return externalPinObserver->getPinData(DETACH_PAYLOAD);
         case PinList::EXPULSION_SENSE:
-            return pinObserver->getPinData(sense::expulsionSense::getPin());
-        case PinList::CUTTER_SENSE:
-            return pinObserver->getPinData(sense::cutterSense::getPin());
+            return externalPinObserver->getPinData(EXPULSION_SENSE);
+        case PinList::RELEASER_SENSE:
+            return externalPinObserver->getPinData(RELEASER_SENSE);
         default:
             return PinData{};
     }
@@ -139,13 +134,6 @@ void PinHandler::onRampPinTransition(PinTransition transition,
     }
 }
 
-void PinHandler::onDetachMainTransition(PinTransition transition,
-                                        const PinData& data)
-{
-    logPin(PinList::DETACH_MAIN_PIN, data);
-    LOG_INFO(logger, "onDetachMainTransition {}", static_cast<int>(transition));
-}
-
 void PinHandler::onDetachPayloadTransition(PinTransition transition,
                                            const PinData& data)
 {
@@ -162,10 +150,10 @@ void PinHandler::onExpulsionSenseTransition(PinTransition transition,
              static_cast<int>(transition));
 }
 
-void PinHandler::onCutterSenseTransition(PinTransition transition,
-                                         const PinData& data)
+void PinHandler::onReleaserSenseTransition(PinTransition transition,
+                                           const PinData& data)
 {
-    logPin(PinList::CUTTER_SENSE, data);
-    LOG_INFO(logger, "onCutterSenseTransition {}",
+    logPin(PinList::RELEASER_SENSE, data);
+    LOG_INFO(logger, "onReleaserSenseTransition {}",
              static_cast<int>(transition));
 }
