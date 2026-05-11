@@ -43,18 +43,11 @@ class ADAController
       public ReferenceSubscriber
 {
 public:
-    enum class ADANumber : uint8_t
-    {
-        ADA0 = 0,
-        ADA1 = 1,
-        ADA2 = 2,
-    };
-
     ADAController();
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::ADAState getADAState(ADANumber num);
+    Boardcore::ADAState getADAState();
 
     ADAControllerState getState();
 
@@ -65,14 +58,14 @@ public:
     void setShadowModeTime(std::chrono::milliseconds time);
 
     /**
-     * @brief Returns the maximum vertical speed (in module) of the ADAs.
+     * @brief Returns the vertical speed  of the ADA.
      */
-    float getMaxVerticalSpeed();
+    float getVerticalSpeed();
 
     /**
-     * @brief Returns the maximum pressure (in module) of the ADAs.
+     * @brief Returns the pressure of the ADA.
      */
-    float getMaxPressure();
+    float getPressure();
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
@@ -104,25 +97,15 @@ private:
     std::atomic<std::chrono::milliseconds> shadowModeTime;
 
     miosix::FastMutex adaMutex;
-    Boardcore::ADA ada0;
-    Boardcore::ADA ada1;
-    Boardcore::ADA ada2;
+    Boardcore::ADA ada;
 
-    uint64_t lastBaro0Timestamp = 0;
-    uint64_t lastBaro1Timestamp = 0;
-    uint64_t lastBaro2Timestamp = 0;
+    uint64_t lastBaroTimestamp = 0;
 
-    uint32_t ada0DetectedApogees = 0;
-    uint32_t ada1DetectedApogees = 0;
-    uint32_t ada2DetectedApogees = 0;
-    // Bitset to track whether each ADA has detected an apogee
-    std::bitset<3> apogeeDetections;
+    uint32_t adaDetectedApogees = 0;
+    bool apogeeDetection;
 
-    uint32_t ada0DetectedDeployments = 0;
-    uint32_t ada1DetectedDeployments = 0;
-    uint32_t ada2DetectedDeployments = 0;
-    // Bitset to track whether each ADA has detected a deployment
-    std::bitset<3> deploymentDetections;
+    uint32_t adaDetectedDeployments = 0;
+    bool deploymentDetections;
 };
 
 }  // namespace Main
