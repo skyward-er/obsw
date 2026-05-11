@@ -31,6 +31,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
+#include <sensors/AS5047D/AS5047DSPI.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
@@ -71,6 +72,8 @@ public:
     void disableMagCalibrator();
     bool saveMagCalibration();
 
+    Boardcore::AS5047DData getAS5047DLeftLastSample();
+    Boardcore::AS5047DData getAS5047DRightLastSample();
     Boardcore::LIS2MDLData getLIS2MDLRcsLastSample();
     Boardcore::LPS22DFData getLPS22DFLastSample();
     Boardcore::H3LIS331DLData getH3LIS331DLLastSample();
@@ -99,6 +102,7 @@ public:
 
     Boardcore::PressureData getCanPitotTotalPressure();
     Boardcore::PressureData getCanPitotStaticPressure();
+    Boardcore::PressureData getCanPitotDynamicPressure();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -120,6 +124,8 @@ protected:
     Boardcore::PressureData canPitotStaticPressure;
 
     // Digital sensors
+    std::unique_ptr<Boardcore::AS5047DSPI> as5047d_left;
+    std::unique_ptr<Boardcore::AS5047DSPI> as5047d_right;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_rcs;
     std::unique_ptr<Boardcore::LPS22DF> lps22df;
     std::unique_ptr<Boardcore::H3LIS331DL> h3lis331dl;
@@ -140,6 +146,12 @@ protected:
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
+    void as5047dLeftInit();
+    void as5047dLeftCallback();
+
+    void as5047dRightInit();
+    void as5047dRightCallback();
+
     void lis2mdlRcsInit();
     void lis2mdlRcsCallback();
 

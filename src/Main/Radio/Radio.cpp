@@ -524,10 +524,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
         {
             constexpr std::array<PinHandler::PinList, 5> PIN_LIST = {
                 PinHandler::PinList::RAMP_PIN,
-                PinHandler::PinList::DETACH_MAIN_PIN,
                 PinHandler::PinList::DETACH_PAYLOAD_PIN,
                 PinHandler::PinList::EXPULSION_SENSE,
-                PinHandler::PinList::CUTTER_SENSE,
+                PinHandler::PinList::RELEASER_SENSE,
             };
 
             PinHandler* pinHandler = getModule<PinHandler>();
@@ -721,36 +720,31 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto adaState = static_cast<uint8_t>(ada->getState());
             auto ref      = getModule<AlgoReference>()->getReferenceValues();
 
-            for (auto n : {ADAController::ADANumber::ADA0,
-                           ADAController::ADANumber::ADA1,
-                           ADAController::ADANumber::ADA2})
-            {
-                mavlink_message_t msg;
-                mavlink_ada_tm_t tm;
+            mavlink_message_t msg;
+            mavlink_ada_tm_t tm;
 
-                ADAState state = ada->getADAState(n);
+            ADAState state = ada->getADAState();
 
-                tm.timestamp        = state.timestamp;
-                tm.state            = adaState;
-                tm.kalman_x0        = state.x0;
-                tm.kalman_x1        = state.x1;
-                tm.kalman_x2        = state.x2;
-                tm.vertical_speed   = state.verticalSpeed;
-                tm.msl_altitude     = state.mslAltitude;
-                tm.msl_pressure     = ref.mslPressure;
-                tm.msl_temperature  = ref.mslTemperature - 273.15f;
-                tm.ref_altitude     = ref.refAltitude;
-                tm.ref_temperature  = ref.refTemperature - 273.15f;
-                tm.ref_pressure     = ref.refPressure;
-                tm.dpl_altitude     = ada->getDeploymentAltitude();
-                tm.shadow_mode_time = ada->getShadowModeTime().count();
-                tm.apogee_timeout   = fmm->getApogeeTimeout().count();
+            tm.timestamp        = state.timestamp;
+            tm.state            = adaState;
+            tm.kalman_x0        = state.x0;
+            tm.kalman_x1        = state.x1;
+            tm.kalman_x2        = state.x2;
+            tm.vertical_speed   = state.verticalSpeed;
+            tm.msl_altitude     = state.mslAltitude;
+            tm.msl_pressure     = ref.mslPressure;
+            tm.msl_temperature  = ref.mslTemperature - 273.15f;
+            tm.ref_altitude     = ref.refAltitude;
+            tm.ref_temperature  = ref.refTemperature - 273.15f;
+            tm.ref_pressure     = ref.refPressure;
+            tm.dpl_altitude     = ada->getDeploymentAltitude();
+            tm.shadow_mode_time = ada->getShadowModeTime().count();
+            tm.apogee_timeout   = fmm->getApogeeTimeout().count();
 
-                mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                          Config::Radio::MAV_COMPONENT_ID, &msg,
-                                          &tm);
-                enqueuePacket(msg);
-            }
+            mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                      Config::Radio::MAV_COMPONENT_ID, &msg,
+                                      &tm);
+            enqueuePacket(msg);
 
             return true;
         }
@@ -841,11 +835,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto temperature  = sensors->getTemperatureLastSample();
             auto pressStatic  = sensors->getAtmosPressureLastSample();
             auto pressDigi    = sensors->getLPS22DFLastSample();
-            auto pressDpl     = sensors->getDplBayPressureLastSample();
             auto pitotStatic  = sensors->getCanPitotStaticPressure();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
-            auto adaPressure  = ada->getMaxPressure();
-            auto adaVertSpeed = ada->getMaxVerticalSpeed();
+            auto adaVertSpeed = ada->getVerticalSpeed();
             auto nasState     = nas->getNASState();
             auto meaState     = mea->getMEAState();
             auto ref = getModule<AlgoReference>()->getReferenceValues();
@@ -868,8 +860,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Sensors
             tm.pressure_digi   = pressDigi.pressure;
             tm.pressure_static = pressStatic.pressure;
-            tm.pressure_dpl    = pressDpl.pressure;
-            tm.pressure_ada    = adaPressure;
 
             tm.acc_x = imu.accelerationX;
             tm.acc_y = imu.accelerationY;
@@ -996,13 +986,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.pin_launch =
                 pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState;
             tm.pin_nosecone =
-                pinHandler->getPinData(PinHandler::PinList::DETACH_MAIN_PIN)
+                pinHandler->getPinData(PinHandler::PinList::DETACH_PAYLOAD_PIN)
                     .lastState;
             tm.pin_expulsion =
                 pinHandler->getPinData(PinHandler::PinList::EXPULSION_SENSE)
                     .lastState;
+            // TODO change the name of the mavlink field
             tm.cutter_presence =
-                pinHandler->getPinData(PinHandler::PinList::CUTTER_SENSE)
+                pinHandler->getPinData(PinHandler::PinList::RELEASER_SENSE)
                     .lastState;
 
             // Log stuff
@@ -1127,7 +1118,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         {
             mavlink_message_t msg;
 
-            auto sample = getModule<Sensors>()->getLIS2MDLLastSample();
+            auto sample = getModule<Sensors>()->getLIS2MDLIntLastSample();
 
             mavlink_imu_tm_t tm1;
             tm1.acc_x     = -1.0f;
@@ -1330,42 +1321,28 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                 enqueuePacket(msg);
             }
 
-            {
-                auto sample = getModule<Sensors>()->getND015A3LastSample();
-
-                mavlink_message_t msg;
-                mavlink_pressure_tm_t tm;
-                tm.pressure  = sample.pressure;
-                tm.timestamp = sample.pressureTimestamp;
-                strcpy(tm.sensor_name, "ND015A_3");
-
-                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                               Config::Radio::MAV_COMPONENT_ID,
-                                               &msg, &tm);
-                enqueuePacket(msg);
-            }
-
             return true;
         }
 
-        case MAV_DPL_PRESS_ID:
-        {
-            mavlink_message_t msg;
+            /*         case MAV_DPL_PRESS_ID:
+                    {
+                        mavlink_message_t msg;
 
-            auto sample = getModule<Sensors>()->getDplBayPressureLastSample();
+                        auto sample =
+               getModule<Sensors>()->getDplBayPressureLastSample();
 
-            mavlink_pressure_tm_t tm;
-            tm.pressure  = sample.pressure;
-            tm.timestamp = sample.pressureTimestamp;
-            strcpy(tm.sensor_name, "DplBayPressure");
+                        mavlink_pressure_tm_t tm;
+                        tm.pressure  = sample.pressure;
+                        tm.timestamp = sample.pressureTimestamp;
+                        strcpy(tm.sensor_name, "DplBayPressure");
 
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueuePacket(msg);
+                        mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                                       Config::Radio::MAV_COMPONENT_ID,
+                                                       &msg, &tm);
+                        enqueuePacket(msg);
 
-            return true;
-        }
+                        return true;
+                    } */
 
         case MAV_TANK_TOP_PRESS_ID:
         {
