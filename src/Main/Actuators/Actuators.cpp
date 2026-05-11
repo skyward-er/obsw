@@ -36,12 +36,6 @@ Actuators::Actuators()
     servoAbk = std::make_unique<Servo>(
         MIOSIX_AIRBRAKES_TIM, TimerUtils::Channel::MIOSIX_AIRBRAKES_CHANNEL,
         Config::Actuators::ABK_MIN_PULSE, Config::Actuators::ABK_MAX_PULSE);
-
-    // cppcheck-suppress useInitializationList
-    servoExp = std::make_unique<Servo>(
-        MIOSIX_EXPULSION_TIM, TimerUtils::Channel::MIOSIX_EXPULSION_CHANNEL,
-        Config::Actuators::EXP_MIN_PULSE, Config::Actuators::EXP_MAX_PULSE);
-
     // cppcheck-suppress useInitializationList
     buzzer = std::make_unique<PWM>(MIOSIX_BUZZER_TIM,
                                    Config::Actuators::BUZZER_FREQUENCY);
@@ -56,11 +50,13 @@ bool Actuators::start()
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getLowPriorityActuatorsScheduler();
 
+    expander = &getModule<GpioExpander>()->getExpander();
+
     servoAbk->enable();
-    servoExp->enable();
 
     camOff();
-    cutterOff();
+    expulsionOff();
+    releaserOff();
     statusOff();
     buzzerOff();
 
@@ -94,11 +90,7 @@ void Actuators::setAbkPosition(float position)
     unsafeSetServoPosition(servoAbk.get(), position);
 }
 
-void Actuators::openExpulsion()
-{
-    Lock<FastMutex> lock{servosMutex};
-    unsafeSetServoPosition(servoExp.get(), 1.0f);
-}
+void Actuators::openExpulsion() { gpios::expulsion::high(); }
 
 void Actuators::wiggleServo(ServosList servo)
 {
@@ -153,21 +145,30 @@ void Actuators::setBuzzerLand()
     buzzerOverflow = Config::Actuators::BUZZER_LAND_RATE;
 }
 
-void Actuators::camOn() { gpios::camEnable::high(); }
+void Actuators::camOn() { getModule<GpioExpander>()->camOn(); }
 
-void Actuators::camOff() { gpios::camEnable::low(); }
+void Actuators::camOff() { getModule<GpioExpander>()->camOff(); }
 
-bool Actuators::getCamState() { return gpios::camEnable::value() != 0; }
+bool Actuators::getCamState()
+{
+    return getModule<GpioExpander>()->getCamState();
+}
 
-void Actuators::cutterOn() { gpios::mainDeploy::high(); }
+void Actuators::expulsionOn() { gpios::expulsion::high(); }
 
-void Actuators::cutterOff() { gpios::mainDeploy::low(); }
+void Actuators::expulsionOff() { gpios::expulsion::low(); }
 
-bool Actuators::getCutterState() { return gpios::mainDeploy::value() != 0; }
+bool Actuators::getExpulsionState() { return gpios::expulsion::value() != 0; }
 
-void Actuators::statusOn() { gpios::statusLed::high(); }
+void Actuators::releaserOn() { gpios::releaser::high(); }
 
-void Actuators::statusOff() { gpios::statusLed::low(); }
+void Actuators::releaserOff() { gpios::releaser::low(); }
+
+bool Actuators::getReleaserState() { return gpios::releaser::value() != 0; }
+
+void Actuators::statusOn() { getModule<GpioExpander>()->statusLedOn(); }
+
+void Actuators::statusOff() { getModule<GpioExpander>()->statusLedOff(); }
 
 void Actuators::buzzerOn()
 {
@@ -191,8 +192,6 @@ Servo* Actuators::getServo(ServosList servo)
     {
         case AIR_BRAKES_SERVO:
             return servoAbk.get();
-        case EXPULSION_SERVO:
-            return servoExp.get();
         default:
             return nullptr;
     }

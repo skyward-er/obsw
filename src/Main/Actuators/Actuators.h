@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Main/BoardScheduler.h>
+#include <Main/GpioExpander.h>
 #include <actuators/Servo/Servo.h>
 #include <common/MavlinkOrion.h>
 #include <scheduler/TaskScheduler.h>
@@ -35,8 +36,8 @@ namespace Main
 
 class CanHandler;
 
-class Actuators
-    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler>
+class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler,
+                                                       CanHandler, GpioExpander>
 {
 public:
     Actuators();
@@ -57,9 +58,13 @@ public:
     void camOff();
     bool getCamState();
 
-    void cutterOn();
-    void cutterOff();
-    bool getCutterState();
+    void expulsionOn();
+    void expulsionOff();
+    bool getExpulsionState();
+
+    void releaserOn();
+    void releaserOff();
+    bool getReleaserState();
 
     void setBuzzerOff();
     void setBuzzerArmed();
@@ -90,7 +95,6 @@ private:
 
     miosix::FastMutex servosMutex;
     std::unique_ptr<Boardcore::Servo> servoAbk;
-    std::unique_ptr<Boardcore::Servo> servoExp;
     std::unique_ptr<Boardcore::PWM> buzzer;
 
     std::atomic<uint32_t> buzzerCounter{0};
@@ -98,6 +102,8 @@ private:
 
     std::atomic<uint32_t> statusCounter{0};
     std::atomic<uint32_t> statusOverflow{0};
+
+    Boardcore::MCP23S17* expander = nullptr;
 };
 
 }  // namespace Main
