@@ -209,7 +209,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
             sdLogger.log(data);
-            sensors->setCanPitotDynamicPressure(data);
+            sensors->setCanPitotStaticPressure(data);
             break;
         }
 

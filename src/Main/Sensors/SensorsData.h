@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <sensors/AS5047D/AS5047DData.h>
 #include <sensors/LIS2MDL/LIS2MDLData.h>
 #include <sensors/LSM6DSRX/LSM6DSRXData.h>
 #include <sensors/SensorData.h>
@@ -138,6 +139,36 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
     {
         return STRUCT_DEF(LIS2MDLExternalData,
                           EXTEND_DEF(Boardcore::LIS2MDLData));
+    }
+};
+
+struct AS5047DLeftData : Boardcore::AS5047DData
+{
+    explicit AS5047DLeftData(const Boardcore::AS5047DData& data)
+        : Boardcore::AS5047DData(data)
+    {
+    }
+
+    AS5047DLeftData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(AS5047DLeftData, EXTEND_DEF(Boardcore::AS5047DData));
+    }
+};
+
+struct AS5047DRightData : Boardcore::AS5047DData
+{
+    explicit AS5047DRightData(const Boardcore::AS5047DData& data)
+        : Boardcore::AS5047DData(data)
+    {
+    }
+
+    AS5047DRightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(AS5047DRightData, EXTEND_DEF(Boardcore::AS5047DData));
     }
 };
 

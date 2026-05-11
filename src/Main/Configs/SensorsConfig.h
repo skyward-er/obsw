@@ -23,6 +23,7 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
+#include <sensors/AS5047D/AS5047DSPI.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
 #include <sensors/LPS22DF/LPS22DF.h>
@@ -52,14 +53,36 @@ constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
 constexpr auto MAG_CALIBRATION_RATE = 50_hz;
 static const std::string MAG_CALIBRATION_FILENAME{"/sd/magCalibration.csv"};
 
-namespace LIS2MDL
+namespace AS5047D_LEFT
+{
+constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
+constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
+constexpr auto ROTATION_DIRECTION =
+    Boardcore::AS5047DDefs::ABIRotationDirection::NORMAL;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace AS5047D_LEFT
+
+namespace AS5047D_RIGHT
+{
+constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
+constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
+constexpr auto ROTATION_DIRECTION =
+    Boardcore::AS5047DDefs::ABIRotationDirection::NORMAL;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace AS5047D_RIGHT
+
+namespace LIS2MDL_RCS
 {
 constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr auto TEMP_DIVIDER = 10U;
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace LIS2MDL
+}  // namespace LIS2MDL_RCS
 namespace LPS22DF
 {
 constexpr auto AVG = Boardcore::LPS22DF::AVG_4;

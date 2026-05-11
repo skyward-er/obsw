@@ -757,7 +757,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            getModule<Actuators>()->openExpulsion();
+            getModule<Actuators>()->expulsionOn();
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::APOGEE_DETECTED);
 
@@ -806,7 +806,7 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
                                             TOPIC_FLIGHT);
 
-            getModule<Actuators>()->cutterOn();
+            getModule<Actuators>()->releaserOn();
             cutterTimeoutEvent = EventBroker::getInstance().postDelayed(
                 FMM_CUTTER_TIMEOUT, TOPIC_FMM,
                 milliseconds{Config::FlightModeManager::CUT_DURATION}.count());
@@ -821,7 +821,7 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             cutterTimeoutEvent = -1;
 
             // Make sure the cutters are off
-            getModule<Actuators>()->cutterOff();
+            getModule<Actuators>()->releaserOff();
             return HANDLED;
         }
 
@@ -837,7 +837,7 @@ State FlightModeManager::state_terminal_descent(const Event& event)
 
         case FMM_CUTTER_TIMEOUT:
         {
-            getModule<Actuators>()->cutterOff();
+            getModule<Actuators>()->releaserOff();
             return HANDLED;
         }
 
@@ -890,10 +890,10 @@ State FlightModeManager::state_landed(const Event& event)
 
 void FlightModeManager::shutdownEngine()
 {
-    auto can = getModule<CanHandler>();
+    /* auto can = getModule<CanHandler>();
 
-    can->sendServoCloseCommand(ServosList::MAIN_VALVE);
-    can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
+         can->sendServoCloseCommand(ServosList::MAIN_VALVE);
+        can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
 
     can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
                               std::numeric_limits<uint32_t>::max());
