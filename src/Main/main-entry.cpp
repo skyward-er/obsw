@@ -26,12 +26,12 @@
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/FMMConfig.h>
-#include <Main/Expander/GpioExpander.h>
-#include <Main/HIL/HIL.h>
+#include <Main/GpioExpander.h>
+// #include <Main/HIL/HIL.h>
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
-#include <Main/Sensors/HILSensors.h>
+// #include <Main/Sensors/HILSensors.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -68,7 +68,7 @@ int main()
     auto scheduler = new BoardScheduler();
     auto expander  = new GpioExpander();
 
-    Sensors* sensors = nullptr;
+    Sensors* sensors = new Sensors();
     auto actuators   = new Actuators();
     auto radio       = new Radio();
     auto canHandler  = new CanHandler();
@@ -81,9 +81,9 @@ int main()
     auto abk         = new ABKController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
-    MainHIL* hil     = nullptr;
+    // MainHIL* hil     = nullptr;
 
-    // HIL
+    /* // HIL
     if (PersistentVars::getHilMode())
     {
         std::cout << "MAIN SimulatorData: " << sizeof(SimulatorData)
@@ -96,7 +96,7 @@ int main()
     else
     {
         sensors = new Sensors();
-    }
+    } */
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();
@@ -256,74 +256,77 @@ int main()
         std::cerr << "*** Failed to start FlightModeManager ***" << std::endl;
     }
 
-    if (hil)
-    {
-        std::cout << "Starting HIL" << std::endl;
-        hil->start();
-
-        std::cout << "Waiting simulation start..." << std::endl;
-        hil->waitStartSimulation();
-
-        std::cout << "Waiting for the running signal..." << std::endl;
-        hil->waitRunningSignal();
-
-        // In HIL mode the RIG is not present and won't send the ignition
-        // command, we need to emulate it when entering the LIFTOFF phase
-        if (hil->isFullHIL())
+    /*     if (hil)
         {
-            std::cout << "Registering FULL HIL flight phases" << std::endl;
+            std::cout << "Starting HIL" << std::endl;
+            hil->start();
 
-            // Simulate the RIG sending the main valve open command to the motor
-            // through CAN bus
-            hil->registerToFlightPhase(
-                MainFlightPhases::LIFTOFF,
-                [&]
-                {
-                    // Opening time doesn't matter as the valve is closed by the
-                    // FMM, just open it more than the timeout
-                    canHandler->sendServoOpenCommand(
-                        ServosList::MAIN_VALVE,
-                        milliseconds{
-                            Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
-                            1s}
-                            .count());
-                });
-        }
-        else
-        {
-            std::cout << "Registering HIL flight phases" << std::endl;
+            std::cout << "Waiting simulation start..." << std::endl;
+            hil->waitStartSimulation();
 
-            // Simulate motor valve state changes
-            hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
-                                       [&]
-                                       {
-                                           auto motor = motorStatus->lockData();
-                                           motor->mainValveOpen     = true;
-                                           motor->nitrogenValveOpen = true;
-                                       });
+            std::cout << "Waiting for the running signal..." << std::endl;
+            hil->waitRunningSignal();
 
-            hil->registerToFlightPhase(MainFlightPhases::SHUTDOWN,
-                                       [&]
-                                       {
-                                           auto motor = motorStatus->lockData();
-                                           motor->mainValveOpen        = false;
-                                           motor->nitrogenValveOpen    = false;
-                                           motor->n2QuenchingValveOpen = true;
-                                       });
+            // In HIL mode the RIG is not present and won't send the ignition
+            // command, we need to emulate it when entering the LIFTOFF phase
+            if (hil->isFullHIL())
+            {
+                std::cout << "Registering FULL HIL flight phases" << std::endl;
 
-            hil->registerToFlightPhase(MainFlightPhases::PARA1,
-                                       [&]
-                                       {
-                                           auto motor = motorStatus->lockData();
-                                           motor->oxVentingValveOpen = true;
-                                           // Normally the nitrogen valve should
-                                           // open after a delay from the N2
-                                           // quenching but we can't do that in
-                                           // HIL mode
-                                           motor->nitrogenValveOpen = true;
-                                       });
-        }
-    }
+                // Simulate the RIG sending the main valve open command to the
+       motor
+                // through CAN bus
+                hil->registerToFlightPhase(
+                    MainFlightPhases::LIFTOFF,
+                    [&]
+                    {
+                        // Opening time doesn't matter as the valve is closed by
+       the
+                        // FMM, just open it more than the timeout
+                        canHandler->sendServoOpenCommand(
+                            ServosList::MAIN_VALVE,
+                            milliseconds{
+                                Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT
+       + 1s} .count());
+                    });
+            }
+            else
+            {
+                std::cout << "Registering HIL flight phases" << std::endl;
+
+                // Simulate motor valve state changes
+                hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
+                                           [&]
+                                           {
+                                               auto motor =
+       motorStatus->lockData(); motor->mainValveOpen     = true;
+                                               motor->nitrogenValveOpen = true;
+                                           });
+
+                hil->registerToFlightPhase(MainFlightPhases::SHUTDOWN,
+                                           [&]
+                                           {
+                                               auto motor =
+       motorStatus->lockData(); motor->mainValveOpen        = false;
+                                               motor->nitrogenValveOpen    =
+       false; motor->n2QuenchingValveOpen = true;
+                                           });
+
+                hil->registerToFlightPhase(MainFlightPhases::PARA1,
+                                           [&]
+                                           {
+                                               auto motor =
+       motorStatus->lockData(); motor->oxVentingValveOpen = true;
+                                               // Normally the nitrogen valve
+       should
+                                               // open after a delay from the N2
+                                               // quenching but we can't do that
+       in
+                                               // HIL mode
+                                               motor->nitrogenValveOpen = true;
+                                           });
+            }
+        } */
 
     std::cout << "Starting Sensors" << std::endl;
     led1On();
@@ -376,12 +379,27 @@ int main()
         sdLogger.log(sdLogger.getStats());
 
         // Toggle LED
-        gpioExpander.setPinValue(Config::GpioExpander::LED_0.getPort(),
-                                 Config::GpioExpander::LED_0.getPin(),
-                                 ledValue);
+        gpioExpander.setPinValue(Config::ExternalPin::LED_0.getPort(),
+                                 Config::ExternalPin::LED_0.getPin(), ledValue);
+        gpioExpander.setPinValue(Config::ExternalPin::LED_1.getPort(),
+                                 Config::ExternalPin::LED_1.getPin(), ledValue);
+        gpioExpander.setPinValue(Config::ExternalPin::LED_2.getPort(),
+                                 Config::ExternalPin::LED_2.getPin(), ledValue);
+
+        if (ledValue)
+        {
+            actuators->expulsionOn();
+            actuators->releaserOn();
+        }
+        else
+        {
+            actuators->expulsionOff();
+            actuators->releaserOff();
+        }
+
         ledValue = !ledValue;
 
-        Thread::sleep(1000);
+        Thread::sleep(5000);
     }
 
     return 0;

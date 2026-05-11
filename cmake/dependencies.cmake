@@ -28,7 +28,7 @@ set(MAIN_COMPUTER
     src/common/canbus/MotorStatus.cpp
     src/Main/Data/ABKTrajectorySet.cxx
     src/Main/PersistentVars/PersistentVars.cpp
-    src/Main/HIL/HIL.cpp
+    # src/Main/HIL/HIL.cpp
     src/Main/Sensors/Sensors.cpp
     src/Main/AlgoReference/AlgoReference.cpp
     src/Main/Radio/Radio.cpp
