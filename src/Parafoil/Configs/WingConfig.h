@@ -59,7 +59,7 @@ constexpr auto WING_DECREMENT               = 180_deg;
 constexpr auto INITIAL_ANGLE                = 1080_deg;
 
 constexpr auto SERVOS_MAX_ANGLE         = 1080_deg;
-constexpr auto SERVO_LIMITER_PERCENTAGE = 0.6f;
+constexpr auto SERVO_LIMITER_PERCENTAGE = 0.7f;
 
 constexpr auto SERVO_LEFT_MIN_ANGLE = 45_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
@@ -228,8 +228,8 @@ constexpr Meter ALTITUDE = 30_m;  // [m]
 constexpr int CONFIDENCE         = 15;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
 constexpr auto DURATION          = 120s;
-constexpr auto ANGLE_LEFT_SERVO  = 540_deg;
-constexpr auto ANGLE_RIGHT_SERVO = 540_deg;
+constexpr auto ANGLE_LEFT_SERVO  = 900_deg;
+constexpr auto ANGLE_RIGHT_SERVO = 900_deg;
 
 namespace TinyPull
 {
