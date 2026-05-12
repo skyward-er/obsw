@@ -70,6 +70,9 @@ State FlightModeManager::PreFlight(const Event& event)
     {
         case EV_ENTRY:
         {
+            getModule<Actuators>()->cameraOff();
+            getModule<Actuators>()->cuttersOff();
+            getModule<Actuators>()->rampOff();
             return HANDLED;
         }
 
