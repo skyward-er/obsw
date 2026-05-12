@@ -28,7 +28,7 @@
 #include <sensors/LPS22DF/LPS22DF.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030D/ND030D.h>
+#include <sensors/ND030X/ND030D.h>
 #include <units/Frequency.h>
 
 #include <chrono>
