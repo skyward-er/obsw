@@ -98,6 +98,8 @@ NASState NASController::getNASState()
     return nas.getState();
 }
 
+// TODO Aggiungere getter per ANAS e NASDAQ
+
 void NASController::setOrientation(Eigen::Quaternion<float> quat)
 {
     // Need to lock mutex because the only invocation comes from the radio
@@ -139,78 +141,33 @@ void NASController::update()
         auto staticPitot  = sensors->getCanPitotStaticPressure();
         auto dynamicPitot = sensors->getCanPitotDynamicPressure();
 
-        // Calculate acceleration
-        Vector3f acc    = static_cast<AccelerometerData>(imu);
-        float accLength = acc.norm();
 
-        // Perform initial NAS prediction
-        // TODO: What about stale data?
-        nas.predictGyro(imu);
-        nas.predictAcc(imu);
+        ANAS0_types_h_::NASIn inputs = {
+            .AccMeasure = { imu.accelerationX, imu.accelerationY, imu.accelerationZ },
+            .AccTimestamp = imu.accelerationTimestamp,
+            .GyroMeasure = { imu.angularSpeedX, imu.angularSpeedY, imu.angularSpeedZ },
 
-        // Then perform necessary corrections
-        // Disable magnetometer correction
-        // if (lastMagTimestamp < imu.magneticFieldTimestamp &&
-        //     magDecimateCount == Config::NAS::MAGNETOMETER_DECIMATE)
-        // {
-        //     nas.correctMag(imu);
-        //     magDecimateCount = 0;
-        // }
-        // else
-        // {
-        //     magDecimateCount++;
-        // }
+            // ASSOLUTAMENTE DA CAMBIARE STO SCHIFO
+            .GyroTimestamp = static_cast<uint32_t>(imu.angularSpeedTimestamp),
+            .BaroMeasure = baro.pressure,
+            .BaroTimestamp = baro.pressureTimestamp,
+            .GPSMeasure = { gps.latitude, gps.longitude, gps.height, gps.speed },
+            .GPSTimestamp = gps.gpsTimestamp,
+            .GPSHorizAccuracy = 0.0, // idk, gnc stuff, chiedo a nick
+            .GPSVertAccuracy = 0.0, // stessa roba
+            .PitotMeasure = { staticPitot.pressure, dynamicPitot.pressure }, // chiedi se corrispondono a queste
+            .PitotTimestamp = staticPitot.pressureTimestamp, // Chiedi per quale usare
+            .MagMeasure = { imu.magneticFieldX, imu.magneticFieldY, imu.magneticFieldZ },
+            .MagTimestamp = { imu.magneticFieldTimestamp }
+        };
 
-        if (lastGpsTimestamp < gps.gpsTimestamp && gps.fix == 3 &&
-            accLength < Config::NAS::DISABLE_GPS_ACCELERATION)
-        {
-            nas.correctGPS(gps);
-        }
+        anas.setNASIn(inputs);
 
-        if (lastBaroTimestamp < baro.pressureTimestamp)
-            nas.correctBaro(baro.pressure);
+        // TODO Check di questo
+        auto state = anas.getNASOut();
 
-        // Correct with pitot if one pressure sample is new
-        if (dynamicPitot.pressure > 0 &&
-            (staticPitotTimestamp < staticPitot.pressureTimestamp ||
-             dynamicPitotTimestamp < dynamicPitot.pressureTimestamp) &&
-            mach > Config::NAS::PITOT_MACH_THRESHOLD)
-        {
-            nas.correctPitot(staticPitot.pressure, dynamicPitot.pressure);
-        }
 
-        // Correct with accelerometer if the acceleration is in specs
-        if (lastAccTimestamp < imu.accelerationTimestamp && acc1g)
-            nas.correctAcc(imu);
-
-        // Check if the accelerometer is measuring 1g
-        if (accLength <
-                (Constants::g + Config::NAS::ACCELERATION_1G_CONFIDENCE / 2) &&
-            accLength >
-                (Constants::g - Config::NAS::ACCELERATION_1G_CONFIDENCE / 2))
-        {
-            if (acc1gSamplesCount < Config::NAS::ACCELERATION_1G_SAMPLES)
-                acc1gSamplesCount++;
-            else
-                acc1g = true;
-        }
-        else
-        {
-            acc1gSamplesCount = 0;
-            acc1g             = false;
-        }
-
-        lastGyroTimestamp     = imu.angularSpeedTimestamp;
-        lastAccTimestamp      = imu.accelerationTimestamp;
-        lastMagTimestamp      = imu.magneticFieldTimestamp;
-        lastGpsTimestamp      = gps.gpsTimestamp;
-        lastBaroTimestamp     = baro.pressureTimestamp;
-        staticPitotTimestamp  = staticPitot.pressureTimestamp;
-        dynamicPitotTimestamp = dynamicPitot.pressureTimestamp;
-
-        auto state = nas.getState();
-
-        getModule<StatsRecorder>()->updateNas(state);
+        getModule<StatsRecorder>()->updateANAS(state);
         sdLogger.log(state);
     }
 
@@ -218,8 +175,6 @@ void NASController::update()
     {
         Sensors* sensors      = getModule<Sensors>();
         ADAController* adaRef = getModule<ADAController>();
-
-        auto prevState = nas.getState();
 
         // Pack up inputs
         auto baro =
@@ -231,11 +186,30 @@ void NASController::update()
         auto adaVerticalSpeed =
             adaRef->getMaxVerticalSpeed();  // Check if this is the correct data
                                             // wanted by GNC
-        auto adaTimestamp;
-        auto adaCovariance;
+
+        auto adaTimestamp  = adaRef->getADAStateTemp().timestamp;
+        auto adaCovariance = adaRef->getVerticalVelocityCovariance();
+
+        // Da rivedere con NASDAQ autocodato con versione standard
+
+        NASDAQ0_types_h_::NASDAQ0In inputs = {
+            .baro             = baro,
+            .gps              = gps,
+            .adaVerticalSpeed = adaVerticalSpeed,
+            .adaTimestamp     = adaTimestamp,
+            .adaCovariance    = adaCovariance
+        };
+
+        nasdaq.setInternalInputs(&inputs);
+
+        auto NASDAQState = nasdaq.getExternalOutputs();
+
+        getModule<StatsRecorder>()->updateNASDAQ(&NASDAQState);
     }
 }
 
+
+// Serve Ancora?
 void NASController::calibrate()
 {
     Sensors* sensors = getModule<Sensors>();
