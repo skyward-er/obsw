@@ -32,6 +32,7 @@
 #include <algorithms/ANAS/ANAS0_types.h>
 #include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQ0.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <algorithms/NASDAQ/NASDAQ0_types.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
@@ -55,6 +56,7 @@ public:
     Boardcore::NASState getNASState();
 
     Boardcore::ANASState NASController::getANASState();
+    Boardcore::NASDAQState NASController::getNASDAQState();
 
     NASControllerState getState();
 

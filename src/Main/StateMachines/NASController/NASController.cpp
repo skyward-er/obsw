@@ -29,7 +29,6 @@
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
-#include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <utils/SkyQuaternion/SkyQuaternion.h>
 
@@ -93,8 +92,6 @@ bool NASController::start()
 
 NASControllerState NASController::getState() { return state; }
 
-
-
 ANASState NASController::getANASState()
 {
     Lock<FastMutex> lock{nasMutex};
@@ -102,7 +99,7 @@ ANASState NASController::getANASState()
     auto rawOutput = anas.getNASOut();
 
     // Devo passare questo o il timestamp interno?
-    uint64_t timestamp = TimestampTimer::getTimestamp();
+    uint64_t timestamp = miosix::getTime();
 
     ANASState state(timestamp, rawOutput.Position, rawOutput.Velocity,
                     rawOutput.Quaternion);
@@ -110,7 +107,16 @@ ANASState NASController::getANASState()
     return state;
 }
 
-// TODO Aggiungere getter per NASDAQ
+NASDAQState NASController::getNASDAQState()
+{
+    Lock<FastMutex> lock{nasMutex};
+
+    auto rawOutput = nasdaq.getNASDAQ_Out();
+
+    uint64_t timestamp = miosix::getTime();
+
+    NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
+}
 
 void NASController::setOrientation(Eigen::Quaternion<float> quat)
 {
@@ -171,9 +177,7 @@ void NASController::update()
             .GPSHorizAccuracy = gps.hAcc,
             .GPSVertAccuracy  = gps.sAcc,
 
-            .PitotMeasure =
-                {staticPitot.pressure,
-                 dynamicPitot.pressure},  // chiedi se corrispondono a queste
+            .PitotMeasure   = {staticPitot.pressure, dynamicPitot.pressure},
             .PitotTimestamp = staticPitot.pressureTimestamp,
             .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
                                imu.magneticFieldZ},
@@ -209,20 +213,36 @@ void NASController::update()
         auto adaTimestamp  = adaRef->getADAStateTemp().timestamp;
         auto adaCovariance = adaRef->getVerticalVelocityCovariance();
 
-        // Da rivedere con NASDAQ autocodato con versione standard
+        // Building Inputs
 
-        NASDAQ0_types_h_::NASDAQ0In inputs = {
-            .baro             = baro,
-            .gps              = gps,
-            .adaVerticalSpeed = adaVerticalSpeed,
-            .adaTimestamp     = adaTimestamp,
-            .adaCovariance    = adaCovariance};
+        NASDAQ0_types_h_::NASDAQInADA ADAIn = {
+            .VerticalSpeed           = adaVerticalSpeed,
+            .VerticalSpeedCovariance = adaCovariance,
+            .Timestamp               = miosix::getTime()};
 
-        nasdaq.setInternalInputs(&inputs);
+        NASDAQ0_types_h_::NASDAQInSensors sensorIn = {
+            .BaroMeasure   = baro.pressure,
+            .BaroTimestamp = baro.pressureTimestamp,
+            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
+            .GPSTimestamp = gps.gpsTimestamp};
 
-        auto NASDAQState = nasdaq.getExternalOutputs();
+        // Feed inputs
 
-        getModule<StatsRecorder>()->updateNASDAQ(&NASDAQState);
+        nasdaq.setNASDAQ_In_ADA(ADAIn);
+        nasdaq.setNASDAQ_In_Sensors(sensorIn);
+
+        // Update and log
+
+        auto state = nasdaq.getNASDAQ_Out();
+        auto logs  = nasdaq.getNASDAQ_Logs_OBSW();
+
+        sdLogger.log(state);
+        sdLogger.log(logs);
+
+        // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
+        // dello stato della state
+
+        getModule<StatsRecorder>()->updateNASDAQ(state);
     }
 }
 
@@ -403,6 +423,6 @@ void NASController::state_end(const Event& event)
 void NASController::updateAndLogStatus(NASControllerState state)
 {
     this->state              = state;
-    NASControllerStatus data = {TimestampTimer::getTimestamp(), state};
+    NASControllerStatus data = {miosix::getTime(), state};
     sdLogger.log(data);
 }
