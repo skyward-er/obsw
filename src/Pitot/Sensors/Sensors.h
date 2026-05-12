@@ -21,9 +21,9 @@
  */
 
 #pragma once
-//Debugging
+// Debugging
 #include <Pitot/HeatingPadController/HeatingPadController.h>
-//Debugging END
+// Debugging END
 #include <Pitot/Buses.h>
 #include <Pitot/Configs/SensorsConfig.h>
 #include <Pitot/Sensors/SensorData.h>
@@ -42,7 +42,8 @@ namespace Pitot
 class BoardScheduler;
 class Buses;
 
-class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, HeatingPadController>
+class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
+                                                     HeatingPadController>
 {
 public:
     Sensors() {}
@@ -82,7 +83,6 @@ protected:
     std::unique_ptr<Boardcore::SensorManager> manager;
 
 private:
-
     void internalADCInit();
     void internalADCCallback();
 

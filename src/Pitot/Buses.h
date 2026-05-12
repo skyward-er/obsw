@@ -45,7 +45,6 @@ public:
 
     Boardcore::SPIBus& getThermocouple() { return spi4; }
 
-
 private:
     Boardcore::SPIBus spi1{SPI1};
     Boardcore::SPIBus spi4{SPI4};

@@ -151,7 +151,8 @@ int main()
     if (!heatingPad->start())
     {
         initResult = false;
-        std::cerr << "*** Failed to start HeatingPadController ***" << std::endl;
+        std::cerr << "*** Failed to start HeatingPadController ***"
+                  << std::endl;
     }
 
     if (initResult)

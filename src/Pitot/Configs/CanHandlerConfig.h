@@ -41,8 +41,8 @@ constexpr auto SEND_RATE = 25_hz;
 namespace Status
 {
 
-constexpr auto HIL = false;
-constexpr auto ARMED = false;
+constexpr auto HIL      = false;
+constexpr auto ARMED    = false;
 constexpr uint8_t STATE = 1;
 
 }  // namespace Status
