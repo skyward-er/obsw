@@ -178,15 +178,9 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
             getModule<FlightStatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
 
-            setWingLimits();
-
-            if (Config::Wing::Deployment::PUMPS.size() >
-                0)  // If there is at least one pump specified
-                dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
-                    DPL_FLARE_START, TOPIC_DPL,
-                    milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
-            else
-                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+            dplFlareTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_FLARE_START, TOPIC_DPL,
+                milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
 
             if (Config::Wing::DynamicTarget::ENABLED)
                 initDynamicTarget(
@@ -214,6 +208,14 @@ State WingController::FlyingDeployment(const Boardcore::Event& event)
 
         case DPL_FLARE_START:
         {
+            setWingLimits();
+
+            if (Config::Wing::Deployment::PUMPS.size() <= 0)
+            {
+                EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
+                return HANDLED;
+            }
+
             auto pump = Config::Wing::Deployment::PUMPS.at(pumpCount);
 
             flareWing(FlareType::PUMP);
