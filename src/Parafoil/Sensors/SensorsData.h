@@ -125,6 +125,30 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
     }
 };
 
+struct AS5047D0Data : AS5047DData
+{
+    explicit AS5047D0Data(const AS5047DData& data) : AS5047DData(data) {}
+
+    AS5047D0Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(AS5047D0Data, EXTEND_DEF(AS5047DData));
+    }
+};
+
+struct AS5047D1Data : AS5047DData
+{
+    explicit AS5047D1Data(const AS5047DData& data) : AS5047DData(data) {}
+
+    AS5047D1Data() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(AS5047D1Data, EXTEND_DEF(AS5047DData));
+    }
+};
+
 struct CalibrationData
 {
     uint64_t timestamp     = 0;

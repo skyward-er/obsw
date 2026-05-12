@@ -470,7 +470,7 @@ void Sensors::as5047d1Callback()
     if (!as5047d_1)
         return;
 
-    sdLogger.log(getAS5047D1LastSample());
+    sdLogger.log(AS5047D0Data{getAS5047D1LastSample()});
 }
 
 void Sensors::as5047d2Init()
@@ -490,7 +490,7 @@ void Sensors::as5047d2Callback()
     if (!as5047d_2)
         return;
 
-    sdLogger.log(getAS5047D2LastSample());
+    sdLogger.log(AS5047D1Data{getAS5047D2LastSample()});
 }
 
 Boardcore::AS5047DData Sensors::getAS5047D1LastSample()
