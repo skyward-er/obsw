@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Main/Sensors/SensorsData.h>
 #include <Parafoil/Buses.h>
 #include <Parafoil/Configs/SensorsConfig.h>
+#include <Parafoil/Sensors/SensorsData.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
@@ -47,8 +47,6 @@
 
 #include <mutex>
 
-#include "SensorData.h"
-
 namespace Parafoil
 {
 class BoardScheduler;
@@ -67,7 +65,7 @@ public:
 
     void calibrate();
 
-    Main::CalibrationData getCalibration();
+    Parafoil::CalibrationData getCalibration();
 
     void resetMagCalibrator();
     void enableMagCalibrator();

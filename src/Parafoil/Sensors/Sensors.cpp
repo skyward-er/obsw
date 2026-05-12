@@ -33,8 +33,6 @@
 #include <chrono>
 #include <mutex>
 
-#include "SensorData.h"
-
 using namespace std::chrono;
 using namespace miosix;
 using namespace Eigen;
@@ -124,7 +122,7 @@ bool Sensors::start()
 
 void Sensors::calibrate() { sdLogger.log(getCalibration()); }
 
-Main::CalibrationData Sensors::getCalibration()
+Parafoil::CalibrationData Sensors::getCalibration()
 {
     std::lock(magCalibrationMutex, lsm6Calibration0Mutex);
 

@@ -1,6 +1,5 @@
-
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+ * Authors: Davide Mor, Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +22,8 @@
 
 #pragma once
 
+#include <sensors/LIS2MDL/LIS2MDLData.h>
+#include <sensors/LSM6DSRX/LSM6DSRXData.h>
 #include <sensors/SensorData.h>
 
 #include <reflect.hpp>
@@ -30,16 +31,14 @@
 namespace Parafoil
 {
 
-// Wrappers to differentiate static and dynamic pressure for logging
-
 struct StaticPressureData : public Boardcore::PressureData
 {
-    StaticPressureData() = default;
-
     explicit StaticPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
+
+    StaticPressureData() {}
 
     static constexpr auto reflect()
     {
@@ -48,18 +47,18 @@ struct StaticPressureData : public Boardcore::PressureData
     }
 };
 
-struct DynamicPressureData : public Boardcore::PressureData
+struct DplBayPressureData : Boardcore::PressureData
 {
-    DynamicPressureData() = default;
-
-    explicit DynamicPressureData(const Boardcore::PressureData& data)
+    explicit DplBayPressureData(const Boardcore::PressureData& data)
         : Boardcore::PressureData(data)
     {
     }
 
+    DplBayPressureData() {}
+
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(DynamicPressureData,
+        return STRUCT_DEF(DplBayPressureData,
                           EXTEND_DEF(Boardcore::PressureData));
     }
 };
@@ -94,6 +93,22 @@ struct LSM6DSRX1Data : Boardcore::LSM6DSRXData
     }
 };
 
+struct DynamicPressureData : public Boardcore::PressureData
+{
+    DynamicPressureData() = default;
+
+    explicit DynamicPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(DynamicPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
 struct LIS2MDLExternalData : Boardcore::LIS2MDLData
 {
     explicit LIS2MDLExternalData(const Boardcore::LIS2MDLData& data)
@@ -107,6 +122,44 @@ struct LIS2MDLExternalData : Boardcore::LIS2MDLData
     {
         return STRUCT_DEF(LIS2MDLExternalData,
                           EXTEND_DEF(Boardcore::LIS2MDLData));
+    }
+};
+
+struct CalibrationData
+{
+    uint64_t timestamp     = 0;
+    float acc0BiasX        = 0.0f;
+    float acc0BiasY        = 0.0f;
+    float acc0BiasZ        = 0.0f;
+    float gyro0BiasX       = 0.0f;
+    float gyro0BiasY       = 0.0f;
+    float gyro0BiasZ       = 0.0f;
+    float acc1BiasX        = 0.0f;
+    float acc1BiasY        = 0.0f;
+    float acc1BiasZ        = 0.0f;
+    float gyro1BiasX       = 0.0f;
+    float gyro1BiasY       = 0.0f;
+    float gyro1BiasZ       = 0.0f;
+    float magBiasX         = 0.0f;
+    float magBiasY         = 0.0f;
+    float magBiasZ         = 0.0f;
+    float magScaleX        = 0.0f;
+    float magScaleY        = 0.0f;
+    float magScaleZ        = 0.0f;
+    float pitotDynamicBias = 0.0f;
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(
+            CalibrationData,
+            FIELD_DEF(timestamp) FIELD_DEF(acc0BiasX) FIELD_DEF(acc0BiasY)
+                FIELD_DEF(acc0BiasZ) FIELD_DEF(gyro0BiasX) FIELD_DEF(gyro0BiasY)
+                    FIELD_DEF(gyro0BiasZ) FIELD_DEF(acc1BiasX) FIELD_DEF(
+                        acc1BiasY) FIELD_DEF(acc1BiasZ) FIELD_DEF(gyro1BiasX)
+                        FIELD_DEF(gyro1BiasY) FIELD_DEF(gyro1BiasZ)
+                            FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
+                                FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
+                                    FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
     }
 };
 
