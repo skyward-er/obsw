@@ -21,7 +21,6 @@
  */
 
 #include "Sensors.h"
-#include "SensorData.h"
 
 #include <Pitot/BoardScheduler.h>
 #include <Pitot/Buses.h>
@@ -31,6 +30,8 @@
 
 #include <chrono>
 #include <mutex>
+
+#include "SensorData.h"
 
 using namespace std::chrono;
 using namespace miosix;
@@ -47,9 +48,8 @@ bool Sensors::start()
     if (Config::Sensors::InternalADC::ENABLED)
         internalADCInit();
 
-    if(Config::Sensors::HeatingPadNTC::ENABLED){
+    if (Config::Sensors::HeatingPadNTC::ENABLED)
         heatingPadNTCInit();
-    }
 
     if (Config::Sensors::ND015A::ENABLED)
         nd015aInit();
@@ -160,12 +160,14 @@ TaskScheduler& Sensors::getSensorsScheduler()
     return getModule<BoardScheduler>()->sensors();
 }
 
-void Sensors::internalADCInit(){
+void Sensors::internalADCInit()
+{
     internalADC = std::make_unique<InternalADC>(ADC2);
     internalADC->enableChannel(Config::Sensors::HeatingPadNTC::CH);
 }
 
-void Sensors::internalADCCallback(){
+void Sensors::internalADCCallback()
+{
     sdLogger.log(InternalADCData{getInternalADCLastSample()});
 }
 
@@ -175,26 +177,34 @@ void Sensors::heatingPadNTCInit()
         [this]()
         {
             auto sample = getInternalADCLastSample();
-            return VoltageData{sample.timestamp, sample.voltage[(int)Config::Sensors::HeatingPadNTC::CH]};
-        }, Config::Sensors::HeatingPadNTC::REF_VOLTAGE, Config::Sensors::HeatingPadNTC::REF_RESISTANCE, Config::Sensors::HeatingPadNTC::REF_TEMPERATURE, Config::Sensors::HeatingPadNTC::BETA);
+            return VoltageData{
+                sample.timestamp,
+                sample.voltage[(int)Config::Sensors::HeatingPadNTC::CH]};
+        },
+        Config::Sensors::HeatingPadNTC::REF_VOLTAGE,
+        Config::Sensors::HeatingPadNTC::REF_RESISTANCE,
+        Config::Sensors::HeatingPadNTC::REF_TEMPERATURE,
+        Config::Sensors::HeatingPadNTC::BETA);
 }
 
 void Sensors::heatingPadNTCCallback()
 {
     auto heatingPad = getModule<HeatingPadController>();
-    
+
     const char* schmittStates[] = {"LOW", "STOP", "HIGH"};
-    int schmittOut = heatingPad->getSchmittTriggerOutput();
-    const char* schmittStr = (schmittOut >= 0 && schmittOut <= 2) ? schmittStates[schmittOut] : "UNKNOWN";
+    int schmittOut              = heatingPad->getSchmittTriggerOutput();
+    const char* schmittStr      = (schmittOut >= 0 && schmittOut <= 2)
+                                      ? schmittStates[schmittOut]
+                                      : "UNKNOWN";
 
     float tempCelsius = getHeatingPadNTCLastSample().temperature - 273.15f;
 
-    printf("[HeatingPad NTC] Sense: %s | Enable Pin: %s | Trigger: %s | Temp: %.2f C\n", 
-            heatingPad->getHeatingPadSense() ? "HIGH" : "LOW", 
-            heatingPad->getPinEnabled() ? "HIGH" : "LOW", 
-            schmittStr, 
-            tempCelsius);
-            
+    printf(
+        "[HeatingPad NTC] Sense: %s | Enable Pin: %s | Trigger: %s | Temp: "
+        "%.2f C\n",
+        heatingPad->getHeatingPadSense() ? "HIGH" : "LOW",
+        heatingPad->getPinEnabled() ? "HIGH" : "LOW", schmittStr, tempCelsius);
+
     sdLogger.log(HeatingPadTemperatureData{getHeatingPadNTCLastSample()});
 }
 
@@ -205,8 +215,7 @@ void Sensors::nd015aInit()
     nd015a = std::make_unique<ND015A>(
         getModule<Buses>()->getND015A(), sensors::ND015A::cs::getPin(),
         spiConfig, Config::Sensors::ND015A::IOW, Config::Sensors::ND015A::BWL,
-        Config::Sensors::ND015A::NTC, Config::Sensors::ND015A::
-        ODR);
+        Config::Sensors::ND015A::NTC, Config::Sensors::ND015A::ODR);
 }
 
 void Sensors::nd015aCallback()
@@ -220,9 +229,8 @@ void Sensors::nd030aInit()
 
     nd030a = std::make_unique<ND030A>(
         getModule<Buses>()->getND030A(), sensors::ND030A::cs::getPin(),
-        spiConfig, Config::Sensors::ND030A::IOW,
-        Config::Sensors::ND030A::BWL, Config::Sensors::ND030A::NTC,
-        Config::Sensors::ND030A::ODR);
+        spiConfig, Config::Sensors::ND030A::IOW, Config::Sensors::ND030A::BWL,
+        Config::Sensors::ND030A::NTC, Config::Sensors::ND030A::ODR);
 }
 
 void Sensors::nd030aCallback()
@@ -234,15 +242,17 @@ bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
 
-    if(internalADC)
+    if (internalADC)
     {
-        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE, [this]() { internalADCCallback(); }};
+        SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE,
+                        [this]() { internalADCCallback(); }};
         map.emplace(internalADC.get(), info);
     }
 
-    if(heatingPadNTC)
+    if (heatingPadNTC)
     {
-        SensorInfo info{"HeatingPadNTC", Config::Sensors::HeatingPadNTC::RATE, [this]() { heatingPadNTCCallback(); }};
+        SensorInfo info{"HeatingPadNTC", Config::Sensors::HeatingPadNTC::RATE,
+                        [this]() { heatingPadNTCCallback(); }};
         map.emplace(heatingPadNTC.get(), info);
     }
 

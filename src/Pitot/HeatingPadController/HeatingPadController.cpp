@@ -21,146 +21,150 @@
  */
 
 #pragma once
-#include <Pitot/Configs/HeatingPadControllerConfig.h>
+#include "HeatingPadController.h"
+
 #include <Pitot/BoardScheduler.h>
+#include <Pitot/Configs/HeatingPadControllerConfig.h>
 #include <Pitot/Sensors/Sensors.h>
 #include <interfaces-impl/hwmapping.h>
 
-
-#include "HeatingPadController.h"
-
 namespace Pitot
 {
-    HeatingPadController::HeatingPadController(HeatingPadConfig config)
-        : updateRate(config.updateRate)
+HeatingPadController::HeatingPadController(HeatingPadConfig config)
+    : updateRate(config.updateRate)
+{
+    schmittTrigger.setThresholds(config.thresholdLow, config.thresholdHigh);
+    schmittTrigger.setTargetState(config.targetTemperature);
+}
+
+HeatingPadController::HeatingPadController()
+    : updateRate(Config::HeatingPadController::UPDATE_RATE)
+{
+    schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD,
+                                 Config::HeatingPadController::THRESHOLD);
+    schmittTrigger.setTargetState(
+        Config::HeatingPadController::TARGET_TEMPERATURE);
+}
+
+bool HeatingPadController::start()
+{
+    if (started)
+        return false;
+
+    if (!heatingPadSense())
     {
-        schmittTrigger.setThresholds(config.thresholdLow, config.thresholdHigh);
-        schmittTrigger.setTargetState(config.targetTemperature);
+        LOG_ERR(logger, "Heating pad not detected!");
+        return false;
     }
 
-    HeatingPadController::HeatingPadController()
-        : updateRate(Config::HeatingPadController::UPDATE_RATE)
+    if (!schmittTrigger.init())
     {
-        schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD, Config::HeatingPadController::THRESHOLD);
-        schmittTrigger.setTargetState(Config::HeatingPadController::TARGET_TEMPERATURE);
+        LOG_ERR(logger, "Failed to initialize Schmitt trigger!");
+        return false;
     }
 
-    bool HeatingPadController::start()
-    {
-        if (started)
-            return false;
-        
-        if(!heatingPadSense()){
-            LOG_ERR(logger, "Heating pad not detected!");
-            return false;
-        }
+    schmittTrigger.begin();
 
-        if(!schmittTrigger.init()){
-            LOG_ERR(logger, "Failed to initialize Schmitt trigger!");
-            return false;
-        }
+    auto& scheduler = getModule<BoardScheduler>()->heatingPadController();
+    auto task       = scheduler.addTask([this] { update(); }, updateRate);
 
-        schmittTrigger.begin();
+    if (task == 0)
+        return false;
 
-        auto& scheduler = getModule<BoardScheduler>()->heatingPadController();
-        auto task = scheduler.addTask([this] { update(); }, updateRate);
+    started = true;
+    enable();
+    return true;
+}
 
-        if (task == 0)
-            return false;
+bool HeatingPadController::isStarted() { return started; }
 
-        started = true;
-        enable();
+void HeatingPadController::enable()
+{
+    if (running)
+        return;
+
+    running = true;
+}
+
+void HeatingPadController::disable() { running = false; }
+
+bool HeatingPadController::isEnabled() { return running; }
+
+void HeatingPadController::setTargetTemperature(float temperature)
+{
+    miosix::Lock<FastMutex> lock(heatingPadMutex);
+    schmittTrigger.setTargetState(temperature);
+}
+
+// debugging
+
+bool HeatingPadController::getHeatingPadSense()
+{
+    return miosix::HeatingPad::sense::value();
+}
+
+bool HeatingPadController::getPinEnabled() { return pinEnabled; }
+
+int HeatingPadController::getSchmittTriggerOutput()
+{
+    return static_cast<int>(schmittTrigger.getOutput());
+}
+
+// debugging end
+
+bool HeatingPadController::heatingPadSense()
+{
+    if (miosix::HeatingPad::sense::value() ==
+        Config::HeatingPadController::SENSE_ACTIVE)
         return true;
-    }
+    else
+        return false;
+}
 
-    bool HeatingPadController::isStarted() { return started; }
+void HeatingPadController::enableHeatingPad()
+{
+    pinEnabled = true;
+    miosix::HeatingPad::enable::high();
+}
+void HeatingPadController::disableHeatingPad()
+{
+    pinEnabled = false;
+    miosix::HeatingPad::enable::low();
+}
 
-    void HeatingPadController::enable()
+void HeatingPadController::update()
+{
+    if (!running)
+        return;
+
+    if (!heatingPadSense() != pinEnabled)
     {
-        if (running)
-            return;
-
-        running    = true;
+        LOG_WARN(logger, "Heating pad sense mismatch: SENSE:{}, ENABLED:{} ",
+                 heatingPadSense(), pinEnabled);
     }
 
-    void HeatingPadController::disable() { running = false; }
+    float temperature =
+        getModule<Sensors>()->getHeatingPadNTCLastSample().temperature;  // K
+    schmittTrigger.setCurrentState(temperature);
+    Boardcore::SchmittTrigger::Activation activation;
 
-    bool HeatingPadController::isEnabled() { return running; }
-
-    void HeatingPadController::setTargetTemperature(float temperature)
     {
-        miosix::Lock<FastMutex> lock(heatingPadMutex);
-        schmittTrigger.setTargetState(temperature);
+        miosix::Lock<miosix::FastMutex> lock(heatingPadMutex);
+        schmittTrigger.update();
+        activation = schmittTrigger.getOutput();
     }
 
-    //debugging
-
-    bool HeatingPadController::getHeatingPadSense()
+    switch (activation)
     {
-        return miosix::HeatingPad::sense::value();
+        case Boardcore::SchmittTrigger::Activation::HIGH:
+            enableHeatingPad();
+            break;
+        case Boardcore::SchmittTrigger::Activation::LOW:
+            disableHeatingPad();
+            break;
+        case Boardcore::SchmittTrigger::Activation::STOP:
+            break;
     }
-
-    bool HeatingPadController::getPinEnabled()
-    {
-        return pinEnabled;
-    }
-
-    int HeatingPadController::getSchmittTriggerOutput()
-    {
-        return static_cast<int>(schmittTrigger.getOutput());
-    }
-
-    //debugging end
-
-    bool HeatingPadController::heatingPadSense()
-    {
-        if(miosix::HeatingPad::sense::value() == Config::HeatingPadController::SENSE_ACTIVE)
-            return true;
-        else
-            return false;
-    }
-
-    void HeatingPadController::enableHeatingPad()
-    {
-        pinEnabled = true;
-        miosix::HeatingPad::enable::high();
-    }
-    void HeatingPadController::disableHeatingPad()
-    {
-        pinEnabled = false;
-        miosix::HeatingPad::enable::low();
-    }
-
-    void HeatingPadController::update()
-    {
-        if (!running)
-            return;
-
-        if(!heatingPadSense() != pinEnabled){
-            LOG_WARN(logger, "Heating pad sense mismatch: SENSE:{}, ENABLED:{} ", heatingPadSense(), pinEnabled);
-        }
-        
-        float temperature = getModule<Sensors>()->getHeatingPadNTCLastSample().temperature; //K
-        schmittTrigger.setCurrentState(temperature);
-        Boardcore::SchmittTrigger::Activation activation;
-
-        {
-            miosix::Lock<miosix::FastMutex> lock(heatingPadMutex);
-            schmittTrigger.update();
-            activation = schmittTrigger.getOutput();
-        }
-
-        switch (activation)
-        {       
-            case Boardcore::SchmittTrigger::Activation::HIGH:
-                enableHeatingPad();
-                break;
-            case Boardcore::SchmittTrigger::Activation::LOW:
-                disableHeatingPad();
-                break;
-            case Boardcore::SchmittTrigger::Activation::STOP:
-                break;
-        }
-    }
+}
 
 }  // namespace Pitot

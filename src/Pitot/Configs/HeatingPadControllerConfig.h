@@ -22,28 +22,27 @@
 
 #pragma once
 
-#include <chrono>
 #include <units/Frequency.h>
 
+#include <chrono>
 
 namespace Pitot
 {
-    namespace Config
-    {
-        namespace HeatingPadController
-        {
-            /* linter-off */ using namespace std::chrono_literals;
-            /* linter-off */ using namespace Boardcore::Units::Frequency;
+namespace Config
+{
+namespace HeatingPadController
+{
+/* linter-off */ using namespace std::chrono_literals;
+/* linter-off */ using namespace Boardcore::Units::Frequency;
 
-            constexpr auto UPDATE_RATE = 10_hz;
-            constexpr auto SENSE_ACTIVE = 1;
+constexpr auto UPDATE_RATE  = 10_hz;
+constexpr auto SENSE_ACTIVE = 1;
 
-            // Schmitt Trigger parameters
-            constexpr auto TARGET_TEMPERATURE = 308.15f; // K, 35°C
-            constexpr auto THRESHOLD = 5.0f;
+// Schmitt Trigger parameters
+constexpr auto TARGET_TEMPERATURE = 308.15f;  // K, 35°C
+constexpr auto THRESHOLD          = 5.0f;
 
-            
-        }  // namespace HeatingPadController
-    }  // namespace Config
-} // namespace Pitot
+}  // namespace HeatingPadController
+}  // namespace Config
+}  // namespace Pitot
 

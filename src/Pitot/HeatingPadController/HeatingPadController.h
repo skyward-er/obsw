@@ -24,60 +24,60 @@
 
 #include <Pitot/Buses.h>
 #include <Pitot/Sensors/SensorData.h>
-#include <utils/DependencyManager/DependencyManager.h>
 #include <algorithms/SchmittTrigger/SchmittTrigger.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include "HeatingPadConfigData.h"
 
 namespace Pitot
 {
-    
+
 class BoardScheduler;
 class Sensors;
 
-class HeatingPadController : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
+class HeatingPadController
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
 {
-    public:
-        explicit HeatingPadController(HeatingPadConfig config);
+public:
+    explicit HeatingPadController(HeatingPadConfig config);
 
-        HeatingPadController();
+    HeatingPadController();
 
-        bool start();
-        bool isStarted();
+    bool start();
+    bool isStarted();
 
-        void enable();
-        void disable();
-        bool isEnabled();
+    void enable();
+    void disable();
+    bool isEnabled();
 
-        void setTargetTemperature(float temperature);
+    void setTargetTemperature(float temperature);
 
-        bool heatingPadSense();
+    bool heatingPadSense();
 
-        void enableHeatingPad();
-        void disableHeatingPad();
+    void enableHeatingPad();
+    void disableHeatingPad();
 
-        //DEBUGGING
-        bool getHeatingPadSense();
-        bool getPinEnabled();
-        int getSchmittTriggerOutput();
-        
-        void update();
+    // DEBUGGING
+    bool getHeatingPadSense();
+    bool getPinEnabled();
+    int getSchmittTriggerOutput();
 
-    private:
+    void update();
 
-        Boardcore::Units::Frequency::Hertz updateRate{0};
+private:
+    Boardcore::Units::Frequency::Hertz updateRate{0};
 
-        Boardcore::SchmittTrigger schmittTrigger{0, 0};
+    Boardcore::SchmittTrigger schmittTrigger{0, 0};
 
+    Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();
+    Boardcore::PrintLogger logger =
+        Boardcore::Logging::getLogger("HeatingPadController");
+    miosix::FastMutex heatingPadMutex;
 
-        Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-        Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("HeatingPadController");
-        miosix::FastMutex heatingPadMutex;
+    std::atomic<bool> pinEnabled{false};
 
-        std::atomic<bool> pinEnabled{false};
-
-        std::atomic<bool> started{false};
-        std::atomic<bool> running{false};
+    std::atomic<bool> started{false};
+    std::atomic<bool> running{false};
 };
 
 }  // namespace Pitot
