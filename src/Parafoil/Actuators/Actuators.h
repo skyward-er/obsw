@@ -181,6 +181,9 @@ public:
     void cuttersOn();
     void cuttersOff();
 
+    void rampOn();
+    void rampOff();
+
 private:
     void statusOn();
     void statusOff();

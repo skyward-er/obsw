@@ -337,6 +337,16 @@ void Radio::MavlinkBackend::handleCommand(const mavlink_message_t& msg)
                 return enqueueNack(msg);
         }
 
+            // case MAV_CMD_FORCE_DEPLOYMENT:
+            //     parent.getModule<Actuators>()->cuttersOn();
+            //     return enqueueAck(msg);
+            // case MAV_CMD_FORCE_EXPULSION:
+            //     parent.getModule<Actuators>()->rampOn();
+            //     return enqueueAck(msg);
+            // case MAV_CMD_START_RECORDING:
+            //     parent.getModule<Actuators>()->cameraOn();
+            //     return enqueueAck(msg);
+
         default:
         {
             // Map the command to an event and post it, if it exists

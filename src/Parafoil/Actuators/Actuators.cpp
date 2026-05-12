@@ -354,6 +354,10 @@ void Actuators::statusOn() { gpios::statusLed::high(); }
 
 void Actuators::statusOff() { gpios::statusLed::low(); }
 
+void Actuators::rampOn() { gpios::detachRamp::high(); }
+
+void Actuators::rampOff() { gpios::detachRamp::low(); }
+
 void Actuators::buzzerOn()
 {
     buzzer->enableChannel(TimerUtils::Channel::MIOSIX_BUZZER_CHANNEL);

@@ -347,12 +347,65 @@ State FlightModeManager::Ready(const Event& event)
 
         case EV_INIT:
         {
+            getModule<Actuators>()->cameraOff();
+            getModule<Actuators>()->cuttersOff();
+            getModule<Actuators>()->rampOff();
             return HANDLED;
         }
 
         case TMTC_ENTER_TEST_MODE:
         {
-            return transition(&FlightModeManager::ReadyTestMode);
+            return HANDLED;
+        }
+
+        case TMTC_FORCE_EXPULSION:
+        {
+            getModule<Actuators>()->rampOn();
+            EventBroker::getInstance().postDelayed(
+                FMM_DETATCHED, TOPIC_FMM,
+                Millisecond{
+                    Config::FlightModeManager::Pins::EXPULSION_PIN_DURATION}
+                    .value());
+            return HANDLED;
+        }
+
+        case FMM_DETATCHED:
+        {
+            getModule<Actuators>()->rampOff();
+            getModule<FlightStatsRecorder>()->dropDetected(
+                TimestampTimer::getTimestamp());
+            return transition(&FlightModeManager::Flying);
+        }
+
+        case TMTC_FORCE_DEPLOYMENT:
+        {
+            getModule<Actuators>()->cuttersOn();
+            EventBroker::getInstance().postDelayed(
+                FMM_WING_DEPLOYED, TOPIC_FMM,
+                Millisecond{config::Pins::DEPLOY_PIN_DURATION}.value());
+            return HANDLED;
+        }
+
+        case FMM_WING_DEPLOYED:
+        {
+            getModule<Actuators>()->cuttersOff();
+            return transition(&FlightModeManager::FlyingWingDescent);
+        }
+        case TMTC_START_RECORDING:
+        {
+            getModule<Actuators>()->cameraOn();
+            EventBroker::getInstance().postDelayed(
+                FMM_BALLISTIC_DESCENT, TOPIC_FMM,
+                Millisecond{Config::FlightModeManager::Pins::
+                                FORCE_PARAFOIL_DETATCH_PIN_DURATION}
+                    .value());
+            return transition(&FlightModeManager::Flying);
+        }
+
+        case FMM_BALLISTIC_DESCENT:
+        {
+            getModule<Actuators>()->cameraOff();
+            return transition(&FlightModeManager::Landed);
         }
 
         case FLIGHT_NC_DETACHED:
@@ -420,6 +473,10 @@ State FlightModeManager::Flying(const Event& event)
     {
         case EV_ENTRY:
         {
+            updateState(FlightModeManagerState::FLYING_DROGUE_DESCENT);
+            EventBroker::getInstance().postDelayed(
+                FLIGHT_DPL_ALT_DETECTED, TOPIC_FLIGHT,
+                Millisecond{config::Pins::DEPLOY_PIN_DELAY}.value());
             return HANDLED;
         }
 
@@ -435,7 +492,40 @@ State FlightModeManager::Flying(const Event& event)
 
         case EV_INIT:
         {
+            return HANDLED;
+        }
+
+        case TMTC_FORCE_DEPLOYMENT:
+        case FLIGHT_DPL_ALT_DETECTED:
+        {
+            getModule<Actuators>()->cuttersOn();
+            EventBroker::getInstance().postDelayed(
+                FMM_WING_DEPLOYED, TOPIC_FMM,
+                Millisecond{config::Pins::DEPLOY_PIN_DURATION}.value());
+            return HANDLED;
+        }
+
+        case FMM_WING_DEPLOYED:
+        {
+            getModule<Actuators>()->cuttersOff();
             return transition(&FlightModeManager::FlyingWingDescent);
+        }
+
+        case TMTC_START_RECORDING:
+        {
+            getModule<Actuators>()->cameraOn();
+            EventBroker::getInstance().postDelayed(
+                FMM_BALLISTIC_DESCENT, TOPIC_FMM,
+                Millisecond{Config::FlightModeManager::Pins::
+                                FORCE_PARAFOIL_DETATCH_PIN_DURATION}
+                    .value());
+            return transition(&FlightModeManager::Flying);
+        }
+
+        case FMM_BALLISTIC_DESCENT:
+        {
+            getModule<Actuators>()->cameraOff();
+            return transition(&FlightModeManager::Landed);
         }
 
         case TMTC_FORCE_LANDING:
@@ -479,6 +569,23 @@ State FlightModeManager::FlyingWingDescent(const Event& event)
 
         case TMTC_FORCE_LANDING:
         {
+            return transition(&FlightModeManager::Landed);
+        }
+
+        case TMTC_START_RECORDING:
+        {
+            getModule<Actuators>()->cameraOn();
+            EventBroker::getInstance().postDelayed(
+                FMM_BALLISTIC_DESCENT, TOPIC_FMM,
+                Millisecond{Config::FlightModeManager::Pins::
+                                FORCE_PARAFOIL_DETATCH_PIN_DURATION}
+                    .value());
+            return transition(&FlightModeManager::Flying);
+        }
+
+        case FMM_BALLISTIC_DESCENT:
+        {
+            getModule<Actuators>()->cameraOff();
             return transition(&FlightModeManager::Landed);
         }
 

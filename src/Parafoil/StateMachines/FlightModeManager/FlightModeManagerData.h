@@ -39,10 +39,11 @@ enum class FlightModeManagerState : uint8_t
     PRE_FLIGHT_SENSOR_CALIBRATION,
     PRE_FLIGHT_ALGORITHM_CALIBRATION,
     PRE_FLIGHT_DISARMED,
-    READY               = 8,   // ARMED
-    READY_TEST_MODE     = 7,   // TEST_MODE
-    FLYING_WING_DESCENT = 11,  // WING_DESCENT
-    LANDED              = 12,  // LANDED
+    READY                 = 8,   // ARMED
+    READY_TEST_MODE       = 7,   // TEST_MODE
+    FLYING_DROGUE_DESCENT = 10,  // DROGUE_DESCENT
+    FLYING_WING_DESCENT   = 11,  // WING_DESCENT
+    LANDED                = 12,  // LANDED
 };
 
 struct FlightModeManagerStatus

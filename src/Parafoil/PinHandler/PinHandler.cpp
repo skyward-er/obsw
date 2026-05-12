@@ -41,7 +41,6 @@ namespace Parafoil
 {
 
 const decltype(PinHandler::PIN_LIST) PinHandler::PIN_LIST = {
-    PinList::RAMP_DETACH_PIN,
     PinList::NOSECONE_DETACH_PIN,
     PinList::CUTTER_SENSE,
 
@@ -55,18 +54,6 @@ bool PinHandler::start()
 
     pinObserver = std::make_unique<PinObserver>(
         scheduler, milliseconds{config::PinObserver::PERIOD}.count());
-
-    bool rampPinDetachResult = pinObserver->registerPinCallback(
-        hwmap::detachRamp::getPin(),
-        [this](auto t, auto d) { onRampDetachTransition(t, d); },
-        config::RampDetach::DETECTION_THRESHOLD);
-
-    if (!rampPinDetachResult)
-    {
-        LOG_ERR(logger,
-                "Failed to register pin callback for the detach ramp pin");
-        return false;
-    }
 
     bool noseconeDetachResult = pinObserver->registerPinCallback(
         hwmap::detachPayload::getPin(),
@@ -101,8 +88,6 @@ PinData PinHandler::getPinData(PinList pin)
 {
     switch (pin)
     {
-        case PinList::RAMP_DETACH_PIN:
-            return pinObserver->getPinData(hwmap::detachRamp::getPin());
         case PinList::NOSECONE_DETACH_PIN:
             return pinObserver->getPinData(hwmap::detachPayload::getPin());
         case PinList::CUTTER_SENSE:
@@ -127,20 +112,6 @@ void PinHandler::logPin(PinList pin, const PinData& data)
                                  .count(),
         .changesCount = data.changesCount,
     });
-}
-
-void PinHandler::onRampDetachTransition(PinTransition transition,
-                                        const PinData& data)
-{
-    logPin(PinList::RAMP_DETACH_PIN, data);
-    LOG_INFO(logger, "Ramp Detach Pin trasition detected: {}",
-             static_cast<int>(transition));
-
-    if (transition == config::RampDetach::TRIGGERING_TRANSITION)
-    {
-        EventBroker::getInstance().post(FLIGHT_LAUNCH_PIN_DETACHED,
-                                        TOPIC_FLIGHT);
-    }
 }
 
 void PinHandler::onNoseconeDetachTransition(PinTransition transition,
