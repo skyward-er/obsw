@@ -36,10 +36,10 @@ constexpr auto LOGGING_DELAY = 10_s;
 
 namespace Pins
 {
-constexpr auto EXPULSION_PIN_DURATION              = 100_ms;
-constexpr auto DEPLOY_PIN_DELAY                    = 2_s;
-constexpr auto DEPLOY_PIN_DURATION                 = 100_ms;
-constexpr auto FORCE_PARAFOIL_DETATCH_PIN_DURATION = 100_ms;
+constexpr auto EXPULSION_PIN_DURATION              = 200_ms;
+constexpr auto DEPLOY_PIN_DELAY                    = 5_s;
+constexpr auto DEPLOY_PIN_DURATION                 = 200_ms;
+constexpr auto FORCE_PARAFOIL_DETATCH_PIN_DURATION = 200_ms;
 }  // namespace Pins
 }  // namespace FlightModeManager
 }  // namespace Config
