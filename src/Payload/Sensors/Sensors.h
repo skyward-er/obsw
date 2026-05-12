@@ -33,7 +33,7 @@
 #include <sensors/LPS28DFW/LPS28DFW.h>
 #include <sensors/LSM6DSRX/LSM6DSRX.h>
 #include <sensors/ND015X/ND015A.h>
-#include <sensors/ND030D/ND030D.h>
+#include <sensors/ND030X/ND030D.h>
 #include <sensors/RotatedIMU/RotatedIMU.h>
 #include <sensors/SensorManager.h>
 #include <sensors/UBXGPS/UBXGPSSpi.h>
