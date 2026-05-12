@@ -842,8 +842,8 @@ void WingController::flareWing(WingController::FlareType type)
         {
             auto data = PumpCommandData{
                 .timestamp  = TimestampTimer::getTimestamp(),
-                .angleLeft  = Radian{Deployment::PUMP_ANGLE_LEFT}.value(),
-                .angleRight = Radian{Deployment::PUMP_ANGLE_RIGHT}.value(),
+                .angleLeft  = Deployment::PUMP_ANGLE_LEFT.value(),
+                .angleRight = Deployment::PUMP_ANGLE_RIGHT.value(),
             };
 
             getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO,
