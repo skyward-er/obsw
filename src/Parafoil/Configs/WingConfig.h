@@ -61,10 +61,10 @@ constexpr auto INITIAL_ANGLE                = 1080_deg;
 constexpr auto SERVOS_MAX_ANGLE         = 1080_deg;
 constexpr auto SERVO_LIMITER_PERCENTAGE = 0.7f;
 
-constexpr auto SERVO_LEFT_MIN_ANGLE = 45_deg;
+constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
-constexpr auto SERVO_RIGHT_MIN_ANGLE = 45_deg;
+constexpr auto SERVO_RIGHT_MIN_ANGLE = 0_deg;
 constexpr auto SERVO_RIGHT_MAX_ANGLE = SERVOS_MAX_ANGLE;
 
 /**

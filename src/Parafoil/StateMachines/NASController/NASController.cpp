@@ -192,7 +192,7 @@ void NASController::Calibrating(const Event& event)
 
             calibrate();
 
-            initNasdaq();
+            // initNasdaq();
 
             EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             break;
@@ -334,6 +334,7 @@ void NASController::calibrate()
 
 void NASController::update()
 {
+    return;
     // Update the NAS state only if the FSM is active
     if (state != NASControllerState::ACTIVE)
         return;

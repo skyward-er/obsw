@@ -666,25 +666,42 @@ void WingController::loadAlgorithms()
         WingAlgorithmData step;
 
         step.timestamp = 0;
-        for (auto& rightAngle : Rotation::ROTATION_RIGHT)
+        for (size_t i = 0; i < 300; i++)
         {
-            step.servo1Angle = 0;
-            step.servo2Angle = rightAngle.value();
+            step.servo1Angle = 720;
+            step.servo2Angle = 720;
             algorithm->addStep(step);
-            step.timestamp += microseconds{Rotation::ROTATION_PERIOD}.count();
-        }
-
-        for (auto& leftAngle : Rotation::ROTATION_LEFT)
-        {
-            step.servo1Angle = leftAngle.value();
+            step.timestamp += microseconds{milliseconds{3000}}.count();
+            step.servo1Angle = 0;
             step.servo2Angle = 0;
             algorithm->addStep(step);
-            step.timestamp += microseconds{Rotation::ROTATION_PERIOD}.count();
+            step.timestamp += microseconds{milliseconds{3000}}.count();
         }
-
         step.servo1Angle = 0;
         step.servo2Angle = 0;
         algorithm->addStep(step);
+
+        // for (auto& rightAngle : Rotation::ROTATION_RIGHT)
+        // {
+        //     step.servo1Angle = 0;
+        //     step.servo2Angle = rightAngle.value();
+        //     algorithm->addStep(step);
+        //     step.timestamp +=
+        //     microseconds{Rotation::ROTATION_PERIOD}.count();
+        // }
+        //
+        // for (auto& leftAngle : Rotation::ROTATION_LEFT)
+        // {
+        //     step.servo1Angle = leftAngle.value();
+        //     step.servo2Angle = 0;
+        //     algorithm->addStep(step);
+        //     step.timestamp +=
+        //     microseconds{Rotation::ROTATION_PERIOD}.count();
+        // }
+        //
+        // step.servo1Angle = 0;
+        // step.servo2Angle = 0;
+        // algorithm->addStep(step);
 
         algorithms[static_cast<size_t>(AlgorithmId::ROTATION)] =
             std::move(algorithm);

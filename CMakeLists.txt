@@ -73,7 +73,7 @@ add_executable(parafoil-sequence-rotation src/Parafoil/parafoil-entry.cpp ${PARA
 target_sources(parafoil-sequence-rotation PRIVATE ${MAP_HDR})
 target_include_directories(parafoil-sequence-rotation PRIVATE ${OBSW_INCLUDE_DIRS})
 target_include_directories(parafoil-sequence-rotation PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-target_compile_definitions(parafoil-sequence-rotation PRIVATE ALGORITHM_ROTATION MILANO TINY_PULL)
+target_compile_definitions(parafoil-sequence-rotation PRIVATE ALGORITHM_ROTATION MILANO DISABLE_LANDING_FLARE)
 sbs_target(parafoil-sequence-rotation stm32f767zi_lyra_biscotto)
 
 add_executable(parafoil-sequence-rotation-jesolo src/Parafoil/parafoil-entry.cpp ${PARAFOIL_COMPUTER})
