@@ -26,7 +26,7 @@
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/Sensors/Sensors.h>
 #include <common/CanConfig.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -50,31 +50,41 @@ class CanHandler
 public:
     struct CanStatus
     {
-        TimePoint rigLastStatus     = {};
-        TimePoint payloadLastStatus = {};
+        TimePoint rigLastStatus   = {};
+        TimePoint pitotLastStatus = {};
+        TimePoint motorLastStatus = {};
 
-        uint8_t rigState     = 0;
-        uint8_t payloadState = 0;
+        uint8_t rigState   = 0;
+        uint8_t pitotState = 0;
+        uint8_t motorState = 0;
 
-        bool rigArmed     = false;
-        bool payloadArmed = false;
+        bool rigArmed   = false;
+        bool pitotArmed = false;
+        bool motorArmed = false;
 
         bool isRigConnected()
         {
             return Clock::now() <=
                    rigLastStatus + Common::CanConfig::STATUS_TIMEOUT;
         }
-        bool isPayloadConnected()
+        bool isPitotConnected()
         {
             return Clock::now() <=
-                   payloadLastStatus + Common::CanConfig::STATUS_TIMEOUT;
+                   pitotLastStatus + Common::CanConfig::STATUS_TIMEOUT;
+        }
+        bool isMotorConnected()
+        {
+            return Clock::now() <=
+                   motorLastStatus + Common::CanConfig::STATUS_TIMEOUT;
         }
 
         uint8_t getRigState() { return rigState; }
-        uint8_t getPayloadState() { return payloadState; }
+        uint8_t getPitotState() { return pitotState; }
+        uint8_t getMotorState() { return motorState; }
 
         bool isRigArmed() { return rigArmed; }
-        bool isPayloadArmed() { return payloadArmed; }
+        bool isPitotArmed() { return pitotArmed; }
+        bool isMotorArmed() { return motorArmed; }
     };
 
     CanHandler();

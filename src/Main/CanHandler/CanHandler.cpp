@@ -38,7 +38,7 @@ CanHandler::CanHandler()
       protocol{&driver, [this](const CanMessage& msg) { handleMessage(msg); },
                Config::Scheduler::OTHERS_PRIORITY}
 {
-    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PAYLOAD),
+    protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::PITOT),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
     protocol.addFilter(static_cast<uint8_t>(CanConfig::Board::RIG),
                        static_cast<uint8_t>(CanConfig::Board::BROADCAST));
@@ -205,18 +205,18 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
     Sensors* sensors = getModule<Sensors>();
     switch (sensor)
     {
-        case CanConfig::SensorId::PITOT_DYNAMIC_PRESSURE:
+        case CanConfig::SensorId::PITOT_TOTAL_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
-            sensors->setCanPitotStaticPressure(data);
+            sdLogger.log(PitotTotalPressureData(data));
+            sensors->setCanPitotTotalPressure(data);
             break;
         }
 
         case CanConfig::SensorId::PITOT_STATIC_PRESSURE:
         {
             CanPressureData data = pressureDataFromCanMessage(msg);
-            sdLogger.log(data);
+            sdLogger.log(PitotStaticPressureData(data));
             sensors->setCanPitotStaticPressure(data);
             break;
         }
@@ -251,11 +251,19 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             break;
         }
 
-        case CanConfig::Board::PAYLOAD:
+        case CanConfig::Board::PITOT:
         {
-            status.payloadLastStatus = Clock::now();
-            status.payloadArmed      = deviceStatus.armed;
-            status.payloadState      = deviceStatus.state;
+            status.pitotLastStatus = Clock::now();
+            status.pitotArmed      = deviceStatus.armed;
+            status.pitotState      = deviceStatus.state;
+            break;
+        }
+
+        case CanConfig::Board::MOTOR:
+        {
+            status.motorLastStatus = Clock::now();
+            status.motorArmed      = deviceStatus.armed;
+            status.motorState      = deviceStatus.state;
             break;
         }
 
