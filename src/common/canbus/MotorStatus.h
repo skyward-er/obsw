@@ -22,15 +22,8 @@
 
 #pragma once
 
-// temporary ifdef to avoid including MavlinkHydra in all files including
-// MotorStatus.h
-#ifdef _BOARD_STM32F767ZI_RIG_V3
-#include <common/MavlinkHydra.h>
-#else
-#include <common/MavlinkOrion.h>
-#endif
-
 #include <common/CanConfig.h>
+#include <common/MavlinkHydra.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <logger/Logger.h>
 #include <miosix.h>
