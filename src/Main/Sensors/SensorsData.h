@@ -172,6 +172,50 @@ struct AS5047DRightData : Boardcore::AS5047DData
     }
 };
 
+struct PitotStaticPressureData : Boardcore::PressureData
+{
+    explicit PitotStaticPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    PitotStaticPressureData() {}
+
+    PitotStaticPressureData(CanPressureData data)
+    {
+        pressureTimestamp = data.pressureTimestamp;
+        pressure          = data.pressure;
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(PitotStaticPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
+struct PitotTotalPressureData : Boardcore::PressureData
+{
+    explicit PitotTotalPressureData(const Boardcore::PressureData& data)
+        : Boardcore::PressureData(data)
+    {
+    }
+
+    PitotTotalPressureData() {}
+
+    PitotTotalPressureData(CanPressureData data)
+    {
+        pressureTimestamp = data.pressureTimestamp;
+        pressure          = data.pressure;
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(PitotTotalPressureData,
+                          EXTEND_DEF(Boardcore::PressureData));
+    }
+};
+
 struct CalibrationData
 {
     uint64_t timestamp     = 0;

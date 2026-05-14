@@ -386,17 +386,6 @@ int main()
         gpioExpander.setPinValue(Config::ExternalPin::LED_2.getPort(),
                                  Config::ExternalPin::LED_2.getPin(), ledValue);
 
-        if (ledValue)
-        {
-            actuators->expulsionOn();
-            actuators->releaserOn();
-        }
-        else
-        {
-            actuators->expulsionOff();
-            actuators->releaserOff();
-        }
-
         ledValue = !ledValue;
 
         Thread::sleep(5000);

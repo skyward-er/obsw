@@ -613,12 +613,12 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case FMM_NITROGEN_VENTING:
         {
-            nitrogenVentingEvent = -1;
+            /* nitrogenVentingEvent = -1;
 
             getModule<CanHandler>()->sendServoOpenCommand(
                 ServosList::NITROGEN_VALVE,
                 std::numeric_limits<uint32_t>::max());
-
+ */
             return HANDLED;
         }
         case FMM_MISSION_TIMEOUT:
@@ -895,9 +895,9 @@ void FlightModeManager::shutdownEngine()
          can->sendServoCloseCommand(ServosList::MAIN_VALVE);
         can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
 
-    can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
-                              std::numeric_limits<uint32_t>::max());
-
+        can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
+                                  std::numeric_limits<uint32_t>::max());
+     */
     EventBroker::getInstance().postDelayed(
         FMM_NITROGEN_VENTING, TOPIC_FMM,
         milliseconds{Config::FlightModeManager::NITROGEN_VENTING_TIMEOUT}
