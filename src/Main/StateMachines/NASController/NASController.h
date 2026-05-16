@@ -68,6 +68,9 @@ public:
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
+    void NASController::onANASReferenceChanged();
+    void NASController::onNASDAQReferenceChanged();
+
 private:
     void update();
     void calibrate();
@@ -77,7 +80,7 @@ private:
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
     void state_active_ascent(const Boardcore::Event& event);
-    void state_active_descent(const Boardcore::Event& event);
+    void state_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
     void updateAndLogStatus(NASControllerState state);

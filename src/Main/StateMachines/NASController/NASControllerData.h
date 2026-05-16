@@ -36,7 +36,7 @@ enum class NASControllerState : uint8_t
     CALIBRATING,
     READY,
     ACTIVE_ASCENT,
-    ACTIVE_DESCENT,
+    DESCENT,
     END
 };
 

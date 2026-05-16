@@ -139,6 +139,11 @@ void NASController::onReferenceChanged(const ReferenceValues& ref)
     nas.setReferenceValues(ref);
 }
 
+// Set Block Parameters e reference ANAS
+void NASController::onANASReferenceChanged() {}
+
+void NASController::onNASDAQReferenceChanged() {}
+
 void NASController::update()
 {
     NASControllerState curState = state;
@@ -183,18 +188,20 @@ void NASController::update()
                                imu.magneticFieldZ},
             .MagTimestamp   = {imu.magneticFieldTimestamp}};
 
-        // Guarda CANHandler per frequenza
-        // Aggiorna wrapper per log
-
         anas.setNASIn(inputs);
+        anas.step();
 
         auto state = getANASState();
 
+        ANASLogsData logs(miosix::getTime(), anas.getNASLogs());
+
         getModule<StatsRecorder>()->updateANAS(state);
+
         sdLogger.log(state);
+        sdLogger.log(logs);
     }
 
-    if (curState == NASControllerState::ACTIVE_DESCENT)
+    if (curState == NASControllerState::DESCENT)
     {
         Sensors* sensors      = getModule<Sensors>();
         ADAController* adaRef = getModule<ADAController>();
@@ -231,10 +238,13 @@ void NASController::update()
         nasdaq.setNASDAQ_In_ADA(ADAIn);
         nasdaq.setNASDAQ_In_Sensors(sensorIn);
 
+        // Step
+        nasdaq.step();
+
         // Update and log
 
-        auto state = nasdaq.getNASDAQ_Out();
-        auto logs  = nasdaq.getNASDAQ_Logs_OBSW();
+        auto state = getNASDAQState();
+        NASDAQLogsWrapper logs(miosix::getTime(), nasdaq.getNASDAQ_Logs_OBSW());
 
         sdLogger.log(state);
         sdLogger.log(logs);
@@ -369,7 +379,14 @@ void NASController::state_active_ascent(const Event& event)
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            transition(&NASController::state_active_descent);
+            ANAS_NASDAQ ANASOutNASDAQIn = {
+
+                .LinearCovariance = *anas.getNASFinal().LinearCovariance,
+                .Position         = *anas.getNASOut().Position,
+                .Velocity         = *anas.getNASOut().Velocity};
+
+            nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
+            transition(&NASController::state_descent);
             break;
         }
         case FLIGHT_LANDING_DETECTED:
@@ -386,13 +403,13 @@ void NASController::state_active_ascent(const Event& event)
     }
 }
 
-void NASController::state_active_descent(const Event& event)
+void NASController::state_descent(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(NASControllerState::ACTIVE_DESCENT);
+            updateAndLogStatus(NASControllerState::DESCENT);
             break;
         }
         case FLIGHT_LANDING_DETECTED:

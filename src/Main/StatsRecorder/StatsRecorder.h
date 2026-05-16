@@ -25,6 +25,7 @@
 #include <algorithms/ADA/ADAData.h>
 #include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NAS/NASState.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -54,6 +55,14 @@ public:
         uint64_t maxSpeedTs = 0;
         float maxSpeed      = 0.0f;
         float maxSpeedAlt   = 0.0f;
+
+        // Maximum horizontal speed in descent phase
+        uint64_t maxDescentHorizSpeedTs = 0;
+        float maxDescentHorizSpeed      = 0.0f;
+
+        // Maximum vertical speed in descent phase
+        uint64_t maxDescentVertSpeedTs = 0;
+        float maxDescentVertSpeed      = 0.0f;
 
         // Max mach
         uint64_t maxMachTs = 0;
@@ -85,6 +94,18 @@ public:
         uint64_t maxDplPressureTs = 0;
         float maxDplPressure      = 0.0f;
 
+        // Average vertical speed in descent phase
+        float avgDescentVertSpeed = 0.0f;
+
+        // Average horizontal speed in descent phase
+        float avgDescentHorizSpeed = 0.0f;
+
+        // Sums and counts for average calculation during descent
+        uint32_t descentVertSpeedCount  = 0;
+        float descentVertSpeedSum       = 0.0f;
+        uint32_t descentHorizSpeedCount = 0;
+        float descentHorizSpeedSum      = 0.0f;
+
         /**
          * @brief Returns the max apogee altitude detected by the ADAs.
          */
@@ -110,10 +131,9 @@ public:
 
     void updateAcc(const Boardcore::AccelerometerData& data);
     void updateNas(const Boardcore::NASState& data);
-    void updateANAS(const ANASState& data);
+    void updateANAS(const Boardcore::ANASState& data);
+    void StatsRecorder::updateNASDAQ(const Boardcore::NASDAQState& data);
 
-    // TODO Aggiorna questo appena hai NASDAQ
-    void StatsRecorder::updateNASDAQ(const NASDAQOut& data);
     void updateDplPressure(const Boardcore::PressureData& data);
 
 private:
