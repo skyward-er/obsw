@@ -272,7 +272,7 @@ int main()
                     // Opening time doesn't matter as the valve is closed by the
                     // FMM, just open it more than the timeout
                     canHandler->sendServoOpenCommand(
-                        ServosList::MAIN_VALVE,
+                        ServosList::MAIN_OX_VALVE,
                         milliseconds{
                             Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
                             1s}
@@ -309,7 +309,7 @@ int main()
                                            // open after a delay from the N2
                                            // quenching but we can't do that in
                                            // HIL mode
-                                                                              });
+                                       });
         }
     }
 

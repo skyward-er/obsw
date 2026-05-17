@@ -616,7 +616,7 @@ State FlightModeManager::state_flying(const Event& event)
             nitrogenVentingEvent = -1;
 
             getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::NITROGEN_VALVE,
+                ServosList::MAIN_FUEL_VALVE,
                 std::numeric_limits<uint32_t>::max());
 
             return HANDLED;
@@ -892,10 +892,10 @@ void FlightModeManager::shutdownEngine()
 {
     auto can = getModule<CanHandler>();
 
-    can->sendServoCloseCommand(ServosList::MAIN_VALVE);
-    can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
+    can->sendServoCloseCommand(ServosList::MAIN_OX_VALVE);
+    can->sendServoCloseCommand(ServosList::MAIN_FUEL_VALVE);
 
-    can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
+    can->sendServoOpenCommand(ServosList::MAIN_FUEL_VALVE,
                               std::numeric_limits<uint32_t>::max());
 
     EventBroker::getInstance().postDelayed(
