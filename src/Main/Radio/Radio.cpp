@@ -1367,6 +1367,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
+        // TODO: Fix this! This field doesn't exist anymore!!!
         case MAV_TANK_TOP_PRESS_ID:
         {
             mavlink_message_t msg;
@@ -1374,7 +1375,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
             {
                 auto motor   = getModule<MotorStatus>()->lockData();
-                auto sample  = motor->oxTankTopPressure;
+                auto sample  = motor->oxTankPressure;
                 tm.pressure  = sample.pressure;
                 tm.timestamp = sample.pressureTimestamp;
             }
@@ -1388,6 +1389,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
+        // TODO: Fix this. This field doesn't exist anymore!!!
         case MAV_TANK_BOTTOM_PRESS_ID:
         {
             PressureData bottom0;
@@ -1395,8 +1397,8 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
             {
                 auto motor = getModule<MotorStatus>()->lockData();
-                bottom0    = motor->oxTankBottom0Pressure;
-                bottom1    = motor->oxTankBottom1Pressure;
+                bottom0    = motor->oxTankPressure;
+                bottom1    = motor->oxTankPressure;
             }
 
             {
