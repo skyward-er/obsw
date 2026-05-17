@@ -247,71 +247,77 @@ int main()
     }
 
     // if (hil)
-    {
-        std::cout << "Starting HIL" << std::endl;
-        hil->start();
+    // {
+    //     std::cout << "Starting HIL" << std::endl;
+    //     hil->start();
 
-        std::cout << "Waiting simulation start..." << std::endl;
-        hil->waitStartSimulation();
+    //     std::cout << "Waiting simulation start..." << std::endl;
+    //     hil->waitStartSimulation();
 
-        std::cout << "Waiting for the running signal..." << std::endl;
-        hil->waitRunningSignal();
+    //     std::cout << "Waiting for the running signal..." << std::endl;
+    //     hil->waitRunningSignal();
 
-        // In HIL mode the RIG is not present and won't send the ignition
-        // command, we need to emulate it when entering the LIFTOFF phase
-        if (hil->isFullHIL())
-        {
-            std::cout << "Registering FULL HIL flight phases" << std::endl;
+    //     // In HIL mode the RIG is not present and won't send the ignition
+    //     // command, we need to emulate it when entering the LIFTOFF phase
+    //     if (hil->isFullHIL())
+    //     {
+    //         std::cout << "Registering FULL HIL flight phases" << std::endl;
 
-            // Simulate the RIG sending the main valve open command to the motor
-            // through CAN bus
-            hil->registerToFlightPhase(
-                MainFlightPhases::LIFTOFF,
-                [&]
-                {
-                    // Opening time doesn't matter as the valve is closed by the
-                    // FMM, just open it more than the timeout
-                    canHandler->sendServoOpenCommand(
-                        ServosList::MAIN_OX_VALVE,
-                        milliseconds{
-                            Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
-                            1s}
-                            .count());
-                });
-        }
-        else
-        {
-            std::cout << "Registering HIL flight phases" << std::endl;
+    //         // Simulate the RIG sending the main valve open command to the
+    //         motor
+    //         // through CAN bus
+    //         hil->registerToFlightPhase(
+    //             MainFlightPhases::LIFTOFF,
+    //             [&]
+    //             {
+    //                 // Opening time doesn't matter as the valve is closed by
+    //                 the
+    //                 // FMM, just open it more than the timeout
+    //                 canHandler->sendServoOpenCommand(
+    //                     ServosList::MAIN_OX_VALVE,
+    //                     milliseconds{
+    //                         Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT
+    //                         + 1s} .count());
+    //             });
+    //     }
+    //     else
+    //     {
+    //         std::cout << "Registering HIL flight phases" << std::endl;
 
-            // Simulate motor valve state changes
-            hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
-                                       [&]
-                                       {
-                                           auto motor = motorStatus->lockData();
-                                           motor->mainOxValveOpen   = true;
-                                           motor->mainFuelValveOpen = true;
-                                       });
+    //         // Simulate motor valve state changes
+    //         hil->registerToFlightPhase(MainFlightPhases::LIFTOFF,
+    //                                    [&]
+    //                                    {
+    //                                        auto motor =
+    //                                        motorStatus->lockData();
+    //                                        motor->mainOxValveOpen   = true;
+    //                                        motor->mainFuelValveOpen = true;
+    //                                    });
 
-            hil->registerToFlightPhase(MainFlightPhases::SHUTDOWN,
-                                       [&]
-                                       {
-                                           auto motor = motorStatus->lockData();
-                                           motor->mainOxValveOpen   = false;
-                                           motor->mainFuelValveOpen = false;
-                                       });
+    //         hil->registerToFlightPhase(MainFlightPhases::SHUTDOWN,
+    //                                    [&]
+    //                                    {
+    //                                        auto motor =
+    //                                        motorStatus->lockData();
+    //                                        motor->mainOxValveOpen   = false;
+    //                                        motor->mainFuelValveOpen = false;
+    //                                    });
 
-            hil->registerToFlightPhase(MainFlightPhases::PARA1,
-                                       [&]
-                                       {
-                                           auto motor = motorStatus->lockData();
-                                           motor->oxVentingValveOpen = true;
-                                           // Normally the nitrogen valve should
-                                           // open after a delay from the N2
-                                           // quenching but we can't do that in
-                                           // HIL mode
-                                       });
-        }
-    }
+    //         hil->registerToFlightPhase(MainFlightPhases::PARA1,
+    //                                    [&]
+    //                                    {
+    //                                        auto motor =
+    //                                        motorStatus->lockData();
+    //                                        motor->oxVentingValveOpen = true;
+    //                                        // Normally the nitrogen valve
+    //                                        should
+    //                                        // open after a delay from the N2
+    //                                        // quenching but we can't do that
+    //                                        in
+    //                                        // HIL mode
+    //                                    });
+    //     }
+    // }
 
     std::cout << "Starting Sensors" << std::endl;
     led1On();

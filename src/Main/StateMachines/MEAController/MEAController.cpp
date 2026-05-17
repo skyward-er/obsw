@@ -166,7 +166,7 @@ void MEAController::update()
         {
             auto motor = getModule<Common::MotorStatus>()->lockData();
             baro       = motor->combustionChamberPressure;
-            aperture   = motor->mainValveOpen ? 1.0f : 0.0f;
+            aperture   = motor->mainOxValveOpen ? 1.0f : 0.0f;
         }
 
         if (baro.pressure > Config::MEA::CC_PRESSURE_THRESHOLD)
