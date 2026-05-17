@@ -26,11 +26,11 @@
 #include <Main/Buses.h>
 #include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/FMMConfig.h>
-#include <Main/HIL/HIL.h>
+// #include <Main/HIL/HIL.h>
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Radio/Radio.h>
-#include <Main/Sensors/HILSensors.h>
+// #include <Main/Sensors/HILSensors.h>
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
@@ -79,22 +79,22 @@ int main()
     auto abk         = new ABKController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
-    MainHIL* hil     = nullptr;
+    // MainHIL* hil     = nullptr;
 
-    // HIL
-    if (PersistentVars::getHilMode())
-    {
-        std::cout << "MAIN SimulatorData: " << sizeof(SimulatorData)
-                  << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
+    // // HIL
+    // if (PersistentVars::getHilMode())
+    // {
+    //     std::cout << "MAIN SimulatorData: " << sizeof(SimulatorData)
+    //               << ", ActuatorData: " << sizeof(ActuatorData) << std::endl;
 
-        hil = new MainHIL();
-        initResult &= manager.insert<MainHIL>(hil);
-        sensors = new HILSensors(Config::HIL::ENABLE_HW);
-    }
-    else
-    {
-        sensors = new Sensors();
-    }
+    //     hil = new MainHIL();
+    //     initResult &= manager.insert<MainHIL>(hil);
+    //     sensors = new HILSensors(Config::HIL::ENABLE_HW);
+    // }
+    // else
+    // {
+    sensors = new Sensors();
+    // }
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();
@@ -246,7 +246,7 @@ int main()
         std::cerr << "*** Failed to start FlightModeManager ***" << std::endl;
     }
 
-    if (hil)
+    // if (hil)
     {
         std::cout << "Starting HIL" << std::endl;
         hil->start();
