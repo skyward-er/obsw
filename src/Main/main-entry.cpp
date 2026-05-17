@@ -288,17 +288,16 @@ int main()
                                        [&]
                                        {
                                            auto motor = motorStatus->lockData();
-                                           motor->mainValveOpen     = true;
-                                           motor->nitrogenValveOpen = true;
+                                           motor->mainOxValveOpen   = true;
+                                           motor->mainFuelValveOpen = true;
                                        });
 
             hil->registerToFlightPhase(MainFlightPhases::SHUTDOWN,
                                        [&]
                                        {
                                            auto motor = motorStatus->lockData();
-                                           motor->mainValveOpen        = false;
-                                           motor->nitrogenValveOpen    = false;
-                                           motor->n2QuenchingValveOpen = true;
+                                           motor->mainOxValveOpen   = false;
+                                           motor->mainFuelValveOpen = false;
                                        });
 
             hil->registerToFlightPhase(MainFlightPhases::PARA1,
@@ -310,8 +309,7 @@ int main()
                                            // open after a delay from the N2
                                            // quenching but we can't do that in
                                            // HIL mode
-                                           motor->nitrogenValveOpen = true;
-                                       });
+                                                                              });
         }
     }
 
