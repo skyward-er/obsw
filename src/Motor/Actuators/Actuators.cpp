@@ -464,9 +464,9 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
 {
     switch (servo)
     {
-        case OX_PISSING_VALVE:
+        case OX_VENTING_VALVE:
             return &valveInfos[0];
-        case FUEL_PISSING_VALVE:
+        case FUEL_VENTING_VALVE:
             return &valveInfos[1];
         case IGNITION_OX_VALVE:
             return &valveInfos[2];
@@ -610,11 +610,11 @@ void Actuators::task()
     if (currentTime >= safetyVentingTs)
     {
         openValveWithTime(
-            ServosList::OX_PISSING_VALVE,
+            ServosList::OX_VENTING_VALVE,
             milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
 
         openValveWithTime(
-            ServosList::FUEL_PISSING_VALVE,
+            ServosList::FUEL_VENTING_VALVE,
             milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
 
         // Reset the safety venting timestamp
