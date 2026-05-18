@@ -23,9 +23,15 @@
 #pragma once
 
 #include <Main/BoardScheduler.h>
+#include <Main/CanHandler/CanHandler.h>
+#include <Main/Configs/ActuatorsConfig.h>
 #include <Main/GpioExpander.h>
+#include <Main/Sensors/Sensors.h>
 #include <actuators/Servo/Servo.h>
+#include <actuators/Servo/ServoWinch.h>
+#include <algorithms/SchmittTrigger/SchmittTrigger.h>
 #include <common/MavlinkHydra.h>
+#include <common/UnlimitedAngle.h>
 #include <scheduler/TaskScheduler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -33,22 +39,70 @@
 
 namespace Main
 {
-
-class CanHandler;
-
-class Actuators : public Boardcore::InjectableWithDeps<BoardScheduler,
-                                                       CanHandler, GpioExpander>
+class Actuators
+    : public Boardcore::InjectableWithDeps<BoardScheduler, CanHandler,
+                                           GpioExpander, Sensors>
 {
 public:
+    /**
+     * @brief Small struct to hold a servo along with per-servo data.
+     */
+    struct ServoActuator
+    {
+        std::unique_ptr<Boardcore::ServoWinch> servo;
+
+        /**
+         * Used to trigger servo to rotate CW or CCW or to stay still
+         */
+        std::unique_ptr<Boardcore::SchmittTrigger> servoTrigger;
+
+        bool enabled = false;  // Whether the servo task should adjust position
+
+        Common::UnlimitedAngle angleData;  // Angle of the servo
+
+        Boardcore::Units::Angle::Radian
+            zeroAngle;  // initial angle read by the encoder when at zero
+                        // position
+
+        Boardcore::Units::Angle::Radian
+            minAngle;  // Minimum angle that the servo will reach
+        Boardcore::Units::Angle::Radian
+            maxAngle;  // Maximum angle that the servo will reach
+        Config::Actuators::ServoDirection direction;  // Direction of the servo
+
+        miosix::FastMutex mutex;
+
+        ServoActuator()
+            : zeroAngle(Boardcore::Units::Angle::Radian(0.0f)),
+              minAngle(Boardcore::Units::Angle::Radian(0.0f)),
+              maxAngle(Boardcore::Units::Angle::Radian(0.0f)),
+              direction(Config::Actuators::ServoDirection::CW)
+        {
+        }
+    };
+
     Actuators();
 
     [[nodiscard]] bool start();
 
     bool isStarted();
 
-    void setAbkPosition(float position);
-    void openExpulsion();
+    /**
+     * @brief Moves the specified servo to the specified angle.
+     * @param angle Angle to set, unlimited range.
+     * @return `false` if the servo is invalid, `true` otherwise.
+     */
+    bool setPrfServoAngle(ServosList servoId,
+                          Boardcore::Units::Angle::Radian angle);
 
+    bool wigglePrfServo(ServosList servoId);
+
+    void setPrfServoZero();
+
+    void enablePrfServo(ServosList servoId);
+    void disablePrfServo(ServosList servoId);
+
+    void setAbkPosition(float position);
     void wiggleServo(ServosList servo);
     float getServoPosition(ServosList servo);
 
@@ -77,6 +131,10 @@ public:
 private:
     void unsafeSetServoPosition(Boardcore::Servo* servo, float position);
 
+    void updateServoState(ServosList servoId,
+                          Boardcore::Units::Angle::Radian encoderAngle);
+
+    ServoActuator* getServoActuator(ServosList servoId);
     Boardcore::Servo* getServo(ServosList servo);
 
     void statusOn();
@@ -96,6 +154,9 @@ private:
     miosix::FastMutex servosMutex;
     std::unique_ptr<Boardcore::Servo> servoAbk;
     std::unique_ptr<Boardcore::PWM> buzzer;
+
+    ServoActuator leftServo;
+    ServoActuator rightServo;
 
     std::atomic<uint32_t> buzzerCounter{0};
     std::atomic<uint32_t> buzzerOverflow{0};
