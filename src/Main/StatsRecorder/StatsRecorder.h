@@ -132,7 +132,7 @@ public:
     void updateAcc(const Boardcore::AccelerometerData& data);
     void updateNas(const Boardcore::NASState& data);
     void updateANAS(const Boardcore::ANASState& data);
-    void StatsRecorder::updateNASDAQ(const Boardcore::NASDAQState& data);
+    void updateNASDAQ(const Boardcore::NASDAQState& data);
 
     void updateDplPressure(const Boardcore::PressureData& data);
 
