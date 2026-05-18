@@ -757,7 +757,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            getModule<Actuators>()->openExpulsion();
+            getModule<Actuators>()->expulsionOn();
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::APOGEE_DETECTED);
 
