@@ -83,7 +83,9 @@ void HeatingPadController::enable()
     if (running)
         return;
 
-    running = true;
+    lowConfidence  = 0;
+    highConfidence = 0;
+    running        = true;
 }
 
 void HeatingPadController::disable() { running = false; }
@@ -96,21 +98,12 @@ void HeatingPadController::setTargetTemperature(float temperature)
     schmittTrigger.setTargetState(temperature);
 }
 
-// debugging
-
-bool HeatingPadController::getHeatingPadSense()
-{
-    return miosix::HeatingPad::sense::value();
-}
-
 bool HeatingPadController::getPinEnabled() { return pinEnabled; }
 
-int HeatingPadController::getSchmittTriggerOutput()
+uint8_t HeatingPadController::getState()
 {
-    return static_cast<int>(schmittTrigger.getOutput());
+    return static_cast<uint8_t>(heatingPadSense());
 }
-
-// debugging end
 
 bool HeatingPadController::heatingPadSense()
 {
@@ -157,13 +150,55 @@ void HeatingPadController::update()
     switch (activation)
     {
         case Boardcore::SchmittTrigger::Activation::HIGH:
-            enableHeatingPad();
+            lowConfidence = 0;
+
+            if (!pinEnabled)
+            {
+                highConfidence++;
+                if (highConfidence >=
+                    Config::HeatingPadController::CONFIDENCE_THRESHOLD)
+                {
+                    enableHeatingPad();
+                    highConfidence = 0;
+                }
+            }
+            else
+                highConfidence = 0;
+
             break;
+
         case Boardcore::SchmittTrigger::Activation::LOW:
-            disableHeatingPad();
+            highConfidence = 0;
+
+            if (pinEnabled)
+            {
+                lowConfidence++;
+                if (lowConfidence >=
+                    Config::HeatingPadController::CONFIDENCE_THRESHOLD)
+                {
+                    disableHeatingPad();
+                    lowConfidence = 0;
+                }
+            }
+            else
+                lowConfidence = 0;
+
             break;
+
         case Boardcore::SchmittTrigger::Activation::STOP:
+            lowConfidence  = 0;
+            highConfidence = 0;
             break;
+
+            auto data = HeatingPadData{
+                .timestamp  = Boardcore::TimestampTimer::getTimestamp(),
+                .pinEnabled = pinEnabled,
+                .schmittTriggerActivation = static_cast<uint8_t>(activation),
+                .lowConfidence            = static_cast<uint8_t>(lowConfidence),
+                .highConfidence = static_cast<uint8_t>(highConfidence),
+                .temperature    = temperature};
+
+            sdLogger.log(data);
     }
 }
 

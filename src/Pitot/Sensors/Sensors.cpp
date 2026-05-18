@@ -189,22 +189,6 @@ void Sensors::heatingPadNTCInit()
 
 void Sensors::heatingPadNTCCallback()
 {
-    auto heatingPad = getModule<HeatingPadController>();
-
-    const char* schmittStates[] = {"LOW", "STOP", "HIGH"};
-    int schmittOut              = heatingPad->getSchmittTriggerOutput();
-    const char* schmittStr      = (schmittOut >= 0 && schmittOut <= 2)
-                                      ? schmittStates[schmittOut]
-                                      : "UNKNOWN";
-
-    float tempCelsius = getHeatingPadNTCLastSample().temperature - 273.15f;
-
-    printf(
-        "[HeatingPad NTC] Sense: %s | Enable Pin: %s | Trigger: %s | Temp: "
-        "%.2f C\n",
-        heatingPad->getHeatingPadSense() ? "HIGH" : "LOW",
-        heatingPad->getPinEnabled() ? "HIGH" : "LOW", schmittStr, tempCelsius);
-
     sdLogger.log(HeatingPadTemperatureData{getHeatingPadNTCLastSample()});
 }
 

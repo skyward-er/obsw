@@ -34,4 +34,25 @@ struct HeatingPadConfig
     float thresholdHigh;                            // K
 };
 
+struct HeatingPadData
+{
+    uint64_t timestamp;
+
+    bool pinEnabled;
+
+    uint8_t schmittTriggerActivation;
+    uint8_t lowConfidence;
+    uint8_t highConfidence;
+
+    float temperature;
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(HeatingPadData,
+                          FIELD_DEF(timestamp) FIELD_DEF(pinEnabled) FIELD_DEF(
+                              schmittTriggerActivation) FIELD_DEF(lowConfidence)
+                              FIELD_DEF(highConfidence) FIELD_DEF(temperature));
+    }
+};
+
 }  // namespace Pitot

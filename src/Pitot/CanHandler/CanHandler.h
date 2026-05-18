@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Pitot/HeatingPadController/HeatingPadController.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkOrion.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
@@ -56,7 +57,8 @@ struct CanStatus
     bool isMotorConnected();
 };
 
-class CanHandler : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors>
+class CanHandler : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
+                                                        HeatingPadController>
 {
 public:
     [[nodiscard]] bool start();
