@@ -43,8 +43,9 @@ using namespace Eigen;
 NASController::NASController()
     : FSM{&NASController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::NAS_PRIORITY},
-      // Da cambiare
-      nas{Config::NAS::CONFIG}
+
+        anas{},
+        nasdaq{}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -54,6 +55,8 @@ bool NASController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
+
+    // Parla con Pietro tassativo, devo fare due task?
     size_t result =
         scheduler.addTask([this]() { update(); }, Config::NAS::UPDATE_RATE);
 
@@ -68,6 +71,8 @@ bool NASController::start()
         LOG_ERR(logger, "Failed to start NAS FSM");
         return false;
     }
+
+    // Verrà cannonato, tutto questo verrà fatto dentro calibrate
 
     // Initialize reference
     auto algoRef        = getModule<AlgoReference>();
@@ -222,8 +227,6 @@ void NASController::update()
         auto adaTimestamp  = adaRef->getADAStateTemp().timestamp;
         auto adaCovariance = adaRef->getVerticalVelocityCovariance();
 
-        // Building Inputs
-
         NASDAQ0_types_h_::NASDAQInADA ADAIn = {
             .VerticalSpeed           = adaVerticalSpeed,
             .VerticalSpeedCovariance = adaCovariance,
@@ -262,6 +265,9 @@ void NASController::update()
 // Da rivedere
 void NASController::calibrate()
 {
+
+    // Aggiungere posizione e velocità (file di config a zero) quaternioni invece da triad e setta i param iniziali
+    // Set stato e covarianza
     Sensors* sensors = getModule<Sensors>();
 
     Vector3f accAcc = Vector3f::Zero();
