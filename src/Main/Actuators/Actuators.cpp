@@ -22,16 +22,53 @@
 
 #include "Actuators.h"
 
-#include <Main/CanHandler/CanHandler.h>
 #include <Main/Configs/ActuatorsConfig.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Main;
 using namespace Boardcore;
 using namespace miosix;
+using namespace Boardcore::Units::Angle;
+using namespace Config::Actuators;
 
 Actuators::Actuators()
 {
+    // LEFT SERVO
+    leftServo.servo = std::make_unique<ServoWinch>(
+        MIOSIX_PARAFOIL_SERVO_1_TIM,
+        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_1_CHANNEL,
+        PrfServo::MIN_PULSE, PrfServo::MAX_PULSE, PrfServo::HERTZ);
+
+    leftServo.servoTrigger = std::make_unique<SchmittTrigger>(
+        Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_LOW).value(),
+        Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_HIGH).value());
+
+    leftServo.maxAngle  = Radian(PrfServo::MAX_ANGLE);
+    leftServo.minAngle  = Radian(PrfServo::LEFT_MIN_ANGLE);
+    leftServo.direction = PrfServo::LEFT_SERVO_DIRECTION;
+
+    leftServo.servoTrigger->setTargetState(
+        Radian(PrfServo::INITIAL_ANGLE).value());
+    leftServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
+
+    // RIGHT SERVO
+    rightServo.servo = std::make_unique<ServoWinch>(
+        MIOSIX_PARAFOIL_SERVO_0_TIM,
+        TimerUtils::Channel::MIOSIX_PARAFOIL_SERVO_0_CHANNEL,
+        PrfServo::MIN_PULSE, PrfServo::MAX_PULSE, PrfServo::HERTZ);
+
+    rightServo.servoTrigger = std::make_unique<SchmittTrigger>(
+        Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_LOW).value(),
+        Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_HIGH).value());
+
+    rightServo.maxAngle  = Radian(PrfServo::MAX_ANGLE);
+    rightServo.minAngle  = Radian(PrfServo::RIGHT_MIN_ANGLE);
+    rightServo.direction = PrfServo::RIGHT_SERVO_DIRECTION;
+
+    rightServo.servoTrigger->setTargetState(
+        Radian(PrfServo::INITIAL_ANGLE).value());
+    rightServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
+
     // cppcheck-suppress useInitializationList
     servoAbk = std::make_unique<Servo>(
         MIOSIX_AIRBRAKES_TIM, TimerUtils::Channel::MIOSIX_AIRBRAKES_CHANNEL,
@@ -47,6 +84,15 @@ bool Actuators::isStarted() { return started; }
 
 bool Actuators::start()
 {
+    leftServo.servo->enable();
+    rightServo.servo->enable();
+
+    leftServo.servoTrigger->begin();
+    rightServo.servoTrigger->begin();
+
+    leftServo.servo->setVelocity(0.5);
+    rightServo.servo->setVelocity(0.5);
+
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getLowPriorityActuatorsScheduler();
 
@@ -80,8 +126,116 @@ bool Actuators::start()
         return false;
     }
 
+    result = scheduler.addTask(
+        [this]
+        {
+            if (leftServo.enabled)
+            {
+                auto servoLeftAngle =
+                    getModule<Sensors>()->getAS5047DLeftLastSample();
+
+                updateServoState(
+                    PARAFOIL_LEFT_SERVO,
+                    Radian(servoLeftAngle.angle - leftServo.zeroAngle.value()));
+            }
+
+            if (rightServo.enabled)
+            {
+                auto servoRightAngle =
+                    getModule<Sensors>()->getAS5047DRightLastSample();
+
+                updateServoState(PARAFOIL_RIGHT_SERVO,
+                                 Radian(servoRightAngle.angle -
+                                        rightServo.zeroAngle.value()));
+            }
+        },
+        PrfServo::UPDATE_RATE);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to add parafoil servo task");
+        return false;
+    }
+
     started = true;
     return true;
+}
+
+bool Actuators::setPrfServoAngle(ServosList servoId, Radian angle)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return false;
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    auto capped_angle =
+        std::min(actuator->maxAngle,
+                 std::max(angle + actuator->minAngle, actuator->minAngle));
+
+    if (actuator->direction == Config::Actuators::ServoDirection::CCW)
+        capped_angle *= -1;
+
+    actuator->servoTrigger->setTargetState(capped_angle.value());
+
+    Logger::getInstance().log(actuator->servo->getState());
+
+    return true;
+}
+
+bool Actuators::wigglePrfServo(ServosList servoId)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return false;
+
+    setPrfServoAngle(servoId, PrfServo::MAX_ANGLE);
+    do
+    {
+        Thread::sleep(1000);
+    } while (actuator->servoTrigger->getOutput() !=
+             SchmittTrigger::Activation::STOP);
+
+    setPrfServoAngle(servoId, Radian(0));
+
+    do
+    {
+        Thread::sleep(1000);
+    } while (actuator->servoTrigger->getOutput() !=
+             SchmittTrigger::Activation::STOP);
+
+    return true;
+}
+
+void Actuators::setPrfServoZero()
+{
+    leftServo.zeroAngle =
+        Radian(getModule<Sensors>()->getAS5047DLeftLastSample().angle);
+
+    rightServo.zeroAngle =
+        Radian(getModule<Sensors>()->getAS5047DRightLastSample().angle);
+}
+
+void Actuators::enablePrfServo(ServosList servoId)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return;
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    actuator->enabled = true;
+}
+
+void Actuators::disablePrfServo(ServosList servoId)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return;
+
+    miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
+
+    actuator->enabled = false;
 }
 
 void Actuators::setAbkPosition(float position)
@@ -89,8 +243,6 @@ void Actuators::setAbkPosition(float position)
     Lock<FastMutex> lock{servosMutex};
     unsafeSetServoPosition(servoAbk.get(), position);
 }
-
-void Actuators::openExpulsion() { gpios::expulsion::high(); }
 
 void Actuators::wiggleServo(ServosList servo)
 {
@@ -184,6 +336,55 @@ void Actuators::unsafeSetServoPosition(Servo* servo, float position)
 {
     servo->setPosition(position);
     sdLogger.log(servo->getState());
+}
+
+void Actuators::updateServoState(ServosList servoId, Radian encoderAngle)
+{
+    auto actuator = getServoActuator(servoId);
+    if (!actuator)
+        return;
+
+    auto estimatedAngle = actuator->angleData.getUpdatedAngle(encoderAngle);
+
+    actuator->servoTrigger->setCurrentState(estimatedAngle.value());
+    actuator->servoTrigger->update();
+    auto triggerOutput = actuator->servoTrigger->getOutput();
+
+    switch (triggerOutput)
+    {
+        case SchmittTrigger::Activation::HIGH:
+        {
+            actuator->servo->setVelocity(
+                Config::Actuators::PrfServo::HIGH_THRESHOLD_VELOCITY);
+            break;
+        }
+        case SchmittTrigger::Activation::LOW:
+        {
+            actuator->servo->setVelocity(
+                Config::Actuators::PrfServo::LOW_THRESHOLD_VELOCITY);
+
+            break;
+        }
+        case SchmittTrigger::Activation::STOP:
+        {
+            actuator->servo->setVelocity(
+                Config::Actuators::PrfServo::STOP_THRESHOLD_VELOCITY);
+            break;
+        }
+    }
+}
+
+Actuators::ServoActuator* Actuators::getServoActuator(ServosList servoId)
+{
+    switch (servoId)
+    {
+        case PARAFOIL_LEFT_SERVO:
+            return &leftServo;
+        case PARAFOIL_RIGHT_SERVO:
+            return &rightServo;
+        default:
+            return nullptr;
+    }
 }
 
 Servo* Actuators::getServo(ServosList servo)

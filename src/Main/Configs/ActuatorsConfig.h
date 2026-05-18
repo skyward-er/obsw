@@ -23,6 +23,7 @@
 #pragma once
 
 #include <interfaces-impl/hwmapping.h>
+#include <units/Angle.h>
 #include <units/Frequency.h>
 
 namespace Main
@@ -31,7 +32,39 @@ namespace Config
 {
 namespace Actuators
 {
+
+/* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Angle;
+/* linter off */ using namespace Boardcore::Units::Time;
+
+enum class ServoDirection
+{
+    CW,
+    CCW
+};
+
+namespace PrfServo
+{
+constexpr auto MIN_PULSE               = 500_us;
+constexpr auto MAX_PULSE               = 2440_us;
+constexpr auto HERTZ                   = 333_hz;
+constexpr auto SCHMITT_THRESHOLD_LOW   = 10_deg;
+constexpr auto SCHMITT_THRESHOLD_HIGH  = 10_deg;
+constexpr auto HIGH_THRESHOLD_VELOCITY = 1.f;
+constexpr auto LOW_THRESHOLD_VELOCITY  = 0.f;
+constexpr auto STOP_THRESHOLD_VELOCITY = 0.5f;
+constexpr auto INITIAL_ANGLE           = 0.0_deg;
+constexpr auto LEFT_SERVO_DIRECTION    = ServoDirection::CW;
+constexpr auto RIGHT_SERVO_DIRECTION   = ServoDirection::CCW;
+constexpr auto MAX_ANGLE               = 1080_deg;
+constexpr auto LEFT_MIN_ANGLE          = 45_deg;
+constexpr auto RIGHT_MIN_ANGLE         = 45_deg;
+
+constexpr auto UPDATE_RATE = 50_hz;
+}  // namespace PrfServo
+
+constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
 
 constexpr unsigned int ABK_MIN_PULSE = 1950;
 constexpr unsigned int ABK_MAX_PULSE = 1390;

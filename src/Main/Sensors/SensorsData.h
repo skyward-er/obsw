@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <drivers/canbus/CanProtocol/CanProtocolTypes.h>
 #include <sensors/AS5047D/AS5047DData.h>
 #include <sensors/LIS2MDL/LIS2MDLData.h>
 #include <sensors/LSM6DSRX/LSM6DSRXData.h>
@@ -181,7 +182,7 @@ struct PitotStaticPressureData : Boardcore::PressureData
 
     PitotStaticPressureData() {}
 
-    PitotStaticPressureData(CanPressureData data)
+    PitotStaticPressureData(Boardcore::CanPressureData data)
     {
         pressureTimestamp = data.pressureTimestamp;
         pressure          = data.pressure;
@@ -203,7 +204,7 @@ struct PitotTotalPressureData : Boardcore::PressureData
 
     PitotTotalPressureData() {}
 
-    PitotTotalPressureData(CanPressureData data)
+    PitotTotalPressureData(Boardcore::CanPressureData data)
     {
         pressureTimestamp = data.pressureTimestamp;
         pressure          = data.pressure;
