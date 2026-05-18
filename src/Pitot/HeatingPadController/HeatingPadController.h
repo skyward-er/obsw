@@ -25,9 +25,10 @@
 #include <Pitot/Buses.h>
 #include <Pitot/Sensors/SensorData.h>
 #include <algorithms/SchmittTrigger/SchmittTrigger.h>
+#include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-#include "HeatingPadConfigData.h"
+#include "HeatingPadData.h"
 
 namespace Pitot
 {
@@ -53,18 +54,20 @@ public:
     void setTargetTemperature(float temperature);
 
     bool heatingPadSense();
+    bool getPinEnabled();
 
     void enableHeatingPad();
     void disableHeatingPad();
 
-    // DEBUGGING
-    bool getHeatingPadSense();
-    bool getPinEnabled();
-    int getSchmittTriggerOutput();
+    // CanHandler status message
+    uint8_t getState();
 
     void update();
 
 private:
+    int lowConfidence{0};
+    int highConfidence{0};
+
     Boardcore::Units::Frequency::Hertz updateRate{0};
 
     Boardcore::SchmittTrigger schmittTrigger{0, 0};
