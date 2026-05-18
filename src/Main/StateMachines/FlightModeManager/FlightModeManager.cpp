@@ -757,7 +757,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            getModule<Actuators>()->openExpulsion();
+            getModule<Actuators>()->expulsionOn();
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::APOGEE_DETECTED);
 
@@ -890,9 +890,9 @@ State FlightModeManager::state_landed(const Event& event)
 
 void FlightModeManager::shutdownEngine()
 {
-    auto can = getModule<CanHandler>();
+    /* auto can = getModule<CanHandler>();
 
-    /*     can->sendServoCloseCommand(ServosList::MAIN_VALVE);
+         can->sendServoCloseCommand(ServosList::MAIN_VALVE);
         can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
 
         can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
