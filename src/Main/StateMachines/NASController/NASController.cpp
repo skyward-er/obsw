@@ -56,13 +56,19 @@ bool NASController::start()
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
 
-    // Parla con Pietro tassativo, devo fare due task?
-    size_t result =
-        scheduler.addTask([this]() { update(); }, Config::NAS::UPDATE_RATE);
+    size_t resultANAS =
+        scheduler.addTask([this]() { updateANAS(); }, Config::NAS::UPDATE_RATE_ANAS);
 
-    if (result == 0)
+    if (resultANAS == 0)
     {
-        LOG_ERR(logger, "Failed to add NAS update task");
+        LOG_ERR(logger, "Failed to add ANAS update task");
+        return false;
+    }
+
+    nasdaqID = scheduler.addTask([this]() { updateNASDAQ(); }, Config::NAS::UPDATE_RATE_NASDAQ); 
+
+    if (nasdaqID == 0) {
+        LOG_ERR(logger, "Failed to add NASDAQ update task");
         return false;
     }
 
@@ -91,6 +97,9 @@ bool NASController::start()
     x(9) = q(3);
 
     nas.setX(x);
+
+
+    scheduler.disableTask(nasdaqID);
 
     return true;
 }
@@ -149,7 +158,8 @@ void NASController::onANASReferenceChanged() {}
 
 void NASController::onNASDAQReferenceChanged() {}
 
-void NASController::update()
+
+void NASController::updateANAS()
 {
     NASControllerState curState = state;
 
@@ -205,7 +215,14 @@ void NASController::update()
         sdLogger.log(state);
         sdLogger.log(logs);
     }
+}
 
+void NASController::updateNASDAQ() {
+
+    Lock<FastMutex> lock{nasMutex};
+
+    NASControllerState curState = state;
+    
     if (curState == NASControllerState::DESCENT)
     {
         Sensors* sensors      = getModule<Sensors>();
@@ -385,6 +402,9 @@ void NASController::state_active_ascent(const Event& event)
         }
         case FLIGHT_APOGEE_DETECTED:
         {
+
+            TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+
             ANAS_NASDAQ ANASOutNASDAQIn = {
 
                 .LinearCovariance = *anas.getNASFinal().LinearCovariance,
@@ -392,6 +412,8 @@ void NASController::state_active_ascent(const Event& event)
                 .Velocity         = *anas.getNASOut().Velocity};
 
             nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
+            scheduler.enableTask(nasdaqID);
+
             transition(&NASController::state_descent);
             break;
         }
