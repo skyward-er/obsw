@@ -72,7 +72,9 @@ public:
     void NASController::onNASDAQReferenceChanged();
 
 private:
-    void update();
+    void updateANAS();
+    void updateNASDAQ();
+
     void calibrate();
 
     // FSM states
@@ -106,6 +108,8 @@ private:
 
     ANAS0 anas;
     NASDAQ0 nasdaq;
+
+    size_t nasdaqID;
 };
 
 }  // namespace Main
