@@ -56,10 +56,10 @@ bool NASController::start()
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
 
-    size_t resultANAS =
+    anasID =
         scheduler.addTask([this]() { updateANAS(); }, Config::NAS::UPDATE_RATE_ANAS);
 
-    if (resultANAS == 0)
+    if (anasID == 0)
     {
         LOG_ERR(logger, "Failed to add ANAS update task");
         return false;
@@ -99,6 +99,7 @@ bool NASController::start()
     nas.setX(x);
 
 
+    scheduler.disableTask(anasID);
     scheduler.disableTask(nasdaqID);
 
     return true;
@@ -163,12 +164,12 @@ void NASController::onNASDAQReferenceChanged() {}
 
 void NASController::updateANAS()
 {
-    NASControllerState curState = state;
 
-    Lock<FastMutex> lock{nasMutex};
-
-    if (curState == NASControllerState::ACTIVE_ASCENT)
+    if (state == NASControllerState::ACTIVE_ASCENT)
     {
+
+        Lock<FastMutex> lock{nasMutex};
+
         Sensors* sensors = getModule<Sensors>();
 
         auto prevState    = getANASState();
@@ -208,25 +209,22 @@ void NASController::updateANAS()
         anas.setNASIn(inputs);
         anas.step();
 
-        auto state = getANASState();
-
         ANASLogsData logs(miosix::getTime(), anas.getNASLogs());
 
-        getModule<StatsRecorder>()->updateANAS(state);
+        getModule<StatsRecorder>()->updateANAS(getANASState());
 
-        sdLogger.log(state);
+        sdLogger.log(getANASState());
         sdLogger.log(logs);
     }
 }
 
 void NASController::updateNASDAQ() {
-
-    Lock<FastMutex> lock{nasMutex};
-
-    NASControllerState curState = state;
     
-    if (curState == NASControllerState::DESCENT)
+    if (state == NASControllerState::DESCENT)
     {
+
+        Lock<FastMutex> lock{nasMutex};
+
         Sensors* sensors      = getModule<Sensors>();
         ADAController* adaRef = getModule<ADAController>();
 
@@ -265,16 +263,15 @@ void NASController::updateNASDAQ() {
 
         // Update and log
 
-        auto state = getNASDAQState();
         NASDAQLogsWrapper logs(miosix::getTime(), nasdaq.getNASDAQ_Logs_OBSW());
 
-        sdLogger.log(state);
+        sdLogger.log(getNASDAQState());
         sdLogger.log(logs);
 
         // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
         // dello stato della state
 
-        getModule<StatsRecorder>()->updateNASDAQ(state);
+        getModule<StatsRecorder>()->updateNASDAQ(getNASDAQState());
     }
 }
 
@@ -399,23 +396,15 @@ void NASController::state_active_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
+            TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+
+            scheduler.enableTask(anasID);
+
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
             break;
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-
-            TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
-
-            ANAS_NASDAQ ANASOutNASDAQIn = {
-
-                .LinearCovariance = *anas.getNASFinal().LinearCovariance,
-                .Position         = *anas.getNASOut().Position,
-                .Velocity         = *anas.getNASOut().Velocity};
-
-            nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
-            scheduler.enableTask(nasdaqID);
-
             transition(&NASController::state_descent);
             break;
         }
@@ -439,6 +428,19 @@ void NASController::state_descent(const Event& event)
     {
         case EV_ENTRY:
         {
+
+            TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
+
+            ANAS_NASDAQ ANASOutNASDAQIn = {
+
+                .LinearCovariance = *anas.getNASFinal().LinearCovariance,
+                .Position         = *anas.getNASOut().Position,
+                .Velocity         = *anas.getNASOut().Velocity};
+
+            nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
+            scheduler.enableTask(nasdaqID);
+            scheduler.disableTask(anasID);
+
             updateAndLogStatus(NASControllerState::DESCENT);
             break;
         }
