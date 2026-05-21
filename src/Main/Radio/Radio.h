@@ -64,6 +64,12 @@ public:
 
     Boardcore::MavlinkStatus getMavStatus();
 
+    void enableAscentTelemetry();
+    void disableAscentTelemetry();
+
+    void enableDescentTelemetry();
+    void disableDescentTelemetry();
+
 private:
     void enqueueAck(const mavlink_message_t& msg);
     void enqueueWack(const mavlink_message_t& msg, uint8_t errorId);
@@ -77,6 +83,9 @@ private:
 
     bool enqueueSystemTm(uint8_t tmId);
     bool enqueueSensorsTm(uint8_t tmId);
+
+    size_t ascentTelemetryTaskId  = 0;
+    size_t descentTelemetryTaskId = 0;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");
