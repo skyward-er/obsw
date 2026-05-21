@@ -33,7 +33,7 @@ namespace ExternalPin
 // Port A
 static constexpr Boardcore::ExternalGpioPin EXT_STATUS_LED(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN0);
-static constexpr Boardcore::ExternalGpioPin DETACH_PAYLOAD(
+static constexpr Boardcore::ExternalGpioPin DETACH_NOSECONE(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN1);
 static constexpr Boardcore::ExternalGpioPin EXPULSION_SENSE(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN2);

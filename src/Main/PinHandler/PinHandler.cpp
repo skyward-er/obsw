@@ -67,7 +67,7 @@ bool PinHandler::start()
         Config::PinHandler::RAMP_PIN_THRESHOLD))
 
     CHECK_RESULT(externalPinObserver->registerPinCallback(
-        DETACH_PAYLOAD, [this](PinTransition transition, auto pinData)
+        DETACH_NOSECONE, [this](PinTransition transition, auto pinData)
         { onDetachPayloadTransition(transition, pinData); },
         Config::PinHandler::RAMP_PIN_THRESHOLD))
 
@@ -91,8 +91,8 @@ PinData PinHandler::getPinData(PinList pin)
     {
         case PinList::RAMP_PIN:
             return pinObserver->getPinData(sense::detachRamp::getPin());
-        case PinList::DETACH_PAYLOAD_PIN:
-            return externalPinObserver->getPinData(DETACH_PAYLOAD);
+        case PinList::DETACH_NOSECONE_PIN:
+            return externalPinObserver->getPinData(DETACH_NOSECONE);
         case PinList::EXPULSION_SENSE:
             return externalPinObserver->getPinData(EXPULSION_SENSE);
         case PinList::RELEASER_SENSE:
@@ -137,7 +137,7 @@ void PinHandler::onRampPinTransition(PinTransition transition,
 void PinHandler::onDetachPayloadTransition(PinTransition transition,
                                            const PinData& data)
 {
-    logPin(PinList::DETACH_PAYLOAD_PIN, data);
+    logPin(PinList::DETACH_NOSECONE_PIN, data);
     LOG_INFO(logger, "onDetachPayloadTransition {}",
              static_cast<int>(transition));
 }

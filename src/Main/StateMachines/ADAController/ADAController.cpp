@@ -144,12 +144,6 @@ void ADAController::setShadowModeTime(milliseconds time)
     shadowModeTime = time;
 }
 
-float ADAController::getVerticalSpeed()
-{
-    Lock<FastMutex> lock{adaMutex};
-    return ada.getState().verticalSpeed;
-}
-
 ADAControllerState ADAController::getState() { return state; }
 
 void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
