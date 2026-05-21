@@ -41,7 +41,7 @@ public:
     enum class PinList : uint8_t
     {
         RAMP_PIN = 0,
-        DETACH_PAYLOAD_PIN,
+        DETACH_NOSECONE_PIN,
         EXPULSION_SENSE,
         RELEASER_SENSE,
     };
