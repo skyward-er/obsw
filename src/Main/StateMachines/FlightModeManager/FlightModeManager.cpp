@@ -24,6 +24,7 @@
 
 #include <Main/Configs/FMMConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
+#include <Main/Radio/Radio.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 
@@ -731,13 +732,15 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         {
             return HANDLED;
         }
-        case ADA_APOGEE_DETECTED:
+        case ADA_APOGEE_DETECTED:   
         case TMTC_FORCE_EXPULSION:
         case FMM_APOGEE_TIMEOUT:
         {
             EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
                                             TOPIC_FLIGHT);
 
+            getModule<Radio>()->disableAscentTelemetry();
+            getModule<Radio>()->enableDescentTelemetry();
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:

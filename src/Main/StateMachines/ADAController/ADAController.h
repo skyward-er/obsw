@@ -57,16 +57,6 @@ public:
     std::chrono::milliseconds getShadowModeTime();
     void setShadowModeTime(std::chrono::milliseconds time);
 
-    /**
-     * @brief Returns the vertical speed  of the ADA.
-     */
-    float getVerticalSpeed();
-
-    /**
-     * @brief Returns the pressure of the ADA.
-     */
-    float getPressure();
-
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
 private:

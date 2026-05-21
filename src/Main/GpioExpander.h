@@ -50,7 +50,7 @@ public:
         expander->init();
 
         SET_PIN_MODE(expander, EXT_STATUS_LED, OUTPUT);
-        SET_PIN_MODE(expander, DETACH_PAYLOAD, INPUT);
+        SET_PIN_MODE(expander, DETACH_NOSECONE, INPUT);
         SET_PIN_MODE(expander, EXPULSION_SENSE, INPUT);
         SET_PIN_MODE(expander, RELEASER_SENSE, INPUT);
         SET_PIN_MODE(expander, LED_0, OUTPUT);

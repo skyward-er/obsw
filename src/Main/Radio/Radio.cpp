@@ -112,15 +112,28 @@ bool Radio::start()
     }
 
     // Low rate periodic telemetry
-    result = scheduler.addTask([this]()
-                               { enqueueSystemTm(SystemTMList::MAV_STATS_ID); },
-                               Config::Radio::LOW_RATE_TELEMETRY);
+    ascentTelemetryTaskId = scheduler.addTask(
+        [this]() { enqueueSystemTm(SystemTMList::MAV_ASCENT_STATS_ID); },
+        Config::Radio::LOW_RATE_TELEMETRY);
 
-    if (result == 0)
+    if (ascentTelemetryTaskId == 0)
     {
-        LOG_ERR(logger, "Failed to add periodic telemetry task");
+        LOG_ERR(logger, "Failed to add ascent periodic telemetry task");
         return false;
     }
+
+    descentTelemetryTaskId = scheduler.addTask(
+        [this]() { enqueueSystemTm(SystemTMList::MAV_DESCENT_STATS_ID); },
+        Config::Radio::LOW_RATE_TELEMETRY);
+
+    if (descentTelemetryTaskId == 0)
+    {
+        LOG_ERR(logger, "Failed to add descent periodic telemetry task");
+        return false;
+    }
+
+    // Disable the task until the apogee is detected
+    scheduler.disableTask(descentTelemetryTaskId);
 
     started = true;
     return true;
@@ -129,6 +142,42 @@ bool Radio::start()
 Boardcore::MavlinkStatus Radio::getMavStatus()
 {
     return mavDriver->getStatus();
+}
+
+void Radio::enableAscentTelemetry()
+{
+    if (!started)
+        return;
+
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+    scheduler.enableTask(ascentTelemetryTaskId);
+}
+
+void Radio::disableAscentTelemetry()
+{
+    if (!started)
+        return;
+
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+    scheduler.disableTask(ascentTelemetryTaskId);
+}
+
+void Radio::enableDescentTelemetry()
+{
+    if (!started)
+        return;
+
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+    scheduler.enableTask(descentTelemetryTaskId);
+}
+
+void Radio::disableDescentTelemetry()
+{
+    if (!started)
+        return;
+
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->getRadioScheduler();
+    scheduler.disableTask(descentTelemetryTaskId);
 }
 
 void Radio::enqueuePacket(const mavlink_message_t& msg)
@@ -524,7 +573,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
         {
             constexpr std::array<PinHandler::PinList, 5> PIN_LIST = {
                 PinHandler::PinList::RAMP_PIN,
-                PinHandler::PinList::DETACH_PAYLOAD_PIN,
+                PinHandler::PinList::DETACH_NOSECONE_PIN,
                 PinHandler::PinList::EXPULSION_SENSE,
                 PinHandler::PinList::RELEASER_SENSE,
             };
@@ -835,73 +884,58 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto temperature  = sensors->getTemperatureLastSample();
             auto pressStatic  = sensors->getAtmosPressureLastSample();
             auto pressDigi    = sensors->getLPS22DFLastSample();
-            auto pitotStatic  = sensors->getCanPitotStaticPressure();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
-            auto adaVertSpeed = ada->getVerticalSpeed();
+            auto adaState     = ada->getADAState();
             auto nasState     = nas->getNASState();
             auto meaState     = mea->getMEAState();
             auto ref = getModule<AlgoReference>()->getReferenceValues();
 
-            // Compute airspeed
-            float airspeedPitot =
-                (pitotDynamic.pressure > 0
-                     ? Aeroutils::computePitotAirspeed(
-                           pitotStatic.pressure + pitotDynamic.pressure,
-                           pitotStatic.pressure, nasState.d, ref.refTemperature)
-                     : 0);
-
             tm.timestamp = TimestampTimer::getTimestamp();
 
-            /* tm.airspeed_pitot = airspeedPitot; */
-            tm.ada_vert_speed = adaVertSpeed;
+            tm.pressure_ada   = adaState.x0;
+            tm.ada_vert_speed = adaState.verticalSpeed;
+            tm.altitude_agl   = adaState.aglAltitude;
             tm.mea_mass       = meaState.estimatedMass;
-            tm.mea_apogee     = meaState.estimatedApogee;
+            tm.sda_apogee     = meaState.estimatedApogee;
 
             // Sensors
-            tm.pressure_digi = pressDigi.pressure;
-            /* tm.pressure_static = pressStatic.pressure; */
+            tm.pressure_digi    = pressDigi.pressure;
+            tm.dynamic_pressure = pitotDynamic.pressure;
 
-            /*   tm.acc_x = imu.accelerationX;
-              tm.acc_y = imu.accelerationY;
-              tm.acc_z = imu.accelerationZ;
+            tm.acc_x = imu.accelerationX;
+            tm.acc_y = imu.accelerationY;
+            tm.acc_z = imu.accelerationZ;
 
-              tm.gyro_x = imu.angularSpeedX;
-              tm.gyro_y = imu.angularSpeedY;
-              tm.gyro_z = imu.angularSpeedZ; */
+            tm.gyro_x = imu.angularSpeedX;
+            tm.gyro_y = imu.angularSpeedY;
+            tm.gyro_z = imu.angularSpeedZ;
 
             tm.mag_x = imu.magneticFieldX;
             tm.mag_y = imu.magneticFieldY;
             tm.mag_z = imu.magneticFieldZ;
 
-            /*  tm.gps_alt = gps.height; */
+            tm.gps_fix = gps.fix;
             tm.gps_lat = gps.latitude;
             tm.gps_lon = gps.longitude;
-            tm.gps_fix = gps.fix;
 
-            /*     tm.vn100_qx = vn100.quaternionX;
-                tm.vn100_qy = vn100.quaternionY;
-                tm.vn100_qz = vn100.quaternionZ;
-                tm.vn100_qw = vn100.quaternionW; */
+            tm.left_servo_angle  = sensors->getAS5047DLeftLastSample().angle;
+            tm.right_servo_angle = sensors->getAS5047DRightLastSample().angle;
 
-            // Actuators
+            // Actautors
             tm.abk_angle =
                 actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO);
 
             // Algorithms
-            tm.nas_n  = nasState.n;
-            tm.nas_e  = nasState.e;
-            tm.nas_d  = nasState.d;
-            tm.nas_vn = nasState.vn;
-            tm.nas_ve = nasState.ve;
-            tm.nas_vd = nasState.vd;
-            tm.nas_qx = nasState.qx;
-            tm.nas_qy = nasState.qy;
-            tm.nas_qz = nasState.qz;
-            tm.nas_qw = nasState.qw;
-            /*             tm.nas_bias_x   = nasState.bx;
-                        tm.nas_bias_y   = nasState.by;
-                        tm.nas_bias_z   = nasState.bz; */
-            tm.altitude_agl = -nasState.d;
+            tm.nas_n   = nasState.n;
+            tm.nas_e   = nasState.e;
+            tm.nas_d   = nasState.d;
+            tm.nas_vn  = nasState.vn;
+            tm.nas_ve  = nasState.ve;
+            tm.nas_vd  = nasState.vd;
+            tm.anas_qx = nasState.qx;
+            tm.anas_qy = nasState.qy;
+            tm.anas_qz = nasState.qz;
+            tm.anas_qw = nasState.qw;
 
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
@@ -917,17 +951,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             return true;
         }
 
-        case MAV_STATS_ID:
+        case MAV_ASCENT_STATS_ID:
         {
             mavlink_message_t msg;
-            mavlink_rocket_stats_tm_t tm;
+            mavlink_rocket_stats_ascent_tm_t tm;
 
             PinHandler* pinHandler  = getModule<PinHandler>();
             ADAController* ada      = getModule<ADAController>();
             NASController* nas      = getModule<NASController>();
             MEAController* mea      = getModule<MEAController>();
             ABKController* abk      = getModule<ABKController>();
-            Actuators* actuators    = getModule<Actuators>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();
 
@@ -943,26 +976,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.max_speed_ts            = stats.maxSpeedTs;
             tm.max_speed               = stats.maxSpeed;
             tm.max_speed_altitude      = stats.maxSpeedAlt;
-            tm.max_mach_ts             = stats.maxMachTs;
-            tm.max_mach                = stats.maxMach;
-            tm.apogee_ts               = stats.apogeeTs;
-            tm.apogee_lat              = stats.apogeeLat;
-            tm.apogee_lon              = stats.apogeeLon;
-            tm.apogee_alt              = stats.getMaxApogeeAlt();
-            tm.apogee_max_acc_ts       = stats.apogeeMaxAccTs;
-            tm.apogee_max_acc          = stats.apogeeMaxAcc;
-            tm.dpl_ts                  = stats.dplTs;
-            tm.dpl_alt                 = stats.getMaxDplAlt();
-            tm.dpl_max_acc_ts          = stats.dplMaxAccTs;
-            tm.dpl_max_acc             = stats.dplMaxAcc;
-            tm.dpl_bay_max_pressure_ts = stats.maxDplPressureTs;
-            tm.dpl_bay_max_pressure    = stats.maxDplPressure;
-
-            // Algorithms reference
-            auto ref   = getModule<AlgoReference>()->getReferenceValues();
-            tm.ref_lat = ref.refLatitude;
-            tm.ref_lon = ref.refLongitude;
-            tm.ref_alt = ref.refAltitude;
 
             // Cpu stuff
             CpuMeterData cpuStats = CpuMeter::getCpuStats();
@@ -977,24 +990,23 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
+            tm.sda_state = 0;  // TODO: add SDA state
             tm.mea_state = static_cast<uint8_t>(mea->getState());
 
             // Actuators
-            tm.exp_angle =
-                actuators->getServoPosition(ServosList::EXPULSION_SERVO);
-
             tm.pin_launch =
                 pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState;
             tm.pin_nosecone =
-                pinHandler->getPinData(PinHandler::PinList::DETACH_PAYLOAD_PIN)
+                pinHandler->getPinData(PinHandler::PinList::DETACH_NOSECONE_PIN)
                     .lastState;
-            tm.pin_expulsion =
+
+            tm.expulsion_sense =
                 pinHandler->getPinData(PinHandler::PinList::EXPULSION_SENSE)
                     .lastState;
-            // TODO change the name of the mavlink field
-            tm.cutter_presence =
+            tm.releaser_sense =
                 pinHandler->getPinData(PinHandler::PinList::RELEASER_SENSE)
                     .lastState;
+            // TODO: add heating pad sense
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();
@@ -1012,9 +1024,93 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             tm.hil_state = PersistentVars::getHilMode() ? 1 : 0;
 
-            mavlink_msg_rocket_stats_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                               Config::Radio::MAV_COMPONENT_ID,
-                                               &msg, &tm);
+            mavlink_msg_rocket_stats_ascent_tm_encode(
+                Config::Radio::MAV_SYSTEM_ID, Config::Radio::MAV_COMPONENT_ID,
+                &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_DESCENT_STATS_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_rocket_stats_descent_tm_t tm;
+
+            PinHandler* pinHandler  = getModule<PinHandler>();
+            ADAController* ada      = getModule<ADAController>();
+            NASController* nas      = getModule<NASController>();
+            MEAController* mea      = getModule<MEAController>();
+            ABKController* abk      = getModule<ABKController>();
+            StatsRecorder* recorder = getModule<StatsRecorder>();
+            MotorStatus* motor      = getModule<MotorStatus>();
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // General flight stats
+            StatsRecorder::Stats stats = recorder->getStats();
+            tm.apogee_ts               = stats.apogeeTs;
+            tm.apogee_lat              = stats.apogeeLat;
+            tm.apogee_lon              = stats.apogeeLon;
+            tm.apogee_alt              = stats.apogeeAlt;
+            tm.apogee_max_acc_ts       = stats.apogeeMaxAccTs;
+            tm.apogee_max_acc          = stats.apogeeMaxAcc;
+            tm.dpl_ts                  = stats.dplTs;
+            tm.dpl_alt                 = stats.dplAlt;
+            tm.wing_active_target_n    = 0.0f;  // TODO
+            tm.wing_active_target_e    = 0.0f;  // TODO
+            tm.dpl_max_acc_ts          = stats.dplMaxAccTs;
+            tm.dpl_max_acc             = stats.dplMaxAcc;
+
+            // Cpu stuff
+            CpuMeterData cpuStats = CpuMeter::getCpuStats();
+            CpuMeter::resetCpuStats();
+            tm.cpu_load  = cpuStats.mean;
+            tm.free_heap = cpuStats.freeHeap;
+
+            // Also log this to the SD
+            sdLogger.log(cpuStats);
+
+            // FMM states
+            tm.ada_state = static_cast<uint8_t>(ada->getState());
+            tm.abk_state = static_cast<uint8_t>(abk->getState());
+            tm.nas_state = static_cast<uint8_t>(nas->getState());
+            tm.sda_state = 0;  // TODO: add SDA state
+            tm.mea_state = static_cast<uint8_t>(mea->getState());
+
+            // Actuators
+            tm.pin_launch =
+                pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState;
+            tm.pin_nosecone =
+                pinHandler->getPinData(PinHandler::PinList::DETACH_NOSECONE_PIN)
+                    .lastState;
+
+            tm.expulsion_sense =
+                pinHandler->getPinData(PinHandler::PinList::EXPULSION_SENSE)
+                    .lastState;
+            tm.releaser_sense =
+                pinHandler->getPinData(PinHandler::PinList::RELEASER_SENSE)
+                    .lastState;
+            // TODO: add heating pad sense
+
+            // Log stuff
+            LoggerStats loggerStats = Logger::getInstance().getStats();
+            tm.log_good             = (loggerStats.lastWriteError == 0) ? 1 : 0;
+            tm.log_number           = loggerStats.logNumber;
+
+            CanHandler::CanStatus canStatus =
+                getModule<CanHandler>()->getCanStatus();
+            /* tm.pitot_board_state = canStatus.getPitotState(); */
+            tm.motor_board_state = motor->getState();
+
+            /* tm.pitot_can_status = canStatus.isPitotConnected() ? 1 : 0; */
+            tm.motor_can_status = motor->connected();
+            tm.rig_can_status   = canStatus.isRigConnected() ? 1 : 0;
+
+            tm.hil_state = PersistentVars::getHilMode() ? 1 : 0;
+
+            mavlink_msg_rocket_stats_descent_tm_encode(
+                Config::Radio::MAV_SYSTEM_ID, Config::Radio::MAV_COMPONENT_ID,
+                &msg, &tm);
             enqueuePacket(msg);
             return true;
         }

@@ -40,10 +40,12 @@
 namespace Main
 {
 
+class Radio;
+
 class FlightModeManager
     : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler,
                                            StatsRecorder, AlgoReference,
-                                           PinHandler>,
+                                           PinHandler, Radio>,
       public Boardcore::HSM<FlightModeManager>
 {
 public:
