@@ -216,6 +216,12 @@ struct CalibrationData
     float gyro1BiasX       = 0.0f;
     float gyro1BiasY       = 0.0f;
     float gyro1BiasZ       = 0.0f;
+    float vn100AccBiasX    = 0.0f;
+    float vn100AccBiasY    = 0.0f;
+    float vn100AccBiasZ    = 0.0f;
+    float vn100GyroBiasX   = 0.0f;
+    float vn100GyroBiasY   = 0.0f;
+    float vn100GyroBiasZ   = 0.0f;
     float magBiasX         = 0.0f;
     float magBiasY         = 0.0f;
     float magBiasZ         = 0.0f;
@@ -228,14 +234,15 @@ struct CalibrationData
     {
         return STRUCT_DEF(
             CalibrationData,
-            FIELD_DEF(timestamp) FIELD_DEF(acc0BiasX) FIELD_DEF(acc0BiasY)
-                FIELD_DEF(acc0BiasZ) FIELD_DEF(gyro0BiasX) FIELD_DEF(gyro0BiasY)
-                    FIELD_DEF(gyro0BiasZ) FIELD_DEF(acc1BiasX) FIELD_DEF(
-                        acc1BiasY) FIELD_DEF(acc1BiasZ) FIELD_DEF(gyro1BiasX)
-                        FIELD_DEF(gyro1BiasY) FIELD_DEF(gyro1BiasZ)
-                            FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
-                                FIELD_DEF(magBiasZ) FIELD_DEF(magScaleX)
-                                    FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
+            FIELD_DEF(timestamp) 
+            FIELD_DEF(acc0BiasX) FIELD_DEF(acc0BiasY) FIELD_DEF(acc0BiasZ) 
+            FIELD_DEF(gyro0BiasX) FIELD_DEF(gyro0BiasY) FIELD_DEF(gyro0BiasZ) 
+            FIELD_DEF(acc1BiasX) FIELD_DEF(acc1BiasY) FIELD_DEF(acc1BiasZ) 
+            FIELD_DEF(gyro1BiasX) FIELD_DEF(gyro1BiasY) FIELD_DEF(gyro1BiasZ)
+            FIELD_DEF(vn100AccBiasX) FIELD_DEF(vn100AccBiasY) FIELD_DEF(vn100AccBiasZ)
+            FIELD_DEF(vn100GyroBiasX) FIELD_DEF(vn100GyroBiasY) FIELD_DEF(vn100GyroBiasZ)
+            FIELD_DEF(magBiasX) FIELD_DEF(magBiasY) FIELD_DEF(magBiasZ) 
+            FIELD_DEF(magScaleX) FIELD_DEF(magScaleY) FIELD_DEF(magScaleZ));
     }
 };
 

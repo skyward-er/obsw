@@ -60,6 +60,14 @@ private:
             LSM6DSRX1Data{lsm6dsrx_1->getLastSample()});
     }
 
+    void vn100Callback() override
+    {
+        if (!vn100)
+            return;
+
+        Boardcore::Logger::getInstance().log(vn100->getLastSample());
+    }
+
     bool postSensorCreationHook() override
     {
         using namespace Boardcore;
@@ -103,6 +111,8 @@ private:
                        [this]() { return updateLSM6DSRXData_0(); });
         hillificator<>(lsm6dsrx_1, enableHw,
                        [this]() { return updateLSM6DSRXData_1(); });
+        hillificator<>(vn100, enableHw,
+                       [this]() { return updateVN100Data(); });
         hillificator<>(nd015a_0, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015a_1, enableHw,
@@ -269,6 +279,28 @@ private:
         return data;
     };
 
+    Boardcore::VN100SpiData updateVN100Data()
+    {
+        Boardcore::VN100SpiData data;
+
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
+
+        int iAcc  = getSampleCounter(sensorData->accelerometer1.NDATA);
+        int iGyro = getSampleCounter(sensorData->gyro1.NDATA);
+
+        data.accelerationTimestamp = Boardcore::TimestampTimer::getTimestamp();
+        data.accelerationX = sensorData->accelerometer1.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometer1.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometer1.measures[iAcc][2];
+
+        data.angularSpeedTimestamp = Boardcore::TimestampTimer::getTimestamp();
+        data.angularSpeedX = sensorData->gyro1.measures[iGyro][0];
+        data.angularSpeedY = sensorData->gyro1.measures[iGyro][1];
+        data.angularSpeedZ = sensorData->gyro1.measures[iGyro][2];
+
+        return data;
+    };
+
     Boardcore::ND015XData updateStaticPressureData()
     {
         Boardcore::ND015XData data;
@@ -285,7 +317,7 @@ private:
 
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
-        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX   //TODO: Switch to VN100 ? 
                         ? getCalibratedLSM6DSRX0LastSample()
                         : getLSM6DSRX0LastSample();
         auto mag  = getLIS2MDLLastSample();

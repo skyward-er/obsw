@@ -51,13 +51,20 @@ bool Sensors::start()
     gyroCalibration1.fromFile(
         Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
 
+    accVN100Calibration.fromFile(
+        Config::Sensors::VN100::ACC_CALIBRATION_FILENAME);
+    
+    gyroVN100Calibration.fromFile(
+        Config::Sensors::VN100::GYRO_CALIBRATION_FILENAME);
+
     if (Config::Sensors::AS5047D_LEFT::ENABLED)
         as5047dLeftInit();
 
     if (Config::Sensors::AS5047D_RIGHT::ENABLED)
         as5047dRightInit();
 
-    if (Config::Sensors::LPS22DF::ENABLED)
+    if (Config::Sensors::LPS22DF::ENABLED &&
+        !Config::Sensors::USING_DUAL_MAGNETOMETER)
         lps22dfInit();
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
@@ -137,16 +144,18 @@ void Sensors::calibrate()
 
 CalibrationData Sensors::getCalibration()
 {
-    std::lock(magCalibrationMutex, lsm6Calibration0Mutex,
-              lsm6Calibration1Mutex);
+    std::lock(magCalibrationMutex, lsm6Calibration0Mutex,lsm6Calibration1Mutex, vn100CalibrationMutex   );
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex, std::adopt_lock);
+    std::lock_guard<std::mutex> vn100lk(vn100CalibrationMutex, std::adopt_lock);
 
     auto accBias0  = accCalibration0.getV();
     auto gyroBias0 = gyroCalibration0.getV();
     auto accBias1  = accCalibration1.getV();
     auto gyroBias1 = gyroCalibration1.getV();
+    auto vn100AccBias  = accVN100Calibration.getV();
+    auto vn100GyroBias = gyroVN100Calibration.getV();
     auto magBias   = magCalibration.getb();
     auto magScale  = magCalibration.getA();
 
@@ -164,6 +173,12 @@ CalibrationData Sensors::getCalibration()
         .gyro1BiasX = gyroBias1.x(),
         .gyro1BiasY = gyroBias1.y(),
         .gyro1BiasZ = gyroBias1.z(),
+        .vn100AccBiasX  = vn100AccBias.x(),
+        .vn100AccBiasY  = vn100AccBias.y(),
+        .vn100AccBiasZ  = vn100AccBias.z(),
+        .vn100GyroBiasX = vn100GyroBias.x(),
+        .vn100GyroBiasY = vn100GyroBias.y(),
+        .vn100GyroBiasZ = vn100GyroBias.z(),
         .magBiasX   = magBias.x(),
         .magBiasY   = magBias.y(),
         .magBiasZ   = magBias.z(),
@@ -395,6 +410,26 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
 
     auto correctedGyro =
         gyroCalibration1.correct(static_cast<GyroscopeData>(sample));
+    sample.angularSpeedX = correctedGyro.x();
+    sample.angularSpeedY = correctedGyro.y();
+    sample.angularSpeedZ = correctedGyro.z();
+
+    return sample;
+}
+
+VN100SpiData Sensors::getCalibratedVN100LastSample()
+{
+    auto sample = getVN100LastSample();
+    std::lock_guard<std::mutex> lock{vn100CalibrationMutex};
+
+    auto correctedAcc =
+        accVN100Calibration.correct(static_cast<AccelerometerData>(sample));
+    sample.accelerationX = correctedAcc.x();
+    sample.accelerationY = correctedAcc.y();
+    sample.accelerationZ = correctedAcc.z();
+
+    auto correctedGyro =
+        gyroVN100Calibration.correct(static_cast<GyroscopeData>(sample));
     sample.angularSpeedX = correctedGyro.x();
     sample.angularSpeedY = correctedGyro.y();
     sample.angularSpeedZ = correctedGyro.z();
@@ -715,7 +750,7 @@ void Sensors::vn100Init()
 
     vn100 = std::make_unique<VN100Spi>(getModule<Buses>()->getVN100(),
                                        sensors::VN100::cs::getPin(), spiConfig,
-                                       200);
+                                       400);
 }
 
 void Sensors::vn100Callback() { sdLogger.log(getVN100LastSample()); }
@@ -784,7 +819,7 @@ void Sensors::rotatedImuInit()
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX  // TODO switch to VN100 ?
                             ? getCalibratedLSM6DSRX0LastSample()
                             : getLSM6DSRX0LastSample();
             auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
