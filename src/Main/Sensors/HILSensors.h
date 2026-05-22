@@ -60,6 +60,14 @@ private:
             LSM6DSRX1Data{lsm6dsrx_1->getLastSample()});
     }
 
+    void vn100Callback() override
+    {
+        if (!vn100)
+            return;
+
+        Boardcore::Logger::getInstance().log(vn100->getLastSample());
+    }
+
     bool postSensorCreationHook() override
     {
         using namespace Boardcore;
@@ -105,6 +113,8 @@ private:
                        [this]() { return updateLSM6DSRXData_0(); });
         hillificator<>(lsm6dsrx_1, enableHw,
                        [this]() { return updateLSM6DSRXData_1(); });
+        hillificator<>(vn100, enableHw,
+                       [this]() { return updateVN100Data(); });
         hillificator<>(nd015a_0, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015a_1, enableHw,
@@ -313,7 +323,7 @@ private:
 
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
-        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX   //TODO: Switch to VN100 ? 
                         ? getCalibratedLSM6DSRX0LastSample()
                         : getLSM6DSRX0LastSample();
         auto mag  = getLIS2MDLRcsLastSample();

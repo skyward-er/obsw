@@ -95,6 +95,7 @@ public:
     Boardcore::LIS2MDLData getCalibratedLIS2MDLIntLastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
+    Boardcore::VN100SpiData getCalibratedVN100LastSample();
     Boardcore::IMUData getIMULastSample();
 
     Boardcore::VoltageData getBatteryVoltageLastSample();
@@ -120,6 +121,8 @@ protected:
 
     virtual void lsm6dsrx0Callback();
     virtual void lsm6dsrx1Callback();
+    virtual void vn100Callback();
+
 
     Boardcore::TaskScheduler& getSensorsScheduler();
 
@@ -180,6 +183,8 @@ private:
 
     void lsm6dsrx1Init();
 
+    void vn100Init();
+
     void internalAdcInit();
     void internalAdcCallback();
 
@@ -217,6 +222,7 @@ private:
     Boardcore::TwelveParametersCorrector gyroCalibration1;
 
     std::mutex vn100CalibrationMutex;
+
     Boardcore::TwelveParametersCorrector accVN100Calibration;
     Boardcore::TwelveParametersCorrector gyroVN100Calibration;
     Boardcore::SixParametersCorrector magVN100Calibration;
