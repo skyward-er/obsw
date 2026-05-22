@@ -113,8 +113,7 @@ private:
                        [this]() { return updateLSM6DSRXData_0(); });
         hillificator<>(lsm6dsrx_1, enableHw,
                        [this]() { return updateLSM6DSRXData_1(); });
-        hillificator<>(vn100, enableHw,
-                       [this]() { return updateVN100Data(); });
+        hillificator<>(vn100, enableHw, [this]() { return updateVN100Data(); });
         hillificator<>(nd015a_0, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015a_1, enableHw,
