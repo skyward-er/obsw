@@ -141,6 +141,102 @@ struct OxVesselWeightData : Boardcore::LoadCellData
     }
 };
 
+struct RampLC0WeightData : Boardcore::LoadCellData
+{
+    explicit RampLC0WeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RampLC0WeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RampLC0WeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
+};
+
+struct RampLC1WeightData : Boardcore::LoadCellData
+{
+    explicit RampLC1WeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RampLC1WeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RampLC1WeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
+};
+
+struct RampLC2WeightData : Boardcore::LoadCellData
+{
+    explicit RampLC2WeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RampLC2WeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RampLC2WeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
+};
+
+struct RampLC3WeightData : Boardcore::LoadCellData
+{
+    explicit RampLC3WeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RampLC3WeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RampLC3WeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
+};
+
+struct RampLC4WeightData : Boardcore::LoadCellData
+{
+    explicit RampLC4WeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RampLC4WeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RampLC4WeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
+};
+
+struct RampLC5WeightData : Boardcore::LoadCellData
+{
+    explicit RampLC5WeightData(const Boardcore::LoadCellData& data)
+        : Boardcore::LoadCellData(data)
+    {
+    }
+
+    RampLC5WeightData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(RampLC5WeightData,
+                          EXTEND_DEF(Boardcore::LoadCellData));
+    }
+};
+
 struct ADC1Data : Boardcore::ADS131M08Data
 {
     explicit ADC1Data(const Boardcore::ADS131M08Data& data)

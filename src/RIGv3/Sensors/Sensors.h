@@ -77,8 +77,14 @@ public:
     Boardcore::PressureData getInjFuelPressure();
 
     Boardcore::LoadCellData getOxVesselWeight();
-    Boardcore::LoadCellData getRocketWeight();
     Boardcore::LoadCellData getOxTankWeight();
+    Boardcore::LoadCellData getRocketWeight();
+    Boardcore::LoadCellData getRampLC0Weight();
+    Boardcore::LoadCellData getRampLC1Weight();
+    Boardcore::LoadCellData getRampLC2Weight();
+    Boardcore::LoadCellData getRampLC3Weight();
+    Boardcore::LoadCellData getRampLC4Weight();
+    Boardcore::LoadCellData getRampLC5Weight();
 
     Boardcore::ServoPositionData getMainOxPosition();
     Boardcore::ServoPositionData getMainFuelPosition();
@@ -137,8 +143,23 @@ private:
     void oxVesselWeightInit();
     void oxVesselWeightCallback();
 
-    void rocketWeightInit();
-    void rocketWeightCallback();
+    void rampLC0WeightInit();
+    void rampLC0WeightCallback();
+
+    void rampLC1WeightInit();
+    void rampLC1WeightCallback();
+
+    void rampLC2WeightInit();
+    void rampLC2WeightCallback();
+
+    void rampLC3WeightInit();
+    void rampLC3WeightCallback();
+
+    void rampLC4WeightInit();
+    void rampLC4WeightCallback();
+
+    void rampLC5WeightInit();
+    void rampLC5WeightCallback();
 
     void oxTankWeightInit();
     void oxTankWeightCallback();
@@ -200,7 +221,12 @@ private:
     std::unique_ptr<Boardcore::TrafagPressureSensor> injOxPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> injFuelPressure;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
-    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rampLC0Weight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rampLC1Weight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rampLC2Weight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rampLC3Weight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rampLC4Weight;
+    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rampLC5Weight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
     std::unique_ptr<Boardcore::AnalogEncoder> mainOxPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> mainFuelPosition;

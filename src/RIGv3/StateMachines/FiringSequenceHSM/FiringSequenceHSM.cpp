@@ -127,8 +127,8 @@ void FiringSequenceHSM::checkIgniterPressure()
 {
     if (state == FiringSequenceState::IGNITER_WAIT)
     {
-        PressureData igniterChamberPressure =
-            getModule<Sensors>()->getIgniterChamberPressure();
+        PressureData igniterChamberPressure{}; /* =
+             getModule<Sensors>()->getIgniterChamberPressure(); */
 
         if (igniterChamberPressure.pressure > igniterPressureThreshold)
         {
@@ -151,8 +151,8 @@ void FiringSequenceHSM::checkIgniterPressure()
 
 void FiringSequenceHSM::checkPilotFlamePressure()
 {
-    PressureData chamberPressure =
-        getModule<Sensors>()->getMainChamberPressure();
+    PressureData chamberPressure{}; /* =
+        getModule<Sensors>()->getMainChamberPressure(); */
 
     if (state != FiringSequenceState::READY)
     {

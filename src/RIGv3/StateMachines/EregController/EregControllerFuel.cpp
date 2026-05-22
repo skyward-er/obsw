@@ -112,10 +112,10 @@ void EregControllerFuel::update()
 {
     EregFuelData logData;
 
-    logData.downstreamPressure =
+    /* logData.downstreamPressure =
         getModule<Sensors>()->getFuelTankPressure().pressure;
     logData.upstreamPressure =
-        getModule<Sensors>()->getPrzTankPressure().pressure;
+        getModule<Sensors>()->getPrzTankPressure().pressure; */
 
     downstreamPressureFilter.add(logData.downstreamPressure);
     upstreamPressureFilter.add(logData.upstreamPressure);

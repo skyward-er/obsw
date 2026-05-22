@@ -57,13 +57,12 @@ bool Sensors::start()
     if (Config::Sensors::ADC_2::ENABLED)
     {
         adc2Init();
-        przTankPressureInit();
-        oxRegOutPressureInit();
-        fuelRegOutPressureInit();
-        oxTankPressureInit();
-        fuelTankPressureInit();
-        igniterChamberPressureInit();
-        mainChamberPressureInit();
+        rampLC0WeightInit();
+        rampLC1WeightInit();
+        rampLC2WeightInit();
+        rampLC3WeightInit();
+        rampLC4WeightInit();
+        rampLC5WeightInit();
     }
     if (Config::Sensors::ADC_3::ENABLED)
     {
@@ -140,44 +139,51 @@ ADS131M08Data Sensors::getADC2LastSample()
     return adc2 ? adc2->getLastSample() : ADS131M08Data{};
 }
 
-PressureData Sensors::getPrzTankPressure()
+LoadCellData Sensors::getRampLC0Weight()
 {
-    return przTankPressure ? przTankPressure->getLastSample() : PressureData{};
+    return rampLC0Weight ? rampLC0Weight->getLastSample() : LoadCellData{};
 }
 
-PressureData Sensors::getOxRegOutPressure()
+LoadCellData Sensors::getRampLC1Weight()
 {
-    return oxRegOutPressure ? oxRegOutPressure->getLastSample()
-                            : PressureData{};
+    return rampLC1Weight ? rampLC1Weight->getLastSample() : LoadCellData{};
 }
 
-PressureData Sensors::getFuelRegOutPressure()
+LoadCellData Sensors::getRampLC2Weight()
 {
-    return fuelRegOutPressure ? fuelRegOutPressure->getLastSample()
-                              : PressureData{};
+    return rampLC2Weight ? rampLC2Weight->getLastSample() : LoadCellData{};
 }
 
-PressureData Sensors::getOxTankPressure()
+LoadCellData Sensors::getRampLC3Weight()
 {
-    return oxTankPressure ? oxTankPressure->getLastSample() : PressureData{};
+    return rampLC3Weight ? rampLC3Weight->getLastSample() : LoadCellData{};
 }
 
-PressureData Sensors::getFuelTankPressure()
+LoadCellData Sensors::getRampLC4Weight()
 {
-    return fuelTankPressure ? fuelTankPressure->getLastSample()
-                            : PressureData{};
+    return rampLC4Weight ? rampLC4Weight->getLastSample() : LoadCellData{};
 }
 
-PressureData Sensors::getIgniterChamberPressure()
+LoadCellData Sensors::getRampLC5Weight()
 {
-    return igniterChamberPressure ? igniterChamberPressure->getLastSample()
-                                  : PressureData{};
+    return rampLC5Weight ? rampLC5Weight->getLastSample() : LoadCellData{};
 }
 
-PressureData Sensors::getMainChamberPressure()
+LoadCellData Sensors::getRocketWeight()
 {
-    return mainChamberPressure ? mainChamberPressure->getLastSample()
-                               : PressureData{};
+    LoadCellData data;
+    data.loadTimestamp = rampLC0Weight->getLastSample().loadTimestamp;
+
+    auto lc0 = getRampLC0Weight().load;
+    auto lc1 = getRampLC1Weight().load;
+    auto lc2 = getRampLC2Weight().load;
+    auto lc3 = getRampLC3Weight().load;
+    auto lc4 = getRampLC4Weight().load;
+    auto lc5 = getRampLC5Weight().load;
+
+    data.load = lc0 + lc1 + lc2 + lc3 + lc4 + lc5;
+
+    return data;
 }
 
 ADS131M08Data Sensors::getADC3LastSample()
@@ -298,15 +304,6 @@ void Sensors::calibrate()
     applyShuntResistance(0, oxVesselPressure, OX_VESSEL_PT_CHANNEL);
     applyShuntResistance(0, oxFillingPressure, OX_FILLING_PT_CHANNEL);
 
-    using namespace Config::Sensors::ADC_2;
-    applyShuntResistance(2, przTankPressure, PRZ_TANK_PT_CHANNEL);
-    applyShuntResistance(2, oxRegOutPressure, OX_REG_OUT_PT_CHANNEL);
-    applyShuntResistance(2, fuelRegOutPressure, FUEL_REG_OUT_PT_CHANNEL);
-    applyShuntResistance(2, oxTankPressure, OX_TANK_PT_CHANNEL);
-    applyShuntResistance(2, fuelTankPressure, FUEL_TANK_PT_CHANNEL);
-    applyShuntResistance(2, igniterChamberPressure, IGNITER_CHAMBER_PT_CHANNEL);
-    applyShuntResistance(2, mainChamberPressure, MAIN_CHAMBER_PT_CHANNEL);
-
     using namespace Config::Sensors::ADC_3;
     applyShuntResistance(3, injOxPressure, INJ_OX_PT_CHANNEL);
     applyShuntResistance(3, injFuelPressure, INJ_FUEL_PT_CHANNEL);
@@ -317,12 +314,24 @@ void Sensors::calibrate()
 void Sensors::calibrateLoadcells()
 {
     Stats oxVesselStats;
+    Stats rampLC0Stats;
+    Stats rampLC1Stats;
+    Stats rampLC2Stats;
+    Stats rampLC3Stats;
+    Stats rampLC4Stats;
+    Stats rampLC5Stats;
 
     for (unsigned int i = 0;
          i < Config::Sensors::LoadCell::CALIBRATE_SAMPLE_COUNT; i++)
     {
         // Tank readings WITHOUT offsets
         oxVesselStats.add(oxVesselWeight->getLastSample().load);
+        rampLC0Stats.add(rampLC0Weight->getLastSample().load);
+        rampLC1Stats.add(rampLC1Weight->getLastSample().load);
+        rampLC2Stats.add(rampLC2Weight->getLastSample().load);
+        rampLC3Stats.add(rampLC3Weight->getLastSample().load);
+        rampLC4Stats.add(rampLC4Weight->getLastSample().load);
+        rampLC5Stats.add(rampLC5Weight->getLastSample().load);
 
         Thread::sleep(
             milliseconds{Config::Sensors::LoadCell::CALIBRATE_SAMPLE_PERIOD}
@@ -330,6 +339,12 @@ void Sensors::calibrateLoadcells()
     }
 
     oxVesselWeight->updateOffset(oxVesselStats.getStats().mean);
+    rampLC0Weight->updateOffset(rampLC0Stats.getStats().mean);
+    rampLC1Weight->updateOffset(rampLC1Stats.getStats().mean);
+    rampLC2Weight->updateOffset(rampLC2Stats.getStats().mean);
+    rampLC3Weight->updateOffset(rampLC3Stats.getStats().mean);
+    rampLC4Weight->updateOffset(rampLC4Stats.getStats().mean);
+    rampLC5Weight->updateOffset(rampLC5Stats.getStats().mean);
 }
 
 void Sensors::calibrateEncoders()
@@ -361,13 +376,12 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(oxVesselWeight, "OxVesselWeight");
         PUSH_SENSOR_INFO(adc1, "ADS131M08_1");
         PUSH_SENSOR_INFO(adc2, "ADS131M08_2");
-        PUSH_SENSOR_INFO(przTankPressure, "PrzTankPressure");
-        PUSH_SENSOR_INFO(oxRegOutPressure, "OxRegOutPressure");
-        PUSH_SENSOR_INFO(fuelRegOutPressure, "FuelRegOutPressure");
-        PUSH_SENSOR_INFO(oxTankPressure, "OxTankPressure");
-        PUSH_SENSOR_INFO(fuelTankPressure, "FuelTankPressure");
-        PUSH_SENSOR_INFO(igniterChamberPressure, "IgniterChamberPressure");
-        PUSH_SENSOR_INFO(mainChamberPressure, "MainChamberPressure");
+        PUSH_SENSOR_INFO(rampLC0Weight, "RampLC0Weight");
+        PUSH_SENSOR_INFO(rampLC1Weight, "RampLC1Weight");
+        PUSH_SENSOR_INFO(rampLC2Weight, "RampLC2Weight");
+        PUSH_SENSOR_INFO(rampLC3Weight, "RampLC3Weight");
+        PUSH_SENSOR_INFO(rampLC4Weight, "RampLC4Weight");
+        PUSH_SENSOR_INFO(rampLC5Weight, "RampLC5Weight");
         PUSH_SENSOR_INFO(adc3, "ADS131M08_3");
         PUSH_SENSOR_INFO(mainOxPosition, "MainOxPosition");
         PUSH_SENSOR_INFO(mainFuelPosition, "MainFuelPosition");
@@ -566,8 +580,8 @@ void Sensors::oxVesselWeightInit()
             return sample.getVoltage(
                 Config::Sensors::ADC_0::OX_VESSEL_LC_CHANNEL);
         },
-        Config::Sensors::LoadCell::VESSEL_SCALE,
-        Config::Sensors::LoadCell::VESSEL_OFFSET);
+        Config::Sensors::LoadCell::LC_OX_SCALE,
+        Config::Sensors::LoadCell::LC_OX_OFFSET);
 }
 
 void Sensors::oxVesselWeightCallback()
@@ -613,46 +627,37 @@ void Sensors::adc2Init()
     for (auto& channel : config.channelsConfig)
         channel.enabled = false;
 
-    config.channelsConfig[(int)Config::Sensors::ADC_2::PRZ_TANK_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::RAMP_LC_0] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC_2::OX_REG_OUT_PT_CHANNEL] =
-        {.enabled = true,
-         .pga     = ADS131M08Defs::PGA::PGA_1,
-         .offset  = 0,
-         .gain    = 1.0};
-
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::FUEL_REG_OUT_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::RAMP_LC_1] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC_2::OX_TANK_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::RAMP_LC_2] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC_2::FUEL_TANK_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::RAMP_LC_3] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::IGNITER_CHAMBER_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::RAMP_LC_4] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(
-        int)Config::Sensors::ADC_2::MAIN_CHAMBER_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_2::RAMP_LC_5] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
@@ -664,137 +669,106 @@ void Sensors::adc2Init()
 }
 void Sensors::adc2Callback() { sdLogger.log(ADC2Data{getADC2LastSample()}); }
 
-void Sensors::przTankPressureInit()
+void Sensors::rampLC0WeightInit()
 {
-    przTankPressure = std::make_unique<TrafagPressureSensor>(
+    rampLC0Weight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::PRZ_TANK_PT_CHANNEL);
+            return sample.getVoltage(Config::Sensors::ADC_2::RAMP_LC_0);
         },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::PRZ_TANK_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-void Sensors::przTankPressureCallback()
-{
-    sdLogger.log(PrzTankPressureData{getPrzTankPressure()});
+        Config::Sensors::LoadCell::LC0_SCALE,
+        Config::Sensors::LoadCell::LC0_OFFSET);
 }
 
-void Sensors::oxRegOutPressureInit()
+void Sensors::rampLC0WeightCallback()
 {
-    oxRegOutPressure = std::make_unique<TrafagPressureSensor>(
-        [this]()
-        {
-            auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::OX_REG_OUT_PT_CHANNEL);
-        },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::REG_OUT_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-void Sensors::oxRegOutPressureCallback()
-{
-    sdLogger.log(OxRegOutPressureData{getOxRegOutPressure()});
+    sdLogger.log(RampLC0WeightData{getRampLC0Weight()});
 }
 
-void Sensors::fuelRegOutPressureInit()
+void Sensors::rampLC1WeightInit()
 {
-    fuelRegOutPressure = std::make_unique<TrafagPressureSensor>(
+    rampLC1Weight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::FUEL_REG_OUT_PT_CHANNEL);
+            return sample.getVoltage(Config::Sensors::ADC_2::RAMP_LC_1);
         },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::REG_OUT_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-void Sensors::fuelRegOutPressureCallback()
-{
-    sdLogger.log(FuelRegOutPressureData{getFuelRegOutPressure()});
+        Config::Sensors::LoadCell::LC1_SCALE,
+        Config::Sensors::LoadCell::LC1_OFFSET);
 }
 
-void Sensors::oxTankPressureInit()
+void Sensors::rampLC1WeightCallback()
 {
-    oxTankPressure = std::make_unique<TrafagPressureSensor>(
-        [this]()
-        {
-            auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::OX_TANK_PT_CHANNEL);
-        },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::OX_TANK_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-void Sensors::oxTankPressureCallback()
-{
-    sdLogger.log(OxTankPressureData{getOxTankPressure()});
+    sdLogger.log(RampLC1WeightData{getRampLC1Weight()});
 }
 
-void Sensors::fuelTankPressureInit()
+void Sensors::rampLC2WeightInit()
 {
-    fuelTankPressure = std::make_unique<TrafagPressureSensor>(
+    rampLC2Weight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::FUEL_TANK_PT_CHANNEL);
+            return sample.getVoltage(Config::Sensors::ADC_2::RAMP_LC_2);
         },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::FUEL_TANK_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-void Sensors::fuelTankPressureCallback()
-{
-    sdLogger.log(FuelTankPressureData{getFuelTankPressure()});
+        Config::Sensors::LoadCell::LC2_SCALE,
+        Config::Sensors::LoadCell::LC2_OFFSET);
 }
 
-void Sensors::igniterChamberPressureInit()
+void Sensors::rampLC2WeightCallback()
 {
-    igniterChamberPressure = std::make_unique<TrafagPressureSensor>(
-        [this]()
-        {
-            auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::IGNITER_CHAMBER_PT_CHANNEL);
-        },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::IGNITER_CHAMBER_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-void Sensors::igniterChamberPressureCallback()
-{
-    sdLogger.log(IgniterChamberPressureData{getIgniterChamberPressure()});
+    sdLogger.log(RampLC2WeightData{getRampLC2Weight()});
 }
 
-void Sensors::mainChamberPressureInit()
+void Sensors::rampLC3WeightInit()
 {
-    mainChamberPressure = std::make_unique<TrafagPressureSensor>(
+    rampLC3Weight = std::make_unique<TwoPointAnalogLoadCell>(
         [this]()
         {
             auto sample = getADC2LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_2::MAIN_CHAMBER_PT_CHANNEL);
+            return sample.getVoltage(Config::Sensors::ADC_2::RAMP_LC_3);
         },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::MAIN_CHAMBER_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
+        Config::Sensors::LoadCell::LC3_SCALE,
+        Config::Sensors::LoadCell::LC3_OFFSET);
 }
-void Sensors::mainChamberPressureCallback()
+
+void Sensors::rampLC3WeightCallback()
 {
-    sdLogger.log(MainChamberPressureData{getMainChamberPressure()});
+    sdLogger.log(RampLC3WeightData{getRampLC3Weight()});
+}
+
+void Sensors::rampLC4WeightInit()
+{
+    rampLC4Weight = std::make_unique<TwoPointAnalogLoadCell>(
+        [this]()
+        {
+            auto sample = getADC2LastSample();
+            return sample.getVoltage(Config::Sensors::ADC_2::RAMP_LC_4);
+        },
+        Config::Sensors::LoadCell::LC4_SCALE,
+        Config::Sensors::LoadCell::LC4_OFFSET);
+}
+
+void Sensors::rampLC4WeightCallback()
+{
+    sdLogger.log(RampLC4WeightData{getRampLC4Weight()});
+}
+
+void Sensors::rampLC5WeightInit()
+{
+    rampLC5Weight = std::make_unique<TwoPointAnalogLoadCell>(
+        [this]()
+        {
+            auto sample = getADC2LastSample();
+            return sample.getVoltage(Config::Sensors::ADC_2::RAMP_LC_5);
+        },
+        Config::Sensors::LoadCell::LC5_SCALE,
+        Config::Sensors::LoadCell::LC5_OFFSET);
+}
+
+void Sensors::rampLC5WeightCallback()
+{
+    sdLogger.log(RampLC5WeightData{getRampLC5Weight()});
 }
 
 void Sensors::adc3Init()
@@ -1054,60 +1028,52 @@ bool Sensors::sensorManagerInit()
         map.emplace(std::make_pair(adc2.get(), info));
     }
 
-    if (przTankPressure)
+    if (rampLC0Weight)
     {
-        SensorInfo info("PrzTankPressure",
+        SensorInfo info("RampLC0Weight",
                         Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { przTankPressureCallback(); });
-        map.emplace(std::make_pair(przTankPressure.get(), info));
+                        [this]() { rampLC0WeightCallback(); });
+        map.emplace(std::make_pair(rampLC0Weight.get(), info));
     }
 
-    if (oxRegOutPressure)
+    if (rampLC1Weight)
     {
-        SensorInfo info("OxRegulatorPressure",
+        SensorInfo info("RampLC1Weight",
                         Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { oxRegOutPressureCallback(); });
-        map.emplace(std::make_pair(oxRegOutPressure.get(), info));
+                        [this]() { rampLC1WeightCallback(); });
+        map.emplace(std::make_pair(rampLC1Weight.get(), info));
     }
 
-    if (fuelRegOutPressure)
+    if (rampLC2Weight)
     {
-        SensorInfo info("FuelRegulatorPressure",
+        SensorInfo info("RampLC2Weight",
                         Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { fuelRegOutPressureCallback(); });
-        map.emplace(std::make_pair(fuelRegOutPressure.get(), info));
+                        [this]() { rampLC2WeightCallback(); });
+        map.emplace(std::make_pair(rampLC2Weight.get(), info));
     }
 
-    if (oxTankPressure)
+    if (rampLC3Weight)
     {
-        SensorInfo info("OxTankPressure",
+        SensorInfo info("RampLC3Weight",
                         Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { oxTankPressureCallback(); });
-        map.emplace(std::make_pair(oxTankPressure.get(), info));
+                        [this]() { rampLC3WeightCallback(); });
+        map.emplace(std::make_pair(rampLC3Weight.get(), info));
     }
 
-    if (fuelTankPressure)
+    if (rampLC4Weight)
     {
-        SensorInfo info("FuelTankPressure",
+        SensorInfo info("RampLC4Weight",
                         Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { fuelTankPressureCallback(); });
-        map.emplace(std::make_pair(fuelTankPressure.get(), info));
+                        [this]() { rampLC4WeightCallback(); });
+        map.emplace(std::make_pair(rampLC4Weight.get(), info));
     }
 
-    if (igniterChamberPressure)
+    if (rampLC5Weight)
     {
-        SensorInfo info("IgniterChamberPressure",
+        SensorInfo info("RampLC5Weight",
                         Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { igniterChamberPressureCallback(); });
-        map.emplace(std::make_pair(igniterChamberPressure.get(), info));
-    }
-
-    if (mainChamberPressure)
-    {
-        SensorInfo info("MainChamberPressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { mainChamberPressureCallback(); });
-        map.emplace(std::make_pair(mainChamberPressure.get(), info));
+                        [this]() { rampLC5WeightCallback(); });
+        map.emplace(std::make_pair(rampLC5Weight.get(), info));
     }
 
     if (adc3)

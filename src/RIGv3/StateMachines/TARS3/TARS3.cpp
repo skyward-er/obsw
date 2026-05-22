@@ -74,7 +74,7 @@ void TARS3::sample()
     Sensors* sensors = getModule<Sensors>();
 
     // TODO : update this once there is a way to get the pressure via canBus
-    pressureFilter.add(sensors->getOxTankPressure().pressure);
+    // pressureFilter.add(sensors->getOxTankPressure().pressure);
     // massFilter.add(sensors->getOxTankWeight().load);
     medianSamples++;
 

@@ -113,10 +113,10 @@ void EregControllerOx::update()
 {
     EregOxData logData;
 
-    logData.downstreamPressure =
+    /* logData.downstreamPressure =
         getModule<Sensors>()->getOxTankPressure().pressure;
     logData.upstreamPressure =
-        getModule<Sensors>()->getPrzTankPressure().pressure;
+        getModule<Sensors>()->getPrzTankPressure().pressure; */
 
     downstreamPressureFilter.add(logData.downstreamPressure);
     upstreamPressureFilter.add(logData.upstreamPressure);

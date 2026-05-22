@@ -90,13 +90,12 @@ constexpr bool ENABLED = true;
 
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
-constexpr auto PRZ_TANK_PT_CHANNEL        = Channel::CHANNEL_0;
-constexpr auto OX_REG_OUT_PT_CHANNEL      = Channel::CHANNEL_1;
-constexpr auto FUEL_REG_OUT_PT_CHANNEL    = Channel::CHANNEL_2;
-constexpr auto OX_TANK_PT_CHANNEL         = Channel::CHANNEL_3;
-constexpr auto FUEL_TANK_PT_CHANNEL       = Channel::CHANNEL_4;
-constexpr auto IGNITER_CHAMBER_PT_CHANNEL = Channel::CHANNEL_5;
-constexpr auto MAIN_CHAMBER_PT_CHANNEL    = Channel::CHANNEL_6;
+constexpr auto RAMP_LC_0 = Channel::CHANNEL_0;
+constexpr auto RAMP_LC_1 = Channel::CHANNEL_1;
+constexpr auto RAMP_LC_2 = Channel::CHANNEL_2;
+constexpr auto RAMP_LC_3 = Channel::CHANNEL_3;
+constexpr auto RAMP_LC_4 = Channel::CHANNEL_4;
+constexpr auto RAMP_LC_5 = Channel::CHANNEL_5;
 
 constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
 constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
@@ -181,6 +180,27 @@ namespace LoadCell
 constexpr auto CALIBRATE_SAMPLE_COUNT  = 10;
 constexpr auto CALIBRATE_SAMPLE_PERIOD = 40ms;
 
+constexpr auto LC0_SCALE  = 84.58708063f;
+constexpr auto LC0_OFFSET = -15.56255704f;
+
+constexpr auto LC1_SCALE  = 82.46957853f;
+constexpr auto LC1_OFFSET = -14.83340066f;
+
+constexpr auto LC2_SCALE  = 87.95643975f;
+constexpr auto LC2_OFFSET = -16.42173211f;
+
+constexpr auto LC3_SCALE  = 82.36144735f;
+constexpr auto LC3_OFFSET = -15.31555652f;
+
+constexpr auto LC4_SCALE  = 82.81882891f;
+constexpr auto LC4_OFFSET = -15.14402174f;
+
+constexpr auto LC5_SCALE  = 16.63886089f;
+constexpr auto LC5_OFFSET = -3.217218377f;
+
+constexpr auto LC_OX_SCALE  = 164.75743372f;
+constexpr auto LC_OX_OFFSET = -30.4879264f;
+
 /*
 // Rocket ramp loadcell calibration data
 constexpr float ROCKET_P0_VOLTAGE = -0.0004273;
@@ -217,9 +237,6 @@ constexpr float VESSEL_P0_MASS    = 1.866;
 constexpr float VESSEL_P1_VOLTAGE = 0.0010;
 constexpr float VESSEL_P1_MASS    = 6.916;
 */
-
-constexpr float VESSEL_SCALE  = 1517.689958f;
-constexpr float VESSEL_OFFSET = -259.2304283f;
 
 // LC Vessel sensor calibration data (post 07/09/2024)
 // - 0kg      V: 0.000630177

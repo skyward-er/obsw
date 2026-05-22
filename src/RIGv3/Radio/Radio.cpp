@@ -817,19 +817,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Use RIG data if motor is not detected
             if (!motor->detected())
             {
-                auto sensors          = getModule<Sensors>();
-                tm.prz_tank_pressure  = sensors->getPrzTankPressure().pressure;
-                tm.ox_tank_pressure   = sensors->getOxTankPressure().pressure;
-                tm.fuel_tank_pressure = sensors->getFuelTankPressure().pressure;
-                tm.ox_reg_out_pressure =
-                    sensors->getOxRegOutPressure().pressure;
-                tm.fuel_reg_out_pressure =
-                    sensors->getFuelRegOutPressure().pressure;
-                tm.main_cc_pressure =
-                    sensors->getMainChamberPressure().pressure;
-                tm.ign_cc_pressure =
-                    sensors->getIgniterChamberPressure().pressure;
-                tm.inj_ox_pressure   = sensors->getInjOxPressure().pressure;
+                auto sensors             = getModule<Sensors>();
+                tm.prz_tank_pressure     = sensors->getRampLC0Weight().load;
+                tm.ox_tank_pressure      = sensors->getRampLC1Weight().load;
+                tm.fuel_tank_pressure    = sensors->getRampLC2Weight().load;
+                tm.ox_reg_out_pressure   = sensors->getRampLC3Weight().load;
+                tm.fuel_reg_out_pressure = sensors->getRampLC4Weight().load;
+                tm.main_cc_pressure      = sensors->getRampLC5Weight().load;
+                tm.ign_cc_pressure       = sensors->getRocketWeight().load;
+                tm.inj_ox_pressure       = sensors->getInjOxPressure().pressure;
                 tm.inj_fuel_pressure = sensors->getInjFuelPressure().pressure;
 
                 auto actuators = getModule<Actuators>();
