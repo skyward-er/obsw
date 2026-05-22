@@ -144,47 +144,49 @@ void Sensors::calibrate()
 
 CalibrationData Sensors::getCalibration()
 {
-    std::lock(magCalibrationMutex, lsm6Calibration0Mutex,lsm6Calibration1Mutex, vn100CalibrationMutex   );
+    std::lock(magCalibrationMutex, lsm6Calibration0Mutex, lsm6Calibration1Mutex,
+              vn100CalibrationMutex);
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex, std::adopt_lock);
     std::lock_guard<std::mutex> vn100lk(vn100CalibrationMutex, std::adopt_lock);
 
-    auto accBias0  = accCalibration0.getV();
-    auto gyroBias0 = gyroCalibration0.getV();
-    auto accBias1  = accCalibration1.getV();
-    auto gyroBias1 = gyroCalibration1.getV();
+
+    auto accBias0      = accCalibration0.getV();
+    auto gyroBias0     = gyroCalibration0.getV();
+    auto accBias1      = accCalibration1.getV();
+    auto gyroBias1     = gyroCalibration1.getV();
     auto vn100AccBias  = accVN100Calibration.getV();
     auto vn100GyroBias = gyroVN100Calibration.getV();
-    auto magBias   = magCalibration.getb();
-    auto magScale  = magCalibration.getA();
+    auto magBias       = magCalibration.getb();
+    auto magScale      = magCalibration.getA();
 
     return {
-        .timestamp  = TimestampTimer::getTimestamp(),
-        .acc0BiasX  = accBias0.x(),
-        .acc0BiasY  = accBias0.y(),
-        .acc0BiasZ  = accBias0.z(),
-        .gyro0BiasX = gyroBias0.x(),
-        .gyro0BiasY = gyroBias0.y(),
-        .gyro0BiasZ = gyroBias0.z(),
-        .acc1BiasX  = accBias1.x(),
-        .acc1BiasY  = accBias1.y(),
-        .acc1BiasZ  = accBias1.z(),
-        .gyro1BiasX = gyroBias1.x(),
-        .gyro1BiasY = gyroBias1.y(),
-        .gyro1BiasZ = gyroBias1.z(),
+        .timestamp      = TimestampTimer::getTimestamp(),
+        .acc0BiasX      = accBias0.x(),
+        .acc0BiasY      = accBias0.y(),
+        .acc0BiasZ      = accBias0.z(),
+        .gyro0BiasX     = gyroBias0.x(),
+        .gyro0BiasY     = gyroBias0.y(),
+        .gyro0BiasZ     = gyroBias0.z(),
+        .acc1BiasX      = accBias1.x(),
+        .acc1BiasY      = accBias1.y(),
+        .acc1BiasZ      = accBias1.z(),
+        .gyro1BiasX     = gyroBias1.x(),
+        .gyro1BiasY     = gyroBias1.y(),
+        .gyro1BiasZ     = gyroBias1.z(),
         .vn100AccBiasX  = vn100AccBias.x(),
         .vn100AccBiasY  = vn100AccBias.y(),
         .vn100AccBiasZ  = vn100AccBias.z(),
         .vn100GyroBiasX = vn100GyroBias.x(),
         .vn100GyroBiasY = vn100GyroBias.y(),
         .vn100GyroBiasZ = vn100GyroBias.z(),
-        .magBiasX   = magBias.x(),
-        .magBiasY   = magBias.y(),
-        .magBiasZ   = magBias.z(),
-        .magScaleX  = magScale.x(),
-        .magScaleY  = magScale.y(),
-        .magScaleZ  = magScale.z(),
+        .magBiasX       = magBias.x(),
+        .magBiasY       = magBias.y(),
+        .magBiasZ       = magBias.z(),
+        .magScaleX      = magScale.x(),
+        .magScaleY      = magScale.y(),
+        .magScaleZ      = magScale.z(),
     };
 }
 
@@ -819,12 +821,14 @@ void Sensors::rotatedImuInit()
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX  // TODO switch to VN100 ?
-                            ? getCalibratedLSM6DSRX0LastSample()
-                            : getLSM6DSRX0LastSample();
-            auto mag  = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
-                            ? getCalibratedLIS2MDLRcsLastSample()
-                            : getLIS2MDLRcsLastSample();
+            auto imu6 =
+                Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX  // TODO switch to
+                                                               // VN100 ?
+                    ? getCalibratedLSM6DSRX0LastSample()
+                    : getLSM6DSRX0LastSample();
+            auto mag = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+                           ? getCalibratedLIS2MDLRcsLastSample()
+                           : getLIS2MDLRcsLastSample();
 
             return IMUData{imu6, imu6, mag};
         });

@@ -118,7 +118,6 @@ protected:
     virtual void lsm6dsrx1Callback();
     virtual void vn100Callback();
 
-
     Boardcore::TaskScheduler& getSensorsScheduler();
 
     std::mutex canMutex;

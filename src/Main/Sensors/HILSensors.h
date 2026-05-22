@@ -111,8 +111,7 @@ private:
                        [this]() { return updateLSM6DSRXData_0(); });
         hillificator<>(lsm6dsrx_1, enableHw,
                        [this]() { return updateLSM6DSRXData_1(); });
-        hillificator<>(vn100, enableHw,
-                       [this]() { return updateVN100Data(); });
+        hillificator<>(vn100, enableHw, [this]() { return updateVN100Data(); });
         hillificator<>(nd015a_0, enableHw,
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(nd015a_1, enableHw,
@@ -294,9 +293,9 @@ private:
         data.accelerationZ = sensorData->accelerometer1.measures[iAcc][2];
 
         data.angularSpeedTimestamp = Boardcore::TimestampTimer::getTimestamp();
-        data.angularSpeedX = sensorData->gyro1.measures[iGyro][0];
-        data.angularSpeedY = sensorData->gyro1.measures[iGyro][1];
-        data.angularSpeedZ = sensorData->gyro1.measures[iGyro][2];
+        data.angularSpeedX         = sensorData->gyro1.measures[iGyro][0];
+        data.angularSpeedY         = sensorData->gyro1.measures[iGyro][1];
+        data.angularSpeedZ         = sensorData->gyro1.measures[iGyro][2];
 
         return data;
     };
@@ -317,10 +316,12 @@ private:
 
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
-        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX   //TODO: Switch to VN100 ? 
-                        ? getCalibratedLSM6DSRX0LastSample()
-                        : getLSM6DSRX0LastSample();
-        auto mag  = getLIS2MDLLastSample();
+        auto imu6 =
+            Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX  // TODO: Switch to
+                                                           // VN100 ?
+                ? getCalibratedLSM6DSRX0LastSample()
+                : getLSM6DSRX0LastSample();
+        auto mag = getLIS2MDLLastSample();
 
         return Boardcore::IMUData{imu6, imu6, mag};
     };

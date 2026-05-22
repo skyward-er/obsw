@@ -164,8 +164,8 @@ namespace VN100
 constexpr auto RATE    = 400_hz;
 constexpr auto ENABLED = true;
 
-//TODO 
-constexpr auto ACC_CALIBRATION_FILENAME = "/sd/vn100AccCalibration.csv";
+// TODO
+constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/vn100AccCalibration.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/vn100GyroCalibration.csv";
 }  // namespace VN100
 
