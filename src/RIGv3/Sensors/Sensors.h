@@ -24,6 +24,7 @@
 
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Buses.h>
+#include <RIGv3/Registry/Registry.h>
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/SensorManager.h>
@@ -39,7 +40,8 @@
 namespace RIGv3
 {
 
-class Sensors : public Boardcore::InjectableWithDeps<Buses, BoardScheduler>
+class Sensors
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, Registry>
 {
 public:
     [[nodiscard]] bool start();

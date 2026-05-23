@@ -280,10 +280,15 @@ void Sensors::calibrate()
         if (resistance < Trafag::SHUNT_RESISTANCE_LOWER_BOUND ||
             resistance > Trafag::SHUNT_RESISTANCE_UPPER_BOUND)
         {
-            resistance = trafag->getShuntResistance();
+            resistance = getModule<Registry>()->getOrSetDefaultUnsafe(
+                trafag->getShuntResistanceRegKey(),
+                trafag->getDefaultShuntResistance());
         }
 
+        getModule<Registry>()->setUnsafe(trafag->getShuntResistanceRegKey(),
+                                         resistance);
         trafag->setShuntResistance(resistance);
+        getModule<Registry>()->save();
 
 #ifdef DEBUG
         fmt::print("\tADC {} - Channel {}: {:.2f} Ohm\n", adcIndex, (int)ch,
