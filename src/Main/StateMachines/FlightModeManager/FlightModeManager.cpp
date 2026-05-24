@@ -732,7 +732,7 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
         {
             return HANDLED;
         }
-        case ADA_APOGEE_DETECTED:   
+        case ADA_APOGEE_DETECTED:
         case TMTC_FORCE_EXPULSION:
         case FMM_APOGEE_TIMEOUT:
         {
