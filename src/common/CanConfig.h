@@ -160,8 +160,7 @@ inline CanConfig::NasControllerState nasControllerStateFromCanValue(
     {
         case static_cast<uint8_t>(CanConfig::NasControllerState::INIT):
             return CanConfig::NasControllerState::INIT;
-        case static_cast<uint8_t>(
-            CanConfig::NasControllerState::CALIBRATING):
+        case static_cast<uint8_t>(CanConfig::NasControllerState::CALIBRATING):
             return CanConfig::NasControllerState::CALIBRATING;
         case static_cast<uint8_t>(CanConfig::NasControllerState::READY):
             return CanConfig::NasControllerState::READY;

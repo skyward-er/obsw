@@ -173,7 +173,7 @@ void MEAController::update()
 
         bool hasFreshNasSample = nasTimestamp > lastNasTimestamp;
         bool nasDataFresh      = TimestampTimer::getTimestamp() <=
-                                 (nasRxTimestamp + NAS_TIMEOUT.count());
+                            (nasRxTimestamp + NAS_TIMEOUT.count());
 
         if (baro.pressure > Config::MEA::CC_PRESSURE_THRESHOLD)
         {
