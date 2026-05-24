@@ -204,12 +204,16 @@ void ADAController::update()
             // be considered as having detected it for the whole flight
             if (adaDetectedApogees > Config::ADA::APOGEE_N_SAMPLES)
             {
-                auto gps = getModule<Sensors>()->getUBXGPSLastSample();
+                auto sensors     = getModule<Sensors>();
+                auto gps         = sensors->getUBXGPSLastSample();
+                auto staticPress = sensors->getCanPitotStaticPressure();
+                auto totalPress  = sensors->getCanPitotTotalPressure();
 
                 // Notify stats recorder
                 getModule<StatsRecorder>()->apogeeDetected(
                     TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                    adaState.aglAltitude);
+                    adaState.aglAltitude, staticPress.pressure,
+                    totalPress.pressure);
 
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
             }
