@@ -45,7 +45,7 @@ namespace Parafoil
 NASController::NASController()
     : FSM(&NASController::Init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::nasControllerPriority()),
-      nas(config::CONFIG)
+      anas{}, nasdaq{}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -55,30 +55,29 @@ NASController::NASController()
 bool NASController::start()
 {
     altitudeSamples.clear();
-    // Setup the NAS
-    Matrix<float, 13, 1> x = Matrix<float, 13, 1>::Zero();
-    // Create the initial quaternion
-    Vector4f q = SkyQuaternion::eul2quat({0, 0, 0});
-
-    // Set the initial quaternion inside the matrix
-    x(NAS::IDX_QUAT + 0) = q(0);
-    x(NAS::IDX_QUAT + 1) = q(1);
-    x(NAS::IDX_QUAT + 2) = q(2);
-    x(NAS::IDX_QUAT + 3) = q(3);
-
-    // Set the NAS x matrix
-    nas.setX(x);
-    // Set the initial reference values from the default ones
-    nas.setReferenceValues(ReferenceConfig::defaultReferenceValues);
 
     auto& scheduler = getModule<BoardScheduler>()->nasController();
     // Add the task to the scheduler
-    auto task = scheduler.addTask([this] { update(); }, config::UPDATE_RATE,
-                                  TaskScheduler::Policy::RECOVER);
-
+    auto task =
+        scheduler.addTask([this] { update(); }, config::UPDATE_RATE_ALTITUDE,
+                          TaskScheduler::Policy::RECOVER);
     if (task == 0)
-    {
         LOG_ERR(logger, "Failed to add NAS update task");
+    anasID = scheduler.addTask([this]() { updateANAS(); },
+                               Config::NAS::UPDATE_RATE_ANAS);
+
+    if (anasID == 0)
+    {
+        LOG_ERR(logger, "Failed to add ANAS update task");
+        return false;
+    }
+
+    nasdaqID = scheduler.addTask([this]() { updateNASDAQ(); },
+                                 Config::NAS::UPDATE_RATE_NASDAQ);
+
+    if (nasdaqID == 0)
+    {
+        LOG_ERR(logger, "Failed to add NASDAQ update task");
         return false;
     }
 
@@ -88,80 +87,185 @@ bool NASController::start()
         return false;
     }
 
-    started = true;
+    getModule<AlgoReference>()->subscribeReferenceChanges(this);
+
+    scheduler.disableTask(anasID);
+    scheduler.disableTask(nasdaqID);
     return true;
 }
 
-void NASController::initNasdaq()
+ANASState NASController::getANASState()
 {
-    // Get last NAS state
     Lock<FastMutex> lock{nasMutex};
 
-    // Extract nasdaq config
-    NASDAQ0::P_NASDAQ0_T nasdaqConfig = nasdaq.getBlockParameters();
+    auto rawOutput = anas.getNASOut();
 
-    // Set initial state
-    nasdaqConfig.NASStateInterface_InitialCondit[0] = 0;
-    nasdaqConfig.NASStateInterface_InitialCondit[1] = 0;
-    nasdaqConfig.NASStateInterface_InitialCondit[2] = 0;
-    nasdaqConfig.NASStateInterface_InitialCondit[3] = 0;
-    nasdaqConfig.NASStateInterface_InitialCondit[4] = 0;
-    nasdaqConfig.NASStateInterface_InitialCondit[5] = 0;
+    // Devo passare questo o il timestamp interno?
+    uint64_t timestamp = miosix::getTime();
 
-    // Set nas covariance
-    for (size_t i = 0; i < Config::NASDAQ::NAS_COV_LEN; i++)
-        nasdaqConfig.NASVarianceInterface_InitialCon[i] = 0.1;
+    ANASState state(timestamp, rawOutput.Position, rawOutput.Velocity,
+                    rawOutput.Quaternion);
 
-    // Set modified nasdaq config(
-    nasdaq.setBlockParameters(&nasdaqConfig);
-
-    UBXGPSData gps = getModule<Sensors>()->getUBXGPSLastSample();
-    if (gps.fix == 3)
-    {
-        // Call the autocoded initialization algorithm
-        nasdaq.initialize();
-    }
+    return state;
 }
 
-NASDAQState NASController::getNasdaqState()
+void NASController::initANAS()
 {
-    miosix::Lock<miosix::FastMutex> l(nasMutex);
-    NASDAQ0::ExtY_NASDAQ0_T nasdaqOutput = nasdaq.getExternalOutputs();
-    NASDAQState nasdaqState;
-    nasdaqState.timestamp = TimestampTimer::getTimestamp();
-    nasdaqState.n         = nasdaqOutput.Position[0];
-    nasdaqState.e         = nasdaqOutput.Position[1];
-    nasdaqState.d         = nasdaqOutput.Position[2];
-    nasdaqState.vn        = nasdaqOutput.Velocity[0];
-    nasdaqState.ve        = nasdaqOutput.Velocity[1];
-    nasdaqState.vd        = nasdaqOutput.Velocity[2];
-    nasdaqState.c0        = nasdaqOutput.Covariance[0];
-    nasdaqState.c1        = nasdaqOutput.Covariance[1];
-    nasdaqState.c2        = nasdaqOutput.Covariance[2];
-    nasdaqState.c3        = nasdaqOutput.Covariance[3];
-    nasdaqState.c4        = nasdaqOutput.Covariance[4];
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->nasController();
+    scheduler.enableTask(anasID);
+}
 
-    return nasdaqState;
+void NASController::initNASDAQ()
+{
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->nasController();
+
+    ANAS_NASDAQ ANASOutNASDAQIn = {
+        .LinearCovariance = *anas.getNASFinal().LinearCovariance,
+        .Position         = *anas.getNASOut().Position,
+        .Velocity         = *anas.getNASOut().Velocity};
+
+    nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
+    scheduler.enableTask(nasdaqID);
+    scheduler.disableTask(anasID);
+}
+
+NASDAQState NASController::getNASDAQState()
+{
+    Lock<FastMutex> lock{nasMutex};
+
+    auto rawOutput = nasdaq.getNASDAQ_Out();
+
+    uint64_t timestamp = miosix::getTime();
+
+    NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
+
+    return state;
 }
 
 ReferenceValues NASController::getReferenceValues()
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
-    return nas.getReferenceValues();
+    return reference;
+}
+
+void NASController::onReferenceChanged(const ReferenceValues& ref)
+{
+    Lock<FastMutex> l(nasMutex);
+    this->reference = reference;
+    onNASDAQReferenceChanged();
+    onANASReferenceChanged();
 }
 
 NASControllerState NASController::getState() { return state; }
 
-void NASController::setOrientation(const Eigen::Quaternionf& quat)
+void NASController::updateANAS()
 {
-    Lock<FastMutex> lock{nasMutex};
+    if (state == NASControllerState::ACTIVE)
+    {
+        Lock<FastMutex> lock{nasMutex};
 
-    auto x               = nas.getX();
-    x(NAS::IDX_QUAT + 0) = quat.x();
-    x(NAS::IDX_QUAT + 1) = quat.y();
-    x(NAS::IDX_QUAT + 2) = quat.z();
-    x(NAS::IDX_QUAT + 3) = quat.w();
-    nas.setX(x);
+        Sensors* sensors = getModule<Sensors>();
+
+        auto prevState    = getANASState();
+        auto ref          = getModule<AlgoReference>()->getReferenceValues();
+        float mslAltitude = ref.refAltitude - prevState.d;
+        float mach        = Aeroutils::computeMach(-mslAltitude, -prevState.vd,
+                                                   ref.mslTemperature);
+        auto imu          = sensors->getIMULastSample();
+        auto gps          = sensors->getUBXGPSLastSample();
+        auto baro         = sensors->getStaticPressureLastSample();
+        auto staticPitot  = sensors->getStaticPressureLastSample();
+        auto dynamicPitot = sensors->getDynamicPressureLastSample();
+
+        ANAS0_types_h_::NASIn inputs = {
+            .AccMeasure   = {imu.accelerationX, imu.accelerationY,
+                             imu.accelerationZ},
+            .AccTimestamp = imu.accelerationTimestamp,
+
+            .GyroMeasure   = {imu.angularSpeedX, imu.angularSpeedY,
+                              imu.angularSpeedZ},
+            .GyroTimestamp = (imu.angularSpeedTimestamp),
+
+            .BaroMeasure   = baro.pressure,
+            .BaroTimestamp = baro.pressureTimestamp,
+
+            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
+            .GPSTimestamp     = gps.gpsTimestamp,
+            .GPSHorizAccuracy = gps.hAcc,
+            .GPSVertAccuracy  = gps.sAcc,
+
+            .PitotMeasure   = {staticPitot.pressure, dynamicPitot.pressure},
+            .PitotTimestamp = staticPitot.pressureTimestamp,
+            .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
+                               imu.magneticFieldZ},
+            .MagTimestamp   = {imu.magneticFieldTimestamp}};
+
+        anas.setNASIn(inputs);
+        anas.step();
+
+        ANASLogsData logs(miosix::getTime(), anas.getNASLogs());
+
+        getModule<FlightStatsRecorder>()->updateANAS(getANASState());
+
+        Logger::getInstance().log(getANASState());
+        Logger::getInstance().log(logs);
+    }
+}
+
+void NASController::updateNASDAQ()
+{
+    if (state == NASControllerState::ACTIVE_DESCENT)
+    {
+        Lock<FastMutex> lock{nasMutex};
+
+        Sensors* sensors      = getModule<Sensors>();
+        ADAController* adaRef = getModule<ADAController>();
+
+        // Pack up inputs
+        auto baro =
+            sensors
+                ->getStaticPressureLastSample();  // check for struct
+                                                  // alignment with chad,
+                                                  // might need to break it up
+        auto gps = sensors->getUBXGPSLastSample();
+
+        auto adaVerticalSpeed =
+            adaRef->getMaxVerticalSpeed();  // Check if this is the correct data
+                                            // wanted by GNC
+
+        auto adaCovariance = adaRef->getVerticalSpeedCov();
+
+        NASDAQ0_types_h_::NASDAQInADA ADAIn = {
+            .VerticalSpeed           = adaVerticalSpeed,
+            .VerticalSpeedCovariance = adaCovariance,
+            .Timestamp               = miosix::getTime()};
+
+        NASDAQ0_types_h_::NASDAQInSensors sensorIn = {
+            .BaroMeasure   = baro.pressure,
+            .BaroTimestamp = baro.pressureTimestamp,
+            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
+            .GPSTimestamp = gps.gpsTimestamp};
+
+        // Feed inputs
+
+        nasdaq.setNASDAQ_In_ADA(ADAIn);
+        nasdaq.setNASDAQ_In_Sensors(sensorIn);
+
+        // Step
+        nasdaq.step();
+
+        // Update and log
+
+        NASDAQLogsWrapper logs(miosix::getTime(), nasdaq.getNASDAQ_Logs_OBSW());
+
+        Logger::getInstance().log(getNASDAQState());
+        Logger::getInstance().log(logs);
+
+        // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
+        // dello stato della state
+
+        getModule<FlightStatsRecorder>()->updateNASDAQ(getNASDAQState());
+    }
 }
 
 void NASController::Init(const Event& event)
@@ -191,8 +295,6 @@ void NASController::Calibrating(const Event& event)
             updateState(NASControllerState::CALIBRATING);
 
             calibrate();
-
-            // initNasdaq();
 
             EventBroker::getInstance().post(NAS_READY, TOPIC_NAS);
             break;
@@ -226,6 +328,7 @@ void NASController::Active(const Event& event)
         case EV_ENTRY:
         {
             updateState(NASControllerState::ACTIVE);
+            initANAS();
             break;
         }
 
@@ -237,10 +340,28 @@ void NASController::Active(const Event& event)
 
         case FLIGHT_WING_DESCENT:
         {
-            // initNasdaq();
+            transition(&NASController::Descent);
             break;
         }
 
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&NASController::End);
+            break;
+        }
+    }
+}
+
+void NASController::Descent(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            initNASDAQ();
+            updateState(NASControllerState::ACTIVE_DESCENT);
+            break;
+        }
         case FLIGHT_LANDING_DETECTED:
         {
             transition(&NASController::End);
@@ -334,85 +455,16 @@ void NASController::calibrate()
 
 void NASController::update()
 {
-    return;
     // Update the NAS state only if the FSM is active
     if (state != NASControllerState::ACTIVE)
         return;
 
-    Boardcore::ADAState ada = getModule<ADAController>()->getADAState();
-    const float* covariance = getModule<ADAController>()->getQflattened();
-    Sensors* sensors        = getModule<Sensors>();
-    auto gps                = sensors->getUBXGPSLastSample();
-    auto baro               = sensors->getStaticPressureLastSample();
+    Sensors* sensors = getModule<Sensors>();
+    auto baro        = sensors->getStaticPressureLastSample();
 
-    if (gps.fix != 3)
-    {
-        LOG_WARN(logger, "No GPS fix, skipping NASDAQ update");
-        return;
-    }
-
-    // Fill ADA bus
-    Bus_AdaState adaBusInput;
-    for (size_t i = 0; i < Config::NASDAQ::ADA_DIAG_COV_LEN; i++)
-        adaBusInput.covariance[i] = covariance[i];
-    adaBusInput.verticalSpeedCovariance =
-        getModule<ADAController>()->getVerticalSpeedCov();
-    adaBusInput.mslAltitude   = ada.mslAltitude;
-    adaBusInput.aglAltitude   = ada.aglAltitude;
-    adaBusInput.verticalSpeed = ada.verticalSpeed;
-    adaBusInput.x0            = ada.x0;
-    adaBusInput.x1            = ada.x1;
-    adaBusInput.x2            = ada.x2;
-    adaBusInput.apogeeCounter =
-        getModule<ADAController>()->getDetectedApogees().ada0DetectedApogees;
-    adaBusInput.parachuteCounter = 0;  // Not actually used by the algorithm
-
-    // Fill GPS bus
-    Bus_GPS gpsBusInput;
-    gpsBusInput.Measure[0] = gps.latitude;
-    gpsBusInput.Measure[1] = gps.longitude;
-    gpsBusInput.Measure[2] = gps.height;
-    gpsBusInput.Measure[3] = gps.velocityNorth;
-    gpsBusInput.Measure[4] = gps.velocityEast;
-    gpsBusInput.Measure[5] = gps.velocityDown;
-    gpsBusInput.Measure[6] = gps.fix;
-    gpsBusInput.Measure[7] = gps.satellites;
-    gpsBusInput.Measure[8] = gps.speed;
-    gpsBusInput.Measure[9] = gps.track;
-    gpsBusInput.Timestamp  = gps.gpsTimestamp;
-
-    // Fill baro bus
-    Bus_Baro baroBusInput;
-    baroBusInput.Measure   = baro.pressure;
-    baroBusInput.Timestamp = baro.pressureTimestamp;
-
-    // Run nasdaq
-    nasdaq.setADA_States(adaBusInput);
-    nasdaq.setGPS(gpsBusInput);
-    nasdaq.setBaro(baroBusInput);
-    nasdaq.step();
-
-    // Get and log output
-    NASDAQ0::ExtY_NASDAQ0_T nasdaqOutput = nasdaq.getExternalOutputs();
-    NASDAQState nasdaqState;
-    nasdaqState.timestamp = TimestampTimer::getTimestamp();
-    nasdaqState.n         = nasdaqOutput.Position[0];
-    nasdaqState.e         = nasdaqOutput.Position[1];
-    nasdaqState.d         = nasdaqOutput.Position[2];
-    nasdaqState.vn        = nasdaqOutput.Velocity[0];
-    nasdaqState.ve        = nasdaqOutput.Velocity[1];
-    nasdaqState.vd        = nasdaqOutput.Velocity[2];
-    nasdaqState.c0        = nasdaqOutput.Covariance[0];
-    nasdaqState.c1        = nasdaqOutput.Covariance[1];
-    nasdaqState.c2        = nasdaqOutput.Covariance[2];
-    nasdaqState.c3        = nasdaqOutput.Covariance[3];
-    nasdaqState.c4        = nasdaqOutput.Covariance[4];
-
-    auto ref = nas.getReferenceValues();
-
-    auto altitudeSlm = Aeroutils::relAltitude(baro.pressure, ref.mslPressure,
-                                              ref.mslTemperature);
-    Meter altitude   = Meter(altitudeSlm) - Meter(ref.refAltitude);
+    auto altitudeSlm = Aeroutils::relAltitude(
+        baro.pressure, reference.mslPressure, reference.mslTemperature);
+    Meter altitude = Meter(altitudeSlm) - Meter(reference.refAltitude);
 
     altitudeSamples.push_back(altitude);
     if (altitudeSamples.size() > 10)
@@ -423,12 +475,6 @@ void NASController::update()
                      .relAltitude = altitude.value()};
 
     Logger::getInstance().log(altitudeData);
-    Logger::getInstance().log(nasdaqState);
-    // logging the NAS is done only to not break the logs
-
-    auto nasState = nas.getState();
-    getModule<FlightStatsRecorder>()->updateNas(nasState, ref.refTemperature);
-    Logger::getInstance().log(nasState);
 }
 
 void NASController::updateState(NASControllerState newState)

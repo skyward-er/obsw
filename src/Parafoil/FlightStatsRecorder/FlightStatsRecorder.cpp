@@ -98,6 +98,75 @@ void FlightStatsRecorder::updateAcc(const AccelerometerData& data)
     }
 }
 
+void FlightStatsRecorder::updateANAS(const ANASState& data)
+{
+    auto state = getModule<FlightModeManager>()->getState();
+
+    Lock<FastMutex> lock{statsMutex};
+    if (state == FlightModeManagerState::READY)
+    {
+        float speed = Vector3f{data.vn, data.vd, data.ve}.norm();
+        // Check se position è giusto
+        float alt = -data.d;
+
+        if (speed > stats.maxSpeed.value())
+        {
+            stats.maxSpeed    = MeterPerSecond{speed};
+            stats.maxSpeedAlt = Meter{alt};
+            stats.maxSpeedTs  = data.timestamp;
+        }
+
+        float mach = Aeroutils::computeMach(
+            // check se position è giusto;
+            data.d, speed,
+            ReferenceConfig::defaultReferenceValues.refTemperature);
+
+        if (mach > stats.maxMach)
+        {
+            stats.maxMach   = mach;
+            stats.maxMachTs = data.timestamp;
+        }
+    }
+}
+
+void FlightStatsRecorder::updateNASDAQ(const NASDAQState& data)
+{
+    auto state = getModule<FlightModeManager>()->getState();
+
+    Lock<FastMutex> lock{statsMutex};
+
+    if (state == FlightModeManagerState::FLYING_DROGUE_DESCENT ||
+        state == FlightModeManagerState::FLYING_WING_DESCENT)
+    {
+        auto vertSpeed = MeterPerSecond{data.vz};
+        auto hSpeed    = MeterPerSecond{Vector2f(data.vx, data.vy).norm()};
+
+        if (vertSpeed > stats.maxDescentVertSpeed)
+        {
+            stats.maxDescentVertSpeed   = vertSpeed;
+            stats.maxDescentVertSpeedTs = data.timestamp;
+        }
+
+        if (hSpeed > stats.maxDescentHorizSpeed)
+        {
+            stats.maxDescentHorizSpeed   = hSpeed;
+            stats.maxDescentHorizSpeedTs = data.timestamp;
+        }
+
+        // Update running averages accumulators
+        stats.descentVertSpeedSum += vertSpeed;
+        stats.descentVertSpeedCount++;
+        stats.descentHorizSpeedSum += hSpeed;
+        stats.descentHorizSpeedCount++;
+
+        // Compute averages
+        stats.avgDescentVertSpeed =
+            stats.descentVertSpeedSum / stats.descentVertSpeedCount;
+        stats.avgDescentHorizSpeed =
+            stats.descentHorizSpeedSum / stats.descentHorizSpeedCount;
+    }
+}
+
 void FlightStatsRecorder::updateNas(const NASState& data, float refTemperature)
 {
     auto fmmState = getModule<FlightModeManager>()->getState();

@@ -22,9 +22,17 @@
 
 #pragma once
 
+#include <Parafoil/AlgoReference/AlgoReference.h>
+#include <Parafoil/BoardScheduler.h>
+#include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
+#include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/ADAController/ADAController.h>
-#include <algorithms/NAS/NAS.h>
+#include <algorithms/ANAS/ANAS0.h>
+#include <algorithms/ANAS/ANAS0_types.h>
+#include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQ0.h>
+#include <algorithms/NASDAQ/NASDAQ0_types.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -42,7 +50,9 @@ class ADAController;
 class NASController
     : public Boardcore::FSM<NASController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           FlightStatsRecorder, ADAController>
+                                           FlightStatsRecorder, AlgoReference,
+                                           ADAController>,
+      public ReferenceSubscriber
 {
 public:
     /**
@@ -57,9 +67,10 @@ public:
      * @brief Adds the NAS update function into the scheduler and starts the FSM
      * thread
      */
-    bool start() override;
+    [[nodiscard]] bool start() override;
 
-    Boardcore::NASDAQState getNasdaqState();
+    Boardcore::ANASState NASController::getANASState();
+    Boardcore::NASDAQState NASController::getNASDAQState();
     Boardcore::ReferenceValues getReferenceValues();
 
     NASControllerState getState();
@@ -70,11 +81,19 @@ public:
     void setReferenceTemperature(float temperature);
     void setReferenceCoordinates(float latitude, float longitude);
 
+    void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
+    void NASController::onANASReferenceChanged();
+    void NASController::onNASDAQReferenceChanged();
+
     Meter getAltitude();
 
 private:
     void calibrate();
-    void initNasdaq();
+    void initNASDAQ();
+    void initANAS();
+
+    void updateANAS();
+    void updateNASDAQ();
 
     /**
      * @brief Update the NAS estimation
@@ -86,32 +105,27 @@ private:
     void Calibrating(const Boardcore::Event& event);
     void Ready(const Boardcore::Event& event);
     void Active(const Boardcore::Event& event);
+    void Descent(const Boardcore::Event& event);
     void End(const Boardcore::Event& event);
 
     void updateState(NASControllerState newState);
 
     std::atomic<NASControllerState> state{NASControllerState::INIT};
 
-    Boardcore::NAS nas;  ///< The NAS algorithm instance
     miosix::FastMutex nasMutex;
     NASDAQ0 nasdaq;  ///< The NASDAQ algorithm instance
+    ANAS0 anas;
 
-    int magDecimateCount  = 0;
-    int acc1gSamplesCount = 0;
-    bool acc1g            = false;
-
-    uint64_t lastGyroTimestamp     = 0;
-    uint64_t lastAccTimestamp      = 0;
-    uint64_t lastMagTimestamp      = 0;
-    uint64_t lastGpsTimestamp      = 0;
-    uint64_t lastBaroTimestamp     = 0;
-    uint64_t staticPitotTimestamp  = 0;
-    uint64_t dynamicPitotTimestamp = 0;
     std::list<Meter> altitudeSamples;
 
     std::atomic<bool> started{false};
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
+
+    size_t anasID;    //< ANAS task id
+    size_t nasdaqID;  //< NASDAQ task id
+
+    ReferenceValues reference;
 };
 
 }  // namespace Parafoil

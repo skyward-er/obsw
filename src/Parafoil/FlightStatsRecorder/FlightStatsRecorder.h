@@ -22,7 +22,10 @@
 
 #pragma once
 
+#include <algorithms/ADA/ADAData.h>
+#include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NAS/NASState.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <units/Acceleration.h>
@@ -55,6 +58,18 @@ public:
         Boardcore::Units::Speed::MeterPerSecond maxSpeed{0};
         Boardcore::Units::Length::Meter maxSpeedAlt{0};
 
+        // Maximum horizontal speed in descent phase
+        uint64_t maxDescentHorizSpeedTs = 0;
+        Boardcore::Units::Speed::MeterPerSecond maxDescentHorizSpeed{0.0f};
+
+        // Maximum vertical speed in descent phase
+        uint64_t maxDescentVertSpeedTs = 0;
+        Boardcore::Units::Speed::MeterPerSecond maxDescentVertSpeed{0.0f};
+
+        // Max mach
+        uint64_t maxMachTs = 0;
+        float maxMach      = 0.0f;
+
         // Deployment
         uint64_t dplTs = 0;
         Boardcore::Units::Length::Meter dplAlt{0};
@@ -62,6 +77,18 @@ public:
         // Maximum acceleration after deployment
         uint64_t dplMaxAccTs = 0;
         Boardcore::Units::Acceleration::MeterPerSecondSquared dplMaxAcc{0};
+
+        // Average vertical speed in descent phase
+        Boardcore::Units::Speed::MeterPerSecond avgDescentVertSpeed{0.0f};
+
+        // Average horizontal speed in descent phase
+        Boardcore::Units::Speed::MeterPerSecond avgDescentHorizSpeed{0.0f};
+
+        // Sums and counts for average calculation during descent
+        uint32_t descentVertSpeedCount = 0;
+        Boardcore::Units::Speed::MeterPerSecond descentVertSpeedSum{0.0f};
+        uint32_t descentHorizSpeedCount = 0;
+        Boardcore::Units::Speed::MeterPerSecond descentHorizSpeedSum{0.0f};
     };
 
     void reset();
@@ -73,7 +100,8 @@ public:
 
     void updateAcc(const Boardcore::AccelerometerData& data);
     void updateNas(const Boardcore::NASState& data, float refTemperature);
-    void updatePressure(const Boardcore::PressureData& data);
+    void updateANAS(const Boardcore::ANASState& data);
+    void updateNASDAQ(const Boardcore::NASDAQState& data);
 
 private:
     miosix::FastMutex statsMutex;

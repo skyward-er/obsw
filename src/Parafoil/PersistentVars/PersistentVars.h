@@ -1,5 +1,5 @@
-/* Copyright (c) 2024-2026 Skyward Experimental Rocketry
- * Authors: Davide Mor, Niccolò Betto, Tommaso Lamon, Raul Radu
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Emilio Corigliano
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,38 +22,16 @@
 
 #pragma once
 
-#include <algorithms/NAS/NASConfig.h>
-#include <common/ReferenceConfig.h>
-#include <units/Acceleration.h>
-#include <units/Frequency.h>
-
-#include <chrono>
-
 namespace Parafoil
 {
-namespace Config
+
+namespace PersistentVars
 {
-namespace NAS
-{
 
-/* linter off */ using namespace Boardcore::Units::Frequency;
-/* linter-off */ using namespace std::chrono_literals;
-constexpr Hertz UPDATE_RATE_ALTITUDE = 50_hz;
-constexpr Hertz UPDATE_RATE_ANAS     = 50_hz;
-constexpr Hertz UPDATE_RATE_NASDAQ   = 100_hz;
-constexpr float UPDATE_RATE_ANAS_SECONDS =
-    1.0 / UPDATE_RATE_ANAS.value();  // [s]
-constexpr float UPDATE_RATE_NASDAQ_SECONDS =
-    1.0 / UPDATE_RATE_NASDAQ.value();  // [s]
+void setHilMode(bool _hilMode);
 
-constexpr int CALIBRATION_SAMPLES_COUNT = 20;
-constexpr auto CALIBRATION_SLEEP_TIME   = 100ms;
+bool getHilMode();
 
-constexpr int INITIAL_POSITION              = 0;
-constexpr int INITIAL_VELOCITY              = 0;
-constexpr float INITIAL_COVARIANCE_DIAGONAL = 0.1f;
+}  // namespace PersistentVars
 
-}  // namespace NAS
-
-}  // namespace Config
 }  // namespace Parafoil
