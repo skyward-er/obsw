@@ -59,10 +59,12 @@ public:
         float maxMach      = 0.0f;
 
         // Apogee
-        uint64_t apogeeTs = 0;
-        float apogeeLat   = 0.0f;
-        float apogeeLon   = 0.0f;
-        float apogeeAlt   = 0.0f;
+        uint64_t apogeeTs     = 0;
+        float apogeeLat       = 0.0f;
+        float apogeeLon       = 0.0f;
+        float apogeeAlt       = 0.0f;
+        float apogeePitotStat = 0.0f;
+        float apogeePitotTot  = 0.0f;
 
         // Maximum acceleration after apogee
         uint64_t apogeeMaxAccTs = 0;
@@ -99,7 +101,8 @@ public:
 
     void liftoffDetected(uint64_t ts);
     void shutdownDetected(uint64_t ts, float alt);
-    void apogeeDetected(uint64_t ts, float lat, float lon, float alt);
+    void apogeeDetected(uint64_t ts, float lat, float lon, float alt,
+                        float pitotStat, float pitotTot);
     void deploymentDetected(uint64_t ts, float alt);
 
     void updateAcc(const Boardcore::AccelerometerData& data);

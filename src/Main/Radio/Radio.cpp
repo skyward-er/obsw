@@ -880,15 +880,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             auto imu          = sensors->getIMULastSample();
             auto gps          = sensors->getUBXGPSLastSample();
-            auto vn100        = sensors->getVN100LastSample();
             auto temperature  = sensors->getTemperatureLastSample();
-            auto pressStatic  = sensors->getAtmosPressureLastSample();
-            auto pressDigi    = sensors->getLPS22DFLastSample();
+            auto pressDigi    = sensors->getAtmosPressureLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
             auto adaState     = ada->getADAState();
             auto nasState     = nas->getNASState();
             auto meaState     = mea->getMEAState();
-            auto ref = getModule<AlgoReference>()->getReferenceValues();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -1052,6 +1049,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.apogee_lat              = stats.apogeeLat;
             tm.apogee_lon              = stats.apogeeLon;
             tm.apogee_alt              = stats.apogeeAlt;
+            tm.apogee_pitot_stat       = stats.apogeePitotStat;
+            tm.apogee_pitot_tot        = stats.apogeePitotTot;
             tm.apogee_max_acc_ts       = stats.apogeeMaxAccTs;
             tm.apogee_max_acc          = stats.apogeeMaxAcc;
             tm.dpl_ts                  = stats.dplTs;
@@ -1173,6 +1172,24 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             tm.voltage   = data.voltage;
             tm.timestamp = data.voltageTimestamp;
             strcpy(tm.sensor_name, "BatteryVoltage");
+
+            mavlink_msg_voltage_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_CAM_BATTERY_VOLTAGE_ID:
+        {
+            mavlink_message_t msg;
+
+            auto data = getModule<Sensors>()->getCamBatteryVoltageLastSample();
+
+            mavlink_voltage_tm_t tm;
+            tm.voltage   = data.voltage;
+            tm.timestamp = data.voltageTimestamp;
+            strcpy(tm.sensor_name, "CamBatteryVoltage");
 
             mavlink_msg_voltage_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -1440,7 +1457,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                         return true;
                     } */
 
-        case MAV_TANK_TOP_PRESS_ID:
+        /* case MAV_TANK_TOP_PRESS_ID:
         {
             mavlink_message_t msg;
             mavlink_pressure_tm_t tm;
@@ -1522,7 +1539,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
 
             return true;
         }
-
+ */
         default:
             return false;
     }

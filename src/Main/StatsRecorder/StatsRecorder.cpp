@@ -59,13 +59,16 @@ void StatsRecorder::shutdownDetected(uint64_t ts, float alt)
     stats.shutdownAlt = alt;
 }
 
-void StatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon, float alt)
+void StatsRecorder::apogeeDetected(uint64_t ts, float lat, float lon, float alt,
+                                   float pitotStat, float pitotTot)
 {
     Lock<FastMutex> lock{statsMutex};
-    stats.apogeeTs  = ts;
-    stats.apogeeLat = lat;
-    stats.apogeeLon = lon;
-    stats.apogeeAlt = alt;
+    stats.apogeeTs        = ts;
+    stats.apogeeLat       = lat;
+    stats.apogeeLon       = lon;
+    stats.apogeeAlt       = alt;
+    stats.apogeePitotStat = pitotStat;
+    stats.apogeePitotTot  = pitotTot;
 }
 
 void StatsRecorder::deploymentDetected(uint64_t ts, float alt)
