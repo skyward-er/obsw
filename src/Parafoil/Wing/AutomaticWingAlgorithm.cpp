@@ -107,7 +107,7 @@ Degree AutomaticWingAlgorithm::algorithmStep(const ReferenceValues& ref,
     Vector2f heading;  // used for logging purposes
 
 #ifdef USE_NASDAQ
-    auto nasdaqState     = getModule<NASController>()->getNasdaqState();
+    auto nasdaqState     = getModule<NASController>()->getNASDAQState();
     auto currentPosition = Eigen::Vector2f(nasdaqState.n, nasdaqState.e);
     Radian targetAngle   = guidance.calculateTargetAngle(
         {currentPosition.x(), currentPosition.y(), -nasdaqState.d}, heading);

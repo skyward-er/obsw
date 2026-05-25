@@ -138,8 +138,8 @@ void FlightStatsRecorder::updateNASDAQ(const NASDAQState& data)
     if (state == FlightModeManagerState::FLYING_DROGUE_DESCENT ||
         state == FlightModeManagerState::FLYING_WING_DESCENT)
     {
-        auto vertSpeed = MeterPerSecond{data.vz};
-        auto hSpeed    = MeterPerSecond{Vector2f(data.vx, data.vy).norm()};
+        auto vertSpeed = MeterPerSecond{data.vd};
+        auto hSpeed    = MeterPerSecond{Vector2f(data.vn, data.ve).norm()};
 
         if (vertSpeed > stats.maxDescentVertSpeed)
         {

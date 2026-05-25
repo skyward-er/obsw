@@ -210,28 +210,7 @@ void Radio::MavlinkBackend::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:
         {
-            if (parent.getModule<NASController>()->getState() !=
-                NASControllerState::READY)
-            {
-                return enqueueNack(msg);
-            }
-
-            // Scalar first quaternion, W is the first element
-            auto quat = Eigen::Quaternionf{
-                mavlink_msg_set_orientation_quat_tc_get_quat_w(&msg),
-                mavlink_msg_set_orientation_quat_tc_get_quat_x(&msg),
-                mavlink_msg_set_orientation_quat_tc_get_quat_y(&msg),
-                mavlink_msg_set_orientation_quat_tc_get_quat_z(&msg),
-            };
-
-            parent.getModule<NASController>()->setOrientation(
-                quat.normalized());
-
-            float qNorm = quat.norm();
-            if (std::abs(qNorm - 1) > 0.001)
-                return enqueueWack(msg);
-            else
-                return enqueueAck(msg);
+            return enqueueNack(msg);
         }
 
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -503,7 +482,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_nas_tm_t tm;
 
             auto state    = parent.getModule<NASController>()->getState();
-            auto nasState = parent.getModule<NASController>()->getNasdaqState();
+            auto nasState = parent.getModule<NASController>()->getNASDAQState();
             auto ref = parent.getModule<NASController>()->getReferenceValues();
 
             tm.timestamp       = nasState.timestamp;
@@ -513,11 +492,11 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_vn          = nasState.vn;
             tm.nas_ve          = nasState.ve;
             tm.nas_vd          = nasState.vd;
-            tm.nas_qx          = nasState.c0;
-            tm.nas_qy          = nasState.c1;
-            tm.nas_qz          = nasState.c2;
-            tm.nas_qw          = nasState.c3;
-            tm.nas_bias_x      = nasState.c4;
+            tm.nas_qx          = 0;
+            tm.nas_qy          = 0;
+            tm.nas_qz          = 0;
+            tm.nas_qw          = 0;
+            tm.nas_bias_x      = 0;
             tm.nas_bias_y      = 0;
             tm.nas_bias_z      = 0;
             tm.ref_pressure    = ref.refPressure;
@@ -546,7 +525,7 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto pressDigi    = sensors->getLPS22DFLastSample();
             auto pressStatic  = sensors->getStaticPressureLastSample();
             auto pressDynamic = sensors->getDynamicPressureLastSample();
-            auto nasState     = nas->getNasdaqState();
+            auto nasState     = nas->getNASDAQState();
             auto ref          = nas->getReferenceValues();
 
             float airspeedPitot =
@@ -595,11 +574,11 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_vn     = nasState.vn;
             tm.nas_ve     = nasState.ve;
             tm.nas_vd     = nasState.vd;
-            tm.nas_qx     = nasState.c0;
-            tm.nas_qy     = nasState.c1;
-            tm.nas_qz     = nasState.c2;
-            tm.nas_qw     = nasState.c3;
-            tm.nas_bias_x = nasState.c4;
+            tm.nas_qx     = 0;
+            tm.nas_qy     = 0;
+            tm.nas_qz     = 0;
+            tm.nas_qw     = 0;
+            tm.nas_bias_x = 0;
             tm.nas_bias_y = 0;
             tm.nas_bias_z = 0;
             tm.wes_n      = -1.0f;

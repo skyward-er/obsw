@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Niccolò Betto
+/* Copyright (c) 2024-2026 Skyward Experimental Rocketry
+ * Author: Niccolò Betto, Raul Radu
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <Parafoil/AlgoReference/AlgoReference.h>
 #include <Parafoil/BoardScheduler.h>
 #include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/Sensors/Sensors.h>
@@ -33,6 +32,7 @@
 #include <algorithms/NASDAQ/NASDAQ0.h>
 #include <algorithms/NASDAQ/NASDAQ0_types.h>
 #include <algorithms/NASDAQ/NASDAQData.h>
+#include <algorithms/ReferenceValues.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -50,9 +50,7 @@ class ADAController;
 class NASController
     : public Boardcore::FSM<NASController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           FlightStatsRecorder, AlgoReference,
-                                           ADAController>,
-      public ReferenceSubscriber
+                                           FlightStatsRecorder, ADAController>
 {
 public:
     /**
@@ -69,30 +67,21 @@ public:
      */
     [[nodiscard]] bool start() override;
 
-    Boardcore::ANASState NASController::getANASState();
-    Boardcore::NASDAQState NASController::getNASDAQState();
+    Boardcore::NASDAQState getNASDAQState();
     Boardcore::ReferenceValues getReferenceValues();
 
     NASControllerState getState();
 
-    void setOrientation(const Eigen::Quaternionf& orientation);
-
     void setReferenceAltitude(float altitude);
     void setReferenceTemperature(float temperature);
     void setReferenceCoordinates(float latitude, float longitude);
-
-    void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
-    void NASController::onANASReferenceChanged();
-    void NASController::onNASDAQReferenceChanged();
 
     Meter getAltitude();
 
 private:
     void calibrate();
     void initNASDAQ();
-    void initANAS();
 
-    void updateANAS();
     void updateNASDAQ();
 
     /**
@@ -105,7 +94,6 @@ private:
     void Calibrating(const Boardcore::Event& event);
     void Ready(const Boardcore::Event& event);
     void Active(const Boardcore::Event& event);
-    void Descent(const Boardcore::Event& event);
     void End(const Boardcore::Event& event);
 
     void updateState(NASControllerState newState);
@@ -114,7 +102,6 @@ private:
 
     miosix::FastMutex nasMutex;
     NASDAQ0 nasdaq;  ///< The NASDAQ algorithm instance
-    ANAS0 anas;
 
     std::list<Meter> altitudeSamples;
 
@@ -122,10 +109,9 @@ private:
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("NAS");
 
-    size_t anasID;    //< ANAS task id
     size_t nasdaqID;  //< NASDAQ task id
 
-    ReferenceValues reference;
+    Boardcore::ReferenceValues reference;
 };
 
 }  // namespace Parafoil

@@ -45,7 +45,7 @@ namespace Parafoil
 NASController::NASController()
     : FSM(&NASController::Init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::nasControllerPriority()),
-      anas{}, nasdaq{}
+      nasdaq{}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -63,14 +63,6 @@ bool NASController::start()
                           TaskScheduler::Policy::RECOVER);
     if (task == 0)
         LOG_ERR(logger, "Failed to add NAS update task");
-    anasID = scheduler.addTask([this]() { updateANAS(); },
-                               Config::NAS::UPDATE_RATE_ANAS);
-
-    if (anasID == 0)
-    {
-        LOG_ERR(logger, "Failed to add ANAS update task");
-        return false;
-    }
 
     nasdaqID = scheduler.addTask([this]() { updateNASDAQ(); },
                                  Config::NAS::UPDATE_RATE_NASDAQ);
@@ -87,32 +79,8 @@ bool NASController::start()
         return false;
     }
 
-    getModule<AlgoReference>()->subscribeReferenceChanges(this);
-
-    scheduler.disableTask(anasID);
     scheduler.disableTask(nasdaqID);
     return true;
-}
-
-ANASState NASController::getANASState()
-{
-    Lock<FastMutex> lock{nasMutex};
-
-    auto rawOutput = anas.getNASOut();
-
-    // Devo passare questo o il timestamp interno?
-    uint64_t timestamp = miosix::getTime();
-
-    ANASState state(timestamp, rawOutput.Position, rawOutput.Velocity,
-                    rawOutput.Quaternion);
-
-    return state;
-}
-
-void NASController::initANAS()
-{
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->nasController();
-    scheduler.enableTask(anasID);
 }
 
 void NASController::initNASDAQ()
@@ -120,13 +88,23 @@ void NASController::initNASDAQ()
     TaskScheduler& scheduler = getModule<BoardScheduler>()->nasController();
 
     ANAS_NASDAQ ANASOutNASDAQIn = {
-        .LinearCovariance = *anas.getNASFinal().LinearCovariance,
-        .Position         = *anas.getNASOut().Position,
-        .Velocity         = *anas.getNASOut().Velocity};
+        /* clang-format off */
+        .LinearCovariance = {1e-6,    0,    0,    0,    0,    0, 
+                                0, 1e-6,    0,    0,    0,    0,
+                                0,    0, 1e-6,    0,    0,    0,
+                                0,    0,    0, 1e-6,    0,    0,
+                                0,    0,    0,    0, 1e-6,    0,
+                                0,    0,    0,    0,    0, 1e-6,
+                            },
+        /* clang-format on */
+        .Position = {0, 0, 0},
+        .Velocity = {0, 0, 0}};
 
     nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
+    nasdaq.setNASDAQ_In_Reference(
+        ISAReference{.GroundTemperature = reference.refTemperature,
+                     .GroundPressure    = reference.refPressure});
     scheduler.enableTask(nasdaqID);
-    scheduler.disableTask(anasID);
 }
 
 NASDAQState NASController::getNASDAQState()
@@ -148,78 +126,18 @@ ReferenceValues NASController::getReferenceValues()
     return reference;
 }
 
-void NASController::onReferenceChanged(const ReferenceValues& ref)
-{
-    Lock<FastMutex> l(nasMutex);
-    this->reference = reference;
-    onNASDAQReferenceChanged();
-    onANASReferenceChanged();
-}
-
 NASControllerState NASController::getState() { return state; }
 
-void NASController::updateANAS()
+void NASController::updateNASDAQ()
 {
     if (state == NASControllerState::ACTIVE)
     {
         Lock<FastMutex> lock{nasMutex};
 
-        Sensors* sensors = getModule<Sensors>();
-
-        auto prevState    = getANASState();
-        auto ref          = getModule<AlgoReference>()->getReferenceValues();
-        float mslAltitude = ref.refAltitude - prevState.d;
-        float mach        = Aeroutils::computeMach(-mslAltitude, -prevState.vd,
-                                                   ref.mslTemperature);
-        auto imu          = sensors->getIMULastSample();
-        auto gps          = sensors->getUBXGPSLastSample();
-        auto baro         = sensors->getStaticPressureLastSample();
-        auto staticPitot  = sensors->getStaticPressureLastSample();
-        auto dynamicPitot = sensors->getDynamicPressureLastSample();
-
-        ANAS0_types_h_::NASIn inputs = {
-            .AccMeasure   = {imu.accelerationX, imu.accelerationY,
-                             imu.accelerationZ},
-            .AccTimestamp = imu.accelerationTimestamp,
-
-            .GyroMeasure   = {imu.angularSpeedX, imu.angularSpeedY,
-                              imu.angularSpeedZ},
-            .GyroTimestamp = (imu.angularSpeedTimestamp),
-
-            .BaroMeasure   = baro.pressure,
-            .BaroTimestamp = baro.pressureTimestamp,
-
-            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
-            .GPSTimestamp     = gps.gpsTimestamp,
-            .GPSHorizAccuracy = gps.hAcc,
-            .GPSVertAccuracy  = gps.sAcc,
-
-            .PitotMeasure   = {staticPitot.pressure, dynamicPitot.pressure},
-            .PitotTimestamp = staticPitot.pressureTimestamp,
-            .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
-                               imu.magneticFieldZ},
-            .MagTimestamp   = {imu.magneticFieldTimestamp}};
-
-        anas.setNASIn(inputs);
-        anas.step();
-
-        ANASLogsData logs(miosix::getTime(), anas.getNASLogs());
-
-        getModule<FlightStatsRecorder>()->updateANAS(getANASState());
-
-        Logger::getInstance().log(getANASState());
-        Logger::getInstance().log(logs);
-    }
-}
-
-void NASController::updateNASDAQ()
-{
-    if (state == NASControllerState::ACTIVE_DESCENT)
-    {
-        Lock<FastMutex> lock{nasMutex};
-
         Sensors* sensors      = getModule<Sensors>();
         ADAController* adaRef = getModule<ADAController>();
+        if (sensors->getUBXGPSLastSample().fix != 3)
+            return;  // we do not run NASDAQ when we loose the GPS fix
 
         // Pack up inputs
         auto baro =
@@ -238,7 +156,7 @@ void NASController::updateNASDAQ()
         NASDAQ0_types_h_::NASDAQInADA ADAIn = {
             .VerticalSpeed           = adaVerticalSpeed,
             .VerticalSpeedCovariance = adaCovariance,
-            .Timestamp               = miosix::getTime()};
+            .Timestamp               = TimestampTimer::getTimestamp()};
 
         NASDAQ0_types_h_::NASDAQInSensors sensorIn = {
             .BaroMeasure   = baro.pressure,
@@ -328,7 +246,7 @@ void NASController::Active(const Event& event)
         case EV_ENTRY:
         {
             updateState(NASControllerState::ACTIVE);
-            initANAS();
+            initNASDAQ();
             break;
         }
 
@@ -340,28 +258,9 @@ void NASController::Active(const Event& event)
 
         case FLIGHT_WING_DESCENT:
         {
-            transition(&NASController::Descent);
             break;
         }
 
-        case FLIGHT_LANDING_DETECTED:
-        {
-            transition(&NASController::End);
-            break;
-        }
-    }
-}
-
-void NASController::Descent(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            initNASDAQ();
-            updateState(NASControllerState::ACTIVE_DESCENT);
-            break;
-        }
         case FLIGHT_LANDING_DETECTED:
         {
             transition(&NASController::End);
@@ -387,42 +286,24 @@ void NASController::calibrate()
     altitudeSamples.clear();
     Sensors* sensors = getModule<Sensors>();
 
-    Vector3f accSum = Vector3f::Zero();
-    Vector3f magSum = Vector3f::Zero();
-    float baroSum   = 0.0f;
+    float baroSum = 0.0f;
 
     for (int i = 0; i < config::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        IMUData imu       = sensors->getIMULastSample();
         PressureData baro = sensors->getStaticPressureLastSample();
-
-        Vector3f acc = static_cast<AccelerometerData>(imu);
-        Vector3f mag = static_cast<MagnetometerData>(imu);
-
-        accSum += acc;
-        magSum += mag;
 
         baroSum += baro.pressure;
 
         Thread::sleep(milliseconds{config::CALIBRATION_SLEEP_TIME}.count());
     }
 
-    Vector3f meanAcc = accSum / config::CALIBRATION_SAMPLES_COUNT;
-    meanAcc.normalize();
-    Vector3f meanMag = magSum / config::CALIBRATION_SAMPLES_COUNT;
-    meanMag.normalize();
     float meanBaro = baroSum / config::CALIBRATION_SAMPLES_COUNT;
-
-    // Use the triad to compute initial state
-    StateInitializer init;
-    init.triad(meanAcc, meanMag, ReferenceConfig::nedMag);
 
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
     // Compute reference values
-    ReferenceValues reference = nas.getReferenceValues();
-    reference.refPressure     = meanBaro;
-    reference.refAltitude     = Aeroutils::relAltitude(
+    reference.refPressure = meanBaro;
+    reference.refAltitude = Aeroutils::relAltitude(
         reference.refPressure, reference.mslPressure, reference.mslTemperature);
 
     // Also update the reference with the GPS if we have fix
@@ -433,24 +314,9 @@ void NASController::calibrate()
         reference.refLatitude  = gps.latitude;
         reference.refLongitude = gps.longitude;
     }
-
-    // Update the algorithm reference values
-    nas.setX(init.getInitX());
-    nas.resetCovariance();
-    nas.setReferenceValues(reference);
-
-    auto nasdaqConfig                          = nasdaq.getBlockParameters();
-    nasdaqConfig.StandardAirPressureP0_Value   = reference.refPressure;
-    nasdaqConfig.StandardAirPressureP0_Value_a = reference.refPressure;
-    if (gps.fix == 3)
-    {
-        nasdaqConfig.nasdaq.gps.lat0 = reference.refLatitude;
-        nasdaqConfig.nasdaq.gps.lon0 = reference.refLongitude;
-        nasdaqConfig.Bias_Bias       = reference.refLatitude;
-        nasdaqConfig.Bias_Bias_g     = reference.refLatitude;
-        nasdaqConfig.Bias1_Bias      = reference.refLongitude;
-    }
-    nasdaq.setBlockParameters(&nasdaqConfig);
+    nasdaq.setNASDAQ_In_Reference(
+        ISAReference{.GroundTemperature = reference.refTemperature,
+                     .GroundPressure    = reference.refPressure});
 }
 
 void NASController::update()
@@ -492,28 +358,21 @@ void NASController::setReferenceAltitude(float altitude)
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
-    auto ref        = nas.getReferenceValues();
-    ref.refAltitude = altitude;
-    nas.setReferenceValues(ref);
+    reference.refAltitude = altitude;
 }
 
 void NASController::setReferenceTemperature(float temperature)
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
-    auto ref           = nas.getReferenceValues();
-    ref.refTemperature = temperature;
-    nas.setReferenceValues(ref);
+    reference.refTemperature = temperature;
 }
 
 void NASController::setReferenceCoordinates(float latitude, float longitude)
 {
     miosix::Lock<miosix::FastMutex> l(nasMutex);
-
-    auto ref         = nas.getReferenceValues();
-    ref.refLatitude  = latitude;
-    ref.refLongitude = longitude;
-    nas.setReferenceValues(ref);
+    reference.refLatitude  = latitude;
+    reference.refLongitude = longitude;
 }
 
 Meter NASController::getAltitude()
