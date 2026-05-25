@@ -47,20 +47,30 @@ struct MotorStatus : public Boardcore::Injectable
     {
         Boardcore::DeviceStatus device;
 
+        Boardcore::PressureData przTankPressure;
+        Boardcore::PressureData regulatorOxOutPressure;
+        Boardcore::PressureData regulatorFuelOutPressure;
         Boardcore::PressureData oxTankPressure;
         Boardcore::PressureData fuelTankPressure;
-        Boardcore::PressureData przTankPressure;
-        Boardcore::PressureData regulatorOutOxPressure;
-        Boardcore::PressureData regulatorOutFuelPressure;
-        Boardcore::PressureData combustionChamberPressure;
-        Boardcore::PressureData igniterPressure;
+        Boardcore::PressureData mainCCPressure;
+        Boardcore::PressureData ignCCPressure;
         Boardcore::VoltageData batteryVoltage;
         Boardcore::CurrentData currentConsumption;
 
-        bool oxVentingValveOpen   = false;
-        bool nitrogenValveOpen    = false;
-        bool mainValveOpen        = false;
-        bool n2QuenchingValveOpen = false;
+        Boardcore::ServoPositionData przOxValvePosition;
+        Boardcore::ServoPositionData przFuelValvePosition;
+        Boardcore::ServoPositionData mainOxValvePosition;
+        Boardcore::ServoPositionData mainFuelValvePosition;
+
+        bool oxVentingValveState   = false;
+        bool fuelVentingValveState = false;
+        bool przOxValveState       = false;
+        bool przFuelValveState     = false;
+        bool mainOxValveState      = false;
+        bool mainFuelValveState    = false;
+        bool oxSolenoidState       = false;
+        bool fuelSolenoidState     = false;
+        bool sparkIgniterOn        = false;
     };
 
     /**
