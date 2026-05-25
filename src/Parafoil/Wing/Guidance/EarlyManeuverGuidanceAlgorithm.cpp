@@ -38,9 +38,9 @@ namespace Parafoil
 EarlyManeuversGuidanceAlgorithm::EarlyManeuversGuidanceAlgorithm()
     : activeTarget(Target::EMC), targetAltitudeConfidence(0),
       m2AltitudeConfidence(0), m1AltitudeConfidence(0),
-      emcAltitudeConfidence(0){};
+      emcAltitudeConfidence(0) {};
 
-EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm(){};
+EarlyManeuversGuidanceAlgorithm::~EarlyManeuversGuidanceAlgorithm() {};
 
 Radian EarlyManeuversGuidanceAlgorithm::calculateTargetAngle(
     const Eigen::Vector3f& currentPositionNED, Eigen::Vector2f& heading)

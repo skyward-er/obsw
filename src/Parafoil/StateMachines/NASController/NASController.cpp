@@ -111,9 +111,9 @@ NASDAQState NASController::getNASDAQState()
 {
     Lock<FastMutex> lock{nasMutex};
 
-    auto rawOutput = nasdaq.getNASDAQ_Out();
+    auto rawOutput = nasdaq.getNASDAQ_Logs_OBSW();
 
-    uint64_t timestamp = miosix::getTime();
+    uint64_t timestamp = TimestampTimer::getTimestamp();
 
     NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
 
@@ -171,19 +171,20 @@ void NASController::updateNASDAQ()
 
         // Step
         nasdaq.step();
-
-        // Update and log
-
-        NASDAQLogsWrapper logs(miosix::getTime(), nasdaq.getNASDAQ_Logs_OBSW());
-
-        Logger::getInstance().log(getNASDAQState());
-        Logger::getInstance().log(logs);
-
-        // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
-        // dello stato della state
-
-        getModule<FlightStatsRecorder>()->updateNASDAQ(getNASDAQState());
     }
+
+    // Update and log
+
+    NASDAQLogsWrapper logs(TimestampTimer::getTimestamp(),
+                           nasdaq.getNASDAQ_Logs_OBSW());
+
+    Logger::getInstance().log(getNASDAQState());
+    Logger::getInstance().log(logs);
+
+    // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
+    // dello stato della state
+
+    getModule<FlightStatsRecorder>()->updateNASDAQ(getNASDAQState());
 }
 
 void NASController::Init(const Event& event)
@@ -382,7 +383,7 @@ Meter NASController::getAltitude()
 #ifdef USE_NASDAQ
     // The NASDAQ altitude is in NED frame, so it is negative when we are above
     // the reference altitude
-    return -Meter{nasdaq.getExternalOutputs().Position[2]};
+    return -Meter{nasdaq.getNASDAQ_Out().Position[2]};
 #else
     if (altitudeSamples.size() == 0)
         return 0.0_m;
