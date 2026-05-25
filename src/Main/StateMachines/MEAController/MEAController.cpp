@@ -165,8 +165,8 @@ void MEAController::update()
         // to avoid holding the mutex for too long
         {
             auto motor = getModule<Common::MotorStatus>()->lockData();
-            baro       = motor->combustionChamberPressure;
-            aperture   = motor->mainValveOpen ? 1.0f : 0.0f;
+            baro       = motor->mainCCPressure;
+            aperture   = motor->mainFuelValveState ? 1.0f : 0.0f;
         }
 
         if (baro.pressure > Config::MEA::CC_PRESSURE_THRESHOLD)

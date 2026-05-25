@@ -81,22 +81,6 @@ struct StaticPressure2Data : Boardcore::PressureData
     }
 };
 
-struct DplBayPressureData : Boardcore::PressureData
-{
-    explicit DplBayPressureData(const Boardcore::PressureData& data)
-        : Boardcore::PressureData(data)
-    {
-    }
-
-    DplBayPressureData() {}
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(DplBayPressureData,
-                          EXTEND_DEF(Boardcore::PressureData));
-    }
-};
-
 struct LSM6DSRX0Data : Boardcore::LSM6DSRXData
 {
     explicit LSM6DSRX0Data(const Boardcore::LSM6DSRXData& data)
