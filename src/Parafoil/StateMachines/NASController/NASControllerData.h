@@ -52,6 +52,42 @@ struct NASControllerStatus
     }
 };
 
+struct NASDAQADAInData
+{
+    NASDAQ0_types_h_::NASDAQInADA ADAIn;
+
+    NASDAQADAInData() {};
+
+    NASDAQADAInData(NASDAQ0_types_h_::NASDAQInADA pADAIn) : ADAIn{pADAIn} {};
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(NASDAQADAInData,
+                          FIELD_DEF2(ADAIn, Timestamp)
+                              FIELD_DEF2(ADAIn, VerticalSpeed)
+                                  FIELD_DEF2(ADAIn, VerticalSpeedCovariance));
+    }
+};
+
+struct NASDAQSensorInData
+{
+    NASDAQ0_types_h_::NASDAQInSensors sensorsIn;
+
+    NASDAQSensorInData() {};
+
+    NASDAQSensorInData(NASDAQ0_types_h_::NASDAQInSensors sensorsIn)
+        : sensorsIn{sensorsIn} {};
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(NASDAQSensorInData,
+                          FIELD_DEF2(sensorsIn, BaroTimestamp)
+                              FIELD_DEF2(sensorsIn, BaroMeasure)
+                                  FIELD_DEF2(sensorsIn, GPSTimestamp)
+                                      FIELD_DEF2(sensorsIn, GPSMeasure));
+    }
+};
+
 struct AltitudeData
 {
     uint64_t timestamp = 0;

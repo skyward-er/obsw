@@ -45,7 +45,7 @@ namespace Parafoil
 NASController::NASController()
     : FSM(&NASController::Init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::nasControllerPriority()),
-      nasdaq{}
+      nasdaq{}, reference{ReferenceConfig::defaultReferenceValues}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -79,39 +79,37 @@ bool NASController::start()
         return false;
     }
 
-    scheduler.disableTask(nasdaqID);
+    // scheduler.disableTask(nasdaqID);
     return true;
 }
 
 void NASController::initNASDAQ()
 {
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->nasController();
-
     ANAS_NASDAQ ANASOutNASDAQIn = {
         /* clang-format off */
-        .LinearCovariance = {1e-6,    0,    0,    0,    0,    0, 
-                                0, 1e-6,    0,    0,    0,    0,
-                                0,    0, 1e-6,    0,    0,    0,
-                                0,    0,    0, 1e-6,    0,    0,
-                                0,    0,    0,    0, 1e-6,    0,
-                                0,    0,    0,    0,    0, 1e-6,
+        .LinearCovariance = {0.01,    0,    0,    0,    0,    0, 
+                                0, 0.01,    0,    0,    0,    0,
+                                0,    0, 0.01,    0,    0,    0,
+                                0,    0,    0, 0.01,    0,    0,
+                                0,    0,    0,    0, 0.01,    0,
+                                0,    0,    0,    0,    0, 0.01,
                             },
         /* clang-format on */
         .Position = {0, 0, 0},
         .Velocity = {0, 0, 0}};
 
+    nasdaq.initialize();
     nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
     nasdaq.setNASDAQ_In_Reference(
-        ISAReference{.GroundTemperature = reference.refTemperature,
-                     .GroundPressure    = reference.refPressure});
-    scheduler.enableTask(nasdaqID);
+        NASDAQReference{.GroundTemperature = reference.refTemperature,
+                        .GroundPressure    = reference.refPressure});
 }
 
 NASDAQState NASController::getNASDAQState()
 {
     Lock<FastMutex> lock{nasMutex};
 
-    auto rawOutput = nasdaq.getNASDAQ_Logs_OBSW();
+    auto rawOutput = nasdaq.getNASDAQ_Out();
 
     uint64_t timestamp = TimestampTimer::getTimestamp();
 
@@ -147,22 +145,27 @@ void NASController::updateNASDAQ()
                                                   // might need to break it up
         auto gps = sensors->getUBXGPSLastSample();
 
-        auto adaVerticalSpeed =
-            adaRef->getMaxVerticalSpeed();  // Check if this is the correct data
-                                            // wanted by GNC
+        auto adaState = adaRef->getADAState();
+
+        auto adaVerticalSpeed = adaState.verticalSpeed;
 
         auto adaCovariance = adaRef->getVerticalSpeedCov();
 
         NASDAQ0_types_h_::NASDAQInADA ADAIn = {
             .VerticalSpeed           = adaVerticalSpeed,
             .VerticalSpeedCovariance = adaCovariance,
-            .Timestamp               = TimestampTimer::getTimestamp()};
+            .Timestamp               = adaState.timestamp};
+
+        Logger::getInstance().log(NASDAQADAInData{ADAIn});
 
         NASDAQ0_types_h_::NASDAQInSensors sensorIn = {
             .BaroMeasure   = baro.pressure,
             .BaroTimestamp = baro.pressureTimestamp,
-            .GPSMeasure = {gps.latitude, gps.longitude, gps.height, gps.speed},
-            .GPSTimestamp = gps.gpsTimestamp};
+            .GPSMeasure    = {gps.latitude, gps.longitude, gps.velocityNorth,
+                              gps.velocityEast},
+            .GPSTimestamp  = gps.gpsTimestamp};
+
+        Logger::getInstance().log(NASDAQSensorInData{sensorIn});
 
         // Feed inputs
 
@@ -178,7 +181,6 @@ void NASController::updateNASDAQ()
     NASDAQLogsWrapper logs(TimestampTimer::getTimestamp(),
                            nasdaq.getNASDAQ_Logs_OBSW());
 
-    Logger::getInstance().log(getNASDAQState());
     Logger::getInstance().log(logs);
 
     // Probabilmente aggiornare NASDAQ con gli input dell'ANAS in Entry
@@ -315,9 +317,8 @@ void NASController::calibrate()
         reference.refLatitude  = gps.latitude;
         reference.refLongitude = gps.longitude;
     }
-    nasdaq.setNASDAQ_In_Reference(
-        ISAReference{.GroundTemperature = reference.refTemperature,
-                     .GroundPressure    = reference.refPressure});
+
+    initNASDAQ();
 }
 
 void NASController::update()
@@ -381,8 +382,8 @@ Meter NASController::getAltitude()
     miosix::Lock<miosix::FastMutex> l(nasMutex);
 
 #ifdef USE_NASDAQ
-    // The NASDAQ altitude is in NED frame, so it is negative when we are above
-    // the reference altitude
+    // The NASDAQ altitude is in NED frame, so it is negative when we are
+    // above the reference altitude
     return -Meter{nasdaq.getNASDAQ_Out().Position[2]};
 #else
     if (altitudeSamples.size() == 0)

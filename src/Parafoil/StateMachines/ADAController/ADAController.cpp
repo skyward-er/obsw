@@ -132,8 +132,6 @@ ADAController::detectedApogees ADAController::getDetectedApogees()
 {
     detectedApogees apogees;
     apogees.ada0DetectedApogees = wingDescentDetected ? 1 : 0;
-    apogees.ada0DetectedApogees = 0;
-    apogees.ada0DetectedApogees = 0;
     return apogees;
 }
 
@@ -141,15 +139,16 @@ float ADAController::getVerticalSpeedCov()
 {
     ReferenceValues ref  = ada0.getReferenceValues();
     ADAState state       = ada0.getState();
-    const float* QMatrix = ada0.getFlatq();
+    const float* PMatrix = ada0.getFlatP();
     float n              = 1 / (a * R / g);
-    float cov2 = -(ref.refTemperature * pow(state.x0 / ref.refPressure,
-                                            (1 / n) / (a * n * state.x0)));
+    float cov2 =
+        -(ref.refTemperature * pow(state.x0 / ref.refPressure, (1 / n))) /
+        (a * n * state.x0);
     float cov1 = cov2 * state.x1 / n / state.x0 * (1 - n);
     Eigen::Matrix<float, 1, 2> cov;
     cov << cov1, cov2;
     Eigen::Matrix<float, 2, 2> covariances;
-    covariances << QMatrix[0], QMatrix[3], QMatrix[1], QMatrix[4];
+    covariances << PMatrix[0], PMatrix[1], PMatrix[3], PMatrix[4];
     return cov * covariances * cov.transpose();
 }
 
@@ -212,7 +211,7 @@ void ADAController::calibrate()
     ada0.update(ref.refPressure);
 }
 
-const float* ADAController::getQflattened() const { return ada0.getFlatq(); }
+const float* ADAController::getPFlattened() const { return ada0.getFlatP(); }
 
 void ADAController::state_init(const Event& event)
 {
@@ -260,6 +259,7 @@ void ADAController::state_ready(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ADAControllerState::READY);
+            transition(&ADAController::state_armed);
             break;
         }
 

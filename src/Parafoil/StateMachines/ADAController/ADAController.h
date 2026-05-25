@@ -80,7 +80,7 @@ public:
     /**
      * @brief Returns a pointer to the flatted Q matrix
      */
-    const float* getQflattened() const;
+    const float* getPFlattened() const;
 
     /**
      * @brief Returns the vertical speed covariance
