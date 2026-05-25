@@ -84,17 +84,16 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
 
     switch (sensor)
     {
+        CASE_PRESSURE(CanConfig::SensorId::PRZ_TANK_PRESSURE, przTankPressure);
+        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_OX_PRESSURE,
+                      regulatorOxOutPressure);
+        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_FUEL_PRESSURE,
+                      regulatorFuelOutPressure);
+        CASE_PRESSURE(CanConfig::SensorId::OX_TANK_PRESSURE, oxTankPressure);
         CASE_PRESSURE(CanConfig::SensorId::FUEL_TANK_PRESSURE,
                       fuelTankPressure);
-        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_OX_PRESSURE,
-                      regulatorOutOxPressure);
-        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_FUEL_PRESSURE,
-                      regulatorOutFuelPressure);
-        CASE_PRESSURE(CanConfig::SensorId::PRZ_TANK_PRESSURE, przTankPressure);
-        CASE_PRESSURE(CanConfig::SensorId::OX_TANK_PRESSURE, oxTankPressure);
-        CASE_PRESSURE(CanConfig::SensorId::COMBUSTION_CHAMBER_PRESSURE,
-                      combustionChamberPressure);
-        CASE_PRESSURE(CanConfig::SensorId::IGNITER_PRESSURE, igniterPressure);
+        CASE_PRESSURE(CanConfig::SensorId::MAIN_CC_PRESSURE, mainCCPressure);
+        CASE_PRESSURE(CanConfig::SensorId::IGN_CC_PRESSURE, ignCCPressure);
 
         case CanConfig::SensorId::MOTOR_BOARD_VOLTAGE:
         {
@@ -129,36 +128,36 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     switch (valve)
     {
         case ServosList::OX_VENTING_VALVE:
-            data.oxVentingValveOpen = valveData.open;
+            data.oxVentingValveState = valveData.open;
             break;
 
-            /*case ServosList::FUEL_VENTING_VALVE:
-                data.fuelVentingValveOpen = valveData.open;
-                break;
+        case ServosList::FUEL_VENTING_VALVE:
+            data.fuelVentingValveState = valveData.open;
+            break;
 
-            case ServosList::PRZ_OX_VALVE:
-                data.przOxValveOpen = valveData.open;
-                break;
+        case ServosList::PRZ_OX_VALVE:
+            data.przOxValveState = valveData.open;
+            break;
 
-            case ServosList::PRZ_FUEL_VALVE:
-                data.przFuelValveOpen = valveData.open;
-                break;
+        case ServosList::PRZ_FUEL_VALVE:
+            data.przFuelValveState = valveData.open;
+            break;
 
-            case ServosList::MAIN_OX_VALVE:
-                data.mainOxValveOpen = valveData.open;
-                break;
+        case ServosList::MAIN_OX_VALVE:
+            data.mainOxValveState = valveData.open;
+            break;
 
-            case ServosList::MAIN_FUEL_VALVE:
-                data.mainFuelValveOpen = valveData.open;
-                break;
+        case ServosList::MAIN_FUEL_VALVE:
+            data.mainFuelValveState = valveData.open;
+            break;
 
-            case ServosList::IGNITION_OX_VALVE:
-                data.ignitionOxValveOpen = valveData.open;
-                break;
+        case ServosList::IGNITION_OX_VALVE:
+            data.oxSolenoidState = valveData.open;
+            break;
 
-            case ServosList::IGNITION_FUEL_VALVE:
-                data.ignitionFuelValveOpen = valveData.open;
-                break; */
+        case ServosList::IGNITION_FUEL_VALVE:
+            data.fuelSolenoidState = valveData.open;
+            break;
 
         default:
         {
@@ -175,18 +174,28 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
     miosix::Lock<miosix::FastMutex> lock(mutex);
 
     return {
-        .timestamp              = TimestampTimer::getTimestamp(),
-        .prz_tank_pressure      = data.przTankPressure.pressure,
-        .ox_reg_out_pressure    = data.regulatorOutOxPressure.pressure,
-        .fuel_reg_out_pressure  = data.regulatorOutFuelPressure.pressure,
-        .ox_tank_pressure       = data.oxTankPressure.pressure,
-        .fuel_tank_pressure     = data.fuelTankPressure.pressure,
-        .battery_voltage        = data.batteryVoltage.voltage,
-        .current_consumption    = data.currentConsumption.current,
-        .log_number             = data.device.logNumber,
-        .ox_venting_valve_state = data.oxVentingValveOpen,
-        .log_good               = data.device.logGood,
-        .hil_state              = data.device.hil,
+        .timestamp                = TimestampTimer::getTimestamp(),
+        .prz_tank_pressure        = data.przTankPressure.pressure,
+        .ox_reg_out_pressure      = data.regulatorOxOutPressure.pressure,
+        .fuel_reg_out_pressure    = data.regulatorFuelOutPressure.pressure,
+        .ox_tank_pressure         = data.oxTankPressure.pressure,
+        .fuel_tank_pressure       = data.fuelTankPressure.pressure,
+        .main_cc_pressure         = data.mainCCPressure.pressure,
+        .ign_cc_pressure          = data.ignCCPressure.pressure,
+        .battery_voltage          = data.batteryVoltage.voltage,
+        .current_consumption      = data.currentConsumption.current,
+        .log_number               = data.device.logNumber,
+        .ox_venting_valve_state   = data.oxVentingValveState,
+        .fuel_venting_valve_state = data.fuelVentingValveState,
+        .prz_ox_valve_state       = data.przOxValveState,
+        .prz_fuel_valve_state     = data.przFuelValveState,
+        .main_ox_valve_state      = data.mainOxValveState,
+        .main_fuel_valve_state    = data.mainFuelValveState,
+        .ox_solenoid_state        = data.oxSolenoidState,
+        .fuel_solenoid_state      = data.fuelSolenoidState,
+        .spark_igniter_state      = data.sparkIgniterOn,
+        .log_good                 = data.device.logGood,
+        .hil_state                = data.device.hil,
     };
 }
 
