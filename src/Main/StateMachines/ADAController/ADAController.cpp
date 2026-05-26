@@ -123,7 +123,7 @@ bool ADAController::start()
 
 
 // NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS CONTROLLER
-ADAState ADAController::getADAStateTemp() {}
+ADAState ADAController::getADAStateTemp() { return Boardcore::ADAState(); }
 
 ADAState ADAController::getADAState(ADANumber num)
 {
@@ -174,7 +174,7 @@ void ADAController::setShadowModeTime(milliseconds time)
 
 
 // NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS CONTROLLER
-int ADAController::getVerticalVelocityCovariance() { return; };
+int ADAController::getVerticalVelocityCovariance() { return 0; };
 
 ADAControllerState ADAController::getState() { return state; }
 
