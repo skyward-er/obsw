@@ -264,7 +264,9 @@ void NASController::updateNASDAQ() {
 
         // Update and log
 
-        NASDAQLogsWrapper logs(miosix::getTime(), nasdaq.getNASDAQ_Logs_OBSW());
+        NASDAQLogsWrapper logs(nasdaq.getNASDAQ_Logs_OBSW());
+
+        logs.NASDAQLog.Timestamp = miosix::getTime();
 
         sdLogger.log(getNASDAQState());
         sdLogger.log(logs);
