@@ -83,7 +83,7 @@ bool NASController::start()
     // Initialize reference
     auto algoRef        = getModule<AlgoReference>();
     ReferenceValues ref = algoRef->getReferenceValues();
-    nas.setReferenceValues(ref);
+    //nas.setReferenceValues(ref);
 
     algoRef->subscribeReferenceChanges(this);
 
@@ -96,7 +96,7 @@ bool NASController::start()
     x(8) = q(2);
     x(9) = q(3);
 
-    nas.setX(x);
+    //nas.setX(x);
 
 
     scheduler.disableTask(anasID);
@@ -131,6 +131,8 @@ NASDAQState NASController::getNASDAQState()
     uint64_t timestamp = miosix::getTime();
 
     NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
+
+    return state;
 }
 
 // TODO Aggiungere getter per ANAS e NASDAQ
@@ -141,19 +143,20 @@ void NASController::setOrientation(Eigen::Quaternion<float> quat)
     // which is a separate thread
     Lock<FastMutex> lock{nasMutex};
 
-    Matrix<float, 13, 1> x = nas.getX();
+   /* Matrix<float, 13, 1> x = nas.getX();
     x(6)                   = quat.x();
     x(7)                   = quat.y();
     x(8)                   = quat.z();
     x(9)                   = quat.w();
     nas.setX(x);
+    */
 }
 
 // Da cambiare
 void NASController::onReferenceChanged(const ReferenceValues& ref)
 {
     Lock<FastMutex> l(nasMutex);
-    nas.setReferenceValues(ref);
+    //nas.setReferenceValues(ref);
 }
 
 // Set Block Parameters e reference ANAS
@@ -245,7 +248,7 @@ void NASController::updateNASDAQ() {
         NASDAQ0_types_h_::NASDAQInADA ADAIn = {
             .VerticalSpeed           = adaVerticalSpeed,
             .VerticalSpeedCovariance = adaCovariance,
-            .Timestamp               = miosix::getTime()};
+            .Timestamp               = adaTimestamp};
 
         NASDAQ0_types_h_::NASDAQInSensors sensorIn = {
             .BaroMeasure   = baro.pressure,
@@ -282,6 +285,28 @@ void NASController::calibrate()
 
     // Aggiungere posizione e velocità (file di config a zero) quaternioni invece da triad e setta i param iniziali
     // Set stato e covarianza
+    auto algoRef        = getModule<AlgoReference>();
+    ReferenceValues ref = algoRef->getReferenceValues();
+
+    NASDAQReference NASDAQReference = {
+        .GroundTemperature = ref.refTemperature,
+        .GroundPressure = ref.refPressure
+    };
+
+    ANAS_NASDAQ initIn = {};
+
+    for (int i = 0; i < 3; i ++) {
+        initIn.Position[i] = Config::NAS::INITIAL_POSITION;
+        initIn.Velocity[i] = Config::NAS::INITIAL_VELOCITY;
+    }
+    
+    std::memset(initIn.LinearCovariance, 0, sizeof(initIn.LinearCovariance));
+    for (int i = 0; i < 6; i++) {
+        initIn.LinearCovariance[i * 7] = Config::NAS::INITIAL_COVARIANCE_DIAGONAL;  
+    }
+
+    nasdaq.setNASDAQ_In_Reference(NASDAQReference);
+
     Sensors* sensors = getModule<Sensors>();
 
     Vector3f accAcc = Vector3f::Zero();
@@ -310,11 +335,9 @@ void NASController::calibrate()
     StateInitializer init;
     init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
 
-    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
-
     Lock<FastMutex> lock{nasMutex};
-    nas.setX(init.getInitX());
-    nas.setReferenceValues(ref);
+    //nas.setX(init.getInitX());
+    //nas.setReferenceValues(ref);
 }
 
 void NASController::state_init(const Event& event)
@@ -370,7 +393,7 @@ void NASController::state_ready(const Event& event)
         case NAS_RESET:
         {
             Lock<FastMutex> l(nasMutex);
-            nas.resetCovariance();
+            //nas.resetCovariance();
 
             // Recalculate initial state with triad via calibration
             [[fallthrough]];
@@ -431,11 +454,10 @@ void NASController::state_descent(const Event& event)
 
             TaskScheduler& scheduler = getModule<BoardScheduler>()->getNasScheduler();
 
-            ANAS_NASDAQ ANASOutNASDAQIn = {
-
-                .LinearCovariance = *anas.getNASFinal().LinearCovariance,
-                .Position         = *anas.getNASOut().Position,
-                .Velocity         = *anas.getNASOut().Velocity};
+            ANAS_NASDAQ ANASOutNASDAQIn = {};
+            memcpy(ANASOutNASDAQIn.LinearCovariance, anas.getNASFinal().LinearCovariance, sizeof(ANASOutNASDAQIn.LinearCovariance));
+            memcpy(ANASOutNASDAQIn.Position, anas.getNASOut().Position, sizeof(ANASOutNASDAQIn.Position));
+            memcpy(ANASOutNASDAQIn.Velocity, anas.getNASOut().Velocity, sizeof(ANASOutNASDAQIn.Velocity));
 
             nasdaq.setNASDAQ_In_ANAS(ANASOutNASDAQIn);
             scheduler.enableTask(nasdaqID);

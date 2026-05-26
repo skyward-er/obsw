@@ -55,8 +55,8 @@ public:
 
     Boardcore::NASState getNASState();
 
-    Boardcore::ANASState NASController::getANASState();
-    Boardcore::NASDAQState NASController::getNASDAQState();
+    Boardcore::ANASState getANASState();
+    Boardcore::NASDAQState getNASDAQState();
 
     NASControllerState getState();
 
@@ -68,8 +68,8 @@ public:
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
-    void NASController::onANASReferenceChanged();
-    void NASController::onNASDAQReferenceChanged();
+    void onANASReferenceChanged();
+    void onNASDAQReferenceChanged();
 
 private:
     void updateANAS();
@@ -94,9 +94,6 @@ private:
 
     miosix::FastMutex nasMutex;
 
-    int magDecimateCount  = 0;
-    int acc1gSamplesCount = 0;
-    bool acc1g            = false;
 
     uint64_t lastGyroTimestamp     = 0;
     uint64_t lastAccTimestamp      = 0;

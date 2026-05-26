@@ -57,10 +57,10 @@ public:
     Boardcore::ADAState getADAState(ADANumber num);
 
     // NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS CONTROLLER
-    int ADAController::getVerticalVelocityCovariance();
+    int getVerticalVelocityCovariance();
 
     // NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS CONTROLLER
-    ADAState ADAController::getADAStateTemp();
+    Boardcore::ADAState getADAStateTemp();
 
     ADAControllerState getState();
 
