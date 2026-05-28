@@ -44,14 +44,14 @@ constexpr auto SPARK_TIME            = 500ms;
 constexpr bool FUEL_LEAD                      = true;
 constexpr auto PILOT_FLAME_MAX_TIME           = 1000ms;
 constexpr auto PILOT_LEAD_TIME                = 100ms;
-constexpr auto PILOT_OX_RAMP_TIME             = 500ms;
-constexpr auto PILOT_FUEL_RAMP_TIME           = 500ms;
+constexpr auto PILOT_OX_RAMP_TIME             = 0ms;
+constexpr auto PILOT_FUEL_RAMP_TIME           = 0ms;
 constexpr float MAIN_CHAMBER_SAFETY_THRESHOLD = 35.0f * 1.5f;  // bar
 constexpr float MAIN_CHAMBER_SAFETY_SAMPLES   = 3;
 
 constexpr auto RAMP_UP_OPENING_TIME = 500ms;
 constexpr auto FULL_THROTTLE_TIME   = 4200ms;
-constexpr auto LOW_THROTTLE_TIME    = 100ms;
+constexpr auto LOW_THROTTLE_TIME    = 1000ms;
 
 // placeholder values
 constexpr float PILOT_OX_POSITION          = 0.266f;
@@ -59,9 +59,9 @@ constexpr float PILOT_FUEL_POSITION        = 0.281f;
 constexpr float LOW_THROTTLE_OX_POSITION   = 0.0f;
 constexpr float LOW_THROTTLE_FUEL_POSITION = 0.0f;
 
-constexpr float IGNITER_PRESSURE_THRESHOLD         = 15.0f;  // bar
+constexpr float IGNITER_PRESSURE_THRESHOLD         = 18.0f;  // bar
 constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 2;
-constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 2.5f;  // bar
+constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 6.0f;  // bar
 constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 2;
 
 }  // namespace FiringSequence

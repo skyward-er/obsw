@@ -218,8 +218,8 @@ constexpr float VESSEL_P1_VOLTAGE = 0.0010;
 constexpr float VESSEL_P1_MASS    = 6.916;
 */
 
-constexpr float VESSEL_SCALE  = 1517.689958f;
-constexpr float VESSEL_OFFSET = -259.2304283f;
+constexpr float VESSEL_SCALE  = 164.75743372f;
+constexpr float VESSEL_OFFSET = -30.4879264f;
 
 // LC Vessel sensor calibration data (post 07/09/2024)
 // - 0kg      V: 0.000630177
