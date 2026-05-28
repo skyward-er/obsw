@@ -100,11 +100,6 @@ constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace H3LIS331DL
-namespace VN100
-{
-constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
-}  // namespace VN100
 
 namespace UBXGPS
 {

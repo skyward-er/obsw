@@ -62,9 +62,7 @@ bool Sensors::start()
 
     if (Config::Sensors::AS5047D_RIGHT::ENABLED)
         as5047dRightInit();
-
-    if (Config::Sensors::LPS22DF::ENABLED &&
-        !Config::Sensors::USING_DUAL_MAGNETOMETER)
+    if (Config::Sensors::LPS22DF::ENABLED)
         lps22dfInit();
 
     if (Config::Sensors::H3LIS331DL::ENABLED)
@@ -345,36 +343,6 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLIntLastSample()
         sample.magneticFieldY = corrected.y();
         sample.magneticFieldZ = corrected.z();
     }
-
-    return sample;
-}
-
-VN100SpiData Sensors::getCalibratedVN100LastSample()
-{
-    auto sample = getVN100LastSample();
-
-    std::lock_guard<std::mutex> lock{magCalibrationMutex};
-
-    auto correctedAcc = accVN100Calibration.correct(
-        AccelerometerData(sample.accelerationTimestamp, sample.accelerationX,
-                          sample.accelerationY, sample.accelerationZ));
-    sample.accelerationX = correctedAcc.x();
-    sample.accelerationY = correctedAcc.y();
-    sample.accelerationZ = correctedAcc.z();
-
-    auto correctedGyro = gyroVN100Calibration.correct(
-        GyroscopeData(sample.angularSpeedTimestamp, sample.angularSpeedX,
-                      sample.angularSpeedY, sample.angularSpeedZ));
-    sample.angularSpeedX = correctedGyro.x();
-    sample.angularSpeedY = correctedGyro.y();
-    sample.angularSpeedZ = correctedGyro.z();
-
-    auto corrected = magVN100Calibration.correct(
-        MagnetometerData(sample.magneticFieldTimestamp, sample.magneticFieldX,
-                         sample.magneticFieldY, sample.magneticFieldZ));
-    sample.magneticFieldX = corrected.x();
-    sample.magneticFieldY = corrected.y();
-    sample.magneticFieldZ = corrected.z();
 
     return sample;
 }

@@ -87,7 +87,6 @@ public:
     Boardcore::ND015XData getND015A2LastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
-    Boardcore::VN100SpiData getCalibratedVN100LastSample();
     Boardcore::LIS2MDLData getCalibratedLIS2MDLRcsLastSample();
     Boardcore::LIS2MDLData getCalibratedLIS2MDLIntLastSample();
     Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
@@ -162,9 +161,6 @@ private:
 
     void h3lis331dlInit();
     void h3lis331dlCallback();
-
-    void vn100Init();
-    void vn100Callback();
 
     void ubxgpsInit();
     void ubxgpsCallback();
