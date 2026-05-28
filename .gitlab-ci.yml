@@ -80,7 +80,7 @@ find:
 
 # Stage documentation
 
-documentation:
+pages:
   stage: documentation
   only:
     - main
