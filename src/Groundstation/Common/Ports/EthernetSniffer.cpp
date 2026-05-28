@@ -87,7 +87,8 @@ void EthernetSniffer::handleMsg(const mavlink_message_t& msg)
     // Dispatch the message as if it was received by the radio communication in
     // case of ROCKET or FLIGHT
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM ||
-        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_ASCENT_TM ||
+        msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_DESCENT_TM)
         getModule<HubBase>()->dispatchIncomingMsg(msg);
     else
         return;
