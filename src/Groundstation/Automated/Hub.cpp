@@ -30,7 +30,7 @@
 #include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/NAS/NASState.h>
 #include <common/Events.h>
-#include <common/MavlinkOrion.h>
+#include <common/MavlinkHydra.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
@@ -284,61 +284,61 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
             lastFlightTMTimestamp = timestamp;
         }
 
-        NASState nasState{
-            mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
-            Eigen::Matrix<float, 13, 1>(
-                rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d, rocketTM.nas_vn,
-                rocketTM.nas_ve, rocketTM.nas_vd, rocketTM.nas_qx,
-                rocketTM.nas_qy, rocketTM.nas_qz, rocketTM.nas_qw,
-                rocketTM.nas_bias_x, rocketTM.nas_bias_y, rocketTM.nas_bias_z)};
+        // NASState nasState{
+        //     mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
+        //     Eigen::Matrix<float, 13, 1>(
+        //         rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d,
+        //         rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd,
+        //         rocketTM.anas_qx, rocketTM.anas_qy, rocketTM.anas_qz,
+        //         rocketTM.anas_qw)};
 
-        GPSData gpsData;
-        gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
-        gpsData.latitude     = rocketTM.gps_lat;
-        gpsData.longitude    = rocketTM.gps_lon;
-        gpsData.height       = rocketTM.gps_alt;
-        gpsData.fix          = rocketTM.gps_fix;
-        gpsData.satellites   = 42;
+        // GPSData gpsData;
+        // gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
+        // gpsData.latitude     = rocketTM.gps_lat;
+        // gpsData.longitude    = rocketTM.gps_lon;
+        // gpsData.fix          = rocketTM.gps_fix;
+        // gpsData.satellites   = 42;
 
-        // Set the rocket NAS
-        setRocketNasState(nasState);
+        // // Set the rocket NAS
+        // setRocketNasState(nasState);
         // Set the rocket GPS position
-        setRocketPosition(gpsData);
+        // setRocketPosition(gpsData);
     }
-    else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
-    {
-        mavlink_rocket_stats_tm_t rocketST;
-        mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
-        TRACE(
-            "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet was received "
-            "packet with ts %llu\n",
-            rocketST.timestamp);
-        {
-            Lock<FastMutex> lock(lastTMMutex);
-            /* Messages older and within the discard interval are treated as old
-             * messages*/
-            if (rocketST.timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY &&
-                rocketST.timestamp <= lastStatsTMTimestamp)
-                return;
-            TRACE(
-                "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet is valid, "
-                "with ts %llu\n",
-                rocketST.timestamp);
-            lastStatsTMTimestamp = rocketST.timestamp;
-        }
+    // else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
+    // {
+    //     mavlink_rocket_stats_tm_t rocketST;
+    //     mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
+    //     TRACE(
+    //         "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet was received
+    //         " "packet with ts %llu\n", rocketST.timestamp);
+    //     {
+    //         Lock<FastMutex> lock(lastTMMutex);
+    //         /* Messages older and within the discard interval are treated as
+    //         old
+    //          * messages*/
+    //         if (rocketST.timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY
+    //         &&
+    //             rocketST.timestamp <= lastStatsTMTimestamp)
+    //             return;
+    //         TRACE(
+    //             "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet is
+    //             valid, " "with ts %llu\n", rocketST.timestamp);
+    //         lastStatsTMTimestamp = rocketST.timestamp;
+    //     }
 
-        // TODO: The origin should have its own struct since only timestamp and
-        // [lat, lon, alt] are needed
-        GPSData gpsState;
-        getRocketOrigin(gpsState);
-        gpsState.gpsTimestamp = rocketST.timestamp;
-        gpsState.latitude     = rocketST.ref_lat;
-        gpsState.longitude    = rocketST.ref_lon;
-        gpsState.height       = rocketST.ref_alt;
-        gpsState.fix          = 3;
+    //     // TODO: The origin should have its own struct since only timestamp
+    //     and
+    //     // [lat, lon, alt] are needed
+    //     GPSData gpsState;
+    //     getRocketOrigin(gpsState);
+    //     gpsState.gpsTimestamp = rocketST.timestamp;
+    //     gpsState.latitude     = rocketST.ref_lat;
+    //     gpsState.longitude    = rocketST.ref_lon;
+    //     gpsState.height       = rocketST.ref_alt;
+    //     gpsState.fix          = 3;
 
-        setRocketOrigin(gpsState);
-    }
+    //     setRocketOrigin(gpsState);
+    // }
 
     // TODO: In case of sniffing the message should not be sent again
     LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
