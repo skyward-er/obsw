@@ -47,6 +47,7 @@ public:
     Boardcore::SPIBus& getLSM6DSRX() { return spi3; }
     Boardcore::SPIBus& getADS131M08() { return spi4; }
     Boardcore::SPIBus& getND015A() { return spi4; }
+    Boardcore::SPIBus& getAS5047DABK() { return spi4; }
     Boardcore::SPIBus& getRadio() { return spi6; }
 
     Boardcore::USART& getHILUart() { return usart4; }

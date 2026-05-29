@@ -86,6 +86,7 @@ bool Sensors::start()
         nd015a0Init();
         nd015a1Init();
         nd015a2Init();
+        as5047dABKInit();
     }
 
     if (Config::Sensors::InternalADC::ENABLED)
@@ -300,6 +301,11 @@ ND015XData Sensors::getND015A2LastSample()
     return nd015a_2 ? nd015a_2->getLastSample() : ND015XData{};
 }
 
+AS5047DData Sensors::getAS5047DABKLastSample()
+{
+    return as5047d_abk ? as5047d_abk->getLastSample() : AS5047DData{};
+}
+
 LIS2MDLData Sensors::getCalibratedLIS2MDLRcsLastSample()
 {
     auto sample = getLIS2MDLRcsLastSample();
@@ -485,6 +491,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
         PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
         PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
+        PUSH_SENSOR_INFO(as5047d_abk, "AS5047D_ABK");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
         PUSH_SENSOR_INFO(rotatedImu, "RotatedIMU");
 
@@ -779,6 +786,26 @@ void Sensors::nd015a2Callback()
     sdLogger.log(StaticPressure2Data{getND015A2LastSample()});
 }
 
+void Sensors::as5047dABKInit()
+{
+    SPIBusConfig spiConfig = AS5047DSPI::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    AS5047DSPIConfig config;
+    config.daecEnabled       = Config::Sensors::AS5047D_ABK::DAEC_EN;
+    config.dataType          = Config::Sensors::AS5047D_ABK::DATA_SELECT;
+    config.rotationDirection = Config::Sensors::AS5047D_ABK::ROTATION_DIRECTION;
+
+    as5047d_abk = std::make_unique<AS5047DSPI>(
+        getModule<Buses>()->getAS5047DABK(), sensors::AS5047D_ABK::cs::getPin(),
+        spiConfig, config);
+}
+
+void Sensors::as5047dABKCallback()
+{
+    sdLogger.log(AS5047DABKData(getAS5047DABKLastSample()));
+}
+
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
@@ -910,6 +937,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"ND015A_2", Config::Sensors::ND015A::RATE,
                         [this]() { nd015a2Callback(); }};
         map.emplace(nd015a_2.get(), info);
+    }
+
+    if (as5047d_abk)
+    {
+        SensorInfo info{"AS5047D_ABK", Config::Sensors::AS5047D_ABK::RATE,
+                        [this]() { as5047dABKCallback(); }};
+        map.emplace(as5047d_abk.get(), info);
     }
 
     if (rotatedImu)
