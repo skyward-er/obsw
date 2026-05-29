@@ -49,8 +49,8 @@ public:
                          float lowThrottleOxPosition,
                          float lowThrottleFuelPosition);
 
-    void setPressureThresholds(float igniterPressureThreshold,
-                               float pilotFlamePressureThreshold);
+    void setPressureThresholds(float igniterThreshold,
+                               float pilotFlameThreshold);
 
     FiringSequenceState getState();
 

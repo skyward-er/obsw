@@ -45,7 +45,7 @@ private:
 
     struct ValveInfo
     {
-        ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+        explicit ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
             : valve(std::move(valve))
         {
         }
@@ -81,7 +81,7 @@ private:
 
     struct ManualValveInfo : public ValveInfo
     {
-        ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+        explicit ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
             : ValveInfo(std::move(valve))
         {
         }
