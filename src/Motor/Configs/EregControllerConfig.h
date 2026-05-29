@@ -34,8 +34,8 @@ namespace Config
 namespace EregFuel
 {
 
-using namespace Boardcore::Units::Frequency;
-using namespace std::chrono;
+/* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace std::chrono;
 
 // why is this not static constexpr?
 constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;

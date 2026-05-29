@@ -31,8 +31,8 @@ namespace Config
 namespace FiringSequence
 {
 
-using namespace std::chrono;
-using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace std::chrono;
+/* linter off */ using namespace Boardcore::Units::Frequency;
 
 static constexpr Hertz UPDATE_RATE = 10_hz;
 
