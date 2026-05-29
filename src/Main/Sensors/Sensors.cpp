@@ -94,6 +94,7 @@ bool Sensors::start()
         nd015a0Init();
         nd015a1Init();
         nd015a2Init();
+        as5047dABKInit();
     }
     if (Config::Sensors::AS5047D_ABK::ENABLED)
         as5047dABKInit();
@@ -894,6 +895,26 @@ void Sensors::as5047dABKCallback()
  * @param isAscent True if the rocket is in ascent phase, false otherwise.
  */
 void Sensors::setAscentPhase(bool isAscent) { ascentPhase = isAscent; }
+
+void Sensors::as5047dABKInit()
+{
+    SPIBusConfig spiConfig = AS5047DSPI::getDefaultSPIConfig();
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
+
+    AS5047DSPIConfig config;
+    config.daecEnabled       = Config::Sensors::AS5047D_ABK::DAEC_EN;
+    config.dataType          = Config::Sensors::AS5047D_ABK::DATA_SELECT;
+    config.rotationDirection = Config::Sensors::AS5047D_ABK::ROTATION_DIRECTION;
+
+    as5047d_abk = std::make_unique<AS5047DSPI>(
+        getModule<Buses>()->getAS5047DABK(), sensors::AS5047D_ABK::cs::getPin(),
+        spiConfig, config);
+}
+
+void Sensors::as5047dABKCallback()
+{
+    sdLogger.log(AS5047DABKData(getAS5047DABKLastSample()));
+}
 
 void Sensors::rotatedImuInit()
 {
