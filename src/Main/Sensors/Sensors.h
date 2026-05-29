@@ -85,6 +85,7 @@ public:
     Boardcore::ND015XData getND015A0LastSample();
     Boardcore::ND015XData getND015A1LastSample();
     Boardcore::ND015XData getND015A2LastSample();
+    Boardcore::AS5047DData getAS5047DABKLastSample();
     Boardcore::InternalADCData getInternalADCLastSample();
 
     Boardcore::LIS2MDLData getCalibratedLIS2MDLRcsLastSample();
@@ -144,7 +145,7 @@ protected:
     std::unique_ptr<Boardcore::ND015A> nd015a_0;
     std::unique_ptr<Boardcore::ND015A> nd015a_1;
     std::unique_ptr<Boardcore::ND015A> nd015a_2;
-
+    std::unique_ptr<Boardcore::AS5047DSPI> as5047d_abk;
     std::unique_ptr<Boardcore::InternalADC> internalAdc;
 
     // Virtual sensors
@@ -191,6 +192,9 @@ private:
 
     void nd015a2Init();
     void nd015a2Callback();
+
+    void as5047dABKInit();
+    void as5047dABKCallback();
 
     void rotatedImuInit();
     void rotatedImuCallback();

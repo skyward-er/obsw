@@ -157,6 +157,21 @@ struct AS5047DRightData : Boardcore::AS5047DData
     }
 };
 
+struct AS5047DABKData : Boardcore::AS5047DData
+{
+    explicit AS5047DABKData(const Boardcore::AS5047DData& data)
+        : Boardcore::AS5047DData(data)
+    {
+    }
+
+    AS5047DABKData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(AS5047DABKData, EXTEND_DEF(Boardcore::AS5047DData));
+    }
+};
+
 struct PitotStaticPressureData : Boardcore::PressureData
 {
     explicit PitotStaticPressureData(const Boardcore::PressureData& data)

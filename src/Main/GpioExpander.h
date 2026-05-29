@@ -73,6 +73,8 @@ public:
         SET_PIN_VALUE(expander, LED_2, false);
         SET_PIN_VALUE(expander, VN100_SYNC_OUT, false);
         SET_PIN_VALUE(expander, RF_FLASH_CS, true);
+        SET_PIN_VALUE(expander, RF_TX_ENABLE, false);
+        SET_PIN_VALUE(expander, RF_RX_ENABLE, false);
 
         return true;
     }

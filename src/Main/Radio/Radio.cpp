@@ -919,8 +919,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.right_servo_angle = sensors->getAS5047DRightLastSample().angle;
 
             // Actautors
-            tm.abk_angle =
-                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO);
+            tm.abk_angle = sensors->getAS5047DABKLastSample().angle;
 
             // Algorithms
             tm.nas_n   = nasState.n;

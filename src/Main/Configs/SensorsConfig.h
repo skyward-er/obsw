@@ -83,6 +83,17 @@ constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 }  // namespace AS5047D_RIGHT
 
+namespace AS5047D_ABK
+{
+constexpr auto DATA_SELECT = Boardcore::AS5047DDefs::DataSelect::DAECANG;
+constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
+constexpr auto ROTATION_DIRECTION =
+    Boardcore::AS5047DDefs::ABIRotationDirection::NORMAL;
+
+constexpr Hertz RATE   = 100_hz;
+constexpr bool ENABLED = true;
+}  // namespace AS5047D_ABK
+
 namespace LIS2MDL_RCS
 {
 constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
