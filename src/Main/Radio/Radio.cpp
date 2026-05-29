@@ -919,8 +919,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.right_servo_angle = sensors->getAS5047DRightLastSample().angle;
 
             // Actautors
-            tm.abk_angle =
-                actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO);
+            tm.abk_angle = sensors->getAS5047DABKLastSample().angle;
 
             // Algorithms
             tm.nas_n   = nasState.n;
@@ -937,9 +936,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
-            tm.cam_battery_voltage =
-                sensors->getCamBatteryVoltageLastSample().voltage;
-            tm.temperature = temperature.temperature;
+            tm.temperature     = temperature.temperature;
 
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                 Config::Radio::MAV_COMPONENT_ID,
