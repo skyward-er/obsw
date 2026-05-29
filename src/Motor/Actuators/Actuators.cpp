@@ -109,9 +109,8 @@ void Actuators::ManualValveInfo::animateValve(float position, uint32_t time)
     auto backstepDelay = milliseconds{static_cast<int>(
         Config::Servos::SERVO_BACKSTEP_DELAY.count() * std::abs(delta))};
 
-    auto currentTime = Clock::now();
-    updateTs         = currentTime;  // Start the animation immediately
-    backstepTs       = currentTime + nanoseconds{msToNs(time)} + backstepDelay;
+    updateTs   = Clock::now();  // Start the animation immediately
+    backstepTs = Clock::now() + nanoseconds{msToNs(time)} + backstepDelay;
     closeTs = noActionNeeded;  // The animate function does not close the servo
                                // automatically
 

@@ -872,7 +872,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_rocket_flight_tm_t tm;
 
             Sensors* sensors       = getModule<Sensors>();
-            Actuators* actuators   = getModule<Actuators>();
             ADAController* ada     = getModule<ADAController>();
             NASController* nas     = getModule<NASController>();
             MEAController* mea     = getModule<MEAController>();

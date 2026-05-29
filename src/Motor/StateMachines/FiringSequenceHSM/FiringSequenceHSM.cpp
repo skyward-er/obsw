@@ -66,13 +66,13 @@ void FiringSequenceHSM::setFiringParams(uint32_t fullThrottleTime,
     paramsSet = true;
 }
 
-void FiringSequenceHSM::setPressureThresholds(float igniterPressureThreshold,
-                                              float pilotFlamePressureThreshold)
+void FiringSequenceHSM::setPressureThresholds(float igniterThreshold,
+                                              float pilotFlameThreshold)
 {
     getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,
-                                     igniterPressureThreshold);
+                                     igniterThreshold);
     getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
-                                     pilotFlamePressureThreshold);
+                                     pilotFlameThreshold);
 
     igniterPressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
         CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,

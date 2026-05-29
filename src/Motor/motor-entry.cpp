@@ -203,45 +203,6 @@ int main()
     //     hil->waitStartSimulation();
     // }
 
-    std::cout << "Starting Sensors" << std::endl;
-    led1On();
-    if (!sensors->start())
-    {
-        initResult = false;
-        std::cerr << "*** Failed to start Sensors ***" << std::endl;
-    }
-    else
-    {
-        std::cout << "\tCalibrating sensors" << std::endl;
-        sensors->calibrate();
-        led1Off();
-        setStatus(StatusBit::SENSORS);
-    }
-
-    if (initResult)
-    {
-        canHandler->setInitStatus(statusFlags);
-        std::cout << "All good!" << std::endl;
-        led4On();
-    }
-    else
-    {
-        canHandler->setInitStatus(statusFlags);
-        std::cerr << "*** Init failure ***" << std::endl;
-    }
-
-    std::cout << "Sensor status:" << std::endl;
-    for (auto info : sensors->getSensorInfos())
-    {
-        // The period being 0 means the sensor is disabled
-        auto statusStr = info.period == 0ns   ? "Disabled"
-                         : info.isInitialized ? "Ok"
-                                              : "Error";
-
-        std::cout << "\t" << std::setw(24) << std::left << info.id << " "
-                  << statusStr << std::endl;
-    }
-
     std::cout << "Starting Registry" << std::endl;
     if (!registry->start())
     {
@@ -281,6 +242,45 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start MEA ***" << std::endl;
+    }
+
+    std::cout << "Starting Sensors" << std::endl;
+    led1On();
+    if (!sensors->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start Sensors ***" << std::endl;
+    }
+    else
+    {
+        std::cout << "\tCalibrating sensors" << std::endl;
+        sensors->calibrate();
+        led1Off();
+        setStatus(StatusBit::SENSORS);
+    }
+
+    if (initResult)
+    {
+        canHandler->setInitStatus(statusFlags);
+        std::cout << "All good!" << std::endl;
+        led4On();
+    }
+    else
+    {
+        canHandler->setInitStatus(statusFlags);
+        std::cerr << "*** Init failure ***" << std::endl;
+    }
+
+    std::cout << "Sensor status:" << std::endl;
+    for (auto info : sensors->getSensorInfos())
+    {
+        // The period being 0 means the sensor is disabled
+        auto statusStr = info.period == 0ns   ? "Disabled"
+                         : info.isInitialized ? "Ok"
+                                              : "Error";
+
+        std::cout << "\t" << std::setw(24) << std::left << info.id << " "
+                  << statusStr << std::endl;
     }
 
     std::cout << "Battery voltage: " << std::fixed << std::setprecision(2)
