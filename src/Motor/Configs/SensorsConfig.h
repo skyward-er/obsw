@@ -48,14 +48,30 @@ constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
 using namespace Boardcore::ADS131M08Defs;
 
-constexpr auto CC_PT_CHANNEL                 = Channel::CHANNEL_0;
+constexpr auto MAIN_CC_PT_CHANNEL            = Channel::CHANNEL_0;
 constexpr auto FUEL_TANK_PT_CHANNEL          = Channel::CHANNEL_1;
 constexpr auto PRZ_TANK_PT_CHANNEL           = Channel::CHANNEL_2;
 constexpr auto OX_TANK_PT_CHANNEL            = Channel::CHANNEL_3;
 constexpr auto REGULATOR_OUT_FUEL_PT_CHANNEL = Channel::CHANNEL_4;
 constexpr auto REGULATOR_OUT_OX_PT_CHANNEL   = Channel::CHANNEL_5;
-constexpr auto IGNITER_PT_CHANNEL            = Channel::CHANNEL_6;
+constexpr auto IGNITER_CC_PT_CHANNEL         = Channel::CHANNEL_6;
 // constexpr auto EXTRA_PT                      = Channel::CHANNEL_7;
+
+constexpr uint32_t MAIN_CC_REG_KEY      = 0;
+constexpr uint32_t FUEL_TANK_REG_KEY    = 0;
+constexpr uint32_t PRZ_TANK_REG_KEY     = 0;
+constexpr uint32_t OX_TANK_REG_KEY      = 0;
+constexpr uint32_t FUEL_REG_OUT_REG_KEY = 0;
+constexpr uint32_t OX_REG_OUT_REG_KEY   = 0;
+constexpr uint32_t IGN_CC_REG_KEY       = 0;
+
+constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
+constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
+constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
+constexpr float CH3_SHUNT_RESISTANCE = 29.645f;
+constexpr float CH4_SHUNT_RESISTANCE = 29.708f;
+constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
+constexpr float CH6_SHUNT_RESISTANCE = 29.708f;
 
 constexpr auto RATE    = 100_hz;
 constexpr bool ENABLED = true;

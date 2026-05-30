@@ -110,7 +110,9 @@ void Sensors::calibrate()
 
     // Applies the shunt resistance for the given channel to a trafag pressure
     // sensor
-    auto applyShuntResistance = [&](auto& trafag, ADS131M08Defs::Channel ch)
+    auto applyShuntResistance = [&](auto& trafag, ADS131M08Defs::Channel ch,
+                                    uint32_t shuntResistanceRegKey,
+                                    float defaultShuntResistance)
     {
         constexpr float minCurrent = Trafag::MIN_CURRENT / 1000.0;  // [A]
 
@@ -122,12 +124,10 @@ void Sensors::calibrate()
             resistance > Trafag::SHUNT_RESISTANCE_UPPER_BOUND)
         {
             resistance = getModule<Registry>()->getOrSetDefaultUnsafe(
-                trafag->getShuntResistanceRegKey(),
-                trafag->getDefaultShuntResistance());
+                shuntResistanceRegKey, defaultShuntResistance);
         }
 
-        getModule<Registry>()->setUnsafe(trafag->getShuntResistanceRegKey(),
-                                         resistance);
+        getModule<Registry>()->setUnsafe(shuntResistanceRegKey, resistance);
         trafag->setShuntResistance(resistance);
         getModule<Registry>()->save();
 
@@ -138,13 +138,20 @@ void Sensors::calibrate()
 
     using namespace Config::Sensors::ADC_1;
 
-    applyShuntResistance(mainCCPressure, CC_PT_CHANNEL);
-    applyShuntResistance(fuelTankPressure, FUEL_TANK_PT_CHANNEL);
-    applyShuntResistance(przTankPressure, PRZ_TANK_PT_CHANNEL);
-    applyShuntResistance(oxTankPressure, OX_TANK_PT_CHANNEL);
-    applyShuntResistance(regOutFuelPressure, REGULATOR_OUT_FUEL_PT_CHANNEL);
-    applyShuntResistance(regOutOxPressure, REGULATOR_OUT_OX_PT_CHANNEL);
-    applyShuntResistance(ignCCPressure, IGNITER_PT_CHANNEL);
+    applyShuntResistance(mainCCPressure, MAIN_CC_PT_CHANNEL, MAIN_CC_REG_KEY,
+                         CH0_SHUNT_RESISTANCE);
+    applyShuntResistance(fuelTankPressure, FUEL_TANK_PT_CHANNEL,
+                         FUEL_TANK_REG_KEY, CH1_SHUNT_RESISTANCE);
+    applyShuntResistance(przTankPressure, PRZ_TANK_PT_CHANNEL, PRZ_TANK_REG_KEY,
+                         CH2_SHUNT_RESISTANCE);
+    applyShuntResistance(oxTankPressure, OX_TANK_PT_CHANNEL, OX_TANK_REG_KEY,
+                         CH3_SHUNT_RESISTANCE);
+    applyShuntResistance(regOutFuelPressure, REGULATOR_OUT_FUEL_PT_CHANNEL,
+                         FUEL_REG_OUT_REG_KEY, CH4_SHUNT_RESISTANCE);
+    applyShuntResistance(regOutOxPressure, REGULATOR_OUT_OX_PT_CHANNEL,
+                         OX_REG_OUT_REG_KEY, CH5_SHUNT_RESISTANCE);
+    applyShuntResistance(ignCCPressure, IGNITER_CC_PT_CHANNEL, IGN_CC_REG_KEY,
+                         CH6_SHUNT_RESISTANCE);
 
     calibrateEncoders();
 }
@@ -346,7 +353,7 @@ void Sensors::adc1Init()
         channel.enabled = false;
 
     // Configure all required channels
-    config.channelsConfig[(int)Config::Sensors::ADC_1::CC_PT_CHANNEL] = {
+    config.channelsConfig[(int)Config::Sensors::ADC_1::MAIN_CC_PT_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
@@ -384,11 +391,11 @@ void Sensors::adc1Init()
         .offset  = 0,
         .gain    = 1.0};
 
-    config.channelsConfig[(int)Config::Sensors::ADC_1::IGNITER_PT_CHANNEL] = {
-        .enabled = true,
-        .pga     = ADS131M08Defs::PGA::PGA_1,
-        .offset  = 0,
-        .gain    = 1.0};
+    config.channelsConfig[(int)Config::Sensors::ADC_1::IGNITER_CC_PT_CHANNEL] =
+        {.enabled = true,
+         .pga     = ADS131M08Defs::PGA::PGA_1,
+         .offset  = 0,
+         .gain    = 1.0};
 
     adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADC1(),
                                        sensors::ADC_1::cs::getPin(), spiConfig,
@@ -581,7 +588,7 @@ void Sensors::ignCCPressureInit()
         {
             auto sample = getADC1LastSample();
             return sample.getVoltage(
-                Config::Sensors::ADC_1::IGNITER_PT_CHANNEL);
+                Config::Sensors::ADC_1::IGNITER_CC_PT_CHANNEL);
         },
         Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::IGNITER_MAX_PRESSURE,
@@ -600,7 +607,8 @@ void Sensors::mainCCPressureInit()
         [this]()
         {
             auto sample = getADC1LastSample();
-            return sample.getVoltage(Config::Sensors::ADC_1::CC_PT_CHANNEL);
+            return sample.getVoltage(
+                Config::Sensors::ADC_1::MAIN_CC_PT_CHANNEL);
         },
         Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
         Config::Sensors::Trafag::CC_MAX_PRESSURE,
