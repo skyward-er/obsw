@@ -70,6 +70,12 @@ constexpr auto OX_VESSEL_PT_CHANNEL    = Channel::CHANNEL_3;
 constexpr auto OX_FILLING_PT_CHANNEL   = Channel::CHANNEL_4;
 constexpr auto OX_VESSEL_LC_CHANNEL    = Channel::CHANNEL_5;
 
+constexpr uint32_t PRZ_VESSEL_1_REG_KEY = 0;
+constexpr uint32_t PRZ_VESSEL_2_REG_KEY = 0;
+constexpr uint32_t PRZ_FILLING_REG_KEY  = 0;
+constexpr uint32_t OX_VESSEL_REG_KEY    = 0;
+constexpr uint32_t OX_FILLING_REG_KEY   = 0;
+
 constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
 constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
 constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
@@ -98,6 +104,14 @@ constexpr auto FUEL_TANK_PT_CHANNEL       = Channel::CHANNEL_4;
 constexpr auto IGNITER_CHAMBER_PT_CHANNEL = Channel::CHANNEL_5;
 constexpr auto MAIN_CHAMBER_PT_CHANNEL    = Channel::CHANNEL_6;
 
+constexpr uint32_t MAIN_CHAMBER_REG_KEY = 0;
+constexpr uint32_t FUEL_TANK_REG_KEY    = 0;
+constexpr uint32_t PRZ_TANK_REG_KEY     = 0;
+constexpr uint32_t OX_TANK_REG_KEY      = 0;
+constexpr uint32_t FUEL_REG_OUT_REG_KEY = 0;
+constexpr uint32_t OX_REG_OUT_REG_KEY   = 0;
+constexpr uint32_t IGN_CHAMBER_REG_KEY  = 0;
+
 constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
 constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
 constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
@@ -120,6 +134,12 @@ constexpr auto PRZ_OX_ENCODER_CHANNEL    = Channel::CHANNEL_2;
 constexpr auto PRZ_FUEL_ENCODER_CHANNEL  = Channel::CHANNEL_3;
 constexpr auto INJ_OX_PT_CHANNEL         = Channel::CHANNEL_5;
 constexpr auto INJ_FUEL_PT_CHANNEL       = Channel::CHANNEL_4;
+
+constexpr uint32_t INJ_OX_REG_KEY   = 0;
+constexpr uint32_t INJ_FUEL_REG_KEY = 0;
+
+constexpr float CH4_SHUNT_RESISTANCE = 29.708f;
+constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
 
 }  // namespace ADC_3
 

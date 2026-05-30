@@ -90,10 +90,10 @@ int main()
         manager.insert<Buses>(buses) &&
         manager.insert<BoardScheduler>(scheduler) &&
         manager.insert<GpioExpander>(gpioExpander) &&
+        manager.insert<Registry>(registry) &&
         manager.insert<Actuators>(actuators) &&
         manager.insert<Sensors>(sensors) && manager.insert<Radio>(radio) &&
         manager.insert<CanHandler>(canHandler) &&
-        manager.insert<Registry>(registry) &&
         manager.insert<GroundModeManager>(gmm) &&
         manager.insert<TARS1>(tars1) && manager.insert<TARS3>(tars3) &&
         manager.insert<EregControllerOx>(eregOx) &&
