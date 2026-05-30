@@ -139,25 +139,6 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::SensorId::REG_OUT_OX_PRESSURE),
-                static_cast<PressureData>(
-                    sensors->getRegulatorOutOxPressure()));
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(
-                    CanConfig::SensorId::REG_OUT_FUEL_PRESSURE),
-                static_cast<PressureData>(
-                    sensors->getRegulatorOutFuelPressure()));
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::SensorId::IGN_CC_PRESSURE),
                 static_cast<PressureData>(
                     sensors->getIgniterChamberPressure()));

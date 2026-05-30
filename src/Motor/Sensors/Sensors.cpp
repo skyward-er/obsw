@@ -195,13 +195,13 @@ PressureData Sensors::getPrzTankPressure()
     return przTankPressure ? przTankPressure->getLastSample() : PressureData{};
 }
 
-PressureData Sensors::getRegulatorOutFuelPressure()
+PressureData Sensors::getFuelRegOutPressure()
 {
     return regOutFuelPressure ? regOutFuelPressure->getLastSample()
                               : PressureData{};
 }
 
-PressureData Sensors::getRegulatorOutOxPressure()
+PressureData Sensors::getOxRegOutPressure()
 {
     return regOutOxPressure ? regOutOxPressure->getLastSample()
                             : PressureData{};
@@ -491,7 +491,7 @@ void Sensors::regulatorOutFuelPressureInit()
 
 void Sensors::regulatorOutFuelPressureCallback()
 {
-    sdLogger.log(RegulatorOutFuelPressureData{getRegulatorOutFuelPressure()});
+    sdLogger.log(RegulatorOutFuelPressureData{getFuelRegOutPressure()});
 }
 
 void Sensors::regulatorOutOxPressureInit()
@@ -511,7 +511,7 @@ void Sensors::regulatorOutOxPressureInit()
 
 void Sensors::regulatorOutOxPressureCallback()
 {
-    sdLogger.log(RegulatorOutOxPressureData{getRegulatorOutOxPressure()});
+    sdLogger.log(RegulatorOutOxPressureData{getOxRegOutPressure()});
 }
 
 void Sensors::oxTankPressureInit()

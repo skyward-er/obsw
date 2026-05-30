@@ -59,8 +59,8 @@ public:
     Boardcore::PressureData getOxTankPressure();
     Boardcore::PressureData getFuelTankPressure();
     Boardcore::PressureData getPrzTankPressure();
-    Boardcore::PressureData getRegulatorOutOxPressure();
-    Boardcore::PressureData getRegulatorOutFuelPressure();
+    Boardcore::PressureData getOxRegOutPressure();
+    Boardcore::PressureData getFuelRegOutPressure();
     Boardcore::PressureData getIgniterChamberPressure();
 
     Boardcore::VoltageData getBatteryVoltage();
