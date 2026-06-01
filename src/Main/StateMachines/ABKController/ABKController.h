@@ -26,7 +26,6 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
-#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <algorithms/AirBrakes/AirBrakesInterpPID.h>
 #include <events/FSM.h>
@@ -38,8 +37,7 @@ namespace Main
 class ABKController
     : public Boardcore::FSM<ABKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, MEAController,
-                                           AlgoReference>
+                                           NASController, AlgoReference>
 {
 public:
     ABKController();

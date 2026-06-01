@@ -39,7 +39,6 @@ set(MAIN_COMPUTER
     src/Main/StateMachines/ADAController/ADAController.cpp
     src/Main/PinHandler/PinHandler.cpp
     src/Main/StateMachines/ABKController/ABKController.cpp
-    src/Main/StateMachines/MEAController/MEAController.cpp
     src/Main/StatsRecorder/StatsRecorder.cpp
 )
 

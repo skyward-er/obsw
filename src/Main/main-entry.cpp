@@ -36,7 +36,6 @@
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/canbus/MotorStatus.h>
@@ -77,7 +76,6 @@ int main()
     auto ref         = new AlgoReference();
     auto ada         = new ADAController();
     auto nas         = new NASController();
-    auto mea         = new MEAController();
     auto abk         = new ABKController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
@@ -123,7 +121,6 @@ int main()
                   manager.insert<AlgoReference>(ref) &&
                   manager.insert<ADAController>(ada) &&
                   manager.insert<NASController>(nas) &&
-                  manager.insert<MEAController>(mea) &&
                   manager.insert<ABKController>(abk) &&
                   manager.insert<StatsRecorder>(recorder) &&
                   manager.insert<MotorStatus>(motorStatus) && manager.inject();
@@ -233,13 +230,6 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start NASController ***" << std::endl;
-    }
-
-    std::cout << "Starting MEAController" << std::endl;
-    if (!mea->start())
-    {
-        initResult = false;
-        std::cerr << "*** Failed to start MEAController ***" << std::endl;
     }
 
     std::cout << "Starting ABKController" << std::endl;

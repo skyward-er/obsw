@@ -385,31 +385,35 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:
         {
-            if (getModule<NASController>()->getState() ==
-                NASControllerState::READY)
-            {
-                // Quaternions scalar first
-                Eigen::Quaternion<float> quat{
-                    mavlink_msg_set_orientation_quat_tc_get_quat_w(&msg),
-                    mavlink_msg_set_orientation_quat_tc_get_quat_x(&msg),
-                    mavlink_msg_set_orientation_quat_tc_get_quat_y(&msg),
-                    mavlink_msg_set_orientation_quat_tc_get_quat_z(&msg)};
+            // TODO: This should be removed, for now we keep it just in case
 
-                float qNorm = quat.norm();
+            /*             if (getModule<NASController>()->getState() ==
+                            NASControllerState::READY)
+                        {
+                            // Quaternions scalar first
+                            Eigen::Quaternion<float> quat{
+                                mavlink_msg_set_orientation_quat_tc_get_quat_w(&msg),
+                                mavlink_msg_set_orientation_quat_tc_get_quat_x(&msg),
+                                mavlink_msg_set_orientation_quat_tc_get_quat_y(&msg),
+                                mavlink_msg_set_orientation_quat_tc_get_quat_z(&msg)};
 
-                getModule<NASController>()->setOrientation(quat.normalized());
+                            float qNorm = quat.norm();
 
-                if (std::abs(qNorm - 1) > 0.001)
-                    enqueueWack(msg, 0);
-                else
-                    enqueueAck(msg);
-            }
-            else
-            {
-                enqueueNack(msg, 0);
-            }
+                            getModule<NASController>()->setOrientation(quat.normalized());
 
-            break;
+                            if (std::abs(qNorm - 1) > 0.001)
+                                enqueueWack(msg, 0);
+                            else
+                                enqueueAck(msg);
+                        }
+                        else
+                        {
+                            enqueueNack(msg, 0);
+                        }
+
+                        break; */
+
+            enqueueNack(msg, 0);
         }
 
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -427,40 +431,41 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
-        case MAVLINK_MSG_ID_SET_MEA_INITIAL_MASS_TC:
-        {
-            // Allow changing the initial mass only if MEA isn't running yet
-            auto mea = getModule<MEAController>();
-            if (mea->getState() != MEAControllerState::READY)
-                return enqueueNack(msg, 0);
+            // TODO: fix this
+            /*         case MAVLINK_MSG_ID_SET_MEA_INITIAL_MASS_TC:
+                    {
+                        // Allow changing the initial mass only if MEA isn't
+               running yet auto mea = getModule<MEAController>(); if
+               (mea->getState() != MEAControllerState::READY) return
+               enqueueNack(msg, 0);
 
-            // TODO: implement after MEA reset is implemented
+                        // TODO: implement after MEA reset is implemented
 
-            enqueueNack(msg, 0);
-            break;
-        }
+                        enqueueNack(msg, 0);
+                        break;
+                    }
 
-        case MAVLINK_MSG_ID_SET_MEA_APOGEE_TARGET_TC:
-        {
-            float apogee =
-                mavlink_msg_set_mea_apogee_target_tc_get_apogee_target(&msg);
+                    case MAVLINK_MSG_ID_SET_MEA_APOGEE_TARGET_TC:
+                    {
+                        float apogee =
+                            mavlink_msg_set_mea_apogee_target_tc_get_apogee_target(&msg);
 
-            getModule<MEAController>()->setApogeeTarget(apogee);
+                        getModule<MEAController>()->setApogeeTarget(apogee);
 
-            enqueueAck(msg);
-            break;
-        }
+                        enqueueAck(msg);
+                        break;
+                    }
 
-        case MAVLINK_MSG_ID_SET_MEA_MIN_BURN_TIME_TC:
-        {
-            uint32_t time =
-                mavlink_msg_set_mea_min_burn_time_tc_get_min_burn_time(&msg);
+                    case MAVLINK_MSG_ID_SET_MEA_MIN_BURN_TIME_TC:
+                    {
+                        uint32_t time =
+                            mavlink_msg_set_mea_min_burn_time_tc_get_min_burn_time(&msg);
 
-            getModule<MEAController>()->setMinBurnTime(milliseconds{time});
+                        getModule<MEAController>()->setMinBurnTime(milliseconds{time});
 
-            enqueueAck(msg);
-            break;
-        }
+                        enqueueAck(msg);
+                        break;
+                    } */
 
         case MAVLINK_MSG_ID_SET_MEA_MAX_BURN_TIME_TC:
         {
@@ -806,7 +811,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             // Get the current NAS state
             NASController* nas = getModule<NASController>();
 
-            NASState state = nas->getNASState();
+            ANASState state = nas->getANASState();
             ReferenceValues ref =
                 getModule<AlgoReference>()->getReferenceValues();
 
@@ -822,9 +827,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.nas_qy          = state.qy;
             tm.nas_qz          = state.qz;
             tm.nas_qw          = state.qw;
-            tm.nas_bias_x      = state.bx;
-            tm.nas_bias_y      = state.by;
-            tm.nas_bias_z      = state.bz;
             tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature - 273.15f;
             tm.ref_latitude    = ref.refLatitude;
@@ -839,7 +841,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
         case MAV_MEA_ID:
         {
-            mavlink_message_t msg;
+            // TODO: change this with mea stats from the canbus
+            /* mavlink_message_t msg;
             mavlink_mea_tm_t tm;
 
             auto mea = getModule<MEAController>();
@@ -863,7 +866,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                                       &tm);
 
             enqueuePacket(msg);
-            return true;
+            return true; */
         }
 
         case MAV_FLIGHT_ID:
@@ -871,10 +874,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors       = getModule<Sensors>();
-            ADAController* ada     = getModule<ADAController>();
-            NASController* nas     = getModule<NASController>();
-            MEAController* mea     = getModule<MEAController>();
+            Sensors* sensors   = getModule<Sensors>();
+            ADAController* ada = getModule<ADAController>();
+            NASController* nas = getModule<NASController>();
+            // MEAController* mea     = getModule<MEAController>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
 
             auto imu          = sensors->getIMULastSample();
@@ -883,16 +886,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDigi    = sensors->getAtmosPressureLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
             auto adaState     = ada->getADAState();
-            auto nasState     = nas->getNASState();
-            auto meaState     = mea->getMEAState();
+            auto nasState     = nas->getANASState();
+            // auto meaState     = mea->getMEAState();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
             tm.pressure_ada   = adaState.x0;
             tm.ada_vert_speed = adaState.verticalSpeed;
             tm.altitude_agl   = adaState.aglAltitude;
-            tm.mea_mass       = meaState.estimatedMass;
-            tm.sda_apogee     = meaState.estimatedApogee;
+            // tm.mea_mass       = meaState.estimatedMass;
+            // tm.sda_apogee = meaState.estimatedApogee;
 
             // Sensors
             tm.pressure_digi    = pressDigi.pressure;
@@ -921,6 +924,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.abk_angle = sensors->getAS5047DABKLastSample().angle;
 
             // Algorithms
+            // TODO: need to handle anas / nasdaq distinction
             tm.nas_n   = nasState.n;
             tm.nas_e   = nasState.e;
             tm.nas_d   = nasState.d;
@@ -949,10 +953,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_stats_ascent_tm_t tm;
 
-            PinHandler* pinHandler  = getModule<PinHandler>();
-            ADAController* ada      = getModule<ADAController>();
-            NASController* nas      = getModule<NASController>();
-            MEAController* mea      = getModule<MEAController>();
+            PinHandler* pinHandler = getModule<PinHandler>();
+            ADAController* ada     = getModule<ADAController>();
+            NASController* nas     = getModule<NASController>();
+            // MEAController* mea      = getModule<MEAController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();
@@ -984,7 +988,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.sda_state = 0;  // TODO: add SDA state
-            tm.mea_state = static_cast<uint8_t>(mea->getState());
+            // tm.mea_state = static_cast<uint8_t>(mea->getState());
 
             // Actuators
             tm.pin_launch =
@@ -1029,10 +1033,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_stats_descent_tm_t tm;
 
-            PinHandler* pinHandler  = getModule<PinHandler>();
-            ADAController* ada      = getModule<ADAController>();
-            NASController* nas      = getModule<NASController>();
-            MEAController* mea      = getModule<MEAController>();
+            PinHandler* pinHandler = getModule<PinHandler>();
+            ADAController* ada     = getModule<ADAController>();
+            NASController* nas     = getModule<NASController>();
+            // MEAController* mea      = getModule<MEAController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();
@@ -1070,7 +1074,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.sda_state = 0;  // TODO: add SDA state
-            tm.mea_state = static_cast<uint8_t>(mea->getState());
+            // tm.mea_state = static_cast<uint8_t>(mea->getState());
 
             // Actuators
             tm.pin_launch =
@@ -1433,26 +1437,6 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
-            /*         case MAV_DPL_PRESS_ID:
-                    {
-                        mavlink_message_t msg;
-
-                        auto sample =
-               getModule<Sensors>()->getDplBayPressureLastSample();
-
-                        mavlink_pressure_tm_t tm;
-                        tm.pressure  = sample.pressure;
-                        tm.timestamp = sample.pressureTimestamp;
-                        strcpy(tm.sensor_name, "DplBayPressure");
-
-                        mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                                       Config::Radio::MAV_COMPONENT_ID,
-                                                       &msg, &tm);
-                        enqueuePacket(msg);
-
-                        return true;
-                    } */
-
         /* case MAV_TANK_TOP_PRESS_ID:
         {
             mavlink_message_t msg;
@@ -1470,47 +1454,6 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                                            Config::Radio::MAV_COMPONENT_ID,
                                            &msg, &tm);
             enqueuePacket(msg);
-
-            return true;
-        }
-
-        case MAV_TANK_BOTTOM_PRESS_ID:
-        {
-            PressureData bottom0;
-            PressureData bottom1;
-
-            {
-                auto motor = getModule<MotorStatus>()->lockData();
-                bottom0    = motor->oxTankBottom0Pressure;
-                bottom1    = motor->oxTankBottom1Pressure;
-            }
-
-            {
-                mavlink_message_t msg;
-                mavlink_pressure_tm_t tm;
-
-                tm.pressure  = bottom0.pressure;
-                tm.timestamp = bottom0.pressureTimestamp;
-                strcpy(tm.sensor_name, "TankBottom0Pressure");
-
-                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                               Config::Radio::MAV_COMPONENT_ID,
-                                               &msg, &tm);
-                enqueuePacket(msg);
-            }
-            {
-                mavlink_message_t msg;
-                mavlink_pressure_tm_t tm;
-
-                tm.pressure  = bottom1.pressure;
-                tm.timestamp = bottom1.pressureTimestamp;
-                strcpy(tm.sensor_name, "TankBottom1Pressure");
-
-                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                               Config::Radio::MAV_COMPONENT_ID,
-                                               &msg, &tm);
-                enqueuePacket(msg);
-            }
 
             return true;
         }
