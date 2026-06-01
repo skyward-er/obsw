@@ -40,9 +40,10 @@ using namespace Common;
 ABKController::ABKController()
     : FSM{&ABKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::ABK_PRIORITY},
-      abk{[this]() {
+      abk{[this]()
+          {
               return TimedTrajectoryPoint{
-                  getModule<NASController>()->getNASState()};
+                  getModule<NASController>()->getANASState()};
           },
           Data::ABK::OPEN_TRAJECTORY_SET, Data::ABK::CLOSED_TRAJECTORY_SET,
           Config::ABK::CONFIG, [this](float position)
@@ -84,14 +85,17 @@ void ABKController::update()
     if (state == ABKControllerState::WAITING_MACH)
     {
         // We are waiting for the vertical speed to be below the mach limit
-        auto nas          = getModule<NASController>()->getNASState();
+        auto nas          = getModule<NASController>()->getANASState();
         auto ref          = getModule<AlgoReference>()->getReferenceValues();
         float mslAltitude = ref.refAltitude - nas.d;
-        float mach =
-            Aeroutils::computeMach(-mslAltitude, -nas.vd, ref.mslTemperature);
 
-        if (mach <= Config::ABK::MACH_LIMIT)
-            EventBroker::getInstance().post(ABK_MACH_BELOW_LIMIT, TOPIC_ABK);
+        // TODO: fix this
+        /* float mach =
+            Aeroutils::computeMach(-mslAltitude, -nas.vd, ref.mslTemperature);
+         */
+
+        /* if (mach <= Config::ABK::MACH_LIMIT)
+            EventBroker::getInstance().post(ABK_MACH_BELOW_LIMIT, TOPIC_ABK); */
     }
 
     if (curState == ABKControllerState::ACTIVE)
@@ -227,7 +231,7 @@ void ABKController::state_active(const Event& event)
         {
             updateAndLogStatus(ABKControllerState::ACTIVE);
             // Start the algorithm
-            abk.begin(getModule<MEAController>()->getMEAState().estimatedMass);
+            // abk.begin(getModule<MEAController>()->getMEAState().estimatedMass);
             break;
         }
 
