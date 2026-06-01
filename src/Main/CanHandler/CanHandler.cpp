@@ -91,61 +91,6 @@ bool CanHandler::start()
         return false;
     }
 
-    result = scheduler.addTask(
-        [this]()
-        {
-            NASState nas = getModule<NASController>()->getNASState();
-            ReferenceValues ref =
-                getModule<AlgoReference>()->getReferenceValues();
-            auto shadowModeDelay =
-                getModule<AlgoReference>()->computeTimeSinceLiftoff(
-                    CanConfig::DEFAULT_MEA_SHADOW_MODE_TIMEOUT);
-
-            float altitudeMsl = ref.refAltitude - nas.d;
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MAIN),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::AlgoId::NAS_VERTICAL_SPEED),
-                AlgoData{nas.timestamp, nas.vd});
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MAIN),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::AlgoId::NAS_ALT_MSL),
-                AlgoData{nas.timestamp, altitudeMsl});
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MAIN),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::AlgoId::NAS_STATE),
-                AlgoData{nas.timestamp,
-                         static_cast<float>(static_cast<uint8_t>(
-                             getModule<NASController>()->getState()))});
-
-            protocol.enqueueData(
-                static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::SENSORS),
-                static_cast<uint8_t>(CanConfig::Board::MAIN),
-                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::AlgoId::MEA_SHADOW_MODE_DELAY),
-                AlgoMillisData{TimestampTimer::getTimestamp(),
-                               static_cast<int64_t>(shadowModeDelay.count())});
-        },
-        std::chrono::milliseconds{20});
-
-    if (result == 0)
-    {
-        LOG_ERR(logger, "Failed to add NAS can publishing task");
-        return false;
-    }
-
     if (!protocol.start())
     {
         LOG_ERR(logger, "Failed to start CanProtocol");

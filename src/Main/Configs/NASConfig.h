@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <algorithms/NAS/NASConfig.h>
 #include <common/ReferenceConfig.h>
 #include <units/Frequency.h>
 
@@ -37,10 +36,12 @@ namespace NAS
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE_ANAS         = 50_hz;
+constexpr Hertz UPDATE_RATE_ANAS   = 50_hz;
 constexpr Hertz UPDATE_RATE_NASDAQ = 100_hz;
-constexpr float UPDATE_RATE_ANAS_SECONDS = 1.0 / UPDATE_RATE_ANAS.value();  // [s]
-constexpr float UPDATE_RATE_NASDAQ_SECONDS = 1.0 / UPDATE_RATE_NASDAQ.value();  // [s]
+constexpr float UPDATE_RATE_ANAS_SECONDS =
+    1.0 / UPDATE_RATE_ANAS.value();  // [s]
+constexpr float UPDATE_RATE_NASDAQ_SECONDS =
+    1.0 / UPDATE_RATE_NASDAQ.value();  // [s]
 
 constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
 constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
