@@ -39,7 +39,8 @@ SDAController::SDAController()
           Config::Scheduler::SDA_PRIORITY},
       sda{}
 {
-    // EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
+    EventBroker::getInstance().subscribe(this, TOPIC_SDA);  
 }
 
 bool SDAController::start()
@@ -62,4 +63,63 @@ bool SDAController::start()
     }
 
     return true;
+}
+
+void SDAController::updateAndLogStatus(SDAControllerState state)
+{
+    this->state                = state;
+    SDAControllerStatus status = {miosix::getTime(), state};
+
+    sdLogger.log(status);
+}
+
+void SDAController::state_init(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(SDAControllerState::INIT);
+            break;
+        }
+        case SDA_CALIBRATE:
+        {
+            transition(&SDAController::state_calibrating);
+            break;
+        }
+    }
+}
+
+void SDAController::state_calibrating(const Event& event) {
+
+    switch (event) {
+        case EV_ENTRY : {
+            updateAndLogStatus(SDAControllerState::CALIBRATING);
+
+            calibrate();
+
+            EventBroker::getInstance().post(SDA_READY, TOPIC_SDA);
+            break;
+        }
+        case SDA_READY: {
+            transition(SDAController::state_ready);
+            break;
+        }
+    }
+}
+
+void SDAController::state_ready(const Event& event) {
+
+    switch (event) {
+        case EV_ENTRY: {
+            updateAndLogStatus(SDAControllerState::READY);
+            break;
+        }
+
+        case FLIGHT_ARMED:
+        case SDA_FORCE_START: {
+            transition(SDAController::state_armed);
+            break;
+        }
+    }
 }
