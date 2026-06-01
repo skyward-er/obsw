@@ -1,5 +1,5 @@
 /* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+ * Author: Davide Mor, Pietro Bortolus, Tommaso Lamon
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@
 #include <algorithms/ANAS/ANAS0_types.h>
 #include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQ0.h>
-#include <algorithms/NASDAQ/NASDAQData.h>
 #include <algorithms/NASDAQ/NASDAQ0_types.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -53,29 +53,20 @@ public:
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::NASState getNASState();
-
-    Boardcore::ANASState NASController::getANASState();
-    Boardcore::NASDAQState NASController::getNASDAQState();
+    Boardcore::ANASState getANASState();
+    Boardcore::NASDAQState getNASDAQState();
 
     NASControllerState getState();
 
-    /**
-     * @brief Method to set the orientation of the system with the quaternions
-     * (scalar first).
-     */
-    void setOrientation(Eigen::Quaternion<float> quat);
-
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
-
-    void NASController::onANASReferenceChanged();
-    void NASController::onNASDAQReferenceChanged();
 
 private:
     void updateANAS();
     void updateNASDAQ();
 
-    void calibrate();
+    void calibrate(const Boardcore::ReferenceValues&
+                       ref);  // TODO: might need to differentiate between ANAS
+                              // and NASDAQ calibration
 
     // FSM states
     void state_init(const Boardcore::Event& event);

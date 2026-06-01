@@ -37,6 +37,7 @@ using namespace Main;
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
+using namespace Constants;
 
 // The default Kalman is empty, as calibrate will update it correctly
 const ADA::KalmanFilter::KalmanConfig DEFAULT_KALMAN_CONFIG{};
@@ -144,11 +145,24 @@ void ADAController::setShadowModeTime(milliseconds time)
     shadowModeTime = time;
 }
 
-// NOTE: THIS METHOD IS USELESS -> I JUST NEED IT TO IMPLEMENT THE NAS
-// CONTROLLER
-int ADAController::getVerticalVelocityCovariance() { return; };
-
 ADAControllerState ADAController::getState() { return state; }
+
+float ADAController::getVerticalSpeedCov()
+{
+    ReferenceValues ref  = ada.getReferenceValues();
+    ADAState state       = ada.getState();
+    const float* PMatrix = ada.getFlatP();
+    float n              = 1 / (a * R / g);
+    float cov2 =
+        -(ref.refTemperature * pow(state.x0 / ref.refPressure, (1 / n))) /
+        (a * n * state.x0);
+    float cov1 = cov2 * state.x1 / n / state.x0 * (1 - n);
+    Eigen::Matrix<float, 1, 2> cov;
+    cov << cov1, cov2;
+    Eigen::Matrix<float, 2, 2> covariances;
+    covariances << PMatrix[0], PMatrix[1], PMatrix[3], PMatrix[4];
+    return cov * covariances * cov.transpose();
+}
 
 void ADAController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 {
