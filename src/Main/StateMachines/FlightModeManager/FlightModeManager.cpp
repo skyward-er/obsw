@@ -765,7 +765,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     switch (event)
     {
         case EV_ENTRY:
-        {            
+        {
             LOG_INFO(logger, "Expelled");
 
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
@@ -780,7 +780,8 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             getModule<Radio>()->disableAscentTelemetry();
             getModule<Radio>()->enableDescentTelemetry();
 
-            // notify the sensors module that we are in descent phase for double LSM6DSRX management
+            // notify the sensors module that we are in descent phase for double
+            // LSM6DSRX management
             getModule<Sensors>()->setAscentPhase(false);
 
             return HANDLED;

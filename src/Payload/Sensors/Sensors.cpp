@@ -159,8 +159,10 @@ Main::CalibrationData Sensors::getCalibration()
     std::lock(magCalibrationMutex, lsm6CalibrationLowMutex,
               lsm6CalibrationHighMutex);
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm0lk(lsm6CalibrationLowMutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm1lk(lsm6CalibrationHighMutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lsm0lk(lsm6CalibrationLowMutex,
+                                       std::adopt_lock);
+    std::lock_guard<std::mutex> lsm1lk(lsm6CalibrationHighMutex,
+                                       std::adopt_lock);
 
     auto accBias0  = accCalibrationLow.getV();
     auto gyroBias0 = gyroCalibrationLow.getV();
@@ -171,18 +173,18 @@ Main::CalibrationData Sensors::getCalibration()
 
     return {
         .timestamp        = TimestampTimer::getTimestamp(),
-        .accLowBiasX        = accBias0.x(),
-        .accLowBiasY        = accBias0.y(),
-        .accLowBiasZ        = accBias0.z(),
-        .gyroLowBiasX       = gyroBias0.x(),
-        .gyroLowBiasY       = gyroBias0.y(),
-        .gyroLowBiasZ       = gyroBias0.z(),
-        .accHighBiasX        = accBias1.x(),
-        .accHighBiasY        = accBias1.y(),
-        .accHighBiasZ        = accBias1.z(),
-        .gyroHighBiasX       = gyroBias1.x(),
-        .gyroHighBiasY       = gyroBias1.y(),
-        .gyroHighBiasZ       = gyroBias1.z(),
+        .accLowBiasX      = accBias0.x(),
+        .accLowBiasY      = accBias0.y(),
+        .accLowBiasZ      = accBias0.z(),
+        .gyroLowBiasX     = gyroBias0.x(),
+        .gyroLowBiasY     = gyroBias0.y(),
+        .gyroLowBiasZ     = gyroBias0.z(),
+        .accHighBiasX     = accBias1.x(),
+        .accHighBiasY     = accBias1.y(),
+        .accHighBiasZ     = accBias1.z(),
+        .gyroHighBiasX    = gyroBias1.x(),
+        .gyroHighBiasY    = gyroBias1.y(),
+        .gyroHighBiasZ    = gyroBias1.z(),
         .magBiasX         = magBias.x(),
         .magBiasY         = magBias.y(),
         .magBiasZ         = magBias.z(),
