@@ -755,7 +755,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
     switch (event)
     {
         case EV_ENTRY:
-        {
+        {            
             LOG_INFO(logger, "Expelled");
 
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);

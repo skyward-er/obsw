@@ -818,6 +818,12 @@ void Sensors::as5047dABKCallback()
     sdLogger.log(AS5047DABKData(getAS5047DABKLastSample()));
 }
 
+/**
+ * Sets the ascent phase for double LSM6DSRX sensor management
+ * @param isAscent True if the rocket is in ascent phase, false otherwise.
+ */
+void Sensors::setAscentPhase(bool isAscent) { ascentPhase = isAscent; }
+
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
