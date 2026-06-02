@@ -40,8 +40,8 @@ HeatingPadController::HeatingPadController(HeatingPadConfig config)
 HeatingPadController::HeatingPadController()
     : updateRate(Config::HeatingPadController::UPDATE_RATE)
 {
-    schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD,
-                                 Config::HeatingPadController::THRESHOLD);
+    schmittTrigger.setThresholds(Config::HeatingPadController::THRESHOLD_LOW,
+                                 Config::HeatingPadController::THRESHOLD_HIGH);
     schmittTrigger.setTargetState(
         Config::HeatingPadController::TARGET_TEMPERATURE);
 }
@@ -102,7 +102,9 @@ bool HeatingPadController::getPinEnabled() { return pinEnabled; }
 
 uint8_t HeatingPadController::getState()
 {
-    return static_cast<uint8_t>(heatingPadSense());
+    uint8_t state = static_cast<uint8_t>(heatingPadSense()) |
+                    (static_cast<uint8_t>(getPinEnabled()) << 1);
+    return state;
 }
 
 bool HeatingPadController::heatingPadSense()
@@ -189,17 +191,17 @@ void HeatingPadController::update()
             lowConfidence  = 0;
             highConfidence = 0;
             break;
-
-            auto data = HeatingPadData{
-                .timestamp  = Boardcore::TimestampTimer::getTimestamp(),
-                .pinEnabled = pinEnabled,
-                .schmittTriggerActivation = static_cast<uint8_t>(activation),
-                .lowConfidence            = static_cast<uint8_t>(lowConfidence),
-                .highConfidence = static_cast<uint8_t>(highConfidence),
-                .temperature    = temperature};
-
-            sdLogger.log(data);
     }
+
+    auto data = HeatingPadData{
+        .timestamp                = Boardcore::TimestampTimer::getTimestamp(),
+        .pinEnabled               = pinEnabled,
+        .schmittTriggerActivation = static_cast<uint8_t>(activation),
+        .lowConfidence            = static_cast<uint8_t>(lowConfidence),
+        .highConfidence           = static_cast<uint8_t>(highConfidence),
+        .temperature              = temperature};
+
+    sdLogger.log(data);
 }
 
 }  // namespace Pitot

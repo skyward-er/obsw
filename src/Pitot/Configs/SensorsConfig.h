@@ -80,7 +80,7 @@ constexpr auto ENABLED = true;
 
 namespace HeatingPadNTC
 {
-constexpr auto RATE    = 10_hz;
+constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 
 constexpr auto CH = Boardcore::InternalADC::Channel::CH9;

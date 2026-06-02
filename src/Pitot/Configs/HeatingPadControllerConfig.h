@@ -35,13 +35,14 @@ namespace HeatingPadController
 /* linter-off */ using namespace std::chrono_literals;
 /* linter-off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto UPDATE_RATE          = 10_hz;
+constexpr auto UPDATE_RATE          = 100_hz;
 constexpr auto CONFIDENCE_THRESHOLD = 10;
 constexpr auto SENSE_ACTIVE         = 1;
 
 // Schmitt Trigger parameters
-constexpr auto TARGET_TEMPERATURE = 308.15f;  // K, 35°C
-constexpr auto THRESHOLD          = 5.0f;
+constexpr auto TARGET_TEMPERATURE = 308.65f;  // K, 35.5°C
+constexpr auto THRESHOLD_LOW      = 0.5f;
+constexpr auto THRESHOLD_HIGH     = 0.5f;
 
 }  // namespace HeatingPadController
 }  // namespace Config
