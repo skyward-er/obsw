@@ -796,25 +796,7 @@ void Sensors::rotatedImuInit()
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-            auto mag = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
-                           ? getCalibratedLIS2MDLRcsLastSample()
-                           : getLIS2MDLRcsLastSample();
-
-#if defined(SINGLE_VN100)  // main imu
-            auto vnData = Config::Sensors::IMU::USE_CALIBRATED_VN100
-                              ? getCalibratedVN100LastSample()
-                              : getVN100LastSample();
-
-            Boardcore::AccelerometerData acc(
-                vnData.accelerationTimestamp, vnData.accelerationX,
-                vnData.accelerationY, vnData.accelerationZ);
-            Boardcore::GyroscopeData gyro(
-                vnData.angularSpeedTimestamp, vnData.angularSpeedX,
-                vnData.angularSpeedY, vnData.angularSpeedZ);
-
-            return IMUData{acc, gyro, mag};
-
-#elif defined(DUAL_LSM6)  // Dual LSM6 sensor for ascent & descent phases
+    #if defined(DUAL_LSM6)  // Dual LSM6 sensor for ascent & descent phases
             Boardcore::LSM6DSRXData lsmData;
 
             if (ascentPhase)
@@ -834,14 +816,26 @@ void Sensors::rotatedImuInit()
 
             return IMUData{lsmData, lsmData, mag};
 
-#else
-            // Fallback just in case [using low-g] :)
-            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
-                            ? getCalibratedLSM6DSRXLowLastSample()
-                            : getLSM6DSRXLowLastSample();
-            return IMUData{imu6, imu6, mag};
-#endif
-        });
+    #else   // Main VN100 sensor
+        auto mag = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+                                ? getCalibratedLIS2MDLRcsLastSample()
+                                : getLIS2MDLRcsLastSample();
+
+                    auto vnData = Config::Sensors::IMU::USE_CALIBRATED_VN100
+                                    ? getCalibratedVN100LastSample()
+                                    : getVN100LastSample();
+
+                    Boardcore::AccelerometerData acc(
+                        vnData.accelerationTimestamp, vnData.accelerationX,
+                        vnData.accelerationY, vnData.accelerationZ);
+                    Boardcore::GyroscopeData gyro(
+                        vnData.angularSpeedTimestamp, vnData.angularSpeedX,
+                        vnData.angularSpeedY, vnData.angularSpeedZ);
+
+                    return IMUData{acc, gyro, mag};
+                
+    #endif
+    });
 
     // Accelerometer
     rotatedImu->addAccTransformation(RotatedIMU::rotateAroundZ(+90));

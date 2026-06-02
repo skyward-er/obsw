@@ -352,8 +352,11 @@ int main()
         std::cerr << "*** Init failure ***" << std::endl;
     }
 
-    auto sensorConfig =
-        Config::Sensors::USING_VN100 ? "USING VN100" : "USING LIS2MDL";
+    #if defined(DUAL_LSM6)
+    auto sensorConfig = "USING LIS2MDL";
+    #else
+    auto sensorConfig = "USING VN100";
+    #endif
 
     std::cout << "Sensor status (config: " << sensorConfig << "):" << std::endl;
     for (auto info : sensors->getSensorInfos())

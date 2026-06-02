@@ -234,12 +234,13 @@ struct CalibrationData
     {
         return STRUCT_DEF(
             CalibrationData,
-            FIELD_DEF(timestamp) FIELD_DEF(accLowBiasX) FIELD_DEF(accLowBiasY)
-                FIELD_DEF(accLowBiasZ) FIELD_DEF(gyroLowBiasX) FIELD_DEF(gyroLowBiasY)
-                    FIELD_DEF(gyroLowBiasZ) FIELD_DEF(accHighBiasX) FIELD_DEF(
-                        accHighBiasY) FIELD_DEF(accHighBiasZ) FIELD_DEF(gyroHighBiasX)
-                        FIELD_DEF(gyroHighBiasY) FIELD_DEF(gyroHighBiasZ) FIELD_DEF(
-                            vn100AccBiasX) FIELD_DEF(vn100AccBiasY)
+            FIELD_DEF(timestamp) FIELD_DEF(accLowBiasX) FIELD_DEF(
+                accLowBiasY) FIELD_DEF(accLowBiasZ) FIELD_DEF(gyroLowBiasX)
+                FIELD_DEF(gyroLowBiasY) FIELD_DEF(gyroLowBiasZ) FIELD_DEF(
+                    accHighBiasX) FIELD_DEF(accHighBiasY)
+                    FIELD_DEF(accHighBiasZ) FIELD_DEF(gyroHighBiasX) FIELD_DEF(
+                        gyroHighBiasY) FIELD_DEF(gyroHighBiasZ)
+                        FIELD_DEF(vn100AccBiasX) FIELD_DEF(vn100AccBiasY)
                             FIELD_DEF(vn100AccBiasZ) FIELD_DEF(vn100GyroBiasX)
                                 FIELD_DEF(vn100GyroBiasY)
                                     FIELD_DEF(vn100GyroBiasZ)
