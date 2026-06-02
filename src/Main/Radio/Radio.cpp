@@ -735,18 +735,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto data = getModule<Sensors>()->getCalibration();
 
             tm.timestamp          = data.timestamp;
-            tm.accLow_bias_x      = data.accLowBiasX;
-            tm.accLow_bias_y      = data.accLowBiasY;
-            tm.accLow_bias_z      = data.accLowBiasZ;
-            tm.gyroLow_bias_x     = data.gyroLowBiasX;
-            tm.gyroLow_bias_y     = data.gyroLowBiasY;
-            tm.gyroLow_bias_z     = data.gyroLowBiasZ;
-            tm.accHigh_bias_x     = data.accHighBiasX;
-            tm.accHigh_bias_y     = data.accHighBiasY;
-            tm.accHigh_bias_z     = data.accHighBiasZ;
-            tm.gyroHigh_bias_x    = data.gyroHighBiasX;
-            tm.gyroHigh_bias_y    = data.gyroHighBiasY;
-            tm.gyroHigh_bias_z    = data.gyroHighBiasZ;
+            tm.acc0_bias_x      = data.accLowBiasX;
+            tm.acc0_bias_y      = data.accLowBiasY;
+            tm.acc0_bias_z      = data.accLowBiasZ;
+            tm.gyro0_bias_x     = data.gyroLowBiasX;
+            tm.gyro0_bias_y     = data.gyroLowBiasY;
+            tm.gyro0_bias_z     = data.gyroLowBiasZ;
+            tm.acc1_bias_x     = data.accHighBiasX;
+            tm.acc1_bias_y     = data.accHighBiasY;
+            tm.acc1_bias_z     = data.accHighBiasZ;
+            tm.gyro1_bias_x    = data.gyroHighBiasX;
+            tm.gyro1_bias_y    = data.gyroHighBiasY;
+            tm.gyro1_bias_z    = data.gyroHighBiasZ;
             tm.mag_bias_x         = data.magBiasX;
             tm.mag_bias_y         = data.magBiasY;
             tm.mag_bias_z         = data.magBiasZ;
@@ -937,8 +937,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
-            tm.cam_battery_voltage =
-                sensors->getCamBatteryVoltageLastSample().voltage;
+            tm.cam_battery_voltage = sensors->getCamBatteryVoltageLastSample().voltage;
             tm.temperature = temperature.temperature;
 
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
