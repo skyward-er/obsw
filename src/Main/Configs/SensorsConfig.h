@@ -22,6 +22,20 @@
 
 #pragma once
 
+/**
+ * Manual IMU sensor selection.
+ * 'SINGLE_VN100': uses the VN100 as main IMU;
+ *  'DUAL_LSM6': uses the LSM6DSRX (double sensors) as IMU (backup)
+ */
+#define SINGLE_VN100
+// #define DUAL_LSM6
+#if (defined(SINGLE_VN100) && defined(DUAL_LSM6)) || \
+    (!defined(SINGLE_VN100) && !defined(DUAL_LSM6))
+#error \
+    "VN100 and DUAL_LSM6 cannot be both defined or both undefined. Please pick one :)"
+#endif
+
+
 #include <drivers/adc/InternalADC.h>
 #include <sensors/AS5047D/AS5047DSPI.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
@@ -45,7 +59,12 @@ namespace Sensors
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto USING_VN100 = false;
+#if defined(SINGLE_VN100)
+    constexpr auto USING_VN100 = true;
+#else
+    constexpr auto USING_VN100 = false;
+    //TODO: doublechceck this w @pietr; instead of x//constexpr auto USING_VN100 = false;
+#endif
 
 constexpr auto CALIBRATION_SAMPLES_COUNT = 20;
 constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
@@ -116,7 +135,7 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace LIS2MDL_INT
 
-namespace LSM6DSRX_0
+namespace LSM6DSRX_LOW
 {
 constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/accCalibration0.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/gyroCalibration0.csv";
@@ -133,9 +152,9 @@ constexpr auto GYR_OP_MODE =
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace LSM6DSRX_0
+}  // namespace LSM6DSRX_LOW
 
-namespace LSM6DSRX_1
+namespace LSM6DSRX_HIGH
 {
 constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/accCalibration1.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/gyroCalibration1.csv";
@@ -152,7 +171,7 @@ constexpr auto GYR_OP_MODE =
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace LSM6DSRX_1
+}  // namespace LSM6DSRX_HIGH
 
 namespace VN100
 {

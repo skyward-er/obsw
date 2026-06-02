@@ -41,19 +41,19 @@ bool Sensors::start()
     // Read the magnetometer calibration from predefined file
     magCalibration.fromFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
 
-    accCalibration0.fromFile(
-        Config::Sensors::LSM6DSRX_0::ACC_CALIBRATION_FILENAME);
-    gyroCalibration0.fromFile(
-        Config::Sensors::LSM6DSRX_0::GYRO_CALIBRATION_FILENAME);
+    accCalibrationLow.fromFile(
+        Config::Sensors::LSM6DSRX_LOW::ACC_CALIBRATION_FILENAME);
+    gyroCalibrationLow.fromFile(
+        Config::Sensors::LSM6DSRX_LOW::GYRO_CALIBRATION_FILENAME);
 
-    accCalibration1.fromFile(
-        Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
-    gyroCalibration1.fromFile(
-        Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
+    accCalibrationHigh.fromFile(
+        Config::Sensors::LSM6DSRX_HIGH::ACC_CALIBRATION_FILENAME);
+    gyroCalibrationHigh.fromFile(
+        Config::Sensors::LSM6DSRX_HIGH::GYRO_CALIBRATION_FILENAME);
 
     accVN100Calibration.fromFile(
         Config::Sensors::VN100::ACC_CALIBRATION_FILENAME);
-    
+
     gyroVN100Calibration.fromFile(
         Config::Sensors::VN100::GYRO_CALIBRATION_FILENAME);
 
@@ -77,11 +77,11 @@ bool Sensors::start()
     if (Config::Sensors::UBXGPS::ENABLED)
         ubxgpsInit();
 
-    if (Config::Sensors::LSM6DSRX_0::ENABLED)
-        lsm6dsrx0Init();
+    if (Config::Sensors::LSM6DSRX_LOW::ENABLED)
+        lsm6dsrxLowInit();
 
-    if (Config::Sensors::LSM6DSRX_1::ENABLED)
-        lsm6dsrx1Init();
+    if (Config::Sensors::LSM6DSRX_HIGH::ENABLED)
+        lsm6dsrxHighInit();
 
     if (Config::Sensors::VN100::ENABLED)
         vn100Init();
@@ -142,18 +142,19 @@ void Sensors::calibrate()
 
 CalibrationData Sensors::getCalibration()
 {
-    std::lock(magCalibrationMutex, lsm6Calibration0Mutex, lsm6Calibration1Mutex,
-              vn100CalibrationMutex);
+    std::lock(magCalibrationMutex, lsm6CalibrationLowMutex,
+              lsm6CalibrationHighMutex, vn100CalibrationMutex);
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lsm0lk(lsm6CalibrationLowMutex,
+                                       std::adopt_lock);
+    std::lock_guard<std::mutex> lsm1lk(lsm6CalibrationHighMutex,
+                                       std::adopt_lock);
     std::lock_guard<std::mutex> vn100lk(vn100CalibrationMutex, std::adopt_lock);
 
-
-    auto accBias0      = accCalibration0.getV();
-    auto gyroBias0     = gyroCalibration0.getV();
-    auto accBias1      = accCalibration1.getV();
-    auto gyroBias1     = gyroCalibration1.getV();
+    auto accBiasLow    = accCalibrationLow.getV();
+    auto gyroBiasLow   = gyroCalibrationLow.getV();
+    auto accBiasHigh   = accCalibrationHigh.getV();
+    auto gyroBiasHigh  = gyroCalibrationHigh.getV();
     auto vn100AccBias  = accVN100Calibration.getV();
     auto vn100GyroBias = gyroVN100Calibration.getV();
     auto magBias       = magCalibration.getb();
@@ -161,18 +162,18 @@ CalibrationData Sensors::getCalibration()
 
     return {
         .timestamp      = TimestampTimer::getTimestamp(),
-        .acc0BiasX      = accBias0.x(),
-        .acc0BiasY      = accBias0.y(),
-        .acc0BiasZ      = accBias0.z(),
-        .gyro0BiasX     = gyroBias0.x(),
-        .gyro0BiasY     = gyroBias0.y(),
-        .gyro0BiasZ     = gyroBias0.z(),
-        .acc1BiasX      = accBias1.x(),
-        .acc1BiasY      = accBias1.y(),
-        .acc1BiasZ      = accBias1.z(),
-        .gyro1BiasX     = gyroBias1.x(),
-        .gyro1BiasY     = gyroBias1.y(),
-        .gyro1BiasZ     = gyroBias1.z(),
+        .accLowBiasX    = accBiasLow.x(),
+        .accLowBiasY    = accBiasLow.y(),
+        .accLowBiasZ    = accBiasLow.z(),
+        .gyroLowBiasX   = gyroBiasLow.x(),
+        .gyroLowBiasY   = gyroBiasLow.y(),
+        .gyroLowBiasZ   = gyroBiasLow.z(),
+        .accHighBiasX   = accBiasHigh.x(),
+        .accHighBiasY   = accBiasHigh.y(),
+        .accHighBiasZ   = accBiasHigh.z(),
+        .gyroHighBiasX  = gyroBiasHigh.x(),
+        .gyroHighBiasY  = gyroBiasHigh.y(),
+        .gyroHighBiasZ  = gyroBiasHigh.z(),
         .vn100AccBiasX  = vn100AccBias.x(),
         .vn100AccBiasY  = vn100AccBias.y(),
         .vn100AccBiasZ  = vn100AccBias.z(),
@@ -263,14 +264,14 @@ UBXGPSData Sensors::getUBXGPSLastSample()
     return ubxgps ? ubxgps->getLastSample() : UBXGPSData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRX0LastSample()
+LSM6DSRXData Sensors::getLSM6DSRXLowLastSample()
 {
-    return lsm6dsrx_0 ? lsm6dsrx_0->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx_low ? lsm6dsrx_low->getLastSample() : LSM6DSRXData{};
 }
 
-LSM6DSRXData Sensors::getLSM6DSRX1LastSample()
+LSM6DSRXData Sensors::getLSM6DSRXHighLastSample()
 {
-    return lsm6dsrx_1 ? lsm6dsrx_1->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx_high ? lsm6dsrx_high->getLastSample() : LSM6DSRXData{};
 }
 
 VN100SpiData Sensors::getVN100LastSample()
@@ -347,19 +348,19 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLIntLastSample()
     return sample;
 }
 
-LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
+LSM6DSRXData Sensors::getCalibratedLSM6DSRXLowLastSample()
 {
-    auto sample = getLSM6DSRX0LastSample();
-    std::lock_guard<std::mutex> lock{lsm6Calibration0Mutex};
+    auto sample = getLSM6DSRXLowLastSample();
+    std::lock_guard<std::mutex> lock{lsm6CalibrationLowMutex};
 
     auto correctedAcc =
-        accCalibration0.correct(static_cast<AccelerometerData>(sample));
+        accCalibrationLow.correct(static_cast<AccelerometerData>(sample));
     sample.accelerationX = correctedAcc.x();
     sample.accelerationY = correctedAcc.y();
     sample.accelerationZ = correctedAcc.z();
 
     auto correctedGyro =
-        gyroCalibration0.correct(static_cast<GyroscopeData>(sample));
+        gyroCalibrationLow.correct(static_cast<GyroscopeData>(sample));
     sample.angularSpeedX = correctedGyro.x();
     sample.angularSpeedY = correctedGyro.y();
     sample.angularSpeedZ = correctedGyro.z();
@@ -367,19 +368,19 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
     return sample;
 }
 
-LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
+LSM6DSRXData Sensors::getCalibratedLSM6DSRXHighLastSample()
 {
-    auto sample = getLSM6DSRX1LastSample();
-    std::lock_guard<std::mutex> lock{lsm6Calibration1Mutex};
+    auto sample = getLSM6DSRXHighLastSample();
+    std::lock_guard<std::mutex> lock{lsm6CalibrationHighMutex};
 
     auto correctedAcc =
-        accCalibration1.correct(static_cast<AccelerometerData>(sample));
+        accCalibrationHigh.correct(static_cast<AccelerometerData>(sample));
     sample.accelerationX = correctedAcc.x();
     sample.accelerationY = correctedAcc.y();
     sample.accelerationZ = correctedAcc.z();
 
     auto correctedGyro =
-        gyroCalibration1.correct(static_cast<GyroscopeData>(sample));
+        gyroCalibrationHigh.correct(static_cast<GyroscopeData>(sample));
     sample.angularSpeedX = correctedGyro.x();
     sample.angularSpeedY = correctedGyro.y();
     sample.angularSpeedZ = correctedGyro.z();
@@ -428,7 +429,7 @@ PressureData Sensors::getAtmosPressureLastSample()
 
 TemperatureData Sensors::getTemperatureLastSample()
 {
-    return getLSM6DSRX0LastSample();
+    return getLSM6DSRXLowLastSample();
 }
 
 PressureData Sensors::getCanPitotTotalPressure()
@@ -485,8 +486,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(vn100, "VN100");
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
         PUSH_SENSOR_INFO(lis2mdl_int, "LIS2MDL_INT");
-        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
-        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
+        PUSH_SENSOR_INFO(lsm6dsrx_low, "LSM6DSRX_LOW");
+        PUSH_SENSOR_INFO(lsm6dsrx_high, "LSM6DSRX_HIGH");
         PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
         PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
         PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
@@ -634,7 +635,7 @@ void Sensors::ubxgpsInit()
 
 void Sensors::ubxgpsCallback() { sdLogger.log(getUBXGPSLastSample()); }
 
-void Sensors::lsm6dsrx0Init()
+void Sensors::lsm6dsrxLowInit()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -643,37 +644,37 @@ void Sensors::lsm6dsrx0Init()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX_0::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX_0::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX_0::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_LOW::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_LOW::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_LOW::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX_0::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX_0::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX_0::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_LOW::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_LOW::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_LOW::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
-    lsm6dsrx_0 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                            sensors::LSM6DSRX_0::cs::getPin(),
-                                            spiConfig, config);
+    lsm6dsrx_low = std::make_unique<LSM6DSRX>(
+        getModule<Buses>()->getLSM6DSRX(), sensors::LSM6DSRX_LOW::cs::getPin(),
+        spiConfig, config);
 }
 
-void Sensors::lsm6dsrx0Callback()
+void Sensors::lsm6dsrxLowCallback()
 {
-    if (!lsm6dsrx_0)
+    if (!lsm6dsrx_low)
         return;
 
     // For every instance inside the fifo log the sample
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx_0->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx_low->getLastFifo(lastFifoSize);
     for (uint16_t i = 0; i < lastFifoSize; i++)
         sdLogger.log(LSM6DSRX0Data{lastFifo.at(i)});
 }
 
-void Sensors::lsm6dsrx1Init()
+void Sensors::lsm6dsrxHighInit()
 {
     SPIBusConfig spiConfig;
     spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
@@ -682,32 +683,32 @@ void Sensors::lsm6dsrx1Init()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX_1::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX_1::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX_1::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_HIGH::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_HIGH::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_HIGH::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX_1::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX_1::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX_1::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_HIGH::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_HIGH::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_HIGH::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
-    lsm6dsrx_1 = std::make_unique<LSM6DSRX>(getModule<Buses>()->getLSM6DSRX(),
-                                            sensors::LSM6DSRX_1::cs::getPin(),
-                                            spiConfig, config);
+    lsm6dsrx_high = std::make_unique<LSM6DSRX>(
+        getModule<Buses>()->getLSM6DSRX(), sensors::LSM6DSRX_HIGH::cs::getPin(),
+        spiConfig, config);
 }
 
-void Sensors::lsm6dsrx1Callback()
+void Sensors::lsm6dsrxHighCallback()
 {
-    if (!lsm6dsrx_1)
+    if (!lsm6dsrx_high)
         return;
 
     // For every instance inside the fifo log the sample
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx_1->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx_high->getLastFifo(lastFifoSize);
     for (uint16_t i = 0; i < lastFifoSize; i++)
         sdLogger.log(LSM6DSRX1Data{lastFifo.at(i)});
 }
@@ -784,21 +785,62 @@ void Sensors::nd015a2Callback()
     sdLogger.log(StaticPressure2Data{getND015A2LastSample()});
 }
 
+/**
+ * Sets the ascent phase for double LSM6DSRX sensor management
+ * @param isAscent True if the rocket is in ascent phase, false otherwise.
+ */
+void Sensors::setAscentPhase(bool isAscent) { ascentPhase = isAscent; }
+
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-            auto imu6 =
-                Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX  // TODO switch to
-                                                               // VN100 ?
-                    ? getCalibratedLSM6DSRX0LastSample()
-                    : getLSM6DSRX0LastSample();
             auto mag = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
                            ? getCalibratedLIS2MDLRcsLastSample()
                            : getLIS2MDLRcsLastSample();
 
+#if defined(SINGLE_VN100)  // main imu
+            auto vnData = Config::Sensors::IMU::USE_CALIBRATED_VN100
+                              ? getCalibratedVN100LastSample()
+                              : getVN100LastSample();
+
+            Boardcore::AccelerometerData acc(
+                vnData.accelerationTimestamp, vnData.accelerationX,
+                vnData.accelerationY, vnData.accelerationZ);
+            Boardcore::GyroscopeData gyro(
+                vnData.angularSpeedTimestamp, vnData.angularSpeedX,
+                vnData.angularSpeedY, vnData.angularSpeedZ);
+
+            return IMUData{acc, gyro, mag};
+
+#elif defined(DUAL_LSM6)  // Dual LSM6 sensor for ascent & descent phases
+            Boardcore::LSM6DSRXData lsmData;
+
+            if (ascentPhase)
+            {
+                // HIGH Gs
+                lsmData = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                              ? getCalibratedLSM6DSRXHighLastSample()
+                              : getLSM6DSRXHighLastSample();
+            }
+            else
+            {
+                // LOW Gs
+                lsmData = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                              ? getCalibratedLSM6DSRXLowLastSample()
+                              : getLSM6DSRXLowLastSample();
+            }
+
+            return IMUData{lsmData, lsmData, mag};
+
+#else
+            // Fallback just in case [using low-g] :)
+            auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
+                            ? getCalibratedLSM6DSRXLowLastSample()
+                            : getLSM6DSRXLowLastSample();
             return IMUData{imu6, imu6, mag};
+#endif
         });
 
     // Accelerometer
@@ -877,18 +919,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(lis2mdl_int.get(), info);
     }
 
-    if (lsm6dsrx_0)
+    if (lsm6dsrx_low)
     {
-        SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
-                        [this]() { lsm6dsrx0Callback(); }};
-        map.emplace(lsm6dsrx_0.get(), info);
+        SensorInfo info{"LSM6DSRX_LOW", Config::Sensors::LSM6DSRX_LOW::RATE,
+                        [this]() { lsm6dsrxLowCallback(); }};
+        map.emplace(lsm6dsrx_low.get(), info);
     }
 
-    if (lsm6dsrx_1)
+    if (lsm6dsrx_high)
     {
-        SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
-                        [this]() { lsm6dsrx1Callback(); }};
-        map.emplace(lsm6dsrx_1.get(), info);
+        SensorInfo info{"LSM6DSRX_HIGH", Config::Sensors::LSM6DSRX_HIGH::RATE,
+                        [this]() { lsm6dsrxHighCallback(); }};
+        map.emplace(lsm6dsrx_high.get(), info);
     }
 
     if (internalAdc)

@@ -80,8 +80,8 @@ public:
     Boardcore::VN100SpiData getVN100LastSample();
     Boardcore::UBXGPSData getUBXGPSLastSample();
     Boardcore::LIS2MDLData getLIS2MDLIntLastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
-    Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXLowLastSample();
+    Boardcore::LSM6DSRXData getLSM6DSRXHighLastSample();
     Boardcore::ND015XData getND015A0LastSample();
     Boardcore::ND015XData getND015A1LastSample();
     Boardcore::ND015XData getND015A2LastSample();
@@ -89,8 +89,8 @@ public:
 
     Boardcore::LIS2MDLData getCalibratedLIS2MDLRcsLastSample();
     Boardcore::LIS2MDLData getCalibratedLIS2MDLIntLastSample();
-    Boardcore::LSM6DSRXData getCalibratedLSM6DSRX0LastSample();
-    Boardcore::LSM6DSRXData getCalibratedLSM6DSRX1LastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRXLowLastSample();
+    Boardcore::LSM6DSRXData getCalibratedLSM6DSRXHighLastSample();
     Boardcore::VN100SpiData getCalibratedVN100LastSample();
     Boardcore::IMUData getIMULastSample();
 
@@ -106,6 +106,12 @@ public:
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
+    /**
+     * Sets the ascent phase for double LSM6DSRX sensor management
+     * @param isAscent True if the rocket is in ascent phase, false otherwise.
+     */
+    void setAscentPhase(bool isAscent);
+
     // Methods for CanHandler
     void setCanPitotTotalPressure(Boardcore::PressureData data);
     void setCanPitotStaticPressure(Boardcore::PressureData data);
@@ -113,8 +119,8 @@ public:
 protected:
     virtual bool postSensorCreationHook() { return true; }
 
-    virtual void lsm6dsrx0Callback();
-    virtual void lsm6dsrx1Callback();
+    virtual void lsm6dsrxLowCallback();
+    virtual void lsm6dsrxHighCallback();
     virtual void vn100Callback();
 
     Boardcore::TaskScheduler& getSensorsScheduler();
@@ -133,8 +139,8 @@ protected:
     std::unique_ptr<Boardcore::VN100Spi> vn100;
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_int;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_low;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_high;
     std::unique_ptr<Boardcore::ND015A> nd015a_0;
     std::unique_ptr<Boardcore::ND015A> nd015a_1;
     std::unique_ptr<Boardcore::ND015A> nd015a_2;
@@ -168,9 +174,9 @@ private:
     void lis2mdlIntInit();
     void lis2mdlIntCallback();
 
-    void lsm6dsrx0Init();
+    void lsm6dsrxLowInit();
 
-    void lsm6dsrx1Init();
+    void lsm6dsrxHighInit();
 
     void vn100Init();
 
@@ -191,18 +197,20 @@ private:
 
     bool sensorManagerInit();
 
+    bool ascentPhase = true;
+
     std::mutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
-    std::mutex lsm6Calibration0Mutex;
-    Boardcore::TwelveParametersCorrector accCalibration0;
-    Boardcore::TwelveParametersCorrector gyroCalibration0;
+    std::mutex lsm6CalibrationLowMutex;
+    Boardcore::TwelveParametersCorrector accCalibrationLow;
+    Boardcore::TwelveParametersCorrector gyroCalibrationLow;
 
-    std::mutex lsm6Calibration1Mutex;
-    Boardcore::TwelveParametersCorrector accCalibration1;
-    Boardcore::TwelveParametersCorrector gyroCalibration1;
+    std::mutex lsm6CalibrationHighMutex;
+    Boardcore::TwelveParametersCorrector accCalibrationHigh;
+    Boardcore::TwelveParametersCorrector gyroCalibrationHigh;
 
     std::mutex vn100CalibrationMutex;
 
