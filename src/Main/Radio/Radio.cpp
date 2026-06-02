@@ -735,18 +735,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto data = getModule<Sensors>()->getCalibration();
 
             tm.timestamp          = data.timestamp;
-            tm.acc0_bias_x        = data.acc0BiasX;
-            tm.acc0_bias_y        = data.acc0BiasY;
-            tm.acc0_bias_z        = data.acc0BiasZ;
-            tm.gyro0_bias_x       = data.gyro0BiasX;
-            tm.gyro0_bias_y       = data.gyro0BiasY;
-            tm.gyro0_bias_z       = data.gyro0BiasZ;
-            tm.acc1_bias_x        = data.acc1BiasX;
-            tm.acc1_bias_y        = data.acc1BiasY;
-            tm.acc1_bias_z        = data.acc1BiasZ;
-            tm.gyro1_bias_x       = data.gyro1BiasX;
-            tm.gyro1_bias_y       = data.gyro1BiasY;
-            tm.gyro1_bias_z       = data.gyro1BiasZ;
+            tm.accLow_bias_x        = data.accLowBiasX;
+            tm.accLow_bias_y        = data.accLowBiasY;
+            tm.accLow_bias_z        = data.accLowBiasZ;
+            tm.gyroLow_bias_x       = data.gyroLowBiasX;
+            tm.gyroLow_bias_y       = data.gyroLowBiasY;
+            tm.gyroLow_bias_z       = data.gyroLowBiasZ;
+            tm.accHigh_bias_x        = data.accHighBiasX;
+            tm.accHigh_bias_y        = data.accHighBiasY;
+            tm.accHigh_bias_z        = data.accHighBiasZ;
+            tm.gyroHigh_bias_x       = data.gyroHighBiasX;
+            tm.gyroHigh_bias_y       = data.gyroHighBiasY;
+            tm.gyroHigh_bias_z       = data.gyroHighBiasZ;
             tm.mag_bias_x         = data.magBiasX;
             tm.mag_bias_y         = data.magBiasY;
             tm.mag_bias_z         = data.magBiasZ;
@@ -1269,7 +1269,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             {
                 mavlink_message_t msg;
 
-                auto sample = getModule<Sensors>()->getLSM6DSRX0LastSample();
+                auto sample = getModule<Sensors>()->getLSM6DSRXLowLastSample();
 
                 mavlink_imu_tm_t tm;
                 tm.mag_x     = -1.0f;
@@ -1282,7 +1282,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                 tm.gyro_y    = sample.angularSpeedY;
                 tm.gyro_z    = sample.angularSpeedZ;
                 tm.timestamp = sample.accelerationTimestamp;
-                strcpy(tm.sensor_name, "LSM6DSRX_0");
+                strcpy(tm.sensor_name, "LSM6DSRX_Low");
 
                 mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -1293,7 +1293,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             {
                 mavlink_message_t msg;
 
-                auto sample = getModule<Sensors>()->getLSM6DSRX1LastSample();
+                auto sample = getModule<Sensors>()->getLSM6DSRXHighLastSample();
 
                 mavlink_imu_tm_t tm;
                 tm.mag_x     = -1.0f;
@@ -1306,7 +1306,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                 tm.gyro_y    = sample.angularSpeedY;
                 tm.gyro_z    = sample.angularSpeedZ;
                 tm.timestamp = sample.accelerationTimestamp;
-                strcpy(tm.sensor_name, "LSM6DSRX_1");
+                strcpy(tm.sensor_name, "LSM6DSRX_High");
 
                 mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,

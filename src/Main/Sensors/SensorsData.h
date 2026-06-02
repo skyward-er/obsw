@@ -204,18 +204,18 @@ struct PitotTotalPressureData : Boardcore::PressureData
 struct CalibrationData
 {
     uint64_t timestamp     = 0;
-    float acc0BiasX        = 0.0f;
-    float acc0BiasY        = 0.0f;
-    float acc0BiasZ        = 0.0f;
-    float gyro0BiasX       = 0.0f;
-    float gyro0BiasY       = 0.0f;
-    float gyro0BiasZ       = 0.0f;
-    float acc1BiasX        = 0.0f;
-    float acc1BiasY        = 0.0f;
-    float acc1BiasZ        = 0.0f;
-    float gyro1BiasX       = 0.0f;
-    float gyro1BiasY       = 0.0f;
-    float gyro1BiasZ       = 0.0f;
+    float accLowBiasX      = 0.0f;
+    float accLowBiasY      = 0.0f;
+    float accLowBiasZ      = 0.0f;
+    float gyroLowBiasX     = 0.0f;
+    float gyroLowBiasY     = 0.0f;
+    float gyroLowBiasZ     = 0.0f;
+    float accHighBiasX     = 0.0f;
+    float accHighBiasY     = 0.0f;
+    float accHighBiasZ     = 0.0f;
+    float gyroHighBiasX    = 0.0f;
+    float gyroHighBiasY    = 0.0f;
+    float gyroHighBiasZ    = 0.0f;
     float vn100AccBiasX    = 0.0f;
     float vn100AccBiasY    = 0.0f;
     float vn100AccBiasZ    = 0.0f;
@@ -234,11 +234,11 @@ struct CalibrationData
     {
         return STRUCT_DEF(
             CalibrationData,
-            FIELD_DEF(timestamp) FIELD_DEF(acc0BiasX) FIELD_DEF(acc0BiasY)
-                FIELD_DEF(acc0BiasZ) FIELD_DEF(gyro0BiasX) FIELD_DEF(gyro0BiasY)
-                    FIELD_DEF(gyro0BiasZ) FIELD_DEF(acc1BiasX) FIELD_DEF(
-                        acc1BiasY) FIELD_DEF(acc1BiasZ) FIELD_DEF(gyro1BiasX)
-                        FIELD_DEF(gyro1BiasY) FIELD_DEF(gyro1BiasZ) FIELD_DEF(
+            FIELD_DEF(timestamp) FIELD_DEF(accLowBiasX) FIELD_DEF(accLowBiasY)
+                FIELD_DEF(accLowBiasZ) FIELD_DEF(gyroLowBiasX) FIELD_DEF(gyroLowBiasY)
+                    FIELD_DEF(gyroLowBiasZ) FIELD_DEF(accHighBiasX) FIELD_DEF(
+                        accHighBiasY) FIELD_DEF(accHighBiasZ) FIELD_DEF(gyroHighBiasX)
+                        FIELD_DEF(gyroHighBiasY) FIELD_DEF(gyroHighBiasZ) FIELD_DEF(
                             vn100AccBiasX) FIELD_DEF(vn100AccBiasY)
                             FIELD_DEF(vn100AccBiasZ) FIELD_DEF(vn100GyroBiasX)
                                 FIELD_DEF(vn100GyroBiasY)

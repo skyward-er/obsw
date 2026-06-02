@@ -164,13 +164,13 @@ private:
     Boardcore::SixParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
-    std::mutex lsm6Calibration0Mutex;
-    Boardcore::TwelveParametersCorrector accCalibration0;
-    Boardcore::TwelveParametersCorrector gyroCalibration0;
+    std::mutex lsm6CalibrationLowMutex;
+    Boardcore::TwelveParametersCorrector accCalibrationLow;
+    Boardcore::TwelveParametersCorrector gyroCalibrationLow;
 
-    std::mutex lsm6Calibration1Mutex;
-    Boardcore::TwelveParametersCorrector accCalibration1;
-    Boardcore::TwelveParametersCorrector gyroCalibration1;
+    std::mutex lsm6CalibrationHighMutex;
+    Boardcore::TwelveParametersCorrector accCalibrationHigh;
+    Boardcore::TwelveParametersCorrector gyroCalibrationHigh;
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
