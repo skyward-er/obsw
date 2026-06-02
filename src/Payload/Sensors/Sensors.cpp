@@ -50,14 +50,14 @@ bool Sensors::start()
     // Read the magnetometer calibration from predefined file
     magCalibration.fromFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
 
-    accCalibration0.fromFile(
+    accCalibrationLow.fromFile(
         Config::Sensors::LSM6DSRX_0::ACC_CALIBRATION_FILENAME);
-    gyroCalibration0.fromFile(
+    gyroCalibrationLow.fromFile(
         Config::Sensors::LSM6DSRX_0::GYRO_CALIBRATION_FILENAME);
 
-    accCalibration1.fromFile(
+    accCalibrationHigh.fromFile(
         Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
-    gyroCalibration1.fromFile(
+    gyroCalibrationHigh.fromFile(
         Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
 
     if (Config::Sensors::LPS22DF::ENABLED &&
@@ -156,33 +156,33 @@ void Sensors::calibrate()
 
 Main::CalibrationData Sensors::getCalibration()
 {
-    std::lock(magCalibrationMutex, lsm6Calibration0Mutex,
-              lsm6Calibration1Mutex);
+    std::lock(magCalibrationMutex, lsm6CalibrationLowMutex,
+              lsm6CalibrationHighMutex);
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm0lk(lsm6Calibration0Mutex, std::adopt_lock);
-    std::lock_guard<std::mutex> lsm1lk(lsm6Calibration1Mutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lsm0lk(lsm6CalibrationLowMutex, std::adopt_lock);
+    std::lock_guard<std::mutex> lsm1lk(lsm6CalibrationHighMutex, std::adopt_lock);
 
-    auto accBias0  = accCalibration0.getV();
-    auto gyroBias0 = gyroCalibration0.getV();
-    auto accBias1  = accCalibration1.getV();
-    auto gyroBias1 = gyroCalibration1.getV();
+    auto accBias0  = accCalibrationLow.getV();
+    auto gyroBias0 = gyroCalibrationLow.getV();
+    auto accBias1  = accCalibrationHigh.getV();
+    auto gyroBias1 = gyroCalibrationHigh.getV();
     auto magBias   = magCalibration.getb();
     auto magScale  = magCalibration.getA();
 
     return {
         .timestamp        = TimestampTimer::getTimestamp(),
-        .acc0BiasX        = accBias0.x(),
-        .acc0BiasY        = accBias0.y(),
-        .acc0BiasZ        = accBias0.z(),
-        .gyro0BiasX       = gyroBias0.x(),
-        .gyro0BiasY       = gyroBias0.y(),
-        .gyro0BiasZ       = gyroBias0.z(),
-        .acc1BiasX        = accBias1.x(),
-        .acc1BiasY        = accBias1.y(),
-        .acc1BiasZ        = accBias1.z(),
-        .gyro1BiasX       = gyroBias1.x(),
-        .gyro1BiasY       = gyroBias1.y(),
-        .gyro1BiasZ       = gyroBias1.z(),
+        .accLowBiasX        = accBias0.x(),
+        .accLowBiasY        = accBias0.y(),
+        .accLowBiasZ        = accBias0.z(),
+        .gyroLowBiasX       = gyroBias0.x(),
+        .gyroLowBiasY       = gyroBias0.y(),
+        .gyroLowBiasZ       = gyroBias0.z(),
+        .accHighBiasX        = accBias1.x(),
+        .accHighBiasY        = accBias1.y(),
+        .accHighBiasZ        = accBias1.z(),
+        .gyroHighBiasX       = gyroBias1.x(),
+        .gyroHighBiasY       = gyroBias1.y(),
+        .gyroHighBiasZ       = gyroBias1.z(),
         .magBiasX         = magBias.x(),
         .magBiasY         = magBias.y(),
         .magBiasZ         = magBias.z(),
@@ -341,16 +341,16 @@ LIS2MDLData Sensors::getCalibratedLIS2MDLLastSample()
 LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
 {
     auto sample = getLSM6DSRX0LastSample();
-    std::lock_guard<std::mutex> lock{lsm6Calibration0Mutex};
+    std::lock_guard<std::mutex> lock{lsm6CalibrationLowMutex};
 
     auto correctedAcc =
-        accCalibration0.correct(static_cast<AccelerometerData>(sample));
+        accCalibrationLow.correct(static_cast<AccelerometerData>(sample));
     sample.accelerationX = correctedAcc.x();
     sample.accelerationY = correctedAcc.y();
     sample.accelerationZ = correctedAcc.z();
 
     auto correctedGyro =
-        gyroCalibration0.correct(static_cast<GyroscopeData>(sample));
+        gyroCalibrationLow.correct(static_cast<GyroscopeData>(sample));
     sample.angularSpeedX = correctedGyro.x();
     sample.angularSpeedY = correctedGyro.y();
     sample.angularSpeedZ = correctedGyro.z();
@@ -361,16 +361,16 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRX0LastSample()
 LSM6DSRXData Sensors::getCalibratedLSM6DSRX1LastSample()
 {
     auto sample = getLSM6DSRX1LastSample();
-    std::lock_guard<std::mutex> lock{lsm6Calibration1Mutex};
+    std::lock_guard<std::mutex> lock{lsm6CalibrationHighMutex};
 
     auto correctedAcc =
-        accCalibration1.correct(static_cast<AccelerometerData>(sample));
+        accCalibrationHigh.correct(static_cast<AccelerometerData>(sample));
     sample.accelerationX = correctedAcc.x();
     sample.accelerationY = correctedAcc.y();
     sample.accelerationZ = correctedAcc.z();
 
     auto correctedGyro =
-        gyroCalibration1.correct(static_cast<GyroscopeData>(sample));
+        gyroCalibrationHigh.correct(static_cast<GyroscopeData>(sample));
     sample.angularSpeedX = correctedGyro.x();
     sample.angularSpeedY = correctedGyro.y();
     sample.angularSpeedZ = correctedGyro.z();
