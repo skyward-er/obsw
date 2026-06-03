@@ -61,6 +61,8 @@ bool CanHandler::start()
         [this]()
         {
             LoggerStats stats = sdLogger.getStats();
+            uint8_t state     = static_cast<uint8_t>(
+                getModule<FiringSequenceHSM>()->getState());
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
@@ -70,7 +72,7 @@ bool CanHandler::start()
                 DeviceStatus{
                     .timestamp = TimestampTimer::getTimestamp(),
                     .logNumber = static_cast<int16_t>(stats.logNumber),
-                    .state     = initStatus.load(),
+                    .state     = state,
                     .armed     = false,
                     .hil       = PersistentVars::getHilMode(),
                     .logGood   = stats.lastWriteError == 0,
@@ -260,6 +262,24 @@ bool CanHandler::start()
         return false;
     }
 
+    result = scheduler.addTask(
+        [this]()
+        {
+            auto meaState = getModule<MEAController>()->getState();
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::ALGORITHM),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE),
+                ServoFeedback{
+                    TimestampTimer::getTimestamp(),
+                    actuators->getValvePosition(ServosList::PRZ_FUEL_VALVE),
+                    actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)})
+        },
+        Config::CanHandler::MEA_STATE_SEND_RATE);
+
     if (!protocol.start())
     {
         LOG_ERR(logger, "Failed to start CanProtocol");
@@ -268,8 +288,6 @@ bool CanHandler::start()
 
     return true;
 }
-
-void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
 
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {

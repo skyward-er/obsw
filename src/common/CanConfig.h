@@ -32,7 +32,6 @@
 
 namespace Common
 {
-
 namespace CanConfig
 {
 
@@ -72,7 +71,8 @@ enum class PrimaryType : uint8_t
     SENSORS,
     STATUS,
     COMMAND,
-    ACTUATORS
+    ACTUATORS,
+    ALGORITHM
 };
 
 // Used for source and destination
@@ -88,39 +88,19 @@ enum class Board : uint8_t
 
 enum class AlgoId : uint8_t
 {
-    NAS_VERTICAL_SPEED,
-    NAS_ALT_MSL,
-    NAS_STATE,
-    MEA_SHADOW_MODE_DELAY,
-};
-
-enum class NasControllerState : uint8_t
-{
-    INIT = 0,
-    CALIBRATING,
-    READY,
-    ACTIVE,
-    END,
-    UNKNOWN = 0xFF,
+    MEA_STATE,
 };
 
 enum class SensorId : uint8_t
 {
-    PITOT_DYNAMIC_PRESSURE,
     PITOT_STATIC_PRESSURE,
     PITOT_TOTAL_PRESSURE,
     OX_TANK_PRESSURE,
     FUEL_TANK_PRESSURE,
     PRZ_TANK_PRESSURE,
-    REG_OUT_OX_PRESSURE,
-    REG_OUT_FUEL_PRESSURE,
     MAIN_CC_PRESSURE,
     IGN_CC_PRESSURE,
     EXTRA_PRESSURE,
-    PRZ_OX_POSITION,
-    PRZ_FUEL_POSITION,
-    MAIN_OX_POSITION,
-    MAIN_FUEL_POSITION,
     MOTOR_BOARD_CURRENT,
     MAIN_BOARD_CURRENT,
     MOTOR_BOARD_VOLTAGE
@@ -156,26 +136,6 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
 };
 
 }  // namespace CanConfig
-
-inline CanConfig::NasControllerState nasControllerStateFromCanValue(
-    uint8_t state)
-{
-    switch (state)
-    {
-        case static_cast<uint8_t>(CanConfig::NasControllerState::INIT):
-            return CanConfig::NasControllerState::INIT;
-        case static_cast<uint8_t>(CanConfig::NasControllerState::CALIBRATING):
-            return CanConfig::NasControllerState::CALIBRATING;
-        case static_cast<uint8_t>(CanConfig::NasControllerState::READY):
-            return CanConfig::NasControllerState::READY;
-        case static_cast<uint8_t>(CanConfig::NasControllerState::ACTIVE):
-            return CanConfig::NasControllerState::ACTIVE;
-        case static_cast<uint8_t>(CanConfig::NasControllerState::END):
-            return CanConfig::NasControllerState::END;
-        default:
-            return CanConfig::NasControllerState::UNKNOWN;
-    }
-}
 
 inline Events canEventToEvent(uint8_t canEvent)
 {

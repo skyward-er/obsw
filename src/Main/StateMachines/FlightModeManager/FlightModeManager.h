@@ -28,6 +28,7 @@
 #include <Main/PersistentVars/PersistentVars.h>
 #include <Main/PinHandler/PinHandler.h>
 #include <Main/Sensors/Sensors.h>
+#include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>
@@ -45,7 +46,7 @@ class Radio;
 class FlightModeManager
     : public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler,
                                            StatsRecorder, AlgoReference,
-                                           PinHandler, Radio>,
+                                           PinHandler, Radio, ADAController>,
       public Boardcore::HSM<FlightModeManager>
 {
 public:

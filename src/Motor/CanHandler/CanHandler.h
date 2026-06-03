@@ -25,6 +25,8 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/Sensors.h>
+#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
+#include <Motor/StateMachines/MEAController/MEAController.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
 #include <common/canbus/MainStatus.h>
@@ -40,6 +42,7 @@ class Actuators;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
+                                           FiringSequenceHSM, MEAController,
                                            Common::MainStatus>
 {
 public:
@@ -68,8 +71,6 @@ public:
 
     [[nodiscard]] bool start();
 
-    void setInitStatus(uint8_t status);
-
     void sendEvent(Common::CanConfig::EventId event);
 
 private:
@@ -82,8 +83,6 @@ private:
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
-
-    std::atomic<uint8_t> initStatus{0};
 
     miosix::FastMutex statusMutex;
     CanStatus status;
