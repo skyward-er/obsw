@@ -29,7 +29,7 @@
  */
 // #define DUAL_LSM6
 #if defined(DUAL_LSM6)
-    #warning "DUAL_LSM6 is being used instead of VN100 :)"
+#warning "DUAL_LSM6 is being used instead of VN100 :)"
 #endif
 
 #include <drivers/adc/InternalADC.h>
@@ -56,10 +56,11 @@ namespace Sensors
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 #if !defined(DUAL_LSM6)
-    constexpr auto USING_VN100 = false;
+constexpr auto USING_VN100 = false;
 #else
-    constexpr auto USING_VN100 = true;
-    //TODO: doublechceck this w @pietr; instead of x//constexpr auto USING_VN100 = false;
+constexpr auto USING_VN100 = true;
+// TODO: doublechceck this w @pietr; instead of x//constexpr auto USING_VN100 =
+// false;
 #endif
 
 constexpr auto CALIBRATION_SAMPLES_COUNT = 20;

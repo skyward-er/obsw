@@ -792,12 +792,6 @@ void Sensors::nd015a2Callback()
     sdLogger.log(StaticPressure2Data{getND015A2LastSample()});
 }
 
-/**
- * Sets the ascent phase for double LSM6DSRX sensor management
- * @param isAscent True if the rocket is in ascent phase, false otherwise.
- */
-void Sensors::setAscentPhase(bool isAscent) { ascentPhase = isAscent; }
-
 void Sensors::as5047dABKInit()
 {
     SPIBusConfig spiConfig = AS5047DSPI::getDefaultSPIConfig();
