@@ -352,7 +352,7 @@ void NASController::state_active_ascent(const Event& event)
         }
         case FLIGHT_APOGEE_DETECTED:
         {
-            transition(&NASController::state_descent);
+            transition(&NASController::state_active_descent);
             break;
         }
         case FLIGHT_LANDING_DETECTED:
@@ -369,7 +369,7 @@ void NASController::state_active_ascent(const Event& event)
     }
 }
 
-void NASController::state_descent(const Event& event)
+void NASController::state_active_descent(const Event& event)
 {
     switch (event)
     {

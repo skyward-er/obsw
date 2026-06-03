@@ -667,7 +667,6 @@ void FiringSequenceHSM::updateAndLogStatus(FiringSequenceState state)
 {
     this->state = state;
 
-    // printf("FiringSequence state updated to %s\n", to_string(state).c_str());
     FiringSequenceData data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }
