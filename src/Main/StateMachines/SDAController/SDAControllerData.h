@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Author: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,35 @@
 
 #pragma once
 
-#include <units/Frequency.h>
+#include <cstdint>
+#include <ostream>
+#include <reflect.hpp>
+#include <string>
 
-#include <chrono>
-
-namespace Motor
+namespace Main
 {
 
-namespace Config
+enum class SDAControllerState : uint8_t
 {
+    INIT = 0,
+    READY,
+    ARMED,
+    SHADOW_MODE,
+    ACTIVE,
+    ACTIVE_UNPOWERED,
+    END
+};
 
-namespace CanHandler
+struct SDAControllerStatus
 {
+    uint64_t timestamp       = 0;
+    SDAControllerState state = SDAControllerState::INIT;
 
-/* linter off */ using namespace std::chrono_literals;
-/* linter off */ using namespace Boardcore::Units::Frequency;
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(SDAControllerStatus,
+                          FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
 
-constexpr auto CRITICAL_PRESSURE_SEND_RATE  = 50_hz;
-constexpr auto MEA_STATE_SEND_RATE          = 50_hz;
-constexpr auto SECONDARY_PRESSURE_SEND_RATE = 8_hz;
-constexpr auto VALVE_STATE_SEND_RATE        = 4_hz;
-constexpr auto SENSORS_SEND_RATE            = 1_hz;
-
-}  // namespace CanHandler
-
-}  // namespace Config
-
-}  // namespace Motor
+}  // namespace Main

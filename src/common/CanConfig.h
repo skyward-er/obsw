@@ -32,7 +32,6 @@
 
 namespace Common
 {
-
 namespace CanConfig
 {
 
@@ -72,7 +71,8 @@ enum class PrimaryType : uint8_t
     SENSORS,
     STATUS,
     COMMAND,
-    ACTUATORS
+    ACTUATORS,
+    ALGORITHM
 };
 
 // Used for source and destination
@@ -86,23 +86,21 @@ enum class Board : uint8_t
     PITOT
 };
 
+enum class AlgoId : uint8_t
+{
+    MEA_STATE,
+};
+
 enum class SensorId : uint8_t
 {
-    PITOT_DYNAMIC_PRESSURE,
     PITOT_STATIC_PRESSURE,
     PITOT_TOTAL_PRESSURE,
     OX_TANK_PRESSURE,
     FUEL_TANK_PRESSURE,
     PRZ_TANK_PRESSURE,
-    REG_OUT_OX_PRESSURE,
-    REG_OUT_FUEL_PRESSURE,
     MAIN_CC_PRESSURE,
     IGN_CC_PRESSURE,
     EXTRA_PRESSURE,
-    PRZ_OX_POSITION,
-    PRZ_FUEL_POSITION,
-    MAIN_OX_POSITION,
-    MAIN_FUEL_POSITION,
     MOTOR_BOARD_CURRENT,
     MAIN_BOARD_CURRENT,
     MOTOR_BOARD_VOLTAGE

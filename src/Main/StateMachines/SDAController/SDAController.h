@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Davide Mor, Pietro Bortolus, Tommaso Lamon
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Author: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,70 +24,70 @@
 
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
-#include <Main/Sensors/Sensors.h>
-#include <Main/StateMachines/ADAController/ADAController.h>
-#include <Main/StateMachines/NASController/NASControllerData.h>
+#include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/SDAController/SDAControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/ANAS/ANAS0.h>
-#include <algorithms/ANAS/ANAS0_types.h>
-#include <algorithms/ANAS/ANASData.h>
-#include <algorithms/NASDAQ/NASDAQ0.h>
-#include <algorithms/NASDAQ/NASDAQ0_types.h>
-#include <algorithms/NASDAQ/NASDAQData.h>
+#include <algorithms/SDA/Kriging0.h>
+#include <common/canbus/MotorStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <chrono>
+
 namespace Main
 {
 
-class NASController
-    : public Boardcore::FSM<NASController>,
-      public Boardcore::InjectableWithDeps<
-          BoardScheduler, Sensors, StatsRecorder, AlgoReference, ADAController>,
-      public ReferenceSubscriber
+class SDAController
+    : public Boardcore::FSM<SDAController>,
+      public Boardcore::InjectableWithDeps<BoardScheduler, NASController,
+                                           StatsRecorder, AlgoReference,
+                                           Common::MotorStatus>
 {
 public:
-    NASController();
-    virtual ~NASController() noexcept = default;
+    SDAController();
 
     [[nodiscard]] bool start() override;
 
-    Boardcore::ANASState getANASState();
-    Boardcore::NASDAQState getNASDAQState();
+    bool getSDAOutput();
 
-    NASControllerState getState();
+    SDAControllerState getState();
 
-    void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
+    float getInitialMass();
+
+    std::chrono::milliseconds getMinBurnTime();
+    void setMinBurnTime(std::chrono::milliseconds time);
+
+    float getApogeeTarget();
+    void setApogeeTarget(float apogee);
 
 private:
-    void updateANAS();
-    void updateNASDAQ();
-
-    void calibrate(const Boardcore::ReferenceValues& ref);
+    void update();
 
     // FSM states
     void state_init(const Boardcore::Event& event);
-    void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
-    void state_active_ascent(const Boardcore::Event& event);
-    void state_active_descent(const Boardcore::Event& event);
+    void state_armed(const Boardcore::Event& event);
+    void state_shadow_mode(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
+    void state_active_unpowered(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
-    void updateAndLogStatus(NASControllerState state);
+    void updateAndLogStatus(SDAControllerState state);
 
-    std::atomic<NASControllerState> state{NASControllerState::INIT};
+    std::atomic<SDAControllerState> state{SDAControllerState::INIT};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
-    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sda");
 
-    miosix::FastMutex nasMutex;
+    uint16_t shadowModeTimeoutEvent = 0;
 
-    ANAS0 anas;
-    NASDAQ0 nasdaq;
+    std::atomic<float> initialMass;  // [kg]
+    std::atomic<std::chrono::milliseconds> minBurnTime;
+    std::atomic<float> apogeeTarget;  // agl [m]
 
-    size_t anasID;
-    size_t nasdaqID;
+    miosix::FastMutex sdaMutex;
+    Kriging0 sda;
 };
 
 }  // namespace Main
