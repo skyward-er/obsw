@@ -85,10 +85,6 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
     switch (sensor)
     {
         CASE_PRESSURE(CanConfig::SensorId::PRZ_TANK_PRESSURE, przTankPressure);
-        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_OX_PRESSURE,
-                      regulatorOxOutPressure);
-        CASE_PRESSURE(CanConfig::SensorId::REG_OUT_FUEL_PRESSURE,
-                      regulatorFuelOutPressure);
         CASE_PRESSURE(CanConfig::SensorId::OX_TANK_PRESSURE, oxTankPressure);
         CASE_PRESSURE(CanConfig::SensorId::FUEL_TANK_PRESSURE,
                       fuelTankPressure);

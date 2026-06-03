@@ -74,7 +74,7 @@ public:
 
     Boardcore::TaskScheduler& getNasScheduler() { return nas; }
 
-    Boardcore::TaskScheduler& getMeaScheduler() { return nas; }
+    Boardcore::TaskScheduler& getSdaScheduler() { return nas; }
 
     Boardcore::TaskScheduler& getAbkScheduler() { return nas; }
 
@@ -82,11 +82,7 @@ public:
 
     Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
-    Boardcore::TaskScheduler& getPinObserverScheduler()
-    {
-        // TODO(davide.mor): Does this make sense?
-        return sensors;
-    }
+    Boardcore::TaskScheduler& getPinObserverScheduler() { return sensors; }
 
     Boardcore::TaskScheduler& getRadioScheduler() { return others; }
 

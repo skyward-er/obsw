@@ -99,6 +99,13 @@ struct MotorStatus : public Boardcore::Injectable
     LockedData lockData() { return LockedData(data, mutex); }
 
     /**
+     * @brief Returns the last measure of the rocket's mass received by the
+     * motor board.
+     * @return The measured mass in kg.
+     */
+    float getMeaMass() const { return meaMass.load(); }
+
+    /**
      * @brief Returns whether the motor board was detected on the CAN bus at
      * any point in time.
      */
@@ -132,11 +139,13 @@ private:
     using Clock     = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
 
+    std::atomic<float> meaMass{0.0f};  // [kg]
     std::atomic<TimePoint> lastStatus = {TimePoint{}};
     Data data;
 
     void handleSensors(const Boardcore::Canbus::CanMessage& msg);
     void handleActuators(const Boardcore::Canbus::CanMessage& msg);
+    void handleMea(const Boardcore::Canbus::CanMessage& msg);
 
     miosix::FastMutex mutex;  ///< Mutex to protect access to the status data
 
