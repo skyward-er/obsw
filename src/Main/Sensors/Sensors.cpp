@@ -155,8 +155,8 @@ CalibrationData Sensors::getCalibration()
     auto gyroBiasLow   = gyroCalibrationLow.getV();
     auto accBiasHigh   = accCalibrationHigh.getV();
     auto gyroBiasHigh  = gyroCalibrationHigh.getV();
-    auto vn100AccBias  = accVN100Calibration.getV();
-    auto vn100GyroBias = gyroVN100Calibration.getV();
+    auto accVN100Bias  = accVN100Calibration.getV();
+    auto gyroVN100Bias = gyroVN100Calibration.getV();
     auto magBias       = magCalibration.getb();
     auto magScale      = magCalibration.getA();
 
@@ -174,12 +174,12 @@ CalibrationData Sensors::getCalibration()
         .gyroHighBiasX  = gyroBiasHigh.x(),
         .gyroHighBiasY  = gyroBiasHigh.y(),
         .gyroHighBiasZ  = gyroBiasHigh.z(),
-        .vn100AccBiasX  = vn100AccBias.x(),
-        .vn100AccBiasY  = vn100AccBias.y(),
-        .vn100AccBiasZ  = vn100AccBias.z(),
-        .vn100GyroBiasX = vn100GyroBias.x(),
-        .vn100GyroBiasY = vn100GyroBias.y(),
-        .vn100GyroBiasZ = vn100GyroBias.z(),
+        .accVN100BiasX  = accVN100Bias.x(),
+        .accVN100BiasY  = accVN100Bias.y(),
+        .accVN100BiasZ  = accVN100Bias.z(),
+        .gyroVN100BiasX = gyroVN100Bias.x(),
+        .gyroVN100BiasY = gyroVN100Bias.y(),
+        .gyroVN100BiasZ = gyroVN100Bias.z(),
         .magBiasX       = magBias.x(),
         .magBiasY       = magBias.y(),
         .magBiasZ       = magBias.z(),

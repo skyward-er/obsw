@@ -216,12 +216,12 @@ struct CalibrationData
     float gyroHighBiasX    = 0.0f;
     float gyroHighBiasY    = 0.0f;
     float gyroHighBiasZ    = 0.0f;
-    float vn100AccBiasX    = 0.0f;
-    float vn100AccBiasY    = 0.0f;
-    float vn100AccBiasZ    = 0.0f;
-    float vn100GyroBiasX   = 0.0f;
-    float vn100GyroBiasY   = 0.0f;
-    float vn100GyroBiasZ   = 0.0f;
+    float accVN100BiasX    = 0.0f;
+    float accVN100BiasY    = 0.0f;
+    float accVN100BiasZ    = 0.0f;
+    float gyroVN100BiasX   = 0.0f;
+    float gyroVN100BiasY   = 0.0f;
+    float gyroVN100BiasZ   = 0.0f;
     float magBiasX         = 0.0f;
     float magBiasY         = 0.0f;
     float magBiasZ         = 0.0f;
@@ -240,10 +240,10 @@ struct CalibrationData
                     accHighBiasX) FIELD_DEF(accHighBiasY)
                     FIELD_DEF(accHighBiasZ) FIELD_DEF(gyroHighBiasX) FIELD_DEF(
                         gyroHighBiasY) FIELD_DEF(gyroHighBiasZ)
-                        FIELD_DEF(vn100AccBiasX) FIELD_DEF(vn100AccBiasY)
-                            FIELD_DEF(vn100AccBiasZ) FIELD_DEF(vn100GyroBiasX)
-                                FIELD_DEF(vn100GyroBiasY)
-                                    FIELD_DEF(vn100GyroBiasZ)
+                        FIELD_DEF(accVN100BiasX) FIELD_DEF(accVN100BiasY)
+                            FIELD_DEF(accVN100BiasZ) FIELD_DEF(gyroVN100BiasX)
+                                FIELD_DEF(gyroVN100BiasY)
+                                    FIELD_DEF(gyroVN100BiasZ)
                                         FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
                                             FIELD_DEF(magBiasZ)
                                                 FIELD_DEF(magScaleX)
