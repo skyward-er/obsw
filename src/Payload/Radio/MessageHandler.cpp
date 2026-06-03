@@ -791,25 +791,25 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
             auto data = parent.getModule<Sensors>()->getCalibration();
 
-            tm.timestamp       = data.timestamp;
-            tm.acc0_bias_x     = data.accLowBiasX;
-            tm.acc0_bias_y     = data.accLowBiasY;
-            tm.acc0_bias_z     = data.accLowBiasZ;
-            tm.gyro0_bias_x    = data.gyroLowBiasX;
-            tm.gyro0_bias_y    = data.gyroLowBiasY;
-            tm.gyro0_bias_z    = data.gyroLowBiasZ;
-            tm.acc1_bias_x     = data.accHighBiasX;
-            tm.acc1_bias_y     = data.accHighBiasY;
-            tm.acc1_bias_z     = data.accHighBiasZ;
-            tm.gyro1_bias_x    = data.gyroHighBiasX;
-            tm.gyro1_bias_y    = data.gyroHighBiasY;
-            tm.gyro1_bias_z    = data.gyroHighBiasZ;
-            tm.mag_bias_x      = data.magBiasX;
-            tm.mag_bias_y      = data.magBiasY;
-            tm.mag_bias_z      = data.magBiasZ;
-            tm.mag_scale_x     = data.magScaleX;
-            tm.mag_scale_y     = data.magScaleY;
-            tm.mag_scale_z     = data.magScaleZ;
+            tm.timestamp    = data.timestamp;
+            tm.acc0_bias_x  = data.accLowBiasX;
+            tm.acc0_bias_y  = data.accLowBiasY;
+            tm.acc0_bias_z  = data.accLowBiasZ;
+            tm.gyro0_bias_x = data.gyroLowBiasX;
+            tm.gyro0_bias_y = data.gyroLowBiasY;
+            tm.gyro0_bias_z = data.gyroLowBiasZ;
+            tm.acc1_bias_x  = data.accHighBiasX;
+            tm.acc1_bias_y  = data.accHighBiasY;
+            tm.acc1_bias_z  = data.accHighBiasZ;
+            tm.gyro1_bias_x = data.gyroHighBiasX;
+            tm.gyro1_bias_y = data.gyroHighBiasY;
+            tm.gyro1_bias_z = data.gyroHighBiasZ;
+            tm.mag_bias_x   = data.magBiasX;
+            tm.mag_bias_y   = data.magBiasY;
+            tm.mag_bias_z   = data.magBiasZ;
+            tm.mag_scale_x  = data.magScaleX;
+            tm.mag_scale_y  = data.magScaleY;
+            tm.mag_scale_z  = data.magScaleZ;
 
             mavlink_msg_calibration_tm_encode(config::Mavlink::SYSTEM_ID,
                                               config::Mavlink::COMPONENT_ID,

@@ -735,18 +735,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto data = getModule<Sensors>()->getCalibration();
 
             tm.timestamp          = data.timestamp;
-            tm.acc0_bias_x      = data.accLowBiasX;
-            tm.acc0_bias_y      = data.accLowBiasY;
-            tm.acc0_bias_z      = data.accLowBiasZ;
-            tm.gyro0_bias_x     = data.gyroLowBiasX;
-            tm.gyro0_bias_y     = data.gyroLowBiasY;
-            tm.gyro0_bias_z     = data.gyroLowBiasZ;
-            tm.acc1_bias_x     = data.accHighBiasX;
-            tm.acc1_bias_y     = data.accHighBiasY;
-            tm.acc1_bias_z     = data.accHighBiasZ;
-            tm.gyro1_bias_x    = data.gyroHighBiasX;
-            tm.gyro1_bias_y    = data.gyroHighBiasY;
-            tm.gyro1_bias_z    = data.gyroHighBiasZ;
+            tm.acc0_bias_x        = data.accLowBiasX;
+            tm.acc0_bias_y        = data.accLowBiasY;
+            tm.acc0_bias_z        = data.accLowBiasZ;
+            tm.gyro0_bias_x       = data.gyroLowBiasX;
+            tm.gyro0_bias_y       = data.gyroLowBiasY;
+            tm.gyro0_bias_z       = data.gyroLowBiasZ;
+            tm.acc1_bias_x        = data.accHighBiasX;
+            tm.acc1_bias_y        = data.accHighBiasY;
+            tm.acc1_bias_z        = data.accHighBiasZ;
+            tm.gyro1_bias_x       = data.gyroHighBiasX;
+            tm.gyro1_bias_y       = data.gyroHighBiasY;
+            tm.gyro1_bias_z       = data.gyroHighBiasZ;
             tm.mag_bias_x         = data.magBiasX;
             tm.mag_bias_y         = data.magBiasY;
             tm.mag_bias_z         = data.magBiasZ;
@@ -937,7 +937,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
             tm.battery_voltage = sensors->getBatteryVoltageLastSample().voltage;
-            tm.temperature = temperature.temperature;
+            tm.temperature     = temperature.temperature;
 
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                 Config::Radio::MAV_COMPONENT_ID,
