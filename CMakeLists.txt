@@ -32,6 +32,26 @@ include(skyward-boardcore/cmake/sbs.cmake)
 include(cmake/dependencies.cmake)
 
 #-----------------------------------------------------------------------------#
+#                              IMU Configuration                              #
+#-----------------------------------------------------------------------------#
+
+##   Manual IMU sensor selection.
+#    default: uses the VN100 as main IMU;
+#    -DDUAL_LSM6=ON: uses the LSM6DSRX (double sensors) as IMU (backup)
+
+if(DUAL_LSM6)
+    message(STATUS "------------------------------------------------------")
+    message(STATUS "[IMU CONFIG] Compiling with DUAL_LSM6 (VN100 disabled)")
+    message(STATUS "------------------------------------------------------")
+    
+    add_compile_definitions(DUAL_LSM6)
+else()
+    message(STATUS "------------------------------------------------")
+    message(STATUS "[IMU CONFIG] Compiling with default VN100 IMU")
+    message(STATUS "------------------------------------------------")
+endif()
+
+#-----------------------------------------------------------------------------#
 #                              Flight entrypoints                             #
 #-----------------------------------------------------------------------------#
 

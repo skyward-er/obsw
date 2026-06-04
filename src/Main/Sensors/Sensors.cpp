@@ -53,7 +53,6 @@ bool Sensors::start()
 
     accVN100Calibration.fromFile(
         Config::Sensors::VN100::ACC_CALIBRATION_FILENAME);
-
     gyroVN100Calibration.fromFile(
         Config::Sensors::VN100::GYRO_CALIBRATION_FILENAME);
 
@@ -145,6 +144,7 @@ CalibrationData Sensors::getCalibration()
 {
     std::lock(magCalibrationMutex, lsm6CalibrationLowMutex,
               lsm6CalibrationHighMutex, vn100CalibrationMutex);
+
     std::lock_guard<std::mutex> magLk(magCalibrationMutex, std::adopt_lock);
     std::lock_guard<std::mutex> lsm0lk(lsm6CalibrationLowMutex,
                                        std::adopt_lock);
@@ -823,7 +823,11 @@ void Sensors::rotatedImuInit()
     rotatedImu = std::make_unique<RotatedIMU>(
         [this]()
         {
-#if defined(DUAL_LSM6)  // Dual LSM6 sensor for ascent & descent phases
+            auto magData = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
+                               ? getCalibratedLIS2MDLRcsLastSample()
+                               : getLIS2MDLRcsLastSample();
+
+#if defined(DUAL_LSM6)  // Dual LSM6 sensor (ascent / descent phases)
             Boardcore::LSM6DSRXData lsmData;
 
             if (ascentPhase)
@@ -841,25 +845,21 @@ void Sensors::rotatedImuInit()
                               : getLSM6DSRXLowLastSample();
             }
 
-            return IMUData{lsmData, lsmData, mag};
+            return IMUData{lsmData, lsmData, magData};
 
 #else  // Main VN100 sensor
-            auto mag = Config::Sensors::IMU::USE_CALIBRATED_LIS2MDL
-                           ? getCalibratedLIS2MDLRcsLastSample()
-                           : getLIS2MDLRcsLastSample();
-
             auto vnData = Config::Sensors::IMU::USE_CALIBRATED_VN100
                               ? getCalibratedVN100LastSample()
                               : getVN100LastSample();
 
-            Boardcore::AccelerometerData acc(
+            Boardcore::AccelerometerData accData(
                 vnData.accelerationTimestamp, vnData.accelerationX,
                 vnData.accelerationY, vnData.accelerationZ);
-            Boardcore::GyroscopeData gyro(
+            Boardcore::GyroscopeData gyroData(
                 vnData.angularSpeedTimestamp, vnData.angularSpeedX,
                 vnData.angularSpeedY, vnData.angularSpeedZ);
 
-            return IMUData{acc, gyro, mag};
+            return IMUData{accData, gyroData, magData};
 
 #endif
         });

@@ -217,7 +217,6 @@ private:
     Boardcore::TwelveParametersCorrector gyroCalibrationHigh;
 
     std::mutex vn100CalibrationMutex;
-
     Boardcore::TwelveParametersCorrector accVN100Calibration;
     Boardcore::TwelveParametersCorrector gyroVN100Calibration;
     Boardcore::SixParametersCorrector magVN100Calibration;

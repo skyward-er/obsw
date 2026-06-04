@@ -23,13 +23,14 @@
 #pragma once
 
 /**
- * Manual IMU sensor selection.
+ *   Manual IMU sensor selection.
  *   default: uses the VN100 as main IMU;
  *  'DUAL_LSM6': uses the LSM6DSRX (double sensors) as IMU (backup)
  */
-// #define DUAL_LSM6
 #if defined(DUAL_LSM6)
-#warning "DUAL_LSM6 is being used instead of VN100 :)"
+#warning "DUAL_LSM6 is being used instead of VN100 for IMU"
+#else
+#warning "Using default VN100 configuration for IMU"
 #endif
 
 #include <drivers/adc/InternalADC.h>
@@ -54,14 +55,6 @@ namespace Sensors
 {
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
-
-#if !defined(DUAL_LSM6)
-constexpr auto USING_VN100 = false;
-#else
-constexpr auto USING_VN100 = true;
-// TODO: doublechceck this w @pietr; instead of x//constexpr auto USING_VN100 =
-// false;
-#endif
 
 constexpr auto CALIBRATION_SAMPLES_COUNT = 20;
 constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
