@@ -1,0 +1,50 @@
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Author: Leonardo Montecchi
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#pragma once
+
+#include <units/Frequency.h>
+
+#include <chrono>
+
+namespace Pitot
+{
+namespace Config
+{
+namespace HeatingPadController
+{
+/* linter-off */ using namespace std::chrono_literals;
+/* linter-off */ using namespace Boardcore::Units::Frequency;
+
+constexpr auto UPDATE_RATE          = 100_hz;
+constexpr auto CONFIDENCE_THRESHOLD = 10;
+constexpr auto SENSE_ACTIVE         = 1;
+
+// Schmitt Trigger parameters
+constexpr auto TARGET_TEMPERATURE = 308.65f;  // K, 35.5°C
+constexpr auto THRESHOLD_LOW      = 0.5f;
+constexpr auto THRESHOLD_HIGH     = 0.5f;
+
+}  // namespace HeatingPadController
+}  // namespace Config
+}  // namespace Pitot
+
