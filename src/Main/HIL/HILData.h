@@ -25,22 +25,26 @@
 #include <Main/Configs/HILSimulationConfig.h>
 #include <sensors/HILSimulatorData.h>
 
+// NAS Controller (unified for both ANAS and NASDAQ)
+#include <Main/StateMachines/NASController/NASControllerData.h>
+
+// ANAS
+#include <algorithms/ANAS/ANASData.h>
+
+// NASDAQ
+#include <algorithms/NASDAQ/NASDAQData.h>
+
+// SDA
+#include <Main/StateMachines/SDAController/SDAControllerData.h>
+#include <algorithms/SDA/SDAData.h>
+
 // ADA
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
 #include <algorithms/ADA/ADAData.h>
 
-// NAS
-#include <Main/StateMachines/NASController/NASControllerData.h>
-#include <algorithms/NAS/NASState.h>
-
 // ABK
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <algorithms/AirBrakes/AirBrakesInterpPID.h>
-
-// MEA
-#include <Main/StateMachines/MEAController/MEAControllerData.h>
-#include <algorithms/MEA/MEAData.h>
-
 namespace Main
 {
 
@@ -132,41 +136,30 @@ struct ADAStateHIL
 };
 
 /**
- * @brief NAS data sent to the simulator
+ * @brief ANAS data sent to the simulator
  */
-struct NASStateHIL
+struct ANASStateHIL
 {
     float n = 0;
     float e = 0;
     float d = 0;
 
-    // Velocity [m/s]
     float vn = 0;
     float ve = 0;
     float vd = 0;
 
-    // Attitude as quaternion
     float qx = 0;
     float qy = 0;
     float qz = 0;
     float qw = 1;
 
-    float updating = 0;  // Flag if apogee is detected [bool]
+    ANASStateHIL()
+        : n(0), e(0), d(0), vn(0), ve(0), vd(0), qx(0), qy(0), qz(0), qw(1) {};
 
-    NASStateHIL()
-        : n(0), e(0), d(0), vn(0), ve(0), vd(0), qx(0), qy(0), qz(0), qw(1),
-          updating(0)
-    {
-    }
-
-    NASStateHIL(const Boardcore::NASState& nasState,
-                const Main::NASControllerState& state)
-        : n(nasState.n), e(nasState.e), d(nasState.d), vn(nasState.vn),
-          ve(nasState.ve), vd(nasState.vd), qx(nasState.qx), qy(nasState.qy),
-          qz(nasState.qz), qw(nasState.qw),
-          updating(state >= Main::NASControllerState::ACTIVE)
-    {
-    }
+    ANASStateHIL(const Boardcore::ANASState& output)
+        : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
+          vd(output.vd), qx(output.qx), qy(output.qy), qz(output.qz),
+          qw(output.qw) {};
 
     void print()
     {
@@ -182,8 +175,57 @@ struct NASStateHIL
             "qz: %+.3f\n"
             "qw: %+.3f\n"
             "updating: %+.3f\n",
-            n, e, d, vn, ve, vd, qx, qy, qz, qw, updating);
+            n, e, d, vn, ve, vd, qx, qy, qz, qw);
     }
+};
+
+/**
+ * @brief NASDAQ data sent to the simulator
+ */
+struct NASDAQStateHIL
+{
+    float n = 0;
+    float e = 0;
+    float d = 0;
+
+    float vn = 0;
+    float ve = 0;
+    float vd = 0;
+
+    NASDAQStateHIL() : n(0), e(0), d(0), vn(0), ve(0), vd(0) {};
+
+    NASDAQStateHIL(const Boardcore::NASDAQState& output)
+        : n(output.x), e(output.y), d(output.z), vn(output.vx), ve(output.vy),
+          vd(output.vz) {};
+
+    void print()
+    {
+        printf(
+            "n: %+.3f\n"
+            "e: %+.3f\n"
+            "d: %+.3f\n"
+            "vn: %+.3f\n"
+            "ve: %+.3f\n"
+            "vd: %+.3f\n"
+            "updating: %+.3f\n",
+            n, e, d, vn, ve, vd);
+    }
+};
+
+/**
+ * @brief SDA data sent to the simulator
+ */
+struct SDAStateHIL
+{
+    bool shutdownCommand = 0;
+
+    SDAStateHIL() : shutdownCommand(0) {};
+
+    // Vedi se aggiungere una struct in SDA con solo lo shutdown command
+    SDAStateHIL(const bool command)
+        : shutdownCommand(command) {};
+
+    void print() { printf("shutdownCommand: %d\n", shutdownCommand); }
 };
 
 /**
@@ -201,44 +243,6 @@ struct AirBrakesStateHIL
     }
 
     void print() { printf("updating: %+.3f\n", updating); }
-};
-
-/**
- * @brief MEA data sent to the simulator
- */
-struct MEAStateHIL
-{
-    float correctedPressure = 0;
-
-    float estimatedMass   = 0;
-    float estimatedApogee = 0;
-
-    float updating = 0;  // Flag if apogee is detected [bool]
-
-    MEAStateHIL()
-        : correctedPressure(0), estimatedMass(0), estimatedApogee(0),
-          updating(0)
-    {
-    }
-
-    MEAStateHIL(const Boardcore::MEAState& meaState,
-                const Main::MEAControllerState& state)
-        : correctedPressure(meaState.estimatedPressure),
-          estimatedMass(meaState.estimatedMass),
-          estimatedApogee(meaState.estimatedApogee),
-          updating(state >= Main::MEAControllerState::ARMED)
-    {
-    }
-
-    void print()
-    {
-        printf(
-            "correctedPressure: %+.3f\n"
-            "estimatedMass: %+.3f\n"
-            "estimatedApogee: %+.3f\n"
-            "updating: %+.3f\n",
-            correctedPressure, estimatedMass, estimatedApogee, updating);
-    }
 };
 
 /**
@@ -309,27 +313,28 @@ struct SimulatorData
 struct ActuatorData
 {
     ADAStateHIL adaState;
-    NASStateHIL nasState;
+    ANASStateHIL anasState;
+    NASDAQStateHIL nasdaqState;
+    SDAStateHIL sdaState;
     AirBrakesStateHIL airBrakesState;
-    MEAStateHIL meaState;
     ActuatorsStateHIL actuatorsState;
     float sequenceNumber;  //< Counter used to see the sequence of packets sent
                            // to the
                            // simulator
 
     ActuatorData()
-        : adaState(), nasState(), airBrakesState(), meaState(),
+        : adaState(), anasState(), nasdaqState(), sdaState(), airBrakesState(),
           actuatorsState(), sequenceNumber(0.0f)
     {
     }
 
-    ActuatorData(const ADAStateHIL& adaState, const NASStateHIL& nasState,
+    ActuatorData(const ADAStateHIL& adaState, const ANASStateHIL& anasState,
+                 const NASDAQStateHIL& nasdaqState, const SDAStateHIL& sdaState,
                  const AirBrakesStateHIL& airBrakesState,
-                 const MEAStateHIL& meaState,
                  const ActuatorsStateHIL& actuatorsState,
                  const float sequenceNumber)
-        : adaState(adaState), nasState(nasState),
-          airBrakesState(airBrakesState), meaState(meaState),
+        : adaState(adaState), anasState(anasState), nasdaqState(nasdaqState),
+          airBrakesState(airBrakesState), sdaState(sdaState),
           actuatorsState(actuatorsState), sequenceNumber(sequenceNumber)
     {
     }
@@ -337,9 +342,10 @@ struct ActuatorData
     void print()
     {
         adaState.print();
-        nasState.print();
+        anasState.print();
+        nasdaqState.print();
+        sdaState.print();
         airBrakesState.print();
-        meaState.print();
         actuatorsState.print();
     }
 };
