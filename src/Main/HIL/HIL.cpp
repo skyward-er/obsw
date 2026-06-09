@@ -25,7 +25,6 @@
 #include <Main/Actuators/Actuators.h>
 #include <Main/Buses.h>
 #include <Main/Configs/HILSimulationConfig.h>
-#include <Main/Configs/MEAConfig.h>
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/HIL/HILData.h>
 #include <common/Events.h>
@@ -315,7 +314,8 @@ bool MainHIL::start()
 
     hilPhasesManager = new MainHILPhasesManager(
         [nas]()
-        { return Boardcore::TimedTrajectoryPoint(nas->getNASState()); });
+        // TODO Check this
+        { return Boardcore::TimedTrajectoryPoint(nas->getANASState()); });
 
     hilTransceiver = new MainHILTransceiver(hilUsart, hilPhasesManager);
 
@@ -330,13 +330,13 @@ ActuatorData MainHIL::updateActuatorData()
     ADAStateHIL adaStateHIL{getModule<ADAController>()->getADAState(),
                             getModule<ADAController>()->getState()};
 
-    NASStateHIL nasStateHIL{getModule<NASController>()->getNASState(),
-                            getModule<NASController>()->getState()};
+    ANASStateHIL anasStateHIL{getModule<NASController>()->getANASState()};
+
+    NASDAQStateHIL nasdaqStateHIL{getModule<NASController>()->getNASDAQState()};
+
+    SDAStateHIL sdaStateHIL{getModule<SDAController>()->getSDAOutput()};
 
     AirBrakesStateHIL abkStateHIL{getModule<ABKController>()->getState()};
-
-    MEAStateHIL meaStateHIL{getModule<MEAController>()->getMEAState(),
-                            getModule<MEAController>()->getState()};
 
     auto motor = getModule<Common::MotorStatus>()->lockData();
 
@@ -350,8 +350,9 @@ ActuatorData MainHIL::updateActuatorData()
     counter += 1.0f;
 
     // Returning the feedback for the simulator
-    return ActuatorData{adaStateHIL, nasStateHIL,       abkStateHIL,
-                        meaStateHIL, actuatorsStateHIL, counter};
+    return ActuatorData{adaStateHIL, anasStateHIL, nasdaqStateHIL,
+                        sdaStateHIL, abkStateHIL,  actuatorsStateHIL,
+                        counter};
 }
 
 }  // namespace Main

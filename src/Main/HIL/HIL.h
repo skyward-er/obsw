@@ -29,8 +29,8 @@
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
-#include <Main/StateMachines/MEAController/MEAController.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/SDAController/SDAController.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <hil/HIL.h>
@@ -88,7 +88,8 @@ class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<
           Buses, Actuators, FlightModeManager, ADAController, NASController,
-          MEAController, ABKController, Common::MotorStatus>
+          SDAController, 
+          ABKController, Common::MotorStatus>
 {
 public:
     MainHIL();
