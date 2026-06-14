@@ -37,6 +37,7 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/SDAController/SDAController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -77,6 +78,7 @@ int main()
     auto ada         = new ADAController();
     auto nas         = new NASController();
     auto abk         = new ABKController();
+    auto sda         = new SDAController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
     // MainHIL* hil     = nullptr;
@@ -122,6 +124,7 @@ int main()
                   manager.insert<ADAController>(ada) &&
                   manager.insert<NASController>(nas) &&
                   manager.insert<ABKController>(abk) &&
+                  manager.insert<SDAController>(sda) &&
                   manager.insert<StatsRecorder>(recorder) &&
                   manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
@@ -237,6 +240,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start ABKController ***" << std::endl;
+    }
+
+    std::cout << "Starting SDAController" << std::endl;
+    if (!sda->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start SDAController ***" << std::endl;
     }
 
     std::cout << "Starting FlightModeManager" << std::endl;
