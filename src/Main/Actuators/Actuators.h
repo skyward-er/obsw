@@ -70,13 +70,17 @@ public:
             maxAngle;  // Maximum angle that the servo will reach
         Config::Actuators::ServoDirection direction;  // Direction of the servo
 
+        Boardcore::SchmittTrigger::Activation
+            lastState;  // Last state of the servo
+
         miosix::FastMutex mutex;
 
         ServoActuator()
             : zeroAngle(Boardcore::Units::Angle::Radian(0.0f)),
               minAngle(Boardcore::Units::Angle::Radian(0.0f)),
               maxAngle(Boardcore::Units::Angle::Radian(0.0f)),
-              direction(Config::Actuators::ServoDirection::CW)
+              direction(Config::Actuators::ServoDirection::CW),
+              lastState(Boardcore::SchmittTrigger::Activation::STOP)
         {
         }
     };
@@ -101,6 +105,8 @@ public:
 
     void enablePrfServo(ServosList servoId);
     void disablePrfServo(ServosList servoId);
+
+    bool arePrfServosStill();
 
     void setAbkPosition(float position);
     void wiggleServo(ServosList servo);

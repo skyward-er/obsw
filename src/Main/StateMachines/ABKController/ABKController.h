@@ -37,7 +37,7 @@ namespace Main
 class ABKController
     : public Boardcore::FSM<ABKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, MotorStatus>
+                                           NASController, Common::MotorStatus>
 {
 public:
     ABKController();

@@ -156,8 +156,8 @@ void StatsRecorder::updateNASDAQ(const NASDAQState& data)
     if (state == FlightModeManagerState::DROGUE_DESCENT ||
         state == FlightModeManagerState::TERMINAL_DESCENT)
     {
-        float vertSpeed = data.vz;
-        float hSpeed    = Vector2f(data.vx, data.vy).norm();
+        float vertSpeed = data.vd;
+        float hSpeed    = Vector2f(data.vn, data.ve).norm();
 
         if (vertSpeed > stats.maxDescentVertSpeed)
         {

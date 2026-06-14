@@ -34,7 +34,6 @@ set(AUTOCODED_ALGORITHMS_SOURCES
 
 set(MAIN_COMPUTER
     src/common/canbus/MotorStatus.cpp
-    src/Main/Data/ABKTrajectorySet.cxx
     src/Main/PersistentVars/PersistentVars.cpp
     #src/Main/HIL/HIL.cpp
     src/Main/Sensors/Sensors.cpp
@@ -48,6 +47,7 @@ set(MAIN_COMPUTER
     src/Main/PinHandler/PinHandler.cpp
     src/Main/StateMachines/ABKController/ABKController.cpp
     src/Main/StateMachines/SDAController/SDAController.cpp
+    src/Main/StateMachines/WingController/WingController.cpp
     src/Main/StatsRecorder/StatsRecorder.cpp
 )
 
