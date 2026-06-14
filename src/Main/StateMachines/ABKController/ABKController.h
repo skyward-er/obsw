@@ -27,7 +27,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <Main/StateMachines/NASController/NASController.h>
-#include <algorithms/AirBrakes/AirBrakesInterpPID.h>
+#include <algorithms/ABK/ABK.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -37,7 +37,7 @@ namespace Main
 class ABKController
     : public Boardcore::FSM<ABKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, AlgoReference>
+                                           NASController, MotorStatus>
 {
 public:
     ABKController();
@@ -54,7 +54,6 @@ private:
     void state_ready(const Boardcore::Event& event);
     void state_armed(const Boardcore::Event& event);
     void state_shadow_mode(const Boardcore::Event& event);
-    void state_waiting_mach(const Boardcore::Event& event);
     void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
@@ -67,7 +66,8 @@ private:
 
     uint16_t shadowModeTimeoutEvent = 0;
 
-    Boardcore::AirBrakesInterpPID abk;
+    size_t abkTaskId;
+    ABK abk;
 };
 
 }  // namespace Main
