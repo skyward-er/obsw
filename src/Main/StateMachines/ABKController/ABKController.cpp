@@ -24,7 +24,7 @@
 
 #include <Main/Configs/ABKConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
-#include <Main/Data/ABKTrajectorySet.h>
+#include <algorithms/ABK/ABKData.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <events/EventBroker.h>
@@ -39,15 +39,7 @@ using namespace Common;
 
 ABKController::ABKController()
     : FSM{&ABKController::state_init, STACK_DEFAULT_FOR_PTHREAD,
-          Config::Scheduler::ABK_PRIORITY},
-      abk{[this]()
-          {
-              return TimedTrajectoryPoint{
-                  getModule<NASController>()->getANASState()};
-          },
-          Data::ABK::OPEN_TRAJECTORY_SET, Data::ABK::CLOSED_TRAJECTORY_SET,
-          Config::ABK::CONFIG, [this](float position)
-          { getModule<Actuators>()->setAbkPosition(position); }}
+          Config::Scheduler::ABK_PRIORITY}
 
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ABK);
@@ -58,10 +50,10 @@ bool ABKController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getAbkScheduler();
 
-    uint8_t result =
+    abkTaskId =
         scheduler.addTask([this]() { update(); }, Config::ABK::UPDATE_RATE);
 
-    if (result == 0)
+    if (abkTaskId == 0)
     {
         LOG_ERR(logger, "Failed to add ABK update task");
         return false;
@@ -73,6 +65,8 @@ bool ABKController::start()
         return false;
     }
 
+    // Disable the task for now
+    scheduler.disableTask(abkTaskId);
     return true;
 }
 
@@ -80,28 +74,24 @@ ABKControllerState ABKController::getState() { return state; }
 
 void ABKController::update()
 {
-    ABKControllerState curState = state;
-
-    if (state == ABKControllerState::WAITING_MACH)
+    if (state == ABKControllerState::ACTIVE)
     {
-        // We are waiting for the vertical speed to be below the mach limit
-        auto nas          = getModule<NASController>()->getANASState();
-        auto ref          = getModule<AlgoReference>()->getReferenceValues();
-        float mslAltitude = ref.refAltitude - nas.d;
+        auto anasState = getModule<NASController>()->getANASState();
+        ABKIn input{.MEAMass      = getModule<MotorStatus>()->getMeaMass(),
+                    .ANASPosition = {anasState.n, anasState.e, anasState.d},
+                    .ANASVelocity = {anasState.vn, anasState.ve, anasState.vd}};
 
-        // TODO: fix this
-        /* float mach =
-            Aeroutils::computeMach(-mslAltitude, -nas.vd, ref.mslTemperature);
-         */
+        abk.setABK_In(input);
 
-        /* if (mach <= Config::ABK::MACH_LIMIT)
-            EventBroker::getInstance().post(ABK_MACH_BELOW_LIMIT, TOPIC_ABK); */
-    }
+        abk.step();
 
-    if (curState == ABKControllerState::ACTIVE)
-    {
-        // Normal update
-        abk.update();
+        // move the aerobrakes
+        getModule<Actuators>()->setAbkPosition(abk.getABK_Control());
+
+        // log the data
+        ABKLogsData logs{TimestampTimer::getTimestamp(),
+                         abk.getABK_Logs_OBSW()};
+        sdLogger.log(logs);
     }
 }
 
@@ -112,6 +102,7 @@ void ABKController::state_init(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ABKControllerState::INIT);
+            abk.initialize();
 
             // Immediately transition to ready
             transition(&ABKController::state_ready);
@@ -198,31 +189,6 @@ void ABKController::state_shadow_mode(const Event& event)
     }
 }
 
-void ABKController::state_waiting_mach(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(ABKControllerState::WAITING_MACH);
-            break;
-        }
-
-        case ABK_MACH_BELOW_LIMIT:
-        {
-            transition(&ABKController::state_active);
-            break;
-        }
-
-        case FLIGHT_APOGEE_DETECTED:
-        case FLIGHT_LANDING_DETECTED:
-        {
-            transition(&ABKController::state_end);
-            break;
-        }
-    }
-}
-
 void ABKController::state_active(const Event& event)
 {
     switch (event)
@@ -230,8 +196,9 @@ void ABKController::state_active(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ABKControllerState::ACTIVE);
-            // Start the algorithm
-            // abk.begin(getModule<MEAController>()->getMEAState().estimatedMass);
+            getModule<BoardScheduler>()->getAbkScheduler().enableTask(
+                abkTaskId);
+
             break;
         }
 
@@ -251,8 +218,11 @@ void ABKController::state_end(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ABKControllerState::END);
-            // Stop the algorithm
-            abk.end();
+
+            // Stop the update task
+            getModule<BoardScheduler>()->getAbkScheduler().disableTask(
+                abkTaskId);
+
             // Close the airbrakes
             getModule<Actuators>()->setAbkPosition(0.0f);
             break;
