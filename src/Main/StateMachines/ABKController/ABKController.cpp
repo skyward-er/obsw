@@ -176,7 +176,7 @@ void ABKController::state_shadow_mode(const Event& event)
 
         case ABK_SHADOW_MODE_TIMEOUT:
         {
-            transition(&ABKController::state_waiting_mach);
+            transition(&ABKController::state_active);
             break;
         }
 

@@ -23,10 +23,13 @@
 #include "Actuators.h"
 
 #include <Main/Configs/ActuatorsConfig.h>
+#include <common/Topics.h>
+#include <events/EventBroker.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Main;
 using namespace Boardcore;
+using namespace Common;
 using namespace miosix;
 using namespace Boardcore::Units::Angle;
 using namespace Config::Actuators;
@@ -43,13 +46,14 @@ Actuators::Actuators()
         Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_LOW).value(),
         Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_HIGH).value());
 
+    leftServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
+
     leftServo.maxAngle  = Radian(PrfServo::MAX_ANGLE);
     leftServo.minAngle  = Radian(PrfServo::LEFT_MIN_ANGLE);
     leftServo.direction = PrfServo::LEFT_SERVO_DIRECTION;
 
     leftServo.servoTrigger->setTargetState(
         Radian(PrfServo::INITIAL_ANGLE).value());
-    leftServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
 
     // RIGHT SERVO
     rightServo.servo = std::make_unique<ServoWinch>(
@@ -61,13 +65,13 @@ Actuators::Actuators()
         Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_LOW).value(),
         Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_HIGH).value());
 
+    rightServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
     rightServo.maxAngle  = Radian(PrfServo::MAX_ANGLE);
     rightServo.minAngle  = Radian(PrfServo::RIGHT_MIN_ANGLE);
     rightServo.direction = PrfServo::RIGHT_SERVO_DIRECTION;
 
     rightServo.servoTrigger->setTargetState(
         Radian(PrfServo::INITIAL_ANGLE).value());
-    rightServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
 
     servoAbk = std::make_unique<Servo>(
         MIOSIX_AIRBRAKES_TIM, TimerUtils::Channel::MIOSIX_AIRBRAKES_CHANNEL,
@@ -236,6 +240,12 @@ void Actuators::disablePrfServo(ServosList servoId)
     actuator->enabled = false;
 }
 
+bool Actuators::arePrfServosStill()
+{
+    return (leftServo.lastState == SchmittTrigger::Activation::STOP) &&
+           (rightServo.lastState == SchmittTrigger::Activation::STOP);
+}
+
 void Actuators::setAbkPosition(float position)
 {
     Lock<FastMutex> lock{servosMutex};
@@ -360,12 +370,14 @@ void Actuators::updateServoState(ServosList servoId, Radian encoderAngle)
         {
             actuator->servo->setVelocity(
                 Config::Actuators::PrfServo::HIGH_THRESHOLD_VELOCITY);
+            actuator->lastState = SchmittTrigger::Activation::HIGH;
             break;
         }
         case SchmittTrigger::Activation::LOW:
         {
             actuator->servo->setVelocity(
                 Config::Actuators::PrfServo::LOW_THRESHOLD_VELOCITY);
+            actuator->lastState = SchmittTrigger::Activation::LOW;
 
             break;
         }
@@ -373,6 +385,12 @@ void Actuators::updateServoState(ServosList servoId, Radian encoderAngle)
         {
             actuator->servo->setVelocity(
                 Config::Actuators::PrfServo::STOP_THRESHOLD_VELOCITY);
+            actuator->lastState = SchmittTrigger::Activation::STOP;
+
+            // TODO: could make this dependent on a flag to avoid posting the
+            // event all the times
+            if (actuator->lastState != SchmittTrigger::Activation::STOP)
+                EventBroker::getInstance().post(PRF_SERVO_STOPPED, TOPIC_DPL);
             break;
         }
     }
