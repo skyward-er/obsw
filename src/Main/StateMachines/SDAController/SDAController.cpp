@@ -117,13 +117,10 @@ void SDAController::update()
         {
             // Throw events only in ACTIVE
             EventBroker::getInstance().post(SDA_SHUTDOWN_DETECTED, TOPIC_SDA);
-            getModule<StatsRecorder>()->
         }
 
-        SDALogsWrapper logData{sda.getSDA_Logs_OBSW()};
-        logData.Timestamp = TimestampTimer::getTimestamp();
-
-        sdLogger.log(logData);
+        sdLogger.log(SDALogsWrapper{sda.getSDA_Logs_OBSW(),
+                                    TimestampTimer::getTimestamp()});
     }
 }
 
