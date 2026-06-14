@@ -117,7 +117,6 @@ NASDAQState NASController::getNASDAQState()
 
 void NASController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 {
-    Lock<FastMutex> l(nasMutex);
     calibrate(ref);
 }
 
@@ -131,6 +130,7 @@ void NASController::updateANAS()
 
         auto ref          = getModule<AlgoReference>()->getReferenceValues();
         auto imu          = sensors->getIMULastSample();
+        auto mag          = sensors->getCalibratedLIS2MDLRcsLastSample();
         auto gps          = sensors->getUBXGPSLastSample();
         auto baro         = sensors->getAtmosPressureLastSample();
         auto staticPitot  = sensors->getCanPitotStaticPressure();
@@ -152,22 +152,24 @@ void NASController::updateANAS()
                            gps.velocityEast},
             .GPSHorizontalPrecision = gps.horizontalAcc,
             .GPSSpeedPrecision      = gps.speedAcc,
+            .GPSFix                 = gps.fix == 3,
             .GPSTimestamp           = gps.gpsTimestamp,
 
             .PitotMeasure   = {staticPitot.pressure, dynamicPitot.pressure},
             .PitotTimestamp = staticPitot.pressureTimestamp,
-            .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
-                               imu.magneticFieldZ},
-            .MagTimestamp   = {imu.magneticFieldTimestamp}};
+            .MagMeasure     = {mag.magneticFieldX, mag.magneticFieldY,
+                               mag.magneticFieldZ},
+            .MagTimestamp   = {mag.magneticFieldTimestamp}};
 
         anas.setANAS_In(inputs);
         anas.step();
 
-        ANASLogsData logs(TimestampTimer::getTimestamp(),
-                          anas.getANAS_OBSW_Logs());
+        auto timestamp = TimestampTimer::getTimestamp();
 
-        getModule<StatsRecorder>()->updateANAS(getANASState());
-        sdLogger.log(getANASState());
+        ANASLogsData logs(timestamp, anas.getANAS_Logs_OBSW());
+        ANASState state{timestamp, anas.getANAS_Out()};
+
+        getModule<StatsRecorder>()->updateANAS(state);
         sdLogger.log(logs);
     }
 }
@@ -214,7 +216,6 @@ void NASController::updateNASDAQ()
                                nasdaq.getNASDAQ_Logs_OBSW());
 
         getModule<StatsRecorder>()->updateNASDAQ(getNASDAQState());
-        sdLogger.log(getNASDAQState());
         sdLogger.log(logs);
     }
 }
@@ -229,10 +230,11 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
     // First sample and average the data over a number of samples
     for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
     {
-        IMUData imu = sensors->getIMULastSample();
+        auto imuData = sensors->getIMULastSample();
+        auto magData = sensors->getCalibratedLIS2MDLRcsLastSample();
 
-        Vector3f acc = static_cast<AccelerometerData>(imu);
-        Vector3f mag = static_cast<MagnetometerData>(imu);
+        Vector3f acc = static_cast<AccelerometerData>(imuData);
+        Vector3f mag = static_cast<MagnetometerData>(magData);
 
         accAcc += acc;
         magAcc += mag;
@@ -257,7 +259,7 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
         .InitialQuaternion = {quat[0], quat[1], quat[2], quat[3]}};
 
     Lock<FastMutex> lock{nasMutex};
-    anas.setANAS_Reference_In(anasRef);
+    anas.setANAS_Reference(anasRef);
 
     // NASDAQ setup
     NASDAQReference nasdaqRef = {.GroundTemperature = ref.refTemperature,

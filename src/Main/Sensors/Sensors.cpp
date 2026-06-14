@@ -90,6 +90,8 @@ bool Sensors::start()
         nd015a1Init();
         nd015a2Init();
     }
+    if (Config::Sensors::AS5047D_ABK::ENABLED)
+        as5047dABKInit();
 
     if (Config::Sensors::AS5047D_ABK::ENABLED)
         as5047dABKInit();

@@ -881,6 +881,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             FlightModeManager* fmm = getModule<FlightModeManager>();
 
             auto imu          = sensors->getIMULastSample();
+            auto mag          = sensors->getCalibratedLIS2MDLRcsLastSample();
             auto gps          = sensors->getUBXGPSLastSample();
             auto temperature  = sensors->getTemperatureLastSample();
             auto pressDigi    = sensors->getAtmosPressureLastSample();
@@ -909,9 +910,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.gyro_y = imu.angularSpeedY;
             tm.gyro_z = imu.angularSpeedZ;
 
-            tm.mag_x = imu.magneticFieldX;
-            tm.mag_y = imu.magneticFieldY;
-            tm.mag_z = imu.magneticFieldZ;
+            tm.mag_x = mag.magneticFieldX;
+            tm.mag_y = mag.magneticFieldY;
+            tm.mag_z = mag.magneticFieldZ;
 
             tm.gps_fix = gps.fix;
             tm.gps_lat = gps.latitude;
