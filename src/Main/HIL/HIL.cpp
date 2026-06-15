@@ -338,11 +338,14 @@ ActuatorData MainHIL::updateActuatorData()
 
     AirBrakesStateHIL abkStateHIL{getModule<ABKController>()->getState()};
 
-    auto motor = getModule<Common::MotorStatus>()->lockData();
+    FMMStateHIL fmmStateHIL{getModule<FlightModeManager>()->getState()};
 
+    auto motor = getModule<Common::MotorStatus>()->lockData();
+ 
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
         actuators->getServoPosition(ServosList::EXPULSION_SERVO),
+        // TODO: CHECK WHICH TO MODIFY
         (motor->mainValveOpen ? 1.f : 0.f),
         (motor->oxVentingValveOpen ? 1.f : 0.f),
         static_cast<float>(miosix::gpios::mainDeploy::value())};
@@ -351,7 +354,7 @@ ActuatorData MainHIL::updateActuatorData()
 
     // Returning the feedback for the simulator
     return ActuatorData{adaStateHIL, anasStateHIL, nasdaqStateHIL,
-                        sdaStateHIL, abkStateHIL,  actuatorsStateHIL,
+                        sdaStateHIL, abkStateHIL,  actuatorsStateHIL, fmmStateHIL,
                         counter};
 }
 

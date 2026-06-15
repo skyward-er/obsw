@@ -75,6 +75,7 @@ enum class HILSignal : int
     SIMULATION_FORCE_LAUNCH     = 5  // unused
 };
 
+// TODO: UPDATE PHASES FOR ACK NACK AND UPDATE FOR HYDRA
 enum class MainFlightPhases
 {
     SIM_FLYING,
@@ -215,15 +216,14 @@ struct NASDAQStateHIL
 /**
  * @brief SDA data sent to the simulator
  */
-struct SDAStateHIL
+struct __attribute__((packed)) SDAStateHIL
 {
     bool shutdownCommand = 0;
 
     SDAStateHIL() : shutdownCommand(0) {};
 
     // Vedi se aggiungere una struct in SDA con solo lo shutdown command
-    SDAStateHIL(const bool command)
-        : shutdownCommand(command) {};
+    SDAStateHIL(const bool command) : shutdownCommand(command) {};
 
     void print() { printf("shutdownCommand: %d\n", shutdownCommand); }
 };
@@ -250,6 +250,8 @@ struct AirBrakesStateHIL
  */
 struct ActuatorsStateHIL
 {
+
+    // TODO: Check which Actuators to keep for Hydra.
     float airbrakesPercentage    = 0;
     float expulsionPercentage    = 0;
     float mainValvePercentage    = 0;
@@ -294,6 +296,8 @@ struct ActuatorsStateHIL
  * This structure then is accessed by sensors and other components in order to
  * get the data they need
  */
+
+ // TODO: Create a new Packet for the engine settings
 struct SimulatorData
 {
     MainAccelerometerSimulatorData accelerometer1, accelerometer2;
@@ -308,9 +312,27 @@ struct SimulatorData
 };
 
 /**
+ *  @brief Flight Mode Manager State expected by the simulator
+ */
+struct __attribute__((packed)) FMMStateHIL
+{
+    uint8_t state = 0;
+
+    FMMStateHIL() : state(0) {};
+
+    FMMStateHIL(const Main::FlightModeManagerState& state)
+        : state(static_cast<uint8_t>(state)) {};
+
+    // Make it better maybe with a LUT for printing the name of the state
+    void print() {
+        printf("%d\n", state);
+    }
+};
+
+/**
  * @brief Data structure expected by the simulator
  */
-struct ActuatorData
+struct __attribute__((packed)) ActuatorData
 {
     ADAStateHIL adaState;
     ANASStateHIL anasState;
@@ -318,12 +340,13 @@ struct ActuatorData
     SDAStateHIL sdaState;
     AirBrakesStateHIL airBrakesState;
     ActuatorsStateHIL actuatorsState;
+    FMMStateHIL fmmState;
     float sequenceNumber;  //< Counter used to see the sequence of packets sent
                            // to the
                            // simulator
 
     ActuatorData()
-        : adaState(), anasState(), nasdaqState(), sdaState(), airBrakesState(),
+        : adaState(), anasState(), nasdaqState(), sdaState(), airBrakesState(), fmmState(), 
           actuatorsState(), sequenceNumber(0.0f)
     {
     }
@@ -332,10 +355,11 @@ struct ActuatorData
                  const NASDAQStateHIL& nasdaqState, const SDAStateHIL& sdaState,
                  const AirBrakesStateHIL& airBrakesState,
                  const ActuatorsStateHIL& actuatorsState,
+                 const FMMStateHIL& fmmState,
                  const float sequenceNumber)
         : adaState(adaState), anasState(anasState), nasdaqState(nasdaqState),
           airBrakesState(airBrakesState), sdaState(sdaState),
-          actuatorsState(actuatorsState), sequenceNumber(sequenceNumber)
+          actuatorsState(actuatorsState), fmmState(fmmState),sequenceNumber(sequenceNumber)
     {
     }
 
@@ -347,6 +371,7 @@ struct ActuatorData
         sdaState.print();
         airBrakesState.print();
         actuatorsState.print();
+        fmmState.print();
     }
 };
 
