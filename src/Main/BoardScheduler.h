@@ -78,6 +78,8 @@ public:
 
     Boardcore::TaskScheduler& getAbkScheduler() { return nas; }
 
+    Boardcore::TaskScheduler& getWingScheduler() { return nas; }
+
     Boardcore::TaskScheduler& getAdaScheduler() { return ada; }
 
     Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }

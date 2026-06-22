@@ -23,6 +23,9 @@
 #pragma once
 
 #include <Main/Configs/WingConfig.h>
+#include <Main/StatsRecorder/StatsRecorder.h>
+#include <algorithms/WingController/WingControllerData.h>
+#include <algorithms/WingController/wingController.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -40,20 +43,18 @@
  * depending on the selected algorithm.
  */
 
-namespace Parafoil
+namespace Main
 {
 class BoardScheduler;
 class Actuators;
 class NASController;
-class FlightStatsRecorder;
 class Sensors;
 class LandingFlare;
 
 class WingController
     : public Boardcore::HSM<WingController>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, FlightStatsRecorder,
-                                           Sensors>
+      public Boardcore::InjectableWithDeps<
+          BoardScheduler, Actuators, NASController, StatsRecorder, Sensors>
 {
 private:
     enum class FlareType
@@ -65,29 +66,16 @@ private:
 public:
     /**
      * @brief Initializes the wing controller.
-     *
-     * Sets the initial FSM state to idle, subscribes to DPL and flight events
-     * and instantiates the wing algorithms.
      */
     WingController();
 
-    /**
-     * @brief Destroy the Wing Controller object.
-     */
     ~WingController();
 
-    // HSM states
-    Boardcore::State Idle(const Boardcore::Event& event);
-    Boardcore::State Flying(const Boardcore::Event& event);
-    Boardcore::State FlyingDeployment(const Boardcore::Event& event);
-    Boardcore::State FlyingControlledDescent(const Boardcore::Event& event);
-    Boardcore::State OnGround(const Boardcore::Event& event);
-
-    /**
-     * @brief Override the inject method to inject dependencies into the
-     * algorithms, which are instantiated later than top-level modules.
-     */
-    void inject(Boardcore::DependencyInjector& injector) override;
+    // /**
+    //  * @brief Override the inject method to inject dependencies into the
+    //  * algorithms, which are instantiated later than top-level modules.
+    //  */
+    // void inject(Boardcore::DependencyInjector& injector) override;
 
     bool start() override;
 
@@ -106,94 +94,16 @@ public:
      */
     bool setTargetCoordinates(float latitude, float longitude);
 
-    /**
-     * @brief Returns the selected algorithm.
-     */
-    uint8_t getSelectedAlgorithm();
-
-    /**
-     * @brief Changes the selected algorithm.
-     * @return Whether the provided index selected a valid algorithm.
-     */
-    bool selectAlgorithm(uint8_t index);
-
-    /**
-     * @brief Returns the currently set early maneuver points.
-     */
-    EarlyManeuversPoints getEarlyManeuverPoints();
-
-    /**
-     * @brief Returns the early maneuver active target.
-     */
-    Eigen::Vector2f getActiveTarget();
-
-    /**
-     * @brief This is a forward method to the early maneuvers guidance algorithm
-     * to calculate the yaw angle of the parafoil knowing the current position
-     * and the target position.
-     *
-     * @param[in] currentPositionNED the current NED position of the parafoil in
-     * m
-     * @param[in] targetPositionNED NED position of the target in m
-     * @param[out] heading Saves the heading vector for logging purposes
-     *
-     * @returns the yaw angle of the parafoil in rad
-     */
-    Radian calculateTargetAngle(const Eigen::Vector3f& currentPositionNED,
-                                Eigen::Vector2f& heading)
-    {
-        return emGuidance.calculateTargetAngle(currentPositionNED, heading);
-    }
-
-    /**
-     * @brief Calling this method will calculate and update the current target
-     * position based on a offset from the current position.
-     * @param latitudeOffset The latitude offset in meters
-     * @param longitudeOffset The longitude offset in meters
-     */
-    void initDynamicTarget(float latitudeOffset, float longitudeOffset);
-
 private:
-    /**
-     * @brief Loads all algorithms.
-     *
-     * @note Algorithms should be instantiated before dependency injection so
-     * that they can be injected with dependencies when the WingController is
-     * injected.
-     */
-    void loadAlgorithms();
-
-    /**
-     * @brief Returns the currently selected algorithm.
-     */
-    WingAlgorithm& getCurrentAlgorithm();
-
-    /**
-     * @brief Starts the currently selected algorithm. If the algorithm is
-     * already running, it resets the algorithm.
-     */
-    void startAlgorithm();
-
-    /**
-     * @brief Stops the currently selected algorithm.
-     */
-    void stopAlgorithm();
-
-    /**
-     * @brief Pauses the currently selected algorithm.
-     */
-    void pauseAlgorithm();
-
-    /**
-     * @brief Resumes the currently selected algorithm.
-     */
-    void resumeAlgorithm();
-
-    /**
-     * @brief Update early maneuver guidance points (EMC, M1, M2) based on the
-     * current position and the target position.
-     */
-    void updateEarlyManeuverPoints();
+    // HSM states
+    Boardcore::State state_init(const Boardcore::Event& event);
+    Boardcore::State state_ready(const Boardcore::Event& event);
+    Boardcore::State state_deployment(const Boardcore::Event& event);
+    Boardcore::State state_opening_pumps_pull(const Boardcore::Event& event);
+    Boardcore::State state_opening_pumps_release(const Boardcore::Event& event);
+    Boardcore::State state_guided_descent(const Boardcore::Event& event);
+    Boardcore::State state_landing_flare(const Boardcore::Event& event);
+    Boardcore::State state_landed(const Boardcore::Event& event);
 
     /**
      * @brief Periodic update method that steps the currently selected
@@ -208,33 +118,11 @@ private:
     void flareWing(WingController::FlareType type);
 
     /**
-     * @brief Pulls the two ropes a little bit
-     */
-    void tinyPull();
-
-    /**
      * @brief Reset the wing to the initial position.
      */
     void resetWing();
 
-    void updateState(WingControllerState newState);
-
-    /**
-     * @brief Sets the reference point for the two servos
-     */
-    void setWingServoZero();
-
-    /**
-     * @brief Checks if either one of the servos are moving
-     */
-    inline bool servosAreMoving();
-
-    /**
-     * @brief waits for servos to stop
-     */
-    inline void waitForServosToStop();
-
-    void setWingLimits();
+    void updateAndLogStatus(WingControllerState newState);
 
     struct Coordinates
     {
@@ -249,46 +137,27 @@ private:
         .longitude = Config::Wing::Default::TARGET_LON,
     }};
 
-    std::atomic<Config::Wing::AlgorithmId> selectedAlgorithm{
-        Config::Wing::Default::ALGORITHM};
-
-    std::atomic<WingControllerState> state{WingControllerState::IDLE};
-
-    std::array<std::unique_ptr<WingAlgorithm>,
-               static_cast<size_t>(Config::Wing::AlgorithmId::LAST)>
-        algorithms;  ///< The available algorithms
-
-    /**
-     * @brief Instance of the Early Maneuver Guidance Algorithm used by
-     * AutomaticWingAlgorithm
-     */
-    EarlyManeuversGuidanceAlgorithm emGuidance;
-
-    /**
-     * @brief Instance of the Closed Loop Guidance Algorithm used by
-     * AutomaticWingAlgorithm
-     */
-    ClosedLoopGuidanceAlgorithm clGuidance;
+    std::atomic<WingControllerState> state{WingControllerState::INIT};
 
     uint16_t pumpCount = 0;
 
-    std::initializer_list<Meter>::const_iterator tinyPullThresholdsIt;
+    // std::initializer_list<Meter>::const_iterator tinyPullThresholdsIt;
 
-    uint16_t calibrationTimeoutEventId = 0;
-    uint16_t cuttersOffEventId         = 0;
-    uint16_t dplFlareTimeoutEventId    = 0;
-    uint16_t ctrlFlareTimeoutEventId   = 0;
-    uint16_t resetTimeoutEventId       = 0;
+    // uint16_t calibrationTimeoutEventId = 0;
+    // uint16_t cuttersOffEventId         = 0;
+    uint16_t dplPumpsTimeoutEventId = 0;
+    // uint16_t ctrlFlareTimeoutEventId   = 0;
+    // uint16_t resetTimeoutEventId       = 0;
 
-    Radian servo1ZeroAngle = 0.0_rad;
-    Radian servo2ZeroAngle = 0.0_rad;
     std::atomic<bool> servosStarted{false};
 
     std::atomic<bool> started{false};
-    std::atomic<bool> running{false};  ///< Whether the algorithm is running
 
+    wingController wing;
+
+    Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("WingController");
 };
 
-}  // namespace Parafoil
+}  // namespace Main

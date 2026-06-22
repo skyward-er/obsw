@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Federico Mandelli, Niccolò Betto
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,22 +27,25 @@
 #include <reflect.hpp>
 #include <string>
 
-namespace Payload
+namespace Main
 {
 
-// TODO: check if this class was the result of a refactoring og the other branch
 enum class WingControllerState : uint8_t
 {
-    IDLE = 0,
-    FLYING_DEPLOYMENT,
-    FLYING_CONTROLLED_DESCENT,
-    ON_GROUND,
+    INIT = 0,
+    READY,
+    DEPLOYMENT,
+    OPENING_PUMPS_PULL,
+    OPENING_PUMPS_RELEASE,
+    GUIDED_DESCENT,
+    LANDING_FLARE,
+    LANDED,
 };
 
 struct WingControllerStatus
 {
     uint64_t timestamp        = 0;
-    WingControllerState state = WingControllerState::IDLE;
+    WingControllerState state = WingControllerState::INIT;
 
     static constexpr auto reflect()
     {
@@ -51,16 +54,18 @@ struct WingControllerStatus
     }
 };
 
-struct WingControllerAlgorithmData
+struct FlareCommandData
 {
     uint64_t timestamp = 0;
-    uint8_t algorithm  = 0;
+    float angleLeft    = 0;
+    float angleRight   = 0;
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(WingControllerAlgorithmData,
-                          FIELD_DEF(timestamp) FIELD_DEF(algorithm));
+        return STRUCT_DEF(FlareCommandData,
+                          FIELD_DEF(timestamp) FIELD_DEF(angleLeft)
+                              FIELD_DEF(angleRight));
     }
 };
 
-}  // namespace Payload
+}  // namespace Main

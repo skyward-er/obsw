@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <units/Angle.h>
 #include <units/Frequency.h>
 #include <utils/Constants.h>
 
@@ -37,9 +38,11 @@ namespace Wing
 
 /* linter off */ using namespace std::chrono_literals;
 /* linter off */ using namespace Boardcore::Units::Frequency;
+/* linter off */ using namespace Boardcore::Units::Angle;
 
 constexpr auto UPDATE_RATE        = 1_hz;
 constexpr auto TARGET_UPDATE_RATE = 10_hz;
+constexpr auto CUTTERS_TIMEOUT    = 1s;
 
 namespace Default
 {
@@ -53,23 +56,25 @@ constexpr auto TARGET_LON = 14.057047761535994f;
 constexpr auto TARGET_LAT = 45.5014089f;
 constexpr auto TARGET_LON = 9.1543615f;
 #endif
-
+}  // namespace Default
 namespace Deployment
 {
 
-constexpr auto PUMP_DELAY = 5s;
+constexpr auto PUMP_DELAY       = 4s;
+constexpr auto PUMP_ANGLE_LEFT  = 720_deg;
+constexpr auto PUMP_ANGLE_RIGHT = 720_deg;
 
 struct Pump
 {
-    std::chrono::milliseconds flareTime;
+    std::chrono::milliseconds pumpTime;
     std::chrono::milliseconds resetTime;
 };
 
 // Pumps are ordered from the first to activate to the last
 constexpr std::array<Pump, 3> PUMPS = {
-    Pump{.flareTime = 1s, .resetTime = 500ms},
-    Pump{.flareTime = 2s, .resetTime = 1s},
-    Pump{.flareTime = 2s, .resetTime = 1s},
+    Pump{.pumpTime = 1s, .resetTime = 500ms},
+    Pump{.pumpTime = 2s, .resetTime = 1s},
+    Pump{.pumpTime = 2s, .resetTime = 1s},
 };
 
 }  // namespace Deployment
@@ -88,8 +93,6 @@ constexpr auto DURATION    = 5s;
 
 constexpr auto ROTATION_PERIOD = 10s;  ///< Period of the rotation maneuver
 
-}  // namespace Wing
-
 namespace AltitudeTrigger
 {
 
@@ -101,5 +104,6 @@ constexpr auto UPDATE_RATE         = 10_hz;
 
 }  // namespace AltitudeTrigger
 
+}  // namespace Wing
 }  // namespace Config
 }  // namespace Main

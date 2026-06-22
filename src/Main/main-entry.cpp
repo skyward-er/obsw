@@ -38,6 +38,7 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/SDAController/SDAController.h>
+#include <Main/StateMachines/WingController/WingController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -79,6 +80,7 @@ int main()
     auto nas         = new NASController();
     auto abk         = new ABKController();
     auto sda         = new SDAController();
+    auto wing        = new WingController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
     // MainHIL* hil     = nullptr;
@@ -125,6 +127,7 @@ int main()
                   manager.insert<NASController>(nas) &&
                   manager.insert<ABKController>(abk) &&
                   manager.insert<SDAController>(sda) &&
+                  manager.insert<WingController>(wing) &&
                   manager.insert<StatsRecorder>(recorder) &&
                   manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
@@ -247,6 +250,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start SDAController ***" << std::endl;
+    }
+
+    std::cout << "Starting WingController" << std::endl;
+    if (!wing->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start WingController ***" << std::endl;
     }
 
     std::cout << "Starting FlightModeManager" << std::endl;
