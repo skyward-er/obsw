@@ -920,7 +920,10 @@ void Sensors::as5047dABKCallback()
  * Sets the ascent phase for double LSM6DSRX sensor management
  * @param usingHighGsIMU True if the rocket is in ascent phase, false otherwise.
  */
-void Sensors::setUsingHGsIMU(bool usingHighGsIMU) { isUsingHighGsIMU = usingHighGsIMU; }
+void Sensors::setUsingHGsIMU(bool usingHighGsIMU)
+{
+    isUsingHighGsIMU = usingHighGsIMU;
+}
 
 void Sensors::rotatedImuInit()
 {

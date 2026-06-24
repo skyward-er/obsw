@@ -668,8 +668,8 @@ State FlightModeManager::state_powered_ascent(const Event& event)
                 FMM_APOGEE_TIMEOUT, TOPIC_FMM,
                 milliseconds{apogeeDelay}.count());
 
-            // notify the sensors module that we are in powered ascent phase for double
-            // LSM6DSRX IMU management
+            // notify the sensors module that we are in powered ascent phase for
+            // double LSM6DSRX IMU management
             getModule<Sensors>()->setUsingHGsIMU(true);
 
             return HANDLED;
@@ -680,7 +680,8 @@ State FlightModeManager::state_powered_ascent(const Event& event)
                 EventBroker::getInstance().removeDelayed(engineShutdownEvent);
             engineShutdownEvent = -1;
 
-            // notify the sensors module that we are no longer in powered ascent phase [IMU]
+            // notify the sensors module that we are no longer in powered ascent
+            // phase [IMU]
             getModule<Sensors>()->setUsingHGsIMU(false);
 
             return HANDLED;

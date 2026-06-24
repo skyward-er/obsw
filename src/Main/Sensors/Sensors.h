@@ -113,7 +113,8 @@ public:
 
     /**
      * Sets the ascent phase for double LSM6DSRX sensor management
-     * @param usingHighGsIMU True if the rocket is using the high Gs IMU [ascent phase], false otherwise.
+     * @param usingHighGsIMU True if the rocket is using the high Gs IMU [ascent
+     * phase], false otherwise.
      */
     void setUsingHGsIMU(bool usingHighGsIMU);
 
