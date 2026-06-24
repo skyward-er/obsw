@@ -1227,7 +1227,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
         {
             mavlink_message_t msg;
 
-            auto sample = getModule<Sensors>()->getLIS2MDLIntLastSample();
+            auto sample = getModule<Sensors>()->getLIS2MDLRcsLastSample();
 
             mavlink_imu_tm_t tm1;
             tm1.acc_x     = -1.0f;
@@ -1433,109 +1433,6 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
-            /*         case MAV_DPL_PRESS_ID:
-                    {
-                        mavlink_message_t msg;
-
-                        auto sample =
-               getModule<Sensors>()->getDplBayPressureLastSample();
-
-                        mavlink_pressure_tm_t tm;
-                        tm.pressure  = sample.pressure;
-                        tm.timestamp = sample.pressureTimestamp;
-                        strcpy(tm.sensor_name, "DplBayPressure");
-
-                        mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                                       Config::Radio::MAV_COMPONENT_ID,
-                                                       &msg, &tm);
-                        enqueuePacket(msg);
-
-                        return true;
-                    } */
-
-        /* case MAV_TANK_TOP_PRESS_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_pressure_tm_t tm;
-
-            {
-                auto motor   = getModule<MotorStatus>()->lockData();
-                auto sample  = motor->oxTankTopPressure;
-                tm.pressure  = sample.pressure;
-                tm.timestamp = sample.pressureTimestamp;
-            }
-            strcpy(tm.sensor_name, "TopTankPressure");
-
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueuePacket(msg);
-
-            return true;
-        }
-
-        case MAV_TANK_BOTTOM_PRESS_ID:
-        {
-            PressureData bottom0;
-            PressureData bottom1;
-
-            {
-                auto motor = getModule<MotorStatus>()->lockData();
-                bottom0    = motor->oxTankBottom0Pressure;
-                bottom1    = motor->oxTankBottom1Pressure;
-            }
-
-            {
-                mavlink_message_t msg;
-                mavlink_pressure_tm_t tm;
-
-                tm.pressure  = bottom0.pressure;
-                tm.timestamp = bottom0.pressureTimestamp;
-                strcpy(tm.sensor_name, "TankBottom0Pressure");
-
-                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                               Config::Radio::MAV_COMPONENT_ID,
-                                               &msg, &tm);
-                enqueuePacket(msg);
-            }
-            {
-                mavlink_message_t msg;
-                mavlink_pressure_tm_t tm;
-
-                tm.pressure  = bottom1.pressure;
-                tm.timestamp = bottom1.pressureTimestamp;
-                strcpy(tm.sensor_name, "TankBottom1Pressure");
-
-                mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                               Config::Radio::MAV_COMPONENT_ID,
-                                               &msg, &tm);
-                enqueuePacket(msg);
-            }
-
-            return true;
-        }
-
-        case MAV_COMBUSTION_PRESS_ID:
-        {
-            mavlink_message_t msg;
-            mavlink_pressure_tm_t tm;
-
-            {
-                auto motor   = getModule<MotorStatus>()->lockData();
-                auto sample  = motor->combustionChamberPressure;
-                tm.pressure  = sample.pressure;
-                tm.timestamp = sample.pressureTimestamp;
-            }
-            strcpy(tm.sensor_name, "CCPressure");
-
-            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
-                                           Config::Radio::MAV_COMPONENT_ID,
-                                           &msg, &tm);
-            enqueuePacket(msg);
-
-            return true;
-        }
- */
         default:
             return false;
     }
