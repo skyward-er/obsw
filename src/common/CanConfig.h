@@ -121,6 +121,8 @@ enum class EventId : uint8_t
     LIFTOFF,
     APOGEE_DETECTED,
     IGNITION,
+    CLOSE_ALL_VALVES,
+    WIGGLE_ALL_VALVES
 };
 
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
@@ -135,7 +137,10 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::EXIT_HIL_MODE, Common::CAN_EXIT_HIL_MODE},
     {Common::CanConfig::EventId::APOGEE_DETECTED, Common::CAN_APOGEE_DETECTED},
     {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
-};
+    {Common::CanConfig::EventId::CLOSE_ALL_VALVES,
+     Common::CAN_CLOSE_ALL_VALVES},
+    {Common::CanConfig::EventId::WIGGLE_ALL_VALVES,
+     Common::CAN_WIGGLE_ALL_VALVES}};
 
 }  // namespace CanConfig
 
@@ -165,6 +170,10 @@ inline Events canEventToEvent(uint8_t canEvent)
             return CAN_APOGEE_DETECTED;
         case (int)CanConfig::EventId::IGNITION:
             return CAN_IGNITION;
+        case (int)CanConfig::EventId::CLOSE_ALL_VALVES:
+            return CAN_CLOSE_ALL_VALVES;
+        case (int)CanConfig::EventId::WIGGLE_ALL_VALVES:
+            return CAN_WIGGLE_ALL_VALVES;
         default:
             return LAST_EVENT;
     }

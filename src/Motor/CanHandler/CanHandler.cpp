@@ -341,18 +341,36 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
     CanConfig::EventId event =
         static_cast<CanConfig::EventId>(msg.getSecondaryType());
 
-    if (event == Common::CanConfig::EventId::ENTER_HIL_MODE)
+    switch (event)
     {
-        PersistentVars::setHilMode(true);
-        miosix::reboot();
-    }
-    else if (event == Common::CanConfig::EventId::EXIT_HIL_MODE)
-    {
-        if (PersistentVars::getHilMode())
+        case Common::CanConfig::EventId::ENTER_HIL_MODE:
         {
-            PersistentVars::setHilMode(false);
+            PersistentVars::setHilMode(true);
             miosix::reboot();
+            break;
         }
+        case Common::CanConfig::EventId::EXIT_HIL_MODE:
+        {
+            if (PersistentVars::getHilMode())
+            {
+                PersistentVars::setHilMode(false);
+                miosix::reboot();
+            }
+            break;
+        }
+        case Common::CanConfig::EventId::WIGGLE_ALL_VALVES:
+        {
+            uint8_t wiggleResult =
+                getModule<ValveSequenceController>()->wiggleValves();
+            break;
+        }
+        case Common::CanConfig::EventId::CLOSE_ALL_VALVES:
+        {
+            getModule<ValveSequenceController>()->closeValves();
+            break;
+        }
+        default:
+            // Do something in the future?
     }
 
     // Log the event
