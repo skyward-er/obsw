@@ -257,34 +257,9 @@ void EregControllerFuel::state_firing(const Event& event)
     }
 }
 
-void EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
-                                         EregPIDConfig newDischargeConfig)
-{
-    this->pressurizationConfig.KP = newPressurizationConfig.KP;
-    this->pressurizationConfig.KI = newPressurizationConfig.KI;
-    this->pressurizationConfig.KD = newPressurizationConfig.KD;
-
-    this->dischargeConfig.KP = newDischargeConfig.KP;
-    this->dischargeConfig.KI = newDischargeConfig.KI;
-    this->dischargeConfig.KD = newDischargeConfig.KD;
-}
-
-void EregControllerFuel::changeTargetPressure(float newTargetPressure)
-{
-    this->targetPressure = newTargetPressure;
-}
-
-void EregControllerFuel::setIntegralContribution(float newPilotFlameIntegral,
-                                                 float newRampupIntegral)
-{
-    this->pilotFlameIntegral = newPilotFlameIntegral;
-    this->rampupIntegral     = newRampupIntegral;
-}
-
 void EregControllerFuel::updateAndLogStatus(EregState state)
 {
-    this->state = state;
-    // printf("changing to state: %s\n", to_string(state).c_str());
+    this->state        = state;
     ERegStateData data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }

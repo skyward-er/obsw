@@ -169,8 +169,7 @@ bool Actuators::setPrfServoAngle(ServosList servoId, Radian angle)
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
     auto capped_angle =
-        std::min(actuator->maxAngle,
-                 std::max(angle + actuator->minAngle, actuator->minAngle));
+        std::min(actuator->maxAngle, std::max(angle, actuator->minAngle));
 
     if (actuator->direction == Config::Actuators::ServoDirection::CCW)
         capped_angle *= -1;
