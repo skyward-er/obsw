@@ -113,9 +113,9 @@ public:
 
     /**
      * Sets the ascent phase for double LSM6DSRX sensor management
-     * @param isAscent True if the rocket is in ascent phase, false otherwise.
+     * @param usingHighGsIMU True if the rocket is using the high Gs IMU [ascent phase], false otherwise.
      */
-    void setAscentPhase(bool isAscent);
+    void setUsingHGsIMU(bool usingHighGsIMU);
 
     // Methods for CanHandler
     void setCanPitotTotalPressure(Boardcore::PressureData data);
@@ -209,7 +209,7 @@ private:
 
     bool sensorManagerInit();
 
-    bool ascentPhase = true;
+    bool isUsingHighGsIMU = false;
 
     std::mutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;

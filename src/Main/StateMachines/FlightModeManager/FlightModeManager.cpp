@@ -668,6 +668,10 @@ State FlightModeManager::state_powered_ascent(const Event& event)
                 FMM_APOGEE_TIMEOUT, TOPIC_FMM,
                 milliseconds{apogeeDelay}.count());
 
+            // notify the sensors module that we are in powered ascent phase for double
+            // LSM6DSRX IMU management
+            getModule<Sensors>()->setUsingHGsIMU(true);
+
             return HANDLED;
         }
         case EV_EXIT:
@@ -675,6 +679,9 @@ State FlightModeManager::state_powered_ascent(const Event& event)
             if (engineShutdownEvent >= 0)
                 EventBroker::getInstance().removeDelayed(engineShutdownEvent);
             engineShutdownEvent = -1;
+
+            // notify the sensors module that we are no longer in powered ascent phase [IMU]
+            getModule<Sensors>()->setUsingHGsIMU(false);
 
             return HANDLED;
         }
@@ -779,10 +786,6 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             getModule<Radio>()->disableAscentTelemetry();
             getModule<Radio>()->enableDescentTelemetry();
-
-            // notify the sensors module that we are in descent phase for double
-            // LSM6DSRX management
-            getModule<Sensors>()->setAscentPhase(false);
 
             return HANDLED;
         }
