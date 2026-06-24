@@ -31,7 +31,6 @@
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
-#include <Motor/StateMachines/MEAController/MEAController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
@@ -84,9 +83,7 @@ int main()
     auto canHandler        = new CanHandler();
     auto eregOx            = new EregControllerOx();
     auto eregFuel          = new EregControllerFuel();
-    auto mea               = new MEAController();
     auto registry          = new Registry();
-    auto mainStatus        = new MainStatus();
     auto firingSequenceHSM = new FiringSequenceHSM();
 
     auto& sdLogger = Logger::getInstance();
@@ -108,13 +105,12 @@ int main()
                   manager.insert<BoardScheduler>(scheduler) &&
                   manager.insert<Registry>(registry) &&
                   manager.insert<Sensors>(sensors) &&
-                  manager.insert<MainStatus>(mainStatus) &&
                   manager.insert<Actuators>(actuators) &&
                   manager.insert<CanHandler>(canHandler) &&
                   manager.insert<EregControllerOx>(eregOx) &&
                   manager.insert<EregControllerFuel>(eregFuel) &&
                   manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
-                  manager.insert<MEAController>(mea) && manager.inject();
+                  manager.inject();
 
     if (!initResult)
     {
@@ -235,13 +231,6 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
-    }
-
-    std::cout << "Starting MEA" << std::endl;
-    if (!mea->start())
-    {
-        initResult = false;
-        std::cerr << "*** Failed to start MEA ***" << std::endl;
     }
 
     std::cout << "Starting Sensors" << std::endl;

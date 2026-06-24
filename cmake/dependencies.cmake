@@ -53,7 +53,6 @@ set(GROUNDSTATION_COMMON
 )
 
 set(MOTOR_SOURCES
-    src/common/canbus/MainStatus.cpp
     src/Motor/PersistentVars/PersistentVars.cpp
     #src/Motor/HIL/HIL.cpp
     src/Motor/Actuators/Actuators.cpp
@@ -61,7 +60,6 @@ set(MOTOR_SOURCES
     src/Motor/CanHandler/CanHandler.cpp
     src/Motor/StateMachines/EregController/EregControllerOx.cpp
     src/Motor/StateMachines/EregController/EregControllerFuel.cpp
-    src/Motor/StateMachines/MEAController/MEAController.cpp
     src/Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.cpp
     src/Motor/Registry/Registry.cpp
 

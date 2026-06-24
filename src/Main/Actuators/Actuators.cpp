@@ -89,8 +89,10 @@ bool Actuators::start()
     leftServo.servoTrigger->begin();
     rightServo.servoTrigger->begin();
 
-    leftServo.servo->setVelocity(0.5);
-    rightServo.servo->setVelocity(0.5);
+    leftServo.servo->setVelocity(
+        Config::Actuators::PrfServo::STOP_THRESHOLD_VELOCITY);
+    rightServo.servo->setVelocity(
+        Config::Actuators::PrfServo::STOP_THRESHOLD_VELOCITY);
 
     TaskScheduler& scheduler =
         getModule<BoardScheduler>()->getLowPriorityActuatorsScheduler();

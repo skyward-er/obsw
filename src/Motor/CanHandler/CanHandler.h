@@ -27,7 +27,6 @@
 #include <Motor/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
-#include <common/canbus/MainStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -39,8 +38,7 @@ namespace Motor
 class Actuators;
 
 class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
-                                           Common::MainStatus>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>
 {
 public:
     struct CanStatus

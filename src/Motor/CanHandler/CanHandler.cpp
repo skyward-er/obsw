@@ -274,11 +274,6 @@ void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
     auto source = static_cast<CanConfig::Board>(msg.getSource());
-    if (source == CanConfig::Board::MAIN)
-    {
-        getModule<Common::MainStatus>()->handleCanMessage(msg);
-        return;
-    }
 
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
