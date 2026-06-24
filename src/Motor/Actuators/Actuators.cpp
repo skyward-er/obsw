@@ -313,12 +313,7 @@ bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
 
 void Actuators::closeAllValves()
 {
-    Lock<FastMutex> lock(infosMutex);
-    for (auto& valve : valveInfos)
-        valve.closeValve();
-
-    for (auto& valve : manualValveInfos)
-        valve.closeValve();
+    EventBroker::getInstance().post(CLOSE_ALL_VALVES, TOPIC_VALVE_SEQUENCE);
     signalTask();
 }
 
@@ -491,13 +486,13 @@ Actuators::ManualValveInfo* Actuators::getManualValve(ServosList servo)
 {
     switch (servo)
     {
-        case MAIN_OX_VALVE:
-            return &manualValveInfos[0];
-        case MAIN_FUEL_VALVE:
-            return &manualValveInfos[1];
         case PRZ_OX_VALVE:
-            return &manualValveInfos[2];
+            return &manualValveInfos[0];
         case PRZ_FUEL_VALVE:
+            return &manualValveInfos[1];
+        case MAIN_OX_VALVE:
+            return &manualValveInfos[2];
+        case MAIN_FUEL_VALVE:
             return &manualValveInfos[3];
 
         default:

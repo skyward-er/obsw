@@ -22,9 +22,7 @@
 
 #pragma once
 
-#include <Motor/BoardScheduler.h>
 #include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
@@ -40,11 +38,15 @@ class FiringSequenceHSM;
 class MEAController;
 class EregControllerOx;
 class EregControllerFuel;
+class Sensors;
+class ValveSequenceController;
+class FiringSequenceHSM;
+class BoardScheduler;
 
 class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
-                                           MEAController, FiringSequenceHSM,
-                                           EregControllerOx, EregControllerFuel>
+    : public Boardcore::InjectableWithDeps<
+          BoardScheduler, Sensors, Actuators, MEAController, FiringSequenceHSM,
+          EregControllerOx, EregControllerFuel, ValveSequenceController>
 {
 public:
     struct CanStatus

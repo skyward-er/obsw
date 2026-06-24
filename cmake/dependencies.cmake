@@ -57,6 +57,7 @@ set(MOTOR_SOURCES
     src/Motor/PersistentVars/PersistentVars.cpp
     src/Motor/HIL/HIL.cpp
     src/Motor/Actuators/Actuators.cpp
+    src/Motor/Actuators/ValveSequenceController.cpp
     src/Motor/Sensors/Sensors.cpp
     src/Motor/CanHandler/CanHandler.cpp
     src/Motor/StateMachines/MEAController/MEAController.cpp
@@ -64,8 +65,6 @@ set(MOTOR_SOURCES
     src/Motor/StateMachines/EregController/EregControllerFuel.cpp
     src/Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.cpp
     src/Motor/Registry/Registry.cpp
-
-
 )
 
 set(RIG_V2_COMPUTER
@@ -85,6 +84,7 @@ set(RIG_V3_COMPUTER
     src/RIGv3/Radio/Radio.cpp
     src/RIGv3/Sensors/Sensors.cpp
     src/RIGv3/Actuators/Actuators.cpp
+    src/RIGv3/Actuators/ValveSequenceController.cpp
     src/RIGv3/Registry/Registry.cpp
     src/RIGv3/CanHandler/CanHandler.cpp
     src/RIGv3/StateMachines/GroundModeManager/GroundModeManager.cpp

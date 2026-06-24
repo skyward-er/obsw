@@ -56,21 +56,13 @@ constexpr auto REGULATOR_OUT_OX_PT_CHANNEL   = Channel::CHANNEL_5;
 constexpr auto IGNITER_CC_PT_CHANNEL         = Channel::CHANNEL_6;
 // constexpr auto EXTRA_PT                      = Channel::CHANNEL_7;
 
-constexpr uint32_t MAIN_CC_REG_KEY      = 0;
-constexpr uint32_t FUEL_TANK_REG_KEY    = 0;
-constexpr uint32_t PRZ_TANK_REG_KEY     = 0;
-constexpr uint32_t OX_TANK_REG_KEY      = 0;
-constexpr uint32_t FUEL_REG_OUT_REG_KEY = 0;
-constexpr uint32_t OX_REG_OUT_REG_KEY   = 0;
-constexpr uint32_t IGN_CC_REG_KEY       = 0;
-
-constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
-constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
-constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
-constexpr float CH3_SHUNT_RESISTANCE = 29.645f;
-constexpr float CH4_SHUNT_RESISTANCE = 29.708f;
-constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
-constexpr float CH6_SHUNT_RESISTANCE = 29.708f;
+constexpr float CH0_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH1_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH2_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH3_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH4_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH5_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH6_SHUNT_RESISTANCE = 49.5f;
 
 constexpr auto RATE    = 100_hz;
 constexpr bool ENABLED = true;
@@ -98,10 +90,10 @@ constexpr bool ENABLED = true;
 namespace Trafag
 {
 // Default shunt resistance, used before calibration or if it's out of bounds
-constexpr float DEFAULT_SHUNT_RESISTANCE = 49.5;
+constexpr float DEFAULT_SHUNT_RESISTANCE = 49.5f;
 // Bounds of the shunt resistance, outside of which the calibration is ignored
-constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 28.5;
-constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 30.0;
+constexpr float SHUNT_RESISTANCE_LOWER_BOUND = 46.0f;
+constexpr float SHUNT_RESISTANCE_UPPER_BOUND = 51.0f;
 
 constexpr auto CALIBRATE_SAMPLE_COUNT         = 10;
 constexpr auto CALIBRATE_WAIT_BETWEEN_SAMPLES = 100ms;
@@ -151,15 +143,15 @@ constexpr auto RATE    = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
-namespace OxTankOverpressure
+namespace PrzTankOverpressure
 {
 constexpr auto CHECK_RATE = 10_hz;
 
-// 1.2 times the setpoint regulation - 67 * 1.2 = 80.4
-constexpr float PRESSURE_THRESHOLD = 80.4;  // bar
+// 1.15 times the setpoint regulation - 220 * 1.15 = 253
+constexpr float PRESSURE_THRESHOLD = 253.f;  // bar
 constexpr auto HYSTERESIS          = 1s;
-constexpr auto VENTING_DURATION    = 1s;
-}  // namespace OxTankOverpressure
+constexpr auto VENTING_DURATION    = 5000ms;
+}  // namespace PrzTankOverpressure
 
 }  // namespace Sensors
 

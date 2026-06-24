@@ -24,11 +24,13 @@
 
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Configs/CanHandlerConfig.h>
+#include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <common/CanConfig.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
@@ -396,18 +398,82 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
     CanConfig::EventId event =
         static_cast<CanConfig::EventId>(msg.getSecondaryType());
 
-    if (event == Common::CanConfig::EventId::ENTER_HIL_MODE)
+    switch (event)
     {
-        PersistentVars::setHilMode(true);
-        miosix::reboot();
-    }
-    else if (event == Common::CanConfig::EventId::EXIT_HIL_MODE)
-    {
-        if (PersistentVars::getHilMode())
+        case Common::CanConfig::EventId::ENTER_HIL_MODE:
         {
-            PersistentVars::setHilMode(false);
+            PersistentVars::setHilMode(true);
             miosix::reboot();
+            break;
         }
+        case Common::CanConfig::EventId::EXIT_HIL_MODE:
+        {
+            if (PersistentVars::getHilMode())
+            {
+                PersistentVars::setHilMode(false);
+                miosix::reboot();
+            }
+            break;
+        }
+        case Common::CanConfig::EventId::CLOSE_ALL_VALVES:
+        {
+            EventBroker::getInstance().post(CLOSE_ALL_VALVES,
+                                            TOPIC_VALVE_SEQUENCE);
+            break;
+        }
+
+        case Common::CanConfig::EventId::APOGEE_DETECTED:
+        {
+            EventBroker::getInstance().post(CAN_APOGEE_DETECTED,
+                                            TOPIC_FIRING_SEQUENCE);
+            break;
+        }
+
+        default:
+            // Do something in the future?
+            break;
+    }
+    else if (event == Common::CanConfig::EventId::CALIBRATE)
+    {
+        EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
+    }
+    else if (event == Common::CanConfig::EventId::ENTER_TEST_MODE)
+    {
+        EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
+    }
+    else if (event == Common::CanConfig::EventId::EXIT_TEST_MODE)
+    {
+        EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
+    }
+    else if (event == Common::CanConfig::EventId::ARM)
+    {
+        EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
+    }
+    else if (event == Common::CanConfig::EventId::DISARM)
+    {
+        EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
+    }
+    else if (event == Common::CanConfig::EventId::APOGEE_DETECTED)
+    {
+        EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED, TOPIC_FLIGHT);
+    }
+    else if (event == Common::CanConfig::EventId::EREG_OX_TOGGLE)
+    {
+        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
+    }
+    else if (event == Common::CanConfig::EventId::EREG_FUEL_TOGGLE)
+    {
+        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
+    }
+    else if (event == Common::CanConfig::EventId::IGNITION)
+    {
+        EventBroker::getInstance().post(FIRING_SEQUENCE_START,
+                                        TOPIC_FIRING_SEQUENCE);
+    }
+    else if (event == Common::CanConfig::EventId::ENGINE_SHUTDOWN)
+    {
+        EventBroker::getInstance().post(FIRING_SEQUENCE_END,
+                                        TOPIC_FIRING_SEQUENCE);
     }
     else if (event == Common::CanConfig::EventId::CALIBRATE)
     {

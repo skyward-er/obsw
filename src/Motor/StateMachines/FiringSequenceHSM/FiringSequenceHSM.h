@@ -21,6 +21,11 @@
  */
 #pragma once
 
+#include <Motor/Actuators/Actuators.h>
+#include <Motor/Actuators/ValveSequenceController.h>
+#include <Motor/BoardScheduler.h>
+#include <Motor/Registry/Registry.h>
+#include <Motor/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>
@@ -40,7 +45,7 @@ class Sensors;
 
 class FiringSequenceHSM
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, BoardScheduler,
-                                           Registry>,
+                                           Registry, ValveSequenceController>,
       public Boardcore::HSM<FiringSequenceHSM>
 {
 public:
@@ -61,6 +66,10 @@ private:
     void checkIgniterPressure();
     void checkPilotFlamePressure();
 
+    void checkDepressurizationPressure();
+
+    void checkDepressurizationPressure();
+
     Boardcore::State state_init(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
     Boardcore::State state_firing(const Boardcore::Event& event);
@@ -72,6 +81,10 @@ private:
     Boardcore::State state_full_throttle(const Boardcore::Event& event);
     Boardcore::State state_low_throttle(const Boardcore::Event& event);
     Boardcore::State state_ended(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_ox(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_prz(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_fuel(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_done(const Boardcore::Event& event);
 
     void updateAndLogStatus(FiringSequenceState state);
 
@@ -81,6 +94,8 @@ private:
 
     std::atomic<FiringSequenceState> state{FiringSequenceState::INIT};
 
+    std::chrono::steady_clock::time_point lastPressureOverTime;
+
     uint16_t nextEventId = -1;
 
     uint8_t igniterFlameSamples = 0;
@@ -88,5 +103,14 @@ private:
 
     float igniterPressureThreshold    = 0.0f;
     float pilotFlamePressureThreshold = 0.0f;
+
+    float przTankPressureThreshold = 0.0f;
+    float oxTankPressureThreshold  = 0.0f;
+
+    uint8_t igniterTaskId          = 0;
+    uint8_t pilotFlameTaskId       = 0;
+    uint8_t depressurizationTaskId = 0;
+
+    bool paramsSet = false;
 };
 }  // namespace Motor

@@ -122,7 +122,7 @@ enum class EventId : uint8_t
     IGNITION,
     ENGINE_SHUTDOWN,
     EREG_OX_TOGGLE,
-    EREG_FUEL_TOGGLE
+    EREG_FUEL_TOGGLE,
 };
 
 enum class CommandId : uint8_t
@@ -131,6 +131,8 @@ enum class CommandId : uint8_t
     FIRING_SEQUENCE_CONFIG,
     IGNITION_THRESHOLDS,
     EREG_TARGET,
+    CLOSE_ALL_VALVES,
+    WIGGLE_ALL_VALVES,
 };
 
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{

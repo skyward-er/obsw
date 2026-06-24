@@ -21,6 +21,7 @@
  */
 
 #include <Motor/Actuators/Actuators.h>
+#include <Motor/Actuators/ValveSequenceController.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
@@ -79,14 +80,15 @@ int main()
     Buses* buses              = new Buses();
     BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors* sensors       = nullptr;
-    auto actuators         = new Actuators();
-    auto eregOx            = new EregControllerOx();
-    auto eregFuel          = new EregControllerFuel();
-    auto registry          = new Registry();
-    auto firingSequenceHSM = new FiringSequenceHSM();
-    auto meaController     = new MEAController();
-    auto canHandler        = new CanHandler();
+    Sensors* sensors             = nullptr;
+    auto actuators               = new Actuators();
+    auto eregOx                  = new EregControllerOx();
+    auto eregFuel                = new EregControllerFuel();
+    auto registry                = new Registry();
+    auto firingSequenceHSM       = new FiringSequenceHSM();
+    auto meaController           = new MEAController();
+    auto canHandler              = new CanHandler();
+    auto valveSequenceController = new ValveSequenceController();
 
     auto& sdLogger = Logger::getInstance();
 
@@ -100,19 +102,22 @@ int main()
     }
     else
     {
-    sensors = new Sensors();
+        sensors = new Sensors();
     }
 
-    initResult &= manager.insert<Buses>(buses) &&
-                  manager.insert<BoardScheduler>(scheduler) &&
-                  manager.insert<Registry>(registry) &&
-                  manager.insert<Sensors>(sensors) &&
-                  manager.insert<Actuators>(actuators) &&
-                  manager.insert<EregControllerOx>(eregOx) &&
-                  manager.insert<EregControllerFuel>(eregFuel) &&
-                  manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
-                  manager.insert<MEAController>(meaController) &&
-                  manager.insert<CanHandler>(canHandler) && manager.inject();
+    initResult &=
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Registry>(registry) &&
+        manager.insert<Sensors>(sensors) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<EregControllerOx>(eregOx) &&
+        manager.insert<EregControllerFuel>(eregFuel) &&
+        manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
+        manager.insert<MEAController>(meaController) &&
+        manager.insert<CanHandler>(canHandler) &&
+        manager.insert<ValveSequenceController>(valveSequenceController) &&
+        manager.inject();
 
     if (!initResult)
     {
@@ -197,8 +202,8 @@ int main()
             std::cerr << "*** Error failed to start HIL ***" << std::endl;
         }
 
-         // Waiting for start of simulation
-         hil->waitStartSimulation();
+        // Waiting for start of simulation
+        hil->waitStartSimulation();
     }
 
     std::cout << "Starting Registry" << std::endl;
@@ -255,6 +260,14 @@ int main()
         sensors->calibrate();
         led1Off();
         setStatus(StatusBit::SENSORS);
+    }
+
+    std::cout << "Starting ValveSequenceController" << std::endl;
+    if (!valveSequenceController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ValveSequenceController ***"
+                  << std::endl;
     }
 
     if (initResult)

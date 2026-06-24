@@ -1,5 +1,5 @@
-/* Copyright (c) 2018-2022 Skyward Experimental Rocketry
- * Author: Alberto Nidasio
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Riccardo Sironi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,42 +22,39 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <common/Events.h>
+#include <common/canbus/MotorStatus.h>
+#include <events/EventHandler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
-namespace Common
+namespace Motor
 {
 
-enum Topics : uint8_t
+class Actuators;
+class Sensors;
+class CanHandler;
+
+class ValveSequenceController
+    : public Boardcore::EventHandler,
+      public Boardcore::InjectableWithDeps<Actuators, Sensors, CanHandler>
 {
-    TOPIC_ABK,
-    TOPIC_ADA,
-    TOPIC_MEA,
-    TOPIC_SDA,
-    TOPIC_ARP,
-    TOPIC_DPL,
-    TOPIC_CAN,
-    TOPIC_FLIGHT,
-    TOPIC_FMM,
-    TOPIC_FSR,
-    TOPIC_NAS,
-    TOPIC_TMTC,
-    TOPIC_MOTOR,
-    TOPIC_EREG_OX,
-    TOPIC_EREG_FUEL,
-    TOPIC_FIRING_SEQUENCE,
-    TOPIC_TARS,
-    TOPIC_ALT,
-    TOPIC_WING,
-    TOPIC_VALVE_SEQUENCE,
+public:
+    ValveSequenceController(
+        unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
+        miosix::Priority priority = miosix::MAIN_PRIORITY);
+
+    /**
+     * @brief Closes all engine valves in a staged, safe sequence.
+     *
+     * Closes groups of valves with safety delays in between, in order to avoid
+     * power surges.
+     */
+    void closeValves();
+
+protected:
+    void handleEvent(const Boardcore::Event& ev) override;
+
+private:
+    Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("vsc");
 };
-
-const std::vector<uint8_t> TOPICS_LIST{
-    TOPIC_ABK,   TOPIC_ADA,     TOPIC_MEA,       TOPIC_SDA,
-    TOPIC_ARP,   TOPIC_DPL,     TOPIC_CAN,       TOPIC_FLIGHT,
-    TOPIC_FMM,   TOPIC_FSR,     TOPIC_NAS,       TOPIC_TMTC,
-    TOPIC_MOTOR, TOPIC_EREG_OX, TOPIC_EREG_FUEL, TOPIC_FIRING_SEQUENCE,
-    TOPIC_TARS,  TOPIC_ALT,     TOPIC_WING};
-
-}  // namespace Common
+}  // namespace Motor

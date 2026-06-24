@@ -61,6 +61,8 @@ struct MotorStatus : public Boardcore::Injectable
         Boardcore::ServoPositionData przFuelValvePosition;
         Boardcore::ServoPositionData mainOxValvePosition;
         Boardcore::ServoPositionData mainFuelValvePosition;
+        Boardcore::ServoPositionData oxVentingValvePosition;
+        Boardcore::ServoPositionData fuelVentingValvePosition;
 
         bool oxVentingValveState   = false;
         bool fuelVentingValveState = false;

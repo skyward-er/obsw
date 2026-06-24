@@ -59,6 +59,22 @@ static constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 20;
 static constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = -500.0f;  // bar
 static constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 20;
 
+static constexpr float PRZ_TANK_PRESSURE_THRESHOLD = 20.0f;  // bar
+static constexpr float OX_TANK_PRESSURE_THRESHOLD  = 10.0f;  // bar
+
+namespace Depressurization
+{
+constexpr auto OX_VENTING_TIMEOUT     = 60s;
+constexpr float OX_PRESSURE_THRESHOLD = 10.0f;  // [bar]
+constexpr auto OX_HYSTERESIS          = 1s;
+
+constexpr float PRZ_OX_APERTURE           = .4f;
+constexpr float PRZ_OX_PRESSURE_THRESHOLD = 20.0f;
+constexpr auto PRZ_OX_HYSTERESIS          = 1s;
+constexpr auto PRZ_OX_TIMEOUT             = 60s;
+constexpr auto PRZ_FUEL_TIMEOUT           = 30s;
+}  // namespace Depressurization
+
 }  // namespace FiringSequence
 }  // namespace Config
 }  // namespace Motor

@@ -62,6 +62,8 @@ public:
     bool isStarted();
 
     Boardcore::MavlinkStatus getMavStatus();
+    // TODO Cosa facciamo? Renderlo pubblico è un po' bruttino
+    bool enqueueWiggleResultTm(uint16_t wiggleResult);
 
 private:
     void enqueueAck(const mavlink_message_t& msg);

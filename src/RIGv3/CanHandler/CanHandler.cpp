@@ -23,6 +23,8 @@
 #include "CanHandler.h"
 
 #include <RIGv3/BoardScheduler.h>
+#include <RIGv3/Configs/RadioConfig.h>
+#include <RIGv3/Radio/Radio.h>
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -183,6 +185,7 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
     // Handle motor messages
     auto source = static_cast<CanConfig::Board>(msg.getSource());
     if (source == CanConfig::Board::MOTOR)
+
         return getModule<MotorStatus>()->handleCanMessage(msg);
 
     CanConfig::PrimaryType type =
