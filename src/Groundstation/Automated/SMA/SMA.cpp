@@ -27,6 +27,7 @@
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
+#include <algorithms/AlgorithmsData.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <sensors/Vectornav/VN300/VN300Data.h>
@@ -258,12 +259,14 @@ void SMA::update()
             {
                 miosix::Lock<miosix::FastMutex> lock(mutex);
 
-                NASState nasState;
+                ANASState anasState;
+                NASDAQState nasdaqState;
+
                 GPSData position, origin;
-                if (hub->hasNewNasState() &&
-                    hub->getLastRocketNasState(nasState))
+                if (hub->hasNewANASState() &&
+                    hub->getLastRocketANASState(anasState))
                 {
-                    // In case there is a new NAS packet
+                    // AScent phase packet
                     if (SMAConfig::USING_ROCKET_GPS_POSITION &&
                         hub->getRocketOrigin(origin) &&
                         hub->getRocketPosition(position))
@@ -273,12 +276,28 @@ void SMA::update()
                                 {position.latitude, position.longitude},
                                 {origin.latitude, origin.longitude});
 
-                        nasState.n = currentNEDPosition[0];
-                        nasState.e = currentNEDPosition[1];
+                        anasState.n = currentNEDPosition[0];
+                        anasState.e = currentNEDPosition[1];
                     }
                     // update the propagator with the NAS state
                     // and retrieve the propagated state
-                    propagator.setRocketNasState(nasState);
+                    propagator.setRocketNasState(anasState);
+                }
+                else if (hub->hasNewNASDAQState() &&
+                         hub->getLastRocketNASDAQState(nasdaqState))
+                {
+                    // Descent phase packet
+                    float pos[3]  = {nasdaqState.n, nasdaqState.e,
+                                     nasdaqState.d};
+                    float vel[3]  = {nasdaqState.vn, nasdaqState.ve,
+                                     nasdaqState.vd};
+                    float quat[4] = {0.0f, 0.0f, 0.0f,
+                                     1.0f};  // No quaternion in NASDAQState, so
+                                             // we set a default value
+
+                    ANASState asAnasState(nasdaqState.timestamp, pos, vel,
+                                          quat);
+                    propagator.setRocketNasState(asAnasState);
                 }
 
                 propagator.update();  // step the propagator
