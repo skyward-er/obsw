@@ -86,8 +86,10 @@ bool Sensors::start()
         nd015a0Init();
         nd015a1Init();
         nd015a2Init();
-        as5047dABKInit();
     }
+
+    if (Config::Sensors::AS5047D_ABK::ENABLED)
+        as5047dABKInit();
 
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
