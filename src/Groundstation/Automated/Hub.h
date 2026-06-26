@@ -30,7 +30,8 @@
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
-#include <algorithms/NAS/NASState.h>
+#include <algorithms/ANAS/ANASData.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <common/MavlinkHydra.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
@@ -84,14 +85,24 @@ public:
     bool getRocketOrigin(Boardcore::GPSData& rocketOrigin);
 
     /**
-     * @brief Synchronized getter for the last rocket NAS state.
+        * @brief Synchronized getter for the last rocket ANAS state.
      *
-     * @return true only if the rocket NAS state and is valid and the value is
+        * @return true only if the rocket ANAS state and is valid and the value is
      * new (got from radio)
      */
-    bool getLastRocketNasState(Boardcore::NASState& nasState);
+        bool getLastRocketANASState(Boardcore::ANASState& anasState);
 
-    bool hasNewNasState();
+        bool hasNewANASState();
+
+        /**
+         * @brief Synchronized getter for the last rocket NASDAQ state.
+         *
+         * @return true only if the rocket NASDAQ state is valid and the value is
+         * new (got from radio)
+         */
+        bool getLastRocketNASDAQState(Boardcore::NASDAQState& nasdaqState);
+
+        bool hasNewNASDAQState();
 
     /**
      * @brief Gets the current rocket position if it is available
@@ -101,9 +112,15 @@ public:
 
 private:
     /**
-     * @brief Synchronized setter for the last rocket NAS state.
+        * @brief Synchronized setter for the last rocket ANAS state.
      */
-    void setRocketNasState(const Boardcore::NASState& newRocketNasState);
+        void setRocketANASState(const Boardcore::ANASState& newRocketANASState);
+
+    /**
+     * @brief Synchronized setter for the last rocket NASDAQ state.
+     */
+    void setRocketNASDAQState(
+        const Boardcore::NASDAQState& newRocketNASDAQState);
 
     /**
      * @brief Synchronized setter for the last rocket origin for NAS.
@@ -126,15 +143,20 @@ private:
     Boardcore::GPSData lastRocketPosition;
     bool rocketGPSPositionReceived = false;
 
-    Boardcore::NASState lastRocketNasState;
-    bool rocketNasSet = false;
+    Boardcore::ANASState lastRocketANASState;
+    bool rocketANASSet = false;
+
+    Boardcore::NASDAQState lastRocketNASDAQState;
+    bool rocketNASDAQSet = false;
 
     miosix::FastMutex coordinatesMutex;
-    miosix::FastMutex nasStateMutex;
+    miosix::FastMutex anasStateMutex;
+    miosix::FastMutex nasdaqStateMutex;
     miosix::FastMutex hubDataMutex;
     miosix::FastMutex lastTMMutex;
 
-    bool hasNewNasSet              = false;
+    bool hasNewANASSet             = false;
+    bool hasNewNASDAQSet           = false;
     uint64_t lastFlightTMTimestamp = 0;
     uint64_t lastStatsTMTimestamp  = 0;
 

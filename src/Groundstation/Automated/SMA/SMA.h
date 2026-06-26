@@ -28,7 +28,7 @@
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/HubBase.h>
 #include <algorithms/Follower/Follower.h>
-#include <algorithms/NAS/NASState.h>
+#include <algorithms/ANAS/ANASData.h>
 #include <algorithms/Propagator/Propagator.h>
 #include <events/EventBroker.h>
 #include <events/HSM.h>

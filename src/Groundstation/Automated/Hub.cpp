@@ -28,7 +28,8 @@
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
-#include <algorithms/NAS/NASState.h>
+#include <algorithms/ANAS/ANASData.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
 #include <common/Events.h>
 #include <common/MavlinkHydra.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
@@ -257,16 +258,15 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 
     logData(true, msg.msgid);
 
-    // Extracting NAS rocket state
+    // Extracting rocket telemetry/stats packets
     if (msg.msgid == MAVLINK_MSG_ID_ROCKET_FLIGHT_TM)
     {
         mavlink_rocket_flight_tm_t rocketTM;
         mavlink_msg_rocket_flight_tm_decode(&msg, &rocketTM);
         uint64_t timestamp = rocketTM.timestamp;
         TRACE(
-            "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet was "
-            "received "
-            "packet with ts %llu\n",
+            "[info][Radio/Sniffing] Hub: A ROCKET_FLIGHT_TM packet was "
+            "received with ts %llu\n",
             timestamp);
         {
             Lock<FastMutex> lock(lastTMMutex);
@@ -277,68 +277,78 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 timestamp <= lastFlightTMTimestamp)
                 return;
             TRACE(
-                "[info][Radio/Sniffing] Hub: A FLIGHT_ROCKET_TM packet is "
-                "valid "
-                "with ts %llu\n",
+                "[info][Radio/Sniffing] Hub: A ROCKET_FLIGHT_TM packet is "
+                "valid with ts %llu\n",
                 timestamp);
             lastFlightTMTimestamp = timestamp;
         }
 
-        // NASState nasState{
-        //     mavlink_msg_rocket_flight_tm_get_timestamp(&msg),
-        //     Eigen::Matrix<float, 13, 1>(
-        //         rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d,
-        //         rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd,
-        //         rocketTM.anas_qx, rocketTM.anas_qy, rocketTM.anas_qz,
-        //         rocketTM.anas_qw)};
+        float position[3]   = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
+        float velocity[3]   = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
+        float quaternion[4] = {rocketTM.anas_qx, rocketTM.anas_qy,
+                                rocketTM.anas_qz, rocketTM.anas_qw};
 
-        // GPSData gpsData;
-        // gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
-        // gpsData.latitude     = rocketTM.gps_lat;
-        // gpsData.longitude    = rocketTM.gps_lon;
-        // gpsData.fix          = rocketTM.gps_fix;
-        // gpsData.satellites   = 42;
+        ANASState anasState(rocketTM.timestamp, position, velocity, quaternion);
 
-        // // Set the rocket NAS
-        // setRocketNasState(nasState);
-        // Set the rocket GPS position
-        // setRocketPosition(gpsData);
+        GPSData gpsData;
+        gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
+        gpsData.latitude     = rocketTM.gps_lat;
+        gpsData.longitude    = rocketTM.gps_lon;
+        gpsData.fix          = rocketTM.gps_fix;
+        gpsData.satellites   = 42;
+
+        setRocketANASState(anasState);
+        setRocketOrigin(gpsData);
+        setRocketPosition(gpsData);
     }
-    // else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_TM)
-    // {
-    //     mavlink_rocket_stats_tm_t rocketST;
-    //     mavlink_msg_rocket_stats_tm_decode(&msg, &rocketST);
-    //     TRACE(
-    //         "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet was received
-    //         " "packet with ts %llu\n", rocketST.timestamp);
-    //     {
-    //         Lock<FastMutex> lock(lastTMMutex);
-    //         /* Messages older and within the discard interval are treated as
-    //         old
-    //          * messages*/
-    //         if (rocketST.timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY
-    //         &&
-    //             rocketST.timestamp <= lastStatsTMTimestamp)
-    //             return;
-    //         TRACE(
-    //             "[info][Radio/Sniffing] Hub: A ROCKET_STAT_TM packet is
-    //             valid, " "with ts %llu\n", rocketST.timestamp);
-    //         lastStatsTMTimestamp = rocketST.timestamp;
-    //     }
+    if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_ASCENT_TM)
+    {
+        mavlink_rocket_stats_ascent_tm_t rocketStats;
+        mavlink_msg_rocket_stats_ascent_tm_decode(&msg, &rocketStats);
+        uint64_t timestamp = rocketStats.timestamp;
+        TRACE(
+            "[info][Radio/Sniffing] Hub: A ROCKET_STATS_ASCENT_TM packet was "
+            "received with ts %llu\n",
+            timestamp);
+        {
+            Lock<FastMutex> lock(lastTMMutex);
 
-    //     // TODO: The origin should have its own struct since only timestamp
-    //     and
-    //     // [lat, lon, alt] are needed
-    //     GPSData gpsState;
-    //     getRocketOrigin(gpsState);
-    //     gpsState.gpsTimestamp = rocketST.timestamp;
-    //     gpsState.latitude     = rocketST.ref_lat;
-    //     gpsState.longitude    = rocketST.ref_lon;
-    //     gpsState.height       = rocketST.ref_alt;
-    //     gpsState.fix          = 3;
+            /* Messages older and within the discard interval are treated as old
+             * messages*/
+            if (timestamp > lastFlightTMTimestamp - DISCARD_MSG_DELAY &&
+                timestamp <= lastFlightTMTimestamp)
+                return;
+            TRACE(
+                "[info][Radio/Sniffing] Hub: A ROCKET_STATS_ASCENT_TM packet "
+                "is valid with ts %llu\n",
+                timestamp);
+            lastFlightTMTimestamp = timestamp;
+        }
+    }
+    else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_DESCENT_TM)
+    {
+        mavlink_rocket_stats_descent_tm_t rocketStats;
+        mavlink_msg_rocket_stats_descent_tm_decode(&msg, &rocketStats);
+        uint64_t timestamp = rocketStats.timestamp;
+        TRACE(
+            "[info][Radio/Sniffing] Hub: A ROCKET_STATS_DESCENT_TM packet was "
+            "received with ts %llu\n",
+            timestamp);
+        {
+            Lock<FastMutex> lock(lastTMMutex);
 
-    //     setRocketOrigin(gpsState);
-    // }
+            /* Messages older and within the discard interval are treated as old
+             * messages*/
+            if (timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY &&
+                timestamp <= lastStatsTMTimestamp)
+                return;
+            TRACE(
+                "[info][Radio/Sniffing] Hub: A ROCKET_STATS_DESCENT_TM packet "
+                "is valid with ts %llu\n",
+                timestamp);
+            lastStatsTMTimestamp = timestamp;
+        }
+    }
 
     // TODO: In case of sniffing the message should not be sent again
     LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
@@ -367,27 +377,50 @@ bool Hub::getRocketPosition(Boardcore::GPSData& rocketPosition)
     return rocketGPSPositionReceived;
 }
 
-bool Hub::getLastRocketNasState(Boardcore::NASState& nasState)
+bool Hub::getLastRocketANASState(Boardcore::ANASState& anasState)
 {
-    Lock<FastMutex> lock(nasStateMutex);
-    nasState     = lastRocketNasState;
-    hasNewNasSet = false;
-    return rocketNasSet;
+    Lock<FastMutex> lock(anasStateMutex);
+    anasState    = lastRocketANASState;
+    hasNewANASSet = false;
+    return rocketANASSet;
 }
 
-bool Hub::hasNewNasState()
+bool Hub::hasNewANASState()
 {
-    Lock<FastMutex> lock(nasStateMutex);
-    return hasNewNasSet;
+    Lock<FastMutex> lock(anasStateMutex);
+    return hasNewANASSet;
 }
 
-void Hub::setRocketNasState(const NASState& newRocketNasState)
+void Hub::setRocketANASState(const ANASState& newRocketANASState)
 {
-    Lock<FastMutex> lock(nasStateMutex);
-    hasNewNasSet       = true;
-    rocketNasSet       = true;
-    lastRocketNasState = newRocketNasState;
-    Logger::getInstance().log(newRocketNasState);
+    Lock<FastMutex> lock(anasStateMutex);
+    hasNewANASSet       = true;
+    rocketANASSet       = true;
+    lastRocketANASState = newRocketANASState;
+    Logger::getInstance().log(newRocketANASState);
+}
+
+bool Hub::getLastRocketNASDAQState(Boardcore::NASDAQState& nasdaqState)
+{
+    Lock<FastMutex> lock(nasdaqStateMutex);
+    nasdaqState     = lastRocketNASDAQState;
+    hasNewNASDAQSet = false;
+    return rocketNASDAQSet;
+}
+
+bool Hub::hasNewNASDAQState()
+{
+    Lock<FastMutex> lock(nasdaqStateMutex);
+    return hasNewNASDAQSet;
+}
+
+void Hub::setRocketNASDAQState(const NASDAQState& newRocketNASDAQState)
+{
+    Lock<FastMutex> lock(nasdaqStateMutex);
+    hasNewNASDAQSet       = true;
+    rocketNASDAQSet       = true;
+    lastRocketNASDAQState = newRocketNASDAQState;
+    Logger::getInstance().log(newRocketNASDAQState);
 }
 
 void Hub::setRocketOrigin(const GPSData& newRocketCoordinates)

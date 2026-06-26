@@ -27,6 +27,7 @@
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
+#include <algorithms/ANAS/ANASData.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <sensors/Vectornav/VN300/VN300Data.h>
@@ -258,10 +259,10 @@ void SMA::update()
             {
                 miosix::Lock<miosix::FastMutex> lock(mutex);
 
-                NASState nasState;
+                ANASState anasState;
                 GPSData position, origin;
-                if (hub->hasNewNasState() &&
-                    hub->getLastRocketNasState(nasState))
+                if (hub->hasNewANASState() &&
+                    hub->getLastRocketANASState(anasState))
                 {
                     // In case there is a new NAS packet
                     if (SMAConfig::USING_ROCKET_GPS_POSITION &&
@@ -273,12 +274,12 @@ void SMA::update()
                                 {position.latitude, position.longitude},
                                 {origin.latitude, origin.longitude});
 
-                        nasState.n = currentNEDPosition[0];
-                        nasState.e = currentNEDPosition[1];
+                        anasState.n = currentNEDPosition[0];
+                        anasState.e = currentNEDPosition[1];
                     }
                     // update the propagator with the NAS state
                     // and retrieve the propagated state
-                    propagator.setRocketNasState(nasState);
+                    propagator.setRocketNasState(anasState);
                 }
 
                 propagator.update();  // step the propagator
