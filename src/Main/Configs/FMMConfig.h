@@ -32,9 +32,8 @@ namespace FlightModeManager
 {
 /* linter off */ using namespace std::chrono;
 
-constexpr auto MISSION_TIMEOUT          = 15min;
-constexpr auto NITROGEN_VENTING_TIMEOUT = 150s;  // 120s + 25% safety margin
-constexpr auto CUT_DURATION             = 1000ms;
+constexpr auto MISSION_TIMEOUT = 15min;
+constexpr auto CUT_DURATION    = 1000ms;
 
 #ifdef ROCCARASO
 constexpr auto ENGINE_SHUTDOWN_TIMEOUT = 2600ms;

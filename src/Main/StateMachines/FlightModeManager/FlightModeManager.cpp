@@ -606,13 +606,10 @@ State FlightModeManager::state_flying(const Event& event)
         }
         case EV_EXIT:
         {
-            if (nitrogenVentingEvent >= 0)
-                EventBroker::getInstance().removeDelayed(nitrogenVentingEvent);
             if (missionTimeoutEvent >= 0)
                 EventBroker::getInstance().removeDelayed(missionTimeoutEvent);
 
-            nitrogenVentingEvent = -1;
-            missionTimeoutEvent  = -1;
+            missionTimeoutEvent = -1;
 
             return HANDLED;
         }
@@ -623,16 +620,6 @@ State FlightModeManager::state_flying(const Event& event)
         case EV_INIT:
         {
             return transition(&FlightModeManager::state_powered_ascent);
-        }
-        case FMM_NITROGEN_VENTING:
-        {
-            /* nitrogenVentingEvent = -1;
-
-            getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::NITROGEN_VALVE,
-                std::numeric_limits<uint32_t>::max());
- */
-            return HANDLED;
         }
         case FMM_MISSION_TIMEOUT:
         case TMTC_FORCE_LANDING:
@@ -779,11 +766,6 @@ State FlightModeManager::state_drogue_descent(const Event& event)
             EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
 
-            // Vent the tank
-            getModule<CanHandler>()->sendServoOpenCommand(
-                ServosList::OX_VENTING_VALVE,
-                std::numeric_limits<uint32_t>::max());
-
             return HANDLED;
         }
         case EV_EXIT:
@@ -827,10 +809,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
 
         case EV_EXIT:
         {
-            if (cutterTimeoutEvent >= 0)
-                EventBroker::getInstance().removeDelayed(cutterTimeoutEvent);
-            cutterTimeoutEvent = -1;
-
             return HANDLED;
         }
 
@@ -901,10 +879,6 @@ void FlightModeManager::shutdownEngine()
         can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
                                   std::numeric_limits<uint32_t>::max());
      */
-    EventBroker::getInstance().postDelayed(
-        FMM_NITROGEN_VENTING, TOPIC_FMM,
-        milliseconds{Config::FlightModeManager::NITROGEN_VENTING_TIMEOUT}
-            .count());
 }
 
 void FlightModeManager::updateAndLogStatus(FlightModeManagerState state)
