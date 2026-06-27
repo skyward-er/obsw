@@ -102,8 +102,6 @@ bool Actuators::start()
     servoAbk->enable();
 
     camOff();
-    expulsionOff();
-    releaserOff();
     statusOff();
     buzzerOff();
 
@@ -306,15 +304,21 @@ bool Actuators::getCamState()
     return getModule<GpioExpander>()->getCamState();
 }
 
-void Actuators::expulsionOn() { gpios::expulsion::high(); }
-
-void Actuators::expulsionOff() { gpios::expulsion::low(); }
+void Actuators::actuateExpulsion()
+{
+    gpios::expulsion::high();
+    Thread::sleep(100);
+    gpios::expulsion::low();
+}
 
 bool Actuators::getExpulsionState() { return gpios::expulsion::value() != 0; }
 
-void Actuators::releaserOn() { gpios::releaser::high(); }
-
-void Actuators::releaserOff() { gpios::releaser::low(); }
+void Actuators::actuateReleaser()
+{
+    gpios::releaser::high();
+    Thread::sleep(100);
+    gpios::releaser::low();
+}
 
 bool Actuators::getReleaserState() { return gpios::releaser::value() != 0; }
 

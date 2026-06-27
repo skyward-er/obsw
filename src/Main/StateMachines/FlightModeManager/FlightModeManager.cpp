@@ -503,6 +503,18 @@ State FlightModeManager::state_test_mode(const Event& event)
             EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
             return HANDLED;
         }
+        case TMTC_FORCE_EXPULSION:
+        {
+            getModule<Actuators>()->actuateExpulsion();
+
+            return HANDLED;
+        }
+        case TMTC_FORCE_DEPLOYMENT:
+        {
+            getModule<Actuators>()->actuateReleaser();
+
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;
@@ -760,7 +772,7 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             updateAndLogStatus(FlightModeManagerState::DROGUE_DESCENT);
 
-            getModule<Actuators>()->expulsionOn();
+            getModule<Actuators>()->actuateExpulsion();
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::APOGEE_DETECTED);
 
@@ -809,11 +821,7 @@ State FlightModeManager::state_terminal_descent(const Event& event)
             EventBroker::getInstance().post(FLIGHT_DPL_ALT_DETECTED,
                                             TOPIC_FLIGHT);
 
-            getModule<Actuators>()->releaserOn();
-            cutterTimeoutEvent = EventBroker::getInstance().postDelayed(
-                FMM_CUTTER_TIMEOUT, TOPIC_FMM,
-                milliseconds{Config::FlightModeManager::CUT_DURATION}.count());
-
+            getModule<Actuators>()->actuateReleaser();
             return HANDLED;
         }
 
@@ -823,8 +831,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
                 EventBroker::getInstance().removeDelayed(cutterTimeoutEvent);
             cutterTimeoutEvent = -1;
 
-            // Make sure the cutters are off
-            getModule<Actuators>()->releaserOff();
             return HANDLED;
         }
 
@@ -835,12 +841,6 @@ State FlightModeManager::state_terminal_descent(const Event& event)
 
         case EV_INIT:
         {
-            return HANDLED;
-        }
-
-        case FMM_CUTTER_TIMEOUT:
-        {
-            getModule<Actuators>()->releaserOff();
             return HANDLED;
         }
 

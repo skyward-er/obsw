@@ -112,12 +112,10 @@ public:
     void camOff();
     bool getCamState();
 
-    void expulsionOn();
-    void expulsionOff();
+    void actuateExpulsion();
     bool getExpulsionState();
 
-    void releaserOn();
-    void releaserOff();
+    void actuateReleaser();
     bool getReleaserState();
 
     void setBuzzerOff();
