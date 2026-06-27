@@ -276,9 +276,32 @@ void Actuators::wiggleCanServo(ServosList servo)
 
 float Actuators::getServoPosition(ServosList servo)
 {
-    Lock<FastMutex> lock{servosMutex};
-    Servo* info = getServo(servo);
-    return info ? info->getPosition() : 0.0f;
+    switch (servo)
+    {
+        case PARAFOIL_LEFT_SERVO:
+        case PARAFOIL_RIGHT_SERVO:
+        {
+            return getPrfServoPosition(servo);
+        }
+
+        default:
+        {
+            Lock<FastMutex> lock{servosMutex};
+            Servo* info = getServo(servo);
+            return info ? info->getPosition() : 0.0f;
+        }
+    }
+}
+
+float Actuators::getPrfServoPosition(ServosList servo)
+{
+    auto servoActuator = getServoActuator(servo);
+
+    if (!servoActuator)
+        return -1.0f;
+
+    Lock<FastMutex> lock{servoActuator->mutex};
+    return servoActuator->angleData.getLastReading().value();
 }
 
 void Actuators::setStatusOff() { statusOverflow = 0; }

@@ -49,6 +49,7 @@ public:
      */
     struct ServoActuator
     {
+
         std::unique_ptr<Boardcore::ServoWinch> servo;
 
         /**
@@ -102,6 +103,7 @@ public:
     bool wigglePrfServo(ServosList servoId);
 
     void setPrfServoZero();
+    float getPrfServoPosition(ServosList servoId);
 
     void enablePrfServo(ServosList servoId);
     void disablePrfServo(ServosList servoId);
