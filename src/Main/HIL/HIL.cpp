@@ -344,8 +344,8 @@ ActuatorData MainHIL::updateActuatorData()
  
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
-        actuators->getServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
-        actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO),
+        actuators->getPrfServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
+        actuators->getPrfServoPosition(ServosList::PARAFOIL_RIGHT_SERVO),
         static_cast<bool>(actuators->getServoPosition(ServosList::EXPULSION_SERVO)),
         static_cast<bool>(miosix::gpios::mainDeploy::value())};
 
