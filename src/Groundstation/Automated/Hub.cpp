@@ -283,12 +283,11 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
             lastFlightTMTimestamp = timestamp;
         }
 
-        float position[3]   = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
-        float velocity[3]   = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
-        float quaternion[4] = {rocketTM.anas_qx, rocketTM.anas_qy,
-                                rocketTM.anas_qz, rocketTM.anas_qw};
+        float pos[3]   = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
+        float vel[3]   = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
+        float quat[4] = {rocketTM.anas_qx, rocketTM.anas_qy, rocketTM.anas_qz, rocketTM.anas_qw};
 
-        ANASState anasState(rocketTM.timestamp, position, velocity, quaternion);
+        ANASState anasState(rocketTM.timestamp, pos, vel, quat);
 
         GPSData gpsData;
         gpsData.gpsTimestamp = TimestampTimer::getTimestamp();
@@ -324,6 +323,24 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 timestamp);
             lastFlightTMTimestamp = timestamp;
         }
+        // If we already have a recent ANAS state, refresh it with the new
+        // stats timestamp so ARP consumers keep receiving a timely nav update
+        {
+            Lock<FastMutex> lock(anasStateMutex);
+            if (rocketANASSet)
+            {
+                float pos[3] = {lastRocketANASState.n, lastRocketANASState.e,
+                                lastRocketANASState.d};
+                float vel[3] = {lastRocketANASState.vn, lastRocketANASState.ve,
+                                lastRocketANASState.vd};
+                float quat[4] = {lastRocketANASState.qx, lastRocketANASState.qy,
+                                 lastRocketANASState.qz, lastRocketANASState.qw};
+
+                ANASState refreshed(rocketStats.timestamp, pos, vel, quat);
+                // publish refreshed ANAS state
+                setRocketANASState(refreshed);
+            }
+        }
     }
     else if (msg.msgid == MAVLINK_MSG_ID_ROCKET_STATS_DESCENT_TM)
     {
@@ -347,6 +364,21 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 "is valid with ts %llu\n",
                 timestamp);
             lastStatsTMTimestamp = timestamp;
+        }
+       
+        //TODO: TEMPORARY (NASDAQ to be done)
+        {
+            Lock<FastMutex> lock(anasStateMutex);
+            if (rocketANASSet)
+            {
+                float pos[3] = {lastRocketANASState.n, lastRocketANASState.e,
+                                lastRocketANASState.d};
+                float vel[3] = {lastRocketANASState.vn, lastRocketANASState.ve,
+                                lastRocketANASState.vd};
+
+                NASDAQState nasdaq(rocketStats.timestamp, pos, vel);
+                setRocketNASDAQState(nasdaq);
+            }
         }
     }
 
