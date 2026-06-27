@@ -101,7 +101,7 @@ enum class MainFlightPhases
 /**
  * @brief ADA data sent to the simulator
  */
-struct ADAStateHIL
+struct __attribute__((packed)) ADAStateHIL
 {
     float mslAltitude    = 0;  // Altitude at mean sea level [m].
     float aglAltitude    = 0;  // Altitude above ground level [m].
@@ -139,7 +139,7 @@ struct ADAStateHIL
 /**
  * @brief ANAS data sent to the simulator
  */
-struct ANASStateHIL
+struct __attribute__((packed)) ANASStateHIL
 {
     float n = 0;
     float e = 0;
@@ -183,7 +183,7 @@ struct ANASStateHIL
 /**
  * @brief NASDAQ data sent to the simulator
  */
-struct NASDAQStateHIL
+struct __attribute__((packed)) NASDAQStateHIL
 {
     float n = 0;
     float e = 0;
@@ -231,7 +231,7 @@ struct __attribute__((packed)) SDAStateHIL
 /**
  * @brief ABK data sent to the simulator
  */
-struct AirBrakesStateHIL
+struct __attribute__((packed)) AirBrakesStateHIL
 {
     float updating = 0;  // Flag if apogee is detected [bool]
 
@@ -248,29 +248,25 @@ struct AirBrakesStateHIL
 /**
  * @brief Actuators data sent to the simulator
  */
-struct ActuatorsStateHIL
+struct __attribute__((packed)) ActuatorsStateHIL
 {
-
-    // TODO: Check which Actuators to keep for Hydra.
-    float airbrakesPercentage    = 0;
-    float expulsionPercentage    = 0;
-    float mainValvePercentage    = 0;
-    float ventingValvePercentage = 0;
-    float cutterState            = 0;
+    float airbrakesPercentage = 0;
+    float paraServoSx         = 0;
+    float paraServoDx         = 0;
+    bool expulsionPercentage  = 0;
+    bool cutterState          = 0;
 
     ActuatorsStateHIL()
-        : airbrakesPercentage(0.0f), expulsionPercentage(0.0f),
-          mainValvePercentage(0.0f), ventingValvePercentage(0.0f)
+        : airbrakesPercentage(0.0f), paraServoSx(0.0f), paraServoDx(0.0f),
+          expulsionPercentage(false), cutterState(false)
     {
     }
 
-    ActuatorsStateHIL(float airbrakesPercentage, float expulsionPercentage,
-                      float mainValvePercentage, float ventingValvePercentage,
-                      float cutterState)
-        : airbrakesPercentage(airbrakesPercentage),
-          expulsionPercentage(expulsionPercentage),
-          mainValvePercentage(mainValvePercentage),
-          ventingValvePercentage(ventingValvePercentage),
+    ActuatorsStateHIL(float airbrakesPercentage, float paraServoSx,
+                      float paraServoDx, bool expulsionPercentage,
+                      bool cutterState)
+        : airbrakesPercentage(airbrakesPercentage), paraServoSx(paraServoSx),
+          paraServoDx(paraServoDx), expulsionPercentage(expulsionPercentage),
           cutterState(cutterState)
     {
     }
@@ -279,13 +275,12 @@ struct ActuatorsStateHIL
     {
         printf(
             "airbrakes: %f perc\n"
+            "parafoil servo sx: %f\n "
+            "parafoil servo dx: %f\n "
             "expulsion: %f perc\n"
-            "mainValve: %f perc\n"
-            "venting: %f perc\n"
             "cutter: %f\n",
-            airbrakesPercentage * 100, expulsionPercentage * 100,
-            mainValvePercentage * 100, ventingValvePercentage * 100,
-            cutterState);
+            airbrakesPercentage * 100, paraServoSx, paraServoDx,
+            expulsionPercentage * 100, cutterState);
     }
 };
 
@@ -297,7 +292,6 @@ struct ActuatorsStateHIL
  * get the data they need
  */
 
- // TODO: Create a new Packet for the engine settings
 struct SimulatorData
 {
     MainAccelerometerSimulatorData accelerometer1, accelerometer2;
@@ -323,10 +317,7 @@ struct __attribute__((packed)) FMMStateHIL
     FMMStateHIL(const Main::FlightModeManagerState& state)
         : state(static_cast<uint8_t>(state)) {};
 
-    // Make it better maybe with a LUT for printing the name of the state
-    void print() {
-        printf("%d\n", state);
-    }
+    void print() { printf("%d\n", state); }
 };
 
 /**
@@ -346,8 +337,8 @@ struct __attribute__((packed)) ActuatorData
                            // simulator
 
     ActuatorData()
-        : adaState(), anasState(), nasdaqState(), sdaState(), airBrakesState(), fmmState(), 
-          actuatorsState(), sequenceNumber(0.0f)
+        : adaState(), anasState(), nasdaqState(), sdaState(), airBrakesState(),
+          fmmState(), actuatorsState(), sequenceNumber(0.0f)
     {
     }
 
@@ -355,11 +346,11 @@ struct __attribute__((packed)) ActuatorData
                  const NASDAQStateHIL& nasdaqState, const SDAStateHIL& sdaState,
                  const AirBrakesStateHIL& airBrakesState,
                  const ActuatorsStateHIL& actuatorsState,
-                 const FMMStateHIL& fmmState,
-                 const float sequenceNumber)
+                 const FMMStateHIL& fmmState, const float sequenceNumber)
         : adaState(adaState), anasState(anasState), nasdaqState(nasdaqState),
           airBrakesState(airBrakesState), sdaState(sdaState),
-          actuatorsState(actuatorsState), fmmState(fmmState),sequenceNumber(sequenceNumber)
+          actuatorsState(actuatorsState), fmmState(fmmState),
+          sequenceNumber(sequenceNumber)
     {
     }
 

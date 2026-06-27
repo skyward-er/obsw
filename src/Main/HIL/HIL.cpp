@@ -344,11 +344,10 @@ ActuatorData MainHIL::updateActuatorData()
  
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
-        actuators->getServoPosition(ServosList::EXPULSION_SERVO),
-        // TODO: CHECK WHICH TO MODIFY
-        (motor->mainValveOpen ? 1.f : 0.f),
-        (motor->oxVentingValveOpen ? 1.f : 0.f),
-        static_cast<float>(miosix::gpios::mainDeploy::value())};
+        actuators->getServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
+        actuators->getServoPosition(ServosList::PARAFOIL_RIGHT_SERVO),
+        static_cast<bool>(actuators->getServoPosition(ServosList::EXPULSION_SERVO)),
+        static_cast<bool>(miosix::gpios::mainDeploy::value())};
 
     counter += 1.0f;
 
