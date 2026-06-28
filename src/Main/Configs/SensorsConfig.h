@@ -23,6 +23,7 @@
 #pragma once
 
 #include <drivers/adc/InternalADC.h>
+#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/AS5047D/AS5047DSPI.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -170,6 +171,26 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace LSM6DSRX_1
 
+namespace ADS131M08
+{
+constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_16256;
+constexpr bool GLOBAL_CHOP_MODE_EN = true;
+
+constexpr auto VBAT_CH      = Boardcore::InternalADC::Channel::CH0;
+constexpr auto CAM_VBAT_CH  = Boardcore::InternalADC::Channel::CH1;
+constexpr auto COTS_VBAT_CH = Boardcore::InternalADC::Channel::CH2;
+constexpr auto CURRENT_CH   = Boardcore::InternalADC::Channel::CH3;
+
+constexpr auto VBAT_SCALE      = 7.060606f;
+constexpr auto CAM_VBAT_SCALE  = 7.060606f;
+constexpr auto COTS_VBAT_SCALE = 7.060606f;
+
+constexpr auto CURRENT_SCALE  = 27.361111f;
+constexpr auto CURRENT_OFFSET = -3.3f;
+
+constexpr auto RATE    = 10_hz;
+constexpr auto ENABLED = true;
+}  // namespace ADS131M08
 namespace ND015A
 {
 constexpr auto IOW = Boardcore::ND015A::IOWatchdogEnable::DISABLED;
@@ -184,12 +205,6 @@ constexpr auto ENABLED = true;
 
 namespace InternalADC
 {
-constexpr auto VBAT_CH     = Boardcore::InternalADC::Channel::CH8;
-constexpr auto CAM_VBAT_CH = Boardcore::InternalADC::Channel::CH9;
-
-constexpr auto VBAT_SCALE     = 7500.0f / 2400.0f;
-constexpr auto CAM_VBAT_SCALE = 7500.0f / 2400.0f;
-
 constexpr auto RATE    = 10_hz;
 constexpr auto ENABLED = true;
 }  // namespace InternalADC

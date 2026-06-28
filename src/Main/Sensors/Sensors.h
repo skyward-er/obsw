@@ -31,6 +31,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <drivers/adc/InternalADC.h>
 #include <scheduler/TaskScheduler.h>
+#include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/AS5047D/AS5047DSPI.h>
 #include <sensors/H3LIS331DL/H3LIS331DL.h>
 #include <sensors/LIS2MDL/LIS2MDL.h>
@@ -82,6 +83,7 @@ public:
     Boardcore::LIS2MDLData getLIS2MDLIntLastSample();
     Boardcore::LSM6DSRXData getLSM6DSRX0LastSample();
     Boardcore::LSM6DSRXData getLSM6DSRX1LastSample();
+    Boardcore::ADS131M08Data getADS131M08LastSample();
     Boardcore::ND015XData getND015A0LastSample();
     Boardcore::ND015XData getND015A1LastSample();
     Boardcore::ND015XData getND015A2LastSample();
@@ -97,6 +99,8 @@ public:
 
     Boardcore::VoltageData getBatteryVoltageLastSample();
     Boardcore::VoltageData getCamBatteryVoltageLastSample();
+    Boardcore::VoltageData getCotsBatteryVoltageLastSample();
+    Boardcore::CurrentData getCurrentConsumptionLastSample();
 
     Boardcore::PressureData getAtmosPressureLastSample();
     Boardcore::TemperatureData getTemperatureLastSample();
@@ -135,6 +139,7 @@ protected:
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_int;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
     std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
+    std::unique_ptr<Boardcore::ADS131M08> ads131m08;
     std::unique_ptr<Boardcore::ND015A> nd015a_0;
     std::unique_ptr<Boardcore::ND015A> nd015a_1;
     std::unique_ptr<Boardcore::ND015A> nd015a_2;
@@ -177,6 +182,9 @@ private:
 
     void internalAdcInit();
     void internalAdcCallback();
+
+    void ADS131M08Init();
+    void ADS131M08Callback();
 
     void nd015a0Init();
     void nd015a0Callback();

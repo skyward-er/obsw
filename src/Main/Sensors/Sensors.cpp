@@ -81,6 +81,9 @@ bool Sensors::start()
     if (Config::Sensors::VN100::ENABLED)
         vn100Init();
 
+    if (Config::Sensors::ADS131M08::ENABLED)
+        ADS131M08Init();
+
     if (Config::Sensors::ND015A::ENABLED)
     {
         nd015a0Init();
@@ -273,19 +276,44 @@ InternalADCData Sensors::getInternalADCLastSample()
 
 VoltageData Sensors::getBatteryVoltageLastSample()
 {
-    auto sample   = getInternalADCLastSample();
-    float voltage = sample.voltage[(int)Config::Sensors::InternalADC::VBAT_CH] *
-                    Config::Sensors::InternalADC::VBAT_SCALE;
+    auto sample   = getADS131M08LastSample();
+    float voltage = sample.voltage[(int)Config::Sensors::ADS131M08::VBAT_CH] *
+                    Config::Sensors::ADS131M08::VBAT_SCALE;
     return {sample.timestamp, voltage};
 }
 
 VoltageData Sensors::getCamBatteryVoltageLastSample()
 {
-    auto sample = getInternalADCLastSample();
+    auto sample = getADS131M08LastSample();
     float voltage =
-        sample.voltage[(int)Config::Sensors::InternalADC::CAM_VBAT_CH] *
-        Config::Sensors::InternalADC::CAM_VBAT_SCALE;
+        sample.voltage[(int)Config::Sensors::ADS131M08::CAM_VBAT_CH] *
+        Config::Sensors::ADS131M08::CAM_VBAT_SCALE;
     return {sample.timestamp, voltage};
+}
+
+VoltageData Sensors::getCotsBatteryVoltageLastSample()
+{
+    auto sample = getADS131M08LastSample();
+    float voltage =
+        sample.voltage[(int)Config::Sensors::ADS131M08::COTS_VBAT_CH] *
+        Config::Sensors::ADS131M08::COTS_VBAT_SCALE;
+    return {sample.timestamp, voltage};
+}
+
+CurrentData Sensors::getCurrentConsumptionLastSample()
+{
+    auto sample = getADS131M08LastSample();
+    float current =
+        sample.voltage[(int)Config::Sensors::ADS131M08::CURRENT_CH] *
+            Config::Sensors::ADS131M08::CURRENT_SCALE +
+        Config::Sensors::ADS131M08::CURRENT_OFFSET;
+
+    return {sample.timestamp, current};
+}
+
+ADS131M08Data Sensors::getADS131M08LastSample()
+{
+    return ads131m08 ? ads131m08->getLastSample() : ADS131M08Data{};
 }
 
 ND015XData Sensors::getND015A0LastSample()
@@ -490,6 +518,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(lis2mdl_int, "LIS2MDL_INT");
         PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
         PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
+        PUSH_SENSOR_INFO(ads131m08, "ADS131M08");
         PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
         PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
         PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
@@ -732,16 +761,61 @@ void Sensors::vn100Callback() { sdLogger.log(getVN100LastSample()); }
 void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC2);
-    internalAdc->enableChannel(Config::Sensors::InternalADC::VBAT_CH);
-    internalAdc->enableChannel(Config::Sensors::InternalADC::CAM_VBAT_CH);
     internalAdc->enableTemperature();
-    internalAdc->enableVbat();
 }
 
 void Sensors::internalAdcCallback()
 {
     sdLogger.log(getInternalADCLastSample());
 }
+
+void Sensors::ADS131M08Init()
+{
+    SPIBusConfig spiConfig;
+    spiConfig.clockDivider = SPI::ClockDivider::DIV_32;
+
+    ADS131M08::Config config = {};
+
+    // Setup global configurations
+    config.oversamplingRatio = Config::Sensors::ADS131M08::OSR;
+    config.globalChopModeEnabled =
+        Config::Sensors::ADS131M08::GLOBAL_CHOP_MODE_EN;
+
+    // Disable all channels
+    for (auto& channel : config.channelsConfig)
+        channel.enabled = false;
+
+    // Configure all required channels
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::VBAT_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::CAM_VBAT_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::COTS_VBAT_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(int)Config::Sensors::ADS131M08::CURRENT_CH] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    ads131m08 = std::make_unique<ADS131M08>(getModule<Buses>()->getADS131M08(),
+                                            sensors::ADS131M08::cs::getPin(),
+                                            spiConfig, config);
+}
+
+void Sensors::ADS131M08Callback() { sdLogger.log(getADS131M08LastSample()); }
 
 void Sensors::nd015a0Init()
 {
@@ -918,6 +992,13 @@ bool Sensors::sensorManagerInit()
         SensorInfo info{"InternalADC", Config::Sensors::InternalADC::RATE,
                         [this]() { internalAdcCallback(); }};
         map.emplace(internalAdc.get(), info);
+    }
+
+    if (ads131m08)
+    {
+        SensorInfo info{"ADS131M08", Config::Sensors::ADS131M08::RATE,
+                        [this]() { ADS131M08Callback(); }};
+        map.emplace(ads131m08.get(), info);
     }
 
     if (nd015a_0)
