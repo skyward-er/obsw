@@ -42,7 +42,6 @@ namespace Sensors
 
 namespace ADC_1
 {
-// TODO: DA verificare l'OSR
 constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 
@@ -79,7 +78,6 @@ constexpr bool ENABLED = true;
 
 namespace ADC_2
 {
-// TODO: DA verificare l'OSR
 constexpr auto OSR = Boardcore::ADS131M08Defs::OversamplingRatio::OSR_8192;
 constexpr bool GLOBAL_CHOP_MODE_EN = true;
 

@@ -738,8 +738,6 @@ State FlightModeManager::state_unpowered_ascent(const Event& event)
             EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
                                             TOPIC_FLIGHT);
 
-            getModule<Radio>()->disableAscentTelemetry();
-            getModule<Radio>()->enableDescentTelemetry();
             return transition(&FlightModeManager::state_drogue_descent);
         }
         default:
@@ -765,6 +763,9 @@ State FlightModeManager::state_drogue_descent(const Event& event)
 
             EventBroker::getInstance().post(FLIGHT_DROGUE_DESCENT,
                                             TOPIC_FLIGHT);
+
+            getModule<Radio>()->disableAscentTelemetry();
+            getModule<Radio>()->enableDescentTelemetry();
 
             return HANDLED;
         }
