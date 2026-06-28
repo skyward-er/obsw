@@ -83,8 +83,8 @@ private:
 
     miosix::FastMutex nasMutex;
 
-    ANAS0 anas;
-    NASDAQ0 nasdaq;
+    ANAS::ANAS0 anas;
+    NASDAQ::NASDAQ0 nasdaq;
 
     size_t anasID;
     size_t nasdaqID;
