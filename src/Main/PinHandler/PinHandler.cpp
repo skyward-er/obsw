@@ -69,17 +69,17 @@ bool PinHandler::start()
     CHECK_RESULT(externalPinObserver->registerPinCallback(
         DETACH_NOSECONE, [this](PinTransition transition, auto pinData)
         { onDetachPayloadTransition(transition, pinData); },
-        Config::PinHandler::RAMP_PIN_THRESHOLD))
+        Config::PinHandler::DETACH_NOSECONE_PIN_THRESHOLD))
 
     CHECK_RESULT(externalPinObserver->registerPinCallback(
         EXPULSION_SENSE, [this](PinTransition transition, auto pinData)
         { onExpulsionSenseTransition(transition, pinData); },
-        Config::PinHandler::RAMP_PIN_THRESHOLD))
+        Config::PinHandler::EXPULSION_SENSE_PIN_THRESHOLD))
 
     CHECK_RESULT(externalPinObserver->registerPinCallback(
         RELEASER_SENSE, [this](PinTransition transition, auto pinData)
         { onReleaserSenseTransition(transition, pinData); },
-        Config::PinHandler::RAMP_PIN_THRESHOLD))
+        Config::PinHandler::RELEASER_SENSE_PIN_THRESHOLD))
 
     started = true;
     return true;

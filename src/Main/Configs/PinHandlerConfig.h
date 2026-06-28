@@ -39,9 +39,9 @@ constexpr auto POLL_INTERVAL = 20ms;
 constexpr uint32_t RAMP_PIN_THRESHOLD = 20;
 constexpr auto RAMP_PIN_TRIGGER       = Boardcore::PinTransition::RISING_EDGE;
 
-constexpr uint32_t PAYLOAD_DETACH_PIN_THRESHOLD  = 20;
+constexpr uint32_t DETACH_NOSECONE_PIN_THRESHOLD = 20;
 constexpr uint32_t EXPULSION_SENSE_PIN_THRESHOLD = 20;
-constexpr uint32_t CUTTER_SENSE_PIN_THRESHOLD    = 20;
+constexpr uint32_t RELEASER_SENSE_PIN_THRESHOLD  = 20;
 
 }  // namespace PinHandler
 
