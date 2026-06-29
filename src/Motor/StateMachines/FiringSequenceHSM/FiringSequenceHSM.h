@@ -25,6 +25,7 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
+#include <Motor/ValveSequenceController.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>
@@ -37,7 +38,7 @@ namespace Motor
 {
 class FiringSequenceHSM
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, BoardScheduler,
-                                           Registry>,
+                                           Registry, ValveSequenceController>,
       public Boardcore::HSM<FiringSequenceHSM>
 {
 public:

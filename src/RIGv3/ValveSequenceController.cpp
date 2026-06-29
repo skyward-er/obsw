@@ -26,10 +26,39 @@
 
 using namespace std::chrono;
 using namespace Boardcore;
-using namespace RIGv3;
 using namespace Common;
 
-ValveSequenceController::ValveSequenceController() {}
+namespace RIGv3
+{
+
+ValveSequenceController::ValveSequenceController(unsigned int stacksize,
+                                                 miosix::Priority priority)
+    : EventHandler(stacksize, priority)
+{
+    EventBroker::getInstance().subscribe(this, TOPIC_VALVE_SEQUENCE);
+}
+void ValveSequenceController::handleEvent(const Event& ev)
+{
+    switch (ev)
+    {
+        case WIGGLE_ALL_VALVES:
+        {
+            uint8_t wiggleResult = wiggleValves();
+            getModule<Radio>()->enqueueWiggleResultTm(
+                wiggleResult, Config::Radio::WIGGLE_SOURCE::RIG);
+            break;
+        }
+
+        case CLOSE_ALL_VALVES:
+        {
+            closeValves();
+            break;
+        }
+
+        default:
+            break;
+    }
+}
 
 void ValveSequenceController::closeValves()
 {
@@ -38,21 +67,21 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(OX_FILLING_VALVE);
     getModule<Actuators>()->closeValve(OX_RELEASE_VALVE);
 
-    Thread::sleep(Config::VALVE_CLOSING_TIME);
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     getModule<Actuators>()->closeValve(OX_VENTING_VALVE);
     getModule<Actuators>()->closeValve(FUEL_VENTING_VALVE);
     getModule<Actuators>()->closeValve(OX_DETACH_SERVO);
     getModule<Actuators>()->closeValve(FUEL_DETACH_SERVO);
 
-    Thread::sleep(Config::VALVE_CLOSING_TIME);
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     getModule<Actuators>()->closeValve(PURGE_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
 
-    Thread::sleep(Config::VALVE_CLOSING_TIME);
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
                                     TOPIC_EREG_FUEL);
@@ -64,15 +93,16 @@ void ValveSequenceController::closeValves()
 
 uint8_t ValveSequenceController::wiggleValves()
 {
-    auto checkValve = [&](auto getPosition, uint8_t bit)
+    auto checkValve = [&](auto getPosition, uint8_t bit, auto openingThreshold,
+                          auto closedThreshold)
     {
-        Thread::sleep(Config::VALVE_OPENING_TIME);
+        Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-        bool isOpen = getPosition().position > Config::VALVE_OPENING_THRESHOLD;
+        bool isOpen = getPosition().position > openingThreshold;
 
-        Thread::sleep(Config::VALVE_OPENING_TIME);
+        Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-        bool isClosed = getPosition().position < Config::VALVE_CLOSED_THRESHOLD;
+        bool isClosed = getPosition().position < closedThreshold;
 
         return (isOpen && isClosed) ? static_cast<uint8_t>(1 << bit) : 0;
     };
@@ -84,16 +114,25 @@ uint8_t ValveSequenceController::wiggleValves()
     getModule<Actuators>()->wiggleValve(PRZ_OX_VALVE);
     getModule<Actuators>()->wiggleValve(PRZ_FUEL_VALVE);
 
+    wiggleMap |=
+        checkValve([&]() { return getModule<Sensors>()->getMainOxPosition(); },
+                   0, Config::VALVE_OPENING_THRESHOLD_MAIN_OX,
+                   Config::VALVE_CLOSED_THRESHOLD_MAIN_OX);
     wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getMainOxPosition(); }, 0);
-    wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getMainFuelPosition(); }, 1);
-    wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getOxRegPosition(); }, 2);
-    wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getFuelRegPosition(); }, 3);
+        [&]() { return getModule<Sensors>()->getMainFuelPosition(); }, 1,
+        Config::VALVE_OPENING_THRESHOLD_MAIN_FUEL,
+        Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL);
+    wiggleMap |=
+        checkValve([&]() { return getModule<Sensors>()->getOxRegPosition(); },
+                   2, Config::VALVE_OPENING_THRESHOLD_PRZ_OX,
+                   Config::VALVE_CLOSED_THRESHOLD_PRZ_OX);
+    wiggleMap |=
+        checkValve([&]() { return getModule<Sensors>()->getFuelRegPosition(); },
+                   3, Config::VALVE_OPENING_THRESHOLD_PRZ_FUEL,
+                   Config::VALVE_CLOSED_THRESHOLD_PRZ_FUEL);
 
     getModule<CanHandler>()->sendEvent(CanConfig::EventId::WIGGLE_ALL_VALVES);
 
     return wiggleMap;
 }
+}  // namespace RIGv3

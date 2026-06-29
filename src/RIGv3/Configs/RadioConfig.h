@@ -48,6 +48,8 @@ constexpr uint8_t MAV_COMPONENT_ID = 0;
 
 constexpr long long LAST_COMMAND_THRESHOLD = 300;
 
+constexpr enum WIGGLE_SOURCE { RIG, MOTOR };
+
 }  // namespace Radio
 
 }  // namespace Config

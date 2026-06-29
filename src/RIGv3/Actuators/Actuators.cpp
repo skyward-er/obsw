@@ -399,6 +399,9 @@ bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
 
 void Actuators::closeAllValves()
 {
+    // TODO Sarebbe da cambiare con il nuovo closeValves() di
+    // ValveSequenceController
+
     Lock<FastMutex> lock(infosMutex);
     for (auto& valve : valveInfos)
         valve.closeValve();

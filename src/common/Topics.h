@@ -49,6 +49,7 @@ enum Topics : uint8_t
     TOPIC_TARS,
     TOPIC_ALT,
     TOPIC_WING,
+    TOPIC_VALVE_SEQUENCE,
 };
 
 const std::vector<uint8_t> TOPICS_LIST{

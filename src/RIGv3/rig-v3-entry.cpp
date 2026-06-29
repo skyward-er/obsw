@@ -34,6 +34,7 @@
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv3/StateMachines/TARS1/TARS1.h>
 #include <RIGv3/StateMachines/TARS3/TARS3.h>
+#include <RIGv3/ValveSequenceController.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -59,19 +60,20 @@ int main()
     auto buses     = new Buses();
     auto scheduler = new BoardScheduler();
 
-    auto gpioExpander      = new GpioExpander();
-    auto sensors           = new Sensors();
-    auto actuators         = new Actuators();
-    auto registry          = new Registry();
-    auto canHandler        = new CanHandler();
-    auto gmm               = new GroundModeManager();
-    auto tars1             = new TARS1();
-    auto tars3             = new TARS3();
-    auto eregOx            = new EregControllerOx();
-    auto eregFuel          = new EregControllerFuel();
-    auto firingSequenceHSM = new FiringSequenceHSM();
-    auto radio             = new Radio();
-    auto motorStatus       = new MotorStatus();
+    auto gpioExpander            = new GpioExpander();
+    auto sensors                 = new Sensors();
+    auto actuators               = new Actuators();
+    auto registry                = new Registry();
+    auto canHandler              = new CanHandler();
+    auto gmm                     = new GroundModeManager();
+    auto tars1                   = new TARS1();
+    auto tars3                   = new TARS3();
+    auto eregOx                  = new EregControllerOx();
+    auto eregFuel                = new EregControllerFuel();
+    auto firingSequenceHSM       = new FiringSequenceHSM();
+    auto radio                   = new Radio();
+    auto motorStatus             = new MotorStatus();
+    auto valveSequenceController = new RIGv3::ValveSequenceController();
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();
@@ -99,7 +101,10 @@ int main()
         manager.insert<EregControllerOx>(eregOx) &&
         manager.insert<EregControllerFuel>(eregFuel) &&
         manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
-        manager.insert<MotorStatus>(motorStatus) && manager.inject();
+        manager.insert<MotorStatus>(motorStatus) &&
+        manager.insert<RIGv3::ValveSequenceController>(
+            valveSequenceController) &&
+        manager.inject();
 
     if (!initResult)
     {
@@ -254,6 +259,14 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
+    }
+
+    std::cout << "Starting ValveSequenceController" << std::endl;
+    if (!valveSequenceController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ValveSequenceController ***"
+                  << std::endl;
     }
 
     if (initResult)

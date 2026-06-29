@@ -22,6 +22,8 @@
 
 #include <ActiveObject.h>
 #include <RIGv3/Actuators/Actuators.h>
+#include <RIGv3/CanHandler/CanHandler.h>
+#include <RIGv3/Radio/Radio.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -30,13 +32,18 @@ namespace RIGv3
 {
 
 class ValveSequenceController
-    : public ActiveObject,
-      InjectableWithDeps<Actuators, Sensors, CanHandler>
+    : public Boardcore::EventHandler,
+      InjectableWithDeps<Actuators, Sensors, Radio, CanHandler>
 {
 public:
-    ValveSequenceController();
+    ValveSequenceController(
+        unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
+        miosix::Priority priority = miosix::MAIN_PRIORITY);
 
     uint8_t wiggleValves();
     void closeValves();
+
+protected:
+    void handleEvent(const Event& ev) override;
 };
 }  // namespace RIGv3

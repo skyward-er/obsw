@@ -20,21 +20,27 @@
  * THE SOFTWARE.
  */
 
-#include <ActiveObject.h>
 #include <Motor/Actuators/Actuators.h>
+#include <Motor/CanHandler/CanHandler.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
-#include <events/EventBroker.h>
-
+#include <events/EventHandler.h>
 namespace Motor
 {
-class ValveSequenceController : public ActiveObject,
-                                InjectableWithDeps<Actuators, Sensors>
+class ValveSequenceController
+    : public Boardcore::EventHandler,
+      InjectableWithDeps<Actuators, Sensors, CanHandler>
 {
 public:
-    ValveSequenceController();
+    ValveSequenceController(
+        unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
+        miosix::Priority priority = miosix::MAIN_PRIORITY);
 
+private:
     uint8_t wiggleValves();
     void closeValves();
+
+protected:
+    void handleEvent(const Event& ev) override;
 };
 }  // namespace Motor

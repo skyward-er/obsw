@@ -31,6 +31,7 @@
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
+#include <Motor/ValveSequenceController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
@@ -78,13 +79,14 @@ int main()
     Buses* buses              = new Buses();
     BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors* sensors       = nullptr;
-    auto actuators         = new Actuators();
-    auto canHandler        = new CanHandler();
-    auto eregOx            = new EregControllerOx();
-    auto eregFuel          = new EregControllerFuel();
-    auto registry          = new Registry();
-    auto firingSequenceHSM = new FiringSequenceHSM();
+    Sensors* sensors             = nullptr;
+    auto actuators               = new Actuators();
+    auto canHandler              = new CanHandler();
+    auto eregOx                  = new EregControllerOx();
+    auto eregFuel                = new EregControllerFuel();
+    auto registry                = new Registry();
+    auto firingSequenceHSM       = new FiringSequenceHSM();
+    auto valveSequenceController = new Motor::ValveSequenceController();
 
     auto& sdLogger = Logger::getInstance();
 
@@ -110,6 +112,8 @@ int main()
                   manager.insert<EregControllerOx>(eregOx) &&
                   manager.insert<EregControllerFuel>(eregFuel) &&
                   manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
+                  manager.insert<Motor::ValveSequenceController>(
+                      valveSequenceController) &&
                   manager.inject();
 
     if (!initResult)
@@ -246,6 +250,14 @@ int main()
         sensors->calibrate();
         led1Off();
         setStatus(StatusBit::SENSORS);
+    }
+
+    std::cout << "Starting ValveSequenceController" << std::endl;
+    if (!valveSequenceController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ValveSequenceController ***"
+                  << std::endl;
     }
 
     if (initResult)

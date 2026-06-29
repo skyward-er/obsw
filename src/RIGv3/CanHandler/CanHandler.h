@@ -23,6 +23,7 @@
 #pragma once
 
 #include <RIGv3/BoardScheduler.h>
+#include <RIGv3/Radio/Radio.h>
 #include <RIGv3/Sensors/Sensors.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
@@ -39,7 +40,7 @@ class GroundModeManager;
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, GroundModeManager,
                                            Actuators, Sensors,
-                                           Common::MotorStatus>
+                                           Common::MotorStatus, Radio>
 {
 public:
     struct CanStatus
@@ -82,6 +83,7 @@ private:
     void handleSensor(const Boardcore::Canbus::CanMessage& msg);
     void handleActuator(const Boardcore::Canbus::CanMessage& msg);
     void handleStatus(const Boardcore::Canbus::CanMessage& msg);
+    void handleWiggleResult(const Boardcore::Canbus::CanMessage& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();

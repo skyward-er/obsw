@@ -194,7 +194,7 @@ State FiringSequenceHSM::state_ready(const Event& event)
 
         case EV_INIT:
         {
-            getModule<Actuators>()->closeAllValves();
+            getModule<ValveSequenceController>()->closeValves();
             return HANDLED;
         }
 

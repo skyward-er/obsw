@@ -508,6 +508,21 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
+        case MAV_WIGGLE_ALL_VALVES:
+        {
+            if (getModule<GroundModeManager>()->getState() ==
+                GroundModeManagerState::DISARMED)
+            {
+                EventBroker::getInstance().post(WIGGLE_ALL_VALVES,
+                                                TOPIC_VALVE_SEQUENCE);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
+            break;
+        }
+
         default:
         {
             // Try to map the command to an event
@@ -616,6 +631,24 @@ bool Radio::enqueueValveInfoTm(ServosList valveId)
     mavlink_msg_valve_info_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                      Config::Radio::MAV_COMPONENT_ID, &msg,
                                      &tm);
+    enqueueMessage(msg);
+    return true;
+}
+
+bool Radio::enqueueWiggleResultTm(uint8_t wiggleResult,
+                                  Config::Radio::WIGGLE_SOURCE source)
+{
+    mavlink_message_t msg;
+    mavlink_wiggle_valves_result_tm_t tm;
+
+    tm.timestamp = TimestampTimer::getTimestamp();
+    tm.resultMap = wiggleResult;
+    tm.source    = static_cast<uint8_t>(source);
+
+    mavlink_msg_wiggle_valves_result_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                               Config::Radio::MAV_COMPONENT_ID,
+                                               &msg, &tm);
+
     enqueueMessage(msg);
     return true;
 }

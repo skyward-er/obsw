@@ -269,6 +269,15 @@ bool CanHandler::start()
     return true;
 }
 
+void CanHandler::sendWiggleResult(uint8_t wiggleResult)
+{
+    protocol.enqueueData(static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
+                         static_cast<uint8_t>(CanConfig::PrimaryType::STATUS),
+                         static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                         static_cast<uint8_t>(CanConfig::Board::RIG),
+                         static_cast<uint8_t>(WIGGLE_ALL_VALVES), wiggleResult);
+}
+
 void CanHandler::setInitStatus(uint8_t status) { initStatus = status; }
 
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
@@ -360,13 +369,21 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
         }
         case Common::CanConfig::EventId::WIGGLE_ALL_VALVES:
         {
-            uint8_t wiggleResult =
-                getModule<ValveSequenceController>()->wiggleValves();
+            if (getModule<FiringSequenceHSM>()->getState() ==
+                FiringSequenceState::READY)
+            {
+                EventBroker::getInstance().post(WIGGLE_ALL_VALVES,
+                                                TOPIC_VALVE_SEQUENCE);
+            }
+            else
+            {
+            }
             break;
         }
         case Common::CanConfig::EventId::CLOSE_ALL_VALVES:
         {
-            getModule<ValveSequenceController>()->closeValves();
+            EventBroker::getInstance().post(CLOSE_ALL_VALVES,
+                                            TOPIC_VALVE_SEQUENCE);
             break;
         }
         default:

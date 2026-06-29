@@ -32,16 +32,29 @@ namespace Motor
 namespace Config
 {
 
+#define VALVE_THRESHOLD(name)
+
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto VALVE_OPENING_THRESHOLD = 60;
-constexpr auto VALVE_CLOSED_THRESHOLD  = 5;
+constexpr auto VALVE_OPENING_THRESHOLD_MAIN_OX      = 60;
+constexpr auto VALVE_OPENING_THRESHOLD_MAIN_FUEL    = 60;
+constexpr auto VALVE_OPENING_THRESHOLD_PRZ_OX       = 60;
+constexpr auto VALVE_OPENING_THRESHOLD_PRZ_FUEL     = 60;
+constexpr auto VALVE_OPENING_THRESHOLD_OX_VENTING   = 10;
+constexpr auto VALVE_OPENING_THRESHOLD_FUEL_VENTING = 10;
+
+constexpr auto VALVE_CLOSED_THRESHOLD_MAIN_OX      = 10;
+constexpr auto VALVE_CLOSED_THRESHOLD_MAIN_FUEL    = 10;
+constexpr auto VALVE_CLOSED_THRESHOLD_PRZ_OX       = 10;
+constexpr auto VALVE_CLOSED_THRESHOLD_PRZ_FUEL     = 10;
+constexpr auto VALVE_CLOSED_THRESHOLD_OX_VENTING   = 10;
+constexpr auto VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 10;
 
 // Washing procedure parameters
-constexpr auto VALVE_OPENING_TIME = 1000;
+constexpr auto VALVE_WIGGLE_DELAY = 1000;
 
-constexpr auto VALVE_CLOSING_TIME = 500;
+constexpr auto VALVE_CLOSING_DELAY = 500;
 
 }  // namespace Config
 }  // namespace Motor
