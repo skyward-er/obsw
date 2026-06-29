@@ -264,7 +264,7 @@ void SMA::update()
                 if (hub->hasNewANASState() &&
                     hub->getLastRocketANASState(anasState))
                 {
-                    // In case there is a new NAS packet
+                    // AScent phase packet
                     if (SMAConfig::USING_ROCKET_GPS_POSITION &&
                         hub->getRocketOrigin(origin) &&
                         hub->getRocketPosition(position))
@@ -281,6 +281,20 @@ void SMA::update()
                     // and retrieve the propagated state
                     propagator.setRocketNasState(anasState);
                 }
+                else if (hub->hasNewNASDAQState()){
+                    // Descent phase packet
+                    NASDAQState nasdaqState;
+                    if (hub->getLastRocketNASDAQState(nasdaqState))
+                    {
+                        float pos[3]  = {nasdaqState.n,  nasdaqState.e,  nasdaqState.d};
+                        float vel[3]  = {nasdaqState.vn, nasdaqState.ve, nasdaqState.vd};
+                        float quat[4] = {0.0f, 0.0f, 0.0f, 1.0f};  // identity, ARP only needs pos/vel
+
+                        ANASState asAnasState(nasdaqState.timestamp, pos, vel, quat);
+                        propagator.setRocketNasState(asAnasState);
+                    }
+                }
+
 
                 propagator.update();  // step the propagator
                 PropagatorState predicted = propagator.getState();
