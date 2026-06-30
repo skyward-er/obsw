@@ -214,9 +214,9 @@ bool Actuators::start()
 void Actuators::initializeValves()
 {
     // Servo valves connected to the PCA9685 expanders
-    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         PRZ_FIL, expander0, PCA9685Utils::Channel::CHANNEL_1));
-    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         PRZ_REL, expander0, PCA9685Utils::Channel::CHANNEL_2));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         OX_FIL, expander0, PCA9685Utils::Channel::CHANNEL_3));
@@ -722,6 +722,12 @@ void Actuators::task()
     {
         // Backstep the 3-way valve servo a little to avoid strain
         prz_3wayValveInfo.backstep();
+    }
+    else if (prz_3wayValveInfo.updateTs != noActionNeeded &&
+             currentTime > prz_3wayValveInfo.updateTs)
+    {
+        // Animate valve step
+        prz_3wayValveInfo.advanceAnimation();
     }
 
     // handle spark plug timing
