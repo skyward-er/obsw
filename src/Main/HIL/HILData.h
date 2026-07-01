@@ -44,7 +44,6 @@
 
 // ABK
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
-#include <algorithms/AirBrakes/AirBrakesInterpPID.h>
 namespace Main
 {
 
@@ -196,8 +195,8 @@ struct __attribute__((packed)) NASDAQStateHIL
     NASDAQStateHIL() : n(0), e(0), d(0), vn(0), ve(0), vd(0) {};
 
     NASDAQStateHIL(const Boardcore::NASDAQState& output)
-        : n(output.x), e(output.y), d(output.z), vn(output.vx), ve(output.vy),
-          vd(output.vz) {};
+        : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
+          vd(output.vd) {};
 
     void print()
     {

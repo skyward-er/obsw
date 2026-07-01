@@ -38,10 +38,9 @@
 namespace Main
 {
 
-MainHILPhasesManager::MainHILPhasesManager(
-    std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
+MainHILPhasesManager::MainHILPhasesManager()
     : Boardcore::HILPhasesManager<MainFlightPhases, SimulatorData,
-                                  ActuatorData>(getCurrentPosition)
+                                  ActuatorData>()
 {
     flagsFlightPhases = {{MainFlightPhases::SIM_FLYING, false},
                          {MainFlightPhases::SIM_ASCENT, false},
@@ -207,16 +206,14 @@ void MainHILPhasesManager::handleEventImpl(
         case Common::Events::TMTC_FORCE_LAUNCH:
         {
             t_liftoff = Boardcore::TimestampTimer::getTimestamp();
-            printf("[HIL] ------- LIFTOFF -------: %f, %f \n",
-                   getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- LIFTOFF -------:\n");
             changed_flags.push_back(MainFlightPhases::LIFTOFF);
             break;
         }
 
         case Common::Events::FLIGHT_MOTOR_SHUTDOWN:
         {
-            printf("[HIL] ------- SHUTDOWN -------: %f, %f \n",
-                   getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- SHUTDOWN -------:\n");
             changed_flags.push_back(MainFlightPhases::SHUTDOWN);
             break;
         }
@@ -248,8 +245,7 @@ void MainHILPhasesManager::handleEventImpl(
         {
             setFlagFlightPhase(MainFlightPhases::AEROBRAKES, false);
             registerOutcomes(MainFlightPhases::APOGEE);
-            printf("[HIL] ------- APOGEE DETECTED ! ------- %f, %f \n",
-                   getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- APOGEE DETECTED ! -------\n");
             changed_flags.push_back(MainFlightPhases::APOGEE);
             break;
         }
@@ -259,8 +255,7 @@ void MainHILPhasesManager::handleEventImpl(
         {
             setFlagFlightPhase(MainFlightPhases::PARA1, true);
             registerOutcomes(MainFlightPhases::PARA1);
-            printf("[HIL] ------- PARA1 ! ------- %f, %f \n",
-                   getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- PARA1 ! ------- \n");
             changed_flags.push_back(MainFlightPhases::PARA1);
             break;
         }
@@ -272,8 +267,7 @@ void MainHILPhasesManager::handleEventImpl(
             setFlagFlightPhase(MainFlightPhases::PARA1, false);
             setFlagFlightPhase(MainFlightPhases::PARA2, true);
             registerOutcomes(MainFlightPhases::PARA2);
-            printf("[HIL] ------- PARA2 ! ------- %f, %f \n",
-                   getCurrentPosition().z, getCurrentPosition().vz);
+            printf("[HIL] ------- PARA2 ! -------\n");
             changed_flags.push_back(MainFlightPhases::PARA2);
             break;
         }
@@ -312,10 +306,7 @@ bool MainHIL::start()
     auto* nas      = getModule<NASController>();
     auto& hilUsart = getModule<Buses>()->getHILUart();
 
-    hilPhasesManager = new MainHILPhasesManager(
-        [nas]()
-        // TODO Check this
-        { return Boardcore::TimedTrajectoryPoint(nas->getANASState()); });
+    hilPhasesManager = new MainHILPhasesManager();
 
     hilTransceiver = new MainHILTransceiver(hilUsart, hilPhasesManager);
 

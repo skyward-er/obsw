@@ -52,8 +52,7 @@ class MainHILPhasesManager
                                          ActuatorData>
 {
 public:
-    explicit MainHILPhasesManager(
-        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition);
+    explicit MainHILPhasesManager();
 
     void processFlagsImpl(
         const SimulatorData& simulatorData,
