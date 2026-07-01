@@ -67,7 +67,7 @@ private:
     uint16_t shadowModeTimeoutEvent = 0;
 
     size_t abkTaskId;
-    ABK abk;
+    ABK::ABK abk;
 };
 
 }  // namespace Main

@@ -25,7 +25,7 @@
 #include <Main/Configs/WingConfig.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <algorithms/WingController/WingControllerData.h>
-#include <algorithms/WingController/wingController.h>
+#include <algorithms/WingController/PRF.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -153,7 +153,7 @@ private:
 
     std::atomic<bool> started{false};
 
-    wingController wing;
+    PRF::PRF wing;
 
     Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger =

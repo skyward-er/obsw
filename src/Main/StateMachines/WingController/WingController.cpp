@@ -180,6 +180,7 @@ State WingController::state_init(const Boardcore::Event& event)
         {
             updateAndLogStatus(WingControllerState::INIT);
             wing.initialize();
+            wing.setPRF_Wind(0);
             transition(&WingController::state_ready);
             return HANDLED;
         }

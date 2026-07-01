@@ -58,11 +58,11 @@ constexpr int N_DATA_PITOT        = 10;  // #samples
 constexpr int N_DATA_TEMP         = 1;   // #samples
 
 // Checking if the data coming from simulator is enough
-static_assert(N_DATA_ACCEL * SIMULATION_RATE >= Sensors::LSM6DSRX_0::RATE,
+static_assert(N_DATA_ACCEL * SIMULATION_RATE >= Sensors::IMU::RATE,
               "N_DATA_ACCEL not enough");
-static_assert(N_DATA_GYRO * SIMULATION_RATE >= Sensors::LSM6DSRX_0::RATE,
+static_assert(N_DATA_GYRO * SIMULATION_RATE >= Sensors::IMU::RATE,
               "N_DATA_GYRO not enough");
-static_assert(N_DATA_MAGNETO * SIMULATION_RATE >= Sensors::LIS2MDL::RATE,
+static_assert(N_DATA_MAGNETO * SIMULATION_RATE >= Sensors::LIS2MDL_RCS::RATE,
               "N_DATA_MAGNETO not enough");
 static_assert(N_DATA_GPS * SIMULATION_RATE >= Sensors::UBXGPS::RATE,
               "N_DATA_GPS not enough");

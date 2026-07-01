@@ -265,7 +265,7 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
     NASDAQReference nasdaqRef = {.GroundTemperature = ref.refTemperature,
                                  .GroundPressure    = ref.refPressure};
 
-    nasdaq.setNASDAQ_In_Reference(nasdaqRef);
+    nasdaq.setNASDAQ_Reference(nasdaqRef);
 }
 
 void NASController::state_init(const Event& event)

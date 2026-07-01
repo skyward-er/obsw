@@ -44,6 +44,9 @@
 
 // ABK
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
+
+//FMM
+#include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 namespace Main
 {
 
