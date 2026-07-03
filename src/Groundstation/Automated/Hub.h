@@ -85,24 +85,24 @@ public:
     bool getRocketOrigin(Boardcore::GPSData& rocketOrigin);
 
     /**
-        * @brief Synchronized getter for the last rocket ANAS state.
+     * @brief Synchronized getter for the last rocket ANAS state.
      *
-        * @return true only if the rocket ANAS state and is valid and the value is
+     * @return true only if the rocket ANAS state and is valid and the value is
      * new (got from radio)
      */
-        bool getLastRocketANASState(Boardcore::ANASState& anasState);
+    bool getLastRocketANASState(Boardcore::ANASState& anasState);
 
-        bool hasNewANASState();
+    bool hasNewANASState();
 
-        /**
-         * @brief Synchronized getter for the last rocket NASDAQ state.
-         *
-         * @return true only if the rocket NASDAQ state is valid and the value is
-         * new (got from radio)
-         */
-        bool getLastRocketNASDAQState(Boardcore::NASDAQState& nasdaqState);
+    /**
+     * @brief Synchronized getter for the last rocket NASDAQ state.
+     *
+     * @return true only if the rocket NASDAQ state is valid and the value is
+     * new (got from radio)
+     */
+    bool getLastRocketNASDAQState(Boardcore::NASDAQState& nasdaqState);
 
-        bool hasNewNASDAQState();
+    bool hasNewNASDAQState();
 
     /**
      * @brief Gets the current rocket position if it is available
@@ -112,9 +112,9 @@ public:
 
 private:
     /**
-        * @brief Synchronized setter for the last rocket ANAS state.
+     * @brief Synchronized setter for the last rocket ANAS state.
      */
-        void setRocketANASState(const Boardcore::ANASState& newRocketANASState);
+    void setRocketANASState(const Boardcore::ANASState& newRocketANASState);
 
     /**
      * @brief Synchronized setter for the last rocket NASDAQ state.
@@ -155,8 +155,11 @@ private:
     miosix::FastMutex hubDataMutex;
     miosix::FastMutex lastTMMutex;
 
-    bool hasNewANASSet             = false;
-    bool hasNewNASDAQSet           = false;
+    bool hasNewANASSet   = false;
+    bool hasNewNASDAQSet = false;
+
+    bool inDescentPhase = false;  // true after first ROCKET_STATS_DESCENT_TM
+
     uint64_t lastFlightTMTimestamp = 0;
     uint64_t lastStatsTMTimestamp  = 0;
 

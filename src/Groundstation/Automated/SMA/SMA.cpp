@@ -260,6 +260,8 @@ void SMA::update()
                 miosix::Lock<miosix::FastMutex> lock(mutex);
 
                 ANASState anasState;
+                NASDAQState nasdaqState;
+
                 GPSData position, origin;
                 if (hub->hasNewANASState() &&
                     hub->getLastRocketANASState(anasState))
@@ -281,20 +283,24 @@ void SMA::update()
                     // and retrieve the propagated state
                     propagator.setRocketNasState(anasState);
                 }
-                else if (hub->hasNewNASDAQState()){
+                else if (hub->hasNewNASDAQState() &&
+                         hub->getLastRocketNASDAQState(nasdaqState))
+                {
                     // Descent phase packet
                     NASDAQState nasdaqState;
-                    if (hub->getLastRocketNASDAQState(nasdaqState))
-                    {
-                        float pos[3]  = {nasdaqState.n,  nasdaqState.e,  nasdaqState.d};
-                        float vel[3]  = {nasdaqState.vn, nasdaqState.ve, nasdaqState.vd};
-                        float quat[4] = {0.0f, 0.0f, 0.0f, 1.0f};  // identity, ARP only needs pos/vel
 
-                        ANASState asAnasState(nasdaqState.timestamp, pos, vel, quat);
-                        propagator.setRocketNasState(asAnasState);
-                    }
+                    float pos[3]  = {nasdaqState.n, nasdaqState.e,
+                                     nasdaqState.d};
+                    float vel[3]  = {nasdaqState.vn, nasdaqState.ve,
+                                     nasdaqState.vd};
+                    float quat[4] = {0.0f, 0.0f, 0.0f,
+                                     1.0f};  // No quaternion in NASDAQState, so
+                                             // we set a default value
+
+                    ANASState asAnasState(nasdaqState.timestamp, pos, vel,
+                                          quat);
+                    propagator.setRocketNasState(asAnasState);
                 }
-
 
                 propagator.update();  // step the propagator
                 PropagatorState predicted = propagator.getState();
