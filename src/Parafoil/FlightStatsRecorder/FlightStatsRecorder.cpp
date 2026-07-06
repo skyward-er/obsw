@@ -167,32 +167,4 @@ void FlightStatsRecorder::updateNASDAQ(const NASDAQState& data)
     }
 }
 
-void FlightStatsRecorder::updateNas(const NASState& data, float refTemperature)
-{
-    auto fmmState = getModule<FlightModeManager>()->getState();
-    auto wcState  = getModule<WingController>()->getState();
-
-    // Do nothing if it was not dropped yet
-    if (fmmState != FlightModeManagerState::FLYING_WING_DESCENT)
-        return;
-
-    Lock<FastMutex> lock{statsMutex};
-
-    if (wcState == WingControllerState::IDLE ||
-        wcState == WingControllerState::FLYING_DEPLOYMENT ||
-        wcState == WingControllerState::FLYING_CONTROLLED_DESCENT)
-    {
-        // Record this event only during flight
-        auto speed = MeterPerSecond{Vector3f{data.vn, data.vd, data.ve}.norm()};
-        auto alt   = Meter{-data.d};
-
-        if (speed > stats.maxSpeed)
-        {
-            stats.maxSpeed    = speed;
-            stats.maxSpeedAlt = alt;
-            stats.maxSpeedTs  = data.timestamp;
-        }
-    }
-}
-
 }  // namespace Parafoil

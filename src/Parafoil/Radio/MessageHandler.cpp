@@ -481,17 +481,18 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             mavlink_message_t msg;
             mavlink_nas_tm_t tm;
 
-            auto state    = parent.getModule<NASController>()->getState();
-            auto nasState = parent.getModule<NASController>()->getNASDAQState();
+            auto state = parent.getModule<NASController>()->getState();
+            auto nasdaqState =
+                parent.getModule<NASController>()->getNASDAQState();
             auto ref = parent.getModule<NASController>()->getReferenceValues();
 
-            tm.timestamp       = nasState.timestamp;
-            tm.nas_n           = nasState.n;
-            tm.nas_e           = nasState.e;
-            tm.nas_d           = nasState.d;
-            tm.nas_vn          = nasState.vn;
-            tm.nas_ve          = nasState.ve;
-            tm.nas_vd          = nasState.vd;
+            tm.timestamp       = nasdaqState.timestamp;
+            tm.nas_n           = nasdaqState.n;
+            tm.nas_e           = nasdaqState.e;
+            tm.nas_d           = nasdaqState.d;
+            tm.nas_vn          = nasdaqState.vn;
+            tm.nas_ve          = nasdaqState.ve;
+            tm.nas_vd          = nasdaqState.vd;
             tm.nas_qx          = 0;
             tm.nas_qy          = 0;
             tm.nas_qz          = 0;
@@ -525,14 +526,15 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             auto pressDigi    = sensors->getLPS22DFLastSample();
             auto pressStatic  = sensors->getStaticPressureLastSample();
             auto pressDynamic = sensors->getDynamicPressureLastSample();
-            auto nasState     = nas->getNASDAQState();
+            auto nasdaqState  = nas->getNASDAQState();
             auto ref          = nas->getReferenceValues();
 
             float airspeedPitot =
                 (pressDynamic.pressure > 0
                      ? Aeroutils::computePitotAirspeed(
                            pressStatic.pressure + pressDynamic.pressure,
-                           pressStatic.pressure, nasState.d, ref.refTemperature)
+                           pressStatic.pressure, nasdaqState.d,
+                           ref.refTemperature)
                      : 0);
 
             tm.timestamp        = TimestampTimer::getTimestamp();
@@ -568,12 +570,12 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
                     .value();
 
             // Algorithms
-            tm.nas_n      = nasState.n;
-            tm.nas_e      = nasState.e;
-            tm.nas_d      = nasState.d;
-            tm.nas_vn     = nasState.vn;
-            tm.nas_ve     = nasState.ve;
-            tm.nas_vd     = nasState.vd;
+            tm.nas_n      = nasdaqState.n;
+            tm.nas_e      = nasdaqState.e;
+            tm.nas_d      = nasdaqState.d;
+            tm.nas_vn     = nasdaqState.vn;
+            tm.nas_ve     = nasdaqState.ve;
+            tm.nas_vd     = nasdaqState.vd;
             tm.nas_qx     = 0;
             tm.nas_qy     = 0;
             tm.nas_qz     = 0;

@@ -25,7 +25,6 @@
 #include <Parafoil/FlightStatsRecorder/FlightStatsRecorder.h>
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
-#include <algorithms/NAS/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <events/EventBroker.h>

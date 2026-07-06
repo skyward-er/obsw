@@ -24,7 +24,6 @@
 
 #include <algorithms/ADA/ADAData.h>
 #include <algorithms/ANAS/ANASData.h>
-#include <algorithms/NAS/NASState.h>
 #include <algorithms/NASDAQ/NASDAQData.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
@@ -99,7 +98,6 @@ public:
     void deploymentDetected(uint64_t ts, Boardcore::Units::Length::Meter alt);
 
     void updateAcc(const Boardcore::AccelerometerData& data);
-    void updateNas(const Boardcore::NASState& data, float refTemperature);
     void updateANAS(const Boardcore::ANASState& data);
     void updateNASDAQ(const Boardcore::NASDAQState& data);
 

@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <algorithms/NAS/NASConfig.h>
 #include <common/ReferenceConfig.h>
 #include <units/Acceleration.h>
 #include <units/Frequency.h>

@@ -23,7 +23,6 @@
 
 #include <Parafoil/Wing/Guidance/GuidanceAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
-#include <algorithms/NAS/NASState.h>
 #include <algorithms/PIController.h>
 #include <algorithms/ReferenceValues.h>
 #include <utils/DependencyManager/DependencyManager.h>

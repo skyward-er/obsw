@@ -35,6 +35,7 @@
 #include <algorithms/ReferenceValues.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
+#include <utils/AeroUtils/AeroUtils.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include "NASControllerData.h"

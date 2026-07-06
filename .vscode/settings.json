@@ -187,5 +187,6 @@
         "CMAKE_C_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
     },
-    "compilerexplorer.compilationDirectory": "${workspaceFolder}/build"
+    "compilerexplorer.compilationDirectory": "${workspaceFolder}/build",
+    "editor.formatOnSave": true
 }
