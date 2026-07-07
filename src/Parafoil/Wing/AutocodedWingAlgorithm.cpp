@@ -78,9 +78,12 @@ void AutocodedWingAlgorithm::step()
     };
 
     // updated servo positions
-    // TODO: check if the servos are the correct ones
-    Radian leftCommand(logsData.PRFLogs.ServoCommands[0]);
-    Radian rightCommand(logsData.PRFLogs.ServoCommands[1]);
+    Radian leftCommand(logsData.PRFLogs.ServoCommands[0] *
+                       Config::Wing::SERVOS_MAX_ANGLE *
+                       Config::Wing::SERVO_LIMITER_PERCENTAGE);
+    Radian rightCommand(logsData.PRFLogs.ServoCommands[1] *
+                        Config::Wing::SERVOS_MAX_ANGLE *
+                        Config::Wing::SERVO_LIMITER_PERCENTAGE);
 
     getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO, leftCommand);
     getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO, rightCommand);
