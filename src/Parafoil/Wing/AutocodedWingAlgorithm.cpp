@@ -37,10 +37,19 @@ using namespace Parafoil::Config::Wing;
 
 namespace Parafoil
 {
+
+using namespace Units::Length;
+
 AutocodedWingAlgorithm::AutocodedWingAlgorithm(ServosList servoLeft,
                                                ServosList servoRight)
     : Super(servoLeft, servoRight)
 {
+}
+
+void AutocodedWingAlgorithm::setTargetNED(Meter n, Meter e)
+{
+    controller.setPRF_Reference(PRFReference{
+        .WindDirection = 0, .TargetPositionNED = {n.value(), e.value()}});
 }
 
 bool AutocodedWingAlgorithm::init()
@@ -72,7 +81,7 @@ void AutocodedWingAlgorithm::step()
     controller.step();
 
     // retrieve data
-    WingControllerLogsData logsData{
+    PRFLogsData logsData{
         TimestampTimer::getTimestamp(),
         controller.getPRF_Logs_OBSW(),
     };

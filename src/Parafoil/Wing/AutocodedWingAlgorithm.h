@@ -22,9 +22,10 @@
 #pragma once
 
 #include <Parafoil/Wing/WingAlgorithm.h>
+#include <algorithms/PRF/PRF.h>
+#include <algorithms/PRF/PRFData.h>
 #include <algorithms/ReferenceValues.h>
-#include <algorithms/WingController/WingControllerData.h>
-#include <algorithms/WingController/wingController.h>
+#include <units/Length.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -48,6 +49,9 @@ public:
      */
     AutocodedWingAlgorithm(ServosList servoLeft, ServosList servoRight);
 
+    void setTargetNED(Boardcore::Units::Length::Meter n,
+                      Boardcore::Units::Length::Meter e);
+
 protected:
     /**
      * @brief This method updates the autocoded algoritm and sets the servos
@@ -57,7 +61,7 @@ protected:
 
     bool init() override;
 
-    wingController controller;  ///< The autocoded wing controller
+    PRF::PRF controller;  ///< The autocoded wing controller
 
     // Logging structure
     WingAlgorithmData data;
