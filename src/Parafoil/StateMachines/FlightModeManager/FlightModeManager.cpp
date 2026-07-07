@@ -511,7 +511,12 @@ State FlightModeManager::Flying(const Event& event)
         case FMM_WING_DEPLOYED:
         {
             getModule<Actuators>()->cuttersOff();
+#ifndef DISABLE_WING_DESCENT
             return transition(&FlightModeManager::FlyingWingDescent);
+#else
+#warning Wing Descent State has been disabled (DISABLE_WING_DESCENT is defined), THE WING CONTROLLER WON T START
+            return HANDLED;
+#endif
         }
 
         case TMTC_START_RECORDING:
