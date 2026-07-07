@@ -29,6 +29,7 @@
 #include <Parafoil/Sensors/Sensors.h>
 #include <Parafoil/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Parafoil/StateMachines/NASController/NASController.h>
+#include <Parafoil/Wing/AutocodedWingAlgorithm.h>
 #include <Parafoil/Wing/AutomaticWingAlgorithm.h>
 #include <Parafoil/Wing/FileWingAlgorithm.h>
 #include <Parafoil/Wing/WingAlgorithm.h>
@@ -616,6 +617,11 @@ void WingController::loadAlgorithms()
         std::make_unique<AutomaticWingAlgorithm>(
             PI::KP, PI::KI, PARAFOIL_LEFT_SERVO, PARAFOIL_RIGHT_SERVO,
             emGuidance);
+
+    // autocoded wing algorithm
+    algorithms[static_cast<size_t>(AlgorithmId::AUTOCODED)] =
+        std::make_unique<AutocodedWingAlgorithm>(PARAFOIL_LEFT_SERVO,
+                                                 PARAFOIL_RIGHT_SERVO);
 
     // Sequence
     {

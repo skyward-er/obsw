@@ -74,6 +74,7 @@ enum class AlgorithmId : size_t
 {
     CLOSED_LOOP = 0,
     EARLY_MANEUVER,
+    AUTOCODED,
     SEQUENCE,
     ROTATION,
     PROGRESSIVE_ROTATION,
@@ -104,6 +105,8 @@ constexpr auto TARGET_LON = 9.15916;
 constexpr auto ALGORITHM = AlgorithmId::CLOSED_LOOP;
 #elif defined(ALGORITHM_EARLY_MANEUVER)
 constexpr auto ALGORITHM = AlgorithmId::EARLY_MANEUVER;
+#elif defined(ALGORITHM_AUTOCODED)
+constexpr auto ALGORITHM = AlgorithmId::AUTOCODED;
 #elif defined(ALGORITHM_SEQUENCE)
 constexpr auto ALGORITHM = AlgorithmId::SEQUENCE;
 #elif defined(ALGORITHM_ROTATION)

@@ -43,6 +43,49 @@ AutocodedWingAlgorithm::AutocodedWingAlgorithm(ServosList servoLeft,
 {
 }
 
-void AutocodedWingAlgorithm::step() {}
+bool AutocodedWingAlgorithm::init()
+{
+    // Initialize the wing algorithm
+    if (!Super::init())
+    {
+        LOG_ERR(logger, "Failed to initialize the wing algorithm");
+        return false;
+    }
+
+    // Initialize the controller
+    controller.initialize();
+
+    return true;
+}
+
+void AutocodedWingAlgorithm::step()
+{
+    auto nasdaqState = getModule<NASController>()->getNASDAQState();
+
+    PRFIn input = {
+        .NASDAQPosition = {nasdaqState.n, nasdaqState.e, nasdaqState.d},
+        .NASDAQVelocity = {nasdaqState.vn, nasdaqState.ve, nasdaqState.vd},
+    };
+
+    controller.setPRF_In(input);
+
+    controller.step();
+
+    // retrieve data
+    WingControllerLogsData logsData{
+        TimestampTimer::getTimestamp(),
+        controller.getPRF_Logs_OBSW(),
+    };
+
+    // updated servo positions
+    // TODO: check if the servos are the correct ones
+    Radian leftCommand(logsData.PRFLogs.ServoCommands[0]);
+    Radian rightCommand(logsData.PRFLogs.ServoCommands[1]);
+
+    getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO, leftCommand);
+    getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO, rightCommand);
+    // Log data
+    Logger::getInstance().log(logsData);
+}
 
 }  // namespace Parafoil

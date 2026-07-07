@@ -23,6 +23,8 @@
 
 #include <Parafoil/Wing/WingAlgorithm.h>
 #include <algorithms/ReferenceValues.h>
+#include <algorithms/WingController/WingControllerData.h>
+#include <algorithms/WingController/wingController.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -52,6 +54,10 @@ protected:
      * position accordingly
      */
     void step() override;
+
+    bool init() override;
+
+    wingController controller;  ///< The autocoded wing controller
 
     // Logging structure
     WingAlgorithmData data;
