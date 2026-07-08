@@ -81,6 +81,7 @@ bool NASController::start()
     anas.initialize();
     nasdaq.initialize();
 
+    scheduler.disableTask(anasID);
     scheduler.disableTask(nasdaqID);
 
     return true;
@@ -344,7 +345,8 @@ void NASController::state_active_ascent(const Event& event)
         {
             TaskScheduler& scheduler =
                 getModule<BoardScheduler>()->getNasScheduler();
-
+                
+            scheduler.enableTask(anasID);
 
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
             break;
