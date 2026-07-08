@@ -65,37 +65,39 @@ private:
         using namespace Boardcore;
 
         // If full hil, use the can received samples
-        if (!getModule<MainHIL>()->isFullHIL())
-        {
-            // Adding to sensorManager's scheduler a task to "sample" the
-            // combustion chamber pressure coming from motor
-            getSensorsScheduler().addTask(
-                [this]()
-                {
-                    getModule<Common::MotorStatus>()
-                        ->lockData()
-                        ->combustionChamberPressure = updateCCData();
-                },
-                Config::HIL::BARO_CHAMBER_RATE);
+        // if (!getModule<MainHIL>()->isFullHIL())
+        // {
+        //     // Adding to sensorManager's scheduler a task to "sample" the
+        //     // combustion chamber pressure coming from motor
+        //     getSensorsScheduler().addTask(
+        //         [this]()
+        //         {
+        //             getModule<Common::MotorStatus>()
+        //                 ->lockData()
+        //                 ->combustionChamberPressure = updateCCData();
+        //         },
+        //         Config::HIL::BARO_CHAMBER_RATE);
 
-            // Adding to sensorManager's scheduler a task to "sample" the
-            // pitot static and dynamic pressure coming from payload
-            getSensorsScheduler().addTask(
-                [this]()
-                { setCanPitotStaticPressure(updateStaticPressurePitot()); },
-                Config::HIL::BARO_PITOT_RATE);
+        //     // Adding to sensorManager's scheduler a task to "sample" the
+        //     // pitot static and dynamic pressure coming from payload
+        //     getSensorsScheduler().addTask(
+        //         [this]()
+        //         { setCanPitotStaticPressure(updateStaticPressurePitot()); },
+        //         Config::HIL::BARO_PITOT_RATE);
 
-            getSensorsScheduler().addTask(
-                [this]()
-                { setCanPitotDynamicPressure(updateDynamicPressurePitot()); },
-                Config::HIL::BARO_PITOT_RATE);
-        }
+        //     getSensorsScheduler().addTask(
+        //         [this]()
+        //         { setCanPitotDynamicPressure(updateDynamicPressurePitot());
+        //         }, Config::HIL::BARO_PITOT_RATE);
+        // }
 
         hillificator<>(lps22df, enableHw,
                        [this]() { return updateLPS22DFData(); });
         hillificator<>(h3lis331dl, enableHw,
                        [this]() { return updateH3LIS331DLData(); });
-        hillificator<>(lis2mdl, enableHw,
+        hillificator<>(lis2mdl_rcs, enableHw,
+                       [this]() { return updateLIS2MDLData(); });
+        hillificator<>(lis2mdl_int, enableHw,
                        [this]() { return updateLIS2MDLData(); });
         hillificator<>(ubxgps, enableHw,
                        [this]() { return updateUBXGPSData(); });
@@ -111,6 +113,7 @@ private:
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(rotatedImu, enableHw,
                        [this]() { return updateIMUData(*this); });
+        hillificator<>(vn100, enableHw, [this]() { return updateVN100Data(); });
 
         return true;
     };
@@ -269,6 +272,31 @@ private:
         return data;
     };
 
+    Boardcore::VN100SpiData updateVN100Data()
+    {
+        Boardcore::VN100SpiData data;
+
+        auto* sensorData = getModule<MainHIL>()->getSensorData();
+
+        int iAcc  = getSampleCounter(sensorData->accelerometerVN100.NDATA);
+        int iGyro = getSampleCounter(sensorData->gyroVN100.NDATA);
+
+        data.accelerationTimestamp = data.angularSpeedTimestamp =
+            Boardcore::TimestampTimer::getTimestamp();
+
+        data.accelerationX = sensorData->accelerometerVN100.measures[iAcc][0];
+        data.accelerationY = sensorData->accelerometerVN100.measures[iAcc][1];
+        data.accelerationZ = sensorData->accelerometerVN100.measures[iAcc][2];
+
+        data.angularSpeedX = sensorData->gyroVN100.measures[iGyro][0];
+        data.angularSpeedY = sensorData->gyroVN100.measures[iGyro][1];
+        data.angularSpeedZ = sensorData->gyroVN100.measures[iGyro][2];
+
+        return data;
+    }
+
+    
+
     Boardcore::ND015XData updateStaticPressureData()
     {
         Boardcore::ND015XData data;
@@ -288,7 +316,7 @@ private:
         auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX
                         ? getCalibratedLSM6DSRX0LastSample()
                         : getLSM6DSRX0LastSample();
-        auto mag  = getLIS2MDLLastSample();
+        auto mag  = getLIS2MDLRcsLastSample();
 
         return Boardcore::IMUData{imu6, imu6, mag};
     };

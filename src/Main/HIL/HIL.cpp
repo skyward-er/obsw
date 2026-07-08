@@ -88,6 +88,7 @@ void MainHILPhasesManager::processFlagsImpl(
     if (simulatorData.signal ==
         static_cast<float>(HILSignal::SIMULATION_STARTED))
     {
+        //printf("signal arrivato\n");
         miosix::reboot();
     }
 
@@ -101,8 +102,6 @@ void MainHILPhasesManager::processFlagsImpl(
     if (simulatorData.signal ==
         static_cast<float>(HILSignal::SIMULATION_FORCE_LAUNCH))
     {
-        Boardcore::EventBroker::getInstance().post(Common::TMTC_ARM,
-                                                   Common::TOPIC_TMTC);
         Thread::sleep(250);
         Boardcore::EventBroker::getInstance().post(Common::TMTC_FORCE_LAUNCH,
                                                    Common::TOPIC_TMTC);
@@ -260,7 +259,6 @@ void MainHILPhasesManager::handleEventImpl(
             break;
         }
 
-        case Common::Events::FLIGHT_WING_DESCENT:
         case Common::Events::FLIGHT_DPL_ALT_DETECTED:
         case Common::Events::TMTC_FORCE_DEPLOYMENT:
         {
@@ -325,14 +323,16 @@ ActuatorData MainHIL::updateActuatorData()
 
     NASDAQStateHIL nasdaqStateHIL{getModule<NASController>()->getNASDAQState()};
 
-    SDAStateHIL sdaStateHIL{getModule<SDAController>()->getSDAOutput()};
+    SDAStateHIL sdaStateHIL{getModule<SDAController>()->getSDAOutput() &&
+                            getModule<SDAController>()->getState() ==
+                                SDAControllerState::ACTIVE};
 
     AirBrakesStateHIL abkStateHIL{getModule<ABKController>()->getState()};
 
     FMMStateHIL fmmStateHIL{getModule<FlightModeManager>()->getState()};
 
     auto motor = getModule<Common::MotorStatus>()->lockData();
- 
+
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
         actuators->getPrfServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
@@ -344,8 +344,8 @@ ActuatorData MainHIL::updateActuatorData()
 
     // Returning the feedback for the simulator
     return ActuatorData{adaStateHIL, anasStateHIL, nasdaqStateHIL,
-                        sdaStateHIL, abkStateHIL,  actuatorsStateHIL, fmmStateHIL,
-                        counter};
+                        sdaStateHIL, abkStateHIL,  actuatorsStateHIL,
+                        fmmStateHIL, counter};
 }
 
 }  // namespace Main

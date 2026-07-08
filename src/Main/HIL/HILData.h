@@ -47,6 +47,7 @@
 
 //FMM
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
+
 namespace Main
 {
 
@@ -74,10 +75,9 @@ enum class HILSignal : int
     SIMULATION_STOPPED          = 2,
     SIMULATION_RUNNING          = 3,
     SIMULATION_RUNNING_FULL_HIL = 4,
-    SIMULATION_FORCE_LAUNCH     = 5  // unused
+    SIMULATION_FORCE_LAUNCH     = 5
 };
 
-// TODO: UPDATE PHASES FOR ACK NACK AND UPDATE FOR HYDRA
 enum class MainFlightPhases
 {
     SIM_FLYING,
@@ -296,8 +296,8 @@ struct __attribute__((packed)) ActuatorsStateHIL
 
 struct SimulatorData
 {
-    MainAccelerometerSimulatorData accelerometer1, accelerometer2;
-    MainGyroscopeSimulatorData gyro1, gyro2;
+    MainAccelerometerSimulatorData accelerometer1, accelerometer2, accelerometerVN100;
+    MainGyroscopeSimulatorData gyro1, gyro2, gyroVN100;
     MainMagnetometerSimulatorData magnetometer;
     MainGPSSimulatorData gps;
     MainBarometerSimulatorData barometer1, barometer2, barometer3;
@@ -327,6 +327,7 @@ struct __attribute__((packed)) FMMStateHIL
  */
 struct __attribute__((packed)) ActuatorData
 {
+    // Potrebbe servire spostare i byte singoli (SDAState e FMMState) in fondo
     ADAStateHIL adaState;
     ANASStateHIL anasState;
     NASDAQStateHIL nasdaqState;
