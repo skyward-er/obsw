@@ -88,7 +88,6 @@ void MainHILPhasesManager::processFlagsImpl(
     if (simulatorData.signal ==
         static_cast<float>(HILSignal::SIMULATION_STARTED))
     {
-        //printf("signal arrivato\n");
         miosix::reboot();
     }
 
@@ -104,6 +103,16 @@ void MainHILPhasesManager::processFlagsImpl(
     {
         Thread::sleep(250);
         Boardcore::EventBroker::getInstance().post(Common::TMTC_FORCE_LAUNCH,
+                                                   Common::TOPIC_TMTC);
+    }
+
+    // Might be good to enforce with a check on the FMM state, 
+    // but MainHILPhasesManager needs to be injectable with FMM
+    if (simulatorData.signal ==
+        static_cast<float>(HILSignal::SIMULATION_ARMING))
+    {
+        Thread::sleep(250);
+        Boardcore::EventBroker::getInstance().post(Common::TMTC_ARM,
                                                    Common::TOPIC_TMTC);
     }
 

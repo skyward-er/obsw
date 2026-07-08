@@ -45,7 +45,7 @@
 // ABK
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 
-//FMM
+// FMM
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 
 namespace Main
@@ -75,7 +75,8 @@ enum class HILSignal : int
     SIMULATION_STOPPED          = 2,
     SIMULATION_RUNNING          = 3,
     SIMULATION_RUNNING_FULL_HIL = 4,
-    SIMULATION_FORCE_LAUNCH     = 5
+    SIMULATION_FORCE_LAUNCH     = 5,
+    SIMULATION_ARMING           = 6
 };
 
 enum class MainFlightPhases
@@ -296,7 +297,8 @@ struct __attribute__((packed)) ActuatorsStateHIL
 
 struct SimulatorData
 {
-    MainAccelerometerSimulatorData accelerometer1, accelerometer2, accelerometerVN100;
+    MainAccelerometerSimulatorData accelerometer1, accelerometer2,
+        accelerometerVN100;
     MainGyroscopeSimulatorData gyro1, gyro2, gyroVN100;
     MainMagnetometerSimulatorData magnetometer;
     MainGPSSimulatorData gps;
