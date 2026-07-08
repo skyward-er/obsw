@@ -81,7 +81,6 @@ bool NASController::start()
     anas.initialize();
     nasdaq.initialize();
 
-    scheduler.disableTask(anasID);
     scheduler.disableTask(nasdaqID);
 
     return true;
@@ -166,11 +165,10 @@ void NASController::updateANAS()
 
         auto timestamp = TimestampTimer::getTimestamp();
 
-        ANASLogsData logs(timestamp, anas.getANAS_Logs_OBSW());
         ANASState state{timestamp, anas.getANAS_Out()};
 
         getModule<StatsRecorder>()->updateANAS(state);
-        sdLogger.log(logs);
+        sdLogger.log(ANASLogsData{timestamp, anas.getANAS_Logs_OBSW()});
     }
 }
 
@@ -347,7 +345,6 @@ void NASController::state_active_ascent(const Event& event)
             TaskScheduler& scheduler =
                 getModule<BoardScheduler>()->getNasScheduler();
 
-            scheduler.enableTask(anasID);
 
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
             break;
