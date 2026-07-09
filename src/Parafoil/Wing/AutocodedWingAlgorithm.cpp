@@ -96,6 +96,17 @@ void AutocodedWingAlgorithm::step()
 
     getModule<Actuators>()->setServoAngle(PARAFOIL_LEFT_SERVO, leftCommand);
     getModule<Actuators>()->setServoAngle(PARAFOIL_RIGHT_SERVO, rightCommand);
+
+    // Log the servo positions
+    {
+        miosix::Lock<FastMutex> l(mutex);
+
+        data.timestamp   = TimestampTimer::getTimestamp();
+        data.servo1Angle = leftCommand.value();
+        data.servo2Angle = rightCommand.value();
+        SDlogger->log(data);
+    }
+
     // Log data
     Logger::getInstance().log(logsData);
 }
