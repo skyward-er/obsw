@@ -358,7 +358,7 @@ State FlightModeManager::Ready(const Event& event)
 
         case TMTC_ENTER_TEST_MODE:
         {
-            return HANDLED;
+            return transition(&FlightModeManager::ReadyTestMode);
         }
 
         case TMTC_FORCE_EXPULSION:
