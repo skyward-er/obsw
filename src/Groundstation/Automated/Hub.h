@@ -158,8 +158,6 @@ private:
     bool hasNewANASSet   = false;
     bool hasNewNASDAQSet = false;
 
-    bool inDescentPhase = false;  // true after first ROCKET_STATS_DESCENT_TM
-
     uint64_t lastFlightTMTimestamp = 0;
     uint64_t lastStatsTMTimestamp  = 0;
 

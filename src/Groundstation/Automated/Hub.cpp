@@ -35,7 +35,7 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
-
+#include <common/Events.h>
 #include <iostream>
 
 using namespace Antennas;
@@ -43,6 +43,13 @@ using namespace Common;
 using namespace Boardcore;
 using namespace Groundstation;
 using namespace miosix;
+
+namespace{
+    bool isAscentFmmState(uint8_t state)
+    {
+    return state < Events::FLIGHT_DROGUE_DESCENT;
+    }   
+}
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
@@ -292,21 +299,18 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         setRocketOrigin(gpsData);
         setRocketPosition(gpsData);
 
-        if (!inDescentPhase)
+        if (isAscentFmmState(rocketTM.fmm_state))
         {
-            // Ascent: FLIGHT_TM carries ANAS pos/vel + quaternion
-            float pos[3]  = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
-            float vel[3]  = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
+            float pos[3]  = {rocketTM.nas_n,   rocketTM.nas_e,   rocketTM.nas_d};
+            float vel[3]  = {rocketTM.nas_vn,  rocketTM.nas_ve,  rocketTM.nas_vd};
             float quat[4] = {rocketTM.anas_qx, rocketTM.anas_qy,
-                             rocketTM.anas_qz, rocketTM.anas_qw};
+                            rocketTM.anas_qz, rocketTM.anas_qw};
             ANASState anasState(rocketTM.timestamp, pos, vel, quat);
             setRocketANASState(anasState);
         }
         else
         {
-            // Descent: FLIGHT_TM carries NASDAQ pos/vel in nas_* fields (NO
-            // quaternion)
-            float pos[3] = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
+            float pos[3] = {rocketTM.nas_n,  rocketTM.nas_e,  rocketTM.nas_d};
             float vel[3] = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
             NASDAQState nasdaqState(rocketTM.timestamp, pos, vel);
             setRocketNASDAQState(nasdaqState);
@@ -326,14 +330,14 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 
             /* Messages older and within the discard interval are treated as old
              * messages*/
-            if (timestamp > lastFlightTMTimestamp - DISCARD_MSG_DELAY &&
-                timestamp <= lastFlightTMTimestamp)
+            if (timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY &&
+                    timestamp <= lastStatsTMTimestamp)
                 return;
             TRACE(
                 "[info][Radio/Sniffing] Hub: A ROCKET_STATS_ASCENT_TM packet "
                 "is valid with ts %llu\n",
                 timestamp);
-            lastFlightTMTimestamp = timestamp;
+            lastStatsTMTimestamp = timestamp;
         }
 
         {
@@ -369,11 +373,6 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
                 timestamp);
             lastStatsTMTimestamp = timestamp;
         }
-
-        // First DESCENT_STATS packet signals apogee has been passd, from this
-        // point ROCKET_FLIGHT_TM carries NASDAQ values in nas* fields instead
-        // of ANAS
-        inDescentPhase = true;
 
         {
             Lock<FastMutex> lock(nasdaqStateMutex);
