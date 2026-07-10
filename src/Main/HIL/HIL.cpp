@@ -99,11 +99,12 @@ void MainHILPhasesManager::processFlagsImpl(
     }
 
     if (simulatorData.signal ==
-        static_cast<float>(HILSignal::SIMULATION_FORCE_LAUNCH))
+        static_cast<float>(HILSignal::SIMULATION_FORCE_LAUNCH) && !launched)
     {
         Thread::sleep(250);
         Boardcore::EventBroker::getInstance().post(Common::TMTC_FORCE_LAUNCH,
                                                    Common::TOPIC_TMTC);
+        launched = 1;
     }
 
     // Might be good to enforce with a check on the FMM state, 

@@ -81,6 +81,7 @@ private:
                          std::vector<MainFlightPhases>& changed_flags) override;
 
     std::atomic<HILSignal> lastSignal = {};
+    bool launched = 0;
 };
 
 class MainHIL
