@@ -28,7 +28,7 @@
 
 using namespace Boardcore;
 using namespace Groundstation;
-using namespace LyraGS;
+using namespace ArpGS;
 
 static constexpr int8_t clampRssi(float rssi)
 {

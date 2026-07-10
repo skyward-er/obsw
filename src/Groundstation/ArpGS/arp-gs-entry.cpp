@@ -20,6 +20,12 @@
  * THE SOFTWARE.
  */
 
+#include <Groundstation/ArpGS/Base/Hub.h>
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Buses.h>
+#include <Groundstation/ArpGS/Ports/Ethernet.h>
+#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
+#include <Groundstation/ArpGS/Radio/Radio.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/BoardScheduler.h>
 #include <Groundstation/Automated/Hub.h>
@@ -27,12 +33,6 @@
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
-#include <Groundstation/LyraGS/Base/Hub.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <Groundstation/LyraGS/Buses.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
-#include <Groundstation/LyraGS/Radio/Radio.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
 #include <drivers/DipSwitch/DipSwitch.h>
@@ -45,13 +45,13 @@
 using namespace Boardcore;
 using namespace miosix;
 using namespace Groundstation;
-using namespace LyraGS;
+using namespace ArpGS;
 using namespace Antennas;
 
 /**
  * @brief Dip switch status for the GS board
  */
-struct DipStatusLyraGS
+struct DipStatusArpGS
 {
     bool isARP;
     bool mainHasBackup;
@@ -83,9 +83,9 @@ struct DipStatusLyraGS
  * | H | G | F | E | D | C | B | A |
  */
 
-DipStatusLyraGS getDipStatus(uint8_t read)
+DipStatusArpGS getDipStatus(uint8_t read)
 {
-    DipStatusLyraGS dipRead;
+    DipStatusArpGS dipRead;
     dipRead.isARP            = 1 & read;
     dipRead.mainHasBackup    = 1 & (read >> 1);
     dipRead.payloadHasBackup = 1 & (read >> 2);
@@ -119,7 +119,7 @@ static bool constexpr randomIp         = false;
 static bool constexpr ethernetSniffing = true;
 
 /**
- * @brief Lyra GS entrypoint.
+ * @brief ARP GS entrypoint.
  * This entrypoint performs the following operations:
  * - Reads the dip switch
  *
@@ -152,23 +152,23 @@ int main()
     GpioPin qh           = dipSwitch::qh::getPin();
 
     DipSwitch dip(sh, clk, qh, std::chrono::microseconds(microSecClk));
-    DipStatusLyraGS dipRead = getDipStatus(dip.read());
+    DipStatusArpGS dipRead = getDipStatus(dip.read());
     dipRead.print(std::cout);
 
     DependencyManager manager;
-    PrintLogger logger = Logging::getLogger("lyra_gs");
+    PrintLogger logger = Logging::getLogger("arp_gs");
 
     // TODO: Board scheduler for the schedulers
     BoardScheduler* scheduler = new BoardScheduler();
     Buses* buses              = new Buses();
-    SerialLyraGS* serial      = new SerialLyraGS();
-    LyraGS::RadioMain* radio_main =
-        new LyraGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
-    LyraGS::BoardStatus* board_status = new LyraGS::BoardStatus(dipRead.isARP);
-    LyraGS::EthernetGS* ethernet      = new LyraGS::EthernetGS(
+    SerialArpGS* serial       = new SerialArpGS();
+    ArpGS::RadioMain* radio_main =
+        new ArpGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
+    ArpGS::BoardStatus* board_status = new ArpGS::BoardStatus(dipRead.isARP);
+    ArpGS::EthernetGS* ethernet      = new ArpGS::EthernetGS(
         randomIp, dipRead.ipConfig, dipRead.isARP & ethernetSniffing);
-    EthernetSniffer* ethernetSniffer    = new EthernetSniffer();
-    LyraGS::RadioPayload* radio_payload = new LyraGS::RadioPayload(
+    EthernetSniffer* ethernetSniffer   = new EthernetSniffer();
+    ArpGS::RadioPayload* radio_payload = new ArpGS::RadioPayload(
         dipRead.payloadHasBackup, dipRead.payloadTXenable);
 
     HubBase* hub = nullptr;
@@ -184,10 +184,10 @@ int main()
 
     ok &= manager.insert(buses);
     ok &= manager.insert(serial);
-    ok &= manager.insert<LyraGS::RadioMain>(radio_main);
-    ok &= manager.insert<LyraGS::EthernetGS>(ethernet);
+    ok &= manager.insert<ArpGS::RadioMain>(radio_main);
+    ok &= manager.insert<ArpGS::EthernetGS>(ethernet);
     ok &= manager.insert<EthernetSniffer>(ethernetSniffer);
-    ok &= manager.insert<LyraGS::RadioPayload>(radio_payload);
+    ok &= manager.insert<ArpGS::RadioPayload>(radio_payload);
     ok &= manager.insert(board_status);
     ok &= manager.insert<BoardScheduler>(scheduler);
 

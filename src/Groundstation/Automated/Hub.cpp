@@ -22,12 +22,12 @@
 
 #include "Hub.h"
 
+#include <Groundstation/ArpGS/Ports/Ethernet.h>
+#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
+#include <Groundstation/ArpGS/Radio/Radio.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
-#include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQData.h>
 #include <common/Events.h>
@@ -49,8 +49,8 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
     logData(false, msg.msgid);
 
     TRACE("[info] Hub: Packet arrived from outgoing messages!!!\n");
-    LyraGS::BoardStatus* status  = getModule<LyraGS::BoardStatus>();
-    LyraGS::RadioMain* radioMain = getModule<LyraGS::RadioMain>();
+    ArpGS::BoardStatus* status  = getModule<ArpGS::BoardStatus>();
+    ArpGS::RadioMain* radioMain = getModule<ArpGS::RadioMain>();
 
     if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
     {
@@ -60,7 +60,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
     if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
     {
-        LyraGS::RadioPayload* radioPayload = getModule<LyraGS::RadioPayload>();
+        ArpGS::RadioPayload* radioPayload = getModule<ArpGS::RadioPayload>();
         if (!radioPayload->sendMsg(msg))
             sendNack(msg, 306);
     }
@@ -249,7 +249,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    LyraGS::SerialLyraGS* serial = getModule<LyraGS::SerialLyraGS>();
+    ArpGS::SerialArpGS* serial = getModule<ArpGS::SerialArpGS>();
 #if !defined(NO_MAVLINK_ON_SERIAL)
     serial->sendMsg(msg);
 #else
@@ -387,7 +387,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
     }
 
     // TODO: In case of sniffing the message should not be sent again
-    LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
+    ArpGS::EthernetGS* ethernet = getModule<ArpGS::EthernetGS>();
     ethernet->sendMsg(msg);
 }
 

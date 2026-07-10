@@ -145,16 +145,16 @@ set(GROUNDSTATION_NOKIA
     src/Groundstation/Nokia/Hub.cpp
 )
 
-set (LYRA_GS
-    src/Groundstation/LyraGS/Radio/Radio.cpp
-    src/Groundstation/LyraGS/Ports/Ethernet.cpp
-    src/Groundstation/LyraGS/BoardStatus.cpp
-    src/Groundstation/LyraGS/Base/Hub.cpp
+set (ARPGS
+    src/Groundstation/ArpGS/Radio/Radio.cpp
+    src/Groundstation/ArpGS/Ports/Ethernet.cpp
+    src/Groundstation/ArpGS/BoardStatus.cpp
+    src/Groundstation/ArpGS/Base/Hub.cpp
     src/Groundstation/Automated/Hub.cpp
     src/Groundstation/Automated/Leds/Leds.cpp
     src/Groundstation/Automated/SMA/SMA.cpp
     src/Groundstation/Automated/Actuators/Actuators.cpp
     src/Groundstation/Automated/Sensors/Sensors.cpp
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
-    src/Groundstation/LyraGS/Ports/SerialLyraGS.cpp
+    src/Groundstation/ArpGS/Ports/SerialArpGS.cpp
 )

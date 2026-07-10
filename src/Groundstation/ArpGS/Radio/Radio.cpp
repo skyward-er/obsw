@@ -22,7 +22,7 @@
 
 #include "Radio.h"
 
-using namespace LyraGS;
+using namespace ArpGS;
 using namespace Boardcore;
 using namespace miosix;
 
@@ -93,7 +93,7 @@ bool RadioMain::start()
 
     if (present)
     {
-        getModule<LyraGS::BoardStatus>()->setRadio433Present(hasBackup);
+        getModule<ArpGS::BoardStatus>()->setRadio433Present(hasBackup);
 
         // Configure the radio
         if (sx1278->configure(Common::MAIN_RADIO_CONFIG) !=
@@ -132,7 +132,7 @@ bool RadioPayload::start()
 
     if (present)
     {
-        getModule<LyraGS::BoardStatus>()->setRadio868Present(hasBackup);
+        getModule<ArpGS::BoardStatus>()->setRadio868Present(hasBackup);
 
         // Configure the radio
         if (sx1278->configure(Common::PAYLOAD_RADIO_CONFIG) !=

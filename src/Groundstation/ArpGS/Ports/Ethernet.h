@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Author: Nicolò Caruso
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Davide Mor
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,38 +22,29 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Buses.h>
+#include <Groundstation/Common/Ports/EthernetBase.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
-#include <iostream>
-#include <reflect.hpp>
-#include <string>
-
-/**
- * @brief Logging struct for the main radio informations
- *
- */
-
-namespace LyraGS
+namespace ArpGS
 {
-struct MainRadioLog
-{
-    uint64_t timestamp                    = 0;
-    uint16_t main_packet_tx_error_count   = 0;
-    uint32_t main_tx_bitrate              = 0;
-    uint16_t main_packet_rx_success_count = 0;
-    uint16_t main_packet_rx_drop_count    = 0;
-    uint32_t main_rx_bitrate              = 0;
-    float main_rx_rssi                    = 0;
+class BoardStatus;
 
-    static constexpr auto reflect()
+class EthernetGS : public Boardcore::InjectableWithDeps<
+                       Boardcore::InjectableBase<Groundstation::EthernetBase>,
+                       Buses, BoardStatus>
+{
+public:
+    EthernetGS() : Super{} {}
+    EthernetGS(bool randomIp, uint8_t ipOffset, bool sniffing)
+        : Super{randomIp, ipOffset, sniffing}
     {
-        return STRUCT_DEF(
-            MainRadioLog,
-            FIELD_DEF(timestamp) FIELD_DEF(main_packet_tx_error_count)
-                FIELD_DEF(main_tx_bitrate)
-                    FIELD_DEF(main_packet_rx_success_count)
-                        FIELD_DEF(main_packet_rx_drop_count)
-                            FIELD_DEF(main_rx_bitrate) FIELD_DEF(main_rx_rssi));
     }
+    [[nodiscard]] bool start();
+    void sendMsg(const mavlink_message_t& msg);
+    void handleINTn();
+    Boardcore::Wiz5500::PhyState getState();
 };
-}  // namespace LyraGS
+
+}  // namespace ArpGS
