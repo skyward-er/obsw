@@ -28,6 +28,7 @@
 #include <Groundstation/LyraGS/Ports/Ethernet.h>
 #include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <Groundstation/LyraGS/Radio/Radio.h>
+#include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQData.h>
 #include <common/Events.h>
@@ -35,7 +36,7 @@
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
-#include <common/Events.h>
+
 #include <iostream>
 
 using namespace Antennas;
@@ -44,12 +45,14 @@ using namespace Boardcore;
 using namespace Groundstation;
 using namespace miosix;
 
-namespace{
-    bool isAscentFmmState(uint8_t state)
-    {
-    return state < Events::FLIGHT_DROGUE_DESCENT;
-    }   
+namespace
+{
+bool isAscentFmmState(uint8_t state)
+{
+    return state <
+           static_cast<uint8_t>(Main::FlightModeManagerState::DROGUE_DESCENT);
 }
+}  // namespace
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
@@ -301,16 +304,16 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 
         if (isAscentFmmState(rocketTM.fmm_state))
         {
-            float pos[3]  = {rocketTM.nas_n,   rocketTM.nas_e,   rocketTM.nas_d};
-            float vel[3]  = {rocketTM.nas_vn,  rocketTM.nas_ve,  rocketTM.nas_vd};
+            float pos[3]  = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
+            float vel[3]  = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
             float quat[4] = {rocketTM.anas_qx, rocketTM.anas_qy,
-                            rocketTM.anas_qz, rocketTM.anas_qw};
+                             rocketTM.anas_qz, rocketTM.anas_qw};
             ANASState anasState(rocketTM.timestamp, pos, vel, quat);
             setRocketANASState(anasState);
         }
         else
         {
-            float pos[3] = {rocketTM.nas_n,  rocketTM.nas_e,  rocketTM.nas_d};
+            float pos[3] = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
             float vel[3] = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
             NASDAQState nasdaqState(rocketTM.timestamp, pos, vel);
             setRocketNASDAQState(nasdaqState);
@@ -331,7 +334,7 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
             /* Messages older and within the discard interval are treated as old
              * messages*/
             if (timestamp > lastStatsTMTimestamp - DISCARD_MSG_DELAY &&
-                    timestamp <= lastStatsTMTimestamp)
+                timestamp <= lastStatsTMTimestamp)
                 return;
             TRACE(
                 "[info][Radio/Sniffing] Hub: A ROCKET_STATS_ASCENT_TM packet "
