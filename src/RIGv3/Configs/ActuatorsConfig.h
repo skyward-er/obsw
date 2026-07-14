@@ -108,7 +108,7 @@ constexpr float DEFAULT_PURGE_MAX_APERTURE     = 1.0;
 
 constexpr float OX_FIL_LIMIT    = 0.9;
 constexpr float OX_REL_LIMIT    = 0.9;
-constexpr float PRZ_FUEL_LIMIT  = 0.85;
+constexpr float PRZ_FUEL_LIMIT  = 0.9;
 constexpr float PRZ_3W_LIMIT    = 1.0;
 constexpr float PRZ_FIL_LIMIT   = 1.0;
 constexpr float PRZ_REL_LIMIT   = 0.9;
@@ -127,7 +127,7 @@ constexpr float PURGE_LIMIT     = 1.0;
 constexpr bool OX_FIL_FLIPPED    = true;
 constexpr bool OX_REL_FLIPPED    = true;
 constexpr bool PRZ_FUEL_FLIPPED  = true;
-constexpr bool PRZ_OX_FLIPPED    = true;
+constexpr bool PRZ_OX_FLIPPED    = false;
 constexpr bool PRZ_3W_FLIPPED    = false;
 constexpr bool PRZ_FIL_FLIPPED   = true;
 constexpr bool PRZ_REL_FLIPPED   = true;
