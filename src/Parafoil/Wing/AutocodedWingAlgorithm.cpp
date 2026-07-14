@@ -63,6 +63,7 @@ bool AutocodedWingAlgorithm::init()
 
     // Initialize the controller
     controller.initialize();
+    setTargetNED(20_m, 0_m);
 
     return true;
 }
