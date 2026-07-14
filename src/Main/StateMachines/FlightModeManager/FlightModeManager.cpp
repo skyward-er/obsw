@@ -441,6 +441,7 @@ State FlightModeManager::state_test_mode(const Event& event)
             EventBroker::getInstance().post(ADA_FORCE_START, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_START, TOPIC_NAS);
             EventBroker::getInstance().post(SDA_FORCE_START, TOPIC_SDA);
+            EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
             getModule<Sensors>()->resetMagCalibrator();
             getModule<Sensors>()->enableMagCalibrator();
 
@@ -453,6 +454,7 @@ State FlightModeManager::state_test_mode(const Event& event)
             EventBroker::getInstance().post(ADA_FORCE_STOP, TOPIC_ADA);
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             EventBroker::getInstance().post(SDA_FORCE_STOP, TOPIC_SDA);
+            EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
             getModule<Sensors>()->disableMagCalibrator();
 
             getModule<Actuators>()->disablePrfServo(PARAFOIL_LEFT_SERVO);
