@@ -72,8 +72,10 @@ void ValveSequenceController::closeValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
+    getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
                                     TOPIC_EREG_FUEL);
+    getModule<Actuators>()->closeValve(PRZ_FUEL_VALVE);
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
