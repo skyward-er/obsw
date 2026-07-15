@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <RIGv3/Actuators/ValveSequenceController.h>
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/CanHandler/CanHandler.h>
 #include <RIGv3/Expander/GpioExpander.h>
@@ -40,7 +41,8 @@ namespace RIGv3
 
 class Actuators
     : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler,
-                                           Registry, GpioExpander>,
+                                           Registry, GpioExpander,
+                                           ValveSequenceController>,
       public Boardcore::SignaledDeadlineTask
 {
 private:

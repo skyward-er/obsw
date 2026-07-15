@@ -27,11 +27,11 @@
 // #include <Motor/HIL/HIL.h>
 #include <Motor/PersistentVars/PersistentVars.h>
 // #include <Motor/Sensors/HILSensors.h>
+#include <Motor/Actuators/ValveSequenceController.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
-#include <Motor/ValveSequenceController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
@@ -86,7 +86,7 @@ int main()
     auto eregFuel                = new EregControllerFuel();
     auto registry                = new Registry();
     auto firingSequenceHSM       = new FiringSequenceHSM();
-    auto valveSequenceController = new Motor::ValveSequenceController();
+    auto valveSequenceController = new ValveSequenceController();
 
     auto& sdLogger = Logger::getInstance();
 
@@ -103,18 +103,18 @@ int main()
     sensors = new Sensors();
     // }
 
-    initResult &= manager.insert<Buses>(buses) &&
-                  manager.insert<BoardScheduler>(scheduler) &&
-                  manager.insert<Registry>(registry) &&
-                  manager.insert<Sensors>(sensors) &&
-                  manager.insert<Actuators>(actuators) &&
-                  manager.insert<CanHandler>(canHandler) &&
-                  manager.insert<EregControllerOx>(eregOx) &&
-                  manager.insert<EregControllerFuel>(eregFuel) &&
-                  manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
-                  manager.insert<Motor::ValveSequenceController>(
-                      valveSequenceController) &&
-                  manager.inject();
+    initResult &=
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Registry>(registry) &&
+        manager.insert<Sensors>(sensors) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<CanHandler>(canHandler) &&
+        manager.insert<EregControllerOx>(eregOx) &&
+        manager.insert<EregControllerFuel>(eregFuel) &&
+        manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
+        manager.insert<ValveSequenceController>(valveSequenceController) &&
+        manager.inject();
 
     if (!initResult)
     {

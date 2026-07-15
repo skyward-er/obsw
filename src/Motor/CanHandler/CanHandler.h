@@ -22,11 +22,7 @@
 
 #pragma once
 
-#include <Motor/BoardScheduler.h>
 #include <Motor/PersistentVars/PersistentVars.h>
-#include <Motor/Sensors/Sensors.h>
-#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
-#include <Motor/ValveSequenceController.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
@@ -38,6 +34,10 @@ namespace Motor
 {
 
 class Actuators;
+class Sensors;
+class ValveSequenceController;
+class FiringSequenceHSM;
+class BoardScheduler;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
@@ -74,7 +74,6 @@ public:
 
     // TODO Attenzione, va fixato sendEvent, perchè vede quello di Main
     void sendEvent(Common::CanConfig::EventId event);
-    void sendWiggleResult(uint8_t wiggleResult);
 
 private:
     void handleMessage(const Boardcore::Canbus::CanMessage& msg);

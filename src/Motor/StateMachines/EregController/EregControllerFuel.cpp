@@ -22,6 +22,7 @@
 
 #include "EregControllerFuel.h"
 
+#include <Motor/Sensors/Sensors.h>
 #include <Motor/Actuators/ActuatorsData.h>
 #include <Motor/BoardScheduler.h>
 #include <common/Events.h>

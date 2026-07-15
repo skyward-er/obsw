@@ -35,15 +35,15 @@ namespace Config
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto VALVE_OPENING_THRESHOLD_MAIN_OX   = 60;
-constexpr auto VALVE_OPENING_THRESHOLD_MAIN_FUEL = 60;
-constexpr auto VALVE_OPENING_THRESHOLD_PRZ_OX    = 60;
-constexpr auto VALVE_OPENING_THRESHOLD_PRZ_FUEL  = 60;
+constexpr auto VALVE_OPENING_THRESHOLD_MAIN_OX   = 60.0f;
+constexpr auto VALVE_OPENING_THRESHOLD_MAIN_FUEL = 60.0f;
+constexpr auto VALVE_OPENING_THRESHOLD_PRZ_OX    = 60.0f;
+constexpr auto VALVE_OPENING_THRESHOLD_PRZ_FUEL  = 60.0f;
 
-constexpr auto VALVE_CLOSED_THRESHOLD_MAIN_OX   = 10;
-constexpr auto VALVE_CLOSED_THRESHOLD_MAIN_FUEL = 10;
-constexpr auto VALVE_CLOSED_THRESHOLD_PRZ_OX    = 10;
-constexpr auto VALVE_CLOSED_THRESHOLD_PRZ_FUEL  = 10;
+constexpr auto VALVE_CLOSED_THRESHOLD_MAIN_OX   = 10.0f;
+constexpr auto VALVE_CLOSED_THRESHOLD_MAIN_FUEL = 10.0f;
+constexpr auto VALVE_CLOSED_THRESHOLD_PRZ_OX    = 10.0f;
+constexpr auto VALVE_CLOSED_THRESHOLD_PRZ_FUEL  = 10.0f;
 
 constexpr auto VALVE_WIGGLE_DELAY  = 1000;
 constexpr auto VALVE_CLOSING_DELAY = 500;

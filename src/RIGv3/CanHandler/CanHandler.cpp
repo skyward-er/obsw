@@ -24,6 +24,8 @@
 
 // #include <RIGv3/Actuators/Actuators.h>
 #include <RIGv3/BoardScheduler.h>
+#include <RIGv3/Configs/RadioConfig.h>
+#include <RIGv3/Radio/Radio.h>
 // #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -142,17 +144,8 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
     // Handle motor messages
     auto source = static_cast<CanConfig::Board>(msg.getSource());
     if (source == CanConfig::Board::MOTOR)
-    {
-        if (msg.getSecondaryType() ==
-            static_cast<uint8_t>(CanConfig::EventId::WIGGLE_ALL_VALVES))
-        {
-            handleWiggleResult(msg);
-        }
-        else
-        {
-            return getModule<MotorStatus>()->handleCanMessage(msg);
-        }
-    }
+
+        return getModule<MotorStatus>()->handleCanMessage(msg);
 
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
@@ -251,11 +244,4 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             LOG_WARN(logger, "Received unsupported status: {}", source);
         }
     }
-}
-
-void CanHandler::handleWiggleResult(const Canbus::CanMessage& msg)
-{
-    uint8_t wiggleResult = msg.payload[0];
-    getModule<Radio>()->enqueueWiggleResultTm(
-        wiggleResult, Config::Radio::WIGGLE_SOURCE::MOTOR);
 }

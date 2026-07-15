@@ -27,7 +27,6 @@
 #include <RIGv3/Configs/GMMConfig.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
-#include <RIGv3/ValveSequenceController.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>
@@ -42,7 +41,7 @@ namespace RIGv3
 
 class GroundModeManager
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, Registry,
-                                           CanHandler, ValveSequenceController>,
+                                           CanHandler>,
       public Boardcore::HSM<GroundModeManager>
 {
 public:

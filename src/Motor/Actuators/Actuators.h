@@ -22,7 +22,9 @@
 
 #pragma once
 
+#include <Motor/Actuators/ValveSequenceController.h>
 #include <Motor/BoardScheduler.h>
+#include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Registry/Registry.h>
 #include <Valve/Valve.h>
@@ -35,9 +37,10 @@
 namespace Motor
 {
 
-class Actuators : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
-                                                       CanHandler, Registry>,
-                  public Boardcore::SignaledDeadlineTask
+class Actuators
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler,
+                                           Registry, ValveSequenceController>,
+      public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for the valve closed state

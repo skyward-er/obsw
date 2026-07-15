@@ -54,7 +54,7 @@ constexpr auto VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 10;
 // Washing procedure parameters
 constexpr auto VALVE_WIGGLE_DELAY = 1000;
 
-constexpr auto VALVE_CLOSING_DELAY = 500;
+constexpr auto VALVE_CLOSING_DELAY = 6500;
 
 }  // namespace Config
 }  // namespace Motor

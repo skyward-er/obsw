@@ -21,6 +21,7 @@
  */
 
 #include <RIGv3/Actuators/Actuators.h>
+#include <RIGv3/Actuators/ValveSequenceController.h>
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Buses.h>
 #include <RIGv3/CanHandler/CanHandler.h>
@@ -34,7 +35,6 @@
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <RIGv3/StateMachines/TARS1/TARS1.h>
 #include <RIGv3/StateMachines/TARS3/TARS3.h>
-#include <RIGv3/ValveSequenceController.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
@@ -73,7 +73,7 @@ int main()
     auto firingSequenceHSM       = new FiringSequenceHSM();
     auto radio                   = new Radio();
     auto motorStatus             = new MotorStatus();
-    auto valveSequenceController = new RIGv3::ValveSequenceController();
+    auto valveSequenceController = new ValveSequenceController();
 
     auto& sdLogger = Logger::getInstance();
     auto& broker   = EventBroker::getInstance();

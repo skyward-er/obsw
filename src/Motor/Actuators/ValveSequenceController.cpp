@@ -22,6 +22,9 @@
 
 #include "ValveSequenceController.h"
 
+#include <Motor/Actuators/Actuators.h>
+#include <Motor/CanHandler/CanHandler.h>
+#include <Motor/Sensors/Sensors.h>
 #include <events/EventBroker.h>
 
 #include "Motor/Configs/ValveSequenceControllerConfig.h"
@@ -45,13 +48,6 @@ void ValveSequenceController::handleEvent(const Event& ev)
 {
     switch (ev)
     {
-        case WIGGLE_ALL_VALVES:
-        {
-            uint8_t wiggleResult = wiggleValves();
-            getModule<CanHandler>()->sendWiggleResult(wiggleResult);
-            break;
-        }
-
         case CLOSE_ALL_VALVES:
         {
             closeValves();
@@ -85,60 +81,4 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 }
 
-uint8_t ValveSequenceController::wiggleValves()
-{
-    auto checkValve = [&](auto getPosition, uint8_t bit, auto openingThreshold,
-                          auto closedThreshold)
-    {
-        Thread::sleep(Config::VALVE_WIGGLE_DELAY);
-
-        bool isOpen = getPosition().position > openingThreshold;
-
-        Thread::sleep(Config::VALVE_WIGGLE_DELAY);
-
-        bool isClosed = getPosition().position < closedThreshold;
-
-        return (isOpen && isClosed) ? static_cast<uint8_t>(1 << bit) : 0;
-    };
-
-    uint8_t wiggleMap = 0;
-
-    getModule<Actuators>()->wiggleValve(MAIN_OX_VALVE);
-    wiggleMap |=
-        checkValve([&]() { return getModule<Sensors>()->getMainOxPosition(); },
-                   0, Config::VALVE_CLOSED_THRESHOLD_MAIN_OX,
-                   Config::VALVE_CLOSED_THRESHOLD_MAIN_OX);
-
-    getModule<Actuators>()->wiggleValve(MAIN_FUEL_VALVE);
-    wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getMainFuelPosition(); }, 1,
-        Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL,
-        Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL);
-
-    getModule<Actuators>()->wiggleValve(PRZ_OX_VALVE);
-    wiggleMap |=
-        checkValve([&]() { return getModule<Sensors>()->getPrzOxPosition(); },
-                   2, Config::VALVE_CLOSED_THRESHOLD_PRZ_OX,
-                   Config::VALVE_CLOSED_THRESHOLD_PRZ_OX);
-
-    getModule<Actuators>()->wiggleValve(PRZ_FUEL_VALVE);
-    wiggleMap |=
-        checkValve([&]() { return getModule<Sensors>()->getPrzFuelPosition(); },
-                   3, Config::VALVE_CLOSED_THRESHOLD_PRZ_FUEL,
-                   Config::VALVE_CLOSED_THRESHOLD_PRZ_FUEL);
-
-    getModule<Actuators>()->wiggleValve(OX_VENTING_VALVE);
-    wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getVentingOxPosition(); }, 4,
-        Config::VALVE_OPENING_THRESHOLD_OX_VENTING,
-        Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
-
-    getModule<Actuators>()->wiggleValve(FUEL_VENTING_VALVE);
-    wiggleMap |= checkValve(
-        [&]() { return getModule<Sensors>()->getVentingFuelPosition(); }, 5,
-        Config::VALVE_OPENING_THRESHOLD_FUEL_VENTING,
-        Config::VALVE_CLOSED_THRESHOLD_FUEL_VENTING);
-
-    return wiggleMap;
-}
 }  // namespace Motor

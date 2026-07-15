@@ -141,7 +141,8 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent
         {Common::CanConfig::EventId::EXIT_HIL_MODE, Common::CAN_EXIT_HIL_MODE},
         {Common::CanConfig::EventId::APOGEE_DETECTED,
          Common::CAN_APOGEE_DETECTED},
-        {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
+        {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION}
+};
 
 }  // namespace CanConfig
 

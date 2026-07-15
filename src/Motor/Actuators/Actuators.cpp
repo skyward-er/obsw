@@ -313,12 +313,7 @@ bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
 
 void Actuators::closeAllValves()
 {
-    Lock<FastMutex> lock(infosMutex);
-    for (auto& valve : valveInfos)
-        valve.closeValve();
-
-    for (auto& valve : manualValveInfos)
-        valve.closeValve();
+    getModule<ValveSequenceController>()->closeValves();
     signalTask();
 }
 

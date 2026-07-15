@@ -635,16 +635,13 @@ bool Radio::enqueueValveInfoTm(ServosList valveId)
     return true;
 }
 
-bool Radio::enqueueWiggleResultTm(uint8_t wiggleResult,
-                                  Config::Radio::WIGGLE_SOURCE source)
+bool Radio::enqueueWiggleResultTm(uint16_t wiggleResult)
 {
     mavlink_message_t msg;
     mavlink_wiggle_valves_result_tm_t tm;
 
     tm.timestamp = TimestampTimer::getTimestamp();
     tm.resultMap = wiggleResult;
-    tm.source    = static_cast<uint8_t>(source);
-
     mavlink_msg_wiggle_valves_result_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                Config::Radio::MAV_COMPONENT_ID,
                                                &msg, &tm);

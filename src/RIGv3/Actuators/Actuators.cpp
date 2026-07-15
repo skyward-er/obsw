@@ -399,23 +399,7 @@ bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
 
 void Actuators::closeAllValves()
 {
-    // TODO Sarebbe da cambiare con il nuovo closeValves() di
-    // ValveSequenceController
-
-    Lock<FastMutex> lock(infosMutex);
-    for (auto& valve : valveInfos)
-        valve.closeValve();
-
-    for (auto& valve : manualValveInfos)
-        valve.closeValve();
-
-    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_OX_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(ServosList::MAIN_FUEL_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(
-        ServosList::OX_VENTING_VALVE);
-    getModule<CanHandler>()->sendServoCloseCommand(
-        ServosList::FUEL_VENTING_VALVE);
-
+    getModule<ValveSequenceController>()->closeValves();
     signalTask();
 }
 

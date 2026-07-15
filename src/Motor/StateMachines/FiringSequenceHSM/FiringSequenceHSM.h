@@ -22,10 +22,10 @@
 #pragma once
 
 #include <Motor/Actuators/Actuators.h>
+#include <Motor/Actuators/ValveSequenceController.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
-#include <Motor/ValveSequenceController.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>

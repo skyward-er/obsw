@@ -20,30 +20,36 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #include <ActiveObject.h>
 #include <RIGv3/Actuators/Actuators.h>
 #include <RIGv3/CanHandler/CanHandler.h>
 #include <RIGv3/Radio/Radio.h>
+#include <RIGv3/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
+#include <events/EventHandler.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 namespace RIGv3
 {
 
 class ValveSequenceController
     : public Boardcore::EventHandler,
-      InjectableWithDeps<Actuators, Sensors, Radio, CanHandler>
+      public Boardcore::InjectableWithDeps<Actuators, Sensors, Radio,
+                                           CanHandler, Common::MotorStatus>
 {
 public:
     ValveSequenceController(
         unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
         miosix::Priority priority = miosix::MAIN_PRIORITY);
 
-    uint8_t wiggleValves();
+    uint16_t wiggleValves();
     void closeValves();
 
 protected:
-    void handleEvent(const Event& ev) override;
+    void handleEvent(const Boardcore::Event& ev) override;
 };
 }  // namespace RIGv3
