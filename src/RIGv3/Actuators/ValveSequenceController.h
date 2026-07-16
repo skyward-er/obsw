@@ -23,10 +23,6 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <RIGv3/Actuators/Actuators.h>
-#include <RIGv3/CanHandler/CanHandler.h>
-#include <RIGv3/Radio/Radio.h>
-#include <RIGv3/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -35,6 +31,10 @@
 
 namespace RIGv3
 {
+class Actuators;
+class CanHandler;
+class Radio;
+class Sensors;
 
 class ValveSequenceController
     : public Boardcore::EventHandler,

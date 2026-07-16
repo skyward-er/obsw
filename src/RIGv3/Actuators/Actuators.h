@@ -39,6 +39,7 @@
 namespace RIGv3
 {
 
+class ValveSequenceController;
 class Actuators
     : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler,
                                            Registry, GpioExpander,
