@@ -194,14 +194,12 @@ uint16_t ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleMapMotor |= isValveOpen(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         4, Config::VALVE_OPENING_THRESHOLD_MAIN_FUEL);
     wiggleMapMotor |= isValveOpen(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -214,14 +212,12 @@ uint16_t ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleMapMotor &= isValveClosed(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         4, Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL);
     wiggleMapMotor &= isValveClosed(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;

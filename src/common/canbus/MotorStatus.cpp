@@ -135,7 +135,6 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
 
         case ServosList::FUEL_VENTING_VALVE:
             data.fuelVentingValveState = valveData.open;
-            data.fuelVentingValveState = valveData.open;
             data.fuelVentingValvePosition.positionTimestamp =
                 valveData.timestamp;
             data.fuelVentingValvePosition.position = valveData.aperture;
