@@ -39,7 +39,7 @@ namespace ABK
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE = 10_hz;
+constexpr Hertz UPDATE_RATE = 20_hz;
 // Mach number below which AirBrakes can be opened
 constexpr float MACH_LIMIT = 0.8f;  // [-]
 

@@ -31,6 +31,7 @@
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/SDAController/SDAController.h>
+#include <Main/StateMachines/WingController/WingController.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <hil/HIL.h>
@@ -81,15 +82,14 @@ private:
                          std::vector<MainFlightPhases>& changed_flags) override;
 
     std::atomic<HILSignal> lastSignal = {};
-    bool launched = 0;
+    bool launched                     = 0;
 };
 
 class MainHIL
     : public Boardcore::HIL<MainFlightPhases, SimulatorData, ActuatorData>,
       public Boardcore::InjectableWithDeps<
           Buses, Actuators, FlightModeManager, ADAController, NASController,
-          SDAController, 
-          ABKController, Common::MotorStatus>
+          SDAController, ABKController, WingController, Common::MotorStatus>
 {
 public:
     MainHIL();

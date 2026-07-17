@@ -48,6 +48,7 @@ public:
     [[nodiscard]] bool start() override;
 
     Boardcore::ADAState getADAState();
+    Main::ADAControllerSampleData getSampleData();
 
     ADAControllerState getState();
     float getVerticalSpeedCov();

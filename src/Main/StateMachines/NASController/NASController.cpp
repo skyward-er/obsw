@@ -89,6 +89,24 @@ bool NASController::start()
 
 NASControllerState NASController::getState() { return state; }
 
+NASState NASController::getNASState()
+{
+    if (state == NASControllerState::ACTIVE_ASCENT)
+    {
+        auto anasState = getANASState();
+        NASState state(anasState);
+        return state;
+    }
+    else if (state == NASControllerState::DESCENT)
+    {
+        auto nasdaqState = getNASDAQState();
+        NASState state(nasdaqState);
+        return state;
+    }
+
+    return NASState{};
+}
+
 ANASState NASController::getANASState()
 {
     Lock<FastMutex> lock{nasMutex};
@@ -166,9 +184,9 @@ void NASController::updateANAS()
 
         auto timestamp = TimestampTimer::getTimestamp();
 
-        ANASState state{timestamp, anas.getANAS_Out()};
+        ANASState anasState{timestamp, anas.getANAS_Out()};
 
-        getModule<StatsRecorder>()->updateANAS(state);
+        getModule<StatsRecorder>()->updateANAS(anasState);
         sdLogger.log(ANASLogsData{timestamp, anas.getANAS_Logs_OBSW()});
     }
 }
@@ -214,7 +232,14 @@ void NASController::updateNASDAQ()
         NASDAQLogsWrapper logs(TimestampTimer::getTimestamp(),
                                nasdaq.getNASDAQ_Logs_OBSW());
 
-        getModule<StatsRecorder>()->updateNASDAQ(getNASDAQState());
+        auto rawOutput = nasdaq.getNASDAQ_Out();
+
+        uint64_t timestamp = TimestampTimer::getTimestamp();
+
+        NASDAQState nasdaqState(timestamp, rawOutput.Position,
+                                rawOutput.Velocity);
+
+        getModule<StatsRecorder>()->updateNASDAQ(nasdaqState);
         sdLogger.log(logs);
     }
 }
@@ -345,7 +370,7 @@ void NASController::state_active_ascent(const Event& event)
         {
             TaskScheduler& scheduler =
                 getModule<BoardScheduler>()->getNasScheduler();
-                
+
             scheduler.enableTask(anasID);
 
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
@@ -380,8 +405,8 @@ void NASController::state_active_descent(const Event& event)
                 getModule<BoardScheduler>()->getNasScheduler();
 
             nasdaq.setNASDAQ_In_ANAS(anas.getNASDAQ_Initial_State());
-            scheduler.enableTask(nasdaqID);
             scheduler.disableTask(anasID);
+            scheduler.enableTask(nasdaqID);
 
             updateAndLogStatus(NASControllerState::DESCENT);
             break;

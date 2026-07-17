@@ -119,10 +119,11 @@ struct __attribute__((packed)) ADAStateHIL
     }
 
     ADAStateHIL(const Boardcore::ADAState& adaState,
+                const Main::ADAControllerSampleData& sampleData,
                 const Main::ADAControllerState& state)
         : mslAltitude(adaState.mslAltitude), aglAltitude(adaState.aglAltitude),
           verticalSpeed(adaState.verticalSpeed),
-          apogeeDetected(state >= ADAControllerState::ACTIVE_DROGUE_DESCENT),
+          apogeeDetected(sampleData.adaDetectedApogees),
           updating(state >= ADAControllerState::ARMED)
     {
     }
@@ -140,9 +141,9 @@ struct __attribute__((packed)) ADAStateHIL
 };
 
 /**
- * @brief ANAS data sent to the simulator
+ * @brief NAS data sent to the simulator
  */
-struct __attribute__((packed)) ANASStateHIL
+struct __attribute__((packed)) NASStateHIL
 {
     float n = 0;
     float e = 0;
@@ -152,53 +153,13 @@ struct __attribute__((packed)) ANASStateHIL
     float ve = 0;
     float vd = 0;
 
-    float qx = 0;
-    float qy = 0;
-    float qz = 0;
-    float qw = 1;
+    NASStateHIL() : n(0), e(0), d(0), vn(0), ve(0), vd(0) {};
 
-    ANASStateHIL()
-        : n(0), e(0), d(0), vn(0), ve(0), vd(0), qx(0), qy(0), qz(0), qw(1) {};
-
-    ANASStateHIL(const Boardcore::ANASState& output)
+    NASStateHIL(const Boardcore::ANASState& output)
         : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
-          vd(output.vd), qx(output.qx), qy(output.qy), qz(output.qz),
-          qw(output.qw) {};
+          vd(output.vd) {};
 
-    void print()
-    {
-        printf(
-            "n: %+.3f\n"
-            "e: %+.3f\n"
-            "d: %+.3f\n"
-            "vn: %+.3f\n"
-            "ve: %+.3f\n"
-            "vd: %+.3f\n"
-            "qx: %+.3f\n"
-            "qy: %+.3f\n"
-            "qz: %+.3f\n"
-            "qw: %+.3f\n"
-            "updating: %+.3f\n",
-            n, e, d, vn, ve, vd, qx, qy, qz, qw);
-    }
-};
-
-/**
- * @brief NASDAQ data sent to the simulator
- */
-struct __attribute__((packed)) NASDAQStateHIL
-{
-    float n = 0;
-    float e = 0;
-    float d = 0;
-
-    float vn = 0;
-    float ve = 0;
-    float vd = 0;
-
-    NASDAQStateHIL() : n(0), e(0), d(0), vn(0), ve(0), vd(0) {};
-
-    NASDAQStateHIL(const Boardcore::NASDAQState& output)
+    NASStateHIL(const Main::NASState& output)
         : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
           vd(output.vd) {};
 
@@ -217,18 +178,45 @@ struct __attribute__((packed)) NASDAQStateHIL
 };
 
 /**
+ * @brief Quaternion data sent to the simulator
+ */
+struct __attribute__((packed)) QuaternionStateHIL
+{
+    float qx = 0;
+    float qy = 0;
+    float qz = 0;
+    float qw = 1;
+
+    QuaternionStateHIL() : qx(0), qy(0), qz(0), qw(1) {};
+
+    QuaternionStateHIL(const Boardcore::ANASState& output)
+        : qx(output.qx), qy(output.qy), qz(output.qz), qw(output.qw) {};
+
+    void print()
+    {
+        printf(
+
+            "qx: %+.3f\n"
+            "qy: %+.3f\n"
+            "qz: %+.3f\n"
+            "qw: %+.3f\n"
+            "updating: %+.3f\n",
+            qx, qy, qz, qw);
+    }
+};
+
+/**
  * @brief SDA data sent to the simulator
  */
 struct __attribute__((packed)) SDAStateHIL
 {
-    bool shutdownCommand = 0;
+    float apogee = 0;
 
-    SDAStateHIL() : shutdownCommand(0) {};
+    SDAStateHIL() : apogee(0) {};
 
-    // Vedi se aggiungere una struct in SDA con solo lo shutdown command
-    SDAStateHIL(const bool command) : shutdownCommand(command) {};
+    SDAStateHIL(const float apogee) : apogee(apogee) {};
 
-    void print() { printf("shutdownCommand: %d\n", shutdownCommand); }
+    void print() { printf("apogee: %f\n", apogee); }
 };
 
 /**
@@ -331,8 +319,8 @@ struct __attribute__((packed)) ActuatorData
 {
     // Potrebbe servire spostare i byte singoli (SDAState e FMMState) in fondo
     ADAStateHIL adaState;
-    ANASStateHIL anasState;
-    NASDAQStateHIL nasdaqState;
+    NASStateHIL anasState;
+    QuaternionStateHIL quaternionState;
     SDAStateHIL sdaState;
     AirBrakesStateHIL airBrakesState;
     ActuatorsStateHIL actuatorsState;
@@ -342,20 +330,21 @@ struct __attribute__((packed)) ActuatorData
                            // simulator
 
     ActuatorData()
-        : adaState(), anasState(), nasdaqState(), sdaState(), airBrakesState(),
-          fmmState(), actuatorsState(), sequenceNumber(0.0f)
+        : adaState(), anasState(), quaternionState(), sdaState(),
+          airBrakesState(), fmmState(), actuatorsState(), sequenceNumber(0.0f)
     {
     }
 
-    ActuatorData(const ADAStateHIL& adaState, const ANASStateHIL& anasState,
-                 const NASDAQStateHIL& nasdaqState, const SDAStateHIL& sdaState,
+    ActuatorData(const ADAStateHIL& adaState, const NASStateHIL& anasState,
+                 const QuaternionStateHIL& quaternionState,
+                 const SDAStateHIL& sdaState,
                  const AirBrakesStateHIL& airBrakesState,
                  const ActuatorsStateHIL& actuatorsState,
                  const FMMStateHIL& fmmState, const float sequenceNumber)
-        : adaState(adaState), anasState(anasState), nasdaqState(nasdaqState),
-          airBrakesState(airBrakesState), sdaState(sdaState),
-          actuatorsState(actuatorsState), fmmState(fmmState),
-          sequenceNumber(sequenceNumber)
+        : adaState(adaState), anasState(anasState),
+          quaternionState(quaternionState), airBrakesState(airBrakesState),
+          sdaState(sdaState), actuatorsState(actuatorsState),
+          fmmState(fmmState), sequenceNumber(sequenceNumber)
     {
     }
 
@@ -363,7 +352,7 @@ struct __attribute__((packed)) ActuatorData
     {
         adaState.print();
         anasState.print();
-        nasdaqState.print();
+        quaternionState.print();
         sdaState.print();
         airBrakesState.print();
         actuatorsState.print();

@@ -41,14 +41,12 @@ namespace SDA
 constexpr Hertz UPDATE_RATE = 50_hz;
 
 #ifdef ROCCARASO
-constexpr auto SHADOW_MODE_TIMEOUT          = 2200ms;
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5f;  // [kg]
-constexpr float SHUTDOWN_APOGEE_TARGET      = 1050;   // agl [m]
+constexpr auto SHADOW_MODE_TIMEOUT     = 2200ms;
+constexpr float SHUTDOWN_APOGEE_TARGET = 1050;  // agl [m]
 
 #else  // EUROC
-constexpr auto SHADOW_MODE_TIMEOUT          = 4000ms;
-constexpr float DEFAULT_INITIAL_ROCKET_MASS = 35.5f;  // [kg]
-constexpr float SHUTDOWN_APOGEE_TARGET      = 3000;   // agl [m]
+constexpr auto SHADOW_MODE_TIMEOUT     = 4000ms;
+constexpr float SHUTDOWN_APOGEE_TARGET = 3000;  // agl [m]
 
 #ifndef EUROC
 #warning "SDAConfig: no mission specified, using EUROC"

@@ -39,7 +39,6 @@ using namespace Common;
 SDAController::SDAController()
     : FSM{&SDAController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::SDA_PRIORITY},
-      initialMass{Config::SDA::DEFAULT_INITIAL_ROCKET_MASS},
       minBurnTime{Config::SDA::SHADOW_MODE_TIMEOUT},
       apogeeTarget{Config::SDA::SHUTDOWN_APOGEE_TARGET}, sda{}
 {
@@ -75,9 +74,13 @@ bool SDAController::getSDAOutput()
     return sda.getSDA_Shutdown();
 }
 
-SDAControllerState SDAController::getState() { return state; }
+float SDAController::getPredictedApogee()
+{
+    Lock<FastMutex> lock{sdaMutex};
+    return sda.getSDA_Logs_OBSW().Apogee[0];
+}
 
-float SDAController::getInitialMass() { return initialMass.load(); }
+SDAControllerState SDAController::getState() { return state; }
 
 milliseconds SDAController::getMinBurnTime() { return minBurnTime.load(); }
 

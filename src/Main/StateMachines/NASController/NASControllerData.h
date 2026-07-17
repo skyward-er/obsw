@@ -22,6 +22,9 @@
 
 #pragma once
 
+#include <algorithms/ANAS/ANASData.h>
+#include <algorithms/NASDAQ/NASDAQData.h>
+
 #include <cstdint>
 #include <ostream>
 #include <reflect.hpp>
@@ -49,6 +52,50 @@ struct NASControllerStatus
     {
         return STRUCT_DEF(NASControllerStatus,
                           FIELD_DEF(timestamp) FIELD_DEF(state));
+    }
+};
+
+struct NASState
+{
+    uint64_t timestamp = 0;
+
+    float n = 0;  ///< North (x)
+    float e = 0;  ///< East  (y)
+    float d = 0;  ///< Down  (z)
+
+    float vn = 0;  ///< Velocity North (x)
+    float ve = 0;  ///< Velocity East  (y)
+    float vd = 0;  ///< Velocity Down  (z)
+
+    NASState() : timestamp(0) {};
+
+    NASState(Boardcore::NASDAQState nasdaqState)
+    {
+        timestamp = nasdaqState.timestamp;
+        n         = nasdaqState.n;
+        e         = nasdaqState.e;
+        d         = nasdaqState.d;
+        vn        = nasdaqState.vn;
+        ve        = nasdaqState.ve;
+        vd        = nasdaqState.vd;
+    }
+
+    NASState(Boardcore::ANASState anasState)
+    {
+        timestamp = anasState.timestamp;
+        n         = anasState.n;
+        e         = anasState.e;
+        d         = anasState.d;
+        vn        = anasState.vn;
+        ve        = anasState.ve;
+        vd        = anasState.vd;
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(NASState, FIELD_DEF(timestamp) FIELD_DEF(n)
+                                        FIELD_DEF(e) FIELD_DEF(d) FIELD_DEF(vn)
+                                            FIELD_DEF(ve) FIELD_DEF(vd));
     }
 };
 

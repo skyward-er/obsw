@@ -55,6 +55,7 @@ public:
 
     Boardcore::ANASState getANASState();
     Boardcore::NASDAQState getNASDAQState();
+    NASState getNASState();
 
     NASControllerState getState();
 

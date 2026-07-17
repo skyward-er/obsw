@@ -874,11 +874,12 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors   = getModule<Sensors>();
-            ADAController* ada = getModule<ADAController>();
-            NASController* nas = getModule<NASController>();
-            // MEAController* mea     = getModule<MEAController>();
+            Sensors* sensors       = getModule<Sensors>();
+            ADAController* ada     = getModule<ADAController>();
+            NASController* nas     = getModule<NASController>();
+            SDAController* sda     = getModule<SDAController>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
+            Actuators* actuators   = getModule<Actuators>();
 
             auto imu          = sensors->getIMULastSample();
             auto mag          = sensors->getCalibratedLIS2MDLRcsLastSample();
@@ -887,7 +888,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDigi    = sensors->getAtmosPressureLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
             auto adaState     = ada->getADAState();
-            auto nasState     = nas->getANASState();
+            auto anasState    = nas->getANASState();
+            auto nasState     = nas->getNASState();
             // auto meaState     = mea->getMEAState();
 
             tm.timestamp = TimestampTimer::getTimestamp();
@@ -895,8 +897,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.pressure_ada   = adaState.x0;
             tm.ada_vert_speed = adaState.verticalSpeed;
             tm.altitude_agl   = adaState.aglAltitude;
-            // tm.mea_mass       = meaState.estimatedMass;
-            // tm.sda_apogee = meaState.estimatedApogee;
+            tm.sda_apogee     = sda->getPredictedApogee();
 
             // Sensors
             tm.pressure_digi    = pressDigi.pressure;
@@ -918,24 +919,25 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.gps_lat = gps.latitude;
             tm.gps_lon = gps.longitude;
 
-            tm.left_servo_angle  = sensors->getAS5047DLeftLastSample().angle;
-            tm.right_servo_angle = sensors->getAS5047DRightLastSample().angle;
+            // Actuators
+            tm.left_servo_angle =
+                actuators->getPrfServoPosition(PARAFOIL_LEFT_SERVO);
+            tm.right_servo_angle =
+                actuators->getPrfServoPosition(PARAFOIL_RIGHT_SERVO);
 
-            // Actautors
             tm.abk_angle = sensors->getAS5047DABKLastSample().angle;
 
             // Algorithms
-            // TODO: need to handle anas / nasdaq distinction
             tm.nas_n   = nasState.n;
             tm.nas_e   = nasState.e;
             tm.nas_d   = nasState.d;
             tm.nas_vn  = nasState.vn;
             tm.nas_ve  = nasState.ve;
             tm.nas_vd  = nasState.vd;
-            tm.anas_qx = nasState.qx;
-            tm.anas_qy = nasState.qy;
-            tm.anas_qz = nasState.qz;
-            tm.anas_qw = nasState.qw;
+            tm.anas_qx = anasState.qx;
+            tm.anas_qy = anasState.qy;
+            tm.anas_qz = anasState.qz;
+            tm.anas_qw = anasState.qw;
 
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 

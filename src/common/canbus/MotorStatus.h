@@ -139,7 +139,7 @@ private:
     using Clock     = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
 
-    std::atomic<float> meaMass{0.0f};  // [kg]
+    std::atomic<float> meaMass{30.0f};  // [kg]
     std::atomic<TimePoint> lastStatus = {TimePoint{}};
     Data data;
 

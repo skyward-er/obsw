@@ -125,6 +125,13 @@ ADAState ADAController::getADAState()
     return ada.getState();
 }
 
+ADAControllerSampleData ADAController::getSampleData()
+{
+    Lock<FastMutex> lock{adaMutex};
+    return {TimestampTimer::getTimestamp(), adaDetectedApogees,
+            adaDetectedDeployments, state};
+}
+
 float ADAController::getDeploymentAltitude()
 {
     return deploymentAltitude.load();

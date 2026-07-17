@@ -34,6 +34,7 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
+#include <Main/StateMachines/SDAController/SDAController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/MavlinkHydra.h>
 #include <common/canbus/MotorStatus.h>
@@ -52,7 +53,7 @@ class Radio
     : public Boardcore::InjectableWithDeps<
           Buses, BoardScheduler, Actuators, PinHandler, CanHandler, Sensors,
           FlightModeManager, ADAController, NASController, ABKController,
-          StatsRecorder, AlgoReference, Common::MotorStatus>
+          SDAController, StatsRecorder, AlgoReference, Common::MotorStatus>
 {
 public:
     Radio() {}

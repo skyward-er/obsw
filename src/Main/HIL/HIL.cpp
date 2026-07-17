@@ -99,20 +99,19 @@ void MainHILPhasesManager::processFlagsImpl(
     }
 
     if (simulatorData.signal ==
-        static_cast<float>(HILSignal::SIMULATION_FORCE_LAUNCH) && !launched)
+            static_cast<float>(HILSignal::SIMULATION_FORCE_LAUNCH) &&
+        !launched)
     {
-        Thread::sleep(250);
         Boardcore::EventBroker::getInstance().post(Common::TMTC_FORCE_LAUNCH,
                                                    Common::TOPIC_TMTC);
         launched = 1;
     }
 
-    // Might be good to enforce with a check on the FMM state, 
+    // Might be good to enforce with a check on the FMM state,
     // but MainHILPhasesManager needs to be injectable with FMM
     if (simulatorData.signal ==
         static_cast<float>(HILSignal::SIMULATION_ARMING))
     {
-        Thread::sleep(250);
         Boardcore::EventBroker::getInstance().post(Common::TMTC_ARM,
                                                    Common::TOPIC_TMTC);
     }
@@ -324,18 +323,19 @@ bool MainHIL::start()
 
 ActuatorData MainHIL::updateActuatorData()
 {
-    auto actuators = getModule<Actuators>();
+    auto actuators      = getModule<Actuators>();
+    auto wingController = getModule<WingController>();
 
     ADAStateHIL adaStateHIL{getModule<ADAController>()->getADAState(),
+                            getModule<ADAController>()->getSampleData(),
                             getModule<ADAController>()->getState()};
 
-    ANASStateHIL anasStateHIL{getModule<NASController>()->getANASState()};
+    NASStateHIL anasStateHIL{getModule<NASController>()->getNASState()};
 
-    NASDAQStateHIL nasdaqStateHIL{getModule<NASController>()->getNASDAQState()};
+    QuaternionStateHIL quaternionStateHIL{
+        getModule<NASController>()->getANASState()};
 
-    SDAStateHIL sdaStateHIL{getModule<SDAController>()->getSDAOutput() &&
-                            getModule<SDAController>()->getState() ==
-                                SDAControllerState::ACTIVE};
+    SDAStateHIL sdaStateHIL{getModule<SDAController>()->getPredictedApogee()};
 
     AirBrakesStateHIL abkStateHIL{getModule<ABKController>()->getState()};
 
@@ -345,15 +345,15 @@ ActuatorData MainHIL::updateActuatorData()
 
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
-        actuators->getPrfServoPosition(ServosList::PARAFOIL_LEFT_SERVO),
-        actuators->getPrfServoPosition(ServosList::PARAFOIL_RIGHT_SERVO),
+        wingController->getLastServoCommands().leftCommand,
+        wingController->getLastServoCommands().rightCommand,
         static_cast<bool>(miosix::gpios::expulsion::value()),
         static_cast<bool>(miosix::gpios::releaser::value())};
 
     counter += 1.0f;
 
     // Returning the feedback for the simulator
-    return ActuatorData{adaStateHIL, anasStateHIL, nasdaqStateHIL,
+    return ActuatorData{adaStateHIL, anasStateHIL, quaternionStateHIL,
                         sdaStateHIL, abkStateHIL,  actuatorsStateHIL,
                         fmmStateHIL, counter};
 }

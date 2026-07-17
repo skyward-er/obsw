@@ -40,7 +40,7 @@ namespace Wing
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Angle;
 
-constexpr auto UPDATE_RATE        = 1_hz;
+constexpr auto UPDATE_RATE        = 20_hz;
 constexpr auto TARGET_UPDATE_RATE = 10_hz;
 constexpr auto CUTTERS_TIMEOUT    = 1s;
 

@@ -50,10 +50,9 @@ public:
     [[nodiscard]] bool start() override;
 
     bool getSDAOutput();
+    float getPredictedApogee();
 
     SDAControllerState getState();
-
-    float getInitialMass();
 
     std::chrono::milliseconds getMinBurnTime();
     void setMinBurnTime(std::chrono::milliseconds time);
@@ -82,7 +81,6 @@ private:
 
     uint16_t shadowModeTimeoutEvent = 0;
 
-    std::atomic<float> initialMass;  // [kg]
     std::atomic<std::chrono::milliseconds> minBurnTime;
     std::atomic<float> apogeeTarget;  // agl [m]
 

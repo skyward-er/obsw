@@ -24,10 +24,10 @@
 
 #include <Main/Configs/WingConfig.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/WingController/WingControllerData.h>
-#include <algorithms/WingController/PRF.h>
+#include <algorithms/PRF/PRF.h>
+#include <algorithms/PRF/WingControllerData.h>
 #include <diagnostic/PrintLogger.h>
-#include <events/HSM.h>
+#include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -52,7 +52,7 @@ class Sensors;
 class LandingFlare;
 
 class WingController
-    : public Boardcore::HSM<WingController>,
+    : public Boardcore::FSM<WingController>,
       public Boardcore::InjectableWithDeps<
           BoardScheduler, Actuators, NASController, StatsRecorder, Sensors>
 {
@@ -61,6 +61,12 @@ private:
     {
         FULL,
         PUMP
+    };
+
+    struct servoCommand
+    {
+        float leftCommand;
+        float rightCommand;
     };
 
 public:
@@ -83,6 +89,8 @@ public:
 
     WingControllerState getState();
 
+    servoCommand getLastServoCommands() { return lastServoCommands; }
+
     /**
      * @brief Returns the target coordinates.
      * @return The GEO coordinates of the active target.
@@ -96,14 +104,14 @@ public:
 
 private:
     // HSM states
-    Boardcore::State state_init(const Boardcore::Event& event);
-    Boardcore::State state_ready(const Boardcore::Event& event);
-    Boardcore::State state_deployment(const Boardcore::Event& event);
-    Boardcore::State state_opening_pumps_pull(const Boardcore::Event& event);
-    Boardcore::State state_opening_pumps_release(const Boardcore::Event& event);
-    Boardcore::State state_guided_descent(const Boardcore::Event& event);
-    Boardcore::State state_landing_flare(const Boardcore::Event& event);
-    Boardcore::State state_landed(const Boardcore::Event& event);
+    void state_init(const Boardcore::Event& event);
+    void state_ready(const Boardcore::Event& event);
+    void state_deployment(const Boardcore::Event& event);
+    void state_opening_pumps_pull(const Boardcore::Event& event);
+    void state_opening_pumps_release(const Boardcore::Event& event);
+    void state_guided_descent(const Boardcore::Event& event);
+    void state_landing_flare(const Boardcore::Event& event);
+    void state_landed(const Boardcore::Event& event);
 
     /**
      * @brief Periodic update method that steps the currently selected
@@ -154,6 +162,8 @@ private:
     std::atomic<bool> started{false};
 
     PRF::PRF wing;
+
+    servoCommand lastServoCommands = {0.0f, 0.0f};
 
     Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger =

@@ -47,7 +47,7 @@ namespace Main
 {
 
 WingController::WingController()
-    : HSM(&WingController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
+    : FSM(&WingController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
           Config::Scheduler::NAS_PRIORITY)
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -76,7 +76,7 @@ bool WingController::start()
         return false;
     }
 
-    if (!HSM::start())
+    if (!FSM::start())
     {
         LOG_ERR(logger, "Failed to start WingController HSM active object");
         return false;
@@ -128,10 +128,15 @@ void WingController::update()
             wing.getPRF_Logs_OBSW(),
         };
 
+        lastServoCommands = {logsData.PRFLogs.ServoCommands[0],
+                             logsData.PRFLogs.ServoCommands[1]};
+
         // updated servo positions
         // TODO: check if the servos are the correct ones
-        Radian leftCommand(logsData.PRFLogs.ServoCommands[0]);
-        Radian rightCommand(logsData.PRFLogs.ServoCommands[1]);
+        Radian leftCommand(logsData.PRFLogs.ServoCommands[0] *
+                           Config::Actuators::PrfServo::MAX_ANGLE);
+        Radian rightCommand(logsData.PRFLogs.ServoCommands[1] *
+                            Config::Actuators::PrfServo::MAX_ANGLE);
 
         getModule<Actuators>()->setPrfServoAngle(PARAFOIL_LEFT_SERVO,
                                                  leftCommand);
@@ -172,34 +177,21 @@ void WingController::flareWing(WingController::FlareType type)
     }
 }
 
-State WingController::state_init(const Boardcore::Event& event)
+void WingController::state_init(const Boardcore::Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             updateAndLogStatus(WingControllerState::INIT);
-            wing.initialize();
-            wing.setPRF_Wind(0);
+
             transition(&WingController::state_ready);
-            return HANDLED;
-        }
-
-        case FMM_ALGOS_CALIBRATE:
-        {
-            getModule<Actuators>()->setPrfServoZero();
-            servosStarted = true;
-            return HANDLED;
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            break;
         }
     }
 }
 
-State WingController::state_ready(const Boardcore::Event& event)
+void WingController::state_ready(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -209,38 +201,28 @@ State WingController::state_ready(const Boardcore::Event& event)
             // getModule<LandingFlare>()->setTargetGEO(
             // {targetReading.latitude, targetReading.longitude});
             updateAndLogStatus(WingControllerState::READY);
-            return HANDLED;
+            break;
         }
 
-        case TMTC_ENTER_TEST_MODE:
+        case FMM_ALGOS_CALIBRATE:
         {
-            return HANDLED;
-        }
-
-        case TMTC_EXIT_TEST_MODE:
-        {
-            resetWing();
-            return HANDLED;
+            wing.initialize();
+            wing.setPRF_Reference({0.0f, Config::Wing::Default::TARGET_LAT,
+                                   Config::Wing::Default::TARGET_LON});
+            getModule<Actuators>()->setPrfServoZero();
+            servosStarted = true;
+            break;
         }
 
         case FLIGHT_DPL_ALT_DETECTED:
         {
-            return transition(&WingController::state_deployment);
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&WingController::state_top);
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            transition(&WingController::state_deployment);
+            break;
         }
     }
 }
 
-State WingController::state_deployment(const Boardcore::Event& event)
+void WingController::state_deployment(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -258,7 +240,7 @@ State WingController::state_deployment(const Boardcore::Event& event)
                 DPL_PUMPS_PULL, TOPIC_DPL,
                 milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
 
-            return HANDLED;
+            break;
         }
 
         case EV_EXIT:
@@ -267,32 +249,24 @@ State WingController::state_deployment(const Boardcore::Event& event)
             EventBroker::getInstance().removeDelayed(dplPumpsTimeoutEventId);
             resetWing();
 
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&WingController::state_ready);
+            break;
         }
 
         case DPL_PUMPS_PULL:
         {
-            return transition(&WingController::state_opening_pumps_pull);
+            transition(&WingController::state_opening_pumps_pull);
+            break;
         }
 
         case DPL_DONE:
         {
-            return transition(&WingController::state_guided_descent);
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            transition(&WingController::state_guided_descent);
+            break;
         }
     }
 }
 
-State WingController::state_opening_pumps_pull(const Boardcore::Event& event)
+void WingController::state_opening_pumps_pull(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -303,22 +277,12 @@ State WingController::state_opening_pumps_pull(const Boardcore::Event& event)
             if (Config::Wing::Deployment::PUMPS.size() <= 0)
             {
                 EventBroker::getInstance().post(DPL_DONE, TOPIC_DPL);
-                return HANDLED;
+                break;
             }
 
             flareWing(FlareType::PUMP);
 
-            return HANDLED;
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&WingController::state_deployment);
+            break;
         }
 
         case PRF_SERVO_STOPPED:
@@ -332,22 +296,18 @@ State WingController::state_opening_pumps_pull(const Boardcore::Event& event)
                     milliseconds{pump.pumpTime}.count());
             }
 
-            return HANDLED;
+            break;
         }
 
         case DPL_PUMPS_RELEASE:
         {
-            return transition(&WingController::state_opening_pumps_release);
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            transition(&WingController::state_opening_pumps_release);
+            break;
         }
     }
 }
 
-State WingController::state_opening_pumps_release(const Boardcore::Event& event)
+void WingController::state_opening_pumps_release(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -357,7 +317,7 @@ State WingController::state_opening_pumps_release(const Boardcore::Event& event)
 
             resetWing();
 
-            return HANDLED;
+            break;
         }
 
         case EV_EXIT:
@@ -366,12 +326,7 @@ State WingController::state_opening_pumps_release(const Boardcore::Event& event)
             EventBroker::getInstance().removeDelayed(dplPumpsTimeoutEventId);
             resetWing();
 
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&WingController::state_deployment);
+            break;
         }
 
         case PRF_SERVO_STOPPED:
@@ -393,22 +348,18 @@ State WingController::state_opening_pumps_release(const Boardcore::Event& event)
                 }
             }
 
-            return HANDLED;
+            break;
         }
 
         case DPL_PUMPS_PULL:
         {
-            return transition(&WingController::state_opening_pumps_pull);
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            transition(&WingController::state_opening_pumps_pull);
+            break;
         }
     }
 }
 
-State WingController::state_guided_descent(const Boardcore::Event& event)
+void WingController::state_guided_descent(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -430,7 +381,7 @@ State WingController::state_guided_descent(const Boardcore::Event& event)
             //     getModule<LandingFlare>()->enable();
             // }
 
-            return HANDLED;
+            break;
         }
 
         case EV_EXIT:
@@ -443,45 +394,31 @@ State WingController::state_guided_descent(const Boardcore::Event& event)
             //     getModule<LandingFlare>()->disable();
             // }
 
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&WingController::state_ready);
+            break;
         }
 
         case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
         {
-            return transition(&WingController::state_landing_flare);
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            transition(&WingController::state_landing_flare);
+            break;
         }
     }
 }
 
-State WingController::state_landing_flare(const Boardcore::Event& event)
+void WingController::state_landing_flare(const Boardcore::Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
             updateAndLogStatus(WingControllerState::LANDING_FLARE);
-
-            return HANDLED;
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
+            break;
         }
 
         case EV_EMPTY:
         {
-            return tranSuper(&WingController::state_ready);
+            transition(&WingController::state_ready);
+            break;
         }
 
         case WING_LANDING_FLARE_STOP:
@@ -503,16 +440,12 @@ State WingController::state_landing_flare(const Boardcore::Event& event)
             //     getModule<LandingFlare>()->enable();
             // }
 
-            return HANDLED;
-        }
-        default:
-        {
-            return UNHANDLED;
+            break;
         }
     }
 }
 
-State WingController::state_landed(const Boardcore::Event& event)
+void WingController::state_landed(const Boardcore::Event& event)
 {
     switch (event)
     {
@@ -523,22 +456,7 @@ State WingController::state_landed(const Boardcore::Event& event)
             getModule<Actuators>()->disablePrfServo(PARAFOIL_LEFT_SERVO);
             getModule<Actuators>()->disablePrfServo(PARAFOIL_RIGHT_SERVO);
 
-            return HANDLED;
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&WingController::state_top);
-        }
-
-        default:
-        {
-            return UNHANDLED;
+            break;
         }
     }
 }
@@ -549,7 +467,7 @@ void WingController::updateAndLogStatus(WingControllerState newState)
 
     auto status = WingControllerStatus{
         .timestamp = TimestampTimer::getTimestamp(), .state = newState};
-    Logger::getInstance().log(status);
+    sdLogger.log(status);
 }
 
 }  // namespace Main
