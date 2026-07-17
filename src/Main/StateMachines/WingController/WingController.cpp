@@ -237,7 +237,7 @@ void WingController::state_deployment(const Boardcore::Event& event)
                 TimestampTimer::getTimestamp(), altitude);
 
             dplPumpsTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_PUMPS_PULL, TOPIC_DPL,
+                DPL_DONE, TOPIC_DPL,
                 milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
 
             break;
