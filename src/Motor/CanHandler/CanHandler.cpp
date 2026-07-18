@@ -372,6 +372,10 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
             miosix::reboot();
         }
     }
+    else if (event == Common::CanConfig::EventId::CALIBRATE)
+    {
+        EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
+    }
 
     // Log the event
     sdLogger.log(CanEvent{TimestampTimer::getTimestamp(), msg.getSource(),
