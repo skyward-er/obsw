@@ -64,12 +64,12 @@ bool Sensors::start()
         internalAdcInit();
 
     // uint8_t taskId = getModule<BoardScheduler>()->sensors().addTask(
-    //     [this] { checkOxTankOverpressure(); },
-    //     Config::Sensors::OxTankOverpressure::CHECK_RATE);
+    //     [this] { checkPrzTankOverpressure(); },
+    //     Config::Sensors::PrzTankOverpressure::CHECK_RATE);
 
     // if (!taskId)
     // {
-    //     LOG_ERR(logger, "Failed to create OxTankOverpressure task");
+    //     LOG_ERR(logger, "Failed to create PrzTankOverpressure task");
     //     return false;
     // }
 
@@ -873,5 +873,33 @@ bool Sensors::sensorManagerInit()
 
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
     return manager->start();
+}
+
+void Sensors::checkPrzTankOverpressure()
+{
+    using namespace Config::Sensors::PrzTankOverpressure;
+    auto sample = getPrzTankPressure();
+
+    auto now = std::chrono::steady_clock::now();
+
+    if (sample.pressure < PRESSURE_THRESHOLD)
+        przTankPressureOkTime = now;
+
+    if (now - przTankPressureOkTime > HYSTERESIS)
+    {
+        auto actuators = getModule<Actuators>();
+
+        // 0.25 fisso sulla valvola
+        // Usare la Release?
+
+        bool alreadyOpen =
+            actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE);
+        if (!alreadyOpen)
+            actuators->openValveWithTime(
+                ServosList::FUEL_VENTING_VALVE,
+                milliseconds{VENTING_DURATION}.count());
+
+        przTankPressureOkTime = now;
+    }
 }
 

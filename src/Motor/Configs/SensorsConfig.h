@@ -143,7 +143,7 @@ constexpr auto RATE    = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
-namespace OxTankOverpressure
+namespace PrzTankOverpressure
 {
 constexpr auto CHECK_RATE = 10_hz;
 
@@ -151,7 +151,7 @@ constexpr auto CHECK_RATE = 10_hz;
 constexpr float PRESSURE_THRESHOLD = 80.4;  // bar
 constexpr auto HYSTERESIS          = 1s;
 constexpr auto VENTING_DURATION    = 1s;
-}  // namespace OxTankOverpressure
+}  // namespace PrzTankOverpressure
 
 }  // namespace Sensors
 
