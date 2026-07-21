@@ -47,7 +47,6 @@ Actuators::Actuators()
         Units::Angle::Radian(PrfServo::SCHMITT_THRESHOLD_HIGH).value());
 
     leftServo.angleData.setInitialState(PrfServo::INITIAL_ANGLE);
-
     leftServo.maxAngle  = Radian(PrfServo::MAX_ANGLE);
     leftServo.minAngle  = Radian(PrfServo::LEFT_MIN_ANGLE);
     leftServo.direction = PrfServo::LEFT_SERVO_DIRECTION;
@@ -255,6 +254,13 @@ void Actuators::setAbkPosition(float position)
 void Actuators::wiggleServo(ServosList servo)
 {
     Lock<FastMutex> lock{servosMutex};
+
+    if (servo == PARAFOIL_LEFT_SERVO || servo == PARAFOIL_RIGHT_SERVO)
+    {
+        wigglePrfServo(servo);
+        return;
+    }
+
     Servo* info = getServo(servo);
     if (info != nullptr)
     {

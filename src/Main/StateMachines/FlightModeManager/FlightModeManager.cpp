@@ -264,6 +264,7 @@ State FlightModeManager::state_calibrate_sensors(const Event& event)
             Thread::sleep(100);
 
             getModule<Sensors>()->calibrate();
+            getModule<Actuators>()->setPrfServoZero();
             EventBroker::getInstance().post(FMM_SENSORS_CAL_DONE, TOPIC_FMM);
 
             return HANDLED;
@@ -442,6 +443,9 @@ State FlightModeManager::state_test_mode(const Event& event)
             EventBroker::getInstance().post(SDA_FORCE_START, TOPIC_SDA);
             getModule<Sensors>()->resetMagCalibrator();
             getModule<Sensors>()->enableMagCalibrator();
+
+            getModule<Actuators>()->enablePrfServo(PARAFOIL_LEFT_SERVO);
+            getModule<Actuators>()->enablePrfServo(PARAFOIL_RIGHT_SERVO);
             return HANDLED;
         }
         case EV_EXIT:
@@ -450,6 +454,9 @@ State FlightModeManager::state_test_mode(const Event& event)
             EventBroker::getInstance().post(NAS_FORCE_STOP, TOPIC_NAS);
             EventBroker::getInstance().post(SDA_FORCE_STOP, TOPIC_SDA);
             getModule<Sensors>()->disableMagCalibrator();
+
+            getModule<Actuators>()->disablePrfServo(PARAFOIL_LEFT_SERVO);
+            getModule<Actuators>()->disablePrfServo(PARAFOIL_RIGHT_SERVO);
             return HANDLED;
         }
         case EV_EMPTY:

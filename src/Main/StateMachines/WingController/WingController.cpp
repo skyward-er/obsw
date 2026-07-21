@@ -209,7 +209,7 @@ void WingController::state_ready(const Boardcore::Event& event)
             wing.initialize();
             wing.setPRF_Reference({0.0f, Config::Wing::Default::TARGET_LAT,
                                    Config::Wing::Default::TARGET_LON});
-            getModule<Actuators>()->setPrfServoZero();
+            resetWing();
             servosStarted = true;
             break;
         }
