@@ -119,6 +119,17 @@ enum class EventId : uint8_t
     LIFTOFF,
     APOGEE_DETECTED,
     IGNITION,
+    ENGINE_SHUTDOWN,
+    EREG_OX_TOGGLE,
+    EREG_FUEL_TOGGLE
+};
+
+enum class CommandId : uint8_t
+{
+    SERVO_COMMAND = 0,
+    FIRING_SEQUENCE_CONFIG,
+    IGNITION_THRESHOLDS,
+    EREG_TARGET,
 };
 
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
@@ -133,6 +144,10 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::EXIT_HIL_MODE, Common::CAN_EXIT_HIL_MODE},
     {Common::CanConfig::EventId::APOGEE_DETECTED, Common::CAN_APOGEE_DETECTED},
     {Common::CanConfig::EventId::IGNITION, Common::CAN_IGNITION},
+    {Common::CanConfig::EventId::ENGINE_SHUTDOWN, Common::CAN_ENGINE_SHUTDOWN},
+    {Common::CanConfig::EventId::EREG_OX_TOGGLE, Common::CAN_EREG_OX_TOGGLE},
+    {Common::CanConfig::EventId::EREG_FUEL_TOGGLE,
+     Common::CAN_EREG_FUEL_TOGGLE},
 };
 
 }  // namespace CanConfig
@@ -163,6 +178,12 @@ inline Events canEventToEvent(uint8_t canEvent)
             return CAN_APOGEE_DETECTED;
         case (int)CanConfig::EventId::IGNITION:
             return CAN_IGNITION;
+        case (int)CanConfig::EventId::ENGINE_SHUTDOWN:
+            return CAN_ENGINE_SHUTDOWN;
+        case (int)CanConfig::EventId::EREG_OX_TOGGLE:
+            return CAN_EREG_OX_TOGGLE;
+        case (int)CanConfig::EventId::EREG_FUEL_TOGGLE:
+            return CAN_EREG_FUEL_TOGGLE;
         default:
             return LAST_EVENT;
     }

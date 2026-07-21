@@ -122,8 +122,9 @@ void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::MAIN),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-        static_cast<uint8_t>(servo),
-        ServoCommand{TimestampTimer::getTimestamp(), openingTime});
+        static_cast<uint8_t>(CanConfig::CommandId::SERVO_COMMAND),
+        ServoCommand{TimestampTimer::getTimestamp(), openingTime,
+                     static_cast<uint8_t>(servo)});
 }
 
 void CanHandler::sendServoCloseCommand(ServosList servo)
@@ -171,6 +172,11 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
         case CanConfig::PrimaryType::ACTUATORS:
         {
             handleActuator(msg);
+            break;
+        }
+        case CanConfig::PrimaryType::COMMAND:
+        {
+            handleCommand(msg);
             break;
         }
 
@@ -274,4 +280,23 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             LOG_WARN(logger, "Received unsupported status: {}", source);
         }
     }
+}
+
+void CanHandler::handleCommand(const Canbus::CanMessage& msg)
+{
+    CanConfig::CommandId commandId =
+        static_cast<CanConfig::CommandId>(msg.getSecondaryType());
+
+    if (commandId == CanConfig::CommandId::SERVO_COMMAND)
+    {
+        // Do not forward servo commands to avoid actuating two times
+        CanServoCommand data = servoCommandFromCanMessage(msg);
+        sdLogger.log(data);
+    }
+    else
+    {
+        LOG_WARN(logger, "Received unsupported command: {}", commandId);
+    }
+
+    // Implementation for handling command messages
 }

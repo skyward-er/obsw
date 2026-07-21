@@ -44,10 +44,8 @@ public:
     FiringSequenceHSM();
 
     void setFiringParams(uint32_t fullThrottleTime, uint32_t lowThrottleTime,
-                         float pilotFlameOxPosition,
-                         float pilotFlameFuelPosition,
-                         float lowThrottleOxPosition,
-                         float lowThrottleFuelPosition);
+                         uint32_t pilotLeadTime, float pilotFlameOxPosition,
+                         float pilotFlameFuelPosition);
 
     void setPressureThresholds(float igniterThreshold,
                                float pilotFlameThreshold);
@@ -60,7 +58,9 @@ private:
     void checkIgniterPressure();
     void checkPilotFlamePressure();
 
+    Boardcore::State state_init(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
+    Boardcore::State state_firing(const Boardcore::Event& event);
     Boardcore::State state_igniter(const Boardcore::Event& event);
     Boardcore::State state_igniter_wait(const Boardcore::Event& event);
     Boardcore::State state_pilot_flame(const Boardcore::Event& event);
@@ -76,7 +76,7 @@ private:
     Boardcore::PrintLogger logger =
         Boardcore::Logging::getLogger("firing_sequence");
 
-    std::atomic<FiringSequenceState> state{FiringSequenceState::IDLE};
+    std::atomic<FiringSequenceState> state{FiringSequenceState::INIT};
 
     uint16_t nextEventId = -1;
 
@@ -85,7 +85,5 @@ private:
 
     float igniterPressureThreshold    = 0.0f;
     float pilotFlamePressureThreshold = 0.0f;
-
-    bool paramsSet = false;
 };
 }  // namespace Motor

@@ -691,7 +691,8 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         case SDA_SHUTDOWN_DETECTED:
         case FMM_ENGINE_TIMEOUT:
         {
-            shutdownEngine();
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENGINE_SHUTDOWN);
 
             float mslAlt =
                 getModule<ADAController>()->getADAState().mslAltitude;
@@ -703,10 +704,10 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         }
         case FMM_APOGEE_TIMEOUT:
         {
-            shutdownEngine();
-
             EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED,
                                             TOPIC_FLIGHT);
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENGINE_SHUTDOWN);
 
             return transition(&FlightModeManager::state_drogue_descent);
         }
@@ -883,18 +884,6 @@ State FlightModeManager::state_landed(const Event& event)
             return UNHANDLED;
         }
     }
-}
-
-void FlightModeManager::shutdownEngine()
-{
-    /* auto can = getModule<CanHandler>();
-
-         can->sendServoCloseCommand(ServosList::MAIN_VALVE);
-        can->sendServoCloseCommand(ServosList::NITROGEN_VALVE);
-
-        can->sendServoOpenCommand(ServosList::N2_QUENCHING_VALVE,
-                                  std::numeric_limits<uint32_t>::max());
-     */
 }
 
 void FlightModeManager::updateAndLogStatus(FlightModeManagerState state)

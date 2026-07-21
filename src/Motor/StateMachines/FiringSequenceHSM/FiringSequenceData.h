@@ -32,8 +32,9 @@ namespace Motor
 
 enum class FiringSequenceState : uint8_t
 {
-    IDLE = 0,
+    INIT = 0,
     READY,
+    FIRING,
     IGNITER,
     IGNITER_WAIT,
     PILOT_FLAME,
@@ -49,10 +50,12 @@ inline std::string to_string(FiringSequenceState state)
 {
     switch (state)
     {
-        case FiringSequenceState::IDLE:
-            return "IDLE";
+        case FiringSequenceState::INIT:
+            return "INIT";
         case FiringSequenceState::READY:
             return "READY";
+        case FiringSequenceState::FIRING:
+            return "FIRING";
         case FiringSequenceState::IGNITER:
             return "IGNITER";
         case FiringSequenceState::IGNITER_WAIT:
@@ -79,7 +82,7 @@ struct FiringSequenceData
     uint64_t timestamp;
     FiringSequenceState state;
 
-    FiringSequenceData() : timestamp{0}, state{FiringSequenceState::IDLE} {}
+    FiringSequenceData() : timestamp{0}, state{FiringSequenceState::INIT} {}
 
     FiringSequenceData(uint64_t timestamp, FiringSequenceState state)
         : timestamp{timestamp}, state{state}

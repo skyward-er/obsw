@@ -41,9 +41,6 @@ const char* Motor::configurationIdToName(ConfigurationId id)
             return "PILOT_FLAME_OX_POSITION";
         case CONFIG_ID_PILOT_FLAME_FUEL_POSITION:
             return "PILOT_FLAME_FUEL_POSITION";
-        case CONFIG_ID_LOW_THROTTLE_OX_POSITION:
-            return "LOW_THROTTLE_OX_POSITION";
-        case CONFIG_ID_LOW_THROTTLE_FUEL_POSITION:
             return "LOW_THROTTLE_FUEL_POSITION";
         case CONFIG_ID_DEFAULT_OPENING_TIME:
             return "DEFAULT_OPENING_TIME";

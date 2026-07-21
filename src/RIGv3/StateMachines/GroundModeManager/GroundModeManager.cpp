@@ -273,6 +273,7 @@ State GroundModeManager::state_armed(const Event& event)
         {
             EventBroker::getInstance().post(FIRING_SEQUENCE_START,
                                             TOPIC_FIRING_SEQUENCE);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::IGNITION);
             return transition(&GroundModeManager::state_firing);
         }
 

@@ -261,6 +261,8 @@ void EregControllerOx::state_firing(const Event& event)
     }
 }
 
+void EregControllerOx::setEregTarget(float target) { targetPressure = target; }
+
 void EregControllerOx::updateAndLogStatus(EregState state)
 {
     this->state        = state;

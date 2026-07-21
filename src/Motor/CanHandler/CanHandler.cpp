@@ -24,6 +24,9 @@
 
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Configs/CanHandlerConfig.h>
+#include <Motor/StateMachines/EregController/EregControllerFuel.h>
+#include <Motor/StateMachines/EregController/EregControllerOx.h>
+#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -288,8 +291,6 @@ bool CanHandler::start()
 
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
-    auto source = static_cast<CanConfig::Board>(msg.getSource());
-
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
 
@@ -341,14 +342,52 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 
 void CanHandler::handleCommand(const Canbus::CanMessage& msg)
 {
-    ServosList servo        = static_cast<ServosList>(msg.getSecondaryType());
-    CanServoCommand command = servoCommandFromCanMessage(msg);
-    sdLogger.log(command);
+    CanConfig::CommandId commandId =
+        static_cast<CanConfig::CommandId>(msg.getSecondaryType());
 
-    if (command.openingTime == 0)
-        getModule<Actuators>()->closeValve(servo);
+    if (commandId == Common::CanConfig::CommandId::SERVO_COMMAND)
+    {
+        CanServoCommand command = servoCommandFromCanMessage(msg);
+        ServosList servoId      = static_cast<ServosList>(command.servoId);
+        sdLogger.log(command);
+
+        if (command.openingTime == 0)
+            getModule<Actuators>()->closeValve(servoId);
+        else
+            getModule<Actuators>()->openValveWithTime(servoId,
+                                                      command.openingTime);
+    }
+    else if (commandId == Common::CanConfig::CommandId::FIRING_SEQUENCE_CONFIG)
+    {
+        CanSequenceConfig config = sequenceConfigFromCanMessage(msg);
+        sdLogger.log(config);
+
+        getModule<FiringSequenceHSM>()->setFiringParams(
+            config.fullThrottleTime, config.lowThrottleTime,
+            config.pilotLeadTime, config.pilotOxPosition,
+            config.pilotFuelPosition);
+    }
+    else if (commandId == Common::CanConfig::CommandId::EREG_TARGET)
+    {
+        CanEregTarget target = eregTargetFromCanMessage(msg);
+        sdLogger.log(target);
+
+        getModule<EregControllerOx>()->setEregTarget(target.oxTarget);
+        getModule<EregControllerFuel>()->setEregTarget(target.fuelTarget);
+    }
+    else if (commandId == Common::CanConfig::CommandId::IGNITION_THRESHOLDS)
+    {
+        CanIgnitionThresholds thresholds =
+            ignitionThresholdsFromCanMessage(msg);
+        sdLogger.log(thresholds);
+
+        getModule<FiringSequenceHSM>()->setPressureThresholds(
+            thresholds.igniterThreshold, thresholds.pilotThreshold);
+    }
     else
-        getModule<Actuators>()->openValveWithTime(servo, command.openingTime);
+    {
+        LOG_WARN(logger, "Received unsupported command: {}", commandId);
+    }
 }
 
 void CanHandler::handleEvent(const Canbus::CanMessage& msg)
@@ -372,6 +411,24 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
     else if (event == Common::CanConfig::EventId::CALIBRATE)
     {
         EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
+    }
+    else if (event == Common::CanConfig::EventId::EREG_OX_TOGGLE)
+    {
+        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
+    }
+    else if (event == Common::CanConfig::EventId::EREG_FUEL_TOGGLE)
+    {
+        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
+    }
+    else if (event == Common::CanConfig::EventId::IGNITION)
+    {
+        EventBroker::getInstance().post(FIRING_SEQUENCE_START,
+                                        TOPIC_FIRING_SEQUENCE);
+    }
+    else if (event == Common::CanConfig::EventId::ENGINE_SHUTDOWN)
+    {
+        EventBroker::getInstance().post(FIRING_SEQUENCE_END,
+                                        TOPIC_FIRING_SEQUENCE);
     }
 
     // Log the event

@@ -76,8 +76,8 @@ constexpr float DEFAULT_IGN_FUEL_MAX_APERTURE  = 1.0;
 
 constexpr float OX_VEN_LIMIT    = 0.9f;
 constexpr float FUEL_VEN_LIMIT  = 0.9f;
-constexpr float MAIN_OX_LIMIT   = 0.9f;
-constexpr float MAIN_FUEL_LIMIT = 0.9f;
+constexpr float MAIN_OX_LIMIT   = 1.0f;
+constexpr float MAIN_FUEL_LIMIT = 1.0f;
 constexpr float PRZ_OX_LIMIT    = 0.9f;
 constexpr float PRZ_FUEL_LIMIT  = 0.85f;
 constexpr float IGN_FUEL_LIMIT  = 1.0;

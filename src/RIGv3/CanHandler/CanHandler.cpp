@@ -121,14 +121,56 @@ void CanHandler::sendServoOpenCommand(ServosList servo, uint32_t openingTime)
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::RIG),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-        static_cast<uint8_t>(servo),
-        ServoCommand{TimestampTimer::getTimestamp(), openingTime});
+        static_cast<uint8_t>(CanConfig::CommandId::SERVO_COMMAND),
+        ServoCommand{TimestampTimer::getTimestamp(), openingTime,
+                     static_cast<uint8_t>(servo)});
 }
 
 void CanHandler::sendServoCloseCommand(ServosList servo)
 {
     // Closing a servo means opening it for 0s
     sendServoOpenCommand(servo, 0);
+}
+
+void CanHandler::sendIgnitionSequenceConfig(uint32_t fullThrottleTime,
+                                            uint32_t lowThrottleTime,
+                                            uint32_t pilotLeadTime,
+                                            float pilotOxPosition,
+                                            float pilotFuelPosition)
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(CanConfig::CommandId::FIRING_SEQUENCE_CONFIG),
+        SequenceConfig{TimestampTimer::getTimestamp(), fullThrottleTime,
+                       lowThrottleTime, pilotLeadTime, pilotOxPosition,
+                       pilotFuelPosition});
+}
+
+void CanHandler::sendEregTarget(float oxTarget, float fuelTarget)
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(CanConfig::CommandId::EREG_TARGET),
+        EregTarget{TimestampTimer::getTimestamp(), oxTarget, fuelTarget});
+}
+
+void CanHandler::sendIgnitionThresholds(float igniterThreshold,
+                                        float pilotThreshold)
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(CanConfig::CommandId::IGNITION_THRESHOLDS),
+        IgnitionThresholds{TimestampTimer::getTimestamp(), igniterThreshold,
+                           pilotThreshold});
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()

@@ -71,6 +71,16 @@ public:
 
     void sendEvent(Common::CanConfig::EventId event);
 
+    void sendIgnitionSequenceConfig(uint32_t fullThrottleTime,
+                                    uint32_t lowThrottleTime,
+                                    uint32_t pilotLeadTime,
+                                    float pilotOxPosition,
+                                    float pilotFuelPosition);
+
+    void sendEregTarget(float oxTarget, float fuelTarget);
+
+    void sendIgnitionThresholds(float igniterThreshold, float pilotThreshold);
+
     void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
     void sendServoCloseCommand(ServosList servo);
 

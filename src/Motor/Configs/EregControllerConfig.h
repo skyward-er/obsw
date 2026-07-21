@@ -21,8 +21,8 @@
  */
 #pragma once
 
-#include <Motor/Actuators/Actuators.h>
 #include <algorithms/Ereg/EregConfig.h>
+#include <common/MavlinkHydra.h>
 #include <units/Frequency.h>
 
 #include <chrono>
@@ -37,7 +37,6 @@ namespace EregFuel
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace std::chrono;
 
-// why is this not static constexpr?
 constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
