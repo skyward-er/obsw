@@ -37,7 +37,7 @@ namespace Motor
 {
 
 FiringSequenceHSM::FiringSequenceHSM()
-    : HSM(&FiringSequenceHSM::state_ready, STACK_DEFAULT_FOR_PTHREAD,
+    : HSM(&FiringSequenceHSM::state_init, STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::firingSequenceHSMPriority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FIRING_SEQUENCE);
@@ -45,25 +45,22 @@ FiringSequenceHSM::FiringSequenceHSM()
 
 void FiringSequenceHSM::setFiringParams(uint32_t fullThrottleTime,
                                         uint32_t lowThrottleTime,
-                                        float oxPilotFlamePosition,
-                                        float fuelPilotFlamePosition,
-                                        float oxLowThrottlePosition,
-                                        float fuelLowThrottlePosition)
+                                        uint32_t pilotLeadTime,
+                                        float pilotFlameOxPosition,
+                                        float pilotFlameFuelPosition)
 {
     getModule<Registry>()->setUnsafe(CONFIG_ID_FULL_THROTTLE_TIME,
                                      fullThrottleTime);
     getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_TIME,
                                      lowThrottleTime);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_LEAD_TIME, pilotLeadTime);
     getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_OX_POSITION,
-                                     oxPilotFlamePosition);
+                                     pilotFlameOxPosition);
     getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
-                                     fuelPilotFlamePosition);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_OX_POSITION,
-                                     oxLowThrottlePosition);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_FUEL_POSITION,
-                                     fuelLowThrottlePosition);
+                                     pilotFlameFuelPosition);
 
-    paramsSet = true;
+    EventBroker::getInstance().post(FIRING_SEQUENCE_CONFIG_SET,
+                                    TOPIC_FIRING_SEQUENCE);
 }
 
 void FiringSequenceHSM::setPressureThresholds(float igniterThreshold,
@@ -182,6 +179,43 @@ void FiringSequenceHSM::checkPilotFlamePressure()
     }
 }
 
+State FiringSequenceHSM::state_init(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(FiringSequenceState::INIT);
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+
+        case FIRING_SEQUENCE_CONFIG_SET:
+        {
+            return transition(&FiringSequenceHSM::state_ready);
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&FiringSequenceHSM::state_top);
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
 State FiringSequenceHSM::state_ready(const Event& event)
 {
     switch (event)
@@ -194,19 +228,11 @@ State FiringSequenceHSM::state_ready(const Event& event)
 
         case EV_INIT:
         {
-            getModule<Actuators>()->closeAllValves();
             return HANDLED;
         }
 
         case FIRING_SEQUENCE_START:
         {
-            /* if (!paramsSet)
-            {
-                LOG_ERR(
-                    logger,
-                    "Firing parameters not set, cannot start firing sequence");
-                return HANDLED;
-            } */
             return transition(&FiringSequenceHSM::state_igniter);
         }
 
@@ -217,6 +243,47 @@ State FiringSequenceHSM::state_ready(const Event& event)
 
         case EV_EXIT:
         {
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FiringSequenceHSM::state_firing(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(FiringSequenceState::FIRING);
+
+            return transition(&FiringSequenceHSM::state_igniter);
+        }
+
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
+
+        case FIRING_SEQUENCE_END:
+        case FIRING_SEQUENCE_ABORT:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&FiringSequenceHSM::state_ended);
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&FiringSequenceHSM::state_top);
+        }
+
+        case EV_EXIT:
+        {
+            getModule<Actuators>()->closeAllValves();
             return HANDLED;
         }
 
@@ -265,15 +332,9 @@ State FiringSequenceHSM::state_igniter(const Event& event)
             return transition(&FiringSequenceHSM::state_igniter_wait);
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_ready);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -310,14 +371,9 @@ State FiringSequenceHSM::state_igniter_wait(const Event& event)
             return transition(&FiringSequenceHSM::state_pilot_flame);
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_igniter);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -364,14 +420,9 @@ State FiringSequenceHSM::state_pilot_flame(const Event& event)
             return transition(&FiringSequenceHSM::state_pilot_flame_wait);
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_igniter_wait);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -421,15 +472,9 @@ State FiringSequenceHSM::state_pilot_flame_wait(const Event& event)
             return HANDLED;
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_pilot_flame);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -471,12 +516,6 @@ State FiringSequenceHSM::state_ramp_up(const Event& event)
             return HANDLED;
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
         case FIRING_SEQUENCE_FULL_THROTTLE:
         {
             return transition(&FiringSequenceHSM::state_full_throttle);
@@ -484,7 +523,7 @@ State FiringSequenceHSM::state_ramp_up(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_pilot_flame_wait);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -525,12 +564,6 @@ State FiringSequenceHSM::state_full_throttle(const Event& event)
             return HANDLED;
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
         case FIRING_SEQUENCE_LOW_THROTTLE:
         {
             return transition(&FiringSequenceHSM::state_low_throttle);
@@ -538,7 +571,7 @@ State FiringSequenceHSM::state_full_throttle(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_ramp_up);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -572,22 +605,14 @@ State FiringSequenceHSM::state_low_throttle(const Event& event)
                     static_cast<uint32_t>(
                         Config::FiringSequence::LOW_THROTTLE_TIME.count()));
 
-            float lowThrottleOxPosition =
-                getModule<Registry>()->getOrSetDefaultUnsafe(
-                    CONFIG_ID_LOW_THROTTLE_OX_POSITION,
-                    Config::FiringSequence::LOW_THROTTLE_OX_POSITION);
-
-            float lowThrottleFuelPosition =
-                getModule<Registry>()->getOrSetDefaultUnsafe(
-                    CONFIG_ID_LOW_THROTTLE_FUEL_POSITION,
-                    Config::FiringSequence::LOW_THROTTLE_FUEL_POSITION);
-
             // move valves to low throttle position
-            getModule<Actuators>()->moveValve(ServosList::MAIN_OX_VALVE,
-                                              lowThrottleOxPosition);
+            getModule<Actuators>()->moveValve(
+                ServosList::MAIN_OX_VALVE,
+                Config::FiringSequence::LOW_THROTTLE_OX_POSITION);
 
-            getModule<Actuators>()->moveValve(ServosList::MAIN_FUEL_VALVE,
-                                              lowThrottleFuelPosition);
+            getModule<Actuators>()->moveValve(
+                ServosList::MAIN_FUEL_VALVE,
+                Config::FiringSequence::LOW_THROTTLE_FUEL_POSITION);
 
             nextEventId = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_END, TOPIC_FIRING_SEQUENCE, lowThrottleTime);
@@ -595,20 +620,9 @@ State FiringSequenceHSM::state_low_throttle(const Event& event)
             return HANDLED;
         }
 
-        case FIRING_SEQUENCE_ABORT:
-        {
-            EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&FiringSequenceHSM::state_ready);
-        }
-
-        case FIRING_SEQUENCE_END:
-        {
-            return transition(&FiringSequenceHSM::state_ended);
-        }
-
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_full_throttle);
+            return tranSuper(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EXIT:
@@ -648,7 +662,7 @@ State FiringSequenceHSM::state_ended(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_low_throttle);
+            return tranSuper(&FiringSequenceHSM::state_top);
         }
 
         case EV_EXIT:

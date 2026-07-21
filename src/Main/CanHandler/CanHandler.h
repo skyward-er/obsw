@@ -106,6 +106,7 @@ private:
     void handleSensor(const Boardcore::Canbus::CanMessage& msg);
     void handleActuator(const Boardcore::Canbus::CanMessage& msg);
     void handleStatus(const Boardcore::Canbus::CanMessage& msg);
+    void handleCommand(const Boardcore::Canbus::CanMessage& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();

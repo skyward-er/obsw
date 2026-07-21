@@ -44,6 +44,8 @@ public:
 
     [[nodiscard]] bool start() override;
 
+    void setEregTarget(float target);
+
     EregState getState();
 
 private:

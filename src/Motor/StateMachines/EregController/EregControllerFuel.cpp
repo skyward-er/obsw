@@ -257,6 +257,11 @@ void EregControllerFuel::state_firing(const Event& event)
     }
 }
 
+void EregControllerFuel::setEregTarget(float target)
+{
+    targetPressure = target;
+}
+
 void EregControllerFuel::updateAndLogStatus(EregState state)
 {
     this->state        = state;

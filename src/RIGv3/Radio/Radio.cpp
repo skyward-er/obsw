@@ -291,6 +291,13 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_firing_parameters_tc_get_low_throttle_fuel_position(
                     &msg);
 
+            if (getModule<MotorStatus>()->connected())
+            {
+                getModule<CanHandler>()->sendIgnitionSequenceConfig(
+                    fullThrottleTime, lowThrottleTime, pilotFuelLeadTime,
+                    pilotFlameOxPosition, pilotFlameFuelPosition);
+            }
+
             getModule<FiringSequenceHSM>()->setFiringParams(
                 pilotFuelLeadTime, fullThrottleTime, lowThrottleTime,
                 pilotFlameOxPosition, pilotFlameFuelPosition,
@@ -309,6 +316,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             float pilotPressureThreshold =
                 mavlink_msg_set_pressure_thresholds_tc_get_pilot_ok_threshold(
                     &msg);
+
+            getModule<CanHandler>()->sendIgnitionThresholds(
+                ignPressureThreshold, pilotPressureThreshold);
 
             getModule<FiringSequenceHSM>()->setPressureThresholds(
                 ignPressureThreshold, pilotPressureThreshold);
@@ -1182,6 +1192,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             // The OX pressurize switch was pressed
             EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+
+            // send event to the CAN bus
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EREG_OX_TOGGLE);
             lastManualActuation = currentTime;
             enqueueValveInfoTm(ServosList::PRZ_OX_VALVE);
         }
@@ -1191,6 +1205,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             // The OX pressurize switch was pressed
             EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+
+            // send event to the CAN bus
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EREG_FUEL_TOGGLE);
             lastManualActuation = currentTime;
             enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
         }

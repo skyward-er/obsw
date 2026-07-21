@@ -21,8 +21,8 @@
  */
 #pragma once
 
-#include <RIGv3/Actuators/Actuators.h>
 #include <algorithms/Ereg/EregConfig.h>
+#include <common/MavlinkHydra.h>
 #include <units/Frequency.h>
 
 #include <chrono>

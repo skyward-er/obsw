@@ -36,9 +36,14 @@ namespace Motor
 {
 
 class Actuators;
+class FiringSequenceHSM;
+class EregControllerOx;
+class EregControllerFuel;
 
 class CanHandler
-    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators>
+    : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
+                                           FiringSequenceHSM, EregControllerOx,
+                                           EregControllerFuel>
 {
 public:
     struct CanStatus
