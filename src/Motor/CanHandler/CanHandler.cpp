@@ -273,7 +273,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE),
-                static_cast<float>(meaState.mass));
+                static_cast<MeaData>(MeaData{meaState.mass}));
         },
         Config::CanHandler::MEA_STATE_SEND_RATE);
 
