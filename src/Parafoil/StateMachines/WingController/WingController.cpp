@@ -520,12 +520,8 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
     auto& autocodedAlgorithm =
         algorithms[static_cast<size_t>(AlgorithmId::AUTOCODED)];
 
-    auto targetNED =
-        Aeroutils::geodetic2NED(Coordinates{latitude, longitude},
-                                {nasRef.refLatitude, nasRef.refLongitude});
-
     static_cast<AutocodedWingAlgorithm*>(autocodedAlgorithm.get())
-        ->setTargetNED(Meter{targetNED[0]}, Meter{targetNED[1]});
+        ->setTargetLLA(latitude, longitude);
 
     // Log early maneuver points to highlight any discrepancies if any
     auto earlyManeuverPoints = getEarlyManeuverPoints();

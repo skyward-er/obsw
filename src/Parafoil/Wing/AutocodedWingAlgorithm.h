@@ -49,8 +49,7 @@ public:
      */
     AutocodedWingAlgorithm(ServosList servoLeft, ServosList servoRight);
 
-    void setTargetNED(Boardcore::Units::Length::Meter n,
-                      Boardcore::Units::Length::Meter e);
+    void setTargetLLA(float latitude, float longitude);
 
 protected:
     /**

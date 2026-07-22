@@ -46,10 +46,10 @@ AutocodedWingAlgorithm::AutocodedWingAlgorithm(ServosList servoLeft,
 {
 }
 
-void AutocodedWingAlgorithm::setTargetNED(Meter n, Meter e)
+void AutocodedWingAlgorithm::setTargetLLA(float latitude, float longitude)
 {
     controller.setPRF_Reference(PRFReference{
-        .WindDirection = 0, .TargetPositionNED = {n.value(), e.value()}});
+        .WindDirection = 0, .TargetPositionLLA = {latitude, longitude}});
 }
 
 bool AutocodedWingAlgorithm::init()
@@ -63,7 +63,7 @@ bool AutocodedWingAlgorithm::init()
 
     // Initialize the controller
     controller.initialize();
-    setTargetNED(20_m, 0_m);
+    setTargetLLA(Default::TARGET_LAT, Default::TARGET_LON);
 
     return true;
 }
