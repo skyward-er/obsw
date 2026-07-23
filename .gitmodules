@@ -1,3 +1,6 @@
 [submodule "skyward-boardcore"]
 	path = skyward-boardcore
 	url = ../skyward-boardcore
+[submodule "libs/autocoded-algorithms"]
+	path = libs/autocoded-algorithms
+	url = ../../gnc/autocoded-algorithms

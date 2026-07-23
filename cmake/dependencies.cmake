@@ -22,7 +22,15 @@
 set(OBSW_INCLUDE_DIRS
     src
     src/boards
+    SYSTEM libs/autocoded-algorithms/shared
+    SYSTEM libs/autocoded-algorithms/anas/v1.1
 )
+
+set(AUTOCODED_ALGORITHMS_SOURCES
+    libs/autocoded-algorithms/anas/v1.1/ANAS0.cpp
+    libs/autocoded-algorithms/anas/v1.1/ANAS0_data.cpp
+)
+
 
 set(MAIN_COMPUTER
     src/common/canbus/MotorStatus.cpp
@@ -41,6 +49,11 @@ set(MAIN_COMPUTER
     src/Main/StateMachines/ABKController/ABKController.cpp
     src/Main/StateMachines/MEAController/MEAController.cpp
     src/Main/StatsRecorder/StatsRecorder.cpp
+)
+
+set(MAIN_COMPUTER
+    ${MAIN_COMPUTER}
+    ${AUTOCODED_ALGORITHMS_SOURCES}
 )
 
 set(GROUNDSTATION_COMMON
