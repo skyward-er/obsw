@@ -28,14 +28,14 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/ANAS/ANAS0.h>
-#include <algorithms/ANAS/ANAS0_types.h>
 #include <algorithms/ANAS/ANASData.h>
-#include <algorithms/NASDAQ/NASDAQ0.h>
-#include <algorithms/NASDAQ/NASDAQ0_types.h>
 #include <algorithms/NASDAQ/NASDAQData.h>
+#include <anas/v1.1/ANAS0.h>
+#include <anas/v1.1/ANAS0_types.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
+#include <nasdaq/NASDAQ0.h>
+#include <nasdaq/NASDAQ0_types.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Main

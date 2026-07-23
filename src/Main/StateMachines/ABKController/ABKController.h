@@ -27,7 +27,7 @@
 #include <Main/BoardScheduler.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
 #include <Main/StateMachines/NASController/NASController.h>
-#include <algorithms/ABK/ABK.h>
+#include <abk/ABK.h>
 #include <events/FSM.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

@@ -27,10 +27,10 @@
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/SDAController/SDAControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/SDA/SDA.h>
 #include <common/canbus/MotorStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
+#include <sda/SDA.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <chrono>

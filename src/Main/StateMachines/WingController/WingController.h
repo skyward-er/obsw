@@ -24,10 +24,10 @@
 
 #include <Main/Configs/WingConfig.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/PRF/PRF.h>
 #include <algorithms/PRF/WingControllerData.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
+#include <prf/PRF.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
