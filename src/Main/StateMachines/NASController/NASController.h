@@ -28,8 +28,6 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/ANAS/ANASData.h>
-#include <algorithms/NASDAQ/NASDAQData.h>
 #include <anas/v1.1/ANAS0.h>
 #include <anas/v1.1/ANAS0_types.h>
 #include <diagnostic/PrintLogger.h>
@@ -37,6 +35,8 @@
 #include <nasdaq/NASDAQ0.h>
 #include <nasdaq/NASDAQ0_types.h>
 #include <utils/DependencyManager/DependencyManager.h>
+
+#include "NASControllerData.h"
 
 namespace Main
 {
