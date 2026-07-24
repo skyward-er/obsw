@@ -28,8 +28,8 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <anas/v1.1/ANAS0.h>
-#include <anas/v1.1/ANAS0_types.h>
+#include <anas/ANAS0.h>
+#include <anas/ANAS0_types.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <nasdaq/NASDAQ0.h>

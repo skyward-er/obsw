@@ -19,30 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-include_directories(SYSTEM libs/autocoded-algorithms)
-include_directories(SYSTEM libs/autocoded-algorithms/shared)
-
-
 set(OBSW_INCLUDE_DIRS
     src
     src/boards
-)
-
-set(AUTOCODED_ALGORITHMS_SOURCES
-    libs/autocoded-algorithms/anas/v1.1/ANAS0.cpp
-    libs/autocoded-algorithms/anas/v1.1/ANAS0_data.cpp
-    libs/autocoded-algorithms/abk/ABK_data.cpp
-    libs/autocoded-algorithms/abk/ABK.cpp
-    libs/autocoded-algorithms/abk/abkTraj.cpp
-    libs/autocoded-algorithms/mea/MEA_data.cpp
-    libs/autocoded-algorithms/mea/MEA.cpp
-    libs/autocoded-algorithms/nasdaq/NASDAQ0_data.cpp
-    libs/autocoded-algorithms/nasdaq/NASDAQ0.cpp
-    libs/autocoded-algorithms/prf/PRF_data.cpp
-    libs/autocoded-algorithms/prf/PRF.cpp
-    libs/autocoded-algorithms/sda/SDA_data.cpp
-    libs/autocoded-algorithms/sda/SDA.cpp
-    libs/autocoded-algorithms/sda/sdaKriging.cpp
 )
 
 
@@ -63,11 +42,6 @@ set(MAIN_COMPUTER
     src/Main/StateMachines/SDAController/SDAController.cpp
     src/Main/StateMachines/WingController/WingController.cpp
     src/Main/StatsRecorder/StatsRecorder.cpp
-)
-
-set(MAIN_COMPUTER
-    ${MAIN_COMPUTER}
-    ${AUTOCODED_ALGORITHMS_SOURCES}
 )
 
 set(GROUNDSTATION_COMMON

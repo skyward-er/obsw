@@ -9,6 +9,7 @@
             "${workspaceFolder}/skyward-boardcore/libs/eigen",
             "${workspaceFolder}/skyward-boardcore/libs/fmt/include",
             "${workspaceFolder}/skyward-boardcore/libs/mavlink-skyward-lib",
+            "${workspaceFolder}/skyward-boardcore/libs/autocoded-algorithms",
             "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix",
             "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common",
             "${workspaceFolder}/skyward-boardcore/libs/miosix-kernel/miosix/arch/common/CMSIS/Include",
@@ -16,9 +17,7 @@
             "${workspaceFolder}/skyward-boardcore/libs/socrate/include",
             "${workspaceFolder}/skyward-boardcore/src/shared",
             "${workspaceFolder}/skyward-boardcore/src/tests",
-            "${workspaceFolder}/skyward-boardcore/version",
-            "${workspaceFolder}/src",
-            "${workspaceFolder}/libs/autocoded-algorithms/**"
+            "${workspaceFolder}/skyward-boardcore/version"
         ]
     },
     "configurations": [
