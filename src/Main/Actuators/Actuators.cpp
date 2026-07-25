@@ -402,12 +402,13 @@ void Actuators::updateServoState(ServosList servoId, Radian encoderAngle)
         {
             actuator->servo->setVelocity(
                 Config::Actuators::PrfServo::STOP_THRESHOLD_VELOCITY);
-            actuator->lastState = SchmittTrigger::Activation::STOP;
 
             // TODO: could make this dependent on a flag to avoid posting the
             // event all the times
             if (actuator->lastState != SchmittTrigger::Activation::STOP)
                 EventBroker::getInstance().post(PRF_SERVO_STOPPED, TOPIC_DPL);
+
+            actuator->lastState = SchmittTrigger::Activation::STOP;
             break;
         }
     }

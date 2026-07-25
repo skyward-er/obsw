@@ -210,6 +210,7 @@ void WingController::state_ready(const Boardcore::Event& event)
             wing.setPRF_Reference({0.0f, Config::Wing::Default::TARGET_LAT,
                                    Config::Wing::Default::TARGET_LON});
             resetWing();
+
             servosStarted = true;
             break;
         }
@@ -233,11 +234,16 @@ void WingController::state_deployment(const Boardcore::Event& event)
             auto altitude =
                 -getModule<NASController>()->getNASDAQState().d;  // [m]
 
+            getModule<Actuators>()->enablePrfServo(
+                ServosList::PARAFOIL_LEFT_SERVO);
+            getModule<Actuators>()->enablePrfServo(
+                ServosList::PARAFOIL_RIGHT_SERVO);
+
             getModule<StatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
 
             dplPumpsTimeoutEventId = EventBroker::getInstance().postDelayed(
-                DPL_DONE, TOPIC_DPL,
+                DPL_PUMPS_PULL, TOPIC_DPL,
                 milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
 
             break;
@@ -299,6 +305,12 @@ void WingController::state_opening_pumps_pull(const Boardcore::Event& event)
             break;
         }
 
+        case DPL_DONE:
+        {
+            transition(&WingController::state_guided_descent);
+            break;
+        }
+
         case DPL_PUMPS_RELEASE:
         {
             transition(&WingController::state_opening_pumps_release);
@@ -348,6 +360,12 @@ void WingController::state_opening_pumps_release(const Boardcore::Event& event)
                 }
             }
 
+            break;
+        }
+
+        case DPL_DONE:
+        {
+            transition(&WingController::state_guided_descent);
             break;
         }
 
