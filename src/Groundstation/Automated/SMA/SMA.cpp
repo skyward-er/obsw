@@ -287,8 +287,6 @@ void SMA::update()
                          hub->getLastRocketNASDAQState(nasdaqState))
                 {
                     // Descent phase packet
-                    NASDAQState nasdaqState;
-
                     float pos[3]  = {nasdaqState.n, nasdaqState.e,
                                      nasdaqState.d};
                     float vel[3]  = {nasdaqState.vn, nasdaqState.ve,
