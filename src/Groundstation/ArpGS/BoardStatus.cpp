@@ -69,41 +69,39 @@ void BoardStatus::sendArpTm()
 {
     using namespace Antennas;
 
-    auto vn300 = getModule<Sensors>()->getVN300LastSample();
+    mavlink_arp_tm_t tm = {};
 
-    Actuators* actuators = getModule<Actuators>();
-    SMA* sm              = getModule<SMA>();
+    // Common gs tm fields
+    tm.timestamp       = TimestampTimer::getTimestamp();
+    tm.log_number      = Logger::getInstance().getCurrentLogNumber();
+    tm.battery_voltage = -420.0;
 
+#ifdef ARP_GS_ONLY
+    // ARP GS specific fields
+    Actuators* actuators       = getModule<Actuators>();
+    SMA* sm                    = getModule<SMA>();
     AntennaAngles targetAngles = sm->getTargetAngles();
 
-    mavlink_arp_tm_t tm = {};
-    tm.timestamp        = TimestampTimer::getTimestamp(); /*< [us] Timestamp*/
-    tm.state            = static_cast<uint8_t>(sm->getStatus()); /*<  State*/
-    tm.yaw              = vn300.yaw;          /*< [deg] Current Yaw*/
-    tm.pitch            = vn300.pitch;        /*< [deg] Current Pitch*/
-    tm.roll             = vn300.roll;         /*< [deg] Current Roll*/
-    tm.target_yaw       = targetAngles.yaw;   /*< [deg] Target Yaw*/
-    tm.target_pitch     = targetAngles.pitch; /*< [deg] Target Pitch*/
-    tm.stepperX_pos     = actuators->getCurrentDegPosition(
-        StepperList::STEPPER_X); /*< [deg] StepperX target pos*/
-    tm.stepperX_delta = actuators->getDeltaAngleDeg(
-        StepperList::STEPPER_X); /*< [deg] StepperX target delta deg*/
-    tm.stepperX_speed =
-        actuators->getSpeed(StepperList::STEPPER_X); /*< [rps] StepperX Speed*/
-    tm.stepperY_pos = actuators->getCurrentDegPosition(
-        StepperList::STEPPER_Y); /*< [deg] StepperY target pos*/
-    tm.stepperY_delta = actuators->getDeltaAngleDeg(
-        StepperList::STEPPER_Y); /*< [deg] StepperY target delta deg*/
-    tm.stepperY_speed =
-        actuators->getSpeed(StepperList::STEPPER_Y); /*< [rps] StepperY Speed*/
-    tm.gps_latitude  = vn300.latitude;               /*< [deg] Latitude*/
-    tm.gps_longitude = vn300.longitude;              /*< [deg] Longitude*/
-    tm.gps_height    = vn300.altitude;               /*< [m] Altitude*/
-    tm.gps_fix       = vn300.gpsFix; /*<  Wether the GPS has a FIX*/
-    tm.log_number =
-        Logger::getInstance().getCurrentLogNumber(); /*<  Log number*/
+    std::cout << "RUNNING ARP GS!" << std::endl;
 
-    tm.battery_voltage = -420.0;
+    auto vn300      = getModule<Sensors>()->getVN300LastSample();
+    tm.yaw          = vn300.yaw;
+    tm.pitch        = vn300.pitch;
+    tm.roll         = vn300.roll;
+    tm.stepperX_pos = actuators->getCurrentDegPosition(StepperList::STEPPER_X);
+    tm.stepperX_delta = actuators->getDeltaAngleDeg(StepperList::STEPPER_X);
+    tm.stepperX_speed = actuators->getSpeed(StepperList::STEPPER_X);
+    tm.stepperY_pos = actuators->getCurrentDegPosition(StepperList::STEPPER_Y);
+    tm.stepperY_delta = actuators->getDeltaAngleDeg(StepperList::STEPPER_Y);
+    tm.stepperY_speed = actuators->getSpeed(StepperList::STEPPER_Y);
+    tm.gps_latitude   = vn300.latitude;
+    tm.gps_longitude  = vn300.longitude;
+    tm.gps_height     = vn300.altitude;
+    tm.gps_fix        = vn300.gpsFix;
+    tm.target_yaw     = targetAngles.yaw;
+    tm.target_pitch   = targetAngles.pitch;
+    tm.state          = static_cast<uint8_t>(sm->getStatus());
+#endif
 
     mavlink_message_t msg;
     mavlink_msg_arp_tm_encode(systemId, componentId, &msg, &tm);

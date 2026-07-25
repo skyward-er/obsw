@@ -21,21 +21,15 @@
  */
 
 #include <Groundstation/ArpGS/Base/Hub.h>
-#include <Groundstation/ArpGS/BoardStatus.h>
-#include <Groundstation/ArpGS/Buses.h>
-#include <Groundstation/ArpGS/Ports/Ethernet.h>
-#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
-#include <Groundstation/ArpGS/Radio/Radio.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/BoardScheduler.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
+#include <Groundstation/Common/GsEntryCommon.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
-#include <drivers/DipSwitch/DipSwitch.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -45,181 +39,50 @@
 using namespace Boardcore;
 using namespace miosix;
 using namespace Groundstation;
-using namespace ArpGS;
 using namespace Antennas;
 
 /**
- * @brief Dip switch status for the GS board
- */
-struct DipStatusArpGS
-{
-    bool isARP;
-    bool mainHasBackup;
-    bool payloadHasBackup;
-    bool mainTXenable;
-    bool payloadTXenable;
-    uint8_t ipConfig;
-
-    void print(std::ostream& os) const
-    {
-        os << "Dipswitch state:"
-           << "\n\tARP mode:             " << isARP
-           << "\n\tMain backup radio:    " << mainHasBackup
-           << "\n\tPayload backup radio: " << payloadHasBackup
-           << "\n\tMain TX enabled:      " << mainTXenable
-           << "\n\tPayload TX enabled:   " << payloadTXenable
-           << "\n\tIP offset:            " << (int)ipConfig << std::endl;
-    }
-};
-
-/**
- * Dipswitch configuration
- *  arp mb  pb  mtx ptx ip3 ip2 ip1
- * | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
- * ---------------------------------
- * | I | I | I | I | I | I | I | I |
- * | O | O | O | O | O | O | O | O |
- * ---------------------------------
- * | H | G | F | E | D | C | B | A |
- */
-
-DipStatusArpGS getDipStatus(uint8_t read)
-{
-    DipStatusArpGS dipRead;
-    dipRead.isARP            = 1 & read;
-    dipRead.mainHasBackup    = 1 & (read >> 1);
-    dipRead.payloadHasBackup = 1 & (read >> 2);
-    dipRead.mainTXenable     = 1 & (read >> 3);
-    dipRead.payloadTXenable  = 1 & (read >> 4);
-    dipRead.ipConfig         = read >> 5;
-    return dipRead;
-}
-
-void idleLoop()
-{
-    while (1)
-        Thread::wait();
-}
-
-/**
- * @brief Blinking RED led at 5Hz
- */
-void errorLoop()
-{
-    while (1)
-    {
-        led3On();  //< Turn on RED led (CU)
-        Thread::sleep(100);
-        led3Off();
-        Thread::sleep(100);
-    }
-}
-
-static bool constexpr randomIp         = false;
-static bool constexpr ethernetSniffing = true;
-
-/**
  * @brief ARP GS entrypoint.
- * This entrypoint performs the following operations:
- * - Reads the dip switch
  *
- * In case ARP (switch A on) select ARP initialization
- * - Initializes software modules
- *   -> Green LED is turned on when done
- * - Waits for the rocket to be powered on and acquire a GPS fix
- *   -> Yellow LED is turned on when done
- * - Waits for the antenna to acquire a GPS fix
- *   -> Orange LED is turned on when done
- * - Initializes the follower
- * - Starts the follower task
+ * Builds on the same common base as radio-gs-entry.cpp (see
+ * GsEntryCommon.h), adding the ARP-specific modules.
  *
- * Otherwise initialize the GroundstationBase
- * - Initializes software modules
- *   -> Green LED is turned on when main radio on
- *   -> Yellow LED is turned on when payload radio on
- *   -> Orange LED is turned on when ethernet radio on
- *
- * - When done the red LED is fixed. Blinks if error in modules init.
+ * Initializes the shared + ARP-specific software modules
+ *   - Green LED is turned on when main radio is detected
+ *   - Yellow LED is turned on when payload radio is detected
+ *   - Orange LED is turned on when ethernet is detected
+ * Waits for the rocket to be powered on and acquire a GPS fix
+ * Waits for the antenna to acquire a GPS fix
+ * Initializes the follower and starts the follower task
  */
 int main()
 {
     ledOff();
 
-    // Read dip switch configuration
-    uint32_t microSecClk = 100;
-    GpioPin sh           = dipSwitch::sh::getPin();
-    GpioPin clk          = dipSwitch::clk::getPin();
-    GpioPin qh           = dipSwitch::qh::getPin();
-
-    DipSwitch dip(sh, clk, qh, std::chrono::microseconds(microSecClk));
-    DipStatusArpGS dipRead = getDipStatus(dip.read());
+    DipStatus dipRead = readDipStatus();
     dipRead.print(std::cout);
 
     DependencyManager manager;
     PrintLogger logger = Logging::getLogger("arp_gs");
 
-    // TODO: Board scheduler for the schedulers
-    BoardScheduler* scheduler = new BoardScheduler();
-    Buses* buses              = new Buses();
-    SerialArpGS* serial       = new SerialArpGS();
-    ArpGS::RadioMain* radio_main =
-        new ArpGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
-    ArpGS::BoardStatus* board_status = new ArpGS::BoardStatus(dipRead.isARP);
-    ArpGS::EthernetGS* ethernet      = new ArpGS::EthernetGS(
-        randomIp, dipRead.ipConfig, dipRead.isARP & ethernetSniffing);
-    EthernetSniffer* ethernetSniffer   = new EthernetSniffer();
-    ArpGS::RadioPayload* radio_payload = new ArpGS::RadioPayload(
-        dipRead.payloadHasBackup, dipRead.payloadTXenable);
+    CommonModules mods{};
+    bool ok = insertCommonModules(manager, dipRead, mods);
 
-    HubBase* hub = nullptr;
-
-    // ARP-related things
-    Antennas::Actuators* actuators   = nullptr;
-    Antennas::Leds* leds             = nullptr;
-    Antennas::Sensors* sensors       = nullptr;
-    Antennas::SMA* sma               = nullptr;
-    Antennas::PinHandler* pinHandler = nullptr;
-
-    bool ok = true;
-
-    ok &= manager.insert(buses);
-    ok &= manager.insert(serial);
-    ok &= manager.insert<ArpGS::RadioMain>(radio_main);
-    ok &= manager.insert<ArpGS::EthernetGS>(ethernet);
-    ok &= manager.insert<EthernetSniffer>(ethernetSniffer);
-    ok &= manager.insert<ArpGS::RadioPayload>(radio_payload);
-    ok &= manager.insert(board_status);
-    ok &= manager.insert<BoardScheduler>(scheduler);
-
-    // Inserting Modules
-
-    // ARP modules insertion
     LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
-    actuators  = new Antennas::Actuators();
-    sensors    = new Antennas::Sensors();
-    sma        = new Antennas::SMA();
-    pinHandler = new Antennas::PinHandler();
-    leds       = new Antennas::Leds();
+    Actuators* actuators             = new Antennas::Actuators();
+    Sensors* sensors                 = new Antennas::Sensors();
+    Antennas::SMA* sma               = new Antennas::SMA();
+    Antennas::PinHandler* pinHandler = new Antennas::PinHandler();
+    Antennas::Leds* leds             = new Antennas::Leds();
     ok &= manager.insert(sma);
     ok &= manager.insert(actuators);
     ok &= manager.insert(sensors);
     ok &= manager.insert(leds);
     ok &= manager.insert(pinHandler);
 
-    if (dipRead.isARP)
-    {
-        hub = new Antennas::Hub();
-        ok &= manager.insert<HubBase>(hub);
-    }
-    // Ground station module insertion
-    else
-    {
-        LOG_DEBUG(logger, "[debug] Starting as GS base Ground Station\n");
-        hub = new GroundstationBase::Hub();
-        ok &= manager.insert<HubBase>(hub);
-    }
+    HubBase* hub = new Antennas::Hub();
+    ok &= manager.insert<HubBase>(hub);
 
-    // If insertion failed, stop right here
     if (!ok)
     {
         std::cout << "[error] Failed to insert all modules!" << std::endl;
@@ -234,201 +97,86 @@ int main()
         errorLoop();
     }
 
-    // Start the modules
-
     ledOn();
     Thread::sleep(2000);
     ledOff();
 
-    // ARP start errors
-    bool init_fatal = false;
+    bool initFatal = false;
+    bool ok2       = startCommonModules(mods, dipRead, logger, initFatal);
 
-#ifndef NO_SD_LOGGING
-    if (!Logger::getInstance().start() && dipRead.isARP)
+    LOG_INFO(logger, "leds starting...\n");
+    if (!leds->start())
     {
-        std::cout << "ERROR: Failed to start Logger" << std::endl;
-        ok = false;
-    }
-#endif
-
-    LOG_INFO(logger, "DEBUG: serial starting...\n");
-
-    if (!serial->start())
-    {
-        std::cout << "[error] Failed to start serial!" << std::endl;
-        ok = false;
+        std::cout << "[error] Failed to start leds!" << std::endl;
+        ok2 = false;
     }
 
-    LOG_INFO(logger, "radio_main starting...\n");
-
-    if (!radio_main->start())
+    LOG_INFO(logger, "sensors starting...\n");
+    if (!sensors->start())
     {
-        std::cout << "[error] Failed to start radio_main!" << std::endl;
-        ok         = false;
-        init_fatal = true;
+        std::cout << "[error] Failed to start sensors!" << std::endl;
+        ok2 = false;
     }
 
-    LOG_INFO(logger, "radio_payload starting...\n");
-
-    if (!radio_payload->start())
+    LOG_INFO(logger, "DEBUG: sma starting...\n");
+    if (!sma->start())
     {
-        std::cout << "[error] Failed to start payload radio!" << std::endl;
-        // Payload module is needed just for GS, not for ARP
-        ok &= dipRead.isARP;
+        std::cout << "[error] Failed to start sma!" << std::endl;
+        ok2 = false;
     }
 
-    LOG_INFO(logger, "DEBUG: ethernet starting...\n");
+    LOG_INFO(logger, "DEBUG: actuators starting...\n");
+    actuators->start();
+    LOG_INFO(logger, "[info] Actuators started!\n");
 
-    if (!ethernet->start())
+    LOG_INFO(logger, "pin handler starting...\n");
+    if (!pinHandler->start())
     {
-        std::cout << "[error] Failed to start ethernet!" << std::endl;
-        ok = false;
-    }
-    else
-    {
-        ethernet->printIpConfig(std::cout);
-    }
-
-    LOG_INFO(logger, "Starting BoardScheduler starting...\n");
-
-    // Starting ARP specific modules
-
-    if (dipRead.isARP)
-    {
-        LOG_INFO(logger, "leds starting...\n");
-
-        if (leds && !(leds->start()))
-        {
-            std::cout << "[error] Failed to start leds!" << std::endl;
-            ok = false;
-        }
-
-        LOG_INFO(logger, "sensors starting...\n");
-
-        if (sensors && !(sensors->start()))
-        {
-            std::cout << "[error] Failed to start sensors!" << std::endl;
-            ok = false;
-        }
-
-        LOG_INFO(logger, "DEBUG: sma starting...\n");
-
-        if (sma && !(sma->start()))
-        {
-            std::cout << "[error] Failed to start sma!" << std::endl;
-            ok = false;
-        }
-
-        LOG_INFO(logger, "DEBUG: actuators starting...\n");
-
-        if (actuators)
-        {
-            actuators->start();
-            LOG_INFO(logger, "[info] Actuators started!\n");
-        }
-        else
-            std::cout << "[error] Failed to start actuators!" << std::endl;
-
-        LOG_INFO(logger, "pin handler starting...\n");
-
-        if (pinHandler && !pinHandler->start())
-        {
-            std::cout << "[error] Failed to start PinHandler!" << std::endl;
-            ok = false;
-        }
-    }
-
-    LOG_INFO(logger, "Board scheduler starting...\n");
-
-    if (!scheduler->start())
-    {
-        std::cout << "[error] Failed to start BoardScheduler!" << std::endl;
-        ok = false;
-    }
-
-    LOG_INFO(logger, "board_status starting...\n");
-
-    if (!board_status->start())
-    {
-        std::cout << "[error] Failed to start board_status!" << std::endl;
-        ok = false;
-    }
-
-    if (!dipRead.isARP && !ok)
-    {
-        std::cout << "GS: could not start all modules successfully!"
-                  << std::endl;
-        errorLoop();
+        std::cout << "[error] Failed to start PinHandler!" << std::endl;
+        ok2 = false;
     }
 
     LOG_INFO(logger, "All modules started successfully!\n");
 
-    // Check presence of radio and ethernet
+    reportCommonStatus(mods.boardStatus, logger);
 
-    if (board_status->isMainRadioPresent())
+    // Safety check: this binary is always ARP. If the dip switch says ARP
+    // mode is OFF, the wrong firmware is flashed on this board.
+    if (!checkDipMatchesBinary(dipRead, /*expectedArp=*/true, logger))
     {
-        LOG_INFO(logger, "Main radio detected!\n");
-        led1On();  //< GREEN led on (CU)
-    }
-    else
-        std::cout << "Main NOT detected" << std::endl;
-
-    if (board_status->isPayloadRadioPresent())
-    {
-        LOG_INFO(logger, "Payload radio detected!\n");
-        led2On();  //< YELLOW led on (CU)
-    }
-    else
-        std::cout << "Payload NOT detected" << std::endl;
-
-    if (board_status->isEthernetPresent())
-    {
-        LOG_INFO(logger, "Ethernet detected!\n");
-        led4On();  //< ORANGE led on (CU)
-    }
-    else
-        std::cout << "Ethernet NOT detected" << std::endl;
-
-    if (!dipRead.isARP && !ok)
-    {
-        std::cout << "GS initialization has failed. Not all modules started "
-                     "correctly!"
+        std::cout << "ARP initialization warning: dip switch / firmware "
+                     "mismatch (see above). This board will run as ARP "
+                     "regardless of the dip switch setting."
                   << std::endl;
-        errorLoop();
     }
 
-    if (dipRead.isARP)
+    // If init fatal (radio_main failed), blink red endlessly -- nothing can
+    // work without it.
+    if (initFatal)
     {
-        // If init fatal and sma not started, blink red endlessly
-        if (init_fatal)
-        {
-            std::cout << "ARP's modules initialization has failed. Init fatal "
-                         "error. Cannot proceed, a restart and fix of the "
-                         "boards/module is required."
-                      << std::endl;
-            if (sma)
-                sma->setFatal();
-            // Still go to INIT_ERROR to still allow initialization
-            EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
-                                            Common::TOPIC_ARP);
-
-        }  // If another module is in error
-        else if (!ok)
-        {
-            std::cout
-                << "ARP's modules initialization has failed. Init error. It "
-                   "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT."
-                << std::endl;
-            EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
-                                            Common::TOPIC_ARP);
-        }  // If all modules are ok
-        else
-        {
-            LOG_INFO(logger, "Starting ARP");
-            EventBroker::getInstance().post(Common::ARP_INIT_OK,
-                                            Common::TOPIC_ARP);
-        }
+        std::cout << "ARP's modules initialization has failed. Init fatal "
+                     "error. Cannot proceed, a restart and fix of the "
+                     "boards/module is required."
+                  << std::endl;
+        sma->setFatal();
+        // Still go to INIT_ERROR to still allow initialization
+        EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
+                                        Common::TOPIC_ARP);
     }
+    else if (!ok2)
+    {
+        std::cout << "ARP's modules initialization has failed. Init error. It "
+                     "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT."
+                  << std::endl;
+        EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
+                                        Common::TOPIC_ARP);
+    }
+    else
+    {
+        LOG_INFO(logger, "Starting ARP");
+        EventBroker::getInstance().post(Common::ARP_INIT_OK, Common::TOPIC_ARP);
+    }
+
     led3On();  //< fix RED led (CU)
     idleLoop();
     return 0;

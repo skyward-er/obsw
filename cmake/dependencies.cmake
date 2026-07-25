@@ -146,15 +146,19 @@ set(GROUNDSTATION_NOKIA
 )
 
 set (ARPGS
-    src/Groundstation/ArpGS/Radio/Radio.cpp
-    src/Groundstation/ArpGS/Ports/Ethernet.cpp
-    src/Groundstation/ArpGS/BoardStatus.cpp
-    src/Groundstation/ArpGS/Base/Hub.cpp
     src/Groundstation/Automated/Hub.cpp
     src/Groundstation/Automated/Leds/Leds.cpp
     src/Groundstation/Automated/SMA/SMA.cpp
     src/Groundstation/Automated/Actuators/Actuators.cpp
     src/Groundstation/Automated/Sensors/Sensors.cpp
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
+)
+
+set(RADIO_GS
+    src/Groundstation/ArpGS/Radio/Radio.cpp
+    src/Groundstation/ArpGS/Ports/Ethernet.cpp
+    src/Groundstation/ArpGS/BoardStatus.cpp
+    src/Groundstation/ArpGS/Base/Hub.cpp
+    src/Groundstation/Common/GsEntryCommon.cpp   
     src/Groundstation/ArpGS/Ports/SerialArpGS.cpp
 )
