@@ -28,6 +28,7 @@
 #include <Main/StateMachines/ADAController/ADAController.h>
 #include <Main/StateMachines/NASController/NASControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
+#include <algorithms/AlgorithmsData.h>
 #include <anas/ANAS0.h>
 #include <anas/ANAS0_types.h>
 #include <diagnostic/PrintLogger.h>
@@ -55,7 +56,7 @@ public:
 
     Boardcore::ANASState getANASState();
     Boardcore::NASDAQState getNASDAQState();
-    NASState getNASState();
+    Boardcore::NASState getNASState();
 
     NASControllerState getState();
 

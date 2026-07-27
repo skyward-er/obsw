@@ -24,7 +24,7 @@
 
 #include <Main/Configs/SDAConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
-#include <algorithms/SDA/SDAData.h>
+#include <algorithms/AlgorithmsData.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <events/EventBroker.h>

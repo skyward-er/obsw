@@ -23,8 +23,7 @@
 #pragma once
 
 #include <algorithms/ADA/ADAData.h>
-#include <algorithms/ANAS/ANASData.h>
-#include <algorithms/NASDAQ/NASDAQData.h>
+#include <algorithms/AlgorithmsData.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>

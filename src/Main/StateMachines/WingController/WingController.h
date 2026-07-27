@@ -24,7 +24,7 @@
 
 #include <Main/Configs/WingConfig.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
-#include <algorithms/PRF/WingControllerData.h>
+#include <algorithms/AlgorithmsData.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <prf/PRF.h>

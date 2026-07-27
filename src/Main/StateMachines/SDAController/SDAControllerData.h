@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <sda/SDA_types.h>
-
 #include <cstdint>
 #include <ostream>
 #include <reflect.hpp>
@@ -52,28 +50,6 @@ struct SDAControllerStatus
     {
         return STRUCT_DEF(SDAControllerStatus,
                           FIELD_DEF(timestamp) FIELD_DEF(state));
-    }
-};
-
-struct SDALogsWrapper
-{
-    SDA_types_h_::SDALogs logs;
-
-    SDALogsWrapper() : logs() {};
-
-    SDALogsWrapper(SDA_types_h_::SDALogs logs) : logs(logs) {};
-
-    SDALogsWrapper(SDA_types_h_::SDALogs logs, uint64_t timestamp) : logs(logs)
-    {
-        this->logs.Timestamp = timestamp;
-    };
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(
-            SDALogsWrapper,
-            FIELD_DEF2(logs, ShutdownCommand) FIELD_DEF2(logs, Timestamp)
-                FIELD_DEF2(logs, ShutdownCounter) FIELD_DEF2(logs, Apogee));
     }
 };
 

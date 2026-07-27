@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <abk/ABK_types.h>
-
 #include <cstdint>
 #include <ostream>
 #include <reflect.hpp>
@@ -52,27 +50,6 @@ struct ABKControllerStatus
     {
         return STRUCT_DEF(ABKControllerStatus,
                           FIELD_DEF(timestamp) FIELD_DEF(state));
-    }
-};
-
-struct ABKLogsData
-{
-    uint64_t timestamp;
-    ABK_types_h_::ABKLogs ABKLogs;
-
-    ABKLogsData() : timestamp(0), ABKLogs() {};
-
-    ABKLogsData(uint64_t timestamp, ABK_types_h_::ABKLogs abkLogs)
-        : timestamp(timestamp), ABKLogs(abkLogs) {};
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(
-            ABKLogsData, FIELD_DEF(timestamp) FIELD_DEF2(ABKLogs, ABKCommand)
-                             FIELD_DEF2(ABKLogs, FilterCoefficient)
-                                 FIELD_DEF2(ABKLogs, PrePIDCommand)
-                                     FIELD_DEF2(ABKLogs, PostPIDCommand)
-                                         FIELD_DEF2(ABKLogs, BypassActivation));
     }
 };
 

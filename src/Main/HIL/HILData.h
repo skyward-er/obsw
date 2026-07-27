@@ -28,15 +28,11 @@
 // NAS Controller (unified for both ANAS and NASDAQ)
 #include <Main/StateMachines/NASController/NASControllerData.h>
 
-// ANAS
-#include <algorithms/ANAS/ANASData.h>
-
-// NASDAQ
-#include <algorithms/NASDAQ/NASDAQData.h>
+// Autocoded algortihms
+#include <algorithms/AlgorithmsData.h>
 
 // SDA
 #include <Main/StateMachines/SDAController/SDAControllerData.h>
-#include <algorithms/SDA/SDAData.h>
 
 // ADA
 #include <Main/StateMachines/ADAController/ADAControllerData.h>
@@ -159,7 +155,7 @@ struct __attribute__((packed)) NASStateHIL
         : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
           vd(output.vd) {};
 
-    NASStateHIL(const Main::NASState& output)
+    NASStateHIL(const Boardcore::NASState& output)
         : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
           vd(output.vd) {};
 

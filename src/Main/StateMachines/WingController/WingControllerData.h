@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <prf/PRF_types.h>
-
 #include <cstdint>
 #include <iostream>
 #include <reflect.hpp>
@@ -53,30 +51,6 @@ struct WingControllerStatus
     {
         return STRUCT_DEF(WingControllerStatus,
                           FIELD_DEF(timestamp) FIELD_DEF(state));
-    }
-};
-
-struct WingControllerLogsData
-{
-    uint64_t timestamp;
-    PRF_types_h_::PRFLogs PRFLogs;
-
-    WingControllerLogsData() : timestamp(0), PRFLogs() {};
-
-    WingControllerLogsData(uint64_t timestamp,
-                           PRF_types_h_::PRFLogs wingControllerLogs)
-        : timestamp(timestamp), PRFLogs(wingControllerLogs) {};
-
-    static constexpr auto reflect()
-    {
-        return STRUCT_DEF(
-            WingControllerLogsData,
-            FIELD_DEF(timestamp) FIELD_DEF2(PRFLogs, Q1) FIELD_DEF2(PRFLogs, Q2)
-                FIELD_DEF2(PRFLogs, TerminalTarget) FIELD_DEF2(
-                    PRFLogs, TargetIndex) FIELD_DEF2(PRFLogs, Heading)
-                    FIELD_DEF2(PRFLogs, Reference)
-                        FIELD_DEF2(PRFLogs, ServoCommands)
-                            FIELD_DEF2(PRFLogs, WindHeading));
     }
 };
 

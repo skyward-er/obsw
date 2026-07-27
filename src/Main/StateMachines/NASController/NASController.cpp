@@ -25,7 +25,7 @@
 #include <Main/Configs/NASConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
-#include <algorithms/ANAS/StateInitializer.h>
+#include <algorithms/StateInitializer/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
