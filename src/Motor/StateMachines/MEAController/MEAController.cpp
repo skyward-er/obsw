@@ -23,7 +23,7 @@ MEAController::MEAController()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 };
 
-MEAControllerState MEAController::getMEAControllerState() { return state; }
+MEAControllerState MEAController::getMEAControllerState() { return state.load(); }
 
 Boardcore::MEAState MEAController::getMEAState()
 {

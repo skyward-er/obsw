@@ -45,6 +45,5 @@ private:
     std::atomic<MEAControllerState> state{MEAControllerState::INIT};
 
     miosix::FastMutex meaMutex;
-    MEAControllerState state;
 };
 }  // namespace Motor
