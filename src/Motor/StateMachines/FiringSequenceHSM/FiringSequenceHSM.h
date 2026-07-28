@@ -21,13 +21,10 @@
  */
 #pragma once
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/BoardScheduler.h>
-#include <Motor/Registry/Registry.h>
-#include <Motor/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>
+#include <utils/DependencyManager/DependencyManager.h>
 
 #include <chrono>
 
@@ -35,6 +32,12 @@
 
 namespace Motor
 {
+
+class Actuators;
+class BoardScheduler;
+class Registry;
+class Sensors;
+
 class FiringSequenceHSM
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, BoardScheduler,
                                            Registry>,

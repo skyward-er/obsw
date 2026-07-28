@@ -59,6 +59,7 @@ set(MOTOR_SOURCES
     src/Motor/Actuators/Actuators.cpp
     src/Motor/Sensors/Sensors.cpp
     src/Motor/CanHandler/CanHandler.cpp
+    src/Motor/StateMachines/MEAController/MEAController.cpp
     src/Motor/StateMachines/EregController/EregControllerOx.cpp
     src/Motor/StateMachines/EregController/EregControllerFuel.cpp
     src/Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.cpp

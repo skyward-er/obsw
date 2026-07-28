@@ -24,6 +24,7 @@
 
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Configs/CanHandlerConfig.h>
+#include <Motor/StateMachines/MEAController/MEAController.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>

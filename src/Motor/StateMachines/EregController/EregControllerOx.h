@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <Motor/Actuators/Actuators.h>
-#include <Motor/BoardScheduler.h>
 #include <Motor/Configs/EregControllerConfig.h>
 #include <Motor/StateMachines/EregController/EregControllerData.h>
 #include <algorithms/Ereg/Ereg.h>
@@ -34,6 +32,10 @@
 
 namespace Motor
 {
+
+class Actuators;
+class BoardScheduler;
+class Sensors;
 
 class EregControllerOx
     : public Boardcore::FSM<EregControllerOx>,

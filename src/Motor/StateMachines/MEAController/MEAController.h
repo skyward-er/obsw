@@ -1,8 +1,5 @@
 #pragma once
 
-#include <Motor/BoardScheduler.h>
-#include <Motor/Sensors/Sensors.h>
-#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <Motor/StateMachines/MEAController/MEAControllerData.h>
 #include <algorithms/MEA/MEA.h>
 #include <algorithms/MEA/MEAData.h>
@@ -11,6 +8,11 @@
 
 namespace Motor
 {
+
+class BoardScheduler;
+class FiringSequenceHSM;
+class Sensors;
+
 class MEAController
     : public Boardcore::FSM<MEAController>,
       public Boardcore::InjectableWithDeps<Sensors, BoardScheduler,

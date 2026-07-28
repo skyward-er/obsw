@@ -22,8 +22,11 @@
 
 #include "FiringSequenceHSM.h"
 
+#include <Motor/Actuators/Actuators.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Configs/FiringSequenceConfig.h>
+#include <Motor/Registry/Registry.h>
+#include <Motor/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>

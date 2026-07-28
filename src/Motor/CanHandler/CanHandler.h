@@ -25,8 +25,6 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/Sensors.h>
-#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
-#include <Motor/StateMachines/MEAController/MEAController.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
@@ -39,6 +37,7 @@ namespace Motor
 
 class Actuators;
 class FiringSequenceHSM;
+class MEAController;
 class EregControllerOx;
 class EregControllerFuel;
 

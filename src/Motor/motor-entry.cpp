@@ -250,13 +250,11 @@ int main()
 
     if (initResult)
     {
-        canHandler->setInitStatus(statusFlags);
         std::cout << "All good!" << std::endl;
         led4On();
     }
     else
     {
-        canHandler->setInitStatus(statusFlags);
         std::cerr << "*** Init failure ***" << std::endl;
     }
 

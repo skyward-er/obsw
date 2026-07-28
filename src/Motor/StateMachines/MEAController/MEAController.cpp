@@ -1,7 +1,9 @@
-#pragma once
 
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <Motor/StateMachines/MEAController/MEAControllerData.h>
+#include <Motor/BoardScheduler.h>
+#include <Motor/Sensors/Sensors.h>
+#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>

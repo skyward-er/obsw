@@ -22,8 +22,8 @@
 
 #pragma once
 
+#include <Motor/Buses.h>
 #include <Motor/BoardScheduler.h>
-#include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Registry/Registry.h>
 #include <Valve/Valve.h>
 #include <actuators/Servo/Servo.h>
@@ -34,6 +34,8 @@
 
 namespace Motor
 {
+
+class CanHandler;
 
 class Actuators : public Boardcore::InjectableWithDeps<Buses, BoardScheduler,
                                                        CanHandler, Registry>,
