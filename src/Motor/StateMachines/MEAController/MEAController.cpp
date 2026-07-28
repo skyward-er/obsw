@@ -16,8 +16,8 @@ namespace Motor
 
 MEAController::MEAController()
     : FSM{&MEAController::state_init, STACK_DEFAULT_FOR_PTHREAD,
-          BoardScheduler::meaControllerPriority()} // config file? 
-// Add MEA obv;
+          BoardScheduler::meaControllerPriority()},
+      mea{}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_MEA);
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
@@ -25,13 +25,26 @@ MEAController::MEAController()
 
 MEAControllerState MEAController::getMEAControllerState() { return state; }
 
+Boardcore::MEAState MEAController::getMEAState()
+{
+    Lock<FastMutex> lock{meaMutex};
+
+    auto rawData = mea.getMEA_Out();
+
+    uint64_t timestamp = TimestampTimer::getTimestamp();
+
+    MEAState state(timestamp, rawData.Mass);
+
+    return state;
+}
+
 bool MEAController::start()
 {
-    // need to update Motor BoardScheduler?
-    TaskScheduler& scheduler = getModule<BoardScheduler>()->getMeaScheduler();
+    TaskScheduler& scheduler = getModule<BoardScheduler>()->mea();
 
-    size_t result = scheduler.addTask(
-        [this]() { update() }, /* Need to create config file for scheduler */);
+    size_t result =
+        scheduler.addTask([this]() { update(); },
+                          getModule<BoardScheduler>()->meaControllerPriority());
 
     if (result == 0)
     {
@@ -55,6 +68,29 @@ void MEAController::updateAndLogStatus(MEAControllerState state)
     sdLogger.log(status);
 }
 
+void MEAController::update()
+{
+    Lock<FastMutex> lock{meaMutex};
+
+    Sensors* sensors = getModule<Sensors>();
+    auto firingHSM   = getModule<FiringSequenceHSM>();
+
+    float CCPTMeasure  = sensors->getMainCCPressure().pressure;
+    uint64_t timestamp = TimestampTimer::getTimestamp();
+    float mainPosition = sensors->getMainFuelPosition().position;
+    uint8_t hsmState   = static_cast<uint8_t>(firingHSM->getState());
+
+    MEA::MEAIn in = {CCPTMeasure, timestamp, mainPosition, hsmState};
+
+    mea.setMEA_In(in);
+    mea.step();
+
+    timestamp = TimestampTimer::getTimestamp();
+    sdLogger.log(MEALogsWrapper{timestamp, mea.getMEA_Logs_OBSW()});
+}
+
+void MEAController::calibrate() { mea.initialize(); }
+
 void MEAController::state_init(const Event& event)
 {
     switch (event)
@@ -62,7 +98,31 @@ void MEAController::state_init(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(MEAControllerState::INIT);
-            transition(&MEAController::state_ready);  // check this transition
+            break;
+        }
+
+        case MEA_CALIBRATE:
+        {
+            transition(&MEAController::state_calibrate);
+            break;
+        }
+    }
+}
+
+void MEAController::state_calibrate(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(MEAControllerState::CALIBRATING);
+            calibrate();
+            EventBroker::getInstance().post(MEA_READY, TOPIC_MEA);
+            break;
+        }
+        case MEA_READY:
+        {
+            transition(&MEAController::state_ready);
             break;
         }
     }
@@ -75,6 +135,17 @@ void MEAController::state_ready(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(MEAControllerState::ACTIVE);
+            break;
+        }
+
+        case MEA_RESET:
+        {
+            [[fallthrough]];
+        }
+
+        case MEA_CALIBRATE:
+        {
+            transition(&MEAController::state_calibrate);
             break;
         }
 

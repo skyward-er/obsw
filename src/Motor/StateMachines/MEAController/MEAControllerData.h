@@ -9,6 +9,7 @@ namespace Motor
 enum class MEAControllerState
 {
     INIT = 0,
+    CALIBRATING,
     READY,
     ACTIVE,
     END
