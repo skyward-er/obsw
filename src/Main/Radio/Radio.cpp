@@ -874,10 +874,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors       = getModule<Sensors>();
-            ADAController* ada     = getModule<ADAController>();
-            NASController* nas     = getModule<NASController>();
-            SDAController* sda     = getModule<SDAController>();
+            Sensors* sensors   = getModule<Sensors>();
+            ADAController* ada = getModule<ADAController>();
+            NASController* nas = getModule<NASController>();
+            MotorStatus* motor = getModule<MotorStatus>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
             Actuators* actuators   = getModule<Actuators>();
 
@@ -888,16 +888,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDigi    = sensors->getAtmosPressureLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
             auto adaState     = ada->getADAState();
-            auto anasState    = nas->getANASState();
-            auto nasState     = nas->getNASState();
-            // auto meaState     = mea->getMEAState();
+            auto nasState     = nas->getANASState();
+            auto meaMass     = motor->getMeaMass();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
             tm.pressure_ada   = adaState.x0;
             tm.ada_vert_speed = adaState.verticalSpeed;
             tm.altitude_agl   = adaState.aglAltitude;
-            tm.sda_apogee     = sda->getPredictedApogee();
+            tm.mea_mass       = meaMass;
+            // tm.sda_apogee = meaState.estimatedApogee;
 
             // Sensors
             tm.pressure_digi    = pressDigi.pressure;
