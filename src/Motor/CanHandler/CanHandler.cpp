@@ -265,7 +265,7 @@ bool CanHandler::start()
     result = scheduler.addTask(
         [this]()
         {
-            auto meaState = getModule<MEAController>()->getState();
+            auto meaState = getModule<MEAController>()->getMEAState();
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -273,10 +273,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE),
-                ServoFeedback{
-                    TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::PRZ_FUEL_VALVE),
-                    actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)})
+                static_cast<MEAState>(meaState));
         },
         Config::CanHandler::MEA_STATE_SEND_RATE);
 

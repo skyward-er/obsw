@@ -62,6 +62,11 @@ void MotorStatus::handleCanMessage(const Canbus::CanMessage& msg)
             handleActuators(msg);
             break;
         }
+        case CanConfig::PrimaryType::ALGORITHM:
+        {
+            handleMea(msg);
+            break;
+        }
 
         default:
             break;
@@ -163,6 +168,11 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
             break;
         }
     }
+}
+
+void MotorStatus::handleMea(const Boardcore::Canbus::CanMessage& msg)
+{
+    meaMass.store(meaMassFromCanMessage(msg));
 }
 
 mavlink_motor_tm_t MotorStatus::getMotorTelemetry()

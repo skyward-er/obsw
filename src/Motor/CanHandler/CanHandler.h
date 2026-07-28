@@ -41,8 +41,7 @@ class Actuators;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, Sensors, Actuators,
-                                           FiringSequenceHSM, MEAController,
-                                           Common::MainStatus>
+                                           FiringSequenceHSM, MEAController>
 {
 public:
     struct CanStatus
