@@ -874,10 +874,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             mavlink_message_t msg;
             mavlink_rocket_flight_tm_t tm;
 
-            Sensors* sensors   = getModule<Sensors>();
-            ADAController* ada = getModule<ADAController>();
-            NASController* nas = getModule<NASController>();
-            MotorStatus* motor = getModule<MotorStatus>();
+            Sensors* sensors       = getModule<Sensors>();
+            ADAController* ada     = getModule<ADAController>();
+            NASController* nas     = getModule<NASController>();
+            MotorStatus* motor     = getModule<MotorStatus>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
             Actuators* actuators   = getModule<Actuators>();
 
@@ -888,8 +888,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             auto pressDigi    = sensors->getAtmosPressureLastSample();
             auto pitotDynamic = sensors->getCanPitotDynamicPressure();
             auto adaState     = ada->getADAState();
-            auto nasState     = nas->getANASState();
-            auto meaMass     = motor->getMeaMass();
+            auto nasState     = nas->getNASState();
+            auto anasState    = nas->getANASState();
+            auto meaMass      = motor->getMeaMass();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
