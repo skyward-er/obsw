@@ -42,14 +42,14 @@ bool Sensors::start()
     magCalibration.fromFile(Config::Sensors::MAG_CALIBRATION_FILENAME);
 
     accCalibrationLow.fromFile(
-        Config::Sensors::LSM6DSRX_LOW::ACC_CALIBRATION_FILENAME);
+        Config::Sensors::LSM6DSRX_0::ACC_CALIBRATION_FILENAME);
     gyroCalibrationLow.fromFile(
-        Config::Sensors::LSM6DSRX_LOW::GYRO_CALIBRATION_FILENAME);
+        Config::Sensors::LSM6DSRX_0::GYRO_CALIBRATION_FILENAME);
 
     accCalibrationHigh.fromFile(
-        Config::Sensors::LSM6DSRX_HIGH::ACC_CALIBRATION_FILENAME);
+        Config::Sensors::LSM6DSRX_1::ACC_CALIBRATION_FILENAME);
     gyroCalibrationHigh.fromFile(
-        Config::Sensors::LSM6DSRX_HIGH::GYRO_CALIBRATION_FILENAME);
+        Config::Sensors::LSM6DSRX_1::GYRO_CALIBRATION_FILENAME);
 
     accVN100Calibration.fromFile(
         Config::Sensors::VN100::ACC_CALIBRATION_FILENAME);
@@ -76,10 +76,10 @@ bool Sensors::start()
     if (Config::Sensors::UBXGPS::ENABLED)
         ubxgpsInit();
 
-    if (Config::Sensors::LSM6DSRX_LOW::ENABLED)
+    if (Config::Sensors::LSM6DSRX_0::ENABLED)
         lsm6dsrxLowInit();
 
-    if (Config::Sensors::LSM6DSRX_HIGH::ENABLED)
+    if (Config::Sensors::LSM6DSRX_1::ENABLED)
         lsm6dsrxHighInit();
 
     if (Config::Sensors::VN100::ENABLED)
@@ -275,12 +275,12 @@ UBXGPSData Sensors::getUBXGPSLastSample()
 
 LSM6DSRXData Sensors::getLSM6DSRXLowLastSample()
 {
-    return lsm6dsrx_low ? lsm6dsrx_low->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx_0 ? lsm6dsrx_0->getLastSample() : LSM6DSRXData{};
 }
 
 LSM6DSRXData Sensors::getLSM6DSRXHighLastSample()
 {
-    return lsm6dsrx_high ? lsm6dsrx_high->getLastSample() : LSM6DSRXData{};
+    return lsm6dsrx_1 ? lsm6dsrx_1->getLastSample() : LSM6DSRXData{};
 }
 
 VN100SpiData Sensors::getVN100LastSample()
@@ -526,8 +526,8 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(ubxgps, "UBXGPS");
         PUSH_SENSOR_INFO(lis2mdl_int, "LIS2MDL_INT");
         PUSH_SENSOR_INFO(ads131m08, "ADS131M08");
-        PUSH_SENSOR_INFO(lsm6dsrx_low, "LSM6DSRX_LOW");
-        PUSH_SENSOR_INFO(lsm6dsrx_high, "LSM6DSRX_HIGH");
+        PUSH_SENSOR_INFO(lsm6dsrx_0, "LSM6DSRX_0");
+        PUSH_SENSOR_INFO(lsm6dsrx_1, "LSM6DSRX_1");
         PUSH_SENSOR_INFO(nd015a_0, "ND015A_0");
         PUSH_SENSOR_INFO(nd015a_1, "ND015A_1");
         PUSH_SENSOR_INFO(nd015a_2, "ND015A_2");
@@ -685,32 +685,32 @@ void Sensors::lsm6dsrxLowInit()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX_LOW::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX_LOW::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX_LOW::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_0::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_0::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_0::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX_LOW::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX_LOW::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX_LOW::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_0::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_0::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_0::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
-    lsm6dsrx_low = std::make_unique<LSM6DSRX>(
-        getModule<Buses>()->getLSM6DSRX(), sensors::LSM6DSRX_LOW::cs::getPin(),
+    lsm6dsrx_0 = std::make_unique<LSM6DSRX>(
+        getModule<Buses>()->getLSM6DSRX(), sensors::LSM6DSRX_0::cs::getPin(),
         spiConfig, config);
 }
 
 void Sensors::lsm6dsrxLowCallback()
 {
-    if (!lsm6dsrx_low)
+    if (!lsm6dsrx_0)
         return;
 
     // For every instance inside the fifo log the sample
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx_low->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx_0->getLastFifo(lastFifoSize);
     for (uint16_t i = 0; i < lastFifoSize; i++)
         sdLogger.log(LSM6DSRX0Data{lastFifo.at(i)});
 }
@@ -724,32 +724,32 @@ void Sensors::lsm6dsrxHighInit()
     LSM6DSRXConfig config;
     config.bdu = LSM6DSRXConfig::BDU::CONTINUOUS_UPDATE;
 
-    config.fsAcc     = Config::Sensors::LSM6DSRX_HIGH::ACC_FS;
-    config.odrAcc    = Config::Sensors::LSM6DSRX_HIGH::ACC_ODR;
-    config.opModeAcc = Config::Sensors::LSM6DSRX_HIGH::ACC_OP_MODE;
+    config.fsAcc     = Config::Sensors::LSM6DSRX_1::ACC_FS;
+    config.odrAcc    = Config::Sensors::LSM6DSRX_1::ACC_ODR;
+    config.opModeAcc = Config::Sensors::LSM6DSRX_1::ACC_OP_MODE;
 
-    config.fsGyr     = Config::Sensors::LSM6DSRX_HIGH::GYR_FS;
-    config.odrGyr    = Config::Sensors::LSM6DSRX_HIGH::GYR_ODR;
-    config.opModeGyr = Config::Sensors::LSM6DSRX_HIGH::GYR_OP_MODE;
+    config.fsGyr     = Config::Sensors::LSM6DSRX_1::GYR_FS;
+    config.odrGyr    = Config::Sensors::LSM6DSRX_1::GYR_ODR;
+    config.opModeGyr = Config::Sensors::LSM6DSRX_1::GYR_OP_MODE;
 
     config.fifoMode = LSM6DSRXConfig::FIFO_MODE::CONTINUOUS;
     config.fifoTimestampDecimation =
         LSM6DSRXConfig::FIFO_TIMESTAMP_DECIMATION::DEC_1;
     config.fifoTemperatureBdr = LSM6DSRXConfig::FIFO_TEMPERATURE_BDR::HZ_52;
 
-    lsm6dsrx_high = std::make_unique<LSM6DSRX>(
-        getModule<Buses>()->getLSM6DSRX(), sensors::LSM6DSRX_HIGH::cs::getPin(),
+    lsm6dsrx_1 = std::make_unique<LSM6DSRX>(
+        getModule<Buses>()->getLSM6DSRX(), sensors::LSM6DSRX_1::cs::getPin(),
         spiConfig, config);
 }
 
 void Sensors::lsm6dsrxHighCallback()
 {
-    if (!lsm6dsrx_high)
+    if (!lsm6dsrx_1)
         return;
 
     // For every instance inside the fifo log the sample
     uint16_t lastFifoSize;
-    const auto lastFifo = lsm6dsrx_high->getLastFifo(lastFifoSize);
+    const auto lastFifo = lsm6dsrx_1->getLastFifo(lastFifoSize);
     for (uint16_t i = 0; i < lastFifoSize; i++)
         sdLogger.log(LSM6DSRX1Data{lastFifo.at(i)});
 }
@@ -870,31 +870,6 @@ void Sensors::nd015a2Callback()
 {
     sdLogger.log(StaticPressure2Data{getND015A2LastSample()});
 }
-
-void Sensors::as5047dABKInit()
-{
-    SPIBusConfig spiConfig = AS5047DSPI::getDefaultSPIConfig();
-    spiConfig.clockDivider = SPI::ClockDivider::DIV_16;
-
-    AS5047DSPIConfig config;
-    config.daecEnabled       = Config::Sensors::AS5047D_ABK::DAEC_EN;
-    config.dataType          = Config::Sensors::AS5047D_ABK::DATA_SELECT;
-    config.rotationDirection = Config::Sensors::AS5047D_ABK::ROTATION_DIRECTION;
-
-    as5047d_abk = std::make_unique<AS5047DSPI>(
-        getModule<Buses>()->getAS5047DABK(), sensors::AS5047D_ABK::cs::getPin(),
-        spiConfig, config);
-}
-
-void Sensors::as5047dABKCallback()
-{
-    sdLogger.log(AS5047DABKData(getAS5047DABKLastSample()));
-}
-/**
- * Sets the ascent phase for double LSM6DSRX sensor management
- * @param isAscent True if the rocket is in ascent phase, false otherwise.
- */
-void Sensors::setAscentPhase(bool isAscent) { ascentPhase = isAscent; }
 
 void Sensors::as5047dABKInit()
 {
@@ -1047,18 +1022,18 @@ bool Sensors::sensorManagerInit()
         map.emplace(lis2mdl_int.get(), info);
     }
 
-    if (lsm6dsrx_low)
+    if (lsm6dsrx_0)
     {
-        SensorInfo info{"LSM6DSRX_LOW", Config::Sensors::LSM6DSRX_LOW::RATE,
+        SensorInfo info{"LSM6DSRX_0", Config::Sensors::LSM6DSRX_0::RATE,
                         [this]() { lsm6dsrxLowCallback(); }};
-        map.emplace(lsm6dsrx_low.get(), info);
+        map.emplace(lsm6dsrx_0.get(), info);
     }
 
-    if (lsm6dsrx_high)
+    if (lsm6dsrx_1)
     {
-        SensorInfo info{"LSM6DSRX_HIGH", Config::Sensors::LSM6DSRX_HIGH::RATE,
+        SensorInfo info{"LSM6DSRX_1", Config::Sensors::LSM6DSRX_1::RATE,
                         [this]() { lsm6dsrxHighCallback(); }};
-        map.emplace(lsm6dsrx_high.get(), info);
+        map.emplace(lsm6dsrx_1.get(), info);
     }
 
     if (internalAdc)

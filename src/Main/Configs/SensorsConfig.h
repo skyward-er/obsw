@@ -121,11 +121,6 @@ constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace H3LIS331DL
-namespace VN100
-{
-constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = false;
-}  // namespace VN100
 
 namespace UBXGPS
 {
@@ -142,7 +137,7 @@ constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace LIS2MDL_INT
 
-namespace LSM6DSRX_LOW
+namespace LSM6DSRX_0
 {
 constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/accCalibration0.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/gyroCalibration0.csv";
@@ -159,9 +154,9 @@ constexpr auto GYR_OP_MODE =
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace LSM6DSRX_LOW
+}  // namespace LSM6DSRX_0
 
-namespace LSM6DSRX_HIGH
+namespace LSM6DSRX_1
 {
 constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/accCalibration1.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/gyroCalibration1.csv";
@@ -178,7 +173,7 @@ constexpr auto GYR_OP_MODE =
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
-}  // namespace LSM6DSRX_HIGH
+}  // namespace LSM6DSRX_1
 
 namespace ADS131M08
 {
@@ -234,7 +229,7 @@ constexpr auto USE_CALIBRATED_LIS2MDL  = true;
 constexpr auto USE_CALIBRATED_LSM6DSRX = true;
 constexpr auto USE_CALIBRATED_VN100    = true;
 
-constexpr auto RATE    = 200_hz;
+constexpr auto RATE    = 100_hz;    //Switch to 200Hz?
 constexpr auto ENABLED = true;
 }  // namespace IMU
 

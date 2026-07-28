@@ -1294,7 +1294,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                 tm.gyro_y    = sample.angularSpeedY;
                 tm.gyro_z    = sample.angularSpeedZ;
                 tm.timestamp = sample.accelerationTimestamp;
-                strcpy(tm.sensor_name, "LSM6DSRX_Low");
+                strcpy(tm.sensor_name, "LSM6DSRX_0");
 
                 mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,
@@ -1318,7 +1318,7 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
                 tm.gyro_y    = sample.angularSpeedY;
                 tm.gyro_z    = sample.angularSpeedZ;
                 tm.timestamp = sample.accelerationTimestamp;
-                strcpy(tm.sensor_name, "LSM6DSRX_High");
+                strcpy(tm.sensor_name, "LSM6DSRX_1");
 
                 mavlink_msg_imu_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                           Config::Radio::MAV_COMPONENT_ID, &msg,

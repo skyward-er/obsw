@@ -146,8 +146,8 @@ protected:
     std::unique_ptr<Boardcore::UBXGPSSpi> ubxgps;
     std::unique_ptr<Boardcore::LIS2MDL> lis2mdl_int;
     std::unique_ptr<Boardcore::ADS131M08> ads131m08;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_low;
-    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_high;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_0;
+    std::unique_ptr<Boardcore::LSM6DSRX> lsm6dsrx_1;
     std::unique_ptr<Boardcore::ND015A> nd015a_0;
     std::unique_ptr<Boardcore::ND015A> nd015a_1;
     std::unique_ptr<Boardcore::ND015A> nd015a_2;

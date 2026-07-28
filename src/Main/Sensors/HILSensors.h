@@ -42,7 +42,7 @@ public:
     explicit HILSensors(bool enableHw) : Super{}, enableHw{enableHw} {}
 
 private:
-    void lsm6dsrx0Callback() override
+    void lsm6dsrxLowCallback() override
     {
         if (!lsm6dsrx_0)
             return;
@@ -51,7 +51,7 @@ private:
             LSM6DSRX0Data{lsm6dsrx_0->getLastSample()});
     }
 
-    void lsm6dsrx1Callback() override
+    void lsm6dsrxHighCallback() override
     {
         if (!lsm6dsrx_1)
             return;
@@ -323,8 +323,8 @@ private:
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
         auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX   //TODO: Switch to VN100 ? 
-                        ? getCalibratedLSM6DSRX0LastSample()
-                        : getLSM6DSRX0LastSample();
+                        ? getCalibratedLSM6DSRXLowLastSample()
+                        : getLSM6DSRXLowLastSample();
         auto mag  = getLIS2MDLRcsLastSample();
 
         return Boardcore::IMUData{imu6, imu6, mag};
