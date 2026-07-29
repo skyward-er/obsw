@@ -41,6 +41,28 @@ GroundModeManager::GroundModeManager()
 
 GroundModeManagerState GroundModeManager::getState() { return state; }
 
+void GroundModeManager::powerOnElectronics(bool umbilical, bool main,
+                                           bool engine, bool cots)
+{
+    auto* expander = &getModule<GpioExpander>()->getExpander();
+
+    expander->setPinValue(Config::GpioExpander::RPO_UMBILICAL.getPort(),
+                          Config::GpioExpander::RPO_UMBILICAL.getPin(),
+                          umbilical);
+
+    expander->setPinValue(Config::GpioExpander::RPO_MAIN.getPort(),
+                          Config::GpioExpander::RPO_MAIN.getPin(), main);
+
+    expander->setPinValue(Config::GpioExpander::RPO_ENGINE.getPort(),
+                          Config::GpioExpander::RPO_ENGINE.getPin(), engine);
+
+    expander->setPinValue(Config::GpioExpander::RPO_COTS.getPort(),
+                          Config::GpioExpander::RPO_COTS.getPin(), cots);
+
+    EventBroker::getInstance().postDelayed(
+        TMTC_RPO_CLOCK_ON, TOPIC_TMTC, Config::GroundModeManager::RPO_ON_DELAY);
+}
+
 State GroundModeManager::state_idle(const Event& event)
 {
     switch (event)
@@ -217,6 +239,28 @@ State GroundModeManager::state_disarmed(const Event& event)
             // Stop any running TARS
             EventBroker::getInstance().post(MOTOR_STOP_TARS, TOPIC_TARS);
             EventBroker::getInstance().post(MOTOR_START_TARS3, TOPIC_TARS);
+            return HANDLED;
+        }
+
+        case TMTC_RPO_CLOCK_ON:
+        {
+            getModule<GpioExpander>()->getExpander().setPinValue(
+                Config::GpioExpander::RPO_CLOCK.getPort(),
+                Config::GpioExpander::RPO_CLOCK.getPin(), true);
+
+            EventBroker::getInstance().postDelayed(
+                TMTC_RPO_CLOCK_OFF, TOPIC_TMTC,
+                Config::GroundModeManager::RPO_OFF_DELAY);
+
+            return HANDLED;
+        }
+
+        case TMTC_RPO_CLOCK_OFF:
+        {
+            getModule<GpioExpander>()->getExpander().setPinValue(
+                Config::GpioExpander::RPO_CLOCK.getPort(),
+                Config::GpioExpander::RPO_CLOCK.getPin(), false);
+
             return HANDLED;
         }
 

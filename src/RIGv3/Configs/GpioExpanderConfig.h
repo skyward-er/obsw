@@ -42,6 +42,17 @@ static constexpr Boardcore::ExternalGpioPin OX_DET_VALVE_PIN(
 static constexpr Boardcore::ExternalGpioPin ARMING_LIGHT_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN5);
 
+static constexpr Boardcore::ExternalGpioPin RPO_CLOCK(
+    Boardcore::MCP23S17Defs::PORT::PORT_B, Boardcore::MCP23S17Defs::PIN::PIN0);
+static constexpr Boardcore::ExternalGpioPin RPO_ENGINE(
+    Boardcore::MCP23S17Defs::PORT::PORT_B, Boardcore::MCP23S17Defs::PIN::PIN1);
+static constexpr Boardcore::ExternalGpioPin RPO_MAIN(
+    Boardcore::MCP23S17Defs::PORT::PORT_B, Boardcore::MCP23S17Defs::PIN::PIN2);
+static constexpr Boardcore::ExternalGpioPin RPO_COTS(
+    Boardcore::MCP23S17Defs::PORT::PORT_B, Boardcore::MCP23S17Defs::PIN::PIN3);
+static constexpr Boardcore::ExternalGpioPin RPO_UMBILICAL(
+    Boardcore::MCP23S17Defs::PORT::PORT_B, Boardcore::MCP23S17Defs::PIN::PIN4);
+
 }  // namespace GpioExpander
 }  // namespace Config
 }  // namespace RIGv3

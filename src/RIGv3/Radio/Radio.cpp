@@ -443,6 +443,27 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             return enqueueAck(msg);
         }
 
+        case MAVLINK_MSG_ID_REMOTE_POWER_ON_TC:
+        {
+            bool umbilical = mavlink_msg_remote_power_on_tc_get_umbilical(&msg);
+            bool main      = mavlink_msg_remote_power_on_tc_get_main(&msg);
+            bool engine    = mavlink_msg_remote_power_on_tc_get_engine(&msg);
+            bool cots      = mavlink_msg_remote_power_on_tc_get_cots(&msg);
+
+            if (getModule<GroundModeManager>()->getState() ==
+                GroundModeManagerState::DISARMED)
+            {
+                getModule<GroundModeManager>()->powerOnElectronics(umbilical, main, engine,
+                                                        cots);
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
+            break;
+        }
+
         case MAVLINK_MSG_ID_RAW_EVENT_TC:
         {
             uint8_t topicId = mavlink_msg_raw_event_tc_get_topic_id(&msg);

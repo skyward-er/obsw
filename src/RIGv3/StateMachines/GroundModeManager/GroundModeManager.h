@@ -25,6 +25,7 @@
 #include <RIGv3/Actuators/Actuators.h>
 #include <RIGv3/CanHandler/CanHandler.h>
 #include <RIGv3/Configs/GMMConfig.h>
+#include <RIGv3/Expander/GpioExpander.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
@@ -41,7 +42,7 @@ namespace RIGv3
 
 class GroundModeManager
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, Registry,
-                                           CanHandler>,
+                                           CanHandler, GpioExpander>,
       public Boardcore::HSM<GroundModeManager>
 {
 public:
@@ -49,13 +50,7 @@ public:
 
     GroundModeManagerState getState();
 
-    void setIgnitionTime(uint32_t time);
-
-    void setChamberTime(uint32_t time);
-
-    void setChamberDelay(uint32_t time);
-
-    void setCoolingDelay(uint32_t time);
+    void powerOnElectronics(bool umbilical, bool main, bool engine, bool cots);
 
 private:
     Boardcore::State state_idle(const Boardcore::Event& event);
