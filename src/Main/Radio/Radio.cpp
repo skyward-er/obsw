@@ -1203,6 +1203,24 @@ bool Radio::enqueueSensorsTm(uint8_t tmId)
             return true;
         }
 
+        case MAV_COTS_BATTERY_VOLTAGE_ID:
+        {
+            mavlink_message_t msg;
+
+            auto data = getModule<Sensors>()->getCotsBatteryVoltageLastSample();
+
+            mavlink_voltage_tm_t tm;
+            tm.voltage   = data.voltage;
+            tm.timestamp = data.voltageTimestamp;
+            strcpy(tm.sensor_name, "CotsBatteryVoltage");
+
+            mavlink_msg_voltage_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                          Config::Radio::MAV_COMPONENT_ID, &msg,
+                                          &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
         case MAV_LPS22DF_ID:
         {
             mavlink_message_t msg;
