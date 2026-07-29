@@ -110,14 +110,14 @@ bool CanHandler::start()
         [this]
         {
             auto logStats = Logger::getInstance().getStats();
-            auto state    = getModule<HeatingPadController>()->getState();
-            auto status   = DeviceStatus{
-                  .timestamp = TimestampTimer::getTimestamp(),
-                  .logNumber = static_cast<int16_t>(logStats.logNumber),
-                  .state     = Config::CanHandler::Status::STATE,
-                  .armed     = Config::CanHandler::Status::ARMED,
-                  .hil       = Config::CanHandler::Status::HIL,
-                  .logGood   = logStats.lastWriteError == 0,
+
+            auto status = DeviceStatus{
+                .timestamp = TimestampTimer::getTimestamp(),
+                .logNumber = static_cast<int16_t>(logStats.logNumber),
+                .state     = miosix::HeatingPad::sense::value(),
+                .armed     = Config::CanHandler::Status::ARMED,
+                .hil       = Config::CanHandler::Status::HIL,
+                .logGood   = logStats.lastWriteError == 0,
             };
 
             protocol->enqueueData(static_cast<uint8_t>(Priority::MEDIUM),
@@ -143,6 +143,9 @@ bool CanHandler::start()
             auto totalPressure =
                 getModule<Sensors>()->getTotalPressureLastSample();
 
+            auto ntcTemperature =
+                getModule<Sensors>()->getHeatingPadNTCLastSample();
+
             protocol->enqueueData(
                 static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::SENSORS),
@@ -157,6 +160,13 @@ bool CanHandler::start()
                 static_cast<uint8_t>(Board::BROADCAST),
                 static_cast<uint8_t>(SensorId::PITOT_TOTAL_PRESSURE),
                 totalPressure);
+            protocol->enqueueData(
+                static_cast<uint8_t>(Priority::MEDIUM),
+                static_cast<uint8_t>(PrimaryType::SENSORS),
+                static_cast<uint8_t>(Board::PITOT),
+                static_cast<uint8_t>(Board::BROADCAST),
+                static_cast<uint8_t>(SensorId::PITOT_NTC_TEMPERATURE),
+                ntcTemperature);
         },
         Config::CanHandler::SEND_RATE);
 

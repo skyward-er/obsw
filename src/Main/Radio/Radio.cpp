@@ -965,6 +965,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();
+            Sensors* sensors        = getModule<Sensors>();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -1008,19 +1009,22 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.releaser_sense =
                 pinHandler->getPinData(PinHandler::PinList::RELEASER_SENSE)
                     .lastState;
-            // TODO: add heating pad sense
+
+            CanHandler::CanStatus canStatus =
+                getModule<CanHandler>()->getCanStatus();
+
+            tm.heating_pad_sense = canStatus.getPitotState();
+            tm.heating_pad_temp =
+                sensors->getCanHeatingPadTemperature().temperature;
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();
             tm.log_good             = (loggerStats.lastWriteError == 0) ? 1 : 0;
             tm.log_number           = loggerStats.logNumber;
 
-            CanHandler::CanStatus canStatus =
-                getModule<CanHandler>()->getCanStatus();
-            /* tm.pitot_board_state = canStatus.getPitotState(); */
             tm.motor_board_state = motor->getState();
 
-            /* tm.pitot_can_status = canStatus.isPitotConnected() ? 1 : 0; */
+            tm.pitot_can_status = canStatus.isPitotConnected() ? 1 : 0;
             tm.motor_can_status = motor->connected();
             tm.rig_can_status   = canStatus.isRigConnected() ? 1 : 0;
 

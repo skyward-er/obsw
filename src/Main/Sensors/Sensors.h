@@ -108,12 +108,14 @@ public:
     Boardcore::PressureData getCanPitotTotalPressure();
     Boardcore::PressureData getCanPitotStaticPressure();
     Boardcore::PressureData getCanPitotDynamicPressure();
+    Boardcore::TemperatureData getCanHeatingPadTemperature();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
     // Methods for CanHandler
     void setCanPitotTotalPressure(Boardcore::PressureData data);
     void setCanPitotStaticPressure(Boardcore::PressureData data);
+    void setCanHeatingPadTemperature(Boardcore::TemperatureData data);
 
 protected:
     virtual bool postSensorCreationHook() { return true; }
@@ -124,9 +126,10 @@ protected:
     Boardcore::TaskScheduler& getSensorsScheduler();
 
     std::mutex canMutex;
-    // Payload
+    // Pitot CAN data
     Boardcore::PressureData canPitotTotalPressure;
     Boardcore::PressureData canPitotStaticPressure;
+    Boardcore::TemperatureData canHeatingPadTemperature;
 
     // Digital sensors
     std::unique_ptr<Boardcore::AS5047DSPI> as5047d_left;

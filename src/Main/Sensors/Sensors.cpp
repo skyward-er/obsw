@@ -476,10 +476,10 @@ PressureData Sensors::getCanPitotStaticPressure()
     return canPitotStaticPressure;
 }
 
-void Sensors::setCanPitotTotalPressure(PressureData data)
+TemperatureData Sensors::getCanHeatingPadTemperature()
 {
     std::lock_guard<std::mutex> lock{canMutex};
-    canPitotTotalPressure = data;
+    return canHeatingPadTemperature;
 }
 
 PressureData Sensors::getCanPitotDynamicPressure()
@@ -492,10 +492,22 @@ PressureData Sensors::getCanPitotDynamicPressure()
     };
 }
 
+void Sensors::setCanPitotTotalPressure(PressureData data)
+{
+    std::lock_guard<std::mutex> lock{canMutex};
+    canPitotTotalPressure = data;
+}
+
 void Sensors::setCanPitotStaticPressure(PressureData data)
 {
     std::lock_guard<std::mutex> lock{canMutex};
     canPitotStaticPressure = data;
+}
+
+void Sensors::setCanHeatingPadTemperature(TemperatureData data)
+{
+    std::lock_guard<std::mutex> lock{canMutex};
+    canHeatingPadTemperature = data;
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
