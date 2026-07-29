@@ -877,6 +877,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             Sensors* sensors       = getModule<Sensors>();
             ADAController* ada     = getModule<ADAController>();
             NASController* nas     = getModule<NASController>();
+            SDAController* sda     = getModule<SDAController>();
             MotorStatus* motor     = getModule<MotorStatus>();
             FlightModeManager* fmm = getModule<FlightModeManager>();
             Actuators* actuators   = getModule<Actuators>();
@@ -898,7 +899,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
             tm.ada_vert_speed = adaState.verticalSpeed;
             tm.altitude_agl   = adaState.aglAltitude;
             tm.mea_mass       = meaMass;
-            // tm.sda_apogee = meaState.estimatedApogee;
+            tm.sda_apogee     = sda->getPredictedApogee();
 
             // Sensors
             tm.pressure_digi    = pressDigi.pressure;
