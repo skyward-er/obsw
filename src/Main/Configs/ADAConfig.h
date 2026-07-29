@@ -49,10 +49,12 @@ constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 370;  // [m]
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 
 #ifdef ROCCARASO
-constexpr auto SHADOW_MODE_TIMEOUT = 10s;
+constexpr auto SHADOW_MODE_TIMEOUT        = 10s;
+constexpr auto DROGUE_SHADOW_MODE_TIMEOUT = 5s;
 
 #else  // EUROC
-constexpr auto SHADOW_MODE_TIMEOUT = 12s;
+constexpr auto SHADOW_MODE_TIMEOUT        = 12s;
+constexpr auto DROGUE_SHADOW_MODE_TIMEOUT = 5s;
 
 #ifndef EUROC
 #warning "ADAConfig: no mission specified, using EUROC"

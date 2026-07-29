@@ -459,6 +459,46 @@ void ADAController::state_active_ascent(const Event& event)
     }
 }
 
+void ADAController::state_drogue_shadow_mode(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ADAControllerState::SHADOW_MODE_DROGUE);
+
+            shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
+                ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,
+                Config::ADA::DROGUE_SHADOW_MODE_TIMEOUT.count());
+            break;
+        }
+
+        case EV_EXIT:
+        {
+            EventBroker::getInstance().removeDelayed(shadowModeTimeoutEvent);
+            break;
+        }
+
+        case ADA_FORCE_STOP:
+        {
+            transition(&ADAController::state_ready);
+            break;
+        }
+
+        case ADA_SHADOW_MODE_TIMEOUT:
+        {
+            transition(&ADAController::state_active_drogue_descent);
+            break;
+        }
+
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&ADAController::state_end);
+            break;
+        }
+    }
+}
+
 void ADAController::state_active_drogue_descent(const Event& event)
 {
     switch (event)

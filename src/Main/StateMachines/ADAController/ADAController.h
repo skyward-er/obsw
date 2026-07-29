@@ -72,6 +72,7 @@ private:
     void state_armed(const Boardcore::Event& event);
     void state_shadow_mode(const Boardcore::Event& event);
     void state_active_ascent(const Boardcore::Event& event);
+    void state_drogue_shadow_mode(const Boardcore::Event& event);
     void state_active_drogue_descent(const Boardcore::Event& event);
     void state_active_terminal_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);

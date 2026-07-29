@@ -40,6 +40,7 @@ enum class ADAControllerState : uint8_t
     ARMED,
     SHADOW_MODE,
     ACTIVE_ASCENT,
+    SHADOW_MODE_DROGUE,
     ACTIVE_DROGUE_DESCENT,
     ACTIVE_TERMINAL_DESCENT,
     END
