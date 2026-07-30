@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Motor/StateMachines/MEAController/MEAControllerData.h>
-#include <algorithms/MEA/MEA.h>
-#include <algorithms/MEA/MEAData.h>
+#include <algorithms/AlgorithmsData.h>
 #include <events/FSM.h>
+#include <mea/MEA.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace Motor

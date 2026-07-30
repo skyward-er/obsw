@@ -1,9 +1,9 @@
 
-#include <Motor/StateMachines/MEAController/MEAController.h>
-#include <Motor/StateMachines/MEAController/MEAControllerData.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
+#include <Motor/StateMachines/MEAController/MEAController.h>
+#include <Motor/StateMachines/MEAController/MEAControllerData.h>
 #include <common/Events.h>
 #include <common/Topics.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -25,7 +25,10 @@ MEAController::MEAController()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 };
 
-MEAControllerState MEAController::getMEAControllerState() { return state.load(); }
+MEAControllerState MEAController::getMEAControllerState()
+{
+    return state.load();
+}
 
 Boardcore::MEAState MEAController::getMEAState()
 {
@@ -82,7 +85,7 @@ void MEAController::update()
     float mainPosition = sensors->getMainFuelPosition().position;
     uint8_t hsmState   = static_cast<uint8_t>(firingHSM->getState());
 
-    MEA::MEAIn in = {CCPTMeasure, timestamp, mainPosition, hsmState};
+    MEA_types_h_::MEAIn in = {CCPTMeasure, timestamp, mainPosition, hsmState};
 
     mea.setMEA_In(in);
     mea.step();
