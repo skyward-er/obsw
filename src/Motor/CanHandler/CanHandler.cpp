@@ -413,6 +413,26 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
     {
         EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
     }
+    else if (event == Common::CanConfig::EventId::ENTER_TEST_MODE)
+    {
+        EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
+    }
+    else if (event == Common::CanConfig::EventId::EXIT_TEST_MODE)
+    {
+        EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
+    }
+    else if (event == Common::CanConfig::EventId::ARM)
+    {
+        EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
+    }
+    else if (event == Common::CanConfig::EventId::DISARM)
+    {
+        EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
+    }
+    else if (event == Common::CanConfig::EventId::APOGEE_DETECTED)
+    {
+        EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED, TOPIC_FLIGHT);
+    }
     else if (event == Common::CanConfig::EventId::EREG_OX_TOGGLE)
     {
         EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);

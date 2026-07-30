@@ -647,6 +647,7 @@ State FiringSequenceHSM::state_ended(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::ENDED);
+            EventBroker::getInstance().post(MEA_STOP, TOPIC_MEA);
             return HANDLED;
         }
 

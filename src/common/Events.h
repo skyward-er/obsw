@@ -113,6 +113,7 @@ enum Events : uint8_t
     MEA_RESET,
     MEA_CALIBRATE,
     MEA_READY,
+    MEA_STOP,
     NAS_CALIBRATE,
     NAS_RESET,
     NAS_READY,
