@@ -229,6 +229,14 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
             break;
         }
 
+        case CanConfig::SensorId::PITOT_NTC_TEMPERATURE:
+        {
+            CanTemperatureData data = temperatureDataFromCanMessage(msg);
+            sdLogger.log(CanTemperatureData(data));
+            sensors->setCanHeatingPadTemperature(data);
+            break;
+        }
+
         default:
         {
             LOG_WARN(logger, "Received unsupported sensor data: {}", sensor);

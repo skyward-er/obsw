@@ -40,9 +40,9 @@ constexpr auto CONFIDENCE_THRESHOLD = 10;
 constexpr auto SENSE_ACTIVE         = 1;
 
 // Schmitt Trigger parameters
-constexpr auto TARGET_TEMPERATURE = 308.65f;  // K, 35.5°C
-constexpr auto THRESHOLD_LOW      = 0.5f;
-constexpr auto THRESHOLD_HIGH     = 0.5f;
+constexpr auto TARGET_TEMPERATURE = 323.15f;  // K, 35.5°C
+constexpr auto THRESHOLD_LOW      = 0.2f;
+constexpr auto THRESHOLD_HIGH     = 0.2f;
 
 }  // namespace HeatingPadController
 }  // namespace Config

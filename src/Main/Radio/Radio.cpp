@@ -1015,7 +1015,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
 
             tm.heating_pad_sense = canStatus.getPitotState();
             tm.heating_pad_temp =
-                sensors->getCanHeatingPadTemperature().temperature;
+                sensors->getCanHeatingPadTemperature().temperature -
+                273.15f;  // Get temperature in Celsius
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();
