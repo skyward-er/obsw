@@ -93,9 +93,6 @@ bool Sensors::start()
     if (Config::Sensors::AS5047D_ABK::ENABLED)
         as5047dABKInit();
 
-    if (Config::Sensors::AS5047D_ABK::ENABLED)
-        as5047dABKInit();
-
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 

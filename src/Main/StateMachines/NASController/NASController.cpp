@@ -146,7 +146,6 @@ void NASController::updateANAS()
 
         Sensors* sensors = getModule<Sensors>();
 
-        auto ref          = getModule<AlgoReference>()->getReferenceValues();
         auto imu          = sensors->getIMULastSample();
         auto mag          = sensors->getCalibratedLIS2MDLRcsLastSample();
         auto gps          = sensors->getUBXGPSLastSample();

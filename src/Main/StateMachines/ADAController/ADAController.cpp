@@ -165,6 +165,8 @@ float ADAController::getVerticalSpeedCov()
         (a * n * state.x0);
     float cov1 = cov2 * state.x1 / n / state.x0 * (1 - n);
     Eigen::Matrix<float, 1, 2> cov;
+
+    // cppcheck-suppress constStatement
     cov << cov1, cov2;
     Eigen::Matrix<float, 2, 2> covariances;
     covariances << PMatrix[0], PMatrix[1], PMatrix[3], PMatrix[4];
