@@ -1,3 +1,24 @@
+/* Copyright (c) 2024 Skyward Experimental Rocketry
+ * Author: Davide Mor, Tommaso Lamon
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <Motor/StateMachines/MEAController/MEAControllerData.h>
@@ -25,7 +46,10 @@ MEAController::MEAController()
     EventBroker::getInstance().subscribe(this, TOPIC_FLIGHT);
 };
 
-MEAControllerState MEAController::getMEAControllerState() { return state.load(); }
+MEAControllerState MEAController::getMEAControllerState()
+{
+    return state.load();
+}
 
 Boardcore::MEAState MEAController::getMEAState()
 {
@@ -173,14 +197,11 @@ void MEAController::state_active(const Event& event)
         case FLIGHT_DISARMED:
         case MEA_FORCE_STOP:
         {
-            transition(&MEAController::state_ready);
+            transition(&MEAController::state_calibrate);
             break;
         }
 
-        case FLIGHT_LANDING_DETECTED:
-        case FLIGHT_MOTOR_SHUTDOWN:
-        case FLIGHT_APOGEE_DETECTED:
-        case FLIGHT_DPL_ALT_DETECTED:
+        case MEA_STOP:
         {
             transition(&MEAController::state_end);
             break;

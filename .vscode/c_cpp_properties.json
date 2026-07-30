@@ -5,6 +5,9 @@
             "DEBUG"
         ],
         "defaultIncludePaths": [
+            "${workspaceFolder}/src",
+            "${workspaceFolder}/src/boards",
+            "${workspaceFolder}/src/shared",
             "${workspaceFolder}/skyward-boardcore/libs/Catch2/single_include",
             "${workspaceFolder}/skyward-boardcore/libs/eigen",
             "${workspaceFolder}/skyward-boardcore/libs/fmt/include",
@@ -580,6 +583,7 @@
             "cStandard": "c11",
             "cppStandard": "c++14",
             "compilerPath": "/opt/arm-miosix-eabi/bin/arm-miosix-eabi-g++",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "defines": [
                 "${defaultDefines}",
                 "_MIOSIX_BOARDNAME=stm32f767zi_hydra_engine",
