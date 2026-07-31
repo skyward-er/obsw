@@ -214,9 +214,9 @@ bool Actuators::start()
 void Actuators::initializeValves()
 {
     // Servo valves connected to the PCA9685 expanders
-    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         PRZ_FIL, expander0, PCA9685Utils::Channel::CHANNEL_1));
-    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         PRZ_REL, expander0, PCA9685Utils::Channel::CHANNEL_2));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         OX_FIL, expander0, PCA9685Utils::Channel::CHANNEL_3));
