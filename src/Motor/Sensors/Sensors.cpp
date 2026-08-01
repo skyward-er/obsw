@@ -138,19 +138,26 @@ void Sensors::calibrate()
 
     using namespace Config::Sensors::ADC_1;
 
-    applyShuntResistance(mainCCPressure, MAIN_CC_PT_CHANNEL, MAIN_CC_REG_KEY,
+    applyShuntResistance(mainCCPressure, MAIN_CC_PT_CHANNEL,
+                         CONFIG_ID_MAIN_CC_PT_SHUNT_RESISTANCE,
                          CH0_SHUNT_RESISTANCE);
     applyShuntResistance(fuelTankPressure, FUEL_TANK_PT_CHANNEL,
-                         FUEL_TANK_REG_KEY, CH1_SHUNT_RESISTANCE);
-    applyShuntResistance(przTankPressure, PRZ_TANK_PT_CHANNEL, PRZ_TANK_REG_KEY,
+                         CONFIG_ID_FUEL_TANK_PT_SHUNT_RESISTANCE,
+                         CH1_SHUNT_RESISTANCE);
+    applyShuntResistance(przTankPressure, PRZ_TANK_PT_CHANNEL,
+                         CONFIG_ID_PRZ_TANK_PT_SHUNT_RESISTANCE,
                          CH2_SHUNT_RESISTANCE);
-    applyShuntResistance(oxTankPressure, OX_TANK_PT_CHANNEL, OX_TANK_REG_KEY,
+    applyShuntResistance(oxTankPressure, OX_TANK_PT_CHANNEL,
+                         CONFIG_ID_OX_TANK_PT_SHUNT_RESISTANCE,
                          CH3_SHUNT_RESISTANCE);
     applyShuntResistance(regOutFuelPressure, REGULATOR_OUT_FUEL_PT_CHANNEL,
-                         FUEL_REG_OUT_REG_KEY, CH4_SHUNT_RESISTANCE);
+                         CONFIG_ID_FUEL_REG_OUT_PT_SHUNT_RESISTANCE,
+                         CH4_SHUNT_RESISTANCE);
     applyShuntResistance(regOutOxPressure, REGULATOR_OUT_OX_PT_CHANNEL,
-                         OX_REG_OUT_REG_KEY, CH5_SHUNT_RESISTANCE);
-    applyShuntResistance(ignCCPressure, IGNITER_CC_PT_CHANNEL, IGN_CC_REG_KEY,
+                         CONFIG_ID_OX_REG_OUT_PT_SHUNT_RESISTANCE,
+                         CH5_SHUNT_RESISTANCE);
+    applyShuntResistance(ignCCPressure, IGNITER_CC_PT_CHANNEL,
+                         CONFIG_ID_IGN_CC_REG_PT_SHUNT_RESISTANCE,
                          CH6_SHUNT_RESISTANCE);
 
     calibrateEncoders();

@@ -297,37 +297,51 @@ void Sensors::calibrate()
 
     using namespace Config::Sensors::ADC_0;
     applyShuntResistance(0, przVessel1Pressure, PRZ_VESSEL_1_PT_CHANNEL,
-                         PRZ_VESSEL_1_REG_KEY, ADC_0::CH0_SHUNT_RESISTANCE);
+                         CONFIG_ID_PRZ_VESSEL_1_PT_SHUNT_RESISTANCE,
+                         ADC_0::CH0_SHUNT_RESISTANCE);
     applyShuntResistance(0, przVessel2Pressure, PRZ_VESSEL_2_PT_CHANNEL,
-                         PRZ_VESSEL_2_REG_KEY, ADC_0::CH1_SHUNT_RESISTANCE);
+                         CONFIG_ID_PRZ_VESSEL_1_PT_SHUNT_RESISTANCE,
+                         ADC_0::CH1_SHUNT_RESISTANCE);
     applyShuntResistance(0, przFillingPressure, PRZ_FILLING_PT_CHANNEL,
-                         PRZ_FILLING_REG_KEY, ADC_0::CH2_SHUNT_RESISTANCE);
+                         CONFIG_ID_PRZ_FILLING_PT_SHUNT_RESISTANCE,
+                         ADC_0::CH2_SHUNT_RESISTANCE);
     applyShuntResistance(0, oxVesselPressure, OX_VESSEL_PT_CHANNEL,
-                         OX_VESSEL_REG_KEY, ADC_0::CH3_SHUNT_RESISTANCE);
+                         CONFIG_ID_OX_VESSEL_PT_SHUNT_RESISTANCE,
+                         ADC_0::CH3_SHUNT_RESISTANCE);
     applyShuntResistance(0, oxFillingPressure, OX_FILLING_PT_CHANNEL,
-                         OX_FILLING_REG_KEY, ADC_0::CH4_SHUNT_RESISTANCE);
+                         CONFIG_ID_OX_FILLING_PT_SHUNT_RESISTANCE,
+                         ADC_0::CH4_SHUNT_RESISTANCE);
 
     using namespace Config::Sensors::ADC_2;
     applyShuntResistance(2, przTankPressure, PRZ_TANK_PT_CHANNEL,
-                         PRZ_TANK_REG_KEY, ADC_2::CH0_SHUNT_RESISTANCE);
+                         CONFIG_ID_PRZ_TANK_PT_SHUNT_RESISTANCE,
+                         ADC_2::CH0_SHUNT_RESISTANCE);
     applyShuntResistance(2, oxRegOutPressure, OX_REG_OUT_PT_CHANNEL,
-                         OX_REG_OUT_REG_KEY, ADC_2::CH1_SHUNT_RESISTANCE);
+                         CONFIG_ID_OX_REG_OUT_PT_SHUNT_RESISTANCE,
+                         ADC_2::CH1_SHUNT_RESISTANCE);
     applyShuntResistance(2, fuelRegOutPressure, FUEL_REG_OUT_PT_CHANNEL,
-                         FUEL_REG_OUT_REG_KEY, ADC_2::CH2_SHUNT_RESISTANCE);
-    applyShuntResistance(2, oxTankPressure, OX_TANK_PT_CHANNEL, OX_TANK_REG_KEY,
+                         CONFIG_ID_FUEL_REG_OUT_PT_SHUNT_RESISTANCE,
+                         ADC_2::CH2_SHUNT_RESISTANCE);
+    applyShuntResistance(2, oxTankPressure, OX_TANK_PT_CHANNEL,
+                         CONFIG_ID_OX_TANK_PT_SHUNT_RESISTANCE,
                          ADC_2::CH3_SHUNT_RESISTANCE);
     applyShuntResistance(2, fuelTankPressure, FUEL_TANK_PT_CHANNEL,
-                         FUEL_TANK_REG_KEY, ADC_2::CH4_SHUNT_RESISTANCE);
+                         CONFIG_ID_FUEL_TANK_PT_SHUNT_RESISTANCE,
+                         ADC_2::CH4_SHUNT_RESISTANCE);
     applyShuntResistance(2, igniterChamberPressure, IGNITER_CHAMBER_PT_CHANNEL,
-                         IGN_CHAMBER_REG_KEY, ADC_2::CH5_SHUNT_RESISTANCE);
+                         CONFIG_ID_IGN_CHAMBER_PT_SHUNT_RESISTANCE,
+                         ADC_2::CH5_SHUNT_RESISTANCE);
     applyShuntResistance(2, mainChamberPressure, MAIN_CHAMBER_PT_CHANNEL,
-                         MAIN_CHAMBER_REG_KEY, ADC_2::CH6_SHUNT_RESISTANCE);
+                         CONFIG_ID_MAIN_CHAMBER_PT_SHUNT_RESISTANCE,
+                         ADC_2::CH6_SHUNT_RESISTANCE);
 
     using namespace Config::Sensors::ADC_3;
-    applyShuntResistance(3, injOxPressure, INJ_OX_PT_CHANNEL, INJ_OX_REG_KEY,
+    applyShuntResistance(3, injOxPressure, INJ_OX_PT_CHANNEL,
+                         CONFIG_ID_INJ_OX_PT_SHUNT_RESISTANCE,
                          ADC_3::CH5_SHUNT_RESISTANCE);
     applyShuntResistance(3, injFuelPressure, INJ_FUEL_PT_CHANNEL,
-                         INJ_OX_REG_KEY, ADC_3::CH4_SHUNT_RESISTANCE);
+                         CONFIG_ID_INJ_FUEL_PT_SHUNT_RESISTANCE,
+                         ADC_3::CH4_SHUNT_RESISTANCE);
 
     calibrateEncoders();
 }
