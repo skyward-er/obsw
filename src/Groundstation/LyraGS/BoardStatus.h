@@ -94,7 +94,7 @@ public:
         if (isArp)
         {
             systemId    = Groundstation::ARP_SYSTEM_ID;
-            componentId = Groundstation::ARP_COMPONENT_ID;
+            componentId = Groundstation::MAV_DEFAULT_REQUEST_ID;
         }
     }
 
@@ -141,7 +141,7 @@ private:
         payload_rx_bitrate;
 
     uint8_t systemId    = Groundstation::GS_SYSTEM_ID;
-    uint8_t componentId = Groundstation::GS_COMPONENT_ID;
+    uint8_t componentId = Groundstation::MAV_DEFAULT_REQUEST_ID;
 
     uint8_t radio_433_type = RADIO_433_TYPE_NONE;
     uint8_t radio_868_type = RADIO_868_TYPE_NONE;

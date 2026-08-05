@@ -81,8 +81,8 @@ private:
     void handleMessage(const mavlink_message_t& msg);
     void handleCommand(const mavlink_message_t& msg);
 
-    bool enqueueSystemTm(uint8_t tmId);
-    bool enqueueSensorsTm(uint8_t tmId);
+    bool enqueueSystemTm(uint8_t tmId, uint8_t requestId);
+    bool enqueueSensorsTm(uint8_t tmId, uint8_t requestId);
 
     size_t ascentTelemetryTaskId  = 0;
     size_t descentTelemetryTaskId = 0;

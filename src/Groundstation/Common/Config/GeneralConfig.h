@@ -32,4 +32,6 @@ constexpr uint8_t GS_COMPONENT_ID = 1;
 
 constexpr uint8_t ARP_SYSTEM_ID    = SysIDs::MAV_SYSID_ARP;
 constexpr uint8_t ARP_COMPONENT_ID = 1;
+
+constexpr uint8_t MAV_DEFAULT_REQUEST_ID = 0;
 }  // namespace Groundstation
