@@ -75,11 +75,13 @@ private:
     void handleCommand(const mavlink_message_t& msg);
     void handleConrigState(const mavlink_message_t& msg);
 
-    void enqueueRegistry();
-    bool enqueueValveInfoTm(ServosList valveId);
+    void enqueueRegistry(uint8_t requestId);
+    bool enqueueValveInfoTm(
+        ServosList valveId,
+        uint8_t requestId = Config::Radio::MAV_DEFAULT_REQUEST_ID);
 
-    bool enqueueSystemTm(uint8_t tmId);
-    bool enqueueSensorTm(uint8_t tmId);
+    bool enqueueSystemTm(uint8_t tmId, uint8_t requestId);
+    bool enqueueSensorTm(uint8_t tmId, uint8_t requestId);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");

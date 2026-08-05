@@ -43,8 +43,10 @@ constexpr unsigned int CIRCULAR_BUFFER_SIZE = 30;
 // Maximum bytes to flush at once, consider a bitrate of 3500 bps
 constexpr unsigned int MAX_FLUSH_SIZE = 250;  // [bytes]
 
-constexpr uint8_t MAV_SYSTEM_ID    = MAV_SYSID_RIG;
-constexpr uint8_t MAV_COMPONENT_ID = 0;
+constexpr uint8_t MAV_SYSTEM_ID = MAV_SYSID_RIG;
+
+// Request ID used when sending a spontaneus message
+constexpr uint8_t MAV_DEFAULT_REQUEST_ID = 255;
 
 constexpr long long LAST_COMMAND_THRESHOLD = 300;
 
