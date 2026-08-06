@@ -44,8 +44,8 @@ constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float FIRST_PRESSURIZATION_TARGET_PRESSURE = 67.0f;  // [Bar]
-constexpr float RAMPUP_TARGET_PRESSURE               = 67.0f;  // [Bar]
+constexpr float FIRST_PRESSURIZATION_TARGET_PRESSURE = 55.0f;  // [Bar]
+constexpr float RAMPUP_TARGET_PRESSURE               = 55.0f;  // [Bar]
 constexpr float PILOT_FLAME_PRECHARGE                = 0.1844f;
 constexpr float RAMPUP_PRECHARGE                     = 1.4346f;
 constexpr Hertz UPDATE_RATE                          = 100_hz;
@@ -54,7 +54,7 @@ constexpr int FILTER_SAMPLES                         = 3;
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
 const static Boardcore::EregPIDConfig STABILIZING_CONFIG = {
-    .KP = 0.01f,
+    .KP = 0.03f,
     .KI = 0.0f,
     .KD = 0.0f,
 
@@ -70,15 +70,15 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.0898f,
+    .minServoPosition = 0.1312f,
     .minValveAngle    = 14.5f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
                        0.0036f},
 
-    .polyServoCoeff = {1.9665e-009f, -366.6910e-009f, 27.2076e-006f,
-                       -931.2557e-006f, 23.7554e-003f, -32.0883e-003f},
+    .polyServoCoeff = {8.6405e-10f, -1.6133e-07f, 1.2010e-05f, -4.4171e-04f,
+                       1.7259e-02f, 3.8871e-03f},
 };
 
 }  // namespace EregOx
@@ -94,8 +94,8 @@ constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float FIRST_PRESSURIZATION_TARGET_PRESSURE = 66.0f;  // [Bar]
-constexpr float RAMPUP_TARGET_PRESSURE               = 66.0f;  // [Bar]
+constexpr float FIRST_PRESSURIZATION_TARGET_PRESSURE = 50.0f;  // [Bar]
+constexpr float RAMPUP_TARGET_PRESSURE               = 50.0f;  // [Bar]
 constexpr float PILOT_FLAME_PRECHARGE                = 0.0502f;
 constexpr float RAMPUP_PRECHARGE                     = 0.2511f;
 constexpr Hertz UPDATE_RATE                          = 100_hz;
@@ -120,16 +120,15 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.1398f,
-
-    .minValveAngle = 21.0f,
-    .maxCv         = 0.912291f,
+    .minServoPosition = 0.1622f,
+    .minValveAngle    = 21.0f,
+    .maxCv            = 0.912291f,
 
     .polyValveCoeff = {11.5576f, -27.1038f, 23.5596f, -9.4317f, 2.3962f,
                        0.0032f},
 
-    .polyServoCoeff = {0.0f, 0.0f, 1.9606e-006f, -166.9722e-006f, 12.4068e-003f,
-                       2.4314e-003f},
+    .polyServoCoeff = {0.0f, 0.0f, 1.6463e-06f, -1.7156e-04f, 1.3502e-02f,
+                       1.2102e-02f},
 };
 
 }  // namespace EregFuel

@@ -225,7 +225,7 @@ void Actuators::initializeValves()
 
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         OX_VEN, expander1, PCA9685Utils::Channel::CHANNEL_0));
-    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
+    valveInfos.push_back(MAKE_SMALL_PCA_SERVO_VALVE(
         FUEL_VEN, expander1, PCA9685Utils::Channel::CHANNEL_1));
 
     // Solenoid valves connected to the gpio expander

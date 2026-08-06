@@ -57,7 +57,7 @@ namespace Servos
 
 // Pulse width for normal (74 kg) servos
 constexpr unsigned int MIN_PULSE = 500;
-constexpr unsigned int MAX_PULSE = 2440;
+constexpr unsigned int MAX_PULSE = 2500;
 
 // Pulse width for small (16 kg) servos
 constexpr unsigned int SMALL_MIN_PULSE = 900;

@@ -345,6 +345,7 @@ void Sensors::calibrateEncoders()
     mainOxPosition->calibrate();
     oxRegPosition->calibrate();
     fuelRegPosition->calibrate();
+    oxVentPosition->calibrate();
 }
 
 std::vector<SensorInfo> Sensors::getSensorInfos()
@@ -1197,6 +1198,14 @@ bool Sensors::sensorManagerInit()
                         Config::Sensors::ADS131M08_FAST::PERIOD,
                         [this]() { injFuelPressureCallback(); });
         map.emplace(std::make_pair(injFuelPressure.get(), info));
+    }
+
+    if (oxVentPosition)
+    {
+        SensorInfo info("OxVentPosition",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { oxVentPositionCallback(); });
+        map.emplace(std::make_pair(oxVentPosition.get(), info));
     }
 
     if (internalAdc)
