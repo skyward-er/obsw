@@ -84,6 +84,7 @@ public:
     Boardcore::ServoPositionData getMainFuelPosition();
     Boardcore::ServoPositionData getOxRegPosition();
     Boardcore::ServoPositionData getFuelRegPosition();
+    Boardcore::ServoPositionData getOxVentPosition();
 
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
@@ -155,6 +156,9 @@ private:
     void fuelRegPositionInit();
     void fuelRegPositionCallback();
 
+    void oxVentPositionInit();
+    void oxVentPositionCallback();
+
     void internalAdcInit();
     void internalAdcCallback();
 
@@ -206,7 +210,7 @@ private:
     std::unique_ptr<Boardcore::AnalogEncoder> mainFuelPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> oxRegPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> fuelRegPosition;
-
+    std::unique_ptr<Boardcore::AnalogEncoder> oxVentPosition;
     std::unique_ptr<Boardcore::SensorManager> manager;
 };
 

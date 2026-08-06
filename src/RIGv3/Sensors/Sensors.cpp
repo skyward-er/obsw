@@ -74,6 +74,7 @@ bool Sensors::start()
         fuelRegPositionInit();
         injOxPressureInit();
         injFuelPressureInit();
+        oxVentPositionInit();
     }
     if (!sensorManagerInit())
     {
@@ -216,6 +217,12 @@ PressureData Sensors::getInjOxPressure()
 PressureData Sensors::getInjFuelPressure()
 {
     return injFuelPressure ? injFuelPressure->getLastSample() : PressureData{};
+}
+
+ServoPositionData Sensors::getOxVentPosition()
+{
+    return oxVentPosition ? oxVentPosition->getLastSample()
+                          : ServoPositionData{};
 }
 
 CurrentData Sensors::getUmbilicalCurrent()
@@ -849,6 +856,12 @@ void Sensors::adc3Init()
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
         .gain    = 1.0};
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_3::OX_VENT_ENCODER_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
 
     adc3 = std::make_unique<ADS131M08>(getModule<Buses>()->getADC3(),
                                        getModule<Buses>()->getADC3CsPin(),
@@ -977,6 +990,27 @@ void Sensors::injFuelPressureInit()
 void Sensors::injFuelPressureCallback()
 {
     sdLogger.log(InjFuelPressureData{getInjFuelPressure()});
+}
+
+void Sensors::oxVentPositionInit()
+{
+    oxVentPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC3LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_3::OX_VENT_ENCODER_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::oxVentPositionCallback()
+{
+    sdLogger.log(OxVentPositionData{getOxVentPosition()});
 }
 
 bool Sensors::sensorManagerInit()

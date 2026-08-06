@@ -410,4 +410,20 @@ struct FuelRegPositionData : Boardcore::ServoPositionData
     }
 };
 
+struct OxVentPositionData : Boardcore::ServoPositionData
+{
+    explicit OxVentPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData(data)
+    {
+    }
+
+    OxVentPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxVentPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
 }  // namespace RIGv3

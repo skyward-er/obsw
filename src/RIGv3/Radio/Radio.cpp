@@ -838,7 +838,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId)
                     sensors->getMainChamberPressure().pressure;
                 tm.ign_cc_pressure =
                     sensors->getIgniterChamberPressure().pressure;
-                tm.inj_ox_pressure   = sensors->getInjOxPressure().pressure;
+                tm.inj_ox_pressure   = sensors->getOxVentPosition().position;
                 tm.inj_fuel_pressure = sensors->getInjFuelPressure().pressure;
 
                 auto actuators = getModule<Actuators>();

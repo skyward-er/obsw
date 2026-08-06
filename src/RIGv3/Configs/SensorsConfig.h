@@ -120,6 +120,7 @@ constexpr auto PRZ_OX_ENCODER_CHANNEL    = Channel::CHANNEL_2;
 constexpr auto PRZ_FUEL_ENCODER_CHANNEL  = Channel::CHANNEL_3;
 constexpr auto INJ_OX_PT_CHANNEL         = Channel::CHANNEL_5;
 constexpr auto INJ_FUEL_PT_CHANNEL       = Channel::CHANNEL_4;
+constexpr auto OX_VENT_ENCODER_CHANNEL   = Channel::CHANNEL_6;
 
 }  // namespace ADC_3
 
@@ -151,7 +152,7 @@ constexpr float PRZ_FILLING_MAX_PRESSURE  = 400.0f;  // bar
 constexpr float OX_VESSEL_MAX_PRESSURE    = 100.0f;  // bar
 constexpr float OX_FILLING_MAX_PRESSURE   = 100.0f;  // bar
 
-constexpr float PRZ_TANK_MAX_PRESSURE        = 400.0f;  // bar
+constexpr float PRZ_TANK_MAX_PRESSURE        = 250.0f;  // bar
 constexpr float REG_OUT_MAX_PRESSURE         = 250.0f;  // bar
 constexpr float OX_TANK_MAX_PRESSURE         = 100.0f;  // bar
 constexpr float FUEL_TANK_MAX_PRESSURE       = 100.0f;  // bar
