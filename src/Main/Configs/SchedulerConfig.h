@@ -34,15 +34,18 @@ namespace Scheduler
 {
 
 // Used for NAS related activities (state machines/scheduler)
-static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 1;
+static const miosix::Priority NAS_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for SDA related activities (state machines/scheduler)
-static const miosix::Priority SDA_PRIORITY = miosix::PRIORITY_MAX - 1;
+static const miosix::Priority SDA_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for ABK related activities (state machines/scheduler)
-static const miosix::Priority ABK_PRIORITY = miosix::PRIORITY_MAX - 1;
+static const miosix::Priority ABK_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for ADA related activities (state machines/scheduler)
 static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
+// Used for ZVK related activities (state machines/scheduler)
+static const miosix::Priority ZVK_PRIORITY = miosix::PRIORITY_MAX - 2;
+
 // Used for Sensors TaskScheduler
-static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 2;
+static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 1;
 // Used for everything else:
 // - Radio periodic telemetry
 // - CanBus periodic heartbeat
