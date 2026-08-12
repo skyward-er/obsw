@@ -21,6 +21,7 @@
             "${workspaceFolder}/skyward-boardcore/src/shared",
             "${workspaceFolder}/skyward-boardcore/src/tests",
             "${workspaceFolder}/skyward-boardcore/version"
+
         ]
     },
     "configurations": [
