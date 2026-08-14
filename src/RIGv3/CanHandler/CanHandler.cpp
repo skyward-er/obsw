@@ -22,9 +22,8 @@
 
 #include "CanHandler.h"
 
-// #include <RIGv3/Actuators/Actuators.h>
 #include <RIGv3/BoardScheduler.h>
-// #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
+#include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
@@ -65,8 +64,8 @@ bool CanHandler::start()
         {
             LoggerStats stats = sdLogger.getStats();
 
-            /* GroundModeManagerState state =
-                getModule<GroundModeManager>()->getState(); */
+            GroundModeManagerState state =
+                getModule<GroundModeManager>()->getState();
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::MEDIUM),
@@ -76,8 +75,8 @@ bool CanHandler::start()
                 DeviceStatus{
                     TimestampTimer::getTimestamp(),
                     static_cast<int16_t>(stats.logNumber),
-                    static_cast<uint8_t>(true /* state */),
-                    true /* state == GroundModeManagerState::ARMED */,
+                    static_cast<uint8_t>(state),
+                    state == GroundModeManagerState::ARMED,
                     false,
                     stats.lastWriteError == 0,
                 });

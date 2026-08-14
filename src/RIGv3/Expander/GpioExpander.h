@@ -60,6 +60,21 @@ public:
         expander->setPinMode(Config::GpioExpander::ARMING_LIGHT_PIN.getPort(),
                              Config::GpioExpander::ARMING_LIGHT_PIN.getPin(),
                              Boardcore::MCP23S17Defs::MODE::OUTPUT);
+        expander->setPinMode(Config::GpioExpander::RPO_CLOCK.getPort(),
+                             Config::GpioExpander::RPO_CLOCK.getPin(),
+                             Boardcore::MCP23S17Defs::MODE::OUTPUT);
+        expander->setPinMode(Config::GpioExpander::RPO_ENGINE.getPort(),
+                             Config::GpioExpander::RPO_ENGINE.getPin(),
+                             Boardcore::MCP23S17Defs::MODE::OUTPUT);
+        expander->setPinMode(Config::GpioExpander::RPO_MAIN.getPort(),
+                             Config::GpioExpander::RPO_MAIN.getPin(),
+                             Boardcore::MCP23S17Defs::MODE::OUTPUT);
+        expander->setPinMode(Config::GpioExpander::RPO_COTS.getPort(),
+                             Config::GpioExpander::RPO_COTS.getPin(),
+                             Boardcore::MCP23S17Defs::MODE::OUTPUT);
+        expander->setPinMode(Config::GpioExpander::RPO_UMBILICAL.getPort(),
+                             Config::GpioExpander::RPO_UMBILICAL.getPin(),
+                             Boardcore::MCP23S17Defs::MODE::OUTPUT);
 
         return true;
     }
