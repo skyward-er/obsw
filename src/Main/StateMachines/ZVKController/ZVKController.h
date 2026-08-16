@@ -52,6 +52,16 @@ public:
 
     ZVKOut getZVKOut();
 
+    //  imu0 = LSM6DSRX "High" -> Accelerometer1Bias / Gyroscope1Bias
+    Eigen::Vector3f getAcc1Bias();
+    Eigen::Vector3f getGyro1Bias();
+    //  imu1 = LSM6DSRX "Low"  -> Accelerometer2Bias / Gyroscope2Bias
+    Eigen::Vector3f getAcc2Bias();
+    Eigen::Vector3f getGyro2Bias();
+    //  vn100
+    Eigen::Vector3f getAccVN100Bias();
+    Eigen::Vector3f getGyroVN100Bias();
+
 private:
     void update();
 
@@ -71,7 +81,7 @@ private:
     miosix::FastMutex zvkMutex;
     size_t zvkTaskId;
     ZVK::ZVK zvk;
-    ZVKOut zvkOut;
+    ZVKOut zvkOut{};
 };
 
 }  // namespace Main

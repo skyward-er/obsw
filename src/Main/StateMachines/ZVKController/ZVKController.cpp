@@ -53,6 +53,48 @@ ZVKOut ZVKController::getZVKOut()
     return zvkOut;
 }
 
+Vector3f ZVKController::getAcc1Bias()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return {zvkOut.Accelerometer1Bias[0], zvkOut.Accelerometer1Bias[1],
+            zvkOut.Accelerometer1Bias[2]};
+}
+
+Vector3f ZVKController::getAcc2Bias()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return {zvkOut.Accelerometer2Bias[0], zvkOut.Accelerometer2Bias[1],
+            zvkOut.Accelerometer2Bias[2]};
+}
+
+Vector3f ZVKController::getAccVN100Bias()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return {zvkOut.AccelerometerVN100Bias[0], zvkOut.AccelerometerVN100Bias[1],
+            zvkOut.AccelerometerVN100Bias[2]};
+}
+
+Vector3f ZVKController::getGyro1Bias()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return {zvkOut.Gyroscope1Bias[0], zvkOut.Gyroscope1Bias[1],
+            zvkOut.Gyroscope1Bias[2]};
+}
+
+Vector3f ZVKController::getGyro2Bias()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return {zvkOut.Gyroscope2Bias[0], zvkOut.Gyroscope2Bias[1],
+            zvkOut.Gyroscope2Bias[2]};
+}
+
+Vector3f ZVKController::getGyroVN100Bias()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return {zvkOut.GyroscopeVN100Bias[0], zvkOut.GyroscopeVN100Bias[1],
+            zvkOut.GyroscopeVN100Bias[2]};
+}
+
 bool ZVKController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->getZvkScheduler();
