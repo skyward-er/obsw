@@ -511,8 +511,6 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
     if (state != WingControllerState::IDLE)
         return false;
 
-    auto nas          = getModule<NASController>();
-    auto nasRef       = nas->getReferenceValues();
     targetPositionGEO = Coordinates{latitude, longitude};
 
     getModule<LandingFlare>()->setTargetGEO({latitude, longitude});
