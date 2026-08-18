@@ -105,8 +105,8 @@ void WingAlgorithm::step()
         // Log the data setting the timestamp to the absolute one
         WingAlgorithmData data;
         data.timestamp   = TimestampTimer::getTimestamp();
-        data.servo1Angle = steps[stepIndex].servo1Angle;
-        data.servo2Angle = steps[stepIndex].servo2Angle;
+        data.servo1Angle = Radian(Degree(steps[stepIndex].servo1Angle)).value();
+        data.servo2Angle = Radian(Degree(steps[stepIndex].servo2Angle)).value();
 
         // After copy i can log the actual step
         SDlogger->log(data);

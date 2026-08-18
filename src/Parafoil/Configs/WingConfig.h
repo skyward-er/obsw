@@ -97,12 +97,12 @@ constexpr auto TARGET_LON = 8.4559285;
 // constexpr auto TARGET_LON = 9.1544219;
 
 // Giretto Auto, Incrocio ferrovia punta della goccia bovisa
-// constexpr auto TARGET_LAT = 45.49856;
-// constexpr auto TARGET_LON = 9.15916;
+constexpr auto TARGET_LAT = 45.49856;
+constexpr auto TARGET_LON = 9.15916;
 
 // Giretto Piedi Guidance Autocoded 09/07/2026
-constexpr auto TARGET_LAT = 45.5014601;
-constexpr auto TARGET_LON = 9.1554561;
+// constexpr auto TARGET_LAT = 45.5014601;
+// constexpr auto TARGET_LON = 9.1554561;
 
 #endif
 

@@ -87,9 +87,11 @@ void AutomaticWingAlgorithm::step()
         {
             miosix::Lock<FastMutex> l(mutex);
 
-            data.timestamp   = TimestampTimer::getTimestamp();
-            data.servo1Angle = result > Degree(0) ? 0 : -result.value();
-            data.servo2Angle = result > Degree(0) ? result.value() : 0;
+            data.timestamp = TimestampTimer::getTimestamp();
+            data.servo1Angle =
+                Radian(result) > 0.0_rad ? 0 : -Radian(result).value();
+            data.servo2Angle =
+                Radian(result) > 0.0_rad ? Radian(result).value() : 0;
             SDlogger->log(data);
         }
     }

@@ -103,8 +103,8 @@ void AutocodedWingAlgorithm::step()
         miosix::Lock<FastMutex> l(mutex);
 
         data.timestamp   = TimestampTimer::getTimestamp();
-        data.servo1Angle = leftCommand.value();
-        data.servo2Angle = rightCommand.value();
+        data.servo1Angle = Radian(leftCommand).value();
+        data.servo2Angle = Radian(rightCommand).value();
         SDlogger->log(data);
     }
 
