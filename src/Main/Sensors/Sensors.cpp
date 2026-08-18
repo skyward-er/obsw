@@ -23,6 +23,7 @@
 #include "Sensors.h"
 
 #include <Main/Configs/SensorsConfig.h>
+#include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
@@ -405,6 +406,22 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRXLowLastSample()
         sample.angularSpeedY = correctedGyro.y();
         sample.angularSpeedZ = correctedGyro.z();
     }
+#if defined(DUAL_LSM6)
+    // LSM6DSRX_Low is ZVK's imu1 -> Accelerometer2Bias / Gyroscope2Bias
+    if (auto* zvkController = getModule<ZVKController>())
+    {
+        auto accBias  = zvkController->getAcc2Bias();
+        auto gyroBias = zvkController->getGyro2Bias();
+
+        sample.accelerationX -= accBias.x();
+        sample.accelerationY -= accBias.y();
+        sample.accelerationZ -= accBias.z();
+
+        sample.angularSpeedX -= gyroBias.x();
+        sample.angularSpeedY -= gyroBias.y();
+        sample.angularSpeedZ -= gyroBias.z();
+    }
+#endif
     return sample;
 }
 
@@ -426,6 +443,23 @@ LSM6DSRXData Sensors::getCalibratedLSM6DSRXHighLastSample()
         sample.angularSpeedY = correctedGyro.y();
         sample.angularSpeedZ = correctedGyro.z();
     }
+
+#if defined(DUAL_LSM6)
+    // LSM6DSRX_High is ZVK's imu0 -> Accelerometer1Bias / Gyroscope1Bias
+    if (auto* zvkController = getModule<ZVKController>())
+    {
+        auto accBias  = zvkController->getAcc1Bias();
+        auto gyroBias = zvkController->getGyro1Bias();
+
+        sample.accelerationX -= accBias.x();
+        sample.accelerationY -= accBias.y();
+        sample.accelerationZ -= accBias.z();
+
+        sample.angularSpeedX -= gyroBias.x();
+        sample.angularSpeedY -= gyroBias.y();
+        sample.angularSpeedZ -= gyroBias.z();
+    }
+#endif
     return sample;
 }
 
@@ -447,6 +481,22 @@ VN100SpiData Sensors::getCalibratedVN100LastSample()
         sample.angularSpeedY = correctedGyro.y();
         sample.angularSpeedZ = correctedGyro.z();
     }
+
+#if !defined(DUAL_LSM6)
+    if (auto* zvkController = getModule<ZVKController>())
+    {
+        auto accBias  = zvkController->getAccVN100Bias();
+        auto gyroBias = zvkController->getGyroVN100Bias();
+
+        sample.accelerationX -= accBias.x();
+        sample.accelerationY -= accBias.y();
+        sample.accelerationZ -= accBias.z();
+
+        sample.angularSpeedX -= gyroBias.x();
+        sample.angularSpeedY -= gyroBias.y();
+        sample.angularSpeedZ -= gyroBias.z();
+    }
+#endif
     return sample;
 }
 

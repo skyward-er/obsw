@@ -54,8 +54,11 @@
 namespace Main
 {
 
+class ZVKController;
+
 class Sensors
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder>
+    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder,
+                                           ZVKController>
 {
 public:
     Sensors() {}
