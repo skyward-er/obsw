@@ -59,7 +59,7 @@ constexpr auto WING_DECREMENT               = 180_deg;
 constexpr auto INITIAL_ANGLE                = 1080_deg;
 
 constexpr auto SERVOS_MAX_ANGLE         = 1080_deg;
-constexpr auto SERVO_LIMITER_PERCENTAGE = 0.7f;
+constexpr auto SERVO_LIMITER_PERCENTAGE = 0.8f;
 
 constexpr auto SERVO_LEFT_MIN_ANGLE = 0_deg;
 constexpr auto SERVO_LEFT_MAX_ANGLE = SERVOS_MAX_ANGLE;
@@ -200,7 +200,7 @@ constexpr float SCALE_FACTOR     = 1.1;
 namespace Deployment
 {
 
-constexpr auto PUMP_DELAY       = 2s;
+constexpr auto PUMP_DELAY       = 3s;
 constexpr auto PUMP_ANGLE_LEFT  = 720_deg;
 constexpr auto PUMP_ANGLE_RIGHT = 720_deg;
 struct Pump
@@ -229,7 +229,7 @@ constexpr auto ENABLED = true;
 #endif
 
 #if defined(JESOLO)
-constexpr Meter ALTITUDE = 50_m;  // [m]
+constexpr Meter ALTITUDE = 30_m;  // [m]
 #elif defined(CASALE_MONFERRATO)
 constexpr Meter ALTITUDE = 50_m;  // [m]
 #elif defined(MILANO)
@@ -240,8 +240,8 @@ constexpr Meter ALTITUDE = 30_m;  // [m]
 constexpr int CONFIDENCE         = 15;  // [samples]
 constexpr auto UPDATE_RATE       = 50_hz;
 constexpr auto DURATION          = 120s;
-constexpr auto ANGLE_LEFT_SERVO  = 900_deg;
-constexpr auto ANGLE_RIGHT_SERVO = 900_deg;
+constexpr auto ANGLE_LEFT_SERVO  = 1080_deg;
+constexpr auto ANGLE_RIGHT_SERVO = 1080_deg;
 
 namespace TinyPull
 {
@@ -281,12 +281,15 @@ constexpr auto ALTITUDE_MAP_ADDRESS = nullptr;
 
 namespace Rotation
 {
-constexpr auto ROTATION_PERIOD = 6s;  ///< Period of the rotation maneuver
+constexpr auto ROTATION_PERIOD = 300s;  ///< Period of the rotation maneuver
 // constexpr std::initializer_list<Degree> ROTATION_LEFT  = {720_deg, 360_deg,
-//                                                           180_deg, 0_deg};
-constexpr std::initializer_list<Degree> ROTATION_LEFT  = {0_deg};
-constexpr std::initializer_list<Degree> ROTATION_RIGHT = {
-    720_deg, 540_deg, 360_deg, 180_deg, 0_deg};
+//                                                            180_deg, 0_deg};
+// constexpr std::initializer_list<Degree> ROTATION_LEFT  = {0_deg};
+//  constexpr std::initializer_list<Degree> ROTATION_RIGHT = {
+//      720_deg, 540_deg, 360_deg, 180_deg, 0_deg};
+constexpr std::initializer_list<Degree> ROTATION_LEFT  = {720_deg};
+constexpr std::initializer_list<Degree> ROTATION_RIGHT = {0_deg};
+
 }  // namespace Rotation
 
 }  // namespace Wing
