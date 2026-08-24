@@ -133,15 +133,17 @@ constexpr bool PRZ_FIL_FLIPPED   = false;
 constexpr bool PRZ_REL_FLIPPED   = false;
 constexpr bool MAIN_FUEL_FLIPPED = true;
 constexpr bool NITR_FLIPPED      = true;
-constexpr bool OX_VEN_FLIPPED    = true;
-constexpr bool PRZ_QUE_FLIPPED   = false;
-constexpr bool MAIN_OX_FLIPPED   = true;
-constexpr bool FUEL_VEN_FLIPPED  = true;
-constexpr bool IGN_OX_FLIPPED    = false;
-constexpr bool IGN_FUEL_FLIPPED  = false;
-constexpr bool PRZ_DET_FLIPPED   = false;
-constexpr bool OX_DET_FLIPPED    = false;
-constexpr bool PURGE_FLIPPED     = false;
+// Solo per test TANK type V
+constexpr bool OX_VEN_FLIPPED  = false;
+constexpr bool PRZ_QUE_FLIPPED = false;
+// Solo per test TANK type V
+constexpr bool MAIN_OX_FLIPPED  = false;
+constexpr bool FUEL_VEN_FLIPPED = true;
+constexpr bool IGN_OX_FLIPPED   = false;
+constexpr bool IGN_FUEL_FLIPPED = false;
+constexpr bool PRZ_DET_FLIPPED  = false;
+constexpr bool OX_DET_FLIPPED   = false;
+constexpr bool PURGE_FLIPPED    = false;
 
 }  // namespace Servos
 }  // namespace Config

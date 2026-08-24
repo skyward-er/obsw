@@ -125,10 +125,10 @@ State TARS1::Refueling(const Event& event)
             cycleCount = 0;
 
             ventingTime = milliseconds{
-                actuators->getValveOpeningTime(ServosList::PRZ_RELEASE_VALVE)};
+                actuators->getValveOpeningTime(ServosList::OX_VENTING_VALVE)};
 
             fillingTime = milliseconds{
-                actuators->getValveOpeningTime(ServosList::PRZ_FILLING_VALVE)};
+                actuators->getValveOpeningTime(ServosList::MAIN_OX_VALVE)};
 
             stabilizationTime = milliseconds{
                 actuators->getValveOpeningTime(ServosList::OX_RELEASE_VALVE)};
@@ -139,8 +139,8 @@ State TARS1::Refueling(const Event& event)
                      ventingTime.count());
 
             // Initialize the valves to a known closed state
-            actuators->closeValve(ServosList::PRZ_FILLING_VALVE);
-            actuators->closeValve(ServosList::PRZ_RELEASE_VALVE);
+            actuators->closeValve(ServosList::MAIN_OX_VALVE);
+            actuators->closeValve(ServosList::OX_VENTING_VALVE);
 
             LOG_INFO(logger, "TARS1 refueling start");
             updateAndLogAction(Tars1Action::START);
@@ -159,7 +159,7 @@ State TARS1::Refueling(const Event& event)
             updateAndLogAction(Tars1Action::MANUAL_ACTION_STOP);
 
             // Close the filling valve as safety measure on manual action
-            getModule<Actuators>()->closeValve(ServosList::PRZ_FILLING_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
             return transition(&TARS1::Ready);
         }
 
@@ -168,8 +168,8 @@ State TARS1::Refueling(const Event& event)
             LOG_INFO(logger, "TARS1 stopped because of stop command");
             updateAndLogAction(Tars1Action::MANUAL_STOP);
 
-            getModule<Actuators>()->closeValve(ServosList::PRZ_FILLING_VALVE);
-            getModule<Actuators>()->closeValve(ServosList::PRZ_RELEASE_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::OX_VENTING_VALVE);
             return transition(&TARS1::Ready);
         }
 
@@ -178,8 +178,8 @@ State TARS1::Refueling(const Event& event)
             LOG_INFO(logger, "TARS1 stopped because mass target reached");
             updateAndLogAction(Tars1Action::AUTOMATIC_STOP);
 
-            actuators->closeValve(ServosList::PRZ_FILLING_VALVE);
-            actuators->closeValve(ServosList::PRZ_RELEASE_VALVE);
+            actuators->closeValve(ServosList::MAIN_OX_VALVE);
+            actuators->closeValve(ServosList::OX_VENTING_VALVE);
             return transition(&TARS1::Ready);
         }
 
@@ -213,8 +213,8 @@ State TARS1::RefuelingFilling(const Event& event)
             cycleCount++;
 
             // Open the filling valve
-            getModule<Actuators>()->openValveWithTime(
-                ServosList::PRZ_FILLING_VALVE, fillingTime.count());
+            getModule<Actuators>()->openValveWithTime(ServosList::MAIN_OX_VALVE,
+                                                      fillingTime.count());
 
             EventBroker::getInstance().postDelayed(
                 TARS_FILLING_DONE, TOPIC_TARS, fillingTime.count());
@@ -269,12 +269,13 @@ State TARS1::RefuelingVenting(const Event& event)
             updateAndLogAction(Tars1Action::VENTING);
 
             getModule<Actuators>()->openValveWithTime(
-                ServosList::PRZ_RELEASE_VALVE, ventingTime.count());
+                ServosList::OX_VENTING_VALVE, ventingTime.count());
 
             return HANDLED;
         }
 
-        case MOTOR_PRZ_REL_CLOSE:
+        // case MOTOR_PRZ_REL_CLOSE:
+        case MOTOR_OX_VEN_CLOSE:
         {
             delayedEventId = EventBroker::getInstance().postDelayed(
                 TARS_PRESSURE_STABILIZED, TOPIC_TARS,
