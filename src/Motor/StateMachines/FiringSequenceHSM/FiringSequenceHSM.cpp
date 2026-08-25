@@ -25,6 +25,7 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Configs/FiringSequenceConfig.h>
+#include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
 #include <common/Events.h>
@@ -234,7 +235,6 @@ State FiringSequenceHSM::state_ready(const Event& event)
             return HANDLED;
         }
 
-        case FIRING_SEQUENCE_START:
         {
             return transition(&FiringSequenceHSM::state_igniter);
         }
@@ -646,8 +646,14 @@ State FiringSequenceHSM::state_ended(const Event& event)
     {
         case EV_ENTRY:
         {
+            bool hil = PersistentVars::getHilMode();
             updateAndLogStatus(FiringSequenceState::ENDED);
-            EventBroker::getInstance().post(MEA_STOP, TOPIC_MEA);
+
+            // If not HIL then stop MEA. If HIL then it will be stopped by the
+            // Firing Sequence received by CHAD
+            if (!hil)
+                EventBroker::getInstance().post(MEA_STOP, TOPIC_MEA);
+
             return HANDLED;
         }
 

@@ -29,14 +29,15 @@ namespace Motor
 {
 
 // Sensors Data
-using MotorHILChamberBarometerData =
+using MotorHILCCPressureData =
     Boardcore::BarometerSimulatorData<Config::HIL::N_DATA_BARO_CHAMBER>;
 
 enum class HILSignal : int
 {
     SIMULATION_STARTED      = 1,
     SIMULATION_STOPPED      = 2,
-    SIMULATION_FORCE_LAUNCH = 3
+    SIMULATION_FORCE_LAUNCH = 3,
+    SIMULATION_IGNITION     = 4
 };
 
 enum class MotorFlightPhases
@@ -46,37 +47,24 @@ enum class MotorFlightPhases
 
 struct ActuatorsStateHIL
 {
-    float mainValvePercentage        = 0;
-    float oxVentingValvePercentage   = 0;
-    float nitrogenValvePercentage    = 0;
-    float n2QuenchingValvePercentage = 0;
+    float mainValvePosition = 0;
 
-    ActuatorsStateHIL()
-        : mainValvePercentage(0.0f), oxVentingValvePercentage(0.0f),
-          nitrogenValvePercentage(0.0f), n2QuenchingValvePercentage(0.0f)
-    {
-    }
+    ActuatorsStateHIL() : mainValvePosition(0.0f) {};
 
-    ActuatorsStateHIL(float mainValvePercentage, float oxVentingValvePercentage,
-                      float nitrogenValvePercentage,
-                      float n2QuenchingValvePercentage)
-        : mainValvePercentage(mainValvePercentage),
-          oxVentingValvePercentage(oxVentingValvePercentage),
-          nitrogenValvePercentage(nitrogenValvePercentage),
-          n2QuenchingValvePercentage(n2QuenchingValvePercentage)
-    {
-    }
+    explicit ActuatorsStateHIL(float position) : mainValvePosition(position) {};
 
-    void print()
-    {
-        printf(
-            "mainValve: %f perc\n"
-            "oxVenting: %f perc\n"
-            "nitrogen: %f perc\n"
-            "n2Quenching: %f perc\n",
-            mainValvePercentage * 100, oxVentingValvePercentage * 100,
-            nitrogenValvePercentage * 100, n2QuenchingValvePercentage * 100);
-    }
+    void print() { printf("main valve: %f perc\n", mainValvePosition); }
+};
+
+struct MEAStateHIL
+{
+    float MEAMass = 0;
+
+    MEAStateHIL() : MEAMass(0.0f) {};
+
+    MEAStateHIL(float position) : MEAMass(position) {};
+
+    void print() { printf("MEA mass: %f\n", MEAMass); }
 };
 
 /**
@@ -88,7 +76,8 @@ struct ActuatorsStateHIL
  */
 struct SimulatorData
 {
-    MotorHILChamberBarometerData pressureChamber;
+    MotorHILCCPressureData pressureChamber;
+    uint8_t FiringSequenceState;
     float signal;
 };
 
@@ -98,15 +87,17 @@ struct SimulatorData
 struct ActuatorData
 {
     ActuatorsStateHIL actuatorsState;
+    MEAStateHIL meaState;
     float sequenceNumber;  //< Counter used to see the sequence of packets sent
                            // to the
                            // simulator
 
-    ActuatorData() : actuatorsState(), sequenceNumber(0.0f) {}
+    ActuatorData() : actuatorsState(), meaState(0.0f), sequenceNumber(0.0f) {}
 
     explicit ActuatorData(const ActuatorsStateHIL& actuatorsState,
-                          float sequenceNumber)
-        : actuatorsState(actuatorsState), sequenceNumber(sequenceNumber)
+                          const MEAStateHIL& meaState, float sequenceNumber)
+        : actuatorsState(actuatorsState), meaState(meaState),
+          sequenceNumber(sequenceNumber)
     {
     }
 

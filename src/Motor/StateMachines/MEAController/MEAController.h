@@ -23,6 +23,7 @@
 #pragma once
 
 #include <Motor/StateMachines/MEAController/MEAControllerData.h>
+#include <Motor/HIL/HIL.h>
 #include <algorithms/AlgorithmsData.h>
 #include <events/FSM.h>
 #include <mea/MEA.h>
@@ -38,7 +39,7 @@ class Sensors;
 class MEAController
     : public Boardcore::FSM<MEAController>,
       public Boardcore::InjectableWithDeps<Sensors, BoardScheduler,
-                                           FiringSequenceHSM>
+                                           FiringSequenceHSM, MotorHIL>
 {
 public:
     MEAController();
