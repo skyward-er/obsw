@@ -55,7 +55,7 @@ set(GROUNDSTATION_COMMON
 
 set(MOTOR_SOURCES
     src/Motor/PersistentVars/PersistentVars.cpp
-    #src/Motor/HIL/HIL.cpp
+    src/Motor/HIL/HIL.cpp
     src/Motor/Actuators/Actuators.cpp
     src/Motor/Sensors/Sensors.cpp
     src/Motor/CanHandler/CanHandler.cpp

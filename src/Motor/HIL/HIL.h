@@ -33,6 +33,8 @@
 
 namespace Motor
 {
+    
+class MEAController;
 
 class MotorHILTransceiver
     : public Boardcore::HILTransceiver<MotorFlightPhases, SimulatorData,
@@ -47,8 +49,7 @@ class MotorHILPhasesManager
                                          ActuatorData>
 {
 public:
-    explicit MotorHILPhasesManager(
-        std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition);
+    explicit MotorHILPhasesManager();
 
     void processFlagsImpl(
         const SimulatorData& simulatorData,
@@ -64,7 +65,7 @@ private:
 
 class MotorHIL
     : public Boardcore::HIL<MotorFlightPhases, SimulatorData, ActuatorData>,
-      public Boardcore::InjectableWithDeps<Buses, Actuators>
+      public Boardcore::InjectableWithDeps<Buses, Actuators, MEAController>
 
 {
 public:

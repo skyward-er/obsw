@@ -45,7 +45,7 @@ private:
     {
         using namespace Boardcore;
 
-        hillificator<>(ccPressure, enableHw,
+        hillificator<>(mainCCPressure, enableHw,
                        [this]() { return updateChamberPressureSensorData(); });
 
         return true;

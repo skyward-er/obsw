@@ -24,9 +24,9 @@
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
-// #include <Motor/HIL/HIL.h>
+#include <Motor/HIL/HIL.h>
 #include <Motor/PersistentVars/PersistentVars.h>
-// #include <Motor/Sensors/HILSensors.h>
+#include <Motor/Sensors/HILSensors.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
@@ -90,18 +90,18 @@ int main()
 
     auto& sdLogger = Logger::getInstance();
 
-    // // HIL
-    // MotorHIL* hil = nullptr;
-    // if (PersistentVars::getHilMode())
-    // {
-    //     hil = new MotorHIL();
-    //     initResult &= manager.insert<MotorHIL>(hil);
-    //     sensors = new HILSensors(Config::HIL::ENABLE_HW);
-    // }
-    // else
-    // {
+    // HIL
+    MotorHIL* hil = nullptr;
+    if (PersistentVars::getHilMode())
+    {
+        hil = new MotorHIL();
+        initResult &= manager.insert<MotorHIL>(hil);
+        sensors = new HILSensors(Config::HIL::ENABLE_HW);
+    }
+    else
+    {
     sensors = new Sensors();
-    // }
+    }
 
     initResult &= manager.insert<Buses>(buses) &&
                   manager.insert<BoardScheduler>(scheduler) &&
@@ -189,17 +189,17 @@ int main()
         setStatus(StatusBit::CAN_HANDLER);
     }
 
-    // if (hil)
-    // {
-    //     if (!hil->start())
-    //     {
-    //         initResult = false;
-    //         std::cerr << "*** Error failed to start HIL ***" << std::endl;
-    //     }
+    if (hil)
+    {
+        if (!hil->start())
+        {
+            initResult = false;
+            std::cerr << "*** Error failed to start HIL ***" << std::endl;
+        }
 
-    //     // Waiting for start of simulation
-    //     hil->waitStartSimulation();
-    // }
+         // Waiting for start of simulation
+         hil->waitStartSimulation();
+    }
 
     std::cout << "Starting Registry" << std::endl;
     if (!registry->start())

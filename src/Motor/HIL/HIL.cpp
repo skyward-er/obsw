@@ -25,6 +25,7 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Buses.h>
 #include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/StateMachines/MEAController/MEAController.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
@@ -34,10 +35,9 @@
 namespace Motor
 {
 
-MotorHILPhasesManager::MotorHILPhasesManager(
-    std::function<Boardcore::TimedTrajectoryPoint()> getCurrentPosition)
+MotorHILPhasesManager::MotorHILPhasesManager()
     : Boardcore::HILPhasesManager<MotorFlightPhases, SimulatorData,
-                                  ActuatorData>(getCurrentPosition)
+                                  ActuatorData>()
 {
     flagsFlightPhases = {{MotorFlightPhases::SIMULATION_STARTED, false}};
 
@@ -57,6 +57,7 @@ MotorHILPhasesManager::MotorHILPhasesManager(
     eventBroker.subscribe(this, Common::TOPIC_MOTOR);
     eventBroker.subscribe(this, Common::TOPIC_TARS);
     eventBroker.subscribe(this, Common::TOPIC_ALT);
+    eventBroker.subscribe(this, Common::TOPIC_FIRING_SEQUENCE);
 }
 
 void MotorHILPhasesManager::processFlagsImpl(
@@ -74,6 +75,11 @@ void MotorHILPhasesManager::processFlagsImpl(
     {
         Boardcore::EventBroker::getInstance().post(Common::TMTC_FORCE_LANDING,
                                                    Common::TOPIC_TMTC);
+    }
+
+    if (simulatorData.signal == static_cast<float>(HILSignal::SIMULATION_IGNITION)) {
+        Boardcore::EventBroker::getInstance().post(Common::FIRING_SEQUENCE_START,
+                                        Common::TOPIC_FIRING_SEQUENCE);
     }
 
     // set true when the first packet from the simulator arrives
@@ -114,13 +120,7 @@ bool MotorHIL::start()
 {
     auto& hilUsart = getModule<Buses>()->getHILUart();
 
-    hilPhasesManager = new MotorHILPhasesManager(
-        [&]()
-        {
-            Boardcore::TimedTrajectoryPoint timedTrajectoryPoint;
-            timedTrajectoryPoint.timestamp = Boardcore::Kernel::getOldTick();
-            return timedTrajectoryPoint;
-        });
+    hilPhasesManager = new MotorHILPhasesManager();
 
     hilTransceiver = new MotorHILTransceiver(hilUsart, hilPhasesManager);
 
@@ -131,18 +131,20 @@ bool MotorHIL::start()
 ActuatorData MotorHIL::updateActuatorData()
 {
     auto actuators = getModule<Actuators>();
+    auto mea = getModule<MEAController>();
 
     ActuatorsStateHIL actuatorsStateHIL{
-        (actuators->getServoPosition(MAIN_VALVE)),
-        (actuators->getServoPosition(OX_VENTING_VALVE)),
-        (actuators->getServoPosition(NITROGEN_VALVE)),
-        (actuators->getServoPosition(N2_QUENCHING_VALVE)),
+        (actuators->getValvePosition(MAIN_FUEL_VALVE))
+    };
+
+    MEAStateHIL meaStateHIL{
+        (mea->getMEAState().mass)
     };
 
     counter += 1.0f;
 
     // Returning the feedback for the simulator
-    return ActuatorData{actuatorsStateHIL, counter};
+    return ActuatorData{actuatorsStateHIL, meaStateHIL, counter};
 }
 
 }  // namespace Motor
