@@ -104,13 +104,13 @@ bool CanHandler::start()
 void CanHandler::sendEvent(Common::CanConfig::EventId event)
 {
     sdLogger.log(CanEvent{TimestampTimer::getTimestamp(),
-                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                          static_cast<uint8_t>(CanConfig::Board::MAIN),
                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                           static_cast<uint8_t>(event)});
 
     protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
-                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                          static_cast<uint8_t>(CanConfig::Board::MAIN),
                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                           static_cast<uint8_t>(event));
 }
