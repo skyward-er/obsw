@@ -486,13 +486,13 @@ Actuators::ManualValveInfo* Actuators::getManualValve(ServosList servo)
 {
     switch (servo)
     {
-        case MAIN_OX_VALVE:
-            return &manualValveInfos[0];
-        case MAIN_FUEL_VALVE:
-            return &manualValveInfos[1];
         case PRZ_OX_VALVE:
-            return &manualValveInfos[2];
+            return &manualValveInfos[0];
         case PRZ_FUEL_VALVE:
+            return &manualValveInfos[1];
+        case MAIN_OX_VALVE:
+            return &manualValveInfos[2];
+        case MAIN_FUEL_VALVE:
             return &manualValveInfos[3];
 
         default:
