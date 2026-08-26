@@ -63,15 +63,15 @@ bool Sensors::start()
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
-    // uint8_t taskId = getModule<BoardScheduler>()->sensors().addTask(
-    //     [this] { checkPrzTankOverpressure(); },
-    //     Config::Sensors::PrzTankOverpressure::CHECK_RATE);
+    uint8_t taskId = getModule<BoardScheduler>()->sensors().addTask(
+        [this] { checkPrzTankOverpressure(); },
+        Config::Sensors::PrzTankOverpressure::CHECK_RATE);
 
-    // if (!taskId)
-    // {
-    //     LOG_ERR(logger, "Failed to create PrzTankOverpressure task");
-    //     return false;
-    // }
+    if (!taskId)
+    {
+        LOG_ERR(logger, "Failed to create PrzTankOverpressure task");
+        return false;
+    }
 
     if (!postSensorCreationHook())
     {
@@ -889,15 +889,20 @@ void Sensors::checkPrzTankOverpressure()
     {
         auto actuators = getModule<Actuators>();
 
-        // 0.25 fisso sulla valvola
-        // Usare la Release?
-
+        // Apri al 100% OX Vent -> Prz Ox aprire 30% ( Da verificare ) per 5s
         bool alreadyOpen =
-            actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE);
+            actuators->isValveOpen(ServosList::OX_VENTING_VALVE) &&
+            actuators->isValveOpen(ServosList::PRZ_OX_VALVE);
+
         if (!alreadyOpen)
+        {
             actuators->openValveWithTime(
-                ServosList::FUEL_VENTING_VALVE,
+                ServosList::OX_VENTING_VALVE,
                 milliseconds{VENTING_DURATION}.count());
+
+            actuators->animateValve(ServosList::PRZ_OX_VALVE, .3f,
+                                    milliseconds{VENTING_DURATION}.count());
+        }
 
         przTankPressureOkTime = now;
     }

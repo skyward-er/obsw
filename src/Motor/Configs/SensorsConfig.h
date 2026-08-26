@@ -147,10 +147,10 @@ namespace PrzTankOverpressure
 {
 constexpr auto CHECK_RATE = 10_hz;
 
-// 1.2 times the setpoint regulation - 67 * 1.2 = 80.4
-constexpr float PRESSURE_THRESHOLD = 80.4;  // bar
+// 1.15 times the setpoint regulation - 220 * 1.15 = 253
+constexpr float PRESSURE_THRESHOLD = 253;  // bar
 constexpr auto HYSTERESIS          = 1s;
-constexpr auto VENTING_DURATION    = 1s;
+constexpr auto VENTING_DURATION    = 5000ms;
 }  // namespace PrzTankOverpressure
 
 }  // namespace Sensors
