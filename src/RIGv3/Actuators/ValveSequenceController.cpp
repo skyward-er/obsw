@@ -108,8 +108,8 @@ uint16_t ValveSequenceController::wiggleValves()
         [&](auto getPosition, uint8_t bit, auto closedThreshold)
     {
         bool isClosed = getPosition().position < closedThreshold;
-        return isClosed ? ~(1 << bit) + static_cast<uint8_t>(1 << bit)
-                        : ~(1 << bit);
+        return isClosed ? static_cast<uint8_t>(0xFF)
+                        : static_cast<uint8_t>(~(1 << bit));
     };
 
     uint8_t wiggleMapRIG   = 0;
@@ -194,17 +194,19 @@ uint16_t ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleMapMotor |= isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
-        4, Config::VALVE_OPENING_THRESHOLD_MAIN_FUEL);
+        4, Config::VALVE_OPENING_THRESHOLD_OX_VENTING);
     wiggleMapMotor |= isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
         },
-        5, Config::VALVE_OPENING_THRESHOLD_MAIN_OX);
+        5, Config::VALVE_OPENING_THRESHOLD_FUEL_VENTING);
 
     getModule<Actuators>()->closeValve(OX_VENTING_VALVE);
     getModule<Actuators>()->closeValve(FUEL_VENTING_VALVE);
@@ -212,17 +214,19 @@ uint16_t ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleMapMotor &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
-        4, Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL);
+        4, Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
     wiggleMapMotor &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
         },
-        5, Config::VALVE_CLOSED_THRESHOLD_MAIN_OX);
+        5, Config::VALVE_CLOSED_THRESHOLD_FUEL_VENTING);
 
     // getModule<CanHandler>()->sendEvent(CanConfig::EventId::WIGGLE_ALL_VALVES);
 
