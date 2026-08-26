@@ -366,6 +366,14 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
                                             TOPIC_VALVE_SEQUENCE);
             break;
         }
+
+        case Common::CanConfig::EventId::APOGEE_DETECTED:
+        {
+            EventBroker::getInstance().post(CAN_APOGEE_DETECTED,
+                                            TOPIC_VALVE_SEQUENCE);
+            break;
+        }
+
         default:
             // Do something in the future?
             break;

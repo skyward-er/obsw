@@ -46,7 +46,23 @@ public:
         unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
         miosix::Priority priority = miosix::MAIN_PRIORITY);
 
+    /**
+     * @brief Performs a wiggle on all valves.
+     *
+     * Opens all valves, checks if their positions exceed the open thresholds,
+     * closes them, and verifies they fall below the closed thresholds.
+     *
+     * @return A bitmask mapping the success of each valve (RIG on low byte,
+     * Motor on high byte).
+     */
     uint16_t wiggleValves();
+
+    /**
+     * @brief Closes all RIGv3 and Motor valves in a safe, timed sequence.
+     *
+     * Sequentially closes valves with safety delays, in order to avoid power
+     * surges.
+     */
     void closeValves();
 
 protected:
