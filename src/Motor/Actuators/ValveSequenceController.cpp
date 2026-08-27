@@ -54,12 +54,6 @@ void ValveSequenceController::handleEvent(const Event& ev)
             break;
         }
 
-        case CAN_APOGEE_DETECTED:
-        {
-            depressurizeTanks();
-            break;
-        }
-
         default:
             break;
     }
@@ -67,16 +61,19 @@ void ValveSequenceController::handleEvent(const Event& ev)
 
 void ValveSequenceController::closeValves()
 {
+    LOG_INFO(logger, "Closing venting valves");
     getModule<Actuators>()->closeValve(OX_VENTING_VALVE);
     getModule<Actuators>()->closeValve(FUEL_VENTING_VALVE);
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
+    LOG_INFO(logger, "Closing ignition valves");
     getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
+    LOG_INFO(logger, "Closing Ereg (PRZ) valves");
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
     getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
@@ -85,89 +82,11 @@ void ValveSequenceController::closeValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
+    LOG_INFO(logger, "Closing Main valves");
     getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
     getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
-}
 
-void ValveSequenceController::depressurizeTanks()
-{
-    auto* actuators = getModule<Actuators>();
-
-    LOG_INFO(logger, "Depressurization sequence started");
-
-    using namespace Config::DepressurizationConfig;
-
-    actuators->openValveWithTime(
-        ServosList::OX_VENTING_VALVE,
-        std::chrono::milliseconds{OX_VENTING_TIMEOUT}.count());
-    depressurizationState = DepressurizationState::OX_VENTING;
-
-    depressurizationStartTime = std::chrono::steady_clock::now();
-    lastPressureOverTime      = depressurizationStartTime;
-
-    depressurizationTaskId =
-        getModule<BoardScheduler>()->ValveSequenceController().addTask(
-            [this] { depressurizationUpdate(); }, DEPRESSURIZATION_CHECK_RATE);
-}
-
-void ValveSequenceController::depressurizationUpdate()
-{
-    using namespace Config::DepressurizationConfig;
-    auto* actuators = getModule<Actuators>();
-    auto* sensors   = getModule<Sensors>();
-    auto now        = steady_clock::now();
-
-    switch (depressurizationState)
-    {
-        case DepressurizationState::OX_VENTING:
-        {
-            if (sensors->getOxTankPressure().pressure >= OX_PRESSURE_THRESHOLD)
-                lastPressureOverTime = now;
-
-            if (now - lastPressureOverTime > OX_HYSTERESIS ||
-                now - depressurizationStartTime > OX_VENTING_TIMEOUT)
-            {
-                actuators->moveValve(ServosList::PRZ_OX_VALVE, PRZ_OX_APERTURE);
-                depressurizationState = DepressurizationState::OX_PRZ_VENTING;
-                depressurizationStartTime = now;
-                lastPressureOverTime      = now;
-                LOG_INFO(logger, "PRZ_OX opened");
-            }
-            break;
-        }
-        case DepressurizationState::OX_PRZ_VENTING:
-        {
-            if (sensors->getPrzTankPressure().pressure >=
-                PRZ_OX_PRESSURE_THRESHOLD)
-                lastPressureOverTime = now;
-            if (now - lastPressureOverTime > PRZ_OX_HYSTERESIS ||
-                now - depressurizationStartTime > PRZ_OX_TIMEOUT)
-            {
-                actuators->openValveWithTime(
-                    ServosList::PRZ_FUEL_VALVE,
-                    std::chrono::milliseconds{PRZ_FUEL_TIMEOUT}.count());
-                depressurizationState = DepressurizationState::PRZ_FUEL_VENTING;
-                depressurizationStartTime = now;
-                LOG_INFO(logger, "PRZ_FUEL opened");
-            }
-            break;
-        }
-        case DepressurizationState::PRZ_FUEL_VENTING:
-        {
-            if (now - depressurizationStartTime > PRZ_FUEL_TIMEOUT)
-            {
-                depressurizationState = DepressurizationState::DONE;
-                getModule<BoardScheduler>()
-                    ->ValveSequenceController()
-                    .disableTask(depressurizationTaskId);
-                LOG_INFO(logger, "Depressurization completed");
-            }
-            break;
-        }
-        case DepressurizationState::DONE:
-            // OX_VENT e PRZ_OX rimangono aperti, vanno chiuse?
-            break;
-    }
+    LOG_INFO(logger, "Closed all valves");
 }
 
 }  // namespace Motor

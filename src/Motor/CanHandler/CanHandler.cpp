@@ -370,7 +370,7 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
         case Common::CanConfig::EventId::APOGEE_DETECTED:
         {
             EventBroker::getInstance().post(CAN_APOGEE_DETECTED,
-                                            TOPIC_VALVE_SEQUENCE);
+                                            TOPIC_FIRING_SEQUENCE);
             break;
         }
 

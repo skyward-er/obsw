@@ -61,6 +61,8 @@ private:
     void checkIgniterPressure();
     void checkPilotFlamePressure();
 
+    void checkDepressurizationPressure();
+
     Boardcore::State state_ready(const Boardcore::Event& event);
     Boardcore::State state_igniter(const Boardcore::Event& event);
     Boardcore::State state_igniter_wait(const Boardcore::Event& event);
@@ -70,6 +72,10 @@ private:
     Boardcore::State state_full_throttle(const Boardcore::Event& event);
     Boardcore::State state_low_throttle(const Boardcore::Event& event);
     Boardcore::State state_ended(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_ox(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_prz(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_fuel(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_done(const Boardcore::Event& event);
 
     void updateAndLogStatus(FiringSequenceState state);
 
@@ -79,6 +85,8 @@ private:
 
     std::atomic<FiringSequenceState> state{FiringSequenceState::IDLE};
 
+    std::chrono::steady_clock::time_point lastPressureOverTime;
+
     uint16_t nextEventId = -1;
 
     uint8_t igniterFlameSamples = 0;
@@ -86,6 +94,13 @@ private:
 
     float igniterPressureThreshold    = 0.0f;
     float pilotFlamePressureThreshold = 0.0f;
+
+    float przTankPressureThreshold = 0.0f;
+    float oxTankPressureThreshold  = 0.0f;
+
+    uint8_t igniterTaskId          = 0;
+    uint8_t pilotFlameTaskId       = 0;
+    uint8_t depressurizationTaskId = 0;
 
     bool paramsSet = false;
 };

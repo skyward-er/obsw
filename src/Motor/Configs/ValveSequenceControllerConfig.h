@@ -54,18 +54,5 @@ constexpr auto VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 10.0f;
 constexpr auto VALVE_WIGGLE_DELAY  = 1000;  // [ms]
 constexpr auto VALVE_CLOSING_DELAY = 6500;  // [ms]
 
-namespace DepressurizationConfig
-{
-constexpr auto OX_VENTING_TIMEOUT          = 60s;
-constexpr auto DEPRESSURIZATION_CHECK_RATE = 10_hz;
-constexpr float OX_PRESSURE_THRESHOLD      = 10.0f;  // [bar]
-constexpr auto OX_HYSTERESIS               = 1s;
-
-constexpr float PRZ_OX_APERTURE           = .4f;
-constexpr float PRZ_OX_PRESSURE_THRESHOLD = 20.0f;
-constexpr auto PRZ_OX_HYSTERESIS          = 1s;
-constexpr auto PRZ_OX_TIMEOUT             = 60s;
-constexpr auto PRZ_FUEL_TIMEOUT           = 30s;
-}  // namespace DepressurizationConfig
 }  // namespace Config
 }  // namespace Motor

@@ -62,7 +62,6 @@ void FiringSequenceHSM::setFiringParams(uint32_t fullThrottleTime,
                                      oxLowThrottlePosition);
     getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_FUEL_POSITION,
                                      fuelLowThrottlePosition);
-
     paramsSet = true;
 }
 
@@ -95,15 +94,27 @@ bool FiringSequenceHSM::start()
         CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
         Config::FiringSequence::PILOT_FLAME_PRESSURE_THRESHOLD);
 
-    uint8_t igniterResult =
-        scheduler.addTask([this]() { checkIgniterPressure(); },
-                          Config::FiringSequence::UPDATE_RATE);
+    przTankPressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_PRZ_TANK_PRESSURE_THRESHOLD,
+        Config::FiringSequence::PRZ_TANK_PRESSURE_THRESHOLD);
 
-    uint8_t pilotFlameResult =
+    oxTankPressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_OX_TANK_PRESSURE_THRESHOLD,
+        Config::FiringSequence::OX_TANK_PRESSURE_THRESHOLD);
+
+    igniterTaskId = scheduler.addTask([this]() { checkIgniterPressure(); },
+                                      Config::FiringSequence::UPDATE_RATE);
+
+    pilotFlameTaskId =
         scheduler.addTask([this]() { checkPilotFlamePressure(); },
                           Config::FiringSequence::UPDATE_RATE);
 
-    if (igniterResult == 0 || pilotFlameResult == 0)
+    depressurizationTaskId =
+        scheduler.addTask([this]() { checkDepressurizationPressure(); },
+                          Config::FiringSequence::UPDATE_RATE);
+
+    if (igniterTaskId == 0 || pilotFlameTaskId == 0 ||
+        depressurizationTaskId == 0)
     {
         LOG_ERR(logger, "Failed to add firing sequence tasks");
         return false;
@@ -178,6 +189,38 @@ void FiringSequenceHSM::checkPilotFlamePressure()
         {
             // Reset samples if pressure is not above threshold
             pilotFlameSamples = 0;
+        }
+    }
+}
+
+void FiringSequenceHSM::checkDepressurizationPressure()
+{
+    auto now = steady_clock::now();
+
+    if (state == FiringSequenceState::DEPRESSURIZATION_OX)
+    {
+        if (getModule<Sensors>()->getOxTankPressure().pressure >=
+            oxTankPressureThreshold)
+            lastPressureOverTime = now;
+        if (now - lastPressureOverTime >=
+            Config::FiringSequence::Depressurization::OX_HYSTERESIS)
+        {
+            EventBroker::getInstance().post(
+                FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE,
+                TOPIC_FIRING_SEQUENCE);
+        }
+    }
+    else if (state == FiringSequenceState::DEPRESSURIZATION_PRZ)
+    {
+        if (getModule<Sensors>()->getPrzTankPressure().pressure >=
+            przTankPressureThreshold)
+            lastPressureOverTime = now;
+        if (now - lastPressureOverTime >=
+            Config::FiringSequence::Depressurization::PRZ_OX_HYSTERESIS)
+        {
+            EventBroker::getInstance().post(
+                FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE,
+                TOPIC_FIRING_SEQUENCE);
         }
     }
 }
@@ -646,6 +689,11 @@ State FiringSequenceHSM::state_ended(const Event& event)
             return transition(&FiringSequenceHSM::state_ready);
         }
 
+        case CAN_APOGEE_DETECTED:
+        {
+            return transition(&FiringSequenceHSM::state_depressurization_ox);
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_low_throttle);
@@ -656,6 +704,186 @@ State FiringSequenceHSM::state_ended(const Event& event)
             return HANDLED;
         }
 
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FiringSequenceHSM::state_depressurization_ox(const Event& event)
+{
+    using namespace Config::FiringSequence::Depressurization;
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_OX);
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
+            getModule<Actuators>()->openValveWithTime(
+                ServosList::OX_VENTING_VALVE,
+                milliseconds{OX_VENTING_TIMEOUT}.count());
+            lastPressureOverTime = steady_clock::now();
+            nextEventId          = EventBroker::getInstance().postDelayed(
+                FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE, TOPIC_FIRING_SEQUENCE,
+                milliseconds{OX_VENTING_TIMEOUT}.count());
+            return HANDLED;
+        }
+
+        case FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&FiringSequenceHSM::state_depressurization_prz);
+        }
+
+        case FIRING_SEQUENCE_ABORT:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&FiringSequenceHSM::state_ready);
+        }
+
+        case EV_EMPTY:
+        {
+            return tranSuper(&FiringSequenceHSM::state_ended);
+        }
+
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FiringSequenceHSM::state_depressurization_prz(const Event& event)
+{
+    using namespace Config::FiringSequence::Depressurization;
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_PRZ);
+            return HANDLED;
+        }
+        case EV_INIT:
+        {
+            getModule<Actuators>()->moveValve(ServosList::PRZ_OX_VALVE,
+                                              PRZ_OX_APERTURE);
+            lastPressureOverTime = steady_clock::now();
+            nextEventId          = EventBroker::getInstance().postDelayed(
+                FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE,
+                TOPIC_FIRING_SEQUENCE, milliseconds{PRZ_OX_TIMEOUT}.count());
+            return HANDLED;
+        }
+        case FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&FiringSequenceHSM::state_depressurization_fuel);
+        }
+        case FIRING_SEQUENCE_ABORT:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&FiringSequenceHSM::state_ready);
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FiringSequenceHSM::state_depressurization_ox);
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+
+State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
+{
+    using namespace Config::FiringSequence::Depressurization;
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_FUEL);
+            return HANDLED;
+        }
+        case EV_INIT:
+        {
+            getModule<Actuators>()->openValveWithTime(
+                ServosList::PRZ_FUEL_VALVE,
+                milliseconds{PRZ_FUEL_TIMEOUT}.count());
+            nextEventId = EventBroker::getInstance().postDelayed(
+                FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE,
+                TOPIC_FIRING_SEQUENCE, milliseconds{PRZ_FUEL_TIMEOUT}.count());
+            return HANDLED;
+        }
+        case FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE:
+        {
+            return transition(&FiringSequenceHSM::state_depressurization_done);
+        }
+        case FIRING_SEQUENCE_ABORT:
+        {
+            EventBroker::getInstance().removeDelayed(nextEventId);
+            return transition(&FiringSequenceHSM::state_ready);
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FiringSequenceHSM::state_depressurization_prz);
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
+        default:
+        {
+            return UNHANDLED;
+        }
+    }
+}
+State FiringSequenceHSM::state_depressurization_done(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_DONE);
+            return HANDLED;
+        }
+        case EV_INIT:
+        {
+            // Disable tasks, as we don't need to check the pressure anymore
+            getModule<BoardScheduler>()->firingSequenceHSM().disableTask(
+                depressurizationTaskId);
+            getModule<BoardScheduler>()->firingSequenceHSM().disableTask(
+                igniterTaskId);
+            getModule<BoardScheduler>()->firingSequenceHSM().disableTask(
+                pilotFlameTaskId);
+
+            // Should we close the valves here? Maybe we should leave them open
+            // for a while to ensure depressurization is complete. For now,
+            // let's close them.
+
+            return HANDLED;
+        }
+        case EV_EMPTY:
+        {
+            return tranSuper(&FiringSequenceHSM::state_depressurization_fuel);
+        }
+        case EV_EXIT:
+        {
+            return HANDLED;
+        }
         default:
         {
             return UNHANDLED;
