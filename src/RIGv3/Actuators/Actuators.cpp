@@ -723,6 +723,12 @@ void Actuators::task()
         // Backstep the 3-way valve servo a little to avoid strain
         prz_3wayValveInfo.backstep();
     }
+    else if (prz_3wayValveInfo.updateTs != noActionNeeded &&
+             currentTime > prz_3wayValveInfo.updateTs)
+    {
+        // Animate valve step
+        prz_3wayValveInfo.advanceAnimation();
+    }
 
     // handle spark plug timing
     if (sparkPlugCloseTs != noActionNeeded && currentTime > sparkPlugCloseTs)

@@ -102,6 +102,7 @@ bool Actuators::start()
 
     expander = &getModule<GpioExpander>()->getExpander();
 
+    setAbkPosition(0.0f);
     servoAbk->enable();
 
     camOff();
@@ -236,6 +237,8 @@ void Actuators::disablePrfServo(ServosList servoId)
 
     miosix::Lock<miosix::FastMutex> lock(actuator->mutex);
 
+    actuator->servo->setVelocity(
+        Config::Actuators::PrfServo::STOP_THRESHOLD_VELOCITY);
     actuator->enabled = false;
 }
 
@@ -248,19 +251,31 @@ bool Actuators::arePrfServosStill()
 void Actuators::setAbkPosition(float position)
 {
     Lock<FastMutex> lock{servosMutex};
-    unsafeSetServoPosition(servoAbk.get(), position);
+
+    unsafeSetServoPosition(
+        servoAbk.get(),
+        Config::Actuators::ABK_MIN_POS +
+            (Config::Actuators::ABK_MAX_POS - Config::Actuators::ABK_MIN_POS) *
+                position);
 }
 
 void Actuators::wiggleServo(ServosList servo)
 {
-    Lock<FastMutex> lock{servosMutex};
-
     if (servo == PARAFOIL_LEFT_SERVO || servo == PARAFOIL_RIGHT_SERVO)
     {
         wigglePrfServo(servo);
         return;
     }
 
+    if (servo == AIR_BRAKES_SERVO)
+    {
+        setAbkPosition(1.0f);
+        Thread::sleep(1000);
+        setAbkPosition(0.0f);
+        return;
+    }
+
+    Lock<FastMutex> lock{servosMutex};
     Servo* info = getServo(servo);
     if (info != nullptr)
     {

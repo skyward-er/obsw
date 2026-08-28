@@ -66,12 +66,11 @@ constexpr auto UPDATE_RATE = 50_hz;
 
 constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
 
-constexpr unsigned int ABK_MIN_PULSE = 1950;
-constexpr unsigned int ABK_MAX_PULSE = 1390;
+constexpr unsigned int ABK_MIN_PULSE = 500;
+constexpr unsigned int ABK_MAX_PULSE = 2440;
 
-// Inverted to invert the servo logic
-constexpr unsigned int EXP_MIN_PULSE = 900;
-constexpr unsigned int EXP_MAX_PULSE = 2000;
+constexpr float ABK_MAX_POS = 0.93f;
+constexpr float ABK_MIN_POS = 0.04f;
 
 // Buzzer configs
 constexpr uint16_t BUZZER_FREQUENCY = 500;

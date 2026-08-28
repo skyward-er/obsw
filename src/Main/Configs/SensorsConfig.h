@@ -115,7 +115,7 @@ constexpr auto ENABLED = true;
 namespace VN100
 {
 constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = false;
+constexpr auto ENABLED = true;
 }  // namespace VN100
 
 namespace UBXGPS
