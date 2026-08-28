@@ -200,15 +200,29 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
         .log_number               = data.device.logNumber,
         .ox_venting_valve_state   = data.oxVentingValveState,
         .fuel_venting_valve_state = data.fuelVentingValveState,
-        .prz_ox_valve_state       = data.przOxValveState,
-        .prz_fuel_valve_state     = data.przFuelValveState,
-        .main_ox_valve_state      = data.mainOxValveState,
-        .main_fuel_valve_state    = data.mainFuelValveState,
-        .ox_solenoid_state        = data.oxSolenoidState,
-        .fuel_solenoid_state      = data.fuelSolenoidState,
-        .spark_igniter_state      = data.sparkIgniterOn,
-        .log_good                 = data.device.logGood,
-        .hil_state                = data.device.hil,
+        .ox_venting_valve_position =
+            static_cast<uint8_t>(data.oxVentingValvePosition.position),
+        .fuel_venting_valve_position =
+            static_cast<uint8_t>(data.fuelVentingValvePosition.position),
+        .prz_ox_valve_state   = data.przOxValveState,
+        .prz_fuel_valve_state = data.przFuelValveState,
+        .prz_ox_valve_position =
+            static_cast<uint8_t>(data.przOxValvePosition.position),
+        .prz_fuel_valve_position =
+            static_cast<uint8_t>(data.przFuelValvePosition.position),
+        .main_ox_valve_state   = data.mainOxValveState,
+        .main_fuel_valve_state = data.mainFuelValveState,
+        .main_ox_valve_position =
+            static_cast<uint8_t>(data.mainOxValvePosition.position),
+        .main_fuel_valve_position =
+            static_cast<uint8_t>(data.mainFuelValvePosition.position),
+        .ox_solenoid_state   = data.oxSolenoidState,
+        .fuel_solenoid_state = data.fuelSolenoidState,
+        //.purge_solenoid_state        = data.purgeSolenoidState,
+        .spark_igniter_state       = data.sparkIgniterOn,
+        .firing_sequence_hsm_state = data.device.state,
+        .log_good                  = data.device.logGood,
+        .hil_state                 = data.device.hil,
     };
 }
 

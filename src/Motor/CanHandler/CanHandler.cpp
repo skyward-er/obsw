@@ -188,6 +188,7 @@ bool CanHandler::start()
         [this]()
         {
             Actuators* actuators = getModule<Actuators>();
+            Sensors* sensors     = getModule<Sensors>();
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -197,7 +198,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::OX_VENTING_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::OX_VENTING_VALVE),
+                    sensors->getVentingOxPosition().position,
                     actuators->isValveOpen(ServosList::OX_VENTING_VALVE)});
 
             protocol.enqueueData(
@@ -208,7 +209,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::FUEL_VENTING_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::FUEL_VENTING_VALVE),
+                    sensors->getVentingFuelPosition().position,
                     actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE)});
 
             protocol.enqueueData(
@@ -219,7 +220,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::MAIN_OX_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::MAIN_OX_VALVE),
+                    sensors->getMainOxPosition().position,
                     actuators->isValveOpen(ServosList::MAIN_OX_VALVE)});
 
             protocol.enqueueData(
@@ -230,7 +231,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::MAIN_FUEL_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::MAIN_FUEL_VALVE),
+                    sensors->getMainFuelPosition().position,
                     actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE)});
 
             protocol.enqueueData(
@@ -241,7 +242,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::PRZ_OX_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::PRZ_OX_VALVE),
+                    sensors->getPrzOxPosition().position,
                     actuators->isValveOpen(ServosList::PRZ_OX_VALVE)});
 
             protocol.enqueueData(
@@ -364,6 +365,12 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
         {
             EventBroker::getInstance().post(CLOSE_ALL_VALVES,
                                             TOPIC_VALVE_SEQUENCE);
+            break;
+        }
+        case Common::CanConfig::EventId::CALIBRATE:
+        {
+            getModule<Sensors>()->calibrate();
+            getModule<Sensors>()->calibrateEncoders();
             break;
         }
 
