@@ -59,6 +59,10 @@ add_executable(motor-entry src/Motor/motor-entry.cpp ${MOTOR_SOURCES})
 target_include_directories(motor-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(motor-entry stm32f767zi_hydra_engine)
 
+add_executable(motor-valve-check-entry src/Motor/motor-valve-check-entry.cpp ${MOTOR_SOURCES})
+target_include_directories(motor-valve-check-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(motor-valve-check-entry stm32f767zi_hydra_engine)
+
 add_executable(pitot-entry src/Pitot/pitot-entry.cpp ${PITOT_COMPUTER})
 target_include_directories(pitot-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(pitot-entry stm32f767zi_pitot)
