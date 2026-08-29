@@ -71,6 +71,13 @@ struct MotorStatus : public Boardcore::Injectable
         bool oxSolenoidState       = false;
         bool fuelSolenoidState     = false;
         bool sparkIgniterOn        = false;
+
+        uint8_t oxVentingValvePosition   = 0;
+        uint8_t fuelVentingValvePosition = 0;
+        uint8_t przOxValvePosition       = 0;
+        uint8_t przFuelValvePosition     = 0;
+        uint8_t mainOxValvePosition      = 0;
+        uint8_t mainFuelValvePosition    = 0;
     };
 
     /**

@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Motor/Buses.h>
 #include <Motor/BoardScheduler.h>
+#include <Motor/Buses.h>
 #include <Motor/Registry/Registry.h>
 #include <Valve/Valve.h>
 #include <actuators/Servo/Servo.h>

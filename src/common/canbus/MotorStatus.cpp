@@ -26,6 +26,8 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
 
+#include <algorithm>
+
 /**
  * NOTE: Some fields in the telemetry message are currently commented out since
  * they caused issues with the main and motor boards. Once the code of the main
@@ -126,30 +128,39 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     auto valve     = static_cast<ServosList>(msg.getSecondaryType());
     auto valveData = servoFeedbackFromCanMessage(msg);
 
+    uint8_t position =
+        static_cast<uint8_t>(std::clamp(valveData.aperture, 0.f, 1.f) * 100);
+
     switch (valve)
     {
         case ServosList::OX_VENTING_VALVE:
-            data.oxVentingValveState = valveData.open;
+            data.oxVentingValveState    = valveData.open;
+            data.oxVentingValvePosition = position;
             break;
 
         case ServosList::FUEL_VENTING_VALVE:
-            data.fuelVentingValveState = valveData.open;
+            data.fuelVentingValveState    = valveData.open;
+            data.fuelVentingValvePosition = position;
             break;
 
         case ServosList::PRZ_OX_VALVE:
-            data.przOxValveState = valveData.open;
+            data.przOxValveState    = valveData.open;
+            data.przOxValvePosition = position;
             break;
 
         case ServosList::PRZ_FUEL_VALVE:
-            data.przFuelValveState = valveData.open;
+            data.przFuelValveState    = valveData.open;
+            data.przFuelValvePosition = position;
             break;
 
         case ServosList::MAIN_OX_VALVE:
-            data.mainOxValveState = valveData.open;
+            data.mainOxValveState    = valveData.open;
+            data.mainOxValvePosition = position;
             break;
 
         case ServosList::MAIN_FUEL_VALVE:
-            data.mainFuelValveState = valveData.open;
+            data.mainFuelValveState    = valveData.open;
+            data.mainFuelValvePosition = position;
             break;
 
         case ServosList::IGNITION_OX_VALVE:
@@ -195,8 +206,12 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
         .fuel_venting_valve_state = data.fuelVentingValveState,
         .prz_ox_valve_state       = data.przOxValveState,
         .prz_fuel_valve_state     = data.przFuelValveState,
+        .prz_ox_valve_position    = data.przOxValvePosition,
+        .prz_fuel_valve_position  = data.przFuelValvePosition,
         .main_ox_valve_state      = data.mainOxValveState,
+        .main_ox_valve_position   = data.mainOxValvePosition,
         .main_fuel_valve_state    = data.mainFuelValveState,
+        .main_fuel_valve_position = data.mainFuelValvePosition,
         .ox_solenoid_state        = data.oxSolenoidState,
         .fuel_solenoid_state      = data.fuelSolenoidState,
         .spark_igniter_state      = data.sparkIgniterOn,
