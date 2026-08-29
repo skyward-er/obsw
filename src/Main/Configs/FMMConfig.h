@@ -35,6 +35,10 @@ namespace FlightModeManager
 constexpr auto MISSION_TIMEOUT = 15min;
 constexpr auto CUT_DURATION    = 1000ms;
 
+// Value to add to the timeout calculated from the engine config to avoid early
+// detection
+constexpr auto ENGINE_SHUTDOWN_CONFIDENCE = 1000ms;
+
 #ifdef ROCCARASO
 constexpr auto ENGINE_SHUTDOWN_TIMEOUT = 2600ms;
 constexpr auto APOGEE_TIMEOUT          = 19s;

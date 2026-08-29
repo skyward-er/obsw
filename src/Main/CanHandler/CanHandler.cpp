@@ -23,6 +23,7 @@
 #include "CanHandler.h"
 
 #include <Main/AlgoReference/AlgoReference.h>
+#include <Main/Configs/FMMConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
@@ -300,6 +301,17 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
         // Do not forward servo commands to avoid actuating two times
         CanServoCommand data = servoCommandFromCanMessage(msg);
         sdLogger.log(data);
+    }
+    if (commandId == CanConfig::CommandId::FIRING_SEQUENCE_CONFIG)
+    {
+        CanSequenceConfig config = sequenceConfigFromCanMessage(msg);
+        sdLogger.log(config);
+
+        getModule<FlightModeManager>()->setEngineShutdownTimeout(
+            std::chrono::milliseconds(config.fullThrottleTime +
+                                      config.lowThrottleTime +
+                                      config.pilotLeadTime) +
+            Main::Config::FlightModeManager::ENGINE_SHUTDOWN_CONFIDENCE);
     }
     else
     {
