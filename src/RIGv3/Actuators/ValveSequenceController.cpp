@@ -105,16 +105,17 @@ void ValveSequenceController::closeValves()
 
 uint16_t ValveSequenceController::wiggleValves()
 {
-    auto isValveOpen = [&](auto getPosition, uint8_t bit, auto openingThreshold)
+    auto isValveOpen =
+        [&](auto getPosition, uint8_t bit, uint8_t openingThreshold)
     {
-        bool isOpen = getPosition().position > openingThreshold;
+        bool isOpen = static_cast<uint8_t>(getPosition()) > openingThreshold;
         return isOpen ? static_cast<uint8_t>(1 << bit) : 0;
     };
 
     auto isValveClosed =
-        [&](auto getPosition, uint8_t bit, auto closedThreshold)
+        [&](auto getPosition, uint8_t bit, uint8_t closedThreshold)
     {
-        bool isClosed = getPosition().position < closedThreshold;
+        bool isClosed = static_cast<uint8_t>(getPosition()) < closedThreshold;
         return isClosed ? static_cast<uint8_t>(0xFF)
                         : static_cast<uint8_t>(~(1 << bit));
     };
@@ -129,18 +130,18 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-    wiggleMapRIG |=
-        isValveOpen([&]() { return getModule<Sensors>()->getMainOxPosition(); },
-                    0, Config::VALVE_OPENING_THRESHOLD_MAIN_OX);
     wiggleMapRIG |= isValveOpen(
-        [&]() { return getModule<Sensors>()->getMainFuelPosition(); }, 1,
-        Config::VALVE_OPENING_THRESHOLD_MAIN_FUEL);
-    wiggleMapRIG |=
-        isValveOpen([&]() { return getModule<Sensors>()->getOxRegPosition(); },
-                    2, Config::VALVE_OPENING_THRESHOLD_PRZ_OX);
+        [&]() { return getModule<Sensors>()->getMainOxPosition().position; }, 0,
+        Config::VALVE_OPENING_THRESHOLD_MAIN_OX);
     wiggleMapRIG |= isValveOpen(
-        [&]() { return getModule<Sensors>()->getFuelRegPosition(); }, 3,
-        Config::VALVE_OPENING_THRESHOLD_PRZ_FUEL);
+        [&]() { return getModule<Sensors>()->getMainFuelPosition().position; },
+        1, Config::VALVE_OPENING_THRESHOLD_MAIN_FUEL);
+    wiggleMapRIG |= isValveOpen(
+        [&]() { return getModule<Sensors>()->getOxRegPosition().position; }, 2,
+        Config::VALVE_OPENING_THRESHOLD_PRZ_OX);
+    wiggleMapRIG |= isValveOpen(
+        [&]() { return getModule<Sensors>()->getFuelRegPosition().position; },
+        3, Config::VALVE_OPENING_THRESHOLD_PRZ_FUEL);
 
     wiggleMapMotor |= isValveOpen(
         [&]()
@@ -167,17 +168,17 @@ uint16_t ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleMapRIG &= isValveClosed(
-        [&]() { return getModule<Sensors>()->getMainOxPosition(); }, 0,
+        [&]() { return getModule<Sensors>()->getMainOxPosition().position; }, 0,
         Config::VALVE_CLOSED_THRESHOLD_MAIN_OX);
     wiggleMapRIG &= isValveClosed(
-        [&]() { return getModule<Sensors>()->getMainFuelPosition(); }, 1,
-        Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL);
+        [&]() { return getModule<Sensors>()->getMainFuelPosition().position; },
+        1, Config::VALVE_CLOSED_THRESHOLD_MAIN_FUEL);
     wiggleMapRIG &= isValveClosed(
-        [&]() { return getModule<Sensors>()->getOxRegPosition(); }, 2,
+        [&]() { return getModule<Sensors>()->getOxRegPosition().position; }, 2,
         Config::VALVE_CLOSED_THRESHOLD_PRZ_OX);
     wiggleMapRIG &= isValveClosed(
-        [&]() { return getModule<Sensors>()->getFuelRegPosition(); }, 3,
-        Config::VALVE_CLOSED_THRESHOLD_PRZ_FUEL);
+        [&]() { return getModule<Sensors>()->getFuelRegPosition().position; },
+        3, Config::VALVE_CLOSED_THRESHOLD_PRZ_FUEL);
     wiggleMapMotor &= isValveClosed(
         [&]()
         { return getModule<MotorStatus>()->lockData()->mainOxValvePosition; },
