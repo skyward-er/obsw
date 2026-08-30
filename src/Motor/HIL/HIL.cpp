@@ -111,6 +111,7 @@ void MotorHILPhasesManager::handleHSMTransition(const uint8_t hsmState)
         }
         case FiringSequenceState::IGNITER_WAIT:
         {
+            eventBroker.removeDelayed(Common::FIRING_SEQUENCE_IGN_FUEL);
             eventBroker.post(Common::FIRING_SEQUENCE_IGN_FUEL, Common::TOPIC_FIRING_SEQUENCE);
         }
         case FiringSequenceState::PILOT_FLAME:
@@ -119,18 +120,22 @@ void MotorHILPhasesManager::handleHSMTransition(const uint8_t hsmState)
         }
         case FiringSequenceState::RAMP_UP:
         {
+            eventBroker.removeDelayed(Common::FIRING_SEQUENCE_PILOT_FLAME_TIMEOUT);
             eventBroker.post(Common::FIRING_SEQUENCE_PILOT_FLAME_OK, Common::TOPIC_FIRING_SEQUENCE);
         }
         case FiringSequenceState::FULL_THROTTLE:
         {
+            eventBroker.removeDelayed(Common::FIRING_SEQUENCE_FULL_THROTTLE);
             eventBroker.post(Common::FIRING_SEQUENCE_FULL_THROTTLE, Common::TOPIC_FIRING_SEQUENCE);
         }
         case FiringSequenceState::LOW_THROTTLE:
         {
+            eventBroker.removeDelayed(Common::FIRING_SEQUENCE_LOW_THROTTLE);
             eventBroker.post(Common::FIRING_SEQUENCE_LOW_THROTTLE, Common::TOPIC_FIRING_SEQUENCE);
         }
         case FiringSequenceState::ENDED:
         {
+            eventBroker.removeDelayed(Common::FIRING_SEQUENCE_END);
             eventBroker.post(Common::FIRING_SEQUENCE_END, Common::TOPIC_FIRING_SEQUENCE);
             eventBroker.post(Common::MEA_STOP, Common::MEA_STOP);
         }
