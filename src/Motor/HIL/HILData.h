@@ -36,8 +36,7 @@ enum class HILSignal : int
 {
     SIMULATION_STARTED      = 1,
     SIMULATION_STOPPED      = 2,
-    SIMULATION_FORCE_LAUNCH = 3,
-    SIMULATION_IGNITION     = 4
+    SIMULATION_FORCE_LAUNCH = 3
 };
 
 enum class MotorFlightPhases

@@ -106,25 +106,8 @@ void MEAController::update()
     float CCPTMeasure  = sensors->getMainCCPressure().pressure;
     uint64_t timestamp = TimestampTimer::getTimestamp();
     float mainPosition = sensors->getMainFuelPosition().position;
-
-    bool isHIL = PersistentVars::getHilMode();
-    uint8_t hsmState;
-
-    if (!isHIL)
-    {
-        hsmState = static_cast<uint8_t>(firingHSM->getState());
-    }
-    else
-    {
-        hsmState = static_cast<uint8_t>(
-            getModule<MotorHIL>()->getSensorData()->FiringSequenceState);
-
-        if (hsmState == static_cast<uint8_t>(FiringSequenceState::ENDED))
-        {
-            EventBroker::getInstance().post(Common::Events::MEA_STOP,
-                                            TOPIC_MEA);
-        }
-    }
+    
+    uint8_t hsmState = static_cast<uint8_t>(firingHSM->getState());
 
     MEA_types_h_::MEAIn in = {CCPTMeasure, timestamp, mainPosition, hsmState};
 

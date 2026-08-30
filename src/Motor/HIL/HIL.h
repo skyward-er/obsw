@@ -61,6 +61,8 @@ private:
     void handleEventImpl(
         const Boardcore::Event& e,
         std::vector<MotorFlightPhases>& changed_flags) override;
+
+    void handleHSMTransition(const uint8_t hsmState);
 };
 
 class MotorHIL
