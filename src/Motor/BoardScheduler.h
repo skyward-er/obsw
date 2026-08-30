@@ -89,7 +89,7 @@ public:
 
     static Priority::PriorityLevel valveSequenceControllerPriority()
     {
-        return Priority::LOW;
+        return Priority::MEDIUM;
     }
 
     /**

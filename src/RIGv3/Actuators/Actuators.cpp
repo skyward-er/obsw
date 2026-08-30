@@ -399,8 +399,7 @@ bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
 
 void Actuators::closeAllValves()
 {
-    getModule<ValveSequenceController>()->closeValves();
-    signalTask();
+    EventBroker::getInstance().post(CLOSE_ALL_VALVES, TOPIC_VALVE_SEQUENCE);
 }
 
 bool Actuators::setMaxAperture(ServosList servo, float aperture)

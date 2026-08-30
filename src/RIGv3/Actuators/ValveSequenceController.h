@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Configs/RadioConfig.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
@@ -44,8 +45,14 @@ class ValveSequenceController
 {
 public:
     ValveSequenceController(
-        unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
-        miosix::Priority priority = miosix::MAIN_PRIORITY);
+        unsigned int stacksize = miosix::STACK_DEFAULT_FOR_PTHREAD,
+        miosix::Priority priority =
+            BoardScheduler::valveSequenceControllerPriority());
+
+    void requestAsyncAutomaticWiggle(uint8_t requestId);
+
+protected:
+    void handleEvent(const Boardcore::Event& ev) override;
 
     /**
      * @brief Performs a wiggle on all valves.
@@ -68,11 +75,6 @@ public:
      * surges.
      */
     void closeValves();
-
-    void requestAsyncAutomaticWiggle(uint8_t requestId);
-
-protected:
-    void handleEvent(const Boardcore::Event& ev) override;
 
     uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
 };

@@ -35,12 +35,11 @@ namespace RIGv3
 
 class Actuators;
 class GroundModeManager;
-class Radio;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, GroundModeManager,
                                            Actuators, Sensors,
-                                           Common::MotorStatus, Radio>
+                                           Common::MotorStatus>
 {
 public:
     struct CanStatus

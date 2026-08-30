@@ -155,7 +155,6 @@ private:
 
     bool sensorManagerInit();
 
-    // TODO Da implementare. Capire bene cosa serve per il safety venting
     void checkPrzTankOverpressure();
     // The last time point when the OX tank was ok (below threshold)
     std::chrono::steady_clock::time_point przTankPressureOkTime = {};

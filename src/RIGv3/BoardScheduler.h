@@ -82,6 +82,11 @@ public:
         return Priority::HIGH;
     }
 
+    static Priority::PriorityLevel valveSequenceControllerPriority()
+    {
+        return Priority::MEDIUM;  // Sensors FSM priority
+    }
+
     static Priority::PriorityLevel tars1Priority()
     {
         return Priority::HIGH;  // TARS1 FSM priority

@@ -23,8 +23,6 @@
 #include "CanHandler.h"
 
 #include <RIGv3/BoardScheduler.h>
-#include <RIGv3/Configs/RadioConfig.h>
-#include <RIGv3/Radio/Radio.h>
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>

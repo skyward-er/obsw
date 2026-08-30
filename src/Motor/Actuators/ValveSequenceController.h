@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Motor/BoardScheduler.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventHandler.h>
@@ -40,8 +41,9 @@ class ValveSequenceController
 {
 public:
     ValveSequenceController(
-        unsigned int stacksize    = miosix::STACK_DEFAULT_FOR_PTHREAD,
-        miosix::Priority priority = miosix::MAIN_PRIORITY);
+        unsigned int stacksize = miosix::STACK_DEFAULT_FOR_PTHREAD,
+        miosix::Priority priority =
+            BoardScheduler::valveSequenceControllerPriority());
 
     /**
      * @brief Closes all engine valves in a staged, safe sequence.
