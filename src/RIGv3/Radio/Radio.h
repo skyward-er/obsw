@@ -23,6 +23,7 @@
 #pragma once
 
 #include <RIGv3/Actuators/Actuators.h>
+#include <RIGv3/Actuators/ValveSequenceController.h>
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Buses.h>
 #include <RIGv3/CanHandler/CanHandler.h>
@@ -49,10 +50,11 @@ using MavDriver = Boardcore::MavlinkDriver<Boardcore::SX1278Lora::MTU,
                                            Config::Radio::MAV_OUT_QUEUE_SIZE,
                                            Config::Radio::MAV_MAX_LENGTH>;
 
-class Radio : public Boardcore::InjectableWithDeps<
-                  Buses, BoardScheduler, Registry, Actuators, Sensors,
-                  CanHandler, GroundModeManager, TARS1, TARS3, EregControllerOx,
-                  EregControllerFuel, FiringSequenceHSM, Common::MotorStatus>
+class Radio
+    : public Boardcore::InjectableWithDeps<
+          Buses, BoardScheduler, Registry, Actuators, Sensors, CanHandler,
+          GroundModeManager, TARS1, TARS3, EregControllerOx, EregControllerFuel,
+          FiringSequenceHSM, Common::MotorStatus, ValveSequenceController>
 {
 public:
     Radio() {}
@@ -62,8 +64,8 @@ public:
     bool isStarted();
 
     Boardcore::MavlinkStatus getMavStatus();
-    // TODO Cosa facciamo? Renderlo pubblico è un po' bruttino
-    bool enqueueWiggleResultTm(uint16_t wiggleResult);
+
+    bool enqueueWiggleResultTm(uint16_t wiggleResult, uint8_t requestId);
 
 private:
     void enqueueAck(const mavlink_message_t& msg);

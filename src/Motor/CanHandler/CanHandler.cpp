@@ -203,7 +203,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::OX_VENTING_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    sensors->getVentingOxPosition().position,
+                    static_cast<uint8_t>(
+                        sensors->getVentingOxPosition().position),
                     actuators->isValveOpen(ServosList::OX_VENTING_VALVE)});
 
             protocol.enqueueData(
@@ -214,7 +215,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::FUEL_VENTING_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    sensors->getVentingFuelPosition().position,
+                    static_cast<uint8_t>(
+                        sensors->getVentingFuelPosition().position),
                     actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE)});
 
             protocol.enqueueData(
@@ -225,7 +227,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::MAIN_OX_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    sensors->getMainOxPosition().position,
+                    static_cast<uint8_t>(sensors->getMainOxPosition().position),
                     actuators->isValveOpen(ServosList::MAIN_OX_VALVE)});
 
             protocol.enqueueData(
@@ -236,7 +238,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::MAIN_FUEL_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    sensors->getMainFuelPosition().position,
+                    static_cast<uint8_t>(
+                        sensors->getMainFuelPosition().position),
                     actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE)});
 
             protocol.enqueueData(
@@ -247,7 +250,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::PRZ_OX_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    sensors->getPrzOxPosition().position,
+                    static_cast<uint8_t>(sensors->getPrzOxPosition().position),
                     actuators->isValveOpen(ServosList::PRZ_OX_VALVE)});
 
             protocol.enqueueData(
@@ -258,7 +261,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(ServosList::PRZ_FUEL_VALVE),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
-                    actuators->getValvePosition(ServosList::PRZ_FUEL_VALVE),
+                    static_cast<uint8_t>(actuators->getValvePosition(
+                        ServosList::PRZ_FUEL_VALVE)),
                     actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
         },
         Config::CanHandler::VALVE_STATE_SEND_RATE);
@@ -349,48 +353,55 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
     CanConfig::CommandId commandId =
         static_cast<CanConfig::CommandId>(msg.getSecondaryType());
 
-    if (commandId == Common::CanConfig::CommandId::SERVO_COMMAND)
+    switch (commandId)
     {
-        CanServoCommand command = servoCommandFromCanMessage(msg);
-        ServosList servoId      = static_cast<ServosList>(command.servoId);
-        sdLogger.log(command);
+        case Common::CanConfig::CommandId::SERVO_COMMAND:
+        {
+            CanServoCommand command = servoCommandFromCanMessage(msg);
+            ServosList servoId      = static_cast<ServosList>(command.servoId);
+            sdLogger.log(command);
 
-        if (command.openingTime == 0)
-            getModule<Actuators>()->closeValve(servoId);
-        else
-            getModule<Actuators>()->openValveWithTime(servoId,
-                                                      command.openingTime);
-    }
-    else if (commandId == Common::CanConfig::CommandId::FIRING_SEQUENCE_CONFIG)
-    {
-        CanSequenceConfig config = sequenceConfigFromCanMessage(msg);
-        sdLogger.log(config);
+            if (command.openingTime == 0)
+                getModule<Actuators>()->closeValve(servoId);
+            else
+                getModule<Actuators>()->openValveWithTime(servoId,
+                                                          command.openingTime);
+            break;
+        }
+        case Common::CanConfig::CommandId::FIRING_SEQUENCE_CONFIG:
+        {
+            CanSequenceConfig config = sequenceConfigFromCanMessage(msg);
+            sdLogger.log(config);
 
-        getModule<FiringSequenceHSM>()->setFiringParams(
-            config.fullThrottleTime, config.lowThrottleTime,
-            config.pilotLeadTime, config.pilotOxPosition,
-            config.pilotFuelPosition);
-    }
-    else if (commandId == Common::CanConfig::CommandId::EREG_TARGET)
-    {
-        CanEregTarget target = eregTargetFromCanMessage(msg);
-        sdLogger.log(target);
+            getModule<FiringSequenceHSM>()->setFiringParams(
+                config.fullThrottleTime, config.lowThrottleTime,
+                config.pilotLeadTime, config.pilotOxPosition,
+                config.pilotFuelPosition);
+            break;
+        }
+        case Common::CanConfig::CommandId::EREG_TARGET:
+        {
+            CanEregTarget target = eregTargetFromCanMessage(msg);
+            sdLogger.log(target);
 
-        getModule<EregControllerOx>()->setEregTarget(target.oxTarget);
-        getModule<EregControllerFuel>()->setEregTarget(target.fuelTarget);
-    }
-    else if (commandId == Common::CanConfig::CommandId::IGNITION_THRESHOLDS)
-    {
-        CanIgnitionThresholds thresholds =
-            ignitionThresholdsFromCanMessage(msg);
-        sdLogger.log(thresholds);
+            getModule<EregControllerOx>()->setEregTarget(target.oxTarget);
+            getModule<EregControllerFuel>()->setEregTarget(target.fuelTarget);
+            break;
+        }
+        case Common::CanConfig::CommandId::IGNITION_THRESHOLDS:
+        {
+            CanIgnitionThresholds thresholds =
+                ignitionThresholdsFromCanMessage(msg);
+            sdLogger.log(thresholds);
 
-        getModule<FiringSequenceHSM>()->setPressureThresholds(
-            thresholds.igniterThreshold, thresholds.pilotThreshold);
-    }
-    else
-    {
-        LOG_WARN(logger, "Received unsupported command: {}", commandId);
+            getModule<FiringSequenceHSM>()->setPressureThresholds(
+                thresholds.igniterThreshold, thresholds.pilotThreshold);
+            break;
+        }
+        default:
+        {
+            LOG_WARN(logger, "Received unsupported command: {}", commandId);
+        }
     }
 }
 
@@ -426,103 +437,51 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
         {
             getModule<Sensors>()->calibrate();
             getModule<Sensors>()->calibrateEncoders();
+            EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
             break;
         }
-
         case Common::CanConfig::EventId::APOGEE_DETECTED:
         {
             EventBroker::getInstance().post(CAN_APOGEE_DETECTED,
                                             TOPIC_FIRING_SEQUENCE);
             break;
         }
+        case Common::CanConfig::EventId::ENTER_TEST_MODE:
+        {
+            EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
+            break;
+        }
+        case Common::CanConfig::EventId::EXIT_TEST_MODE:
+        {
+            EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
+            break;
+        }
+        case Common::CanConfig::EventId::EREG_OX_TOGGLE:
+        {
+            EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
+            break;
+        }
+        case Common::CanConfig::EventId::EREG_FUEL_TOGGLE:
+        {
+            EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
+            break;
+        }
+        case Common::CanConfig::EventId::IGNITION:
+        {
+            EventBroker::getInstance().post(FIRING_SEQUENCE_START,
+                                            TOPIC_FIRING_SEQUENCE);
+            break;
+        }
+        case Common::CanConfig::EventId::ENGINE_SHUTDOWN:
+        {
+            EventBroker::getInstance().post(FIRING_SEQUENCE_END,
+                                            TOPIC_FIRING_SEQUENCE);
+            break;
+        }
 
         default:
-            // Do something in the future?
+            LOG_WARN(logger, "Received unsupported event: {}", event);
             break;
-    }
-    else if (event == Common::CanConfig::EventId::CALIBRATE)
-    {
-        EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
-    }
-    else if (event == Common::CanConfig::EventId::ENTER_TEST_MODE)
-    {
-        EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
-    }
-    else if (event == Common::CanConfig::EventId::EXIT_TEST_MODE)
-    {
-        EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
-    }
-    else if (event == Common::CanConfig::EventId::ARM)
-    {
-        EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
-    }
-    else if (event == Common::CanConfig::EventId::DISARM)
-    {
-        EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
-    }
-    else if (event == Common::CanConfig::EventId::APOGEE_DETECTED)
-    {
-        EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED, TOPIC_FLIGHT);
-    }
-    else if (event == Common::CanConfig::EventId::EREG_OX_TOGGLE)
-    {
-        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
-    }
-    else if (event == Common::CanConfig::EventId::EREG_FUEL_TOGGLE)
-    {
-        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
-    }
-    else if (event == Common::CanConfig::EventId::IGNITION)
-    {
-        EventBroker::getInstance().post(FIRING_SEQUENCE_START,
-                                        TOPIC_FIRING_SEQUENCE);
-    }
-    else if (event == Common::CanConfig::EventId::ENGINE_SHUTDOWN)
-    {
-        EventBroker::getInstance().post(FIRING_SEQUENCE_END,
-                                        TOPIC_FIRING_SEQUENCE);
-    }
-    else if (event == Common::CanConfig::EventId::CALIBRATE)
-    {
-        EventBroker::getInstance().post(MEA_CALIBRATE, TOPIC_MEA);
-    }
-    else if (event == Common::CanConfig::EventId::ENTER_TEST_MODE)
-    {
-        EventBroker::getInstance().post(MEA_FORCE_START, TOPIC_MEA);
-    }
-    else if (event == Common::CanConfig::EventId::EXIT_TEST_MODE)
-    {
-        EventBroker::getInstance().post(MEA_FORCE_STOP, TOPIC_MEA);
-    }
-    else if (event == Common::CanConfig::EventId::ARM)
-    {
-        EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_FLIGHT);
-    }
-    else if (event == Common::CanConfig::EventId::DISARM)
-    {
-        EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_FLIGHT);
-    }
-    else if (event == Common::CanConfig::EventId::APOGEE_DETECTED)
-    {
-        EventBroker::getInstance().post(FLIGHT_APOGEE_DETECTED, TOPIC_FLIGHT);
-    }
-    else if (event == Common::CanConfig::EventId::EREG_OX_TOGGLE)
-    {
-        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_OX);
-    }
-    else if (event == Common::CanConfig::EventId::EREG_FUEL_TOGGLE)
-    {
-        EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
-    }
-    else if (event == Common::CanConfig::EventId::IGNITION)
-    {
-        EventBroker::getInstance().post(FIRING_SEQUENCE_START,
-                                        TOPIC_FIRING_SEQUENCE);
-    }
-    else if (event == Common::CanConfig::EventId::ENGINE_SHUTDOWN)
-    {
-        EventBroker::getInstance().post(FIRING_SEQUENCE_END,
-                                        TOPIC_FIRING_SEQUENCE);
     }
 
     // Log the event

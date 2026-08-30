@@ -280,8 +280,9 @@ State FiringSequenceHSM::state_ready(const Event& event)
             return HANDLED;
         }
 
+        case FIRING_SEQUENCE_START:
         {
-            return transition(&FiringSequenceHSM::state_igniter);
+            return transition(&FiringSequenceHSM::state_firing);
         }
 
         case EV_EMPTY:

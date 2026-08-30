@@ -52,10 +52,14 @@ public:
      * Opens all valves, checks if their positions exceed the open thresholds,
      * closes them, and verifies they fall below the closed thresholds.
      *
+     * @param requestId The request ID to use for the telemetry message
+     * response.
+     *
      * @return A bitmask mapping the success of each valve (RIG on low byte,
      * Motor on high byte).
      */
-    uint16_t wiggleValves();
+    uint16_t wiggleValves(
+        uint8_t requestId = Config::Radio::MAV_DEFAULT_REQUEST_ID);
 
     /**
      * @brief Closes all RIGv3 and Motor valves in a safe, timed sequence.
@@ -65,7 +69,16 @@ public:
      */
     void closeValves();
 
+    void requestAsyncAutomaticWiggle(uint8_t requestId)
+    {
+        lastRequestId = requestId;
+        EventBroker::getInstance().post(WIGGLE_ALL_VALVES,
+                                        TOPIC_VALVE_SEQUENCE);
+    }
+
 protected:
     void handleEvent(const Boardcore::Event& ev) override;
+
+    uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
 };
 }  // namespace RIGv3

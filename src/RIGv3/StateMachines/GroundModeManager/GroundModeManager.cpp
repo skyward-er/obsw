@@ -359,6 +359,9 @@ State GroundModeManager::state_firing(const Event& event)
         {
             EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
                                             TOPIC_FIRING_SEQUENCE);
+
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENGINE_SHUTDOWN);
             return transition(&GroundModeManager::state_disarmed);
         }
 

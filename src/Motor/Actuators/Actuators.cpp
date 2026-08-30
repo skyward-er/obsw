@@ -40,7 +40,11 @@ using namespace Motor;
 
 const Actuators::TimePoint Actuators::noActionNeeded = TimePoint{};
 
-bool Actuators::ValveInfo::isValveOpen() { return valve->getPosition(); }
+bool Actuators::ValveInfo::isValveOpen()
+{
+    return valve->getPosition() >
+           0.03f;  // Account for backstep and possible inaccuracies
+}
 
 void Actuators::ValveInfo::backstep()
 {

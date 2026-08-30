@@ -50,7 +50,8 @@ void ValveSequenceController::handleEvent(const Event& ev)
         case WIGGLE_ALL_VALVES:
         {
             uint16_t wiggleResult = wiggleValves();
-            getModule<Radio>()->enqueueWiggleResultTm(wiggleResult);
+            getModule<Radio>()->enqueueWiggleResultTm(wiggleResult,
+                                                      lastRequestId);
             break;
         }
 
@@ -96,7 +97,7 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 }
 
-uint16_t ValveSequenceController::wiggleValves()
+uint16_t ValveSequenceController::wiggleValves(uint8_t requestId)
 {
     auto isValveOpen = [&](auto getPosition, uint8_t bit, auto openingThreshold)
     {
@@ -227,8 +228,6 @@ uint16_t ValveSequenceController::wiggleValves()
                 ->fuelVentingValvePosition;
         },
         5, Config::VALVE_CLOSED_THRESHOLD_FUEL_VENTING);
-
-    // getModule<CanHandler>()->sendEvent(CanConfig::EventId::WIGGLE_ALL_VALVES);
 
     return static_cast<uint16_t>(wiggleMapRIG |
                                  (static_cast<uint16_t>(wiggleMapMotor) << 8));
