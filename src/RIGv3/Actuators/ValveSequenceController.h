@@ -23,6 +23,7 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <RIGv3/Configs/RadioConfig.h>
 #include <common/Events.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -58,8 +59,7 @@ public:
      * @return A bitmask mapping the success of each valve (RIG on low byte,
      * Motor on high byte).
      */
-    uint16_t wiggleValves(
-        uint8_t requestId = Config::Radio::MAV_DEFAULT_REQUEST_ID);
+    uint16_t wiggleValves();
 
     /**
      * @brief Closes all RIGv3 and Motor valves in a safe, timed sequence.
@@ -69,12 +69,7 @@ public:
      */
     void closeValves();
 
-    void requestAsyncAutomaticWiggle(uint8_t requestId)
-    {
-        lastRequestId = requestId;
-        EventBroker::getInstance().post(WIGGLE_ALL_VALVES,
-                                        TOPIC_VALVE_SEQUENCE);
-    }
+    void requestAsyncAutomaticWiggle(uint8_t requestId);
 
 protected:
     void handleEvent(const Boardcore::Event& ev) override;

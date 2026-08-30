@@ -129,40 +129,33 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     switch (valve)
     {
         case ServosList::OX_VENTING_VALVE:
-            data.oxVentingValveState                      = valveData.open;
-            data.oxVentingValvePosition.positionTimestamp = valveData.timestamp;
-            data.oxVentingValvePosition.position          = valveData.aperture;
+            data.oxVentingValveState    = valveData.open;
+            data.oxVentingValvePosition = valveData.position;
             break;
 
         case ServosList::FUEL_VENTING_VALVE:
-            data.fuelVentingValveState = valveData.open;
-            data.fuelVentingValvePosition.positionTimestamp =
-                valveData.timestamp;
-            data.fuelVentingValvePosition.position = valveData.aperture;
+            data.fuelVentingValveState    = valveData.open;
+            data.fuelVentingValvePosition = valveData.position;
             break;
 
         case ServosList::PRZ_OX_VALVE:
-            data.przOxValveState                      = valveData.open;
-            data.przOxValvePosition.positionTimestamp = valveData.timestamp;
-            data.przOxValvePosition.position          = valveData.aperture;
+            data.przOxValveState    = valveData.open;
+            data.przOxValvePosition = valveData.position;
             break;
 
         case ServosList::PRZ_FUEL_VALVE:
-            data.przFuelValveState                      = valveData.open;
-            data.przFuelValvePosition.positionTimestamp = valveData.timestamp;
-            data.przFuelValvePosition.position          = valveData.aperture;
+            data.przFuelValveState    = valveData.open;
+            data.przFuelValvePosition = valveData.position;
             break;
 
         case ServosList::MAIN_OX_VALVE:
-            data.mainOxValveState                      = valveData.open;
-            data.mainOxValvePosition.positionTimestamp = valveData.timestamp;
-            data.mainOxValvePosition.position          = valveData.aperture;
+            data.mainOxValveState    = valveData.open;
+            data.mainOxValvePosition = valveData.position;
             break;
 
         case ServosList::MAIN_FUEL_VALVE:
-            data.mainFuelValveState                      = valveData.open;
-            data.mainFuelValvePosition.positionTimestamp = valveData.timestamp;
-            data.mainFuelValvePosition.position          = valveData.aperture;
+            data.mainFuelValvePosition = valveData.position;
+            data.mainFuelValveState    = valveData.open;
             break;
 
         case ServosList::IGNITION_OX_VALVE:

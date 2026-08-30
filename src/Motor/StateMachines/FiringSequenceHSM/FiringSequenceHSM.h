@@ -68,8 +68,6 @@ private:
 
     void checkDepressurizationPressure();
 
-    void checkDepressurizationPressure();
-
     Boardcore::State state_init(const Boardcore::Event& event);
     Boardcore::State state_ready(const Boardcore::Event& event);
     Boardcore::State state_firing(const Boardcore::Event& event);

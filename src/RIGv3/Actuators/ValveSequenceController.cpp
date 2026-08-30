@@ -66,6 +66,12 @@ void ValveSequenceController::handleEvent(const Event& ev)
     }
 }
 
+void ValveSequenceController::requestAsyncAutomaticWiggle(uint8_t requestId)
+{
+    lastRequestId = requestId;
+    EventBroker::getInstance().post(WIGGLE_ALL_VALVES, TOPIC_VALVE_SEQUENCE);
+}
+
 void ValveSequenceController::closeValves()
 {
     getModule<Actuators>()->closeValve(PRZ_FILLING_VALVE);
@@ -97,7 +103,7 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 }
 
-uint16_t ValveSequenceController::wiggleValves(uint8_t requestId)
+uint16_t ValveSequenceController::wiggleValves()
 {
     auto isValveOpen = [&](auto getPosition, uint8_t bit, auto openingThreshold)
     {
