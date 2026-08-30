@@ -217,6 +217,8 @@ State GroundModeManager::state_disarmed(const Event& event)
         {
             getModule<Sensors>()->calibrateLoadcells();
             getModule<Sensors>()->calibrateEncoders();
+
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
             return HANDLED;
         }
 
