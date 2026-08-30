@@ -25,6 +25,7 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Buses.h>
 #include <Motor/Configs/HILSimulationConfig.h>
+#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceData.h>
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <common/Events.h>
 #include <events/EventBroker.h>
@@ -77,11 +78,6 @@ void MotorHILPhasesManager::processFlagsImpl(
                                                    Common::TOPIC_TMTC);
     }
 
-    if (simulatorData.signal == static_cast<float>(HILSignal::SIMULATION_IGNITION)) {
-        Boardcore::EventBroker::getInstance().post(Common::FIRING_SEQUENCE_START,
-                                        Common::TOPIC_FIRING_SEQUENCE);
-    }
-
     // set true when the first packet from the simulator arrives
     if (isSetTrue(MotorFlightPhases::SIMULATION_STARTED))
     {
@@ -89,6 +85,59 @@ void MotorHILPhasesManager::processFlagsImpl(
 
         printf("[HIL] ------- SIMULATION STARTED ! ------- \n");
         changed_flags.push_back(MotorFlightPhases::SIMULATION_STARTED);
+    }
+
+    handleHSMTransition(simulatorData.FiringSequenceState);
+}
+
+void MotorHILPhasesManager::handleHSMTransition(const uint8_t hsmState)
+{
+    auto state = static_cast<FiringSequenceState>(hsmState);
+    auto& eventBroker = Boardcore::EventBroker::getInstance();
+
+    switch (state)
+    {
+        case FiringSequenceState::INIT:
+        {
+            return;
+        }
+        case FiringSequenceState::READY:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_CONFIG_SET, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::IGNITER:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_START, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::IGNITER_WAIT:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_IGN_FUEL, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::PILOT_FLAME:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_IGNITER_OK, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::RAMP_UP:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_PILOT_FLAME_OK, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::FULL_THROTTLE:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_FULL_THROTTLE, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::LOW_THROTTLE:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_LOW_THROTTLE, Common::TOPIC_FIRING_SEQUENCE);
+        }
+        case FiringSequenceState::ENDED:
+        {
+            eventBroker.post(Common::FIRING_SEQUENCE_END, Common::TOPIC_FIRING_SEQUENCE);
+            eventBroker.post(Common::MEA_STOP, Common::MEA_STOP);
+        }
+        default:
+        {
+            return;
+        }
     }
 }
 
@@ -131,15 +180,12 @@ bool MotorHIL::start()
 ActuatorData MotorHIL::updateActuatorData()
 {
     auto actuators = getModule<Actuators>();
-    auto mea = getModule<MEAController>();
+    auto mea       = getModule<MEAController>();
 
     ActuatorsStateHIL actuatorsStateHIL{
-        (actuators->getValvePosition(MAIN_FUEL_VALVE))
-    };
+        (actuators->getValvePosition(MAIN_FUEL_VALVE))};
 
-    MEAStateHIL meaStateHIL{
-        (mea->getMEAState().mass)
-    };
+    MEAStateHIL meaStateHIL{(mea->getMEAState().mass)};
 
     counter += 1.0f;
 
