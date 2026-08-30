@@ -31,6 +31,15 @@ namespace RIGv3
 {
 namespace Config
 {
+enum ValveBit : uint8_t
+{
+    MAIN_OX_VALVE_BIT      = 0,
+    MAIN_FUEL_VALVE_BIT    = 1,
+    PRZ_OX_VALVE_BIT       = 2,
+    PRZ_FUEL_VALVE_BIT     = 3,
+    OX_VENTING_VALVE_BIT   = 4,
+    FUEL_VENTING_VALVE_BIT = 5
+};
 
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
