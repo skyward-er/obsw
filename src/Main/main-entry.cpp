@@ -39,6 +39,7 @@
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/SDAController/SDAController.h>
 #include <Main/StateMachines/WingController/WingController.h>
+#include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
 #include <common/canbus/MotorStatus.h>
 #include <events/EventBroker.h>
@@ -80,6 +81,7 @@ int main()
     auto nas         = new NASController();
     auto abk         = new ABKController();
     auto sda         = new SDAController();
+    auto zvk         = new ZVKController();
     auto wing        = new WingController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
@@ -128,6 +130,7 @@ int main()
                   manager.insert<ABKController>(abk) &&
                   manager.insert<SDAController>(sda) &&
                   manager.insert<WingController>(wing) &&
+                  manager.insert<ZVKController>(zvk) &&
                   manager.insert<StatsRecorder>(recorder) &&
                   manager.insert<MotorStatus>(motorStatus) && manager.inject();
 
@@ -257,6 +260,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start WingController ***" << std::endl;
+    }
+
+    std::cout << "Starting ZVKController" << std::endl;
+    if (!zvk->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ZVKController ***" << std::endl;
     }
 
     std::cout << "Starting FlightModeManager" << std::endl;
