@@ -49,7 +49,6 @@ public:
      */
     struct ServoActuator
     {
-
         std::unique_ptr<Boardcore::ServoWinch> servo;
 
         /**

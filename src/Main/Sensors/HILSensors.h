@@ -295,8 +295,6 @@ private:
         return data;
     }
 
-    
-
     Boardcore::ND015XData updateStaticPressureData()
     {
         Boardcore::ND015XData data;

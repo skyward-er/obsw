@@ -48,8 +48,8 @@ constexpr int N_DATA_BARO_CHAMBER = 10;
 
 /*
  TODO : FIX THIS
-*static_assert(N_DATA_BARO_CHAMBER * SIMULATION_RATE >= Sensors::ADS131M08::RATE,
-              "N_DATA_BARO_CHAMBER not enough");
+*static_assert(N_DATA_BARO_CHAMBER * SIMULATION_RATE >=
+Sensors::ADS131M08::RATE, "N_DATA_BARO_CHAMBER not enough");
 */
 }  // namespace HIL
 }  // namespace Config

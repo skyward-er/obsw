@@ -33,7 +33,7 @@
 
 namespace Motor
 {
-    
+
 class MEAController;
 
 class MotorHILTransceiver
