@@ -31,7 +31,7 @@ namespace RIGv3
 {
 namespace Config
 {
-enum ValveBit : uint8_t
+enum MotorValveBit : uint8_t
 {
     MAIN_OX_VALVE_BIT      = 0,
     MAIN_FUEL_VALVE_BIT    = 1,
@@ -39,6 +39,15 @@ enum ValveBit : uint8_t
     PRZ_FUEL_VALVE_BIT     = 3,
     OX_VENTING_VALVE_BIT   = 4,
     FUEL_VENTING_VALVE_BIT = 5
+};
+
+enum RIGValveBit : uint8_t
+{
+    PRZ_3WAY_VALVE_BIT    = 0,
+    PRZ_FILLING_VALVE_BIT = 1,
+    PRZ_RELEASE_VALVE_BIT = 2,
+    OX_FILLING_VALVE_BIT  = 3,
+    OX_RELEASE_VALVE_BIT  = 4
 };
 
 /* linter off */ using namespace std::chrono;
@@ -51,12 +60,24 @@ constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_FUEL     = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_VENTING   = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_FUEL_VENTING = 60;
 
+constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_3WAY    = 60;
+constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_FILLING = 60;
+constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_RELEASE = 60;
+constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_FILLING  = 60;
+constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_RELEASE  = 60;
+
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_OX      = 10;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_FUEL    = 10;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_OX       = 10;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FUEL     = 10;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_VENTING   = 10;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 10;
+
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_3WAY    = 10;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FILLING = 10;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_RELEASE = 10;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_FILLING  = 10;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_RELEASE  = 10;
 
 constexpr auto VALVE_WIGGLE_DELAY  = 1000;  // [ms]
 constexpr auto VALVE_CLOSING_DELAY = 500;   // [ms]

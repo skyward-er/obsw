@@ -76,17 +76,26 @@ constexpr uint32_t PRZ_FILLING_REG_KEY  = 0;
 constexpr uint32_t OX_VESSEL_REG_KEY    = 0;
 constexpr uint32_t OX_FILLING_REG_KEY   = 0;
 
-constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
-constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
-constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
-constexpr float CH3_SHUNT_RESISTANCE = 29.645f;
-constexpr float CH4_SHUNT_RESISTANCE = 29.708f;
-constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
+constexpr float CH0_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH1_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH2_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH3_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH4_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH5_SHUNT_RESISTANCE = 49.5f;
 }  // namespace ADC_0
 
 namespace ADC_1
 {
+
 constexpr bool ENABLED = true;
+
+using Channel = Boardcore::ADS131M08Defs::Channel;
+
+constexpr auto PRZ_3WAY_ENCODER_CHANNEL    = Channel::CHANNEL_0;
+constexpr auto PRZ_FILLING_ENCODER_CHANNEL = Channel::CHANNEL_1;
+constexpr auto PRZ_RELEASE_ENCODER_CHANNEL = Channel::CHANNEL_2;
+constexpr auto OX_FILLING_ENCODER_CHANNEL  = Channel::CHANNEL_3;
+constexpr auto OX_RELEASE_ENCODER_CHANNEL  = Channel::CHANNEL_4;
 
 }  // namespace ADC_1
 
@@ -112,13 +121,13 @@ constexpr uint32_t FUEL_REG_OUT_REG_KEY = 0;
 constexpr uint32_t OX_REG_OUT_REG_KEY   = 0;
 constexpr uint32_t IGN_CHAMBER_REG_KEY  = 0;
 
-constexpr float CH0_SHUNT_RESISTANCE = 29.283f;
-constexpr float CH1_SHUNT_RESISTANCE = 29.233f;
-constexpr float CH2_SHUNT_RESISTANCE = 29.268f;
-constexpr float CH3_SHUNT_RESISTANCE = 29.645f;
-constexpr float CH4_SHUNT_RESISTANCE = 29.708f;
-constexpr float CH5_SHUNT_RESISTANCE = 29.708f;
-constexpr float CH6_SHUNT_RESISTANCE = 29.708f;
+constexpr float CH0_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH1_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH2_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH3_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH4_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH5_SHUNT_RESISTANCE = 49.5f;
+constexpr float CH6_SHUNT_RESISTANCE = 49.5f;
 
 }  // namespace ADC_2
 

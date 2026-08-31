@@ -894,20 +894,25 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                     (getModule<EregControllerFuel>()->getState() !=
                      EregState::CLOSED);
 
-                tm.prz_ox_valve_position =
-                    static_cast<uint8_t>(sensors->getOxRegPosition().position);
-                tm.prz_fuel_valve_position = static_cast<uint8_t>(
-                    sensors->getFuelRegPosition().position);
+                // As we approach the real flight, the "mock" encoders
+                // have been removed, so the following code is commented out. If
+                // you want to use it, you need to implement the encoder reading
+                // in the sensors module.
 
-                tm.main_ox_valve_state =
-                    actuators->isValveOpen(ServosList::MAIN_OX_VALVE);
-                tm.main_fuel_valve_state =
-                    actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE);
+                // tm.prz_ox_valve_position =
+                //     static_cast<uint8_t>(sensors->getOxRegPosition().position);
+                // tm.prz_fuel_valve_position = static_cast<uint8_t>(
+                //     sensors->getFuelRegPosition().position);
 
-                tm.main_fuel_valve_position = static_cast<uint8_t>(
-                    sensors->getMainFuelPosition().position);
-                tm.main_ox_valve_position =
-                    static_cast<uint8_t>(sensors->getMainOxPosition().position);
+                // tm.main_ox_valve_state =
+                //     actuators->isValveOpen(ServosList::MAIN_OX_VALVE);
+                // tm.main_fuel_valve_state =
+                //     actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE);
+
+                // tm.main_fuel_valve_position = static_cast<uint8_t>(
+                //     sensors->getMainFuelPosition().position);
+                // tm.main_ox_valve_position =
+                //     static_cast<uint8_t>(sensors->getMainOxPosition().position);
 
                 tm.ox_solenoid_state =
                     actuators->isValveOpen(ServosList::IGNITION_OX_VALVE);
@@ -917,8 +922,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                 tm.purge_solenoid_state =
                     actuators->isValveOpen(ServosList::PURGE_VALVE);
 
-                tm.firing_sequence_hsm_state =
-                    (uint8_t)getModule<FiringSequenceHSM>()->getState();
+                tm.firing_sequence_hsm_state = static_cast<uint8_t>(
+                    getModule<FiringSequenceHSM>()->getState());
             }
             mavlink_msg_motor_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                         &msg, &tm);

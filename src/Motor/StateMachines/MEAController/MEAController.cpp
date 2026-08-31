@@ -107,7 +107,8 @@ void MEAController::update()
     uint64_t timestamp = TimestampTimer::getTimestamp();
     float mainPosition = sensors->getMainFuelPosition().position;
 
-    uint8_t hsmState = static_cast<uint8_t>(firingHSM->getState());
+    // Temp fix, nel mentre viene fixata la parte Autocodata di MEAIn (FSMState)
+    FSMStates hsmState = static_cast<FSMStates>(firingHSM->getState());
 
     MEA_types_h_::MEAIn in = {CCPTMeasure, timestamp, mainPosition, hsmState};
 

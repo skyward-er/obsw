@@ -82,10 +82,11 @@ public:
     Boardcore::LoadCellData getRocketWeight();
     Boardcore::LoadCellData getOxTankWeight();
 
-    Boardcore::ServoPositionData getMainOxPosition();
-    Boardcore::ServoPositionData getMainFuelPosition();
-    Boardcore::ServoPositionData getOxRegPosition();
-    Boardcore::ServoPositionData getFuelRegPosition();
+    Boardcore::ServoPositionData getPrz3WayPosition();
+    Boardcore::ServoPositionData getPrzFillingPosition();
+    Boardcore::ServoPositionData getPrzReleasePosition();
+    Boardcore::ServoPositionData getOxFillingPosition();
+    Boardcore::ServoPositionData getOxReleasePosition();
 
     Boardcore::CurrentData getUmbilicalCurrent();
     Boardcore::CurrentData getServoCurrent();
@@ -145,17 +146,20 @@ private:
     void oxTankWeightInit();
     void oxTankWeightCallback();
 
-    void mainOxPositionInit();
-    void mainOxPositionCallback();
+    void prz3WayPositionInit();
+    void prz3WayPositionCallback();
 
-    void mainFuelPositionInit();
-    void mainFuelPositionCallback();
+    void przFillingPositionInit();
+    void przFillingPositionCallback();
 
-    void oxRegPositionInit();
-    void oxRegPositionCallback();
+    void przReleasePositionInit();
+    void przReleasePositionCallback();
 
-    void fuelRegPositionInit();
-    void fuelRegPositionCallback();
+    void oxFillingPositionInit();
+    void oxFillingPositionCallback();
+
+    void oxReleasePositionInit();
+    void oxReleasePositionCallback();
 
     void internalAdcInit();
     void internalAdcCallback();
@@ -204,10 +208,12 @@ private:
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
-    std::unique_ptr<Boardcore::AnalogEncoder> mainOxPosition;
-    std::unique_ptr<Boardcore::AnalogEncoder> mainFuelPosition;
-    std::unique_ptr<Boardcore::AnalogEncoder> oxRegPosition;
-    std::unique_ptr<Boardcore::AnalogEncoder> fuelRegPosition;
+
+    std::unique_ptr<Boardcore::AnalogEncoder> prz3WayPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> przFillingPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> przReleasePosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> oxFillingPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> oxReleasePosition;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 };
