@@ -187,6 +187,7 @@ void CanHandler::sendEvent(EventId event)
                            static_cast<uint8_t>(PrimaryType::EVENTS),
                            static_cast<uint8_t>(Board::PAYLOAD),
                            static_cast<uint8_t>(Board::BROADCAST),
+                           static_cast<uint8_t>(0x0),
                            static_cast<uint8_t>(event));
 
     auto data = CanEvent{

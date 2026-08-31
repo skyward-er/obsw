@@ -110,6 +110,7 @@ void CanHandler::sendEvent(CanConfig::EventId event)
                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
                           static_cast<uint8_t>(CanConfig::Board::RIG),
                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(0x0),
                           static_cast<uint8_t>(event));
 }
 
@@ -170,6 +171,9 @@ void CanHandler::sendIgnitionThresholds(float igniterThreshold,
         static_cast<uint8_t>(CanConfig::CommandId::IGNITION_THRESHOLDS),
         IgnitionThresholds{TimestampTimer::getTimestamp(), igniterThreshold,
                            pilotThreshold});
+
+    sdLogger.log(IgnitionThresholds{TimestampTimer::getTimestamp(),
+                                    igniterThreshold, pilotThreshold});
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()

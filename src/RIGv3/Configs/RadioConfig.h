@@ -46,7 +46,7 @@ constexpr unsigned int MAX_FLUSH_SIZE = 250;  // [bytes]
 constexpr uint8_t MAV_SYSTEM_ID = MAV_SYSID_RIG;
 
 // Request ID used when sending a spontaneus message
-constexpr uint8_t MAV_DEFAULT_REQUEST_ID = 255;
+constexpr uint8_t MAV_DEFAULT_REQUEST_ID = 0;
 
 constexpr long long LAST_COMMAND_THRESHOLD = 300;
 

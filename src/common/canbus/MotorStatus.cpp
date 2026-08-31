@@ -123,8 +123,9 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
 
 void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
 {
-    auto valve     = static_cast<ServosList>(msg.getSecondaryType());
-    auto valveData = servoFeedbackFromCanMessage(msg);
+    auto valveData   = servoFeedbackFromCanMessage(msg);
+    ServosList valve = static_cast<ServosList>(valveData.idx);
+    sdLogger.log(valveData);
 
     switch (valve)
     {

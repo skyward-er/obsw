@@ -34,7 +34,7 @@ namespace FiringSequence
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-static constexpr Hertz UPDATE_RATE = 10_hz;
+static constexpr Hertz UPDATE_RATE = 100_hz;
 
 static constexpr milliseconds IGN_OX_OPENING_TIME{2500};
 static constexpr milliseconds IGN_FUEL_DELAY{100};

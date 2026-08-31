@@ -65,7 +65,8 @@ void BoardStatus::sendRadioLinkInfoTm()
 
     mavlink_message_t msg;
     mavlink_msg_gse_radio_link_info_tm_encode(
-        Config::Hub::MAV_SYSTEM_ID, Config::Hub::MAV_COMPONENT_ID, &msg, &tm);
+        Config::Hub::MAV_SYSTEM_ID, Config::Hub::MAV_DEFAULT_REQUEST_ID, &msg,
+        &tm);
 
     getModule<Hub>()->dispatchToPorts(msg);
 }

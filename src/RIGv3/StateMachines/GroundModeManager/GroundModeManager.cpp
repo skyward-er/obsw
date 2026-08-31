@@ -312,14 +312,25 @@ State GroundModeManager::state_armed(const Event& event)
         {
             EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
                                             TOPIC_FIRING_SEQUENCE);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::DISARM);
             return transition(&GroundModeManager::state_disarmed);
         }
 
         case MOTOR_IGNITION:
         {
-            EventBroker::getInstance().post(FIRING_SEQUENCE_START,
-                                            TOPIC_FIRING_SEQUENCE);
-            getModule<CanHandler>()->sendEvent(CanConfig::EventId::IGNITION);
+            // If the motor is connected do not interfere with the firing
+            // sequence
+            if (getModule<MotorStatus>()->connected())
+            {
+                getModule<CanHandler>()->sendEvent(
+                    CanConfig::EventId::IGNITION);
+            }
+            else
+            {
+                EventBroker::getInstance().post(FIRING_SEQUENCE_START,
+                                                TOPIC_FIRING_SEQUENCE);
+            }
+
             return transition(&GroundModeManager::state_firing);
         }
 

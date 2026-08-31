@@ -34,6 +34,9 @@
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceHSM.h>
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <events/EventBroker.h>
+#include <events/EventData.h>
+#include <events/utils/EventSniffer.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -91,6 +94,16 @@ int main()
     auto valveSequenceController = new ValveSequenceController();
 
     auto& sdLogger = Logger::getInstance();
+    auto& broker   = EventBroker::getInstance();
+
+    // Setup event sniffer
+    EventSniffer sniffer(broker,
+                         [&](uint8_t event, uint8_t topic)
+                         {
+                             EventData data{TimestampTimer::getTimestamp(),
+                                            event, topic};
+                             sdLogger.log(data);
+                         });
 
     // HIL
     MotorHIL* hil = nullptr;
@@ -155,6 +168,14 @@ int main()
                   << "\tLog number: " << sdLogger.getStats().logNumber
                   << std::endl;
         setStatus(StatusBit::SD_LOGGER);
+    }
+
+    // Start modules
+    std::cout << "Starting EventBroker" << std::endl;
+    if (!broker.start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start EventBroker ***" << std::endl;
     }
 
     std::cout << "Starting BoardScheduler" << std::endl;
@@ -327,6 +348,8 @@ int main()
         //                                : gpios::debugLedYellow::high();
         // gpios::debugLedRed::value() ? gpios::debugLedRed::low()
         //                             : gpios::debugLedRed::high();
+
+        Thread::sleep(1000);
     }
 
     return 0;

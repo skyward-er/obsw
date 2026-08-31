@@ -123,7 +123,7 @@ void Radio::sendPeriodicPing()
     {
         Lock<FastMutex> lock{buttonsMutex};
         mavlink_msg_conrig_state_tc_encode(Config::Hub::MAV_SYSTEM_ID,
-                                           Config::Hub::MAV_COMPONENT_ID,
+                                           Config::Hub::MAV_DEFAULT_REQUEST_ID,
                                            &conrigStateMsg, &buttonState);
         // Reset the button state after sending the ping
         resetButtonState(lock);

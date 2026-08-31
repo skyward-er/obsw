@@ -147,7 +147,6 @@ void FiringSequenceHSM::checkIgniterPressure()
             if (igniterFlameSamples >=
                 Config::FiringSequence::IGNITER_CONFIRMATION_SAMPLES)
             {
-                printf("Igniter flame confirmed\n");
                 Thread::sleep(10);
                 EventBroker::getInstance().post(FIRING_SEQUENCE_IGNITER_OK,
                                                 TOPIC_FIRING_SEQUENCE);
@@ -271,12 +270,12 @@ State FiringSequenceHSM::state_ready(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::READY);
+            getModule<Actuators>()->closeAllValves();
             return HANDLED;
         }
 
         case EV_INIT:
         {
-            getModule<ValveSequenceController>()->closeValves();
             return HANDLED;
         }
 
@@ -310,12 +309,12 @@ State FiringSequenceHSM::state_firing(const Event& event)
         {
             updateAndLogStatus(FiringSequenceState::FIRING);
 
-            return transition(&FiringSequenceHSM::state_igniter);
+            return HANDLED;
         }
 
         case EV_INIT:
         {
-            return HANDLED;
+            return transition(&FiringSequenceHSM::state_igniter);
         }
 
         case FIRING_SEQUENCE_END:
@@ -350,11 +349,7 @@ State FiringSequenceHSM::state_igniter(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::IGNITER);
-            return HANDLED;
-        }
 
-        case EV_INIT:
-        {
             // Open oxidizer solenoid
             getModule<Actuators>()->openValveWithTime(
                 ServosList::IGNITION_OX_VALVE,
@@ -364,6 +359,12 @@ State FiringSequenceHSM::state_igniter(const Event& event)
             nextEventId = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_IGN_FUEL, TOPIC_FIRING_SEQUENCE,
                 Config::FiringSequence::IGN_FUEL_DELAY.count());
+
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return HANDLED;
         }
 
@@ -405,13 +406,14 @@ State FiringSequenceHSM::state_igniter_wait(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::IGNITER_WAIT);
+
+            // Reset igniter confirmation samples
+            igniterFlameSamples = 0;
             return HANDLED;
         }
 
         case EV_INIT:
         {
-            // Reset igniter confirmation samples
-            igniterFlameSamples = 0;
             return HANDLED;
         }
 
@@ -422,7 +424,7 @@ State FiringSequenceHSM::state_igniter_wait(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_firing);
+            return tranSuper(&FiringSequenceHSM::state_igniter);
         }
 
         case EV_EXIT:
@@ -444,11 +446,7 @@ State FiringSequenceHSM::state_pilot_flame(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::PILOT_FLAME);
-            return HANDLED;
-        }
 
-        case EV_INIT:
-        {
             // Get or set valve position from registry
             float oxPilotPosition =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
@@ -466,6 +464,12 @@ State FiringSequenceHSM::state_pilot_flame(const Event& event)
 
             getModule<Actuators>()->moveValve(ServosList::MAIN_FUEL_VALVE,
                                               fuelPilotPosition);
+
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return transition(&FiringSequenceHSM::state_pilot_flame_wait);
         }
 
@@ -493,17 +497,19 @@ State FiringSequenceHSM::state_pilot_flame_wait(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::PILOT_FLAME_WAIT);
-            return HANDLED;
-        }
 
-        case EV_INIT:
-        {
             nextEventId = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_PILOT_FLAME_TIMEOUT, TOPIC_FIRING_SEQUENCE,
                 Config::FiringSequence::PILOT_FLAME_MAX_TIME.count());
 
             // Reset pilot flame confirmation samples
             pilotFlameSamples = 0;
+
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return HANDLED;
         }
 
@@ -523,7 +529,7 @@ State FiringSequenceHSM::state_pilot_flame_wait(const Event& event)
 
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_firing);
+            return tranSuper(&FiringSequenceHSM::state_pilot_flame);
         }
 
         case EV_EXIT:
@@ -545,11 +551,7 @@ State FiringSequenceHSM::state_ramp_up(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::RAMP_UP);
-            return HANDLED;
-        }
 
-        case EV_INIT:
-        {
             // Animate both main valves to fully open over the ramp up time
             getModule<Actuators>()->animateValve(
                 ServosList::MAIN_OX_VALVE, 1.0f,
@@ -562,6 +564,11 @@ State FiringSequenceHSM::state_ramp_up(const Event& event)
                 FIRING_SEQUENCE_FULL_THROTTLE, TOPIC_FIRING_SEQUENCE,
                 Config::FiringSequence::RAMP_UP_OPENING_TIME.count());
 
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return HANDLED;
         }
 
@@ -594,11 +601,7 @@ State FiringSequenceHSM::state_full_throttle(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::FULL_THROTTLE);
-            return HANDLED;
-        }
 
-        case EV_INIT:
-        {
             // Both valves are fully open, wait to transition to low throttle
             uint32_t fullThrottleTime =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
@@ -610,6 +613,11 @@ State FiringSequenceHSM::state_full_throttle(const Event& event)
                 FIRING_SEQUENCE_LOW_THROTTLE, TOPIC_FIRING_SEQUENCE,
                 fullThrottleTime);
 
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return HANDLED;
         }
 
@@ -642,11 +650,7 @@ State FiringSequenceHSM::state_low_throttle(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::LOW_THROTTLE);
-            return HANDLED;
-        }
 
-        case EV_INIT:
-        {
             // retreive params from registry
             uint32_t lowThrottleTime =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
@@ -666,6 +670,11 @@ State FiringSequenceHSM::state_low_throttle(const Event& event)
             nextEventId = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_END, TOPIC_FIRING_SEQUENCE, lowThrottleTime);
 
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return HANDLED;
         }
 
@@ -700,14 +709,17 @@ State FiringSequenceHSM::state_ended(const Event& event)
             if (!hil)
                 EventBroker::getInstance().post(MEA_STOP, TOPIC_MEA);
 
+            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
+            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
+
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::MAIN_FUEL_VALVE);
+
             return HANDLED;
         }
 
         case EV_INIT:
         {
-            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
-            EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
-            getModule<Actuators>()->closeAllValves();
             return HANDLED;
         }
 
@@ -746,11 +758,6 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_OX);
-            return HANDLED;
-        }
-
-        case EV_INIT:
-        {
             getModule<Actuators>()->openValveWithTime(
                 ServosList::OX_VENTING_VALVE,
                 milliseconds{OX_VENTING_TIMEOUT}.count());
@@ -758,6 +765,11 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
             nextEventId          = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE, TOPIC_FIRING_SEQUENCE,
                 milliseconds{OX_VENTING_TIMEOUT}.count());
+            return HANDLED;
+        }
+
+        case EV_INIT:
+        {
             return HANDLED;
         }
 
@@ -798,16 +810,18 @@ State FiringSequenceHSM::state_depressurization_prz(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_PRZ);
-            return HANDLED;
-        }
-        case EV_INIT:
-        {
+
             getModule<Actuators>()->moveValve(ServosList::PRZ_OX_VALVE,
                                               PRZ_OX_APERTURE);
             lastPressureOverTime = steady_clock::now();
             nextEventId          = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE,
                 TOPIC_FIRING_SEQUENCE, milliseconds{PRZ_OX_TIMEOUT}.count());
+
+            return HANDLED;
+        }
+        case EV_INIT:
+        {
             return HANDLED;
         }
         case FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE:
@@ -822,7 +836,7 @@ State FiringSequenceHSM::state_depressurization_prz(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_depressurization_ox);
+            return tranSuper(&FiringSequenceHSM::state_ended);
         }
         case EV_EXIT:
         {
@@ -843,16 +857,18 @@ State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_FUEL);
-            return HANDLED;
-        }
-        case EV_INIT:
-        {
+
             getModule<Actuators>()->openValveWithTime(
                 ServosList::PRZ_FUEL_VALVE,
                 milliseconds{PRZ_FUEL_TIMEOUT}.count());
             nextEventId = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE,
                 TOPIC_FIRING_SEQUENCE, milliseconds{PRZ_FUEL_TIMEOUT}.count());
+
+            return HANDLED;
+        }
+        case EV_INIT:
+        {
             return HANDLED;
         }
         case FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE:
@@ -866,7 +882,7 @@ State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
         }
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_depressurization_prz);
+            return tranSuper(&FiringSequenceHSM::state_ended);
         }
         case EV_EXIT:
         {
@@ -885,10 +901,7 @@ State FiringSequenceHSM::state_depressurization_done(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_DONE);
-            return HANDLED;
-        }
-        case EV_INIT:
-        {
+
             // Disable tasks, as we don't need to check the pressure anymore
             getModule<BoardScheduler>()->firingSequenceHSM().disableTask(
                 depressurizationTaskId);
@@ -903,9 +916,13 @@ State FiringSequenceHSM::state_depressurization_done(const Event& event)
 
             return HANDLED;
         }
+        case EV_INIT:
+        {
+            return HANDLED;
+        }
         case EV_EMPTY:
         {
-            return tranSuper(&FiringSequenceHSM::state_depressurization_fuel);
+            return tranSuper(&FiringSequenceHSM::state_ended);
         }
         case EV_EXIT:
         {

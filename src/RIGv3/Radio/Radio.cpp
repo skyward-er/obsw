@@ -288,12 +288,9 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_firing_parameters_tc_get_low_throttle_fuel_position(
                     &msg);
 
-            if (getModule<MotorStatus>()->connected())
-            {
-                getModule<CanHandler>()->sendIgnitionSequenceConfig(
-                    fullThrottleTime, lowThrottleTime, pilotFuelLeadTime,
-                    pilotFlameOxPosition, pilotFlameFuelPosition);
-            }
+            getModule<CanHandler>()->sendIgnitionSequenceConfig(
+                fullThrottleTime, lowThrottleTime, pilotFuelLeadTime,
+                pilotFlameOxPosition, pilotFlameFuelPosition);
 
             getModule<FiringSequenceHSM>()->setFiringParams(
                 pilotFuelLeadTime, fullThrottleTime, lowThrottleTime,
@@ -543,6 +540,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             {
                 getModule<ValveSequenceController>()
                     ->requestAsyncAutomaticWiggle(msg.compid);
+                enqueueAck(msg);
             }
             else
             {

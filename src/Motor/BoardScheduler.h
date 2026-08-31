@@ -54,11 +54,11 @@ public:
     };
 
     Boardcore::TaskScheduler& sensors() { return high; }
-    Boardcore::TaskScheduler& firingSequenceHSM() { return high; }
+    Boardcore::TaskScheduler& firingSequenceHSM() { return critical; }
     Boardcore::TaskScheduler& ValveSequenceController() { return medium; }
-    Boardcore::TaskScheduler& eregOx() { return high; }
-    Boardcore::TaskScheduler& eregFuel() { return high; }
-    Boardcore::TaskScheduler& mea() { return high; }
+    Boardcore::TaskScheduler& eregOx() { return critical; }
+    Boardcore::TaskScheduler& eregFuel() { return critical; }
+    Boardcore::TaskScheduler& mea() { return critical; }
 
     Boardcore::TaskScheduler& canHandler() { return medium; }
 
@@ -69,12 +69,12 @@ public:
 
     static Priority::PriorityLevel eregControllerPriority()
     {
-        return Priority::HIGH;
+        return Priority::CRITICAL;
     }
 
     static Priority::PriorityLevel meaControllerPriority()
     {
-        return Priority::HIGH;
+        return Priority::CRITICAL;
     }
 
     static Priority::PriorityLevel canHandlerPriority()
@@ -84,7 +84,7 @@ public:
 
     static Priority::PriorityLevel firingSequenceHSMPriority()
     {
-        return Priority::HIGH;
+        return Priority::CRITICAL;
     }
 
     static Priority::PriorityLevel valveSequenceControllerPriority()

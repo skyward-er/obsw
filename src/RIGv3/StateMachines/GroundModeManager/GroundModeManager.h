@@ -28,6 +28,7 @@
 #include <RIGv3/Expander/GpioExpander.h>
 #include <RIGv3/Registry/Registry.h>
 #include <RIGv3/Sensors/Sensors.h>
+#include <common/canbus/MotorStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/HSM.h>
 #include <logger/Logger.h>
@@ -42,7 +43,8 @@ namespace RIGv3
 
 class GroundModeManager
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, Registry,
-                                           CanHandler, GpioExpander>,
+                                           CanHandler, GpioExpander,
+                                           Common::MotorStatus>,
       public Boardcore::HSM<GroundModeManager>
 {
 public:

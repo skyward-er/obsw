@@ -200,9 +200,10 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::OX_VENTING_VALVE),
+                static_cast<uint8_t>(0x0),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
+                    ServosList::OX_VENTING_VALVE,
                     static_cast<uint8_t>(
                         sensors->getVentingOxPosition().position),
                     actuators->isValveOpen(ServosList::OX_VENTING_VALVE)});
@@ -212,9 +213,10 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::FUEL_VENTING_VALVE),
+                static_cast<uint8_t>(0x0),
                 ServoFeedback{
                     TimestampTimer::getTimestamp(),
+                    ServosList::FUEL_VENTING_VALVE,
                     static_cast<uint8_t>(
                         sensors->getVentingFuelPosition().position),
                     actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE)});
@@ -224,9 +226,9 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::MAIN_OX_VALVE),
+                static_cast<uint8_t>(0x0),
                 ServoFeedback{
-                    TimestampTimer::getTimestamp(),
+                    TimestampTimer::getTimestamp(), ServosList::MAIN_OX_VALVE,
                     static_cast<uint8_t>(sensors->getMainOxPosition().position),
                     actuators->isValveOpen(ServosList::MAIN_OX_VALVE)});
 
@@ -235,9 +237,9 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::MAIN_FUEL_VALVE),
+                static_cast<uint8_t>(0x0),
                 ServoFeedback{
-                    TimestampTimer::getTimestamp(),
+                    TimestampTimer::getTimestamp(), ServosList::MAIN_FUEL_VALVE,
                     static_cast<uint8_t>(
                         sensors->getMainFuelPosition().position),
                     actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE)});
@@ -247,9 +249,9 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::PRZ_OX_VALVE),
+                static_cast<uint8_t>(0x0),
                 ServoFeedback{
-                    TimestampTimer::getTimestamp(),
+                    TimestampTimer::getTimestamp(), ServosList::PRZ_OX_VALVE,
                     static_cast<uint8_t>(sensors->getPrzOxPosition().position),
                     actuators->isValveOpen(ServosList::PRZ_OX_VALVE)});
 
@@ -258,9 +260,9 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(ServosList::PRZ_FUEL_VALVE),
+                static_cast<uint8_t>(0x0),
                 ServoFeedback{
-                    TimestampTimer::getTimestamp(),
+                    TimestampTimer::getTimestamp(), ServosList::PRZ_FUEL_VALVE,
                     static_cast<uint8_t>(actuators->getValvePosition(
                         ServosList::PRZ_FUEL_VALVE)),
                     actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
@@ -407,8 +409,8 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
 
 void CanHandler::handleEvent(const Canbus::CanMessage& msg)
 {
-    CanConfig::EventId event =
-        static_cast<CanConfig::EventId>(msg.getSecondaryType());
+    CanConfig::EventId event = static_cast<CanConfig::EventId>(
+        msg.payload[0] & 0xFF);  // Extract the event ID from the payload
 
     switch (event)
     {
@@ -470,11 +472,18 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
         {
             EventBroker::getInstance().post(FIRING_SEQUENCE_START,
                                             TOPIC_FIRING_SEQUENCE);
+
             break;
         }
         case Common::CanConfig::EventId::ENGINE_SHUTDOWN:
         {
             EventBroker::getInstance().post(FIRING_SEQUENCE_END,
+                                            TOPIC_FIRING_SEQUENCE);
+            break;
+        }
+        case Common::CanConfig::EventId::DISARM:
+        {
+            EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
                                             TOPIC_FIRING_SEQUENCE);
             break;
         }
@@ -486,7 +495,8 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
 
     // Log the event
     sdLogger.log(CanEvent{TimestampTimer::getTimestamp(), msg.getSource(),
-                          msg.getDestination(), msg.getSecondaryType()});
+                          msg.getDestination(),
+                          static_cast<uint8_t>(msg.payload[0] & 0xFF)});
 }
 
 void CanHandler::handleActuator(const Canbus::CanMessage& msg)

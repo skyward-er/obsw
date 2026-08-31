@@ -51,7 +51,7 @@ public:
 
     void requestAsyncAutomaticWiggle(uint8_t requestId);
 
-protected:
+private:
     void handleEvent(const Boardcore::Event& ev) override;
 
     /**

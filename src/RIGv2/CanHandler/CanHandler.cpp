@@ -113,6 +113,7 @@ void CanHandler::sendEvent(CanConfig::EventId event)
                           static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
                           static_cast<uint8_t>(CanConfig::Board::RIG),
                           static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(0x0),
                           static_cast<uint8_t>(event));
 }
 
