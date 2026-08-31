@@ -115,9 +115,17 @@ add_executable(nokia-groundstation-entry
 target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 sbs_target(nokia-groundstation-entry stm32f429zi_nokia)
 
-add_executable(lyra-gs-entry
-    src/Groundstation/LyraGS/lyra-gs-entry.cpp
-    ${LYRA_GS} ${GROUNDSTATION_COMMON}
+add_executable(arp-gs-entry
+    src/Groundstation/ArpGS/arp-gs-entry.cpp
+    ${ARPGS} ${RADIO_GS} ${GROUNDSTATION_COMMON}
 )
-target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(lyra-gs-entry stm32f767zi_lyra_gs)
+target_include_directories(arp-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+target_compile_definitions(arp-gs-entry PRIVATE ARP_GS_ONLY)
+sbs_target(arp-gs-entry stm32f767zi_arp_gs)
+
+add_executable(radio-gs-entry
+    src/Groundstation/radio-gs-entry.cpp
+    ${RADIO_GS} ${GROUNDSTATION_COMMON}
+)
+target_include_directories(radio-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_target(radio-gs-entry stm32f767zi_arp_gs)

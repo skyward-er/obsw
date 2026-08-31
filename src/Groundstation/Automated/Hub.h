@@ -22,14 +22,14 @@
 
 #pragma once
 
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Ports/Ethernet.h>
+#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
+#include <Groundstation/ArpGS/Radio/Radio.h>
 #include <Groundstation/Automated/HubData.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/LogSniffing.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
-#include <Groundstation/LyraGS/Radio/Radio.h>
 #include <algorithms/ANAS/ANASData.h>
 #include <algorithms/NASDAQ/NASDAQData.h>
 #include <common/MavlinkHydra.h>
@@ -37,7 +37,7 @@
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace LyraGS
+namespace ArpGS
 {
 class BoardStatus;
 }
@@ -57,8 +57,8 @@ static constexpr uint64_t DISCARD_MSG_DELAY =
  */
 class Hub : public Boardcore::InjectableWithDeps<
                 Boardcore::InjectableBase<Groundstation::HubBase>, SMA,
-                LyraGS::RadioMain, LyraGS::RadioPayload, LyraGS::BoardStatus,
-                LyraGS::SerialLyraGS, LyraGS::EthernetGS>
+                ArpGS::RadioMain, ArpGS::RadioPayload, ArpGS::BoardStatus,
+                ArpGS::SerialArpGS, ArpGS::EthernetGS>
 {
 public:
     /**

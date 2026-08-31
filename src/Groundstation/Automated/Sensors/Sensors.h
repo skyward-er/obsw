@@ -27,7 +27,7 @@
 
 #include <chrono>
 
-#include "Groundstation/LyraGS/Buses.h"
+#include "Groundstation/ArpGS/Buses.h"
 #include "sensors/SensorManager.h"
 #include "sensors/Vectornav/VN300/VN300.h"
 
@@ -40,7 +40,7 @@ static constexpr uint8_t VN300_CAL_CONVERGENCE =
 static constexpr std::chrono::seconds VN300_CAL_TIME = std::chrono::seconds(30);
 
 class Sensors
-    : public Boardcore::InjectableWithDeps<LyraGS::Buses, BoardScheduler>
+    : public Boardcore::InjectableWithDeps<ArpGS::Buses, BoardScheduler>
 {
 public:
     Sensors();
