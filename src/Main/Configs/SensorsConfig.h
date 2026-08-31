@@ -22,6 +22,17 @@
 
 #pragma once
 
+/**
+ *   Manual IMU sensor selection.
+ *   default: uses the VN100 as main IMU;
+ *  'DUAL_LSM6': uses the LSM6DSRX (double sensors) as IMU (backup)
+ */
+#if defined(DUAL_LSM6)
+#warning "DUAL_LSM6 is being used instead of VN100 for IMU"
+#else
+#warning "Using default VN100 configuration for IMU"
+#endif
+
 #include <drivers/adc/InternalADC.h>
 #include <sensors/ADS131M08/ADS131M08.h>
 #include <sensors/AS5047D/AS5047DSPI.h>
@@ -45,8 +56,6 @@ namespace Sensors
 {
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
-
-constexpr auto USING_VN100 = false;
 
 constexpr auto CALIBRATION_SAMPLES_COUNT = 20;
 constexpr auto CALIBRATION_SLEEP_TIME    = 100ms;
@@ -112,11 +121,6 @@ constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;
 }  // namespace H3LIS331DL
-namespace VN100
-{
-constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
-}  // namespace VN100
 
 namespace UBXGPS
 {
@@ -191,6 +195,16 @@ constexpr auto CURRENT_OFFSET = -3.3f;
 constexpr auto RATE    = 10_hz;
 constexpr auto ENABLED = true;
 }  // namespace ADS131M08
+namespace VN100
+{
+constexpr auto RATE    = 400_hz;
+constexpr auto ENABLED = true;
+
+// TODO
+constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/vn100AccCalibration.csv";
+constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/vn100GyroCalibration.csv";
+}  // namespace VN100
+
 namespace ND015A
 {
 constexpr auto IOW = Boardcore::ND015A::IOWatchdogEnable::DISABLED;
@@ -213,8 +227,9 @@ namespace IMU
 {
 constexpr auto USE_CALIBRATED_LIS2MDL  = true;
 constexpr auto USE_CALIBRATED_LSM6DSRX = true;
+constexpr auto USE_CALIBRATED_VN100    = true;
 
-constexpr auto RATE    = 100_hz;
+constexpr auto RATE    = 100_hz;  // Switch to 200Hz?
 constexpr auto ENABLED = true;
 }  // namespace IMU
 
