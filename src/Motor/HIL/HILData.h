@@ -44,7 +44,7 @@ enum class MotorFlightPhases
     SIMULATION_STARTED
 };
 
-struct ActuatorsStateHIL
+struct __attribute__((packed)) ActuatorsStateHIL
 {
     float mainValvePosition = 0;
 
@@ -55,7 +55,7 @@ struct ActuatorsStateHIL
     void print() { printf("main valve: %f perc\n", mainValvePosition); }
 };
 
-struct MEAStateHIL
+struct __attribute__((packed)) MEAStateHIL
 {
     float MEAMass = 0;
 
@@ -73,6 +73,7 @@ struct MEAStateHIL
  * This structure then is accessed by sensors and other components in order to
  * get the data they need
  */
+//
 struct SimulatorData
 {
     MotorHILCCPressureData pressureChamber;
@@ -83,7 +84,7 @@ struct SimulatorData
 /**
  * @brief Data structure expected by the simulator
  */
-struct ActuatorData
+struct __attribute__((packed)) ActuatorData
 {
     ActuatorsStateHIL actuatorsState;
     MEAStateHIL meaState;
@@ -100,7 +101,12 @@ struct ActuatorData
     {
     }
 
-    void print() { actuatorsState.print(); }
+    void print()
+    {
+        actuatorsState.print();
+        meaState.print();
+        printf("Sequence number: %d\n", sequenceNumber);
+    }
 };
 
 }  // namespace Motor
