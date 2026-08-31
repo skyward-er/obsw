@@ -49,9 +49,14 @@ void ValveSequenceController::handleEvent(const Event& ev)
     {
         case WIGGLE_ALL_VALVES:
         {
-            uint16_t wiggleResult = wiggleValves();
-            getModule<Radio>()->enqueueWiggleResultTm(wiggleResult,
-                                                      lastRequestId);
+            wiggleValves();
+            getModule<Radio>()->enqueueWiggleResultTm(
+                wiggleResult.mainOxSuccess, wiggleResult.mainFuelSuccess,
+                wiggleResult.przOxSuccess, wiggleResult.przFuelSuccess,
+                wiggleResult.oxVentingSuccess, wiggleResult.fuelVentingSuccess,
+                wiggleResult.prz3WaySuccess, wiggleResult.przFillingSuccess,
+                wiggleResult.przReleaseSuccess, wiggleResult.oxFillingSuccess,
+                wiggleResult.oxReleaseSuccess, lastRequestId);
             break;
         }
 
@@ -103,22 +108,15 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 }
 
-uint16_t ValveSequenceController::wiggleValves()
+void ValveSequenceController::wiggleValves()
 {
     auto isValveOpen =
         [&](auto getPosition, uint8_t bit, uint8_t openingThreshold)
-    {
-        bool isOpen = static_cast<uint8_t>(getPosition()) > openingThreshold;
-        return isOpen ? static_cast<uint8_t>(1 << bit) : 0;
-    };
+    { return static_cast<uint8_t>(getPosition()) > openingThreshold; };
 
     auto isValveClosed =
         [&](auto getPosition, uint8_t bit, uint8_t closedThreshold)
-    {
-        bool isClosed = static_cast<uint8_t>(getPosition()) < closedThreshold;
-        return isClosed ? static_cast<uint8_t>(0xFF)
-                        : static_cast<uint8_t>(~(1 << bit));
-    };
+    { return static_cast<uint8_t>(getPosition()) < closedThreshold; };
 
     uint8_t wiggleMapRIG   = 0;
     uint8_t wiggleMapMotor = 0;
@@ -128,12 +126,12 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.mainOxSuccess = isValveOpen(
         [&]()
         { return getModule<MotorStatus>()->lockData()->mainOxValvePosition; },
         Config::MotorValveBit::MAIN_OX_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_MAIN_OX);
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.mainFuelSuccess = isValveOpen(
         [&]()
         { return getModule<MotorStatus>()->lockData()->mainFuelValvePosition; },
         Config::MotorValveBit::MAIN_FUEL_VALVE_BIT,
@@ -144,12 +142,12 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.mainOxSuccess &= isValveClosed(
         [&]()
         { return getModule<MotorStatus>()->lockData()->mainOxValvePosition; },
         Config::MotorValveBit::MAIN_OX_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_MAIN_OX);
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.mainFuelSuccess &= isValveClosed(
         [&]()
         { return getModule<MotorStatus>()->lockData()->mainFuelValvePosition; },
         Config::MotorValveBit::MAIN_FUEL_VALVE_BIT,
@@ -160,12 +158,12 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.przOxSuccess = isValveOpen(
         [&]()
         { return getModule<MotorStatus>()->lockData()->przOxValvePosition; },
         Config::MotorValveBit::PRZ_OX_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_PRZ_OX);
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.przFuelSuccess = isValveOpen(
         [&]()
         { return getModule<MotorStatus>()->lockData()->przFuelValvePosition; },
         Config::MotorValveBit::PRZ_FUEL_VALVE_BIT,
@@ -176,12 +174,12 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.przOxSuccess &= isValveClosed(
         [&]()
         { return getModule<MotorStatus>()->lockData()->przOxValvePosition; },
         Config::MotorValveBit::PRZ_OX_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_PRZ_OX);
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.przFuelSuccess &= isValveClosed(
         [&]()
         { return getModule<MotorStatus>()->lockData()->przFuelValvePosition; },
         Config::MotorValveBit::PRZ_FUEL_VALVE_BIT,
@@ -192,14 +190,14 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.oxVentingSuccess = isValveOpen(
         [&]()
         {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_VENTING);
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.fuelVentingSuccess = isValveOpen(
         [&]()
         {
             return getModule<MotorStatus>()
@@ -214,14 +212,14 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.oxVentingSuccess &= isValveClosed(
         [&]()
         {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.fuelVentingSuccess &= isValveClosed(
         [&]()
         {
             return getModule<MotorStatus>()
@@ -239,16 +237,16 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.prz3WaySuccess = isValveOpen(
         [&]() { return getModule<Sensors>()->getPrz3WayPosition().position; },
         Config::RIGValveBit::PRZ_3WAY_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_PRZ_3WAY);
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.przFillingSuccess = isValveOpen(
         [&]()
         { return getModule<Sensors>()->getPrzFillingPosition().position; },
         Config::RIGValveBit::PRZ_FILLING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_PRZ_FILLING);
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.przReleaseSuccess = isValveOpen(
         [&]()
         { return getModule<Sensors>()->getPrzReleasePosition().position; },
         Config::RIGValveBit::PRZ_RELEASE_VALVE_BIT,
@@ -260,16 +258,16 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.prz3WaySuccess &= isValveClosed(
         [&]() { return getModule<Sensors>()->getPrz3WayPosition().position; },
         Config::RIGValveBit::PRZ_3WAY_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_PRZ_3WAY);
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.przFillingSuccess &= isValveClosed(
         [&]()
         { return getModule<Sensors>()->getPrzFillingPosition().position; },
         Config::RIGValveBit::PRZ_FILLING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_PRZ_FILLING);
-    wiggleMapMotor &= isValveClosed(
+    wiggleResult.przReleaseSuccess &= isValveClosed(
         [&]()
         { return getModule<Sensors>()->getPrzReleasePosition().position; },
         Config::RIGValveBit::PRZ_RELEASE_VALVE_BIT,
@@ -280,11 +278,11 @@ uint16_t ValveSequenceController::wiggleValves()
 
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.oxFillingSuccess = isValveOpen(
         [&]() { return getModule<Sensors>()->getOxFillingPosition().position; },
         Config::RIGValveBit::OX_FILLING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_FILLING);
-    wiggleMapMotor |= isValveOpen(
+    wiggleResult.oxReleaseSuccess = isValveOpen(
         [&]() { return getModule<Sensors>()->getOxReleasePosition().position; },
         Config::RIGValveBit::OX_RELEASE_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_RELEASE);
@@ -293,16 +291,13 @@ uint16_t ValveSequenceController::wiggleValves()
     getModule<Actuators>()->closeValve(OX_RELEASE_VALVE);
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
-    wiggleMapRIG &= isValveClosed(
+    wiggleResult.oxFillingSuccess &= isValveClosed(
         [&]() { return getModule<Sensors>()->getOxFillingPosition().position; },
         Config::RIGValveBit::OX_FILLING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_FILLING);
-    wiggleMapRIG &= isValveClosed(
+    wiggleResult.oxReleaseSuccess &= isValveClosed(
         [&]() { return getModule<Sensors>()->getOxReleasePosition().position; },
         Config::RIGValveBit::OX_RELEASE_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_RELEASE);
-
-    return static_cast<uint16_t>(wiggleMapRIG |
-                                 (static_cast<uint16_t>(wiggleMapMotor) << 8));
 }
 }  // namespace RIGv3

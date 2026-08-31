@@ -60,13 +60,9 @@ private:
      * Opens all valves, checks if their positions exceed the open thresholds,
      * closes them, and verifies they fall below the closed thresholds.
      *
-     * @param requestId The request ID to use for the telemetry message
-     * response.
      *
-     * @return A bitmask mapping the success of each valve (RIG on low byte,
-     * Motor on high byte).
      */
-    uint16_t wiggleValves();
+    void wiggleValves();
 
     /**
      * @brief Closes all RIGv3 and Motor valves in a safe, timed sequence.
@@ -75,6 +71,21 @@ private:
      * surges.
      */
     void closeValves();
+
+    struct ValveWiggleResult
+    {
+        bool mainOxSuccess : 1      = false;
+        bool mainFuelSuccess : 1    = false;
+        bool przOxSuccess : 1       = false;
+        bool przFuelSuccess : 1     = false;
+        bool oxVentingSuccess : 1   = false;
+        bool fuelVentingSuccess : 1 = false;
+        bool prz3WaySuccess : 1     = false;
+        bool przFillingSuccess : 1  = false;
+        bool przReleaseSuccess : 1  = false;
+        bool oxFillingSuccess : 1   = false;
+        bool oxReleaseSuccess : 1   = false;
+    } wiggleResult;
 
     uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
 };

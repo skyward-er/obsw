@@ -65,7 +65,12 @@ public:
 
     Boardcore::MavlinkStatus getMavStatus();
 
-    bool enqueueWiggleResultTm(uint16_t wiggleResult, uint8_t requestId);
+    bool enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
+                               bool przOxSuccess, bool przFuelSuccess,
+                               bool oxVentingSuccess, bool fuelVentingSuccess,
+                               bool prz3WaySuccess, bool przFillingSuccess,
+                               bool przReleaseSuccess, bool oxFillingSuccess,
+                               bool oxReleaseSuccess, uint8_t requestId);
 
 private:
     void enqueueAck(const mavlink_message_t& msg);

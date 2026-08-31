@@ -657,13 +657,29 @@ bool Radio::enqueueValveInfoTm(ServosList valveId, uint8_t requestId)
     return true;
 }
 
-bool Radio::enqueueWiggleResultTm(uint16_t wiggleResult, uint8_t requestId)
+bool Radio::enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
+                                  bool przOxSuccess, bool przFuelSuccess,
+                                  bool oxVentingSuccess,
+                                  bool fuelVentingSuccess, bool prz3WaySuccess,
+                                  bool przFillingSuccess,
+                                  bool przReleaseSuccess, bool oxFillingSuccess,
+                                  bool oxReleaseSuccess, uint8_t requestId)
 {
     mavlink_message_t msg;
     mavlink_wiggle_valves_result_tm_t tm;
 
-    tm.timestamp = TimestampTimer::getTimestamp();
-    tm.resultMap = wiggleResult;
+    tm.timestamp            = TimestampTimer::getTimestamp();
+    tm.main_ox_success      = mainOxSuccess ? 1 : 0;
+    tm.main_fuel_success    = mainFuelSuccess ? 1 : 0;
+    tm.prz_ox_success       = przOxSuccess ? 1 : 0;
+    tm.prz_fuel_success     = przFuelSuccess ? 1 : 0;
+    tm.ox_venting_success   = oxVentingSuccess ? 1 : 0;
+    tm.fuel_venting_success = fuelVentingSuccess ? 1 : 0;
+    tm.prz_3way_success     = prz3WaySuccess ? 1 : 0;
+    tm.prz_filling_success  = przFillingSuccess ? 1 : 0;
+    tm.prz_release_success  = przReleaseSuccess ? 1 : 0;
+    tm.ox_filling_success   = oxFillingSuccess ? 1 : 0;
+    tm.ox_release_success   = oxReleaseSuccess ? 1 : 0;
     mavlink_msg_wiggle_valves_result_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                requestId, &msg, &tm);
 
