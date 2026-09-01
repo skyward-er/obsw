@@ -157,6 +157,20 @@ struct AS5047DRightData : Boardcore::AS5047DData
     }
 };
 
+struct WinchServoData
+{
+    uint8_t ServoId = 0;
+    float angle     = 0.0f;
+
+    WinchServoData() {};
+    WinchServoData(uint8_t id, float angle) : ServoId(id), angle(angle) {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(WinchServoData, FIELD_DEF(ServoId) FIELD_DEF(angle));
+    }
+};
+
 struct AS5047DABKData : Boardcore::AS5047DData
 {
     explicit AS5047DABKData(const Boardcore::AS5047DData& data)

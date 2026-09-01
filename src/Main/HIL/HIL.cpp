@@ -346,7 +346,7 @@ ActuatorData MainHIL::updateActuatorData()
     auto motor = getModule<Common::MotorStatus>()->lockData();
 
     ActuatorsStateHIL actuatorsStateHIL{
-        actuators->getServoPosition(ServosList::AIR_BRAKES_SERVO),
+        actuators->getAbkPosition(),
         wingController->getLastServoCommands().leftCommand,
         wingController->getLastServoCommands().rightCommand,
         static_cast<bool>(miosix::gpios::expulsion::value()),

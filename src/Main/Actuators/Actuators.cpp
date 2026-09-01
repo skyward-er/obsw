@@ -259,6 +259,18 @@ void Actuators::setAbkPosition(float position)
                 position);
 }
 
+float Actuators::getAbkPosition()
+{
+    Lock<FastMutex> lock{servosMutex};
+
+    float servoPosition = servoAbk->getPosition();
+    float normalizedPosition =
+        (servoPosition - Config::Actuators::ABK_MIN_POS) /
+        (Config::Actuators::ABK_MAX_POS - Config::Actuators::ABK_MIN_POS);
+
+    return normalizedPosition;
+}
+
 void Actuators::wiggleServo(ServosList servo)
 {
     if (servo == PARAFOIL_LEFT_SERVO || servo == PARAFOIL_RIGHT_SERVO)
@@ -427,6 +439,9 @@ void Actuators::updateServoState(ServosList servoId, Radian encoderAngle)
             break;
         }
     }
+
+    sdLogger.log(
+        WinchServoData{static_cast<uint8_t>(servoId), estimatedAngle.value()});
 }
 
 Actuators::ServoActuator* Actuators::getServoActuator(ServosList servoId)

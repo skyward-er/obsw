@@ -110,6 +110,7 @@ public:
     bool arePrfServosStill();
 
     void setAbkPosition(float position);
+    float getAbkPosition();
     void wiggleServo(ServosList servo);
     float getServoPosition(ServosList servo);
 
