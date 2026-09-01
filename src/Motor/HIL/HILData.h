@@ -105,7 +105,7 @@ struct __attribute__((packed)) ActuatorData
     {
         actuatorsState.print();
         meaState.print();
-        printf("Sequence number: %d\n", sequenceNumber);
+        printf("Sequence number: %f\n", sequenceNumber);
     }
 };
 

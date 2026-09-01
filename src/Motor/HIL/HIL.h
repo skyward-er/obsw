@@ -26,6 +26,7 @@
 #include <Motor/Buses.h>
 #include <Motor/Configs/HILSimulationConfig.h>
 #include <common/Events.h>
+#include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceData.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
 
@@ -63,6 +64,8 @@ private:
         std::vector<MotorFlightPhases>& changed_flags) override;
 
     void handleHSMTransition(const uint8_t hsmState);
+
+    FiringSequenceState previousState = {FiringSequenceState::INIT};
 };
 
 class MotorHIL
