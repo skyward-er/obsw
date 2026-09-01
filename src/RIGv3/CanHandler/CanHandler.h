@@ -82,6 +82,8 @@ public:
                             Boardcore::EregPIDConfig dischargeConfig,
                             EregList eregId);
 
+    void sendEregServoCoeff(EregList eregId, float coefficients[]);
+
     void sendEregTarget(float oxTarget, float fuelTarget);
 
     void sendIgnitionThresholds(float igniterThreshold, float pilotThreshold);

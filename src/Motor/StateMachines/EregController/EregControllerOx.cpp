@@ -316,6 +316,13 @@ void EregControllerOx::changePIDConfig(EregPIDConfig newPressurizationConfig,
     dischargeConfig.KD = newDischargeConfig.KD;
 }
 
+void EregControllerOx::setServoCoeff(
+    const float coefficients[POLY_SERVO_COEFF_NUMBER])
+{
+    if (state == EregState::CLOSED)
+        regulator.setServoCoefficients(coefficients);
+}
+
 void EregControllerOx::setEregTarget(float target) { targetPressure = target; }
 
 void EregControllerOx::updateAndLogStatus(EregState state)

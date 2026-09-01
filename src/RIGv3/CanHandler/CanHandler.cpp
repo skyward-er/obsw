@@ -192,6 +192,21 @@ void CanHandler::sendIgnitionThresholds(float igniterThreshold,
                                     igniterThreshold, pilotThreshold});
 }
 
+void CanHandler::sendEregServoCoeff(EregList eregId, float coefficients[])
+{
+    uint8_t id = static_cast<uint8_t>(eregId);
+
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(CanConfig::CommandId::EREG_SERVO_COEFFICIENTS),
+        EregServoCoefficients{id, coefficients});
+
+    sdLogger.log(EregServoCoefficients{id, coefficients});
+}
+
 CanHandler::CanStatus CanHandler::getCanStatus()
 {
     Lock<FastMutex> lock{statusMutex};

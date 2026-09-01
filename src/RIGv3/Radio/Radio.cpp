@@ -359,6 +359,34 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
+        case MAVLINK_MSG_ID_SET_EREG_SERVO_COEFFICIENTS_TC:
+        {
+            float coefficients[POLY_SERVO_COEFF_NUMBER];
+            EregList eregId = static_cast<EregList>(
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_ereg(&msg));
+
+            coefficients[0] =
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_coefficient_0(
+                    &msg);
+            coefficients[1] =
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_coefficient_1(
+                    &msg);
+            coefficients[2] =
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_coefficient_2(
+                    &msg);
+            coefficients[3] =
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_coefficient_3(
+                    &msg);
+            coefficients[4] =
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_coefficient_4(
+                    &msg);
+            coefficients[5] =
+                mavlink_msg_set_ereg_servo_coefficients_tc_get_coefficient_5(
+                    &msg);
+
+            getModule<CanHandler>()->sendEregServoCoeff(eregId, coefficients);
+        }
+
         case MAVLINK_MSG_ID_SET_EREG_CONSTANTS_TC:
         {
             EregPIDConfig pressurizationConfig = {

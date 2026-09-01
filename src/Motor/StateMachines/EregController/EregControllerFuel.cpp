@@ -315,6 +315,13 @@ void EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
     dischargeConfig.KD = newDischargeConfig.KD;
 }
 
+void EregControllerFuel::setServoCoeff(
+    const float coefficients[POLY_SERVO_COEFF_NUMBER])
+{
+    if (state == EregState::CLOSED)
+        regulator.setServoCoefficients(coefficients);
+}
+
 void EregControllerFuel::setEregTarget(float target)
 {
     targetPressure = target;

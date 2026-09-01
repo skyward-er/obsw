@@ -51,6 +51,8 @@ public:
     void changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
                          Boardcore::EregPIDConfig newDischargeConfig);
 
+     void setServoCoeff(const float coeff[Boardcore::POLY_SERVO_COEFF_NUMBER]);
+
     void setEregTarget(float target);
 
     EregState getState();

@@ -423,6 +423,25 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
             }
             break;
         }
+        case Common::CanConfig::CommandId::EREG_SERVO_COEFFICIENTS:
+        {
+            CanEregServoCoefficients coeffs =
+                canServoCoefficientsFromCanMessage(msg);
+            sdLogger.log(coeffs);
+
+            if (coeffs.eregId == EregList::EREG_OX)
+            {
+                getModule<EregControllerOx>()->setServoCoeff(
+                    coeffs.coefficients);
+            }
+            else if (coeffs.eregId == EregList::EREG_FUEL)
+            {
+                getModule<EregControllerFuel>()->setServoCoeff(
+                    coeffs.coefficients);
+            }
+
+            break;
+        }
         default:
         {
             LOG_WARN(logger, "Received unsupported command: {}", commandId);
