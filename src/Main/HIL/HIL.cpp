@@ -338,6 +338,9 @@ ActuatorData MainHIL::updateActuatorData()
 
     AirBrakesStateHIL abkStateHIL{getModule<ABKController>()->getState()};
 
+    ZVKStateHIL zvkStateHIL{getModule<ZVKController>()->getAccVN100Bias(),
+                            getModule<ZVKController>()->getGyroVN100Bias()};
+
     FMMStateHIL fmmStateHIL{getModule<FlightModeManager>()->getState()};
 
     auto motor = getModule<Common::MotorStatus>()->lockData();
@@ -354,7 +357,7 @@ ActuatorData MainHIL::updateActuatorData()
     // Returning the feedback for the simulator
     return ActuatorData{adaStateHIL, anasStateHIL, quaternionStateHIL,
                         sdaStateHIL, abkStateHIL,  actuatorsStateHIL,
-                        fmmStateHIL, counter};
+                        zvkStateHIL, fmmStateHIL,  counter};
 }
 
 }  // namespace Main

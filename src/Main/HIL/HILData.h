@@ -306,6 +306,23 @@ struct __attribute__((packed)) FMMStateHIL
 };
 
 /**
+ *  @brief ZVK State expected by the simulator
+ */
+struct __attribute__((packed)) ZVKStateHIL
+{
+    float VN100AccBias[3]  = {0.0f, 0.0f, 0.0f};
+    float VN100GyroBias[3] = {0.0f, 0.0f, 0.0f};
+
+    ZVKStateHIL() = default;
+
+    ZVKStateHIL(const Eigen::Vector3f& acc, const Eigen::Vector3f& gyro)
+        : VN100AccBias{acc.x(), acc.y(), acc.z()},
+          VN100GyroBias{gyro.x(), gyro.y(), gyro.z()} {};
+};
+
+// Next Year in case of a Main HIL the MEA mass will be sent by CHAD to the OBSW
+
+/**
  * @brief Data structure expected by the simulator
  */
 struct __attribute__((packed)) ActuatorData
@@ -317,6 +334,7 @@ struct __attribute__((packed)) ActuatorData
     SDAStateHIL sdaState;
     AirBrakesStateHIL airBrakesState;
     ActuatorsStateHIL actuatorsState;
+    ZVKStateHIL zvkState;
     FMMStateHIL fmmState;
     float sequenceNumber;  //< Counter used to see the sequence of packets sent
                            // to the
@@ -324,7 +342,8 @@ struct __attribute__((packed)) ActuatorData
 
     ActuatorData()
         : adaState(), anasState(), quaternionState(), sdaState(),
-          airBrakesState(), actuatorsState(), fmmState(), sequenceNumber(0.0f)
+          airBrakesState(), actuatorsState(), zvkState(), fmmState(),
+          sequenceNumber(0.0f)
     {
     }
 
@@ -333,11 +352,12 @@ struct __attribute__((packed)) ActuatorData
                  const SDAStateHIL& sdaState,
                  const AirBrakesStateHIL& airBrakesState,
                  const ActuatorsStateHIL& actuatorsState,
-                 const FMMStateHIL& fmmState, const float sequenceNumber)
+                 const ZVKStateHIL& zvkState, const FMMStateHIL& fmmState,
+                 const float sequenceNumber)
         : adaState(adaState), anasState(anasState),
           quaternionState(quaternionState), sdaState(sdaState),
           airBrakesState(airBrakesState), actuatorsState(actuatorsState),
-          fmmState(fmmState), sequenceNumber(sequenceNumber)
+          zvkState(zvkState), fmmState(fmmState), sequenceNumber(sequenceNumber)
     {
     }
 
