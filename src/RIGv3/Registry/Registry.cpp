@@ -49,10 +49,6 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
             return "EREG_OX_PILOT_PRECHARGE";
         case CONFIG_ID_EREG_OX_RAMPUP_PRECHARGE:
             return "EREG_OX_RAMPUP_PRECHARGE";
-        case CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_TARGET:
-            return "EREG_OX_FIRST_PRESSURIZATION_TARGET";
-        case CONFIG_ID_EREG_OX_RAMPUP_TARGET:
-            return "EREG_OX_RAMPUP_TARGET";
         case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KP:
             return "EREG_FUEL_FIRST_PRESSURIZATION_KP";
         case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KI:
@@ -69,10 +65,6 @@ const char* RIGv3::configurationIdToName(ConfigurationId id)
             return "EREG_FUEL_PILOT_PRECHARGE";
         case CONFIG_ID_EREG_FUEL_RAMPUP_PRECHARGE:
             return "EREG_FUEL_RAMPUP_PRECHARGE";
-        case CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_TARGET:
-            return "EREG_FUEL_FIRST_PRESSURIZATION_TARGET";
-        case CONFIG_ID_EREG_FUEL_RAMPUP_TARGET:
-            return "EREG_FUEL_RAMPUP_TARGET";
         case CONFIG_ID_PILOT_FUEL_LEAD_TIME:
             return "PILOT_FUEL_LEAD_TIME";
         case CONFIG_ID_FULL_THROTTLE_TIME:

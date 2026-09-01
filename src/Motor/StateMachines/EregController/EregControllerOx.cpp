@@ -25,6 +25,7 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Actuators/ActuatorsData.h>
 #include <Motor/BoardScheduler.h>
+#include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -71,7 +72,33 @@ bool EregControllerOx::start()
         return false;
     }
 
+    loadFromRegistry();
+
     return true;
+}
+
+void EregControllerOx::loadFromRegistry()
+{
+    // Load ereg parameters from registry or set to default if not present
+    pressurizationConfig.KP = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KP,
+        Config::EregOx::STABILIZING_CONFIG.KP);
+    pressurizationConfig.KI = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KI,
+        Config::EregOx::STABILIZING_CONFIG.KI);
+    pressurizationConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KD,
+        Config::EregOx::STABILIZING_CONFIG.KD);
+
+    dischargeConfig.KP = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_KP, Config::EregOx::DISCHARGING_CONFIG.KP);
+    dischargeConfig.KI = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_KI, Config::EregOx::DISCHARGING_CONFIG.KI);
+    dischargeConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_RAMPUP_KD, Config::EregOx::DISCHARGING_CONFIG.KD);
+
+    targetPressure = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_TARGET_PRESSURE, Config::EregOx::TARGET_PRESSURE);
 }
 
 void EregControllerOx::update()
@@ -90,15 +117,15 @@ void EregControllerOx::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure >
-        Config::EregOx::TARGET_PRESSURE * 1.2)
+    if (logData.filteredDownstreamPressure > targetPressure * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
         // TODO: put venting valve in the config
         getModule<Actuators>()->closeValve(Config::EregOx::EREG_SERVO);
-        getModule<Actuators>()->openValveWithTime(ServosList::OX_VENTING_VALVE,
-                                                  5000);
+        getModule<Actuators>()->openValveWithTime(
+            Config::EregOx::VENTING_SERVO,
+            Config::EregOx::VENTING_TIME.count());
         return;
     }
 
@@ -261,6 +288,32 @@ void EregControllerOx::state_firing(const Event& event)
             break;
         }
     }
+}
+
+void EregControllerOx::changePIDConfig(EregPIDConfig newPressurizationConfig,
+                                       EregPIDConfig newDischargeConfig)
+{
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KP,
+                                     newPressurizationConfig.KP);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KI,
+                                     newPressurizationConfig.KI);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_FIRST_PRESSURIZATION_KD,
+                                     newPressurizationConfig.KD);
+
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_KP,
+                                     newDischargeConfig.KP);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_KI,
+                                     newDischargeConfig.KI);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_RAMPUP_KD,
+                                     newDischargeConfig.KD);
+
+    pressurizationConfig.KP = newPressurizationConfig.KP;
+    pressurizationConfig.KI = newPressurizationConfig.KI;
+    pressurizationConfig.KD = newPressurizationConfig.KD;
+
+    dischargeConfig.KP = newDischargeConfig.KP;
+    dischargeConfig.KI = newDischargeConfig.KI;
+    dischargeConfig.KD = newDischargeConfig.KD;
 }
 
 void EregControllerOx::setEregTarget(float target) { targetPressure = target; }

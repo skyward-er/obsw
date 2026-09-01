@@ -29,6 +29,7 @@
 #include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
+#include <algorithms/Ereg/EregConfig.h>
 
 namespace RIGv3
 {
@@ -76,6 +77,10 @@ public:
                                     uint32_t pilotLeadTime,
                                     float pilotOxPosition,
                                     float pilotFuelPosition);
+
+    void sendEregPIDConfigs(Boardcore::EregPIDConfig pressurizationConfig,
+                            Boardcore::EregPIDConfig dischargeConfig,
+                            EregList eregId);
 
     void sendEregTarget(float oxTarget, float fuelTarget);
 

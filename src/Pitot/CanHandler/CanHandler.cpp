@@ -114,10 +114,11 @@ bool CanHandler::start()
             auto status = DeviceStatus{
                 .timestamp = TimestampTimer::getTimestamp(),
                 .logNumber = static_cast<int16_t>(logStats.logNumber),
-                .state     = miosix::HeatingPad::sense::value(),
-                .armed     = Config::CanHandler::Status::ARMED,
-                .hil       = Config::CanHandler::Status::HIL,
-                .logGood   = logStats.lastWriteError == 0,
+                .state =
+                    static_cast<uint8_t>(miosix::HeatingPad::sense::value()),
+                .armed   = Config::CanHandler::Status::ARMED,
+                .hil     = Config::CanHandler::Status::HIL,
+                .logGood = logStats.lastWriteError == 0,
             };
 
             protocol->enqueueData(static_cast<uint8_t>(Priority::MEDIUM),

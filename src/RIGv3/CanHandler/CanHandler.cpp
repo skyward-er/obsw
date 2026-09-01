@@ -149,6 +149,22 @@ void CanHandler::sendIgnitionSequenceConfig(uint32_t fullThrottleTime,
                        pilotFuelPosition});
 }
 
+void CanHandler::sendEregPIDConfigs(EregPIDConfig pressurizationConfig,
+                                    EregPIDConfig dischargeConfig,
+                                    EregList eregId)
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+        static_cast<uint8_t>(CanConfig::CommandId::EREG_PID_CONFIGS),
+        EregPIDSet{pressurizationConfig.KP, pressurizationConfig.KI,
+                   pressurizationConfig.KD, dischargeConfig.KP,
+                   dischargeConfig.KI, dischargeConfig.KD,
+                   static_cast<uint8_t>(eregId)});
+}
+
 void CanHandler::sendEregTarget(float oxTarget, float fuelTarget)
 {
     protocol.enqueueData(
@@ -261,7 +277,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 
 void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
-    CanServoFeedback data = servoFeedbackFromCanMessage(msg);
+    CanValveData data = valveDataFromCanMessage(msg);
     sdLogger.log(data);
 }
 

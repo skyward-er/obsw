@@ -36,15 +36,20 @@ namespace Motor
 class Actuators;
 class BoardScheduler;
 class Sensors;
+class Registry;
 
 class EregControllerFuel
     : public Boardcore::FSM<EregControllerFuel>,
-      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors>
+      public Boardcore::InjectableWithDeps<BoardScheduler, Actuators, Sensors,
+                                           Registry>
 {
 public:
     EregControllerFuel();
 
     [[nodiscard]] bool start() override;
+
+    void changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
+                         Boardcore::EregPIDConfig newDischargeConfig);
 
     void setEregTarget(float target);
 
@@ -61,6 +66,8 @@ private:
     void state_firing(const Boardcore::Event& event);
 
     void updateAndLogStatus(EregState state);
+
+    void loadFromRegistry();
 
     std::atomic<EregState> state{EregState::INIT};
 

@@ -96,14 +96,6 @@ bool FiringSequenceHSM::start()
         CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
         Config::FiringSequence::PILOT_FLAME_PRESSURE_THRESHOLD);
 
-    przTankPressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
-        CONFIG_ID_PRZ_TANK_PRESSURE_THRESHOLD,
-        Config::FiringSequence::PRZ_TANK_PRESSURE_THRESHOLD);
-
-    oxTankPressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
-        CONFIG_ID_OX_TANK_PRESSURE_THRESHOLD,
-        Config::FiringSequence::OX_TANK_PRESSURE_THRESHOLD);
-
     igniterTaskId = scheduler.addTask([this]() { checkIgniterPressure(); },
                                       Config::FiringSequence::UPDATE_RATE);
 
@@ -201,7 +193,7 @@ void FiringSequenceHSM::checkDepressurizationPressure()
     if (state == FiringSequenceState::DEPRESSURIZATION_OX)
     {
         if (getModule<Sensors>()->getOxTankPressure().pressure >=
-            oxTankPressureThreshold)
+            Config::FiringSequence::OX_TANK_PRESSURE_THRESHOLD)
             lastPressureOverTime = now;
         if (now - lastPressureOverTime >=
             Config::FiringSequence::Depressurization::OX_HYSTERESIS)
@@ -214,7 +206,7 @@ void FiringSequenceHSM::checkDepressurizationPressure()
     else if (state == FiringSequenceState::DEPRESSURIZATION_PRZ)
     {
         if (getModule<Sensors>()->getPrzTankPressure().pressure >=
-            przTankPressureThreshold)
+            Config::FiringSequence::PRZ_TANK_PRESSURE_THRESHOLD)
             lastPressureOverTime = now;
         if (now - lastPressureOverTime >=
             Config::FiringSequence::Depressurization::PRZ_OX_HYSTERESIS)
@@ -909,10 +901,6 @@ State FiringSequenceHSM::state_depressurization_done(const Event& event)
                 igniterTaskId);
             getModule<BoardScheduler>()->firingSequenceHSM().disableTask(
                 pilotFlameTaskId);
-
-            // Should we close the valves here? Maybe we should leave them open
-            // for a while to ensure depressurization is complete. For now,
-            // let's close them.
 
             return HANDLED;
         }

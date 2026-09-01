@@ -25,6 +25,7 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Actuators/ActuatorsData.h>
 #include <Motor/BoardScheduler.h>
+#include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
 #include <common/Events.h>
 #include <common/Topics.h>
@@ -68,7 +69,33 @@ bool EregControllerFuel::start()
         return false;
     }
 
+    loadFromRegistry();
+
     return true;
+}
+
+void EregControllerFuel::loadFromRegistry()
+{
+    // Load ereg parameters from registry or set to default if not present
+    pressurizationConfig.KP = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KP,
+        Config::EregFuel::STABILIZING_CONFIG.KP);
+    pressurizationConfig.KI = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KI,
+        Config::EregFuel::STABILIZING_CONFIG.KI);
+    pressurizationConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KD,
+        Config::EregFuel::STABILIZING_CONFIG.KD);
+
+    dischargeConfig.KP = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_RAMPUP_KP, Config::EregFuel::DISCHARGING_CONFIG.KP);
+    dischargeConfig.KI = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_RAMPUP_KI, Config::EregFuel::DISCHARGING_CONFIG.KI);
+    dischargeConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_RAMPUP_KD, Config::EregFuel::DISCHARGING_CONFIG.KD);
+
+    targetPressure = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_TARGET_PRESSURE, Config::EregFuel::TARGET_PRESSURE);
 }
 
 void EregControllerFuel::update()
@@ -87,14 +114,14 @@ void EregControllerFuel::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure >
-        Config::EregFuel::TARGET_PRESSURE * 1.2)
+    if (logData.filteredDownstreamPressure > targetPressure * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
         getModule<Actuators>()->closeValve(Config::EregFuel::EREG_SERVO);
         getModule<Actuators>()->openValveWithTime(
-            ServosList::FUEL_VENTING_VALVE, 5000);
+            Config::EregFuel::VENTING_SERVO,
+            Config::EregFuel::VENTING_TIME.count());
         return;
     }
 
@@ -257,6 +284,35 @@ void EregControllerFuel::state_firing(const Event& event)
             break;
         }
     }
+}
+
+void EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
+                                         EregPIDConfig newDischargeConfig)
+{
+    getModule<Registry>()->setUnsafe(
+        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KP,
+        newPressurizationConfig.KP);
+    getModule<Registry>()->setUnsafe(
+        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KI,
+        newPressurizationConfig.KI);
+    getModule<Registry>()->setUnsafe(
+        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KD,
+        newPressurizationConfig.KD);
+
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KP,
+                                     newDischargeConfig.KP);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KI,
+                                     newDischargeConfig.KI);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KD,
+                                     newDischargeConfig.KD);
+
+    pressurizationConfig.KP = newPressurizationConfig.KP;
+    pressurizationConfig.KI = newPressurizationConfig.KI;
+    pressurizationConfig.KD = newPressurizationConfig.KD;
+
+    dischargeConfig.KP = newDischargeConfig.KP;
+    dischargeConfig.KI = newDischargeConfig.KI;
+    dischargeConfig.KD = newDischargeConfig.KD;
 }
 
 void EregControllerFuel::setEregTarget(float target)

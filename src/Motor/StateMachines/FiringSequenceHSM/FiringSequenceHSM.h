@@ -102,9 +102,6 @@ private:
     float igniterPressureThreshold    = 0.0f;
     float pilotFlamePressureThreshold = 0.0f;
 
-    float przTankPressureThreshold = 0.0f;
-    float oxTankPressureThreshold  = 0.0f;
-
     uint8_t igniterTaskId          = 0;
     uint8_t pilotFlameTaskId       = 0;
     uint8_t depressurizationTaskId = 0;

@@ -41,8 +41,7 @@ EregControllerFuel::EregControllerFuel()
     : FSM{&EregControllerFuel::state_init, STACK_DEFAULT_FOR_PTHREAD,
           BoardScheduler::eregControllerPriority()},
       regulator{Config::EregFuel::STABILIZING_CONFIG,
-                Config::EregFuel::VALVE_INFO,
-                Config::EregFuel::FIRST_PRESSURIZATION_TARGET_PRESSURE}
+                Config::EregFuel::VALVE_INFO, Config::EregFuel::TARGET_PRESSURE}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FIRING_SEQUENCE);
     EventBroker::getInstance().subscribe(this, TOPIC_EREG_FUEL);
@@ -92,20 +91,8 @@ void EregControllerFuel::loadFromRegistry()
     dischargeConfig.KD = getModule<Registry>()->getOrSetDefaultUnsafe(
         CONFIG_ID_EREG_FUEL_RAMPUP_KD, Config::EregFuel::DISCHARGING_CONFIG.KD);
 
-    firstPressurizationTargetPressure =
-        getModule<Registry>()->getOrSetDefaultUnsafe(
-            CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_TARGET,
-            Config::EregFuel::FIRST_PRESSURIZATION_TARGET_PRESSURE);
-    rampupTargetPressure = getModule<Registry>()->getOrSetDefaultUnsafe(
-        CONFIG_ID_EREG_FUEL_RAMPUP_TARGET,
-        Config::EregFuel::RAMPUP_TARGET_PRESSURE);
-
-    pilotFlamePrecharge = getModule<Registry>()->getOrSetDefaultUnsafe(
-        CONFIG_ID_EREG_FUEL_PILOT_PRECHARGE,
-        Config::EregFuel::PILOT_FLAME_PRECHARGE);
-    rampupPrecharge = getModule<Registry>()->getOrSetDefaultUnsafe(
-        CONFIG_ID_EREG_FUEL_RAMPUP_PRECHARGE,
-        Config::EregFuel::RAMPUP_PRECHARGE);
+    targetPressure = getModule<Registry>()->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_TARGET_PRESSURE, Config::EregFuel::TARGET_PRESSURE);
 }
 
 void EregControllerFuel::update()
@@ -124,8 +111,7 @@ void EregControllerFuel::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure >
-        std::max(firstPressurizationTargetPressure, rampupTargetPressure) * 1.2)
+    if (logData.filteredDownstreamPressure > targetPressure * 1.2)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
@@ -220,7 +206,7 @@ void EregControllerFuel::state_pressurizing(const Event& event)
         {
             updateAndLogStatus(EregState::PRESSURIZING);
 
-            regulator.setReferencePoint(firstPressurizationTargetPressure);
+            regulator.setReferencePoint(targetPressure);
             regulator.changePIDConfig(pressurizationConfig);
             lastDownstreamInput = -1.0f;
             lastUpstreamInput   = -1.0f;
@@ -253,7 +239,8 @@ void EregControllerFuel::state_pilot_flame(const Event& event)
             updateAndLogStatus(EregState::PILOTFLAME);
 
             regulator.changePIDConfig(dischargeConfig);
-            regulator.setIntegralContribution(pilotFlamePrecharge);
+            regulator.setIntegralContribution(
+                Config::EregFuel::PILOT_FLAME_PRECHARGE);
             break;
         }
 
@@ -282,9 +269,10 @@ void EregControllerFuel::state_firing(const Event& event)
         {
             updateAndLogStatus(EregState::FIRING);
 
-            regulator.setReferencePoint(rampupTargetPressure);
+            regulator.setReferencePoint(targetPressure);
             regulator.changePIDConfig(dischargeConfig);
-            regulator.setIntegralContribution(rampupPrecharge);
+            regulator.setIntegralContribution(
+                Config::EregFuel::RAMPUP_PRECHARGE);
             break;
         }
 
@@ -327,29 +315,12 @@ void EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
     dischargeConfig.KD = newDischargeConfig.KD;
 }
 
-void EregControllerFuel::changeTargetPressure(
-    float newFirstPressurizationTargetPressure, float newRampupTargetPressure)
+void EregControllerFuel::changeTargetPressure(float newTargetPressure)
 {
-    getModule<Registry>()->setUnsafe(
-        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_TARGET,
-        newFirstPressurizationTargetPressure);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_TARGET,
-                                     newRampupTargetPressure);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_TARGET_PRESSURE,
+                                     newTargetPressure);
 
-    firstPressurizationTargetPressure = newFirstPressurizationTargetPressure;
-    rampupTargetPressure              = newRampupTargetPressure;
-}
-
-void EregControllerFuel::setIntegralPrecharge(float newPilotPrecharge,
-                                              float newRampupPrecharge)
-{
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_PILOT_PRECHARGE,
-                                     newPilotPrecharge);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_PRECHARGE,
-                                     newRampupPrecharge);
-
-    pilotFlamePrecharge = newPilotPrecharge;
-    rampupPrecharge     = newRampupPrecharge;
+    targetPressure = newTargetPressure;
 }
 
 void EregControllerFuel::updateAndLogStatus(EregState state)

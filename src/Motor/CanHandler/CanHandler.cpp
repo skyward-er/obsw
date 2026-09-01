@@ -201,7 +201,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
-                ServoFeedback{
+                ValveData{
                     TimestampTimer::getTimestamp(),
                     ServosList::OX_VENTING_VALVE,
                     static_cast<uint8_t>(
@@ -214,7 +214,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
-                ServoFeedback{
+                ValveData{
                     TimestampTimer::getTimestamp(),
                     ServosList::FUEL_VENTING_VALVE,
                     static_cast<uint8_t>(
@@ -227,7 +227,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
-                ServoFeedback{
+                ValveData{
                     TimestampTimer::getTimestamp(), ServosList::MAIN_OX_VALVE,
                     static_cast<uint8_t>(sensors->getMainOxPosition().position),
                     actuators->isValveOpen(ServosList::MAIN_OX_VALVE)});
@@ -238,11 +238,11 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
-                ServoFeedback{
-                    TimestampTimer::getTimestamp(), ServosList::MAIN_FUEL_VALVE,
-                    static_cast<uint8_t>(
-                        sensors->getMainFuelPosition().position),
-                    actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE)});
+                ValveData{TimestampTimer::getTimestamp(),
+                          ServosList::MAIN_FUEL_VALVE,
+                          static_cast<uint8_t>(
+                              sensors->getMainFuelPosition().position),
+                          actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE)});
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
@@ -250,7 +250,7 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
-                ServoFeedback{
+                ValveData{
                     TimestampTimer::getTimestamp(), ServosList::PRZ_OX_VALVE,
                     static_cast<uint8_t>(sensors->getPrzOxPosition().position),
                     actuators->isValveOpen(ServosList::PRZ_OX_VALVE)});
@@ -261,11 +261,11 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
-                ServoFeedback{
-                    TimestampTimer::getTimestamp(), ServosList::PRZ_FUEL_VALVE,
-                    static_cast<uint8_t>(actuators->getValvePosition(
-                        ServosList::PRZ_FUEL_VALVE)),
-                    actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
+                ValveData{TimestampTimer::getTimestamp(),
+                          ServosList::PRZ_FUEL_VALVE,
+                          static_cast<uint8_t>(actuators->getValvePosition(
+                              ServosList::PRZ_FUEL_VALVE)),
+                          actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
         },
         Config::CanHandler::VALVE_STATE_SEND_RATE);
 
@@ -400,6 +400,29 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
                 thresholds.igniterThreshold, thresholds.pilotThreshold);
             break;
         }
+        case Common::CanConfig::CommandId::EREG_PID_CONFIGS:
+        {
+            CanEregPIDSet configs = eregPIDSetFromCanMessage(msg);
+            sdLogger.log(configs);
+
+            if (configs.eregId == EregList::EREG_OX)
+            {
+                getModule<EregControllerOx>()->changePIDConfig(
+                    {configs.KpPressurization, configs.KiPressurization,
+                     configs.KdPressurization},
+                    {configs.KpDischarge, configs.KiDischarge,
+                     configs.KdDischarge});
+            }
+            else if (configs.eregId == EregList::EREG_FUEL)
+            {
+                getModule<EregControllerFuel>()->changePIDConfig(
+                    {configs.KpPressurization, configs.KiPressurization,
+                     configs.KdPressurization},
+                    {configs.KpDischarge, configs.KiDischarge,
+                     configs.KdDischarge});
+            }
+            break;
+        }
         default:
         {
             LOG_WARN(logger, "Received unsupported command: {}", commandId);
@@ -501,7 +524,7 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
 
 void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
-    CanServoFeedback data = servoFeedbackFromCanMessage(msg);
+    CanValveData data = valveDataFromCanMessage(msg);
     sdLogger.log(data);
 }
 

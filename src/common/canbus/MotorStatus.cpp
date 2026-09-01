@@ -123,7 +123,7 @@ void MotorStatus::handleSensors(const Canbus::CanMessage& msg)
 
 void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
 {
-    auto valveData   = servoFeedbackFromCanMessage(msg);
+    auto valveData   = valveDataFromCanMessage(msg);
     ServosList valve = static_cast<ServosList>(valveData.idx);
     sdLogger.log(valveData);
 
@@ -189,8 +189,6 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
     return {
         .timestamp                   = TimestampTimer::getTimestamp(),
         .prz_tank_pressure           = data.przTankPressure.pressure,
-        .ox_reg_out_pressure         = data.regulatorOxOutPressure.pressure,
-        .fuel_reg_out_pressure       = data.regulatorFuelOutPressure.pressure,
         .ox_tank_pressure            = data.oxTankPressure.pressure,
         .fuel_tank_pressure          = data.fuelTankPressure.pressure,
         .main_cc_pressure            = data.mainCCPressure.pressure,
@@ -199,24 +197,23 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
         .current_consumption         = data.currentConsumption.current,
         .log_number                  = data.device.logNumber,
         .ox_venting_valve_state      = data.oxVentingValveState,
-        .fuel_venting_valve_state    = data.fuelVentingValveState,
         .ox_venting_valve_position   = data.oxVentingValvePosition,
+        .fuel_venting_valve_state    = data.fuelVentingValveState,
         .fuel_venting_valve_position = data.fuelVentingValvePosition,
         .prz_ox_valve_state          = data.przOxValveState,
-        .prz_fuel_valve_state        = data.przFuelValveState,
         .prz_ox_valve_position       = data.przOxValvePosition,
+        .prz_fuel_valve_state        = data.przFuelValveState,
         .prz_fuel_valve_position     = data.przFuelValvePosition,
         .main_ox_valve_state         = data.mainOxValveState,
-        .main_fuel_valve_state       = data.mainFuelValveState,
         .main_ox_valve_position      = data.mainOxValvePosition,
+        .main_fuel_valve_state       = data.mainFuelValveState,
         .main_fuel_valve_position    = data.mainFuelValvePosition,
         .ox_solenoid_state           = data.oxSolenoidState,
         .fuel_solenoid_state         = data.fuelSolenoidState,
-        //.purge_solenoid_state        = data.purgeSolenoidState,
-        .spark_igniter_state       = data.sparkIgniterOn,
-        .firing_sequence_hsm_state = data.device.state,
-        .log_good                  = data.device.logGood,
-        .hil_state                 = data.device.hil,
+        .spark_igniter_state         = data.sparkIgniterOn,
+        .firing_sequence_hsm_state   = data.device.state,
+        .log_good                    = data.device.logGood,
+        .hil_state                   = data.device.hil,
     };
 }
 

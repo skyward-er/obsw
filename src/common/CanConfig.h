@@ -133,6 +133,7 @@ enum class CommandId : uint8_t
     FIRING_SEQUENCE_CONFIG,
     IGNITION_THRESHOLDS,
     EREG_TARGET,
+    EREG_PID_CONFIGS,
 };
 
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{

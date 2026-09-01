@@ -37,7 +37,9 @@ namespace EregFuel
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace std::chrono;
 
-constexpr ServosList EREG_SERVO = ServosList::PRZ_FUEL_VALVE;
+constexpr ServosList EREG_SERVO    = ServosList::PRZ_FUEL_VALVE;
+constexpr ServosList VENTING_SERVO = ServosList::FUEL_VENTING_VALVE;
+constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
@@ -85,7 +87,9 @@ namespace EregOx
 using namespace Boardcore::Units::Frequency;
 using namespace std::chrono;
 
-constexpr ServosList EREG_SERVO = ServosList::PRZ_OX_VALVE;
+constexpr ServosList EREG_SERVO    = ServosList::PRZ_OX_VALVE;
+constexpr ServosList VENTING_SERVO = ServosList::OX_VENTING_VALVE;
+constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 

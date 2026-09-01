@@ -474,10 +474,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                         break;
                     } */
 
-        case MAVLINK_MSG_ID_SET_MEA_MAX_BURN_TIME_TC:
+        case MAVLINK_MSG_ID_SET_SDA_MAX_BURN_TIME_TC:
         {
             uint32_t time =
-                mavlink_msg_set_mea_max_burn_time_tc_get_max_burn_time(&msg);
+                mavlink_msg_set_sda_max_burn_time_tc_get_max_burn_time(&msg);
 
             getModule<FlightModeManager>()->setEngineShutdownTimeout(
                 milliseconds{time});

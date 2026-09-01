@@ -118,9 +118,6 @@ void ValveSequenceController::wiggleValves()
         [&](auto getPosition, uint8_t bit, uint8_t closedThreshold)
     { return static_cast<uint8_t>(getPosition()) < closedThreshold; };
 
-    uint8_t wiggleMapRIG   = 0;
-    uint8_t wiggleMapMotor = 0;
-
     getModule<Actuators>()->openValveWithTime(MAIN_OX_VALVE, 6500);
     getModule<Actuators>()->openValveWithTime(MAIN_FUEL_VALVE, 6500);
 

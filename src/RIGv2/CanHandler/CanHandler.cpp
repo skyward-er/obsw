@@ -218,7 +218,7 @@ void CanHandler::handleSensor(const Canbus::CanMessage& msg)
 
 void CanHandler::handleActuator(const Canbus::CanMessage& msg)
 {
-    CanServoFeedback data = servoFeedbackFromCanMessage(msg);
+    CanValveData data = valveDataFromCanMessage(msg);
     sdLogger.log(data);
 }
 

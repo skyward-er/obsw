@@ -50,10 +50,7 @@ public:
     void changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
                          Boardcore::EregPIDConfig newDischargeConfig);
 
-    void changeTargetPressure(float newFirstPressurizationTargetPressure,
-                              float newRampupTargetPressure);
-    void setIntegralPrecharge(float newPilotPrecharge,
-                              float newRampupPrecharge);
+    void changeTargetPressure(float newTargetPressure);
 
 private:
     void update();
@@ -87,12 +84,7 @@ private:
     Boardcore::EregPIDConfig dischargeConfig =
         Config::EregFuel::DISCHARGING_CONFIG;
 
-    float firstPressurizationTargetPressure =
-        Config::EregFuel::FIRST_PRESSURIZATION_TARGET_PRESSURE;
-    float rampupTargetPressure = Config::EregFuel::RAMPUP_TARGET_PRESSURE;
-
-    float pilotFlamePrecharge = Config::EregFuel::PILOT_FLAME_PRECHARGE;
-    float rampupPrecharge     = Config::EregFuel::RAMPUP_PRECHARGE;
+    float targetPressure = Config::EregFuel::TARGET_PRESSURE;
 };
 
 }  // namespace RIGv3

@@ -74,18 +74,18 @@ private:
 
     struct ValveWiggleResult
     {
-        bool mainOxSuccess : 1      = false;
-        bool mainFuelSuccess : 1    = false;
-        bool przOxSuccess : 1       = false;
-        bool przFuelSuccess : 1     = false;
-        bool oxVentingSuccess : 1   = false;
-        bool fuelVentingSuccess : 1 = false;
-        bool prz3WaySuccess : 1     = false;
-        bool przFillingSuccess : 1  = false;
-        bool przReleaseSuccess : 1  = false;
-        bool oxFillingSuccess : 1   = false;
-        bool oxReleaseSuccess : 1   = false;
-    } wiggleResult;
+        bool mainOxSuccess : 1;
+        bool mainFuelSuccess : 1;
+        bool przOxSuccess : 1;
+        bool przFuelSuccess : 1;
+        bool oxVentingSuccess : 1;
+        bool fuelVentingSuccess : 1;
+        bool prz3WaySuccess : 1;
+        bool przFillingSuccess : 1;
+        bool przReleaseSuccess : 1;
+        bool oxFillingSuccess : 1;
+        bool oxReleaseSuccess : 1;
+    } wiggleResult{};
 
     uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
 };
