@@ -167,8 +167,7 @@ struct __attribute__((packed)) NASStateHIL
             "d: %+.3f\n"
             "vn: %+.3f\n"
             "ve: %+.3f\n"
-            "vd: %+.3f\n"
-            "updating: %+.3f\n",
+            "vd: %+.3f\n",
             n, e, d, vn, ve, vd);
     }
 };
@@ -195,8 +194,7 @@ struct __attribute__((packed)) QuaternionStateHIL
             "qx: %+.3f\n"
             "qy: %+.3f\n"
             "qz: %+.3f\n"
-            "qw: %+.3f\n"
-            "updating: %+.3f\n",
+            "qw: %+.3f\n",
             qx, qy, qz, qw);
     }
 };
@@ -240,20 +238,19 @@ struct __attribute__((packed)) ActuatorsStateHIL
     float airbrakesPercentage = 0;
     float paraServoSx         = 0;
     float paraServoDx         = 0;
-    bool expulsionPercentage  = 0;
+    bool expulsion            = 0;
     bool cutterState          = 0;
 
     ActuatorsStateHIL()
         : airbrakesPercentage(0.0f), paraServoSx(0.0f), paraServoDx(0.0f),
-          expulsionPercentage(false), cutterState(false)
+          expulsion(false), cutterState(false)
     {
     }
 
     ActuatorsStateHIL(float airbrakesPercentage, float paraServoSx,
-                      float paraServoDx, bool expulsionPercentage,
-                      bool cutterState)
+                      float paraServoDx, bool expulsion, bool cutterState)
         : airbrakesPercentage(airbrakesPercentage), paraServoSx(paraServoSx),
-          paraServoDx(paraServoDx), expulsionPercentage(expulsionPercentage),
+          paraServoDx(paraServoDx), expulsion(expulsion),
           cutterState(cutterState)
     {
     }
@@ -264,10 +261,10 @@ struct __attribute__((packed)) ActuatorsStateHIL
             "airbrakes: %f perc\n"
             "parafoil servo sx: %f\n "
             "parafoil servo dx: %f\n "
-            "expulsion: %f perc\n"
-            "cutter: %f\n",
-            airbrakesPercentage * 100, paraServoSx, paraServoDx,
-            expulsionPercentage * 100, cutterState);
+            "expulsion: %d\n"
+            "cutter: %d\n",
+            airbrakesPercentage * 100, paraServoSx, paraServoDx, expulsion,
+            cutterState);
     }
 };
 
@@ -327,7 +324,7 @@ struct __attribute__((packed)) ActuatorData
 
     ActuatorData()
         : adaState(), anasState(), quaternionState(), sdaState(),
-          airBrakesState(), fmmState(), actuatorsState(), sequenceNumber(0.0f)
+          airBrakesState(), actuatorsState(), fmmState(), sequenceNumber(0.0f)
     {
     }
 
@@ -338,8 +335,8 @@ struct __attribute__((packed)) ActuatorData
                  const ActuatorsStateHIL& actuatorsState,
                  const FMMStateHIL& fmmState, const float sequenceNumber)
         : adaState(adaState), anasState(anasState),
-          quaternionState(quaternionState), airBrakesState(airBrakesState),
-          sdaState(sdaState), actuatorsState(actuatorsState),
+          quaternionState(quaternionState), sdaState(sdaState),
+          airBrakesState(airBrakesState), actuatorsState(actuatorsState),
           fmmState(fmmState), sequenceNumber(sequenceNumber)
     {
     }

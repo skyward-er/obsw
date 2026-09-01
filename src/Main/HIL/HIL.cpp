@@ -310,7 +310,6 @@ MainHIL::MainHIL()
 
 bool MainHIL::start()
 {
-    auto* nas      = getModule<NASController>();
     auto& hilUsart = getModule<Buses>()->getHILUart();
 
     hilPhasesManager = new MainHILPhasesManager();
