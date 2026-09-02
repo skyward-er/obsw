@@ -217,6 +217,7 @@ int main()
 
     if (hil)
     {
+        std::cout << "Starting HIL" << std::endl;
         if (!hil->start())
         {
             initResult = false;
@@ -224,6 +225,7 @@ int main()
         }
 
         // Waiting for start of simulation
+        std::cout << "Waiting simulation start..." << std::endl;
         hil->waitStartSimulation();
     }
 

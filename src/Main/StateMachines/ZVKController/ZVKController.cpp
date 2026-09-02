@@ -56,43 +56,39 @@ ZVKOut ZVKController::getZVKOut()
 Vector3f ZVKController::getAcc1Bias()
 {
     Lock<FastMutex> lock{zvkMutex};
-    return {zvkOut.Accelerometer1Bias[0], zvkOut.Accelerometer1Bias[1],
-            zvkOut.Accelerometer1Bias[2]};
+    return {zvkOut.AccHBias[0], zvkOut.AccHBias[1], zvkOut.AccHBias[2]};
 }
 
 Vector3f ZVKController::getAcc2Bias()
 {
     Lock<FastMutex> lock{zvkMutex};
-    return {zvkOut.Accelerometer2Bias[0], zvkOut.Accelerometer2Bias[1],
-            zvkOut.Accelerometer2Bias[2]};
+    return {zvkOut.AccLBias[0], zvkOut.AccLBias[1], zvkOut.AccLBias[2]};
 }
 
 Vector3f ZVKController::getAccVN100Bias()
 {
     Lock<FastMutex> lock{zvkMutex};
-    return {zvkOut.AccelerometerVN100Bias[0], zvkOut.AccelerometerVN100Bias[1],
-            zvkOut.AccelerometerVN100Bias[2]};
+    return {zvkOut.AccVN100Bias[0], zvkOut.AccVN100Bias[1],
+            zvkOut.AccVN100Bias[2]};
 }
 
 Vector3f ZVKController::getGyro1Bias()
 {
     Lock<FastMutex> lock{zvkMutex};
-    return {zvkOut.Gyroscope1Bias[0], zvkOut.Gyroscope1Bias[1],
-            zvkOut.Gyroscope1Bias[2]};
+    return {zvkOut.GyroHBias[0], zvkOut.GyroHBias[1], zvkOut.GyroHBias[2]};
 }
 
 Vector3f ZVKController::getGyro2Bias()
 {
     Lock<FastMutex> lock{zvkMutex};
-    return {zvkOut.Gyroscope2Bias[0], zvkOut.Gyroscope2Bias[1],
-            zvkOut.Gyroscope2Bias[2]};
+    return {zvkOut.GyroLBias[0], zvkOut.GyroLBias[1], zvkOut.GyroLBias[2]};
 }
 
 Vector3f ZVKController::getGyroVN100Bias()
 {
     Lock<FastMutex> lock{zvkMutex};
-    return {zvkOut.GyroscopeVN100Bias[0], zvkOut.GyroscopeVN100Bias[1],
-            zvkOut.GyroscopeVN100Bias[2]};
+    return {zvkOut.GyroVN100Bias[0], zvkOut.GyroVN100Bias[1],
+            zvkOut.GyroVN100Bias[2]};
 }
 
 bool ZVKController::start()

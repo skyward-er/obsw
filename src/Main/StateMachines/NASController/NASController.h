@@ -72,6 +72,7 @@ private:
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
+    void state_armed(const Boardcore::Event& event);
     void state_active_ascent(const Boardcore::Event& event);
     void state_active_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);

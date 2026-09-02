@@ -179,9 +179,6 @@ bool Actuators::setPrfServoAngle(ServosList servoId, Radian angle)
         capped_angle *= -1;
 
     actuator->servoTrigger->setTargetState(capped_angle.value());
-
-    Logger::getInstance().log(actuator->servo->getState());
-
     return true;
 }
 
@@ -440,8 +437,11 @@ void Actuators::updateServoState(ServosList servoId, Radian encoderAngle)
         }
     }
 
-    sdLogger.log(
-        WinchServoData{static_cast<uint8_t>(servoId), estimatedAngle.value()});
+    WinchServoData logData{
+        TimestampTimer::getTimestamp(), static_cast<uint8_t>(servoId),
+        estimatedAngle.value(), actuator->servo->getVelocity()};
+
+    sdLogger.log(logData);
 }
 
 Actuators::ServoActuator* Actuators::getServoActuator(ServosList servoId)

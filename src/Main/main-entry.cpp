@@ -294,28 +294,8 @@ int main()
             std::cout << "Registering FULL HIL flight phases" << std::endl;
 
             // Simulate the RIG sending the main valve open command to the
-            // motor
+            // motor    
             // through CAN bus
-            hil->registerToFlightPhase(
-                MainFlightPhases::LIFTOFF,
-                [&]
-                {
-                    // Opening time doesn't matter as the valve is closed by
-                    // the
-                    // FMM, just open it more than the timeout
-                    canHandler->sendServoOpenCommand(
-                        ServosList::MAIN_OX_VALVE,
-                        milliseconds{
-                            Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
-                            1s}
-                            .count());
-                    canHandler->sendServoOpenCommand(
-                        ServosList::MAIN_FUEL_VALVE,
-                        milliseconds{
-                            Config::FlightModeManager::ENGINE_SHUTDOWN_TIMEOUT +
-                            1s}
-                            .count());
-                });
         }
         else
         {

@@ -459,6 +459,7 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
         case Common::CanConfig::EventId::ENTER_HIL_MODE:
         {
             PersistentVars::setHilMode(true);
+            Thread::sleep(100);
             miosix::reboot();
             break;
         }
@@ -467,6 +468,7 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
             if (PersistentVars::getHilMode())
             {
                 PersistentVars::setHilMode(false);
+                Thread::sleep(100);
                 miosix::reboot();
             }
             break;

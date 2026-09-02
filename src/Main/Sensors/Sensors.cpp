@@ -235,6 +235,18 @@ bool Sensors::saveMagCalibration()
     }
 }
 
+float Sensors::getAbkPercentage()
+{
+    float degrees = as5047d_abk->getLastSample().angle * 180.0f / M_PI;
+
+    float percentage =
+        (degrees - Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE) /
+        (Config::Sensors::AS5047D_ABK::MAX_OPENING_ANGLE -
+         Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE);
+
+    return percentage;
+}
+
 Boardcore::AS5047DData Sensors::getAS5047DLeftLastSample()
 {
     return as5047d_left ? as5047d_left->getLastSample() : AS5047DData{};

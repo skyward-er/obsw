@@ -159,11 +159,16 @@ struct AS5047DRightData : Boardcore::AS5047DData
 
 struct WinchServoData
 {
-    uint8_t ServoId = 0;
-    float angle     = 0.0f;
+    uint64_t timestamp = 0;
+    uint8_t ServoId    = 0;
+    float angle        = 0.0f;
+    float velocity     = 0.0f;
 
     WinchServoData() {};
-    WinchServoData(uint8_t id, float angle) : ServoId(id), angle(angle) {}
+    WinchServoData(uint64_t timestamp, uint8_t id, float angle, float velocity)
+        : timestamp(timestamp), ServoId(id), angle(angle), velocity(velocity)
+    {
+    }
 
     static constexpr auto reflect()
     {

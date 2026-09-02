@@ -430,11 +430,24 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             getModule<ADAController>()->setDeploymentAltitude(altitude);
 
-            if (altitude < 200 || altitude > 450)
+            if (altitude < 200 || altitude > 500)
                 enqueueWack(msg, 0);
             else
                 enqueueAck(msg);
 
+            break;
+        }
+
+        case MAVLINK_MSG_ID_SET_TARGET_COORDINATES_TC:
+        {
+            float latitude =
+                mavlink_msg_set_target_coordinates_tc_get_latitude(&msg);
+            float longitude =
+                mavlink_msg_set_target_coordinates_tc_get_longitude(&msg);
+
+            getModule<WingController>()->setTargetCoordinates(latitude,
+                                                              longitude);
+            enqueueAck(msg);
             break;
         }
 

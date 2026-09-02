@@ -467,7 +467,7 @@ void ADAController::state_drogue_shadow_mode(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(ADAControllerState::SHADOW_MODE_DROGUE);
+            updateAndLogStatus(ADAControllerState::DROGUE_SHADOW_MODE);
 
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,

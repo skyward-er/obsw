@@ -176,7 +176,9 @@ void NASController::updateANAS()
             .PitotTimestamp = staticPitot.pressureTimestamp,
             .MagMeasure     = {mag.magneticFieldX, mag.magneticFieldY,
                                mag.magneticFieldZ},
-            .MagTimestamp   = {mag.magneticFieldTimestamp}};
+            .MagTimestamp   = {mag.magneticFieldTimestamp},
+            .ABKCommand     = sensors->getAbkPercentage(),
+            .FlyingState    = (state == NASControllerState::ACTIVE_ASCENT)};
 
         anas.setANAS_In(inputs);
         anas.step();
@@ -346,6 +348,7 @@ void NASController::state_ready(const Event& event)
             // Recalculate initial state with triad via calibration
             [[fallthrough]];
         }
+
         case NAS_CALIBRATE:
         {
             transition(&NASController::state_calibrating);
@@ -355,7 +358,43 @@ void NASController::state_ready(const Event& event)
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
+            transition(&NASController::state_armed);
+            break;
+        }
+    }
+}
+
+void NASController::state_armed(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(NASControllerState::ARMED);
+
+            TaskScheduler& scheduler =
+                getModule<BoardScheduler>()->getNasScheduler();
+
+            scheduler.enableTask(anasID);
+            break;
+        }
+
+        case FLIGHT_LIFTOFF:
+        {
             transition(&NASController::state_active_ascent);
+            break;
+        }
+
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+
+        case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            transition(&NASController::state_ready);
             break;
         }
     }
@@ -367,11 +406,6 @@ void NASController::state_active_ascent(const Event& event)
     {
         case EV_ENTRY:
         {
-            TaskScheduler& scheduler =
-                getModule<BoardScheduler>()->getNasScheduler();
-
-            scheduler.enableTask(anasID);
-
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
             break;
         }

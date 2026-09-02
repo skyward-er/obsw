@@ -75,6 +75,7 @@ public:
     void enableMagCalibrator();
     void disableMagCalibrator();
     bool saveMagCalibration();
+    float getAbkPercentage();
 
     Boardcore::AS5047DData getAS5047DLeftLastSample();
     Boardcore::AS5047DData getAS5047DRightLastSample();
