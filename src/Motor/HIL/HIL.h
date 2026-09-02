@@ -25,8 +25,8 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Buses.h>
 #include <Motor/Configs/HILSimulationConfig.h>
-#include <common/Events.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceData.h>
+#include <common/Events.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
 

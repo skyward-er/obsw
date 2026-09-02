@@ -343,8 +343,6 @@ ActuatorData MainHIL::updateActuatorData()
 
     FMMStateHIL fmmStateHIL{getModule<FlightModeManager>()->getState()};
 
-    auto motor = getModule<Common::MotorStatus>()->lockData();
-
     ActuatorsStateHIL actuatorsStateHIL{
         actuators->getAbkPosition(),
         wingController->getLastServoCommands().leftCommand,

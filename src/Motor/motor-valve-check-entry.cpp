@@ -35,6 +35,7 @@
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <algorithm>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -84,14 +85,9 @@ ServosList getValveFromString(const std::string& name)
         return ServosList_ENUM_END;
 
     bool isNumeric = true;
-    for (char c : name)
-    {
-        if (c < '0' || c > '9')
-        {
-            isNumeric = false;
-            break;
-        }
-    }
+    isNumeric =
+        !name.empty() && std::all_of(name.begin(), name.end(), [](char c)
+                                     { return c >= '0' && c <= '9'; });
 
     if (isNumeric)
     {
@@ -103,9 +99,12 @@ ServosList getValveFromString(const std::string& name)
         return ServosList_ENUM_END;
     }
 
-    for (const auto& entry : valveEntries)
-        if (name == entry.name)
-            return entry.valve;
+    auto it = std::find_if(std::begin(valveEntries), std::end(valveEntries),
+                           [&name](const ValveEntry& entry)
+                           { return name == entry.name; });
+
+    if (it != std::end(valveEntries))
+        return it->valve;
 
     return ServosList_ENUM_END;
 }
@@ -401,14 +400,27 @@ int main()
                 }
                 else if (words[0] == "step")
                 {
-                    actuators->closeValve(valve);
-                    std::cout << "\nStepping valve " << words[1] << std::endl;
-                    for (float i = 0; i < 10; i++)
+                    actuators->closeValve(PRZ_OX_VALVE);
+                    actuators->closeValve(PRZ_FUEL_VALVE);
+                    actuators->closeValve(MAIN_OX_VALVE);
+                    actuators->closeValve(MAIN_FUEL_VALVE);
+                    std::cout << "\nStepping valves" << std::endl;
+                    for (int i = 0; i < 20; i++)
                     {
                         float step = i * 0.05f;
-                        actuators->moveValve(valve, step);
+                        actuators->moveValve(PRZ_OX_VALVE, step);
+                        actuators->moveValve(PRZ_FUEL_VALVE, step);
+                        actuators->moveValve(MAIN_OX_VALVE, step);
+                        actuators->moveValve(MAIN_FUEL_VALVE, step);
                         Thread::sleep(500);
                     }
+                }
+                else if (words[0] == "sweep")
+                {
+                    std::cout << "\nSweeping valve " << words[1] << std::endl;
+                    actuators->animateValve(valve, 0.5f, 5000);
+                    Thread::sleep(5000);
+                    actuators->animateValve(valve, 0.0f, 5000);
                 }
                 else
                 {

@@ -151,11 +151,11 @@ struct __attribute__((packed)) NASStateHIL
 
     NASStateHIL() : n(0), e(0), d(0), vn(0), ve(0), vd(0) {};
 
-    NASStateHIL(const Boardcore::ANASState& output)
+    explicit NASStateHIL(const Boardcore::ANASState& output)
         : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
           vd(output.vd) {};
 
-    NASStateHIL(const Boardcore::NASState& output)
+    explicit NASStateHIL(const Boardcore::NASState& output)
         : n(output.n), e(output.e), d(output.d), vn(output.vn), ve(output.ve),
           vd(output.vd) {};
 
@@ -184,7 +184,7 @@ struct __attribute__((packed)) QuaternionStateHIL
 
     QuaternionStateHIL() : qx(0), qy(0), qz(0), qw(1) {};
 
-    QuaternionStateHIL(const Boardcore::ANASState& output)
+    explicit QuaternionStateHIL(const Boardcore::ANASState& output)
         : qx(output.qx), qy(output.qy), qz(output.qz), qw(output.qw) {};
 
     void print()
@@ -208,7 +208,7 @@ struct __attribute__((packed)) SDAStateHIL
 
     SDAStateHIL() : apogee(0) {};
 
-    SDAStateHIL(const float apogee) : apogee(apogee) {};
+    explicit SDAStateHIL(const float apogee) : apogee(apogee) {};
 
     void print() { printf("apogee: %f\n", apogee); }
 };
@@ -299,7 +299,7 @@ struct __attribute__((packed)) FMMStateHIL
 
     FMMStateHIL() : state(0) {};
 
-    FMMStateHIL(const Main::FlightModeManagerState& state)
+    explicit FMMStateHIL(const Main::FlightModeManagerState& state)
         : state(static_cast<uint8_t>(state)) {};
 
     void print() { printf("%d\n", state); }

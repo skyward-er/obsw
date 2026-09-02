@@ -51,12 +51,6 @@ bool HeatingPadController::start()
     if (started)
         return false;
 
-    if (!heatingPadSense())
-    {
-        LOG_ERR(logger, "Heating pad not detected!");
-        return false;
-    }
-
     if (!schmittTrigger.init())
     {
         LOG_ERR(logger, "Failed to initialize Schmitt trigger!");

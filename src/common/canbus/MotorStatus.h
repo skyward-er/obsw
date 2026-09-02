@@ -57,12 +57,12 @@ struct MotorStatus : public Boardcore::Injectable
         Boardcore::VoltageData batteryVoltage;
         Boardcore::CurrentData currentConsumption;
 
-        uint8_t oxVentingValvePosition;
-        uint8_t fuelVentingValvePosition;
-        uint8_t przOxValvePosition;
-        uint8_t przFuelValvePosition;
-        uint8_t mainOxValvePosition;
-        uint8_t mainFuelValvePosition;
+        uint8_t oxVentingValvePosition   = 0;
+        uint8_t fuelVentingValvePosition = 0;
+        uint8_t przOxValvePosition       = 0;
+        uint8_t przFuelValvePosition     = 0;
+        uint8_t mainOxValvePosition      = 0;
+        uint8_t mainFuelValvePosition    = 0;
 
         bool oxVentingValveState   = false;
         bool fuelVentingValveState = false;

@@ -294,7 +294,7 @@ int main()
             std::cout << "Registering FULL HIL flight phases" << std::endl;
 
             // Simulate the RIG sending the main valve open command to the
-            // motor    
+            // motor
             // through CAN bus
         }
         else

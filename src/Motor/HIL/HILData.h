@@ -61,7 +61,7 @@ struct __attribute__((packed)) MEAStateHIL
 
     MEAStateHIL() : MEAMass(0.0f) {};
 
-    MEAStateHIL(float position) : MEAMass(position) {};
+    explicit MEAStateHIL(float mass) : MEAMass(mass) {};
 
     void print() { printf("MEA mass: %f\n", MEAMass); }
 };

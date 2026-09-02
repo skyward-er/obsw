@@ -24,12 +24,12 @@
 
 #include <RIGv3/BoardScheduler.h>
 #include <RIGv3/Sensors/Sensors.h>
+#include <algorithms/Ereg/EregConfig.h>
 #include <common/CanConfig.h>
 #include <common/MavlinkHydra.h>
 #include <common/canbus/MotorStatus.h>
 #include <drivers/canbus/CanProtocol/CanProtocol.h>
 #include <utils/DependencyManager/DependencyManager.h>
-#include <algorithms/Ereg/EregConfig.h>
 
 namespace RIGv3
 {
