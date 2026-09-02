@@ -46,6 +46,7 @@ public:
     virtual ~MEAController() noexcept = default;
 
     [[nodiscard]] bool start() override;
+    void setInitialMass(float mass);
 
     MEAControllerState getMEAControllerState();
     Boardcore::MEAState getMEAState();

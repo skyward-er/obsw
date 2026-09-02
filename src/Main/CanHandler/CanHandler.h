@@ -97,6 +97,7 @@ public:
 
     void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
     void sendServoCloseCommand(ServosList servo);
+    void sendMEAInitialMass(float mass);
 
     CanStatus getCanStatus();
 

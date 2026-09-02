@@ -442,6 +442,18 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
 
             break;
         }
+        case Common::CanConfig::CommandId::MEA_INITIAL_MASS : {
+            CanMEAInitialMass data = CanMEAInitialMassFromCanMessage(msg);
+            sdLogger.log(data);
+
+            auto mea = getModule<MEAController>();
+
+            if (mea->getMEAControllerState() == MEAControllerState::READY) {
+                mea->setInitialMass(data.mass);
+            } else {
+                LOG_ERR(logger, "Tried to set MEA initial mass while MEA already running\n");
+            }
+        }
         default:
         {
             LOG_WARN(logger, "Received unsupported command: {}", commandId);

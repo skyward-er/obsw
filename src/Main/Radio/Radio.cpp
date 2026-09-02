@@ -451,42 +451,38 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             break;
         }
 
-            // TODO: fix this
-            /*         case MAVLINK_MSG_ID_SET_MEA_INITIAL_MASS_TC:
-                    {
-                        // Allow changing the initial mass only if MEA isn't
-               running yet auto mea = getModule<MEAController>(); if
-               (mea->getState() != MEAControllerState::READY) return
-               enqueueNack(msg, 0);
+        case MAVLINK_MSG_ID_SET_MEA_INITIAL_MASS_TC:
+        {
+            float mass = mavlink_msg_set_mea_initial_mass_tc_get_mass(&msg);
 
-                        // TODO: implement after MEA reset is implemented
+            getModule<CanHandler>()->sendMEAInitialMass(mass);
 
-                        enqueueNack(msg, 0);
-                        break;
-                    }
+            enqueueAck(msg);
+            break;
+        }
+            /* TODO: FIX THIS
+            case MAVLINK_MSG_ID_SET_MEA_APOGEE_TARGET_TC:
+            {
+                float apogee =
+                    mavlink_msg_set_mea_apogee_target_tc_get_apogee_target(&msg);
 
-                    case MAVLINK_MSG_ID_SET_MEA_APOGEE_TARGET_TC:
-                    {
-                        float apogee =
-                            mavlink_msg_set_mea_apogee_target_tc_get_apogee_target(&msg);
+                getModule<MEAController>()->setApogeeTarget(apogee);
 
-                        getModule<MEAController>()->setApogeeTarget(apogee);
+                enqueueAck(msg);
+                break;
+            }
 
-                        enqueueAck(msg);
-                        break;
-                    }
+            case MAVLINK_MSG_ID_SET_MEA_MIN_BURN_TIME_TC:
+            {
+                uint32_t time =
+                    mavlink_msg_set_mea_min_burn_time_tc_get_min_burn_time(&msg);
 
-                    case MAVLINK_MSG_ID_SET_MEA_MIN_BURN_TIME_TC:
-                    {
-                        uint32_t time =
-                            mavlink_msg_set_mea_min_burn_time_tc_get_min_burn_time(&msg);
+                getModule<MEAController>()->setMinBurnTime(milliseconds{time});
 
-                        getModule<MEAController>()->setMinBurnTime(milliseconds{time});
-
-                        enqueueAck(msg);
-                        break;
-                    } */
-
+                enqueueAck(msg);
+                break;
+            }
+            */
         case MAVLINK_MSG_ID_SET_SDA_MAX_BURN_TIME_TC:
         {
             uint32_t time =

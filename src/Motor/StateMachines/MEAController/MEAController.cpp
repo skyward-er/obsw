@@ -121,6 +121,12 @@ void MEAController::update()
 
 void MEAController::calibrate() { mea.initialize(); }
 
+void MEAController::setInitialMass(float mass)
+{
+    MEAReference ref{mass};
+    mea.setMEA_Reference(ref);
+}
+
 void MEAController::state_init(const Event& event)
 {
     switch (event)
