@@ -53,6 +53,7 @@ static constexpr float PILOT_OX_POSITION          = 0.5f;
 static constexpr float PILOT_FUEL_POSITION        = 0.5f;
 static constexpr float LOW_THROTTLE_OX_POSITION   = 0.6f;
 static constexpr float LOW_THROTTLE_FUEL_POSITION = 0.6f;
+static constexpr auto PILOT_FLAME_LEAD_TIME        = 150ms;
 
 static constexpr float IGNITER_PRESSURE_THRESHOLD         = -500.0f;  // bar
 static constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 20;

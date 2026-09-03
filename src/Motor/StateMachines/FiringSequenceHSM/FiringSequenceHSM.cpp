@@ -57,7 +57,8 @@ void FiringSequenceHSM::setFiringParams(uint32_t fullThrottleTime,
                                      fullThrottleTime);
     getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_TIME,
                                      lowThrottleTime);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_LEAD_TIME, pilotLeadTime);
+    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_LEAD_TIME,
+                                     pilotLeadTime);
     getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_OX_POSITION,
                                      pilotFlameOxPosition);
     getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
@@ -437,32 +438,46 @@ State FiringSequenceHSM::state_pilot_flame(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(FiringSequenceState::PILOT_FLAME);
-
-            // Get or set valve position from registry
-            float oxPilotPosition =
+            // Get params from teh registry
+            uint32_t pilotFlameLeadTime =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
-                    CONFIG_ID_PILOT_FLAME_OX_POSITION,
-                    Config::FiringSequence::PILOT_OX_POSITION);
+                    CONFIG_ID_PILOT_FLAME_LEAD_TIME,
+                    static_cast<uint32_t>(
+                        Config::FiringSequence::PILOT_FLAME_LEAD_TIME.count()));
 
             float fuelPilotPosition =
                 getModule<Registry>()->getOrSetDefaultUnsafe(
                     CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
                     Config::FiringSequence::PILOT_FUEL_POSITION);
 
-            // open valves to pilot flame position
-            getModule<Actuators>()->moveValve(ServosList::MAIN_OX_VALVE,
-                                              oxPilotPosition);
-
+            // open main fuel to pilot flame position
             getModule<Actuators>()->moveValve(ServosList::MAIN_FUEL_VALVE,
                                               fuelPilotPosition);
+
+            nextEventId = EventBroker::getInstance().postDelayed(
+                FIRING_SEQUENCE_PILOT_OX, TOPIC_FIRING_SEQUENCE,
+                pilotFlameLeadTime);
 
             return HANDLED;
         }
 
+        case FIRING_SEQUENCE_PILOT_OX:
+        {
+            float oxPilotPosition =
+                getModule<Registry>()->getOrSetDefaultUnsafe(
+                    CONFIG_ID_PILOT_FLAME_OX_POSITION,
+                    Config::FiringSequence::PILOT_OX_POSITION);
+
+            // open main oxidizer to pilot flame position
+            getModule<Actuators>()->moveValve(ServosList::MAIN_OX_VALVE,
+                                              oxPilotPosition);
+
+            return transition(&FiringSequenceHSM::state_pilot_flame_wait);
+        }
+
         case EV_INIT:
         {
-            return transition(&FiringSequenceHSM::state_pilot_flame_wait);
+            return HANDLED;
         }
 
         case EV_EMPTY:
