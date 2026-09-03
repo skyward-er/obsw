@@ -263,8 +263,8 @@ bool CanHandler::start()
                 static_cast<uint8_t>(0x0),
                 ValveData{TimestampTimer::getTimestamp(),
                           ServosList::PRZ_FUEL_VALVE,
-                          static_cast<uint8_t>(actuators->getValvePosition(
-                              ServosList::PRZ_FUEL_VALVE)),
+                          static_cast<uint8_t>(
+                              sensors->getPrzFuelPosition().position),
                           actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
         },
         Config::CanHandler::VALVE_STATE_SEND_RATE);
@@ -442,16 +442,22 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
 
             break;
         }
-        case Common::CanConfig::CommandId::MEA_INITIAL_MASS : {
+        case Common::CanConfig::CommandId::MEA_INITIAL_MASS:
+        {
             CanMEAInitialMass data = CanMEAInitialMassFromCanMessage(msg);
             sdLogger.log(data);
 
             auto mea = getModule<MEAController>();
 
-            if (mea->getMEAControllerState() == MEAControllerState::READY) {
+            if (mea->getMEAControllerState() == MEAControllerState::READY)
+            {
                 mea->setInitialMass(data.mass);
-            } else {
-                LOG_ERR(logger, "Tried to set MEA initial mass while MEA already running\n");
+            }
+            else
+            {
+                LOG_ERR(logger,
+                        "Tried to set MEA initial mass while MEA already "
+                        "running\n");
             }
         }
         default:
