@@ -173,16 +173,14 @@ bool Actuators::start()
     // Enable all servos and close them to force a backstep
     for (auto& info : valveInfos)
     {
-        info.valve->enable();
         info.closeValve();
-        info.backstepTs = Clock::now() + milliseconds{2000};
+        info.valve->enable();
     }
 
     for (auto& info : manualValveInfos)
     {
-        info.valve->enable();
         info.closeValve();
-        info.backstepTs = Clock::now() + milliseconds{2000};
+        info.valve->enable();
     }
 
     // Reset the safety venting timestamp

@@ -21,6 +21,7 @@
  */
 
 #include <Motor/Actuators/Actuators.h>
+#include <Motor/Actuators/ValveSequenceController.h>
 #include <Motor/BoardScheduler.h>
 #include <Motor/Buses.h>
 #include <Motor/CanHandler/CanHandler.h>
@@ -73,10 +74,9 @@ struct ValveEntry
 };
 static const ValveEntry valveEntries[] = {
     // {"OX_VENTING", OX_VENTING_VALVE}, {"FUEL_VENTING", FUEL_VENTING_VALVE},
-    {"MAIN_FUEL", MAIN_FUEL_VALVE},
-    {"MAIN_OX", MAIN_OX_VALVE},
-    {"PRZ_FUEL", PRZ_FUEL_VALVE},
-    {"PRZ_OX", PRZ_OX_VALVE},
+    {"VENT_OX", OX_VENTING_VALVE},  {"VENT_FUEL", FUEL_VENTING_VALVE},
+    {"MAIN_FUEL", MAIN_FUEL_VALVE}, {"MAIN_OX", MAIN_OX_VALVE},
+    {"PRZ_FUEL", PRZ_FUEL_VALVE},   {"PRZ_OX", PRZ_OX_VALVE},
 
 };
 ServosList getValveFromString(const std::string& name)
@@ -142,28 +142,31 @@ int main()
     Buses* buses              = new Buses();
     BoardScheduler* scheduler = new BoardScheduler();
 
-    Sensors* sensors       = nullptr;
-    auto actuators         = new Actuators();
-    auto eregOx            = new EregControllerOx();
-    auto eregFuel          = new EregControllerFuel();
-    auto registry          = new Registry();
-    auto firingSequenceHSM = new FiringSequenceHSM();
-    auto meaController     = new MEAController();
-    auto canHandler        = new CanHandler();
-    auto& sdLogger         = Logger::getInstance();
+    Sensors* sensors             = nullptr;
+    auto actuators               = new Actuators();
+    auto eregOx                  = new EregControllerOx();
+    auto eregFuel                = new EregControllerFuel();
+    auto registry                = new Registry();
+    auto firingSequenceHSM       = new FiringSequenceHSM();
+    auto meaController           = new MEAController();
+    auto canHandler              = new CanHandler();
+    auto valveSequenceController = new ValveSequenceController();
+    auto& sdLogger               = Logger::getInstance();
 
     sensors = new Sensors();
 
-    initResult &= manager.insert<Buses>(buses) &&
-                  manager.insert<BoardScheduler>(scheduler) &&
-                  manager.insert<Registry>(registry) &&
-                  manager.insert<Sensors>(sensors) &&
-                  manager.insert<Actuators>(actuators) &&
-                  manager.insert<EregControllerOx>(eregOx) &&
-                  manager.insert<EregControllerFuel>(eregFuel) &&
-                  manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
-                  manager.insert<MEAController>(meaController) &&
-                  manager.insert<CanHandler>(canHandler) && manager.inject();
+    initResult &=
+        manager.insert<Buses>(buses) &&
+        manager.insert<BoardScheduler>(scheduler) &&
+        manager.insert<Registry>(registry) &&
+        manager.insert<Sensors>(sensors) &&
+        manager.insert<Actuators>(actuators) &&
+        manager.insert<EregControllerOx>(eregOx) &&
+        manager.insert<EregControllerFuel>(eregFuel) &&
+        manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
+        manager.insert<MEAController>(meaController) &&
+        manager.insert<ValveSequenceController>(valveSequenceController) &&
+        manager.insert<CanHandler>(canHandler) && manager.inject();
 
     if (!initResult)
     {
@@ -274,6 +277,21 @@ int main()
         std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
     }
 
+    std::cout << "Starting MEAController" << std::endl;
+    if (!meaController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start MEAController ***" << std::endl;
+    }
+
+    std::cout << "Starting ValveSequenceController" << std::endl;
+    if (!valveSequenceController->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start ValveSequenceController ***"
+                  << std::endl;
+    }
+
     std::cout << "Starting Sensors" << std::endl;
     led1On();
     if (!sensors->start())
@@ -349,10 +367,12 @@ int main()
         //                             : gpios::debugLedRed::high();
 
         std::cout << "Enter the movement command:\n";
-        std::cout << "Format: animate <VALVE_NAME|number> to <POSITION> in "
-                     "<MILLISECONDS>\n";
-        std::cout << "or : step <VALVE_NAME|number>\n";
-        std::cout << "or : list for a list of available valves\n";
+        std::cout << "Commands:\n";
+        std::cout << "  animate <VALVE_NAME|number> to <POSITION> in <MILLISECONDS>\n";
+        std::cout << "  step [<VALVE_NAME|number>]  (no arg: PRZ_OX, PRZ_FUEL, MAIN_OX, MAIN_FUEL)\n";
+        std::cout << "  sweep <VALVE_NAME|number>  (animate 0.4 -> 0.0)\n";
+        std::cout << "  wiggle <VALVE_NAME|number>\n";
+        std::cout << "  list  (show available valves)\n";
 
         std::string valveCmd;
         std::getline(std::cin, valveCmd);
@@ -393,7 +413,7 @@ int main()
 
                     float position = std::stof(words[3]);
                     int duration   = std::stoi(words[5]);
-                    std::cout << "Sweeping valve " << words[1]
+                    std::cout << "Animating valve " << words[1]
                               << " to position " << position << " in "
                               << duration << " ms" << std::endl;
                     actuators->animateValve(valve, position, duration);
@@ -418,10 +438,16 @@ int main()
                 else if (words[0] == "sweep")
                 {
                     std::cout << "\nSweeping valve " << words[1] << std::endl;
-                    actuators->animateValve(valve, 0.5f, 5000);
+                    actuators->animateValve(valve, 0.4f, 5000);
                     Thread::sleep(5000);
                     actuators->animateValve(valve, 0.0f, 5000);
                 }
+                else if (words[0] == "wiggle")
+                {
+                    std::cout << "\nWiggling valve " << words[1] << std::endl;
+                    actuators->wiggleValve(valve);
+                }
+
                 else
                 {
                     std::cout << "\nUnknown Command: " << valveCmd << std::endl;
