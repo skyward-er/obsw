@@ -33,12 +33,10 @@ namespace GpioExpander
 
 static constexpr Boardcore::ExternalGpioPin DWS_ENABLE_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN0);
-static constexpr Boardcore::ExternalGpioPin PRZ_DET_VALVE_PIN(
+static constexpr Boardcore::ExternalGpioPin DETACH_VALVE_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN1);
 static constexpr Boardcore::ExternalGpioPin PURGE_VALVE_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN2);
-static constexpr Boardcore::ExternalGpioPin OX_DET_VALVE_PIN(
-    Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN3);
 static constexpr Boardcore::ExternalGpioPin ARMING_LIGHT_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN5);
 

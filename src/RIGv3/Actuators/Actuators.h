@@ -157,6 +157,9 @@ public:
     void armLightOn();
     void armLightOff();
 
+    void toggleDetach();
+    bool getDetachState();
+
 private:
     ValveInfo* getValve(ServosList servo);
     ManualValveInfo* getManualValve(ServosList servo);

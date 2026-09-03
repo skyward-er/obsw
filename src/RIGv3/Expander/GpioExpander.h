@@ -48,11 +48,8 @@ public:
         expander->setPinValue(Config::GpioExpander::DWS_ENABLE_PIN.getPort(),
                               Config::GpioExpander::DWS_ENABLE_PIN.getPin(), 1);
 
-        expander->setPinMode(Config::GpioExpander::PRZ_DET_VALVE_PIN.getPort(),
-                             Config::GpioExpander::PRZ_DET_VALVE_PIN.getPin(),
-                             Boardcore::MCP23S17Defs::MODE::OUTPUT);
-        expander->setPinMode(Config::GpioExpander::OX_DET_VALVE_PIN.getPort(),
-                             Config::GpioExpander::OX_DET_VALVE_PIN.getPin(),
+        expander->setPinMode(Config::GpioExpander::DETACH_VALVE_PIN.getPort(),
+                             Config::GpioExpander::DETACH_VALVE_PIN.getPin(),
                              Boardcore::MCP23S17Defs::MODE::OUTPUT);
         expander->setPinMode(Config::GpioExpander::PURGE_VALVE_PIN.getPort(),
                              Config::GpioExpander::PURGE_VALVE_PIN.getPin(),

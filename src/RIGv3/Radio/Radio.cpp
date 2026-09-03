@@ -845,8 +845,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                 actuators->isValveOpen(ServosList::OX_RELEASE_VALVE);
             tm.ox_release_valve_position =
                 static_cast<uint8_t>(sensors->getOxReleasePosition().position);
-            tm.ox_detach_state =
-                actuators->isValveOpen(ServosList::OX_DETACH_SERVO);
             tm.prz_filling_valve_state =
                 actuators->isValveOpen(ServosList::PRZ_FILLING_VALVE);
             tm.prz_filling_valve_position =
@@ -855,8 +853,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                 actuators->isValveOpen(ServosList::PRZ_RELEASE_VALVE);
             tm.prz_release_valve_position =
                 static_cast<uint8_t>(sensors->getPrzReleasePosition().position);
-            tm.prz_detach_state =
-                actuators->isValveOpen(ServosList::PRZ_DETACH_SERVO);
+            tm.detach_valve_state   = actuators->getDetachState();
             tm.prz_3way_valve_state = actuators->get3wayValveState();
             tm.prz_3way_valve_position =
                 static_cast<uint8_t>(sensors->getPrz3WayPosition().position);
@@ -1284,11 +1281,8 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::OX_DETACH_SERVO);
-            getModule<Actuators>()->toggleValve(ServosList::PRZ_DETACH_SERVO);
+            getModule<Actuators>()->toggleDetach();
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::OX_DETACH_SERVO);
-            enqueueValveInfoTm(ServosList::PRZ_DETACH_SERVO);
         }
 
         if (BUTTON_PRESSED(spare_0_btn))

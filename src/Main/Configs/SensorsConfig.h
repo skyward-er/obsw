@@ -137,7 +137,7 @@ constexpr auto ODR          = Boardcore::LIS2MDL::ODR_100_HZ;
 constexpr auto TEMP_DIVIDER = 10U;
 
 constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
+constexpr auto ENABLED = false;
 }  // namespace LIS2MDL_INT
 
 namespace LSM6DSRX_0

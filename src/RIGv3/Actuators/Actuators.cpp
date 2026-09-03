@@ -230,17 +230,11 @@ void Actuators::initializeValves()
 
     // Solenoid valves connected to the gpio expander
     valveInfos.push_back(MAKE_EXTERNAL_SOLENOID_VALVE(
-        OX_DET, Config::GpioExpander::OX_DET_VALVE_PIN,
-        getModule<GpioExpander>()->getExpander()));
-    valveInfos.push_back(MAKE_EXTERNAL_SOLENOID_VALVE(
-        PRZ_DET, Config::GpioExpander::PRZ_DET_VALVE_PIN,
-        getModule<GpioExpander>()->getExpander()));
-    valveInfos.push_back(MAKE_EXTERNAL_SOLENOID_VALVE(
         PURGE, Config::GpioExpander::PURGE_VALVE_PIN,
         getModule<GpioExpander>()->getExpander()));
 
-    // "Manual" servo valves, instead of only being fully open or closed, can be
-    // moved to any position in the range [0, 1].
+    // "Manual" servo valves, instead of only being fully open or closed,
+    // can be moved to any position in the range [0, 1].
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
         PRZ_OX, expander1, PCA9685Utils::Channel::CHANNEL_2));
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
@@ -274,6 +268,26 @@ void Actuators::armLightOff()
     getModule<GpioExpander>()->getExpander().setPinValue(
         Config::GpioExpander::ARMING_LIGHT_PIN.getPort(),
         Config::GpioExpander::ARMING_LIGHT_PIN.getPin(), 0);
+}
+
+void Actuators::toggleDetach()
+{
+    bool value = getModule<GpioExpander>()->getExpander().getPinValue(
+        Config::GpioExpander::DETACH_VALVE_PIN.getPort(),
+        Config::GpioExpander::DETACH_VALVE_PIN.getPin());
+
+    value = !value;
+
+    getModule<GpioExpander>()->getExpander().setPinValue(
+        Config::GpioExpander::DETACH_VALVE_PIN.getPort(),
+        Config::GpioExpander::DETACH_VALVE_PIN.getPin(), value);
+}
+
+bool Actuators::getDetachState()
+{
+    return getModule<GpioExpander>()->getExpander().getPinValue(
+        Config::GpioExpander::DETACH_VALVE_PIN.getPort(),
+        Config::GpioExpander::DETACH_VALVE_PIN.getPin());
 }
 
 bool Actuators::wiggleValve(ServosList servo)
@@ -557,16 +571,12 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
             return &valveInfos[4];
         case FUEL_VENTING_VALVE:
             return &valveInfos[5];
-        case OX_DETACH_SERVO:
-            return &valveInfos[6];
-        case PRZ_DETACH_SERVO:
-            return &valveInfos[7];
         case PURGE_VALVE:
-            return &valveInfos[8];
+            return &valveInfos[6];
         case IGNITION_OX_VALVE:
-            return &valveInfos[9];
+            return &valveInfos[7];
         case IGNITION_FUEL_VALVE:
-            return &valveInfos[10];
+            return &valveInfos[8];
 
         // Manual valves
         case PRZ_OX_VALVE:
