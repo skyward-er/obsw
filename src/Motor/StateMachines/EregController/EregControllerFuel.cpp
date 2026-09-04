@@ -114,7 +114,7 @@ void EregControllerFuel::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure > targetPressure * 1.2)
+    if (logData.filteredDownstreamPressure > targetPressure * 1.15)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
 
@@ -325,6 +325,8 @@ void EregControllerFuel::setServoCoeff(
 void EregControllerFuel::setEregTarget(float target)
 {
     targetPressure = target;
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_TARGET_PRESSURE,
+                                     targetPressure);
 }
 
 void EregControllerFuel::updateAndLogStatus(EregState state)

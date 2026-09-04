@@ -351,7 +351,7 @@ void Sensors::calibrate()
                          CONFIG_ID_INJ_FUEL_PT_SHUNT_RESISTANCE,
                          ADC_3::CH4_SHUNT_RESISTANCE);
 
-    calibrateEncoders();
+    // calibrateEncoders();
 }
 
 void Sensors::calibrateLoadcells()

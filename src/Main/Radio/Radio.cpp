@@ -569,6 +569,12 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
+        case MAV_CALIBRATION_ID:
+        {
+            enqueueSystemTm(SystemTMList::MAV_CALIBRATION_ID, msg.compid);
+            break;
+        }
+
         default:
         {
             // Try to map the command to an event
@@ -976,6 +982,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             PinHandler* pinHandler = getModule<PinHandler>();
             ADAController* ada     = getModule<ADAController>();
             NASController* nas     = getModule<NASController>();
+            SDAController* sda     = getModule<SDAController>();
             // MEAController* mea      = getModule<MEAController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
@@ -1008,7 +1015,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
-            tm.sda_state = 0;  // TODO: add SDA state
+            tm.sda_state = static_cast<uint8_t>(sda->getState());
             // tm.mea_state = static_cast<uint8_t>(mea->getState());
 
             // Actuators
@@ -1057,13 +1064,13 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             mavlink_message_t msg;
             mavlink_rocket_stats_descent_tm_t tm;
 
-            PinHandler* pinHandler = getModule<PinHandler>();
-            ADAController* ada     = getModule<ADAController>();
-            NASController* nas     = getModule<NASController>();
-            // MEAController* mea      = getModule<MEAController>();
+            PinHandler* pinHandler  = getModule<PinHandler>();
+            ADAController* ada      = getModule<ADAController>();
+            NASController* nas      = getModule<NASController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();
+            WingController* wing    = getModule<WingController>();
 
             tm.timestamp = TimestampTimer::getTimestamp();
 
@@ -1079,8 +1086,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.apogee_max_acc          = stats.apogeeMaxAcc;
             tm.dpl_ts                  = stats.dplTs;
             tm.dpl_alt                 = stats.dplAlt;
-            tm.wing_active_target_n    = 0.0f;  // TODO
-            tm.wing_active_target_e    = 0.0f;  // TODO
+            tm.wing_active_target_n    = wing->getTargetCoordinates()[0];
+            tm.wing_active_target_e    = wing->getTargetCoordinates()[1];
             tm.dpl_max_acc_ts          = stats.dplMaxAccTs;
             tm.dpl_max_acc             = stats.dplMaxAcc;
 
@@ -1097,8 +1104,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.ada_state = static_cast<uint8_t>(ada->getState());
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
-            tm.sda_state = 0;  // TODO: add SDA state
-            // tm.mea_state = static_cast<uint8_t>(mea->getState());
+            tm.prf_state = static_cast<uint8_t>(wing->getState());
 
             // Actuators
             tm.pin_launch =
@@ -1113,7 +1119,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.releaser_sense =
                 pinHandler->getPinData(PinHandler::PinList::RELEASER_SENSE)
                     .lastState;
-            // TODO: add heating pad sense
+            tm.heating_pad_sense =
+                getModule<CanHandler>()->getCanStatus().getPitotState();
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();
@@ -1122,10 +1129,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             CanHandler::CanStatus canStatus =
                 getModule<CanHandler>()->getCanStatus();
-            /* tm.pitot_board_state = canStatus.getPitotState(); */
             tm.motor_board_state = motor->getState();
 
-            /* tm.pitot_can_status = canStatus.isPitotConnected() ? 1 : 0; */
+            tm.pitot_can_status = canStatus.isPitotConnected() ? 1 : 0;
             tm.motor_can_status = motor->connected();
             tm.rig_can_status   = canStatus.isRigConnected() ? 1 : 0;
 
@@ -1148,6 +1154,44 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             enqueuePacket(msg);
             return true;
         }
+
+        case MAV_ZVK_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_zvk_tm_t tm;
+
+            tm.timestamp    = TimestampTimer::getTimestamp();
+            tm.acc0_bias_x  = getModule<ZVKController>()->getAccHBias()[0];
+            tm.acc0_bias_y  = getModule<ZVKController>()->getAccHBias()[1];
+            tm.acc0_bias_z  = getModule<ZVKController>()->getAccHBias()[2];
+            tm.gyro0_bias_x = getModule<ZVKController>()->getGyroHBias()[0];
+            tm.gyro0_bias_y = getModule<ZVKController>()->getGyroHBias()[1];
+            tm.gyro0_bias_z = getModule<ZVKController>()->getGyroHBias()[2];
+            tm.acc1_bias_x  = getModule<ZVKController>()->getAccLBias()[0];
+            tm.acc1_bias_y  = getModule<ZVKController>()->getAccLBias()[1];
+            tm.acc1_bias_z  = getModule<ZVKController>()->getAccLBias()[2];
+            tm.gyro1_bias_x = getModule<ZVKController>()->getGyroLBias()[0];
+            tm.gyro1_bias_y = getModule<ZVKController>()->getGyroLBias()[1];
+            tm.gyro1_bias_z = getModule<ZVKController>()->getGyroLBias()[2];
+            tm.accVN100_bias_x =
+                getModule<ZVKController>()->getAccVN100Bias()[0];
+            tm.accVN100_bias_y =
+                getModule<ZVKController>()->getAccVN100Bias()[1];
+            tm.accVN100_bias_z =
+                getModule<ZVKController>()->getAccVN100Bias()[2];
+            tm.gyroVN100_bias_x =
+                getModule<ZVKController>()->getGyroVN100Bias()[0];
+            tm.gyroVN100_bias_y =
+                getModule<ZVKController>()->getGyroVN100Bias()[1];
+            tm.gyroVN100_bias_z =
+                getModule<ZVKController>()->getGyroVN100Bias()[2];
+
+            mavlink_msg_zvk_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
+                                      &msg, &tm);
+            enqueuePacket(msg);
+            return true;
+        }
+
         default:
             return false;
     }

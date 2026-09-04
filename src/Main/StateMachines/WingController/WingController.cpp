@@ -82,6 +82,9 @@ bool WingController::start()
         return false;
     }
 
+    setTargetCoordinates(Config::Wing::Default::TARGET_LAT,
+                         Config::Wing::Default::TARGET_LON);
+
     started = true;
     return true;
 }
@@ -242,9 +245,13 @@ void WingController::state_deployment(const Boardcore::Event& event)
             getModule<StatsRecorder>()->deploymentDetected(
                 TimestampTimer::getTimestamp(), altitude);
 
-            dplPumpsTimeoutEventId = EventBroker::getInstance().postDelayed(
+            dplPumpsPullEventId = EventBroker::getInstance().postDelayed(
                 DPL_PUMPS_PULL, TOPIC_DPL,
                 milliseconds{Config::Wing::Deployment::PUMP_DELAY}.count());
+
+            dplPumpsTimeoutEventId = EventBroker::getInstance().postDelayed(
+                DPL_DONE, TOPIC_DPL,
+                milliseconds{Config::Wing::Deployment::PUMP_TIMEOUT}.count());
 
             break;
         }
@@ -252,7 +259,8 @@ void WingController::state_deployment(const Boardcore::Event& event)
         case EV_EXIT:
         {
             // Stop pumps in the case of an early exit
-            EventBroker::getInstance().removeDelayed(dplPumpsTimeoutEventId);
+            EventBroker::getInstance().removeDelayed(dplPumpsPullEventId);
+
             resetWing();
 
             break;
@@ -384,6 +392,7 @@ void WingController::state_guided_descent(const Boardcore::Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(WingControllerState::GUIDED_DESCENT);
+            EventBroker::getInstance().removeDelayed(dplPumpsTimeoutEventId);
 
             // // Enable the landing flare altitude trigger
             // if (LandingFlareConfig::ENABLED)

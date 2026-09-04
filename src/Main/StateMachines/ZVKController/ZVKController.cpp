@@ -22,8 +22,10 @@
 
 #include "ZVKController.h"
 
+#include <Main/Configs/NASConfig.h>
 #include <Main/Configs/SchedulerConfig.h>
 #include <Main/Configs/ZVKConfig.h>
+#include <algorithms/StateInitializer/StateInitializer.h>
 #include <common/Events.h>
 #include <common/ReferenceConfig.h>
 #include <common/Topics.h>
@@ -53,13 +55,13 @@ ZVKOut ZVKController::getZVKOut()
     return zvkOut;
 }
 
-Vector3f ZVKController::getAcc1Bias()
+Vector3f ZVKController::getAccHBias()
 {
     Lock<FastMutex> lock{zvkMutex};
     return {zvkOut.AccHBias[0], zvkOut.AccHBias[1], zvkOut.AccHBias[2]};
 }
 
-Vector3f ZVKController::getAcc2Bias()
+Vector3f ZVKController::getAccLBias()
 {
     Lock<FastMutex> lock{zvkMutex};
     return {zvkOut.AccLBias[0], zvkOut.AccLBias[1], zvkOut.AccLBias[2]};
@@ -72,13 +74,13 @@ Vector3f ZVKController::getAccVN100Bias()
             zvkOut.AccVN100Bias[2]};
 }
 
-Vector3f ZVKController::getGyro1Bias()
+Vector3f ZVKController::getGyroHBias()
 {
     Lock<FastMutex> lock{zvkMutex};
     return {zvkOut.GyroHBias[0], zvkOut.GyroHBias[1], zvkOut.GyroHBias[2]};
 }
 
-Vector3f ZVKController::getGyro2Bias()
+Vector3f ZVKController::getGyroLBias()
 {
     Lock<FastMutex> lock{zvkMutex};
     return {zvkOut.GyroLBias[0], zvkOut.GyroLBias[1], zvkOut.GyroLBias[2]};
@@ -121,6 +123,37 @@ void ZVKController::calibrate()
 
     // Reinitialize state
     zvk.initialize();
+
+    // calculate initial attitude quaternions
+    Sensors* sensors = getModule<Sensors>();
+    Vector3f accAcc  = Vector3f::Zero();
+    Vector3f magAcc  = Vector3f::Zero();
+
+    // First sample and average the data over a number of samples
+    for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
+    {
+        auto imuData = sensors->getIMULastSample();
+        auto magData = sensors->getCalibratedLIS2MDLRcsLastSample();
+
+        Vector3f acc = static_cast<AccelerometerData>(imuData);
+        Vector3f mag = static_cast<MagnetometerData>(magData);
+
+        accAcc += acc;
+        magAcc += mag;
+
+        Thread::sleep(Config::NAS::CALIBRATION_SLEEP_TIME);
+    }
+
+    accAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
+    accAcc.normalize();
+    magAcc /= Config::NAS::CALIBRATION_SAMPLES_COUNT;
+    magAcc.normalize();
+
+    // Use the triad to compute initial state
+    StateInitializer init;
+    Eigen::Vector4f quat = init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
+
+    zvk.setAttitude_Quaternion(quat.data());
 }
 
 ZVKControllerState ZVKController::getState() { return state; }
@@ -184,8 +217,26 @@ void ZVKController::state_init(const Event& event)
         {
             updateAndLogStatus(ZVKControllerState::INIT);
 
-            // Immediate transition to active
+            break;
+        }
+
+        case ZVK_CALIBRATE:
+        {
             transition(&ZVKController::state_calibrating);
+            break;
+        }
+    }
+}
+
+void ZVKController::state_calibrating(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(ZVKControllerState::CALIBRATING);
+            calibrate();
+            transition(&ZVKController::state_active);
             break;
         }
     }
@@ -209,20 +260,6 @@ void ZVKController::state_active(const Event& event)
         case ZVK_RESET:
         {
             transition(&ZVKController::state_calibrating);
-            break;
-        }
-    }
-}
-
-void ZVKController::state_calibrating(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(ZVKControllerState::CALIBRATING);
-            calibrate();
-            transition(&ZVKController::state_active);
             break;
         }
     }

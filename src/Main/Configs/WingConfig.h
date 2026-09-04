@@ -61,6 +61,7 @@ namespace Deployment
 {
 
 constexpr auto PUMP_DELAY       = 4s;
+constexpr auto PUMP_TIMEOUT     = 15s;
 constexpr auto PUMP_ANGLE_LEFT  = 720_deg;
 constexpr auto PUMP_ANGLE_RIGHT = 720_deg;
 

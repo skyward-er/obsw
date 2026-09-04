@@ -313,6 +313,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
             // Post the calibration events
             EventBroker::getInstance().post(NAS_CALIBRATE, TOPIC_NAS);
             EventBroker::getInstance().post(ADA_CALIBRATE, TOPIC_ADA);
+            EventBroker::getInstance().post(ZVK_CALIBRATE, TOPIC_ZVK);
 
             // Calibrate MEA on Motor Board
             getModule<CanHandler>()->sendEvent(

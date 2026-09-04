@@ -113,7 +113,6 @@ enum Events : uint8_t
     MEA_FORCE_STOP,
     MEA_RESET,
     MEA_CALIBRATE,
-    MEA_READY,
     MEA_STOP,
     NAS_CALIBRATE,
     NAS_RESET,
@@ -221,6 +220,7 @@ enum Events : uint8_t
     WING_ALGORITHM_ENDED,
     WING_LANDING_FLARE_STOP,
     WIGGLE_ALL_VALVES,
+    ZVK_CALIBRATE,
     ZVK_FORCE_STOP,
     ZVK_RESET,
     LAST_EVENT
@@ -305,7 +305,6 @@ inline std::string getEventString(uint8_t event)
         {MEA_FORCE_STOP, "MEA_FORCE_STOP"},
         {MEA_RESET, "MEA_RESET"},
         {MEA_CALIBRATE, "MEA_CALIBRATE"},
-        {MEA_READY, "MEA_READY"},
         {MEA_STOP, "MEA_STOP"},
         {NAS_CALIBRATE, "NAS_CALIBRATE"},
         {NAS_RESET, "NAS_RESET"},
@@ -417,6 +416,10 @@ inline std::string getEventString(uint8_t event)
          "ALTITUDE_TRIGGER_ALTITUDE_REACHED"},
         {WING_ALGORITHM_ENDED, "WING_ALGORITHM_ENDED"},
         {WING_LANDING_FLARE_STOP, "WING_LANDING_FLARE_STOP"},
+        {WIGGLE_ALL_VALVES, "WIGGLE_ALL_VALVES"},
+        {ZVK_CALIBRATE, "ZVK_CALIBRATE"},
+        {ZVK_FORCE_STOP, "ZVK_FORCE_STOP"},
+        {ZVK_RESET, "ZVK_RESET"},
         {LAST_EVENT, "LAST_EVENT"},
     };
 

@@ -536,7 +536,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
-        case MAV_WIGGLE_ALL_VALVES:
+        case MAV_CMD_WIGGLE_ALL_VALVES:
         {
             if (getModule<GroundModeManager>()->getState() ==
                 GroundModeManagerState::DISARMED)

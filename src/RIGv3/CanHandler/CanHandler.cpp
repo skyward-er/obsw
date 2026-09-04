@@ -173,7 +173,7 @@ void CanHandler::sendEregTarget(float oxTarget, float fuelTarget)
         static_cast<uint8_t>(CanConfig::Board::RIG),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(CanConfig::CommandId::EREG_TARGET),
-        EregTarget{TimestampTimer::getTimestamp(), oxTarget, fuelTarget});
+        EregTarget{oxTarget, fuelTarget});
 }
 
 void CanHandler::sendIgnitionThresholds(float igniterThreshold,

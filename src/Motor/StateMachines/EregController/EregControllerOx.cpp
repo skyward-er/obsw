@@ -117,7 +117,7 @@ void EregControllerOx::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure > targetPressure * 1.2)
+    if (logData.filteredDownstreamPressure > targetPressure * 1.15)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
@@ -323,7 +323,12 @@ void EregControllerOx::setServoCoeff(
         regulator.setServoCoefficients(coefficients);
 }
 
-void EregControllerOx::setEregTarget(float target) { targetPressure = target; }
+void EregControllerOx::setEregTarget(float target)
+{
+    targetPressure = target;
+    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_OX_TARGET_PRESSURE,
+                                     targetPressure);
+}
 
 void EregControllerOx::updateAndLogStatus(EregState state)
 {

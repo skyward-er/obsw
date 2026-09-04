@@ -153,6 +153,7 @@ private:
 
     // uint16_t calibrationTimeoutEventId = 0;
     // uint16_t cuttersOffEventId         = 0;
+    uint16_t dplPumpsPullEventId    = 0;
     uint16_t dplPumpsTimeoutEventId = 0;
     // uint16_t ctrlFlareTimeoutEventId   = 0;
     // uint16_t resetTimeoutEventId       = 0;

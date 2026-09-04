@@ -52,12 +52,12 @@ public:
 
     ZVKOut getZVKOut();
 
-    //  imu0 = LSM6DSRX "High" -> Accelerometer1Bias / Gyroscope1Bias
-    Eigen::Vector3f getAcc1Bias();
-    Eigen::Vector3f getGyro1Bias();
-    //  imu1 = LSM6DSRX "Low"  -> Accelerometer2Bias / Gyroscope2Bias
-    Eigen::Vector3f getAcc2Bias();
-    Eigen::Vector3f getGyro2Bias();
+    // imu0 (LSM6DSRX "High")
+    Eigen::Vector3f getAccHBias();
+    Eigen::Vector3f getGyroHBias();
+    // imu1 (LSM6DSRX "Low")
+    Eigen::Vector3f getAccLBias();
+    Eigen::Vector3f getGyroLBias();
     //  vn100
     Eigen::Vector3f getAccVN100Bias();
     Eigen::Vector3f getGyroVN100Bias();
@@ -67,8 +67,8 @@ private:
 
     // FSM states
     void state_init(const Boardcore::Event& event);
-    void state_active(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
+    void state_active(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
 
     void updateAndLogStatus(ZVKControllerState state);

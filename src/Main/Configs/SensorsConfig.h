@@ -95,8 +95,8 @@ constexpr auto ROTATION_DIRECTION =
 constexpr Hertz RATE   = 100_hz;
 constexpr bool ENABLED = true;
 
-constexpr float MIN_OPENING_ANGLE = 0.0f;
-constexpr float MAX_OPENING_ANGLE = 180.0f;
+constexpr float MIN_OPENING_ANGLE = 8.7f;
+constexpr float MAX_OPENING_ANGLE = 164.0f;
 }  // namespace AS5047D_ABK
 
 namespace LIS2MDL_RCS

@@ -368,8 +368,10 @@ int main()
 
         std::cout << "Enter the movement command:\n";
         std::cout << "Commands:\n";
-        std::cout << "  animate <VALVE_NAME|number> to <POSITION> in <MILLISECONDS>\n";
-        std::cout << "  step [<VALVE_NAME|number>]  (no arg: PRZ_OX, PRZ_FUEL, MAIN_OX, MAIN_FUEL)\n";
+        std::cout << "  animate <VALVE_NAME|number> to <POSITION> in "
+                     "<MILLISECONDS>\n";
+        std::cout << "  step [<VALVE_NAME|number>]  (no arg: PRZ_OX, PRZ_FUEL, "
+                     "MAIN_OX, MAIN_FUEL)\n";
         std::cout << "  sweep <VALVE_NAME|number>  (animate 0.4 -> 0.0)\n";
         std::cout << "  wiggle <VALVE_NAME|number>\n";
         std::cout << "  list  (show available valves)\n";
@@ -425,7 +427,7 @@ int main()
                     actuators->closeValve(MAIN_OX_VALVE);
                     actuators->closeValve(MAIN_FUEL_VALVE);
                     std::cout << "\nStepping valves" << std::endl;
-                    for (int i = 0; i < 20; i++)
+                    for (int i = 0; i < 21; i++)
                     {
                         float step = i * 0.05f;
                         actuators->moveValve(PRZ_OX_VALVE, step);

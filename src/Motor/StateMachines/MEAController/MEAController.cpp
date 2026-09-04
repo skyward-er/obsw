@@ -153,11 +153,6 @@ void MEAController::state_calibrate(const Event& event)
         {
             updateAndLogStatus(MEAControllerState::CALIBRATING);
             calibrate();
-            EventBroker::getInstance().post(MEA_READY, TOPIC_MEA);
-            break;
-        }
-        case MEA_READY:
-        {
             transition(&MEAController::state_ready);
             break;
         }
