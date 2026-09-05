@@ -57,8 +57,8 @@ constexpr uint8_t VALVE_OPENING_THRESHOLD_MAIN_OX      = 60;  // [percent]
 constexpr uint8_t VALVE_OPENING_THRESHOLD_MAIN_FUEL    = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_OX       = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_FUEL     = 60;
-constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_VENTING   = 60;
-constexpr uint8_t VALVE_OPENING_THRESHOLD_FUEL_VENTING = 60;
+constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_VENTING   = 40;
+constexpr uint8_t VALVE_OPENING_THRESHOLD_FUEL_VENTING = 40;
 
 constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_3WAY    = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_FILLING = 60;
@@ -66,21 +66,21 @@ constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_RELEASE = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_FILLING  = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_RELEASE  = 60;
 
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_OX      = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_FUEL    = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_OX       = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FUEL     = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_VENTING   = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 10;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_OX      = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_FUEL    = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_OX       = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FUEL     = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_VENTING   = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 5;
 
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_3WAY    = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FILLING = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_RELEASE = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_FILLING  = 10;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_RELEASE  = 10;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_3WAY    = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FILLING = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_RELEASE = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_FILLING  = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_RELEASE  = 5;
 
-constexpr auto VALVE_WIGGLE_DELAY  = 1000;  // [ms]
-constexpr auto VALVE_CLOSING_DELAY = 500;   // [ms]
+constexpr auto VALVE_WIGGLE_DELAY  = 2000;  // [ms]
+constexpr auto VALVE_CLOSING_DELAY = 2000;  // [ms]
 
 }  // namespace Config
 }  // namespace RIGv3
