@@ -351,7 +351,7 @@ void Sensors::calibrate()
                          CONFIG_ID_INJ_FUEL_PT_SHUNT_RESISTANCE,
                          ADC_3::CH4_SHUNT_RESISTANCE);
 
-    // calibrateEncoders();
+    calibrateEncoders();
 }
 
 void Sensors::calibrateLoadcells()
@@ -431,9 +431,11 @@ void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC1);
 
+    internalAdc->enableChannel(InternalADC::CH0);
+    internalAdc->enableChannel(InternalADC::CH1);
+    internalAdc->enableChannel(InternalADC::CH2);
     internalAdc->enableChannel(InternalADC::CH3);
-    internalAdc->enableChannel(InternalADC::CH8);
-    internalAdc->enableChannel(InternalADC::CH9);
+    internalAdc->enableChannel(InternalADC::CH4);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
 }
