@@ -68,7 +68,7 @@ constexpr auto PRZ_VESSEL_2_PT_CHANNEL = Channel::CHANNEL_1;
 constexpr auto PRZ_FILLING_PT_CHANNEL  = Channel::CHANNEL_2;
 constexpr auto OX_VESSEL_PT_CHANNEL    = Channel::CHANNEL_3;
 constexpr auto OX_FILLING_PT_CHANNEL   = Channel::CHANNEL_4;
-constexpr auto OX_VESSEL_LC_CHANNEL    = Channel::CHANNEL_5;
+constexpr auto OX_VESSEL_LC_CHANNEL    = Channel::CHANNEL_6;
 
 constexpr uint32_t PRZ_VESSEL_1_REG_KEY = 0;
 constexpr uint32_t PRZ_VESSEL_2_REG_KEY = 0;
@@ -247,8 +247,8 @@ constexpr float VESSEL_P1_VOLTAGE = 0.0010;
 constexpr float VESSEL_P1_MASS    = 6.916;
 */
 
-constexpr float VESSEL_SCALE  = 1517.689958f;
-constexpr float VESSEL_OFFSET = -259.2304283f;
+constexpr float VESSEL_SCALE  = 164.75743372f;
+constexpr float VESSEL_OFFSET = -30.4879264f;
 
 // LC Vessel sensor calibration data (post 07/09/2024)
 // - 0kg      V: 0.000630177
