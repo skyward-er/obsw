@@ -269,6 +269,9 @@ bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
     // tell the task to open this valve
     info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
 
+    // Reset the safety venting timestamp
+    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
+
     signalTask();
     return true;
 }
@@ -282,6 +285,9 @@ bool Actuators::closeValve(ServosList servo)
 
     // tell the task to close this valve
     info->closeTs = Clock::now();
+
+    // Reset the safety venting timestamp
+    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
 
     signalTask();
     return true;
@@ -603,18 +609,19 @@ void Actuators::task()
         stopSparkPlug();
 
     // Check if we reached the inactivity timeout and should vent
-    if (currentTime >= safetyVentingTs)
-    {
-        openValveWithTime(
-            ServosList::OX_VENTING_VALVE,
-            milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
+    // if (currentTime >= safetyVentingTs)
+    // {
+    //     openValveWithTime(
+    //         ServosList::OX_VENTING_VALVE,
+    //         milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
 
-        openValveWithTime(
-            ServosList::FUEL_VENTING_VALVE,
-            milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
+    //     openValveWithTime(
+    //         ServosList::FUEL_VENTING_VALVE,
+    //         milliseconds{Config::Servos::SAFETY_VENTING_DURATION}.count());
 
-        // Reset the safety venting timestamp
-        safetyVentingTs = currentTime + Config::Servos::SAFETY_VENTING_TIMEOUT;
-    }
+    //     // Reset the safety venting timestamp
+    //     safetyVentingTs = currentTime +
+    //     Config::Servos::SAFETY_VENTING_TIMEOUT;
+    // }
 }
 

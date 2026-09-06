@@ -216,7 +216,7 @@ State GroundModeManager::state_disarmed(const Event& event)
         case TMTC_CALIBRATE:
         {
             getModule<Sensors>()->calibrateLoadcells();
-            getModule<Sensors>()->calibrateEncoders();
+            // getModule<Sensors>()->calibrateEncoders();
 
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::CALIBRATE);
             return HANDLED;
