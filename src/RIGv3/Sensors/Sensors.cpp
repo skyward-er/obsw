@@ -52,7 +52,14 @@ bool Sensors::start()
         oxVesselWeightInit();
     }
     if (Config::Sensors::ADC_1::ENABLED)
+    {
         adc1Init();
+        prz3WayPositionInit();
+        przFillingPositionInit();
+        przReleasePositionInit();
+        oxFillingPositionInit();
+        oxReleasePositionInit();
+    }
 
     if (Config::Sensors::ADC_2::ENABLED)
     {
@@ -66,16 +73,8 @@ bool Sensors::start()
         mainChamberPressureInit();
     }
     if (Config::Sensors::ADC_3::ENABLED)
-    {
         adc3Init();
-        prz3WayPositionInit();
-        przFillingPositionInit();
-        przReleasePositionInit();
-        oxFillingPositionInit();
-        oxReleasePositionInit();
-        injOxPressureInit();
-        injFuelPressureInit();
-    }
+
     if (!sensorManagerInit())
     {
         LOG_ERR(logger, "Failed to init SensorManager");
@@ -136,6 +135,36 @@ ADS131M08Data Sensors::getADC1LastSample()
     return adc1 ? adc1->getLastSample() : ADS131M08Data{};
 }
 
+ServoPositionData Sensors::getPrz3WayPosition()
+{
+    return prz3WayPosition ? prz3WayPosition->getLastSample()
+                           : ServoPositionData{};
+}
+
+ServoPositionData Sensors::getPrzFillingPosition()
+{
+    return przFillingPosition ? przFillingPosition->getLastSample()
+                              : ServoPositionData{};
+}
+
+ServoPositionData Sensors::getPrzReleasePosition()
+{
+    return przReleasePosition ? przReleasePosition->getLastSample()
+                              : ServoPositionData{};
+}
+
+ServoPositionData Sensors::getOxFillingPosition()
+{
+    return oxFillingPosition ? oxFillingPosition->getLastSample()
+                             : ServoPositionData{};
+}
+
+ServoPositionData Sensors::getOxReleasePosition()
+{
+    return oxReleasePosition ? oxReleasePosition->getLastSample()
+                             : ServoPositionData{};
+}
+
 ADS131M08Data Sensors::getADC2LastSample()
 {
     return adc2 ? adc2->getLastSample() : ADS131M08Data{};
@@ -184,46 +213,6 @@ PressureData Sensors::getMainChamberPressure()
 ADS131M08Data Sensors::getADC3LastSample()
 {
     return adc3 ? adc3->getLastSample() : ADS131M08Data{};
-}
-
-ServoPositionData Sensors::getPrz3WayPosition()
-{
-    return prz3WayPosition ? prz3WayPosition->getLastSample()
-                           : ServoPositionData{};
-}
-
-ServoPositionData Sensors::getPrzFillingPosition()
-{
-    return przFillingPosition ? przFillingPosition->getLastSample()
-                              : ServoPositionData{};
-}
-
-ServoPositionData Sensors::getPrzReleasePosition()
-{
-    return przReleasePosition ? przReleasePosition->getLastSample()
-                              : ServoPositionData{};
-}
-
-ServoPositionData Sensors::getOxFillingPosition()
-{
-    return oxFillingPosition ? oxFillingPosition->getLastSample()
-                             : ServoPositionData{};
-}
-
-ServoPositionData Sensors::getOxReleasePosition()
-{
-    return oxReleasePosition ? oxReleasePosition->getLastSample()
-                             : ServoPositionData{};
-}
-
-PressureData Sensors::getInjOxPressure()
-{
-    return injOxPressure ? injOxPressure->getLastSample() : PressureData{};
-}
-
-PressureData Sensors::getInjFuelPressure()
-{
-    return injFuelPressure ? injFuelPressure->getLastSample() : PressureData{};
 }
 
 CurrentData Sensors::getUmbilicalCurrent()
@@ -308,7 +297,7 @@ void Sensors::calibrate()
                          CONFIG_ID_PRZ_VESSEL_1_PT_SHUNT_RESISTANCE,
                          ADC_0::CH0_SHUNT_RESISTANCE);
     applyShuntResistance(0, przVessel2Pressure, PRZ_VESSEL_2_PT_CHANNEL,
-                         CONFIG_ID_PRZ_VESSEL_1_PT_SHUNT_RESISTANCE,
+                         CONFIG_ID_PRZ_VESSEL_2_PT_SHUNT_RESISTANCE,
                          ADC_0::CH1_SHUNT_RESISTANCE);
     applyShuntResistance(0, przFillingPressure, PRZ_FILLING_PT_CHANNEL,
                          CONFIG_ID_PRZ_FILLING_PT_SHUNT_RESISTANCE,
@@ -342,14 +331,6 @@ void Sensors::calibrate()
     applyShuntResistance(2, mainChamberPressure, MAIN_CHAMBER_PT_CHANNEL,
                          CONFIG_ID_MAIN_CHAMBER_PT_SHUNT_RESISTANCE,
                          ADC_2::CH6_SHUNT_RESISTANCE);
-
-    using namespace Config::Sensors::ADC_3;
-    applyShuntResistance(3, injOxPressure, INJ_OX_PT_CHANNEL,
-                         CONFIG_ID_INJ_OX_PT_SHUNT_RESISTANCE,
-                         ADC_3::CH5_SHUNT_RESISTANCE);
-    applyShuntResistance(3, injFuelPressure, INJ_FUEL_PT_CHANNEL,
-                         CONFIG_ID_INJ_FUEL_PT_SHUNT_RESISTANCE,
-                         ADC_3::CH4_SHUNT_RESISTANCE);
 
     calibrateEncoders();
 }
@@ -401,6 +382,11 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(oxFillingPressure, "OxFillingPressure");
         PUSH_SENSOR_INFO(oxVesselWeight, "OxVesselWeight");
         PUSH_SENSOR_INFO(adc1, "ADS131M08_1");
+        PUSH_SENSOR_INFO(prz3WayPosition, "Prz3WayPosition");
+        PUSH_SENSOR_INFO(przFillingPosition, "PrzFillingPosition");
+        PUSH_SENSOR_INFO(przReleasePosition, "PrzReleasePosition");
+        PUSH_SENSOR_INFO(oxFillingPosition, "OxFillingPosition");
+        PUSH_SENSOR_INFO(oxReleasePosition, "OxReleasePosition");
         PUSH_SENSOR_INFO(adc2, "ADS131M08_2");
         PUSH_SENSOR_INFO(przTankPressure, "PrzTankPressure");
         PUSH_SENSOR_INFO(oxRegOutPressure, "OxRegOutPressure");
@@ -410,13 +396,6 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(igniterChamberPressure, "IgniterChamberPressure");
         PUSH_SENSOR_INFO(mainChamberPressure, "MainChamberPressure");
         PUSH_SENSOR_INFO(adc3, "ADS131M08_3");
-        PUSH_SENSOR_INFO(prz3WayPosition, "Prz3WayPosition");
-        PUSH_SENSOR_INFO(przFillingPosition, "PrzFillingPosition");
-        PUSH_SENSOR_INFO(przReleasePosition, "PrzReleasePosition");
-        PUSH_SENSOR_INFO(oxFillingPosition, "OxFillingPosition");
-        PUSH_SENSOR_INFO(oxReleasePosition, "OxReleasePosition");
-        PUSH_SENSOR_INFO(injOxPressure, "InjOxPressure");
-        PUSH_SENSOR_INFO(injFuelPressure, "InjFuelPressure");
         PUSH_SENSOR_INFO(internalAdc, "InternalADC");
 
         return infos;
@@ -431,11 +410,9 @@ void Sensors::internalAdcInit()
 {
     internalAdc = std::make_unique<InternalADC>(ADC1);
 
-    internalAdc->enableChannel(InternalADC::CH0);
-    internalAdc->enableChannel(InternalADC::CH1);
-    internalAdc->enableChannel(InternalADC::CH2);
     internalAdc->enableChannel(InternalADC::CH3);
-    internalAdc->enableChannel(InternalADC::CH4);
+    internalAdc->enableChannel(InternalADC::CH8);
+    internalAdc->enableChannel(InternalADC::CH9);
     internalAdc->enableTemperature();
     internalAdc->enableVbat();
 }
@@ -635,11 +612,151 @@ void Sensors::adc1Init()
     for (auto& channel : config.channelsConfig)
         channel.enabled = false;
 
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_1::PRZ_3WAY_ENCODER_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_1::PRZ_FILLING_ENCODER_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_1::PRZ_RELEASE_ENCODER_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_1::OX_FILLING_ENCODER_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_1::OX_RELEASE_ENCODER_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
     adc1 = std::make_unique<ADS131M08>(getModule<Buses>()->getADC1(),
                                        getModule<Buses>()->getADC1CsPin(),
                                        spiConfig, config);
 }
 void Sensors::adc1Callback() { sdLogger.log(ADC1Data{getADC1LastSample()}); }
+
+void Sensors::prz3WayPositionInit()
+{
+    prz3WayPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC1LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_1::PRZ_3WAY_ENCODER_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::prz3WayPositionCallback()
+{
+    sdLogger.log(Prz3WayPositionData{getPrz3WayPosition()});
+}
+
+void Sensors::przFillingPositionInit()
+{
+    przFillingPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC1LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_1::PRZ_FILLING_ENCODER_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::przFillingPositionCallback()
+{
+    sdLogger.log(PrzFillingPositionData{getPrzFillingPosition()});
+}
+
+void Sensors::przReleasePositionInit()
+{
+    przReleasePosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC1LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_1::PRZ_RELEASE_ENCODER_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::przReleasePositionCallback()
+{
+    sdLogger.log(PrzReleasePositionData{getPrzReleasePosition()});
+}
+
+void Sensors::oxFillingPositionInit()
+{
+    oxFillingPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC1LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_1::OX_FILLING_ENCODER_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::oxFillingPositionCallback()
+{
+    sdLogger.log(OxFillingPositionData{getOxFillingPosition()});
+}
+
+void Sensors::oxReleasePositionInit()
+{
+    oxFillingPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC1LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_1::OX_RELEASE_ENCODER_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::oxReleasePositionCallback()
+{
+    sdLogger.log(OxReleasePositionData{getOxReleasePosition()});
+}
 
 void Sensors::adc2Init()
 {
@@ -900,150 +1017,6 @@ void Sensors::adc3Init()
 }
 void Sensors::adc3Callback() { sdLogger.log(ADC3Data{getADC3LastSample()}); }
 
-void Sensors::prz3WayPositionInit()
-{
-    prz3WayPosition = std::make_unique<AnalogEncoder>(
-        [this]()
-        {
-            auto sample = getADC1LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_1::PRZ_3WAY_ENCODER_CHANNEL);
-        },
-        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
-        Config::Sensors::Encoder::SENSOR_RESISTANCE,
-        Config::Sensors::Encoder::CURRENT_GAIN,
-        Config::Sensors::Encoder::MAX_ANGLE);
-}
-
-void Sensors::prz3WayPositionCallback()
-{
-    sdLogger.log(Prz3WayPositionData{getPrz3WayPosition()});
-}
-
-void Sensors::przFillingPositionInit()
-{
-    przFillingPosition = std::make_unique<AnalogEncoder>(
-        [this]()
-        {
-            auto sample = getADC1LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_1::PRZ_FILLING_ENCODER_CHANNEL);
-        },
-        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
-        Config::Sensors::Encoder::SENSOR_RESISTANCE,
-        Config::Sensors::Encoder::CURRENT_GAIN,
-        Config::Sensors::Encoder::MAX_ANGLE);
-}
-
-void Sensors::przFillingPositionCallback()
-{
-    sdLogger.log(PrzFillingPositionData{getPrzFillingPosition()});
-}
-
-void Sensors::przReleasePositionInit()
-{
-    przReleasePosition = std::make_unique<AnalogEncoder>(
-        [this]()
-        {
-            auto sample = getADC1LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_1::PRZ_RELEASE_ENCODER_CHANNEL);
-        },
-        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
-        Config::Sensors::Encoder::SENSOR_RESISTANCE,
-        Config::Sensors::Encoder::CURRENT_GAIN,
-        Config::Sensors::Encoder::MAX_ANGLE);
-}
-
-void Sensors::przReleasePositionCallback()
-{
-    sdLogger.log(PrzReleasePositionData{getPrzReleasePosition()});
-}
-
-void Sensors::oxFillingPositionInit()
-{
-    oxFillingPosition = std::make_unique<AnalogEncoder>(
-        [this]()
-        {
-            auto sample = getADC1LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_1::OX_FILLING_ENCODER_CHANNEL);
-        },
-        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
-        Config::Sensors::Encoder::SENSOR_RESISTANCE,
-        Config::Sensors::Encoder::CURRENT_GAIN,
-        Config::Sensors::Encoder::MAX_ANGLE);
-}
-
-void Sensors::oxFillingPositionCallback()
-{
-    sdLogger.log(OxFillingPositionData{getOxFillingPosition()});
-}
-
-void Sensors::oxReleasePositionInit()
-{
-    oxFillingPosition = std::make_unique<AnalogEncoder>(
-        [this]()
-        {
-            auto sample = getADC1LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_1::OX_RELEASE_ENCODER_CHANNEL);
-        },
-        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
-        Config::Sensors::Encoder::SENSOR_RESISTANCE,
-        Config::Sensors::Encoder::CURRENT_GAIN,
-        Config::Sensors::Encoder::MAX_ANGLE);
-}
-
-void Sensors::oxReleasePositionCallback()
-{
-    sdLogger.log(OxReleasePositionData{getOxReleasePosition()});
-}
-
-void Sensors::injOxPressureInit()
-{
-    injOxPressure = std::make_unique<TrafagPressureSensor>(
-        [this]()
-        {
-            auto sample = getADC3LastSample();
-            return sample.getVoltage(Config::Sensors::ADC_3::INJ_OX_PT_CHANNEL);
-        },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::INJ_OX_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-
-void Sensors::injOxPressureCallback()
-{
-    sdLogger.log(InjOxPressureData{getInjOxPressure()});
-}
-
-void Sensors::injFuelPressureInit()
-{
-    injFuelPressure = std::make_unique<TrafagPressureSensor>(
-        [this]()
-        {
-            auto sample = getADC3LastSample();
-            return sample.getVoltage(
-                Config::Sensors::ADC_3::INJ_FUEL_PT_CHANNEL);
-        },
-        Config::Sensors::Trafag::DEFAULT_SHUNT_RESISTANCE,
-        Config::Sensors::Trafag::INJ_FUEL_MAX_PRESSURE,
-        Config::Sensors::Trafag::MIN_CURRENT,
-        Config::Sensors::Trafag::MAX_CURRENT);
-}
-
-void Sensors::injFuelPressureCallback()
-{
-    sdLogger.log(InjFuelPressureData{getInjFuelPressure()});
-}
-
 bool Sensors::sensorManagerInit()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->sensors();
@@ -1110,6 +1083,45 @@ bool Sensors::sensorManagerInit()
         SensorInfo info("ADC1", Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { adc1Callback(); });
         map.emplace(std::make_pair(adc1.get(), info));
+    }
+
+    if (prz3WayPosition)
+    {
+        SensorInfo info("Prz3WayPosition",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { prz3WayPositionCallback(); });
+        map.emplace(std::make_pair(prz3WayPosition.get(), info));
+    }
+
+    if (przFillingPosition)
+    {
+        SensorInfo info("PrzFillingPosition",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { przFillingPositionCallback(); });
+        map.emplace(std::make_pair(przFillingPosition.get(), info));
+    }
+
+    if (przReleasePosition)
+    {
+        SensorInfo info("PrzReleasePosition",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { przReleasePositionCallback(); });
+        map.emplace(std::make_pair(przReleasePosition.get(), info));
+    }
+    if (oxFillingPosition)
+    {
+        SensorInfo info("OxFillingPosition",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { oxFillingPositionCallback(); });
+        map.emplace(std::make_pair(oxFillingPosition.get(), info));
+    }
+
+    if (oxReleasePosition)
+    {
+        SensorInfo info("OxReleasePosition",
+                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        [this]() { oxReleasePositionCallback(); });
+        map.emplace(std::make_pair(oxReleasePosition.get(), info));
     }
 
     if (adc2)
@@ -1180,61 +1192,6 @@ bool Sensors::sensorManagerInit()
         SensorInfo info("ADC3", Config::Sensors::ADS131M08_FAST::PERIOD,
                         [this]() { adc3Callback(); });
         map.emplace(std::make_pair(adc3.get(), info));
-    }
-
-    if (prz3WayPosition)
-    {
-        SensorInfo info("Prz3WayPosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { prz3WayPositionCallback(); });
-        map.emplace(std::make_pair(prz3WayPosition.get(), info));
-    }
-
-    if (przFillingPosition)
-    {
-        SensorInfo info("PrzFillingPosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { przFillingPositionCallback(); });
-        map.emplace(std::make_pair(przFillingPosition.get(), info));
-    }
-
-    if (przReleasePosition)
-    {
-        SensorInfo info("PrzReleasePosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { przReleasePositionCallback(); });
-        map.emplace(std::make_pair(przReleasePosition.get(), info));
-    }
-    if (oxFillingPosition)
-    {
-        SensorInfo info("OxFillingPosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { oxFillingPositionCallback(); });
-        map.emplace(std::make_pair(oxFillingPosition.get(), info));
-    }
-
-    if (oxReleasePosition)
-    {
-        SensorInfo info("OxReleasePosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { oxReleasePositionCallback(); });
-        map.emplace(std::make_pair(oxReleasePosition.get(), info));
-    }
-
-    if (injOxPressure)
-    {
-        SensorInfo info("InjOxPressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { injOxPressureCallback(); });
-        map.emplace(std::make_pair(injOxPressure.get(), info));
-    }
-
-    if (injFuelPressure)
-    {
-        SensorInfo info("InjFuelPressure",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
-                        [this]() { injFuelPressureCallback(); });
-        map.emplace(std::make_pair(injFuelPressure.get(), info));
     }
 
     if (internalAdc)

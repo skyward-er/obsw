@@ -75,8 +75,6 @@ public:
     Boardcore::PressureData getFuelTankPressure();
     Boardcore::PressureData getIgniterChamberPressure();
     Boardcore::PressureData getMainChamberPressure();
-    Boardcore::PressureData getInjOxPressure();
-    Boardcore::PressureData getInjFuelPressure();
 
     Boardcore::LoadCellData getOxVesselWeight();
     Boardcore::LoadCellData getRocketWeight();
@@ -130,12 +128,6 @@ private:
 
     void mainChamberPressureInit();
     void mainChamberPressureCallback();
-
-    void injOxPressureInit();
-    void injOxPressureCallback();
-
-    void injFuelPressureInit();
-    void injFuelPressureCallback();
 
     void oxVesselWeightInit();
     void oxVesselWeightCallback();
@@ -203,11 +195,9 @@ private:
     std::unique_ptr<Boardcore::TrafagPressureSensor> fuelTankPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> igniterChamberPressure;
     std::unique_ptr<Boardcore::TrafagPressureSensor> mainChamberPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> injOxPressure;
-    std::unique_ptr<Boardcore::TrafagPressureSensor> injFuelPressure;
     std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxVesselWeight;
-    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
-    std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
+    // std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> rocketWeight;
+    // std::unique_ptr<Boardcore::TwoPointAnalogLoadCell> oxTankWeight;
 
     std::unique_ptr<Boardcore::AnalogEncoder> prz3WayPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> przFillingPosition;
