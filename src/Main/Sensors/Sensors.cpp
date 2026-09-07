@@ -971,17 +971,14 @@ void Sensors::rotatedImuInit()
 #endif
         });
 
-    // Accelerometer
+    // Accelerometer and Gyroscope
     Matrix3f a{{0, 1, 0}, {0, 0, -1}, {-1, 0, 0}};
-    rotatedImu->addAccTransformation(m);
-    // Gyroscope
-    rotatedImu->addGyroTransformation(m);
-    // Invert the Y axis on the magnetometer
-    Matrix3f m{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}};
-    rotatedImu->addMagTransformation(m);
+    rotatedImu->addAccTransformation(a);
+    rotatedImu->addGyroTransformation(a);
+
     // Magnetometer
-    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundY(+90));
-    rotatedImu->addMagTransformation(RotatedIMU::rotateAroundZ(-90));
+    Matrix3f m{{0, -1, 0}, {0.15425145f, 0, 0.5f}, {0.5f, 0, -0.15425145f}};
+    rotatedImu->addMagTransformation(m);
 }
 
 void Sensors::rotatedImuCallback() { sdLogger.log(getIMULastSample()); }
