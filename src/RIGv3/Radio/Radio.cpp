@@ -194,6 +194,15 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         case MAVLINK_MSG_ID_SYSTEM_TM_REQUEST_TC:
         {
             uint8_t tmId = mavlink_msg_system_tm_request_tc_get_tm_id(&msg);
+
+            if (tmId == MAV_FIRING_SEQUENCE_ID)
+            {
+                getModule<MotorStatus>()->setLastMsg(
+                    const_cast<mavlink_message_t*>(&msg));
+                getModule<CanHandler>()->requestFiringParameters(msg.compid);
+                break;
+            }
+
             if (enqueueSystemTm(tmId, msg.compid))
                 enqueueAck(msg);
             else
@@ -687,6 +696,45 @@ bool Radio::enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
                                                requestId, &msg, &tm);
 
     enqueueMessage(msg);
+    return true;
+}
+
+bool Radio::enqueueFiringParametersResponse(
+    uint32_t fullThrottleTime, uint32_t lowThrottleTime, uint32_t pilotLeadTime,
+    float pilotFlameOxPosition, float pilotFlameFuelPosition,
+    float igniterThreshold, float pilotFlameThreshold, float eregOxTarget,
+    float eregFuelTarget, uint8_t requestId)
+{
+    mavlink_message_t msg;
+    mavlink_firing_sequence_parameters_tm_t tm;
+
+    tm.timestamp                 = TimestampTimer::getTimestamp();
+    tm.full_throttle_time        = fullThrottleTime;
+    tm.low_throttle_time         = lowThrottleTime;
+    tm.pilot_lead_time           = pilotLeadTime;
+    tm.pilot_flame_ox_position   = pilotFlameOxPosition;
+    tm.pilot_flame_fuel_position = pilotFlameFuelPosition;
+    tm.igniter_threshold         = igniterThreshold;
+    tm.pilot_flame_threshold     = pilotFlameThreshold;
+    tm.ereg_ox_target            = eregOxTarget;
+    tm.ereg_fuel_target          = eregFuelTarget;
+
+    mavlink_msg_firing_sequence_parameters_tm_encode(
+        Config::Radio::MAV_SYSTEM_ID, requestId, &msg, &tm);
+    enqueueMessage(msg);
+
+    auto motorStatus           = getModule<MotorStatus>();
+    mavlink_message_t* lastMsg = motorStatus->getLastMsg();
+
+    if (lastMsg)
+    {
+        enqueueAck(msg);
+        motorStatus->setLastMsg(nullptr);  // Clear the last message
+    }
+    else
+    {
+        enqueueNack(msg, 0);
+    }
     return true;
 }
 

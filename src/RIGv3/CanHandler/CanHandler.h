@@ -36,11 +36,12 @@ namespace RIGv3
 
 class Actuators;
 class GroundModeManager;
+class Radio;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<BoardScheduler, GroundModeManager,
                                            Actuators, Sensors,
-                                           Common::MotorStatus>
+                                           Common::MotorStatus, Radio>
 {
 public:
     struct CanStatus
@@ -91,6 +92,10 @@ public:
     void sendServoOpenCommand(ServosList servo, uint32_t openingTime);
     void sendServoCloseCommand(ServosList servo);
 
+    void sendSaveRegistry();
+    void sendClearRegistry();
+    void requestFiringParameters(uint8_t requestId);
+
     CanStatus getCanStatus();
 
 private:
@@ -99,6 +104,7 @@ private:
     void handleSensor(const Boardcore::Canbus::CanMessage& msg);
     void handleActuator(const Boardcore::Canbus::CanMessage& msg);
     void handleStatus(const Boardcore::Canbus::CanMessage& msg);
+    void handleResponse(const Boardcore::Canbus::CanMessage& msg);
 
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("canhandler");
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();

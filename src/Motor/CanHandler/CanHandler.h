@@ -42,11 +42,13 @@ class Sensors;
 class ValveSequenceController;
 class FiringSequenceHSM;
 class BoardScheduler;
+class Registry;
 
 class CanHandler
     : public Boardcore::InjectableWithDeps<
-          BoardScheduler, Sensors, Actuators, MEAController, FiringSequenceHSM,
-          EregControllerOx, EregControllerFuel, ValveSequenceController>
+          BoardScheduler, Registry, Sensors, Actuators, MEAController,
+          FiringSequenceHSM, EregControllerOx, EregControllerFuel,
+          ValveSequenceController>
 {
 public:
     struct CanStatus

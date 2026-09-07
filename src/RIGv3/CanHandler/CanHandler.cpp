@@ -23,6 +23,7 @@
 #include "CanHandler.h"
 
 #include <RIGv3/BoardScheduler.h>
+#include <RIGv3/Radio/Radio.h>
 #include <RIGv3/StateMachines/GroundModeManager/GroundModeManager.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
@@ -192,6 +193,39 @@ void CanHandler::sendIgnitionThresholds(float igniterThreshold,
                                     igniterThreshold, pilotThreshold});
 }
 
+void CanHandler::sendSaveRegistry()
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::CommandId::SAVE_REGISTRY),
+        static_cast<uint8_t>(0x0));
+}
+
+void CanHandler::sendClearRegistry()
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::CommandId::CLEAR_REGISTRY),
+        static_cast<uint8_t>(0x0));
+}
+
+void CanHandler::requestFiringParameters(uint8_t requestId)
+{
+    protocol.enqueueData(
+        static_cast<uint8_t>(CanConfig::Priority::HIGH),
+        static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+        static_cast<uint8_t>(CanConfig::Board::RIG),
+        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::CommandId::FIRING_PARAMETERS_REQUEST),
+        static_cast<uint8_t>(requestId));
+}
+
 void CanHandler::sendEregServoCoeff(EregList eregId, float coefficients[])
 {
     uint8_t id = static_cast<uint8_t>(eregId);
@@ -217,12 +251,12 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
     // Handle motor messages
     auto source = static_cast<CanConfig::Board>(msg.getSource());
-    if (source == CanConfig::Board::MOTOR)
-
-        return getModule<MotorStatus>()->handleCanMessage(msg);
-
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
+
+    if (source == CanConfig::Board::MOTOR &&
+        type != CanConfig::PrimaryType::RESPONSE)
+        return getModule<MotorStatus>()->handleCanMessage(msg);
 
     switch (type)
     {
@@ -247,6 +281,12 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
         case CanConfig::PrimaryType::ACTUATORS:
         {
             handleActuator(msg);
+            break;
+        }
+
+        case CanConfig::PrimaryType::RESPONSE:
+        {
+            handleResponse(msg);
             break;
         }
 
@@ -316,6 +356,33 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
         default:
         {
             LOG_WARN(logger, "Received unsupported status: {}", source);
+        }
+    }
+}
+
+void CanHandler::handleResponse(const Canbus::CanMessage& msg)
+{
+    CanConfig::ResponseId command =
+        static_cast<CanConfig::ResponseId>(msg.getSecondaryType());
+
+    switch (command)
+    {
+        case CanConfig::ResponseId::FIRING_PARAMETERS_RESPONSE:
+        {
+            CanFiringParameters response = firingParametersFromCanMessage(msg);
+            sdLogger.log(response);
+
+            getModule<Radio>()->enqueueFiringParametersResponse(
+                response.fullThrottleTime, response.lowThrottleTime,
+                response.pilotLeadTime, response.pilotFlameOxPosition,
+                response.pilotFlameFuelPosition, response.igniterThreshold,
+                response.pilotFlameThreshold, response.eregOxTarget,
+                response.eregFuelTarget, response.requestId);
+            break;
+        }
+        default:
+        {
+            LOG_WARN(logger, "Received unsupported command: {}", command);
         }
     }
 }

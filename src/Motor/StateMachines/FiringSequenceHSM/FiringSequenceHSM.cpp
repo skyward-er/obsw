@@ -64,6 +64,8 @@ void FiringSequenceHSM::setFiringParams(uint32_t fullThrottleTime,
     getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
                                      pilotFlameFuelPosition);
 
+    getModule<Registry>()->save();
+
     EventBroker::getInstance().post(FIRING_SEQUENCE_CONFIG_SET,
                                     TOPIC_FIRING_SEQUENCE);
 }

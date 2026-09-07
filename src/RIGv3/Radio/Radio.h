@@ -72,6 +72,13 @@ public:
                                bool przReleaseSuccess, bool oxFillingSuccess,
                                bool oxReleaseSuccess, uint8_t requestId);
 
+    bool enqueueFiringParametersResponse(
+        uint32_t fullThrottleTime, uint32_t lowThrottleTime,
+        uint32_t pilotLeadTime, float pilotFlameOxPosition,
+        float pilotFlameFuelPosition, float igniterThreshold,
+        float pilotFlameThreshold, float eregOxTarget, float eregFuelTarget,
+        uint8_t requestId);
+
 private:
     void enqueueAck(const mavlink_message_t& msg);
     void enqueueWack(const mavlink_message_t& msg, uint8_t errorId);

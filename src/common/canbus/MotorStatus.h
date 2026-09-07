@@ -137,6 +137,9 @@ struct MotorStatus : public Boardcore::Injectable
 
     mavlink_motor_tm_t getMotorTelemetry();
 
+    void setLastMsg(mavlink_message_t* msg) { lastMsg.store(msg); }
+    mavlink_message_t* getLastMsg() { return lastMsg.load(); }
+
 private:
     using Clock     = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
@@ -144,6 +147,9 @@ private:
     std::atomic<float> meaMass{35.0f};  // [kg]
     std::atomic<TimePoint> lastStatus = {TimePoint{}};
     Data data;
+
+    std::atomic<mavlink_message_t*> lastMsg{
+        nullptr};  ///< Last firing sequence parameters request
 
     void handleSensors(const Boardcore::Canbus::CanMessage& msg);
     void handleActuators(const Boardcore::Canbus::CanMessage& msg);

@@ -72,7 +72,8 @@ enum class PrimaryType : uint8_t
     STATUS,
     COMMAND,
     ACTUATORS,
-    ALGORITHM
+    ALGORITHM,
+    RESPONSE,
 };
 
 // Used for source and destination
@@ -135,7 +136,15 @@ enum class CommandId : uint8_t
     EREG_TARGET,
     EREG_PID_CONFIGS,
     EREG_SERVO_COEFFICIENTS,
-    MEA_INITIAL_MASS
+    MEA_INITIAL_MASS,
+    SAVE_REGISTRY,
+    CLEAR_REGISTRY,
+    FIRING_PARAMETERS_REQUEST,
+};
+
+enum class ResponseId : uint8_t
+{
+    FIRING_PARAMETERS_RESPONSE = 0,
 };
 
 static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{

@@ -24,6 +24,7 @@
 
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Configs/CanHandlerConfig.h>
+#include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
 #include <Motor/StateMachines/EregController/EregControllerOx.h>
@@ -459,6 +460,49 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
                         "Tried to set MEA initial mass while MEA already "
                         "running\n");
             }
+            break;
+        }
+        case Common::CanConfig::CommandId::SAVE_REGISTRY:
+        {
+            getModule<Registry>()->save();
+            break;
+        }
+        case Common::CanConfig::CommandId::CLEAR_REGISTRY:
+        {
+            getModule<Registry>()->clear();
+            break;
+        }
+        case Common::CanConfig::CommandId::FIRING_PARAMETERS_REQUEST:
+        {
+            uint8_t requestId = msg.payload[0];
+            auto registry     = getModule<Registry>();
+
+            CanFiringParameters data;
+
+            // clang-format off
+            registry->getUnsafe(CONFIG_ID_FULL_THROTTLE_TIME, data.fullThrottleTime);
+            registry->getUnsafe(CONFIG_ID_LOW_THROTTLE_TIME, data.lowThrottleTime);
+            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_LEAD_TIME, data.pilotLeadTime);
+            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_OX_POSITION, data.pilotFlameOxPosition);
+            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION, data.pilotFlameFuelPosition);
+            registry->getUnsafe(CONFIG_ID_IGNITER_PRESSURE_THRESHOLD, data.igniterThreshold);
+            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD, data.pilotFlameThreshold);
+            registry->getUnsafe(CONFIG_ID_EREG_OX_TARGET_PRESSURE, data.eregOxTarget);
+            registry->getUnsafe(CONFIG_ID_EREG_FUEL_TARGET_PRESSURE, data.eregFuelTarget);
+            data.requestId = requestId;
+            // clang-format on
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::RIG),
+                static_cast<uint8_t>(
+                    CanConfig::CommandId::FIRING_PARAMETERS_REQUEST),
+                data);
+
+            sdLogger.log(data);
+            break;
         }
         default:
         {
