@@ -135,15 +135,15 @@ void CanHandler::sendServoCloseCommand(ServosList servo)
     sendServoOpenCommand(servo, 0);
 }
 
-void CanHandler::sendMEAInitialMass(float mass) {
+void CanHandler::sendMEAInitialMass(float mass)
+{
     protocol.enqueueData(
         static_cast<uint8_t>(CanConfig::Priority::HIGH),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::MAIN),
         static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(CanConfig::CommandId::MEA_INITIAL_MASS),
-        MEAInitialMass{mass}
-    );
+        MEAInitialMass{mass});
 }
 
 CanHandler::CanStatus CanHandler::getCanStatus()

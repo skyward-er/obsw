@@ -44,11 +44,10 @@ class FiringSequenceHSM;
 class BoardScheduler;
 class Registry;
 
-class CanHandler
-    : public Boardcore::InjectableWithDeps<
-          BoardScheduler, Registry, Sensors, Actuators, MEAController,
-          FiringSequenceHSM, EregControllerOx, EregControllerFuel,
-          ValveSequenceController>
+class CanHandler : public Boardcore::InjectableWithDeps<
+                       BoardScheduler, Registry, Sensors, Actuators,
+                       MEAController, FiringSequenceHSM, EregControllerOx,
+                       EregControllerFuel, ValveSequenceController>
 {
 public:
     struct CanStatus

@@ -157,19 +157,11 @@ void FiringSequenceHSM::checkIgniterPressure()
 
 void FiringSequenceHSM::checkPilotFlamePressure()
 {
-    PressureData chamberPressure = getModule<Sensors>()->getMainCCPressure();
-
-    if (chamberPressure.pressure >=
-        Config::FiringSequence::MAIN_CHAMBER_SAFETY_THRESHOLD)
-    {
-        // If the pressure exceeds the safety threshold, abort
-        EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
-                                        TOPIC_FIRING_SEQUENCE);
-        return;
-    }
-
     if (state == FiringSequenceState::PILOT_FLAME_WAIT)
     {
+        PressureData chamberPressure =
+            getModule<Sensors>()->getMainCCPressure();
+
         if (chamberPressure.pressure > pilotFlamePressureThreshold)
         {
             pilotFlameSamples++;
