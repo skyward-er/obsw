@@ -704,7 +704,10 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         {
             getModule<CanHandler>()->sendEvent(
                 CanConfig::EventId::ENGINE_SHUTDOWN);
-
+            [[fallthrough]];
+        }
+        case CAN_ENGINE_SHUTDOWN:
+        {
             float mslAlt =
                 getModule<ADAController>()->getADAState().mslAltitude;
 

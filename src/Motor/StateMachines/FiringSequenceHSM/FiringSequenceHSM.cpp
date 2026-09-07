@@ -724,6 +724,9 @@ State FiringSequenceHSM::state_ended(const Event& event)
             getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
             getModule<Actuators>()->closeValve(ServosList::MAIN_FUEL_VALVE);
 
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::ENGINE_SHUTDOWN);
+
             return HANDLED;
         }
 

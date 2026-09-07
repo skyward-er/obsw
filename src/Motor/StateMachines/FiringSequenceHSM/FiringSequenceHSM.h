@@ -24,6 +24,7 @@
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Actuators/ValveSequenceController.h>
 #include <Motor/BoardScheduler.h>
+#include <Motor/CanHandler/CanHandler.h>
 #include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
 #include <diagnostic/PrintLogger.h>
@@ -42,10 +43,12 @@ class Actuators;
 class BoardScheduler;
 class Registry;
 class Sensors;
+class CanHandler;
 
 class FiringSequenceHSM
     : public Boardcore::InjectableWithDeps<Sensors, Actuators, BoardScheduler,
-                                           Registry, ValveSequenceController>,
+                                           Registry, ValveSequenceController,
+                                           CanHandler>,
       public Boardcore::HSM<FiringSequenceHSM>
 {
 public:

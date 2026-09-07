@@ -739,7 +739,7 @@ void Sensors::oxFillingPositionCallback()
 
 void Sensors::oxReleasePositionInit()
 {
-    oxFillingPosition = std::make_unique<AnalogEncoder>(
+    oxReleasePosition = std::make_unique<AnalogEncoder>(
         [this]()
         {
             auto sample = getADC1LastSample();
@@ -1088,7 +1088,7 @@ bool Sensors::sensorManagerInit()
     if (prz3WayPosition)
     {
         SensorInfo info("Prz3WayPosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { prz3WayPositionCallback(); });
         map.emplace(std::make_pair(prz3WayPosition.get(), info));
     }
@@ -1096,7 +1096,7 @@ bool Sensors::sensorManagerInit()
     if (przFillingPosition)
     {
         SensorInfo info("PrzFillingPosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { przFillingPositionCallback(); });
         map.emplace(std::make_pair(przFillingPosition.get(), info));
     }
@@ -1104,14 +1104,14 @@ bool Sensors::sensorManagerInit()
     if (przReleasePosition)
     {
         SensorInfo info("PrzReleasePosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { przReleasePositionCallback(); });
         map.emplace(std::make_pair(przReleasePosition.get(), info));
     }
     if (oxFillingPosition)
     {
         SensorInfo info("OxFillingPosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { oxFillingPositionCallback(); });
         map.emplace(std::make_pair(oxFillingPosition.get(), info));
     }
@@ -1119,7 +1119,7 @@ bool Sensors::sensorManagerInit()
     if (oxReleasePosition)
     {
         SensorInfo info("OxReleasePosition",
-                        Config::Sensors::ADS131M08_FAST::PERIOD,
+                        Config::Sensors::ADS131M08_SLOW::PERIOD,
                         [this]() { oxReleasePositionCallback(); });
         map.emplace(std::make_pair(oxReleasePosition.get(), info));
     }

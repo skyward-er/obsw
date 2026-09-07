@@ -137,8 +137,30 @@ struct MotorStatus : public Boardcore::Injectable
 
     mavlink_motor_tm_t getMotorTelemetry();
 
-    void setLastMsg(mavlink_message_t* msg) { lastMsg.store(msg); }
-    mavlink_message_t* getLastMsg() { return lastMsg.load(); }
+    bool setLastMsg(const mavlink_message_t& msg)
+    {
+        std::unique_lock<miosix::FastMutex> lock(lastMsgMutex);
+
+        lastMsg.compid = msg.compid;
+        lastMsg.msgid  = msg.msgid;
+        lastMsg.seq    = msg.seq;
+        hasLastMsg     = true;
+        return true;
+    }
+
+    bool takeLastMsg(mavlink_message_t& msg)
+    {
+        std::unique_lock<miosix::FastMutex> lock(lastMsgMutex);
+
+        if (!hasLastMsg)
+            return false;
+
+        msg.compid = lastMsg.compid;
+        msg.msgid  = lastMsg.msgid;
+        msg.seq    = lastMsg.seq;
+        hasLastMsg = false;
+        return true;
+    }
 
 private:
     using Clock     = std::chrono::steady_clock;
@@ -148,8 +170,16 @@ private:
     std::atomic<TimePoint> lastStatus = {TimePoint{}};
     Data data;
 
-    std::atomic<mavlink_message_t*> lastMsg{
-        nullptr};  ///< Last firing sequence parameters request
+    struct LastMessage
+    {
+        uint32_t msgid = 0;
+        uint8_t compid = 0;
+        uint8_t seq    = 0;
+    };
+
+    LastMessage lastMsg;  ///< Last firing sequence parameters request
+    bool hasLastMsg = false;
+    miosix::FastMutex lastMsgMutex;
 
     void handleSensors(const Boardcore::Canbus::CanMessage& msg);
     void handleActuators(const Boardcore::Canbus::CanMessage& msg);

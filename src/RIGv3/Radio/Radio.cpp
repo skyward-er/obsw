@@ -197,8 +197,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (tmId == MAV_FIRING_SEQUENCE_ID)
             {
-                getModule<MotorStatus>()->setLastMsg(
-                    const_cast<mavlink_message_t*>(&msg));
+                getModule<MotorStatus>()->setLastMsg(msg);
                 getModule<CanHandler>()->requestFiringParameters(msg.compid);
                 break;
             }
@@ -723,18 +722,13 @@ bool Radio::enqueueFiringParametersResponse(
         Config::Radio::MAV_SYSTEM_ID, requestId, &msg, &tm);
     enqueueMessage(msg);
 
-    auto motorStatus           = getModule<MotorStatus>();
-    mavlink_message_t* lastMsg = motorStatus->getLastMsg();
+    auto motorStatus = getModule<MotorStatus>();
+    mavlink_message_t lastMsg{};
 
-    if (lastMsg)
-    {
-        enqueueAck(msg);
-        motorStatus->setLastMsg(nullptr);  // Clear the last message
-    }
-    else
-    {
-        enqueueNack(msg, 0);
-    }
+    if (!motorStatus->takeLastMsg(lastMsg))
+        return false;  // No last message to acknowledge
+
+    enqueueAck(lastMsg);
     return true;
 }
 

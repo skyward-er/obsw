@@ -24,6 +24,8 @@
 
 #include <Motor/Actuators/Actuators.h>
 #include <Motor/Configs/CanHandlerConfig.h>
+#include <Motor/Configs/EregControllerConfig.h>
+#include <Motor/Configs/FiringSequenceConfig.h>
 #include <Motor/Registry/Registry.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/EregController/EregControllerFuel.h>
@@ -300,6 +302,21 @@ bool CanHandler::start()
     return true;
 }
 
+void CanHandler::sendEvent(Common::CanConfig::EventId event)
+{
+    sdLogger.log(CanEvent{TimestampTimer::getTimestamp(),
+                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(event)});
+
+    protocol.enqueueEvent(static_cast<uint8_t>(CanConfig::Priority::CRITICAL),
+                          static_cast<uint8_t>(CanConfig::PrimaryType::EVENTS),
+                          static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                          static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                          static_cast<uint8_t>(0x0),
+                          static_cast<uint8_t>(event));
+}
+
 void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
     CanConfig::PrimaryType type =
@@ -479,26 +496,57 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
 
             CanFiringParameters data;
 
-            // clang-format off
-            registry->getUnsafe(CONFIG_ID_FULL_THROTTLE_TIME, data.fullThrottleTime);
-            registry->getUnsafe(CONFIG_ID_LOW_THROTTLE_TIME, data.lowThrottleTime);
-            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_LEAD_TIME, data.pilotLeadTime);
-            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_OX_POSITION, data.pilotFlameOxPosition);
-            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION, data.pilotFlameFuelPosition);
-            registry->getUnsafe(CONFIG_ID_IGNITER_PRESSURE_THRESHOLD, data.igniterThreshold);
-            registry->getUnsafe(CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD, data.pilotFlameThreshold);
-            registry->getUnsafe(CONFIG_ID_EREG_OX_TARGET_PRESSURE, data.eregOxTarget);
-            registry->getUnsafe(CONFIG_ID_EREG_FUEL_TARGET_PRESSURE, data.eregFuelTarget);
+            data.fullThrottleTime = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_FULL_THROTTLE_TIME,
+                static_cast<uint32_t>(
+                    Config::FiringSequence::FULL_THROTTLE_TIME.count()));
+
+            data.lowThrottleTime = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_LOW_THROTTLE_TIME,
+                static_cast<uint32_t>(
+                    Config::FiringSequence::LOW_THROTTLE_TIME.count()));
+
+            data.pilotLeadTime = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_PILOT_FLAME_LEAD_TIME,
+                static_cast<uint32_t>(
+                    Config::FiringSequence::PILOT_FLAME_LEAD_TIME.count()));
+
+            data.pilotFlameOxPosition = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_PILOT_FLAME_OX_POSITION,
+                static_cast<float>(Config::FiringSequence::PILOT_OX_POSITION));
+
+            data.pilotFlameFuelPosition = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
+                static_cast<float>(
+                    Config::FiringSequence::PILOT_FUEL_POSITION));
+
+            data.igniterThreshold = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,
+                static_cast<float>(
+                    Config::FiringSequence::IGNITER_PRESSURE_THRESHOLD));
+
+            data.pilotFlameThreshold = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
+                static_cast<float>(
+                    Config::FiringSequence::PILOT_FLAME_PRESSURE_THRESHOLD));
+
+            data.eregOxTarget = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_EREG_OX_TARGET_PRESSURE,
+                static_cast<float>(Config::EregOx::TARGET_PRESSURE));
+
+            data.eregFuelTarget = registry->getOrSetDefaultUnsafe(
+                CONFIG_ID_EREG_FUEL_TARGET_PRESSURE,
+                static_cast<float>(Config::EregFuel::TARGET_PRESSURE));
+
             data.requestId = requestId;
-            // clang-format on
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
+                static_cast<uint8_t>(CanConfig::PrimaryType::RESPONSE),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::RIG),
                 static_cast<uint8_t>(
-                    CanConfig::CommandId::FIRING_PARAMETERS_REQUEST),
+                    CanConfig::ResponseId::FIRING_PARAMETERS_RESPONSE),
                 data);
 
             sdLogger.log(data);
