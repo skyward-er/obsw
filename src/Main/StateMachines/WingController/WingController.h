@@ -28,6 +28,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <prf/PRF.h>
+#include <utils/AltitudeMap/AltitudeQuadMap.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -35,21 +36,12 @@
 
 #include "WingControllerData.h"
 
-/**
- * @brief This class allows the user to select the wing algorithm
- * that has to be used during the tests. It also registers his
- * dedicated function in the task scheduler in order to be
- * executed every fixed period and to update the two servos position
- * depending on the selected algorithm.
- */
-
 namespace Main
 {
 class BoardScheduler;
 class Actuators;
 class NASController;
 class Sensors;
-class LandingFlare;
 
 class WingController
     : public Boardcore::FSM<WingController>,
@@ -147,20 +139,16 @@ private:
 
     std::atomic<WingControllerState> state{WingControllerState::INIT};
 
-    uint16_t pumpCount = 0;
+    uint16_t pumpCount          = 0;
+    uint8_t flareDetectionCount = 0;  // Number of consecutive detections
 
-    // std::initializer_list<Meter>::const_iterator tinyPullThresholdsIt;
-
-    // uint16_t calibrationTimeoutEventId = 0;
-    // uint16_t cuttersOffEventId         = 0;
     uint16_t dplPumpsPullEventId    = 0;
     uint16_t dplPumpsTimeoutEventId = 0;
-    // uint16_t ctrlFlareTimeoutEventId   = 0;
-    // uint16_t resetTimeoutEventId       = 0;
 
     std::atomic<bool> started{false};
 
     PRF::PRF wing;
+    Boardcore::AltitudeQuadMap altitudeMap{Config::Wing::ALTITUDE_MAP_FILENAME};
 
     servoCommand lastServoCommands = {0.0f, 0.0f};
 

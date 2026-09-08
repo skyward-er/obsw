@@ -190,7 +190,7 @@ void MotorStatus::handleMea(const Boardcore::Canbus::CanMessage& msg)
 void MotorStatus::handleMeaStatus(const Boardcore::Canbus::CanMessage& msg)
 {
     auto meaStatus = MEAStatusFromCanMessage(msg);
-    meaData = {meaStatus.mass, meaStatus.pressure, meaStatus.hsmState};
+    meaData        = {meaStatus.mass, meaStatus.pressure, meaStatus.hsmState};
 }
 
 mavlink_motor_tm_t MotorStatus::getMotorTelemetry()

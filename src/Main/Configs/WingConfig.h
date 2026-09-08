@@ -40,6 +40,8 @@ namespace Wing
 /* linter off */ using namespace Boardcore::Units::Frequency;
 /* linter off */ using namespace Boardcore::Units::Angle;
 
+constexpr auto ALTITUDE_MAP_FILENAME = "/sd/altitude_map.bin";
+
 constexpr auto UPDATE_RATE        = 20_hz;
 constexpr auto TARGET_UPDATE_RATE = 10_hz;
 constexpr auto CUTTERS_TIMEOUT    = 1s;
@@ -80,30 +82,18 @@ constexpr std::array<Pump, 3> PUMPS = {
 
 }  // namespace Deployment
 
-namespace LandingFlare
+namespace LandingFlareConfig
 {
 
 constexpr bool ENABLED = false;
 
-constexpr float ALTITUDE   = 15;  // [m]
-constexpr int CONFIDENCE   = 10;  // [samples]
-constexpr auto UPDATE_RATE = 10_hz;
-constexpr auto DURATION    = 5s;
+constexpr float ALTITUDE         = 15;  // [m]
+constexpr int CONFIDENCE         = 10;  // [samples]
+constexpr auto DURATION          = 5min;
+constexpr auto FLARE_ANGLE_LEFT  = 720_deg;
+constexpr auto FLARE_ANGLE_RIGHT = 720_deg;
 
-}  // namespace LandingFlare
-
-constexpr auto ROTATION_PERIOD = 10s;  ///< Period of the rotation maneuver
-
-namespace AltitudeTrigger
-{
-
-/* linter off */ using namespace Boardcore::Units::Frequency;
-
-constexpr auto DEPLOYMENT_ALTITUDE = 450;  // [meters]
-constexpr auto CONFIDENCE          = 10;   // [samples]
-constexpr auto UPDATE_RATE         = 10_hz;
-
-}  // namespace AltitudeTrigger
+}  // namespace LandingFlareConfig
 
 }  // namespace Wing
 }  // namespace Config

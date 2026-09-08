@@ -40,8 +40,8 @@ using namespace Boardcore;
 using namespace Common;
 using namespace Main::Config::Actuators;
 using namespace Main::Config::Wing;
-// namespace LandingFlareConfig = Main::Config::Wing::LandingFlare;
 using namespace Boardcore::Units::Length;
+// using namespace Main::Config::Wing::LandingFlareConfig;
 
 namespace Main
 {
@@ -73,6 +73,12 @@ bool WingController::start()
     if (updateTask == 0)
     {
         LOG_ERR(logger, "Failed to add wing controller update task");
+        return false;
+    }
+
+    if (!altitudeMap.init() && LandingFlareConfig::ENABLED)
+    {
+        LOG_ERR(logger, "Failed to initialize altitude map");
         return false;
     }
 
@@ -128,8 +134,7 @@ void WingController::update()
         lastServoCommands = {logsData.PRFLogs.ServoCommands[0],
                              logsData.PRFLogs.ServoCommands[1]};
 
-        // updated servo positions
-        // TODO: check if the servos are the correct ones
+        // update servo positions
         Radian leftCommand(logsData.PRFLogs.ServoCommands[0] *
                            Config::Actuators::PrfServo::MAX_ANGLE);
         Radian rightCommand(logsData.PRFLogs.ServoCommands[1] *
@@ -141,28 +146,52 @@ void WingController::update()
                                                  rightCommand);
         // Log data
         sdLogger.log(logsData);
-    }
-}
 
-void WingController::resetWing()
-{
-    getModule<Actuators>()->setPrfServoAngle(PARAFOIL_LEFT_SERVO, 0.0_rad);
-    getModule<Actuators>()->setPrfServoAngle(PARAFOIL_RIGHT_SERVO, 0.0_rad);
+        // Check if we need to flare
+
+        if (LandingFlareConfig::ENABLED &&
+            state == WingControllerState::GUIDED_DESCENT)
+        {
+            // Only flare if inside the map boundaries
+            if (altitudeMap.isInsideMap(0_m, 0_m))
+            {
+                auto aglAltitude =
+                    -nasdaqState.d -
+                    altitudeMap.getClosestGroundAltitude(0_m, 0_m)
+                        .value();  // [m]
+
+                if (aglAltitude <= LandingFlareConfig::ALTITUDE)
+                    flareDetectionCount++;
+                else
+                    flareDetectionCount = 0;
+
+                if (flareDetectionCount >= LandingFlareConfig::CONFIDENCE)
+                {
+                    EventBroker::getInstance().post(WING_FLARE_START,
+                                                    TOPIC_WING);
+                }
+
+                FlareData flareData{TimestampTimer::getTimestamp(), aglAltitude,
+                                    flareDetectionCount};
+                sdLogger.log(flareData);
+            }
+        }
+    }
 }
 
 void WingController::flareWing(WingController::FlareType type)
 {
     switch (type)
     {
-        // case FlareType::FULL:
-        // {
-        //     getModule<Actuators>()->setPrfServoAngle(
-        //         PARAFOIL_LEFT_SERVO, LandingFlareConfig::ANGLE_LEFT_SERVO);
-        //     getModule<Actuators>()->setPrfServoAngle(
-        //         PARAFOIL_RIGHT_SERVO, LandingFlareConfig::ANGLE_RIGHT_SERVO);
+        case FlareType::FULL:
+        {
+            getModule<Actuators>()->setPrfServoAngle(
+                PARAFOIL_LEFT_SERVO, LandingFlareConfig::FLARE_ANGLE_LEFT);
+            getModule<Actuators>()->setPrfServoAngle(
+                PARAFOIL_RIGHT_SERVO, LandingFlareConfig::FLARE_ANGLE_RIGHT);
 
-        //     return;
-        // }
+            return;
+        }
         case FlareType::PUMP:
         {
             getModule<Actuators>()->setPrfServoAngle(
@@ -172,6 +201,12 @@ void WingController::flareWing(WingController::FlareType type)
             return;
         }
     }
+}
+
+void WingController::resetWing()
+{
+    getModule<Actuators>()->setPrfServoAngle(PARAFOIL_LEFT_SERVO, 0.0_rad);
+    getModule<Actuators>()->setPrfServoAngle(PARAFOIL_RIGHT_SERVO, 0.0_rad);
 }
 
 void WingController::state_init(const Boardcore::Event& event)
@@ -199,9 +234,6 @@ void WingController::state_ready(const Boardcore::Event& event)
     {
         case EV_ENTRY:
         {
-            // Coordinates targetReading = targetPositionGEO.load();
-            // getModule<LandingFlare>()->setTargetGEO(
-            // {targetReading.latitude, targetReading.longitude});
             updateAndLogStatus(WingControllerState::READY);
             break;
         }
@@ -381,38 +413,15 @@ void WingController::state_guided_descent(const Boardcore::Event& event)
         {
             updateAndLogStatus(WingControllerState::GUIDED_DESCENT);
             EventBroker::getInstance().removeDelayed(dplPumpsTimeoutEventId);
-
-            // // Enable the landing flare altitude trigger
-            // if (LandingFlareConfig::ENABLED)
-            // {
-            //     if (LandingFlareConfig::TinyPull::ENABLED)
-            //     {
-            //         tinyPullThresholdsIt =
-            //             LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS
-            //                 .begin();
-            //         getModule<LandingFlare>()->setDeploymentAltitude(
-            //             *tinyPullThresholdsIt);
-            //     }
-            //     getModule<LandingFlare>()->enable();
-            // }
-
             break;
         }
 
         case EV_EXIT:
         {
-            // if (LandingFlareConfig::ENABLED)
-            // {
-            //     EventBroker::getInstance().removeDelayed(
-            //         ctrlFlareTimeoutEventId);
-
-            //     getModule<LandingFlare>()->disable();
-            // }
-
             break;
         }
 
-        case ALTITUDE_TRIGGER_ALTITUDE_REACHED:
+        case WING_FLARE_START:
         {
             transition(&WingController::state_landing_flare);
             break;
@@ -427,6 +436,12 @@ void WingController::state_landing_flare(const Boardcore::Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(WingControllerState::LANDING_FLARE);
+
+            flareWing(FlareType::FULL);
+
+            EventBroker::getInstance().postDelayed(
+                WING_LANDING_FLARE_STOP, TOPIC_WING,
+                milliseconds{LandingFlareConfig::DURATION}.count());
             break;
         }
 
@@ -438,23 +453,9 @@ void WingController::state_landing_flare(const Boardcore::Event& event)
 
         case WING_LANDING_FLARE_STOP:
         {
-            // resetWing();
-            // waitForServosToStop();
+            resetWing();
 
-            // if (LandingFlareConfig::TinyPull::ENABLED)
-            // {
-            //     tinyPullThresholdsIt++;
-            //     if (tinyPullThresholdsIt ==
-            //         LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS.end())
-            //     {
-            //         return HANDLED;
-            //     }
-
-            //     getModule<LandingFlare>()->setDeploymentAltitude(
-            //         *tinyPullThresholdsIt);
-            //     getModule<LandingFlare>()->enable();
-            // }
-
+            transition(&WingController::state_landed);
             break;
         }
     }
@@ -470,7 +471,6 @@ void WingController::state_landed(const Boardcore::Event& event)
 
             getModule<Actuators>()->disablePrfServo(PARAFOIL_LEFT_SERVO);
             getModule<Actuators>()->disablePrfServo(PARAFOIL_RIGHT_SERVO);
-
             break;
         }
     }
@@ -486,4 +486,3 @@ void WingController::updateAndLogStatus(WingControllerState newState)
 }
 
 }  // namespace Main
-

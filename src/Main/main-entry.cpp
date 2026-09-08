@@ -95,7 +95,7 @@ int main()
 
         hil = new MainHIL();
         initResult &= manager.insert<MainHIL>(hil);
-        sensors = new HILSensors(Config::HIL::ENABLE_HW);
+        sensors = new HILSensors(Main::Config::HIL::ENABLE_HW);
     }
     else
     {
@@ -382,12 +382,15 @@ int main()
         sdLogger.log(sdLogger.getStats());
 
         // Toggle LED
-        gpioExpander.setPinValue(Config::ExternalPin::LED_0.getPort(),
-                                 Config::ExternalPin::LED_0.getPin(), ledValue);
-        gpioExpander.setPinValue(Config::ExternalPin::LED_1.getPort(),
-                                 Config::ExternalPin::LED_1.getPin(), ledValue);
-        gpioExpander.setPinValue(Config::ExternalPin::LED_2.getPort(),
-                                 Config::ExternalPin::LED_2.getPin(), ledValue);
+        gpioExpander.setPinValue(Main::Config::ExternalPin::LED_0.getPort(),
+                                 Main::Config::ExternalPin::LED_0.getPin(),
+                                 ledValue);
+        gpioExpander.setPinValue(Main::Config::ExternalPin::LED_1.getPort(),
+                                 Main::Config::ExternalPin::LED_1.getPin(),
+                                 ledValue);
+        gpioExpander.setPinValue(Main::Config::ExternalPin::LED_2.getPort(),
+                                 Main::Config::ExternalPin::LED_2.getPin(),
+                                 ledValue);
 
         ledValue = !ledValue;
 

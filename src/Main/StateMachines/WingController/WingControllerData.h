@@ -54,17 +54,16 @@ struct WingControllerStatus
     }
 };
 
-struct FlareCommandData
+struct FlareData
 {
-    uint64_t timestamp = 0;
-    float angleLeft    = 0;
-    float angleRight   = 0;
+    uint64_t timestamp     = 0;
+    float aglAltitude      = 0.0f;  // [m]
+    uint8_t detectionCount = 0;     // Number of consecutive detections
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(FlareCommandData,
-                          FIELD_DEF(timestamp) FIELD_DEF(angleLeft)
-                              FIELD_DEF(angleRight));
+        return STRUCT_DEF(FlareData, FIELD_DEF(timestamp) FIELD_DEF(aglAltitude)
+                                         FIELD_DEF(detectionCount));
     }
 };
 
