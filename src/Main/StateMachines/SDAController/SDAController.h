@@ -53,6 +53,7 @@ public:
     float getPredictedApogee();
 
     SDAControllerState getState();
+    SDALogs getSDALogs();
 
     std::chrono::milliseconds getMinBurnTime();
     void setMinBurnTime(std::chrono::milliseconds time);

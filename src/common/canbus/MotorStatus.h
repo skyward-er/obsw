@@ -75,6 +75,13 @@ struct MotorStatus : public Boardcore::Injectable
         bool sparkIgniterOn        = false;
     };
 
+    struct MEAData
+    {
+        float initialMass = 0.0f;
+        float pressure    = 0.0f;
+        uint8_t hsmState  = 0;
+    };
+
     /**
      * @brief Proxy object that provides locked access to MotorStatus::Data
      */
@@ -106,6 +113,13 @@ struct MotorStatus : public Boardcore::Injectable
      * @return The measured mass in kg.
      */
     float getMeaMass() const { return meaMass.load(); }
+
+    /**
+     * @brief Returns the data retrieved from MEA Algorithm. In particular
+     * initial mass, pressure, and Firing Sequence state.
+     * @return The struct containing all elements cited above.
+     */
+    MEAData getMeaStatus() const { return meaData; };
 
     /**
      * @brief Returns whether the motor board was detected on the CAN bus at
@@ -167,6 +181,9 @@ private:
     using TimePoint = Clock::time_point;
 
     std::atomic<float> meaMass{35.0f};  // [kg]
+
+    MEAData meaData;
+
     std::atomic<TimePoint> lastStatus = {TimePoint{}};
     Data data;
 
@@ -184,6 +201,7 @@ private:
     void handleSensors(const Boardcore::Canbus::CanMessage& msg);
     void handleActuators(const Boardcore::Canbus::CanMessage& msg);
     void handleMea(const Boardcore::Canbus::CanMessage& msg);
+    void handleMeaStatus(const Boardcore::Canbus::CanMessage& msg);
 
     miosix::FastMutex mutex;  ///< Mutex to protect access to the status data
 

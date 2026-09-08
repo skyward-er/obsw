@@ -70,6 +70,12 @@ bool ABKController::start()
     return true;
 }
 
+ABKLogs ABKController::getLogs()
+{
+    ABKLogs logs = abk.getABK_Logs_OBSW();
+    return logs;
+}
+
 ABKControllerState ABKController::getState() { return state; }
 
 void ABKController::update()

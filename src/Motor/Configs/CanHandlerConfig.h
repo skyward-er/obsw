@@ -39,10 +39,11 @@ namespace CanHandler
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr auto CRITICAL_PRESSURE_SEND_RATE  = 50_hz;
-constexpr auto MEA_STATE_SEND_RATE          = 50_hz;
+constexpr auto MEA_MASS_SEND_RATE           = 50_hz;
 constexpr auto SECONDARY_PRESSURE_SEND_RATE = 8_hz;
 constexpr auto VALVE_STATE_SEND_RATE        = 4_hz;
 constexpr auto SENSORS_SEND_RATE            = 1_hz;
+constexpr auto MEA_STATUS_SEND_RATE         = 0.5_hz;
 
 }  // namespace CanHandler
 

@@ -147,6 +147,10 @@ milliseconds ADAController::getShadowModeTime()
     return shadowModeTime.load();
 }
 
+std::chrono::milliseconds ADAController::getDrogueShadowModeTime() {
+    return Config::ADA::DROGUE_SHADOW_MODE_TIMEOUT;
+}
+
 void ADAController::setShadowModeTime(milliseconds time)
 {
     shadowModeTime = time;

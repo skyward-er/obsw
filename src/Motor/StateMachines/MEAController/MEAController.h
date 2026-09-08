@@ -46,7 +46,11 @@ public:
     virtual ~MEAController() noexcept = default;
 
     [[nodiscard]] bool start() override;
+
     void setInitialMass(float mass);
+    float getInitialMass();
+
+    MEALogs getLogs();
 
     MEAControllerState getMEAControllerState();
     Boardcore::MEAState getMEAState();
@@ -68,6 +72,7 @@ private:
 
     void updateAndLogStatus(MEAControllerState state);
     std::atomic<MEAControllerState> state{MEAControllerState::INIT};
+    float initialMass;
 
     miosix::FastMutex meaMutex;
 };

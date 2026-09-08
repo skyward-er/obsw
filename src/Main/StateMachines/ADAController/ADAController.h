@@ -59,6 +59,8 @@ public:
     std::chrono::milliseconds getShadowModeTime();
     void setShadowModeTime(std::chrono::milliseconds time);
 
+    std::chrono::milliseconds getDrogueShadowModeTime();
+
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
 private:

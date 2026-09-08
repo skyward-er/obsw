@@ -82,6 +82,12 @@ float SDAController::getPredictedApogee()
 
 SDAControllerState SDAController::getState() { return state; }
 
+SDALogs SDAController::getSDALogs()
+{
+    auto logs = sda.getSDA_Logs_OBSW();
+    return logs;
+}
+
 milliseconds SDAController::getMinBurnTime() { return minBurnTime.load(); }
 
 void SDAController::setMinBurnTime(milliseconds time) { minBurnTime = time; }

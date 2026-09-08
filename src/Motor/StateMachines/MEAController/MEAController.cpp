@@ -125,6 +125,17 @@ void MEAController::setInitialMass(float mass)
 {
     MEAReference ref{mass};
     mea.setMEA_Reference(ref);
+
+    initialMass = mass;
+}
+
+float MEAController::getInitialMass() { return initialMass; }
+
+MEALogs MEAController::getLogs()
+{
+    auto logs = mea.getMEA_Logs_OBSW();
+
+    return logs;
 }
 
 void MEAController::state_init(const Event& event)

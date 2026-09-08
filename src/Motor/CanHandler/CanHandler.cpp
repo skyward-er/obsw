@@ -291,7 +291,28 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE),
                 static_cast<MeaData>(MeaData{meaState.mass}));
         },
-        Config::CanHandler::MEA_STATE_SEND_RATE);
+        Config::CanHandler::MEA_MASS_SEND_RATE);
+
+    result = scheduler.addTask(
+        [this]()
+        {
+            CanMEAStatus data;
+
+            auto mea = getModule<MEAController>();
+            auto hsm = getModule<FiringSequenceHSM>();
+
+            data.mass     = mea->getInitialMass();
+            data.pressure = mea->getLogs().Pressure;
+            data.hsmState = static_cast<uint8_t>(hsm->getState());
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::RESPONSE),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::MAIN),
+                static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE), data);
+        },
+        Config::CanHandler::MEA_STATUS_SEND_RATE);
 
     if (!protocol.start())
     {

@@ -803,21 +803,22 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             ADAState state = ada->getADAState();
 
-            tm.timestamp        = state.timestamp;
-            tm.state            = adaState;
-            tm.kalman_x0        = state.x0;
-            tm.kalman_x1        = state.x1;
-            tm.kalman_x2        = state.x2;
-            tm.vertical_speed   = state.verticalSpeed;
-            tm.msl_altitude     = state.mslAltitude;
-            tm.msl_pressure     = ref.mslPressure;
-            tm.msl_temperature  = ref.mslTemperature;
-            tm.ref_altitude     = ref.refAltitude;
-            tm.ref_temperature  = ref.refTemperature;
-            tm.ref_pressure     = ref.refPressure;
-            tm.dpl_altitude     = ada->getDeploymentAltitude();
-            tm.shadow_mode_time = ada->getShadowModeTime().count();
-            tm.apogee_timeout   = fmm->getApogeeTimeout().count();
+            tm.timestamp               = state.timestamp;
+            tm.state                   = adaState;
+            tm.kalman_x0               = state.x0;
+            tm.kalman_x1               = state.x1;
+            tm.kalman_x2               = state.x2;
+            tm.vertical_speed          = state.verticalSpeed;
+            tm.msl_altitude            = state.mslAltitude;
+            tm.msl_pressure            = ref.mslPressure;
+            tm.msl_temperature         = ref.mslTemperature - 273.15f;
+            tm.ref_altitude            = ref.refAltitude;
+            tm.ref_temperature         = ref.refTemperature - 273.15f;
+            tm.ref_pressure            = ref.refPressure;
+            tm.dpl_altitude            = ada->getDeploymentAltitude();
+            tm.shadow_mode_time        = ada->getShadowModeTime().count();
+            tm.apogee_timeout          = fmm->getApogeeTimeout().count();
+            tm.drogue_shadow_mode_time = ada->getDrogueShadowModeTime().count();
 
             mavlink_msg_ada_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                       &msg, &tm);
@@ -863,31 +864,18 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
         case MAV_MEA_ID:
         {
-            // TODO: change this with mea stats from the canbus
-            /* mavlink_message_t msg;
+            mavlink_message_t msg;
             mavlink_mea_tm_t tm;
 
-            auto mea = getModule<MEAController>();
-            auto fmm = getModule<FlightModeManager>();
+            auto data = getModule<MotorStatus>()->getMeaStatus();
 
-            auto state = mea->getMEAState();
-
-            tm.timestamp          = state.timestamp;
-            tm.state              = static_cast<uint8_t>(mea->getState());
-            tm.kalman_x0          = state.x0;
-            tm.kalman_x1          = state.x1;
-            tm.kalman_x2          = state.x2;
-            tm.mass               = mea->getInitialMass();
-            tm.corrected_pressure = state.estimatedPressure;
-            tm.min_burn_time      = mea->getMinBurnTime().count();
-            tm.max_burn_time      = fmm->getEngineShutdownTimeout().count();
-            tm.apogee_target      = mea->getApogeeTarget();
-
-            mavlink_msg_mea_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
-                                      &msg, &tm);
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.initial_mass = data.initialMass;
+            tm.pressure = data.pressure;
+            tm.firing_sequence_state = data.hsmState;
 
             enqueuePacket(msg);
-            return true; */
+            return true;
         }
 
         case MAV_FLIGHT_ID:
@@ -971,6 +959,72 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             mavlink_msg_rocket_flight_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                                 requestId, &msg, &tm);
             enqueuePacket(msg);
+            return true;
+        }
+
+        case MAV_SDA_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_sda_tm_t tm;
+
+            SDAController* sda = getModule<SDAController>();
+            auto data          = sda->getSDALogs();
+            auto shadowmode    = sda->getMinBurnTime();
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.apogee_1 = data.Apogee[0];
+            tm.apogee_2 = data.Apogee[1];
+            tm.apogee_2 = data.Apogee[2];
+
+            tm.counter          = data.ShutdownCounter;
+            tm.lower_shadowmode = static_cast<uint64_t>(shadowmode.count());
+
+            mavlink_msg_sda_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
+                                      &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_ABK_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_abk_tm_t tm;
+
+            ABKController* abk = getModule<ABKController>();
+            auto data          = abk->getLogs();
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.filter_coeff = data.FilterCoefficient;
+            tm.position     = data.ABKCommand;
+
+            mavlink_msg_abk_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
+                                      &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_PRF_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_prf_tm_t tm;
+
+            WingController* wing = getModule<WingController>();
+            NASController* nas   = getModule<NASController>();
+
+            auto data      = wing->getTargetCoordinates();
+            float altitude = -nas->getNASDAQState().d;
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.altitude        = altitude;
+            tm.target_latitude = data[0];
+            tm.target_logitude = data[1];
+
+            mavlink_msg_prf_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
+                                      &msg, &tm);
+            enqueuePacket(msg);
+
             return true;
         }
 

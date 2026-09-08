@@ -44,6 +44,8 @@ public:
 
     [[nodiscard]] bool start() override;
 
+    ABKLogs getLogs();
+
     ABKControllerState getState();
 
 private:
