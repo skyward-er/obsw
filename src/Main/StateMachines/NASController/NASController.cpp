@@ -91,7 +91,8 @@ NASControllerState NASController::getState() { return state; }
 
 NASState NASController::getNASState()
 {
-    if (state == NASControllerState::ACTIVE_ASCENT)
+    if (state == NASControllerState::ACTIVE_ASCENT ||
+        state == NASControllerState::ARMED)
     {
         auto anasState = getANASState();
         NASState state(anasState);

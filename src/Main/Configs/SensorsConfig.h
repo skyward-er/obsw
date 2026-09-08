@@ -113,7 +113,7 @@ constexpr auto AVG = Boardcore::LPS22DF::AVG_4;
 constexpr auto ODR = Boardcore::LPS22DF::ODR_100;
 
 constexpr auto RATE    = 50_hz;
-constexpr auto ENABLED = true;
+constexpr auto ENABLED = false;
 }  // namespace LPS22DF
 
 namespace H3LIS331DL
@@ -156,7 +156,7 @@ constexpr auto GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
+constexpr auto ENABLED = false;
 }  // namespace LSM6DSRX_0
 
 namespace LSM6DSRX_1
@@ -175,7 +175,7 @@ constexpr auto GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = true;
+constexpr auto ENABLED = false;
 }  // namespace LSM6DSRX_1
 
 namespace ADS131M08
@@ -200,7 +200,7 @@ constexpr auto ENABLED = true;
 }  // namespace ADS131M08
 namespace VN100
 {
-constexpr auto RATE    = 400_hz;
+constexpr auto RATE    = 200_hz;
 constexpr auto ENABLED = true;
 
 // TODO

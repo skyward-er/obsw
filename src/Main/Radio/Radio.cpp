@@ -869,9 +869,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             auto data = getModule<MotorStatus>()->getMeaStatus();
 
-            tm.timestamp = TimestampTimer::getTimestamp();
-            tm.initial_mass = data.initialMass;
-            tm.pressure = data.pressure;
+            tm.timestamp             = TimestampTimer::getTimestamp();
+            tm.initial_mass          = data.initialMass;
+            tm.pressure              = data.pressure;
             tm.firing_sequence_state = data.hsmState;
 
             mavlink_msg_mea_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
@@ -894,7 +894,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             Actuators* actuators   = getModule<Actuators>();
 
             auto imu          = sensors->getIMULastSample();
-            auto mag          = sensors->getCalibratedLIS2MDLRcsLastSample();
             auto gps          = sensors->getUBXGPSLastSample();
             auto temperature  = sensors->getTemperatureLastSample();
             auto pressDigi    = sensors->getAtmosPressureLastSample();
@@ -924,9 +923,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.gyro_y = imu.angularSpeedY;
             tm.gyro_z = imu.angularSpeedZ;
 
-            tm.mag_x = mag.magneticFieldX;
-            tm.mag_y = mag.magneticFieldY;
-            tm.mag_z = mag.magneticFieldZ;
+            tm.mag_x = imu.magneticFieldX;
+            tm.mag_y = imu.magneticFieldY;
+            tm.mag_z = imu.magneticFieldZ;
 
             tm.gps_fix = gps.fix;
             tm.gps_lat = gps.latitude;
@@ -974,9 +973,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             auto shadowmode    = sda->getMinBurnTime();
 
             tm.timestamp = TimestampTimer::getTimestamp();
-            tm.apogee_1 = data.Apogee[0];
-            tm.apogee_2 = data.Apogee[1];
-            tm.apogee_3 = data.Apogee[2];
+            tm.apogee_1  = data.Apogee[0];
+            tm.apogee_2  = data.Apogee[1];
+            tm.apogee_3  = data.Apogee[2];
 
             tm.counter          = data.ShutdownCounter;
             tm.lower_shadowmode = static_cast<uint64_t>(shadowmode.count());
@@ -996,7 +995,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             ABKController* abk = getModule<ABKController>();
             auto data          = abk->getLogs();
 
-            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.timestamp    = TimestampTimer::getTimestamp();
             tm.filter_coeff = data.FilterCoefficient;
             tm.position     = data.ABKCommand;
 
@@ -1018,7 +1017,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             auto data      = wing->getTargetCoordinates();
             float altitude = -nas->getNASDAQState().d;
 
-            tm.timestamp = TimestampTimer::getTimestamp();
+            tm.timestamp       = TimestampTimer::getTimestamp();
             tm.altitude        = altitude;
             tm.target_latitude = data[0];
             tm.target_logitude = data[1];
