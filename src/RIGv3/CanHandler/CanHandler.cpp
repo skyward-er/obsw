@@ -221,7 +221,7 @@ void CanHandler::requestFiringParameters(uint8_t requestId)
         static_cast<uint8_t>(CanConfig::Priority::HIGH),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::RIG),
-        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(CanConfig::CommandId::FIRING_PARAMETERS_REQUEST),
         static_cast<uint8_t>(requestId));
 }

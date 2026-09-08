@@ -221,6 +221,7 @@ enum Events : uint8_t
     WING_LANDING_FLARE_STOP,
     WIGGLE_ALL_VALVES,
     ZVK_CALIBRATE,
+    ZVK_READY,
     ZVK_FORCE_STOP,
     ZVK_RESET,
     LAST_EVENT
@@ -418,6 +419,7 @@ inline std::string getEventString(uint8_t event)
         {WING_LANDING_FLARE_STOP, "WING_LANDING_FLARE_STOP"},
         {WIGGLE_ALL_VALVES, "WIGGLE_ALL_VALVES"},
         {ZVK_CALIBRATE, "ZVK_CALIBRATE"},
+        {ZVK_READY, "ZVK_READY"},
         {ZVK_FORCE_STOP, "ZVK_FORCE_STOP"},
         {ZVK_RESET, "ZVK_RESET"},
         {LAST_EVENT, "LAST_EVENT"},

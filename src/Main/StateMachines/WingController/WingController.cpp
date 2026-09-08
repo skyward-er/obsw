@@ -82,14 +82,8 @@ bool WingController::start()
         return false;
     }
 
-    setTargetCoordinates(Config::Wing::Default::TARGET_LAT,
-                         Config::Wing::Default::TARGET_LON);
-
-    started = true;
     return true;
 }
-
-bool WingController::isStarted() { return started; }
 
 WingControllerState WingController::getState() { return state; }
 
@@ -188,6 +182,11 @@ void WingController::state_init(const Boardcore::Event& event)
         {
             updateAndLogStatus(WingControllerState::INIT);
 
+            wing.initialize();
+            wing.setPRF_Reference({0.0f, Config::Wing::Default::TARGET_LAT,
+                                   Config::Wing::Default::TARGET_LON});
+            resetWing();
+
             transition(&WingController::state_ready);
             break;
         }
@@ -204,17 +203,6 @@ void WingController::state_ready(const Boardcore::Event& event)
             // getModule<LandingFlare>()->setTargetGEO(
             // {targetReading.latitude, targetReading.longitude});
             updateAndLogStatus(WingControllerState::READY);
-            break;
-        }
-
-        case FMM_ALGOS_CALIBRATE:
-        {
-            wing.initialize();
-            wing.setPRF_Reference({0.0f, Config::Wing::Default::TARGET_LAT,
-                                   Config::Wing::Default::TARGET_LON});
-            resetWing();
-
-            servosStarted = true;
             break;
         }
 

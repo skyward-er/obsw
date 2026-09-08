@@ -72,7 +72,7 @@ private:
 
     void updateAndLogStatus(MEAControllerState state);
     std::atomic<MEAControllerState> state{MEAControllerState::INIT};
-    float initialMass;
+    float initialMass = 0.0f;
 
     miosix::FastMutex meaMutex;
 };

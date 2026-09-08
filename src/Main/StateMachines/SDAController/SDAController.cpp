@@ -141,6 +141,8 @@ void SDAController::state_init(const Event& event)
         {
             updateAndLogStatus(SDAControllerState::INIT);
 
+            sda.initialize();
+
             // Immediately transition to ready
             transition(&SDAController::state_ready);
             break;

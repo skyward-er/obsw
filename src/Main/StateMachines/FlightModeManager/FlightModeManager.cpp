@@ -65,6 +65,7 @@ FlightModeManager::FlightModeManager()
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
     EventBroker::getInstance().subscribe(this, TOPIC_NAS);
     EventBroker::getInstance().subscribe(this, TOPIC_SDA);
+    EventBroker::getInstance().subscribe(this, TOPIC_ZVK);
 }
 
 FlightModeManagerState FlightModeManager::getState() { return state; }
@@ -303,6 +304,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
             // Reset readiness status
             nasReady = false;
             adaReady = false;
+            zvkReady = false;
 
             // Wait a bit after sensor calibration
             Thread::sleep(100);
@@ -336,7 +338,7 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
         case NAS_READY:
         {
             nasReady = true;
-            if (adaReady)
+            if (adaReady && zvkReady)
                 return transition(&FlightModeManager::state_disarmed);
             else
                 return HANDLED;
@@ -344,7 +346,15 @@ State FlightModeManager::state_calibrate_algorithms(const Event& event)
         case ADA_READY:
         {
             adaReady = true;
-            if (nasReady)
+            if (nasReady && zvkReady)
+                return transition(&FlightModeManager::state_disarmed);
+            else
+                return HANDLED;
+        }
+        case ZVK_READY:
+        {
+            zvkReady = true;
+            if (nasReady && adaReady)
                 return transition(&FlightModeManager::state_disarmed);
             else
                 return HANDLED;

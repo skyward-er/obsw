@@ -565,7 +565,7 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
                 static_cast<uint8_t>(CanConfig::PrimaryType::RESPONSE),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::RIG),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(
                     CanConfig::ResponseId::FIRING_PARAMETERS_RESPONSE),
                 data);

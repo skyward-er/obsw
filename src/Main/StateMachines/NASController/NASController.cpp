@@ -140,7 +140,8 @@ void NASController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 
 void NASController::updateANAS()
 {
-    if (state == NASControllerState::ACTIVE_ASCENT)
+    if (state == NASControllerState::ACTIVE_ASCENT ||
+        state == NASControllerState::ARMED)
     {
         Lock<FastMutex> lock{nasMutex};
 

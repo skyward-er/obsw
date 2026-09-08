@@ -158,8 +158,6 @@ private:
     // uint16_t ctrlFlareTimeoutEventId   = 0;
     // uint16_t resetTimeoutEventId       = 0;
 
-    std::atomic<bool> servosStarted{false};
-
     std::atomic<bool> started{false};
 
     PRF::PRF wing;

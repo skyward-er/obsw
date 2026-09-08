@@ -86,6 +86,7 @@ private:
 
     bool nasReady = false;
     bool adaReady = false;
+    bool zvkReady = false;
 
     int32_t missionTimeoutEvent = -1;
     int32_t engineShutdownEvent = -1;

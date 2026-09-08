@@ -216,7 +216,6 @@ void ZVKController::state_init(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ZVKControllerState::INIT);
-
             break;
         }
 
@@ -236,6 +235,13 @@ void ZVKController::state_calibrating(const Event& event)
         {
             updateAndLogStatus(ZVKControllerState::CALIBRATING);
             calibrate();
+
+            EventBroker::getInstance().post(ZVK_READY, TOPIC_ZVK);
+            break;
+        }
+
+        case ZVK_READY:
+        {
             transition(&ZVKController::state_active);
             break;
         }

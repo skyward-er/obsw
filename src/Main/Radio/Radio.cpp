@@ -874,6 +874,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.pressure = data.pressure;
             tm.firing_sequence_state = data.hsmState;
 
+            mavlink_msg_mea_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
+                                      &msg, &tm);
             enqueuePacket(msg);
             return true;
         }
@@ -974,7 +976,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.timestamp = TimestampTimer::getTimestamp();
             tm.apogee_1 = data.Apogee[0];
             tm.apogee_2 = data.Apogee[1];
-            tm.apogee_2 = data.Apogee[2];
+            tm.apogee_3 = data.Apogee[2];
 
             tm.counter          = data.ShutdownCounter;
             tm.lower_shadowmode = static_cast<uint64_t>(shadowmode.count());
@@ -1091,8 +1093,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             tm.heating_pad_sense = canStatus.getPitotState();
             tm.heating_pad_temp =
-                sensors->getCanHeatingPadTemperature().temperature -
-                273.15f;  // Get temperature in Celsius
+                sensors->getCanHeatingPadTemperature().temperature;
 
             // Log stuff
             LoggerStats loggerStats = Logger::getInstance().getStats();

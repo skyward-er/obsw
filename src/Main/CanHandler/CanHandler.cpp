@@ -206,7 +206,8 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
     sdLogger.log(CanEvent{TimestampTimer::getTimestamp(), msg.getSource(),
                           msg.getDestination(), msg.getSecondaryType()});
 
-    Events event = canEventToEvent(msg.getSecondaryType());
+    Events event = canEventToEvent(msg.payload[0] & 0xFF);
+
     if (event != LAST_EVENT)
     {
         EventBroker::getInstance().post(event, TOPIC_CAN);

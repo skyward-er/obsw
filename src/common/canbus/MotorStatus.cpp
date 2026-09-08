@@ -67,6 +67,11 @@ void MotorStatus::handleCanMessage(const Canbus::CanMessage& msg)
             handleMea(msg);
             break;
         }
+        case CanConfig::PrimaryType::RESPONSE:
+        {
+            handleMeaStatus(msg);
+            break;
+        }
 
         default:
             break;
