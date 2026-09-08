@@ -811,9 +811,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.vertical_speed   = state.verticalSpeed;
             tm.msl_altitude     = state.mslAltitude;
             tm.msl_pressure     = ref.mslPressure;
-            tm.msl_temperature  = ref.mslTemperature - 273.15f;
+            tm.msl_temperature  = ref.mslTemperature;
             tm.ref_altitude     = ref.refAltitude;
-            tm.ref_temperature  = ref.refTemperature - 273.15f;
+            tm.ref_temperature  = ref.refTemperature;
             tm.ref_pressure     = ref.refPressure;
             tm.dpl_altitude     = ada->getDeploymentAltitude();
             tm.shadow_mode_time = ada->getShadowModeTime().count();
@@ -851,7 +851,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.nas_qz          = state.qz;
             tm.nas_qw          = state.qw;
             tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature - 273.15f;
+            tm.ref_temperature = ref.refTemperature;
             tm.ref_latitude    = ref.refLatitude;
             tm.ref_longitude   = ref.refLongitude;
 
