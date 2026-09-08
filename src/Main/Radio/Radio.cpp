@@ -794,9 +794,11 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.mag_bias_x   = data.magBiasX;
             tm.mag_bias_y   = data.magBiasY;
             tm.mag_bias_z   = data.magBiasZ;
-            tm.mag_scale_x  = data.magScaleX;
-            tm.mag_scale_y  = data.magScaleY;
-            tm.mag_scale_z  = data.magScaleZ;
+            // Mag soft iron correction is now a matrix 3x3, so atm the mavlink
+            // msg only carries the diagonal (should be fully logged tho) :)
+            tm.mag_scale_x = data.magScale00;
+            tm.mag_scale_y = data.magScale11;
+            tm.mag_scale_z = data.magScale22;
             // VN100:
             tm.accVN100_bias_x  = data.accVN100BiasX;
             tm.accVN100_bias_y  = data.accVN100BiasY;

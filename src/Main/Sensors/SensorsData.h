@@ -259,9 +259,12 @@ struct CalibrationData
     float magBiasX         = 0.0f;
     float magBiasY         = 0.0f;
     float magBiasZ         = 0.0f;
-    float magScaleX        = 0.0f;
-    float magScaleY        = 0.0f;
-    float magScaleZ        = 0.0f;
+    float magScale00       = 0.0f;
+    float magScale01       = 0.0f;
+    float magScale02       = 0.0f;
+    float magScale11       = 0.0f;
+    float magScale12       = 0.0f;
+    float magScale22       = 0.0f;
     float pitotDynamicBias = 0.0f;
 
     static constexpr auto reflect()
@@ -276,13 +279,14 @@ struct CalibrationData
                         gyroHighBiasY) FIELD_DEF(gyroHighBiasZ)
                         FIELD_DEF(accVN100BiasX) FIELD_DEF(accVN100BiasY)
                             FIELD_DEF(accVN100BiasZ) FIELD_DEF(gyroVN100BiasX)
-                                FIELD_DEF(gyroVN100BiasY)
-                                    FIELD_DEF(gyroVN100BiasZ)
-                                        FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
-                                            FIELD_DEF(magBiasZ)
-                                                FIELD_DEF(magScaleX)
-                                                    FIELD_DEF(magScaleY)
-                                                        FIELD_DEF(magScaleZ));
+                                FIELD_DEF(gyroVN100BiasY) FIELD_DEF(
+                                    gyroVN100BiasZ) FIELD_DEF(magBiasX)
+                                    FIELD_DEF(magBiasY) FIELD_DEF(magBiasZ)
+                                        FIELD_DEF(magScale00) FIELD_DEF(
+                                            magScale01) FIELD_DEF(magScale02)
+                                            FIELD_DEF(magScale11)
+                                                FIELD_DEF(magScale12)
+                                                    FIELD_DEF(magScale22));
     }
 };
 

@@ -221,7 +221,7 @@ private:
 
     std::mutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
-    Boardcore::SixParametersCorrector magCalibration;
+    Boardcore::TwelveParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
     std::mutex lsm6CalibrationLowMutex;
