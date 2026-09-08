@@ -972,7 +972,7 @@ void Sensors::rotatedImuInit()
         });
 
     // Accelerometer and Gyroscope
-    Matrix3f a{{0, 1, 0}, {0, 0, -1}, {1, 0, 0}};
+    Matrix3f a{{0, 1, 0}, {0, 0, -1}, {-1, 0, 0}};
     rotatedImu->addAccTransformation(a);
     rotatedImu->addGyroTransformation(a);
 
