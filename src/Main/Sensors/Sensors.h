@@ -55,10 +55,11 @@ namespace Main
 {
 
 class ZVKController;
+class AlgoReference;
 
 class Sensors
     : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder,
-                                           ZVKController>
+                                           ZVKController, AlgoReference>
 {
 public:
     Sensors() {}
@@ -221,7 +222,7 @@ private:
 
     std::mutex magCalibrationMutex;
     Boardcore::SoftAndHardIronCalibration magCalibrator;
-    Boardcore::SixParametersCorrector magCalibration;
+    Boardcore::TwelveParametersCorrector magCalibration;
     uint8_t magCalibrationTaskId = 0;
 
     std::mutex lsm6CalibrationLowMutex;

@@ -791,12 +791,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.gyro1_bias_x = data.gyroHighBiasX;
             tm.gyro1_bias_y = data.gyroHighBiasY;
             tm.gyro1_bias_z = data.gyroHighBiasZ;
-            tm.mag_bias_x   = data.magBiasX;
-            tm.mag_bias_y   = data.magBiasY;
-            tm.mag_bias_z   = data.magBiasZ;
-            tm.mag_scale_x  = data.magScaleX;
-            tm.mag_scale_y  = data.magScaleY;
-            tm.mag_scale_z  = data.magScaleZ;
+            tm.mag_V_0      = data.magV0;
+            tm.mag_V_1      = data.magV1;
+            tm.mag_V_2      = data.magV2;
+            tm.mag_W_00     = data.magW00;
+            tm.mag_W_01     = data.magW01;
+            tm.mag_W_02     = data.magW02;
+            tm.mag_W_11     = data.magW11;
+            tm.mag_W_12     = data.magW12;
+            tm.mag_W_22     = data.magW22;
             // VN100:
             tm.accVN100_bias_x  = data.accVN100BiasX;
             tm.accVN100_bias_y  = data.accVN100BiasY;
@@ -1060,10 +1063,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             mavlink_message_t msg;
             mavlink_rocket_stats_ascent_tm_t tm;
 
-            PinHandler* pinHandler = getModule<PinHandler>();
-            ADAController* ada     = getModule<ADAController>();
-            NASController* nas     = getModule<NASController>();
-            SDAController* sda     = getModule<SDAController>();
+            PinHandler* pinHandler  = getModule<PinHandler>();
+            ADAController* ada      = getModule<ADAController>();
+            NASController* nas      = getModule<NASController>();
+            SDAController* sda      = getModule<SDAController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();

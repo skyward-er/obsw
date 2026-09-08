@@ -256,12 +256,15 @@ struct CalibrationData
     float gyroVN100BiasX   = 0.0f;
     float gyroVN100BiasY   = 0.0f;
     float gyroVN100BiasZ   = 0.0f;
-    float magBiasX         = 0.0f;
-    float magBiasY         = 0.0f;
-    float magBiasZ         = 0.0f;
-    float magScaleX        = 0.0f;
-    float magScaleY        = 0.0f;
-    float magScaleZ        = 0.0f;
+    float magV0            = 0.0f;
+    float magV1            = 0.0f;
+    float magV2            = 0.0f;
+    float magW00           = 0.0f;
+    float magW01           = 0.0f;
+    float magW02           = 0.0f;
+    float magW11           = 0.0f;
+    float magW12           = 0.0f;
+    float magW22           = 0.0f;
     float pitotDynamicBias = 0.0f;
 
     static constexpr auto reflect()
@@ -277,12 +280,13 @@ struct CalibrationData
                         FIELD_DEF(accVN100BiasX) FIELD_DEF(accVN100BiasY)
                             FIELD_DEF(accVN100BiasZ) FIELD_DEF(gyroVN100BiasX)
                                 FIELD_DEF(gyroVN100BiasY)
-                                    FIELD_DEF(gyroVN100BiasZ)
-                                        FIELD_DEF(magBiasX) FIELD_DEF(magBiasY)
-                                            FIELD_DEF(magBiasZ)
-                                                FIELD_DEF(magScaleX)
-                                                    FIELD_DEF(magScaleY)
-                                                        FIELD_DEF(magScaleZ));
+                                    FIELD_DEF(gyroVN100BiasZ) FIELD_DEF(magV0)
+                                        FIELD_DEF(magV1) FIELD_DEF(magV2)
+                                            FIELD_DEF(magW00) FIELD_DEF(magW01)
+                                                FIELD_DEF(magW02)
+                                                    FIELD_DEF(magW11)
+                                                        FIELD_DEF(magW12)
+                                                            FIELD_DEF(magW22));
     }
 };
 

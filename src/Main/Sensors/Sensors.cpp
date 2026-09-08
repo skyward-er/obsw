@@ -22,6 +22,7 @@
 
 #include "Sensors.h"
 
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/StateMachines/ZVKController/ZVKController.h>
 #include <interfaces-impl/hwmapping.h>
@@ -168,8 +169,8 @@ CalibrationData Sensors::getCalibration()
     auto gyroBiasHigh  = gyroCalibrationHigh.getV();
     auto accVN100Bias  = accVN100Calibration.getV();
     auto gyroVN100Bias = gyroVN100Calibration.getV();
-    auto magBias       = magCalibration.getb();
-    auto magScale      = magCalibration.getA();
+    Matrix3f magW      = magCalibration.getW();
+    Vector3f magV      = magCalibration.getV();
 
     return {
         .timestamp        = TimestampTimer::getTimestamp(),
@@ -191,12 +192,15 @@ CalibrationData Sensors::getCalibration()
         .gyroVN100BiasX   = gyroVN100Bias.x(),
         .gyroVN100BiasY   = gyroVN100Bias.y(),
         .gyroVN100BiasZ   = gyroVN100Bias.z(),
-        .magBiasX         = magBias.x(),
-        .magBiasY         = magBias.y(),
-        .magBiasZ         = magBias.z(),
-        .magScaleX        = magScale.x(),
-        .magScaleY        = magScale.y(),
-        .magScaleZ        = magScale.z(),
+        .magV0            = magV[0],
+        .magV1            = magV[1],
+        .magV2            = magV[2],
+        .magW00           = magW(0, 0),
+        .magW01           = magW(0, 1),
+        .magW02           = magW(0, 2),
+        .magW11           = magW(1, 1),
+        .magW12           = magW(1, 2),
+        .magW22           = magW(2, 2),
         .pitotDynamicBias = pitotDynamicBias,
     };
 }
@@ -221,15 +225,31 @@ bool Sensors::saveMagCalibration()
 {
     std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
-    SixParametersCorrector calibration = magCalibrator.computeResult();
+    ReferenceValues ref  = getModule<AlgoReference>()->getReferenceValues();
+    float fieldMagnitude = std::sqrt(ref.magN * ref.magN + ref.magE * ref.magE +
+                                     ref.magD * ref.magD);
+
+    TwelveParametersCorrector calibration =
+        magCalibrator.computeResultSym(fieldMagnitude);
+    if (!magCalibrator.isLastSymFitValidEllipsoid())
+    {
+        LOG_WARN(logger,
+                 "Magnetometer calibration data does not describe a valid "
+                 "ellipsoid :( Restarting calibration data collection");
+        magCalibrator = SoftAndHardIronCalibration{};
+        return false;
+    }
+
+    Vector3f v = calibration.getV();
+    Matrix3f w = calibration.getW();
 
     // Check if the calibration is valid
-    if (!std::isnan(calibration.getb()[0]) &&
-        !std::isnan(calibration.getb()[1]) &&
-        !std::isnan(calibration.getb()[2]) &&
-        !std::isnan(calibration.getA()[0]) &&
-        !std::isnan(calibration.getA()[1]) &&
-        !std::isnan(calibration.getA()[2]))
+    bool valid = !std::isnan(v[0]) && !std::isnan(v[1]) && !std::isnan(v[2]);
+    for (int i = 0; i < 3 && valid; i++)
+        for (int j = 0; j < 3 && valid; j++)
+            valid = valid && !std::isnan(w(i, j));
+
+    if (valid)
     {
         // Its valid, save it and apply it
         magCalibration = calibration;
@@ -514,7 +534,7 @@ PressureData Sensors::getCanPitotDynamicPressure()
     return PressureData{
         .pressureTimestamp = canPitotTotalPressure.pressureTimestamp,
         .pressure          = canPitotTotalPressure.pressure -
-                    canPitotStaticPressure.pressure - pitotDynamicBias,
+                             canPitotStaticPressure.pressure - pitotDynamicBias,
     };
 }
 
