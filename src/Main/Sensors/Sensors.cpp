@@ -141,6 +141,11 @@ bool Sensors::start()
 
 void Sensors::calibrate()
 {
+    float pitotTotalPressure  = getCanPitotTotalPressure().pressure;
+    float pitotStaticPressure = getCanPitotStaticPressure().pressure;
+
+    pitotDynamicBias = pitotTotalPressure - pitotStaticPressure;
+
     // Log the current calibration
     sdLogger.log(getCalibration());
 }
@@ -167,31 +172,32 @@ CalibrationData Sensors::getCalibration()
     auto magScale      = magCalibration.getA();
 
     return {
-        .timestamp      = TimestampTimer::getTimestamp(),
-        .accLowBiasX    = accBiasLow.x(),
-        .accLowBiasY    = accBiasLow.y(),
-        .accLowBiasZ    = accBiasLow.z(),
-        .gyroLowBiasX   = gyroBiasLow.x(),
-        .gyroLowBiasY   = gyroBiasLow.y(),
-        .gyroLowBiasZ   = gyroBiasLow.z(),
-        .accHighBiasX   = accBiasHigh.x(),
-        .accHighBiasY   = accBiasHigh.y(),
-        .accHighBiasZ   = accBiasHigh.z(),
-        .gyroHighBiasX  = gyroBiasHigh.x(),
-        .gyroHighBiasY  = gyroBiasHigh.y(),
-        .gyroHighBiasZ  = gyroBiasHigh.z(),
-        .accVN100BiasX  = accVN100Bias.x(),
-        .accVN100BiasY  = accVN100Bias.y(),
-        .accVN100BiasZ  = accVN100Bias.z(),
-        .gyroVN100BiasX = gyroVN100Bias.x(),
-        .gyroVN100BiasY = gyroVN100Bias.y(),
-        .gyroVN100BiasZ = gyroVN100Bias.z(),
-        .magBiasX       = magBias.x(),
-        .magBiasY       = magBias.y(),
-        .magBiasZ       = magBias.z(),
-        .magScaleX      = magScale.x(),
-        .magScaleY      = magScale.y(),
-        .magScaleZ      = magScale.z(),
+        .timestamp        = TimestampTimer::getTimestamp(),
+        .accLowBiasX      = accBiasLow.x(),
+        .accLowBiasY      = accBiasLow.y(),
+        .accLowBiasZ      = accBiasLow.z(),
+        .gyroLowBiasX     = gyroBiasLow.x(),
+        .gyroLowBiasY     = gyroBiasLow.y(),
+        .gyroLowBiasZ     = gyroBiasLow.z(),
+        .accHighBiasX     = accBiasHigh.x(),
+        .accHighBiasY     = accBiasHigh.y(),
+        .accHighBiasZ     = accBiasHigh.z(),
+        .gyroHighBiasX    = gyroBiasHigh.x(),
+        .gyroHighBiasY    = gyroBiasHigh.y(),
+        .gyroHighBiasZ    = gyroBiasHigh.z(),
+        .accVN100BiasX    = accVN100Bias.x(),
+        .accVN100BiasY    = accVN100Bias.y(),
+        .accVN100BiasZ    = accVN100Bias.z(),
+        .gyroVN100BiasX   = gyroVN100Bias.x(),
+        .gyroVN100BiasY   = gyroVN100Bias.y(),
+        .gyroVN100BiasZ   = gyroVN100Bias.z(),
+        .magBiasX         = magBias.x(),
+        .magBiasY         = magBias.y(),
+        .magBiasZ         = magBias.z(),
+        .magScaleX        = magScale.x(),
+        .magScaleY        = magScale.y(),
+        .magScaleZ        = magScale.z(),
+        .pitotDynamicBias = pitotDynamicBias,
     };
 }
 
@@ -507,8 +513,8 @@ PressureData Sensors::getCanPitotDynamicPressure()
     std::lock_guard<std::mutex> lock{canMutex};
     return PressureData{
         .pressureTimestamp = canPitotTotalPressure.pressureTimestamp,
-        .pressure =
-            canPitotTotalPressure.pressure - canPitotStaticPressure.pressure,
+        .pressure          = canPitotTotalPressure.pressure -
+                    canPitotStaticPressure.pressure - pitotDynamicBias,
     };
 }
 

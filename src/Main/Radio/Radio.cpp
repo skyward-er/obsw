@@ -548,6 +548,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CMD_STOP_LOGGING:
         {
             Logger::getInstance().stop();
+            enqueueAck(msg);
             break;
         }
 
@@ -572,6 +573,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         case MAV_CALIBRATION_ID:
         {
             enqueueSystemTm(SystemTMList::MAV_CALIBRATION_ID, msg.compid);
+            enqueueAck(msg);
             break;
         }
 

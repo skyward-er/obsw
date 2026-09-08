@@ -242,6 +242,8 @@ private:
 
     Common::MedianFilter<float, 3> atmosPressureFilter;
 
+    float pitotDynamicBias = 0.0f;
+
     std::atomic<bool> started{false};
 };
 
