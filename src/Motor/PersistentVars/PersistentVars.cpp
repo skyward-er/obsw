@@ -22,7 +22,7 @@
 
 #include "PersistentVars.h"
 
-#include <arch/common/drivers/stm32_bsram.h>
+#include <drivers/stm32_sgm.h>
 #include <miosix.h>
 
 using namespace miosix;
@@ -37,8 +37,9 @@ namespace PersistentVars
 
 void setHilMode(bool _hilMode)
 {
-    BSRAM::EnableWriteLock l;
+    miosix::SGM::instance().enableWrite();
     hilMode = _hilMode;
+    miosix::SGM::instance().disableWrite();
 }
 
 bool getHilMode() { return hilMode; }
