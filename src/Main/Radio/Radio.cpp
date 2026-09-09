@@ -22,6 +22,7 @@
 
 #include "Radio.h"
 
+#include <Main/Configs/ADAConfig.h>
 #include <Main/PersistentVars/PersistentVars.h>
 #include <common/Events.h>
 #include <common/Radio.h>
@@ -805,12 +806,14 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             ADAState state = ada->getADAState();
 
-            tm.timestamp               = state.timestamp;
-            tm.state                   = adaState;
-            tm.kalman_x0               = state.x0;
-            tm.kalman_x1               = state.x1;
-            tm.kalman_x2               = state.x2;
-            tm.vertical_speed          = state.verticalSpeed;
+            tm.timestamp      = state.timestamp;
+            tm.state          = adaState;
+            tm.kalman_x0      = state.x0;
+            tm.kalman_x1      = state.x1;
+            tm.kalman_x2      = state.x2;
+            tm.vertical_speed = state.verticalSpeed;
+            tm.vertical_speed_target =
+                Config::ADA::APOGEE_VERTICAL_SPEED_TARGET;
             tm.msl_altitude            = state.mslAltitude;
             tm.msl_pressure            = ref.mslPressure;
             tm.msl_temperature         = ref.mslTemperature - 273.15f;
