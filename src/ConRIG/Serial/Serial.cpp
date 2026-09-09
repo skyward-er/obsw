@@ -73,12 +73,12 @@ void Serial::handleMessage(const mavlink_message_t& msg)
 
 ssize_t Serial::receive(uint8_t* pkt, size_t maxLen)
 {
-    auto serial = miosix::DefaultConsole::instance().get();
+    auto serial = miosix::getDefaultConsole();
     return serial->readBlock(pkt, maxLen, 0);
 }
 
 bool Serial::send(uint8_t* pkt, size_t len)
 {
-    auto serial = miosix::DefaultConsole::instance().get();
+    auto serial = miosix::getDefaultConsole();
     return serial->writeBlock(pkt, len, 0) != static_cast<ssize_t>(len);
 }

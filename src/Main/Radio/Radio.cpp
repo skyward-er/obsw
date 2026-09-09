@@ -49,7 +49,7 @@ void handleDioIRQ()
 
 void setIRQRadio(SX1278Fsk* radio)
 {
-    FastInterruptDisableLock dl;
+    FastGlobalIrqLock dl;
     gRadio = radio;
 }
 

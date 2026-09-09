@@ -25,6 +25,7 @@
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <interfaces/poweroff.h>
 
 using namespace RIGv3;
 using namespace Boardcore;
@@ -68,7 +69,7 @@ State GroundModeManager::state_idle(const Event& event)
 
         case TMTC_RESET_BOARD:
         {
-            reboot();
+            miosix::reboot();
             return HANDLED;
         }
 

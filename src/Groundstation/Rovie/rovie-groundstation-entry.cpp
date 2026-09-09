@@ -26,6 +26,7 @@
 #include <Groundstation/Rovie/Ports/Ethernet.h>
 #include <Groundstation/Rovie/Radio/Radio.h>
 #include <miosix.h>
+#include <interfaces-impl/bsp_impl.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Groundstation;

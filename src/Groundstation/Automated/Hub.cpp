@@ -32,6 +32,7 @@
 #include <common/Events.h>
 #include <common/MavlinkHydra.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <interfaces/poweroff.h>
 #include <logger/Logger.h>
 #include <sensors/SensorData.h>
 
@@ -89,7 +90,7 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
                     mavlink_msg_arp_command_tc_get_command_id(&msg));
 
                 if (commandId == MAV_CMD_FORCE_REBOOT)
-                    reboot();
+                    miosix::reboot();
 
                 auto it = commandToEvent.find(commandId);
 
