@@ -150,6 +150,8 @@ private:
     PRF::PRF wing;
     Boardcore::AltitudeQuadMap altitudeMap{Config::Wing::ALTITUDE_MAP_FILENAME};
 
+    bool enableFlare = Main::Config::Wing::LandingFlareConfig::ENABLED;
+
     servoCommand lastServoCommands = {0.0f, 0.0f};
 
     Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();

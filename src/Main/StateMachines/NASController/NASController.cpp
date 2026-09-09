@@ -84,6 +84,8 @@ bool NASController::start()
     scheduler.disableTask(anasID);
     scheduler.disableTask(nasdaqID);
 
+    getModule<AlgoReference>()->subscribeReferenceChanges(this);
+
     return true;
 }
 
@@ -132,6 +134,25 @@ NASDAQState NASController::getNASDAQState()
 
     NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
     return state;
+}
+
+Eigen::Vector4f NASController::getANASTriad()
+{
+    Lock<FastMutex> lock{nasMutex};
+    return anasTriad;
+}
+
+bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
+{
+    Lock<FastMutex> lock{nasMutex};
+
+    if (state == NASControllerState::READY)
+    {
+        anasTriad = quat;
+        return true;
+    }
+
+    return false;
 }
 
 void NASController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
@@ -276,22 +297,22 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
 
     // Use the triad to compute initial state
     StateInitializer init;
-    Eigen::Vector4f quat = init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
+    auto triad = init.triad(accAcc, magAcc, {ref.magN, ref.magE, ref.magD});
 
-    ANASReference anasRef = {
-        .GroundTemperature = ref.refTemperature,
-        .GroundPressure    = ref.refPressure,
-        .InitialPosition   = {0, 0, 0},
-        .InitialVelocity   = {0, 0, 0},
-        .InitialQuaternion = {quat[0], quat[1], quat[2], quat[3]}};
-
-    Lock<FastMutex> lock{nasMutex};
-    anas.setANAS_Reference(anasRef);
+    ANASReference anasRef = {.GroundTemperature = ref.refTemperature,
+                             .GroundPressure    = ref.refPressure,
+                             .InitialPosition   = {0, 0, 0},
+                             .InitialVelocity   = {0, 0, 0},
+                             .InitialQuaternion = {triad[0], triad[1], triad[2],
+                                                   triad[3]}};
 
     // NASDAQ setup
     NASDAQReference nasdaqRef = {.GroundTemperature = ref.refTemperature,
                                  .GroundPressure    = ref.refPressure};
 
+    Lock<FastMutex> lock{nasMutex};
+    anasTriad = triad;
+    anas.setANAS_Reference(anasRef);
     nasdaq.setNASDAQ_Reference(nasdaqRef);
 }
 

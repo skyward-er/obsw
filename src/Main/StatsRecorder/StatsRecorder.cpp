@@ -134,14 +134,9 @@ void StatsRecorder::updateANAS(const ANASState& data)
             stats.maxSpeedTs  = data.timestamp;
         }
 
-        float mach = Aeroutils::computeMach(
-            // check se position è giusto;
-            data.d, speed,
-            ReferenceConfig::defaultReferenceValues.refTemperature);
-
-        if (mach > stats.maxMach)
+        if (data.machNumber > stats.maxMach)
         {
-            stats.maxMach   = mach;
+            stats.maxMach   = data.machNumber;
             stats.maxMachTs = data.timestamp;
         }
     }

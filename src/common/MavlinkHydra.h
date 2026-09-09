@@ -79,6 +79,8 @@ inline Events mavCmdToEvent(uint8_t id)
             return TMTC_RESET_NAS;
         case MAV_CMD_RESET_ADA:
             return TMTC_RESET_ADA;
+        case MAV_CMD_RESET_ZVK:
+            return TMTC_RESET_ZVK;
         default:
             return LAST_EVENT;
     }

@@ -83,9 +83,12 @@ void ABKController::update()
     if (state == ABKControllerState::ACTIVE)
     {
         auto anasState = getModule<NASController>()->getANASState();
-        ABKIn input{.MEAMass      = getModule<MotorStatus>()->getMeaMass(),
-                    .ANASPosition = {anasState.n, anasState.e, anasState.d},
-                    .ANASVelocity = {anasState.vn, anasState.ve, anasState.vd}};
+        ABKIn input{
+            .MEAMass      = getModule<MotorStatus>()->getMeaMass(),
+            .ANASPosition = {anasState.n, anasState.e, anasState.d},
+            .ANASVelocity = {anasState.vn, anasState.ve, anasState.vd},
+            .ANASMach     = anasState.machNumber,
+        };
 
         abk.setABK_In(input);
 
@@ -229,8 +232,8 @@ void ABKController::state_end(const Event& event)
             getModule<BoardScheduler>()->getAbkScheduler().disableTask(
                 abkTaskId);
 
-            // Close the airbrakes
-            getModule<Actuators>()->setAbkPosition(0.0f);
+            // Open the airbrakes
+            getModule<Actuators>()->setAbkPosition(1.0f);
             break;
         }
     }

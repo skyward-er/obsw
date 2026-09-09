@@ -243,7 +243,7 @@ bool Sensors::saveMagCalibration()
 
 float Sensors::getAbkPercentage()
 {
-    float degrees = as5047d_abk->getLastSample().angle * 180.0f / M_PI;
+    float degrees = getAS5047DABKLastSample().angle * 180.0f / M_PI;
 
     float percentage =
         (degrees - Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE) /

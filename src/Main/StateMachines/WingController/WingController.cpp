@@ -54,11 +54,7 @@ WingController::WingController()
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
-    // EventBroker::getInstance().subscribe(this, TOPIC_ALT);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
-
-    // tinyPullThresholdsIt =
-    //     LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS.begin();
 }
 
 WingController::~WingController() = default;
@@ -78,6 +74,7 @@ bool WingController::start()
 
     if (!altitudeMap.init() && LandingFlareConfig::ENABLED)
     {
+        enableFlare = false;
         LOG_ERR(logger, "Failed to initialize altitude map");
         return false;
     }
@@ -149,15 +146,17 @@ void WingController::update()
 
         // Check if we need to flare
 
-        if (LandingFlareConfig::ENABLED &&
-            state == WingControllerState::GUIDED_DESCENT)
+        if (enableFlare && state == WingControllerState::GUIDED_DESCENT)
         {
+            auto north = Meter(wing.getTarget_Rel_Position()[0]);
+            auto east  = Meter(wing.getTarget_Rel_Position()[1]);
+
             // Only flare if inside the map boundaries
-            if (altitudeMap.isInsideMap(0_m, 0_m))
+            if (altitudeMap.isInsideMap(north, east))
             {
                 auto aglAltitude =
                     -nasdaqState.d -
-                    altitudeMap.getClosestGroundAltitude(0_m, 0_m)
+                    altitudeMap.getClosestGroundAltitude(north, east)
                         .value();  // [m]
 
                 if (aglAltitude <= LandingFlareConfig::ALTITUDE)

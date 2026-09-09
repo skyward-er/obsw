@@ -39,16 +39,17 @@ namespace Main
 class ZVKController
     : public Boardcore::FSM<ZVKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Sensors,
-                                           StatsRecorder, AlgoReference>
+                                           StatsRecorder, AlgoReference>,
+      public ReferenceSubscriber
 {
 public:
     ZVKController();
 
     [[nodiscard]] bool start() override;
 
-    void calibrate();
-
     ZVKControllerState getState();
+
+    Eigen::Vector4f getZVKTriad();
 
     ZVKOut getZVKOut();
 
@@ -62,8 +63,12 @@ public:
     Eigen::Vector3f getAccVN100Bias();
     Eigen::Vector3f getGyroVN100Bias();
 
+    void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
+
 private:
     void update();
+
+    void calibrate(const Boardcore::ReferenceValues& ref);
 
     // FSM states
     void state_init(const Boardcore::Event& event);
@@ -74,6 +79,7 @@ private:
     void updateAndLogStatus(ZVKControllerState state);
 
     std::atomic<ZVKControllerState> state{ZVKControllerState::INIT};
+    Eigen::Vector4f zvkTriad{Eigen::Vector4f::Zero()};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("zvk");
@@ -85,4 +91,3 @@ private:
 };
 
 }  // namespace Main
-

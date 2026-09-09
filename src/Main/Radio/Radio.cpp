@@ -393,35 +393,13 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
         case MAVLINK_MSG_ID_SET_ORIENTATION_QUAT_TC:
         {
-            // TODO: This should be removed, for now we keep it just in case
-
-            /*             if (getModule<NASController>()->getState() ==
-                            NASControllerState::READY)
-                        {
-                            // Quaternions scalar first
-                            Eigen::Quaternion<float> quat{
-                                mavlink_msg_set_orientation_quat_tc_get_quat_w(&msg),
-                                mavlink_msg_set_orientation_quat_tc_get_quat_x(&msg),
-                                mavlink_msg_set_orientation_quat_tc_get_quat_y(&msg),
-                                mavlink_msg_set_orientation_quat_tc_get_quat_z(&msg)};
-
-                            float qNorm = quat.norm();
-
-                            getModule<NASController>()->setOrientation(quat.normalized());
-
-                            if (std::abs(qNorm - 1) > 0.001)
-                                enqueueWack(msg, 0);
-                            else
-                                enqueueAck(msg);
-                        }
-                        else
-                        {
-                            enqueueNack(msg, 0);
-                        }
-
-                        break; */
-
-            enqueueNack(msg, 0);
+            getModule<NASController>()->setOrientationQuat(Eigen::Vector4f{
+                mavlink_msg_set_orientation_quat_tc_get_quat_0(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_1(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_2(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_3(&msg)});
+            enqueueAck(msg);
+            break;
         }
 
         case MAVLINK_MSG_ID_SET_DEPLOYMENT_ALTITUDE_TC:
@@ -431,7 +409,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             getModule<ADAController>()->setDeploymentAltitude(altitude);
 
-            if (altitude < 200 || altitude > 500)
+            if (altitude < 200 || altitude > 1000)
                 enqueueWack(msg, 0);
             else
                 enqueueAck(msg);
@@ -601,9 +579,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
     {
         case MAV_PIN_OBS_ID:
         {
-            constexpr std::array<PinHandler::PinList, 5> PIN_LIST = {
-                PinHandler::PinList::RAMP_PIN,
-                PinHandler::PinList::DETACH_NOSECONE_PIN,
+            constexpr std::array<PinHandler::PinList, 4> PIN_LIST = {
+                PinHandler::PinList::PIN_LAUNCH,
+                PinHandler::PinList::PIN_NOSECONE,
                 PinHandler::PinList::EXPULSION_SENSE,
                 PinHandler::PinList::RELEASER_SENSE,
             };
@@ -843,6 +821,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             ANASState state = nas->getANASState();
             ReferenceValues ref =
                 getModule<AlgoReference>()->getReferenceValues();
+            auto triad = nas->getANASTriad();
 
             tm.timestamp       = state.timestamp;
             tm.state           = static_cast<uint8_t>(nas->getState());
@@ -852,14 +831,16 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.nas_vn          = state.vn;
             tm.nas_ve          = state.ve;
             tm.nas_vd          = state.vd;
-            tm.nas_qx          = state.qx;
-            tm.nas_qy          = state.qy;
-            tm.nas_qz          = state.qz;
-            tm.nas_qw          = state.qw;
+            tm.nas_q0          = state.qx;
+            tm.nas_q1          = state.qy;
+            tm.nas_q2          = state.qz;
+            tm.nas_q3          = state.qw;
             tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
-            tm.ref_latitude    = ref.refLatitude;
-            tm.ref_longitude   = ref.refLongitude;
+            tm.initial_q0      = triad[0];
+            tm.initial_q1      = triad[1];
+            tm.initial_q2      = triad[2];
+            tm.initial_q3      = triad[3];
 
             mavlink_msg_nas_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                       &msg, &tm);
@@ -951,10 +932,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.nas_vn  = nasState.vn;
             tm.nas_ve  = nasState.ve;
             tm.nas_vd  = nasState.vd;
-            tm.anas_qx = anasState.qx;
-            tm.anas_qy = anasState.qy;
-            tm.anas_qz = anasState.qz;
-            tm.anas_qw = anasState.qw;
+            tm.anas_q0 = anasState.qx;
+            tm.anas_q1 = anasState.qy;
+            tm.anas_q2 = anasState.qz;
+            tm.anas_q3 = anasState.qw;
 
             tm.fmm_state = static_cast<uint8_t>(fmm->getState());
 
@@ -1079,9 +1060,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             // Actuators
             tm.pin_launch =
-                pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState;
+                pinHandler->getPinData(PinHandler::PinList::PIN_LAUNCH)
+                    .lastState;
             tm.pin_nosecone =
-                pinHandler->getPinData(PinHandler::PinList::DETACH_NOSECONE_PIN)
+                pinHandler->getPinData(PinHandler::PinList::PIN_NOSECONE)
                     .lastState;
 
             tm.expulsion_sense =
@@ -1166,9 +1148,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             // Actuators
             tm.pin_launch =
-                pinHandler->getPinData(PinHandler::PinList::RAMP_PIN).lastState;
+                pinHandler->getPinData(PinHandler::PinList::PIN_LAUNCH)
+                    .lastState;
             tm.pin_nosecone =
-                pinHandler->getPinData(PinHandler::PinList::DETACH_NOSECONE_PIN)
+                pinHandler->getPinData(PinHandler::PinList::PIN_NOSECONE)
                     .lastState;
 
             tm.expulsion_sense =
@@ -1218,31 +1201,31 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             mavlink_message_t msg;
             mavlink_zvk_tm_t tm;
 
-            tm.timestamp    = TimestampTimer::getTimestamp();
-            tm.acc0_bias_x  = getModule<ZVKController>()->getAccHBias()[0];
-            tm.acc0_bias_y  = getModule<ZVKController>()->getAccHBias()[1];
-            tm.acc0_bias_z  = getModule<ZVKController>()->getAccHBias()[2];
-            tm.gyro0_bias_x = getModule<ZVKController>()->getGyroHBias()[0];
-            tm.gyro0_bias_y = getModule<ZVKController>()->getGyroHBias()[1];
-            tm.gyro0_bias_z = getModule<ZVKController>()->getGyroHBias()[2];
-            tm.acc1_bias_x  = getModule<ZVKController>()->getAccLBias()[0];
-            tm.acc1_bias_y  = getModule<ZVKController>()->getAccLBias()[1];
-            tm.acc1_bias_z  = getModule<ZVKController>()->getAccLBias()[2];
-            tm.gyro1_bias_x = getModule<ZVKController>()->getGyroLBias()[0];
-            tm.gyro1_bias_y = getModule<ZVKController>()->getGyroLBias()[1];
-            tm.gyro1_bias_z = getModule<ZVKController>()->getGyroLBias()[2];
-            tm.accVN100_bias_x =
-                getModule<ZVKController>()->getAccVN100Bias()[0];
-            tm.accVN100_bias_y =
-                getModule<ZVKController>()->getAccVN100Bias()[1];
-            tm.accVN100_bias_z =
-                getModule<ZVKController>()->getAccVN100Bias()[2];
-            tm.gyroVN100_bias_x =
-                getModule<ZVKController>()->getGyroVN100Bias()[0];
-            tm.gyroVN100_bias_y =
-                getModule<ZVKController>()->getGyroVN100Bias()[1];
-            tm.gyroVN100_bias_z =
-                getModule<ZVKController>()->getGyroVN100Bias()[2];
+            auto zvk = getModule<ZVKController>();
+
+            tm.timestamp        = TimestampTimer::getTimestamp();
+            tm.acc0_bias_x      = zvk->getAccHBias()[0];
+            tm.acc0_bias_y      = zvk->getAccHBias()[1];
+            tm.acc0_bias_z      = zvk->getAccHBias()[2];
+            tm.gyro0_bias_x     = zvk->getGyroHBias()[0];
+            tm.gyro0_bias_y     = zvk->getGyroHBias()[1];
+            tm.gyro0_bias_z     = zvk->getGyroHBias()[2];
+            tm.acc1_bias_x      = zvk->getAccLBias()[0];
+            tm.acc1_bias_y      = zvk->getAccLBias()[1];
+            tm.acc1_bias_z      = zvk->getAccLBias()[2];
+            tm.gyro1_bias_x     = zvk->getGyroLBias()[0];
+            tm.gyro1_bias_y     = zvk->getGyroLBias()[1];
+            tm.gyro1_bias_z     = zvk->getGyroLBias()[2];
+            tm.accVN100_bias_x  = zvk->getAccVN100Bias()[0];
+            tm.accVN100_bias_y  = zvk->getAccVN100Bias()[1];
+            tm.accVN100_bias_z  = zvk->getAccVN100Bias()[2];
+            tm.gyroVN100_bias_x = zvk->getGyroVN100Bias()[0];
+            tm.gyroVN100_bias_y = zvk->getGyroVN100Bias()[1];
+            tm.gyroVN100_bias_z = zvk->getGyroVN100Bias()[2];
+            tm.triad_q0         = zvk->getZVKTriad()[0];
+            tm.triad_q1         = zvk->getZVKTriad()[1];
+            tm.triad_q2         = zvk->getZVKTriad()[2];
+            tm.triad_q3         = zvk->getZVKTriad()[3];
 
             mavlink_msg_zvk_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                       &msg, &tm);
@@ -1559,6 +1542,57 @@ bool Radio::enqueueSensorsTm(uint8_t tmId, uint8_t requestId)
                                                requestId, &msg, &tm);
                 enqueuePacket(msg);
             }
+
+            return true;
+        }
+
+        case MAV_TOTAL_PITOT_PRESS_ID:
+        {
+            auto sample = getModule<Sensors>()->getCanPitotTotalPressure();
+
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "PITOT_TOTAL_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           requestId, &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_STATIC_PITOT_PRESS_ID:
+        {
+            auto sample = getModule<Sensors>()->getCanPitotStaticPressure();
+
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "PITOT_STATIC_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           requestId, &msg, &tm);
+            enqueuePacket(msg);
+
+            return true;
+        }
+
+        case MAV_DYNAMIC_PITOT_PRESS_ID:
+        {
+            auto sample = getModule<Sensors>()->getCanPitotDynamicPressure();
+
+            mavlink_message_t msg;
+            mavlink_pressure_tm_t tm;
+            tm.pressure  = sample.pressure;
+            tm.timestamp = sample.pressureTimestamp;
+            strcpy(tm.sensor_name, "PITOT_DYNAMIC_PRESS");
+
+            mavlink_msg_pressure_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           requestId, &msg, &tm);
+            enqueuePacket(msg);
 
             return true;
         }

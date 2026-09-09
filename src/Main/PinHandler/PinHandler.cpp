@@ -89,9 +89,9 @@ PinData PinHandler::getPinData(PinList pin)
 {
     switch (pin)
     {
-        case PinList::RAMP_PIN:
+        case PinList::PIN_LAUNCH:
             return pinObserver->getPinData(sense::detachRamp::getPin());
-        case PinList::DETACH_NOSECONE_PIN:
+        case PinList::PIN_NOSECONE:
             return externalPinObserver->getPinData(DETACH_NOSECONE);
         case PinList::EXPULSION_SENSE:
             return externalPinObserver->getPinData(EXPULSION_SENSE);
@@ -122,7 +122,7 @@ void PinHandler::logPin(PinList pin, const PinData& data)
 void PinHandler::onRampPinTransition(PinTransition transition,
                                      const PinData& data)
 {
-    logPin(PinList::RAMP_PIN, data);
+    logPin(PinList::PIN_LAUNCH, data);
     LOG_INFO(logger, "onRampPinTransition {}", static_cast<int>(transition));
 
     if (transition == Config::PinHandler::RAMP_PIN_TRIGGER)
@@ -137,7 +137,7 @@ void PinHandler::onRampPinTransition(PinTransition transition,
 void PinHandler::onDetachPayloadTransition(PinTransition transition,
                                            const PinData& data)
 {
-    logPin(PinList::DETACH_NOSECONE_PIN, data);
+    logPin(PinList::PIN_NOSECONE, data);
     LOG_INFO(logger, "onDetachPayloadTransition {}",
              static_cast<int>(transition));
 }
