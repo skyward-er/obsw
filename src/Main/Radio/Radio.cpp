@@ -939,8 +939,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.right_servo_angle =
                 actuators->getPrfServoPosition(PARAFOIL_RIGHT_SERVO);
 
-            tm.abk_angle = sensors->getAS5047DABKLastSample().angle * 180 /
-                           3.14;  // the value is in rad, we want it in deg
+            tm.abk_angle = sensors->getAbkPercentage();
 
             // Algorithms
             tm.nas_n   = nasState.n;
