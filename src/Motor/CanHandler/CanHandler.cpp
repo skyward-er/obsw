@@ -28,6 +28,7 @@
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
 #include <events/EventData.h>
+#include <interfaces/poweroff.h>
 
 using namespace miosix;
 using namespace Motor;
@@ -389,4 +390,3 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
         }
     }
 }
-

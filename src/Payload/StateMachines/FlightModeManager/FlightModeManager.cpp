@@ -33,6 +33,7 @@
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <events/EventBroker.h>
+#include <interfaces/poweroff.h>
 
 using namespace Boardcore;
 using namespace Common;

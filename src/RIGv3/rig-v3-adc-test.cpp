@@ -24,6 +24,7 @@
 #include <RIGv3/Buses.h>
 #include <RIGv3/Sensors/Sensors.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
+#include <interfaces-impl/bsp_impl.h>
 
 #include <chrono>
 #include <iomanip>

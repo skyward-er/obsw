@@ -28,6 +28,7 @@
 #include <common/Events.h>
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
+#include <interfaces/poweroff.h>
 
 #include "HILData.h"
 

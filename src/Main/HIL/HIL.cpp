@@ -32,6 +32,7 @@
 #include <events/EventBroker.h>
 #include <hil/HIL.h>
 #include <interfaces-impl/hwmapping.h>
+#include <interfaces/poweroff.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include "HILData.h"
