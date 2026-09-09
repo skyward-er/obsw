@@ -22,6 +22,8 @@
 
 #include "Leds.h"
 
+#include <interfaces-impl/bsp_impl.h>
+
 using namespace Boardcore;
 
 namespace Antennas
