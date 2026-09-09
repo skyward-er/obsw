@@ -154,6 +154,8 @@ private:
     std::atomic<bool> enableFlare{
         Main::Config::Wing::LandingFlareConfig::ENABLED};
 
+    bool enableFlare = Main::Config::Wing::LandingFlareConfig::ENABLED;
+
     servoCommand lastServoCommands = {0.0f, 0.0f};
 
     Boardcore::Logger& sdLogger = Boardcore::Logger::getInstance();

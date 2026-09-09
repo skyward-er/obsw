@@ -238,8 +238,8 @@ void ABKController::state_end(const Event& event)
             getModule<BoardScheduler>()->getAbkScheduler().disableTask(
                 abkTaskId);
 
-            // Close the airbrakes
-            getModule<Actuators>()->setAbkPosition(0.0f);
+            // Open the airbrakes
+            getModule<Actuators>()->setAbkPosition(1.0f);
             break;
         }
     }
