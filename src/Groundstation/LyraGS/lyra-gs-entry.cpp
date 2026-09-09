@@ -38,6 +38,7 @@
 #include <drivers/DipSwitch/DipSwitch.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
+#include <interfaces-impl/bsp_impl.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <thread>
