@@ -40,8 +40,8 @@ class PinHandler
 public:
     enum class PinList : uint8_t
     {
-        RAMP_PIN = 0,
-        DETACH_NOSECONE_PIN,
+        PIN_LAUNCH = 0,
+        PIN_NOSECONE,
         EXPULSION_SENSE,
         RELEASER_SENSE,
     };

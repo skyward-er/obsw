@@ -85,7 +85,7 @@ constexpr std::array<Pump, 3> PUMPS = {
 namespace LandingFlareConfig
 {
 
-constexpr bool ENABLED = false;
+constexpr bool ENABLED = true;
 
 constexpr float ALTITUDE         = 15;  // [m]
 constexpr int CONFIDENCE         = 10;  // [samples]

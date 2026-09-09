@@ -54,11 +54,7 @@ WingController::WingController()
     EventBroker::getInstance().subscribe(this, TOPIC_FMM);
     EventBroker::getInstance().subscribe(this, TOPIC_DPL);
     EventBroker::getInstance().subscribe(this, TOPIC_WING);
-    // EventBroker::getInstance().subscribe(this, TOPIC_ALT);
     EventBroker::getInstance().subscribe(this, TOPIC_TMTC);
-
-    // tinyPullThresholdsIt =
-    //     LandingFlareConfig::TinyPull::ALTITUDE_THRESHOLDS.begin();
 }
 
 WingController::~WingController() = default;
@@ -76,8 +72,9 @@ bool WingController::start()
         return false;
     }
 
-    if (!altitudeMap.init() && LandingFlareConfig::ENABLED)
+    if (LandingFlareConfig::ENABLED && !altitudeMap.init())
     {
+        enableFlare = false;
         LOG_ERR(logger, "Failed to initialize altitude map");
         return false;
     }
@@ -104,9 +101,8 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
     if (state != WingControllerState::READY)
         return false;
 
+    wing.setPRF_Reference({0.0f, latitude, longitude});
     targetPositionGEO = Coordinates{latitude, longitude};
-
-    // getModule<LandingFlare>()->setTargetGEO({latitude, longitude});
     return true;
 }
 
@@ -149,15 +145,17 @@ void WingController::update()
 
         // Check if we need to flare
 
-        if (LandingFlareConfig::ENABLED &&
-            state == WingControllerState::GUIDED_DESCENT)
+        if (enableFlare && state == WingControllerState::GUIDED_DESCENT)
         {
+            auto north = Meter(wing.getTarget_Rel_Position()[0]);
+            auto east  = Meter(wing.getTarget_Rel_Position()[1]);
+
             // Only flare if inside the map boundaries
-            if (altitudeMap.isInsideMap(0_m, 0_m))
+            if (altitudeMap.isInsideMap(north, east))
             {
                 auto aglAltitude =
                     -nasdaqState.d -
-                    altitudeMap.getClosestGroundAltitude(0_m, 0_m)
+                    altitudeMap.getClosestGroundAltitude(north, east)
                         .value();  // [m]
 
                 if (aglAltitude <= LandingFlareConfig::ALTITUDE)
@@ -421,6 +419,12 @@ void WingController::state_guided_descent(const Boardcore::Event& event)
             break;
         }
 
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&WingController::state_landed);
+            break;
+        }
+
         case WING_FLARE_START:
         {
             transition(&WingController::state_landing_flare);
@@ -445,9 +449,9 @@ void WingController::state_landing_flare(const Boardcore::Event& event)
             break;
         }
 
-        case EV_EMPTY:
+        case FLIGHT_LANDING_DETECTED:
         {
-            transition(&WingController::state_ready);
+            transition(&WingController::state_landed);
             break;
         }
 

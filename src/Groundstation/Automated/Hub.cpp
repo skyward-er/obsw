@@ -305,8 +305,8 @@ void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
         {
             float pos[3]  = {rocketTM.nas_n, rocketTM.nas_e, rocketTM.nas_d};
             float vel[3]  = {rocketTM.nas_vn, rocketTM.nas_ve, rocketTM.nas_vd};
-            float quat[4] = {rocketTM.anas_qx, rocketTM.anas_qy,
-                             rocketTM.anas_qz, rocketTM.anas_qw};
+            float quat[4] = {rocketTM.anas_q0, rocketTM.anas_q1,
+                             rocketTM.anas_q2, rocketTM.anas_q3};
             ANASState anasState(rocketTM.timestamp, pos, vel, quat);
             setRocketANASState(anasState);
         }

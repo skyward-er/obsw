@@ -112,6 +112,29 @@ void AlgoReference::setReferenceCoordinates(float latitude, float longitude)
     notifyReferenceChanged();
 }
 
+void AlgoReference::setReferenceMagneticField(float magN, float magE,
+                                              float magD)
+{
+    {
+        Lock<FastMutex> lock{referenceMutex};
+        reference.magN = magN;
+        reference.magE = magE;
+        reference.magD = magD;
+    }
+
+    notifyReferenceChanged();
+}
+
+void AlgoReference::setReferencePressure(float pressure)
+{
+    {
+        Lock<FastMutex> lock{referenceMutex};
+        reference.refPressure = pressure;
+    }
+
+    notifyReferenceChanged();
+}
+
 std::chrono::milliseconds AlgoReference::computeTimeSinceLiftoff(
     std::chrono::milliseconds duration)
 {

@@ -155,18 +155,6 @@ int main()
                   << std::endl;
     }
 
-    if (initResult)
-    {
-        broker.post(FMM_INIT_OK, TOPIC_FMM);
-        std::cout << "All good!" << std::endl;
-        led4On();
-    }
-    else
-    {
-        broker.post(FMM_INIT_ERROR, TOPIC_FMM);
-        std::cerr << "*** Init failure ***" << std::endl;
-    }
-
     for (auto info : sensors->getSensorInfos())
     {
         // The period being 0 means the sensor is disabled

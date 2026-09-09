@@ -122,7 +122,6 @@ private:
                        [this]() { return updateStaticPressureData(); });
         hillificator<>(rotatedImu, enableHw,
                        [this]() { return updateIMUData(*this); });
-        hillificator<>(vn100, enableHw, [this]() { return updateVN100Data(); });
 
         return true;
     };
@@ -320,12 +319,14 @@ private:
 
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
-        auto imu6 =
-            Config::Sensors::IMU::USE_CALIBRATED_LSM6DSRX  // TODO: Switch to
-                                                           // VN100 ?
-                ? getCalibratedLSM6DSRXLowLastSample()
-                : getLSM6DSRXLowLastSample();
-        auto mag = getLIS2MDLRcsLastSample();
+#if defined(DUAL_LSM6)
+#warning "Dual LSM6 usage is not supported in HIL mode at the moment, using VN100"
+#endif
+        auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_VN100
+                        ? getCalibratedVN100LastSample()
+                        : getVN100LastSample();
+        auto mag  = getLIS2MDLRcsLastSample();
+
 
         return Boardcore::IMUData{imu6, imu6, mag};
     };

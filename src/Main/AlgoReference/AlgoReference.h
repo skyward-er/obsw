@@ -57,6 +57,8 @@ public:
     void setReferenceAltitude(float altitude);
     void setReferenceTemperature(float temperature);
     void setReferenceCoordinates(float latitude, float longitude);
+    void setReferencePressure(float pressure);
+    void setReferenceMagneticField(float magN, float magE, float magD);
 
     /**
      * @brief Compute time since liftoff accounting for detection delays.

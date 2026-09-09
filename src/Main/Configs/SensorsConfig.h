@@ -70,7 +70,7 @@ constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
 constexpr auto ROTATION_DIRECTION =
     Boardcore::AS5047DDefs::ABIRotationDirection::NORMAL;
 
-constexpr Hertz RATE   = 100_hz;
+constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace AS5047D_LEFT
 
@@ -81,7 +81,7 @@ constexpr auto DAEC_EN     = Boardcore::AS5047DDefs::DAECStatus::DAEC_ON;
 constexpr auto ROTATION_DIRECTION =
     Boardcore::AS5047DDefs::ABIRotationDirection::NORMAL;
 
-constexpr Hertz RATE   = 100_hz;
+constexpr Hertz RATE   = 50_hz;
 constexpr bool ENABLED = true;
 }  // namespace AS5047D_RIGHT
 

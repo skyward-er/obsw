@@ -33,8 +33,8 @@ namespace Main
 enum class ZVKControllerState : uint8_t
 {
     INIT = 0,
-    ACTIVE,
     CALIBRATING,
+    ACTIVE,
     END
 };
 

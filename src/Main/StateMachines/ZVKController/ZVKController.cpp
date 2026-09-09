@@ -114,16 +114,13 @@ bool ZVKController::start()
 
     zvk.initialize();
 
+    getModule<AlgoReference>()->subscribeReferenceChanges(this);
+
     return true;
 }
 
-void ZVKController::calibrate()
+void ZVKController::calibrate(const Boardcore::ReferenceValues& ref)
 {
-    Lock<FastMutex> lock{zvkMutex};
-
-    // Reinitialize state
-    zvk.initialize();
-
     // calculate initial attitude quaternions
     Sensors* sensors = getModule<Sensors>();
     Vector3f accAcc  = Vector3f::Zero();
@@ -151,12 +148,30 @@ void ZVKController::calibrate()
 
     // Use the triad to compute initial state
     StateInitializer init;
-    Eigen::Vector4f quat = init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
+    auto triad = init.triad(accAcc, magAcc, {ref.magN, ref.magE, ref.magD});
 
-    zvk.setAttitude_Quaternion(quat.data());
+    Lock<FastMutex> lock{zvkMutex};
+    zvk.initialize();
+    zvkTriad = triad;
+    zvk.setAttitude_Quaternion(zvkTriad.data());
 }
 
-ZVKControllerState ZVKController::getState() { return state; }
+void ZVKController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
+{
+    calibrate(ref);
+}
+
+ZVKControllerState ZVKController::getState()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return state;
+}
+
+Eigen::Vector4f ZVKController::getZVKTriad()
+{
+    Lock<FastMutex> lock{zvkMutex};
+    return zvkTriad;
+}
 
 void ZVKController::update()
 {
@@ -234,7 +249,9 @@ void ZVKController::state_calibrating(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(ZVKControllerState::CALIBRATING);
-            calibrate();
+
+            auto ref = getModule<AlgoReference>()->getReferenceValues();
+            calibrate(ref);
 
             EventBroker::getInstance().post(ZVK_READY, TOPIC_ZVK);
             break;
@@ -263,6 +280,7 @@ void ZVKController::state_active(const Event& event)
             transition(&ZVKController::state_end);
             break;
         }
+        case ZVK_CALIBRATE:
         case ZVK_RESET:
         {
             transition(&ZVKController::state_calibrating);
@@ -289,4 +307,3 @@ void ZVKController::updateAndLogStatus(ZVKControllerState state)
     ZVKControllerStatus data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }
-

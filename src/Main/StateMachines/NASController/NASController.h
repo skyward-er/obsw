@@ -58,7 +58,11 @@ public:
     Boardcore::NASDAQState getNASDAQState();
     Boardcore::NASState getNASState();
 
+    Eigen::Vector4f getANASTriad();
+
     NASControllerState getState();
+
+    bool setOrientationQuat(const Eigen::Vector4f& quat);
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
@@ -72,7 +76,6 @@ private:
     void state_init(const Boardcore::Event& event);
     void state_calibrating(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
-    void state_armed(const Boardcore::Event& event);
     void state_active_ascent(const Boardcore::Event& event);
     void state_active_descent(const Boardcore::Event& event);
     void state_end(const Boardcore::Event& event);
@@ -80,6 +83,7 @@ private:
     void updateAndLogStatus(NASControllerState state);
 
     std::atomic<NASControllerState> state{NASControllerState::INIT};
+    Eigen::Vector4f anasTriad{Eigen::Vector4f::Zero()};
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("nas");

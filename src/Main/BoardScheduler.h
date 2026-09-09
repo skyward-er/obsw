@@ -35,6 +35,9 @@ public:
     BoardScheduler()
         : nas{Main::Config::Scheduler::NAS_PRIORITY},
           ada{Main::Config::Scheduler::ADA_PRIORITY},
+          sda{Main::Config::Scheduler::SDA_PRIORITY},
+          abk{Main::Config::Scheduler::ABK_PRIORITY},
+          wing{Main::Config::Scheduler::WING_PRIORITY},
           zvk{Main::Config::Scheduler::ZVK_PRIORITY},
           sensors{Main::Config::Scheduler::SENSORS_PRIORITY},
           others{Main::Config::Scheduler::OTHERS_PRIORITY}
@@ -61,6 +64,24 @@ public:
             return false;
         }
 
+        if (!sda.start())
+        {
+            LOG_ERR(logger, "Failed to start SDA scheduler");
+            return false;
+        }
+
+        if (!abk.start())
+        {
+            LOG_ERR(logger, "Failed to start ABK scheduler");
+            return false;
+        }
+
+        if (!wing.start())
+        {
+            LOG_ERR(logger, "Failed to start WING scheduler");
+            return false;
+        }
+
         if (!sensors.start())
         {
             LOG_ERR(logger, "Failed to start Sensors scheduler");
@@ -81,11 +102,11 @@ public:
 
     Boardcore::TaskScheduler& getNasScheduler() { return nas; }
 
-    Boardcore::TaskScheduler& getSdaScheduler() { return nas; }
+    Boardcore::TaskScheduler& getSdaScheduler() { return sda; }
 
-    Boardcore::TaskScheduler& getAbkScheduler() { return nas; }
+    Boardcore::TaskScheduler& getAbkScheduler() { return abk; }
 
-    Boardcore::TaskScheduler& getWingScheduler() { return nas; }
+    Boardcore::TaskScheduler& getWingScheduler() { return wing; }
 
     Boardcore::TaskScheduler& getAdaScheduler() { return ada; }
 
@@ -112,6 +133,9 @@ private:
 
     Boardcore::TaskScheduler nas;
     Boardcore::TaskScheduler ada;
+    Boardcore::TaskScheduler sda;
+    Boardcore::TaskScheduler abk;
+    Boardcore::TaskScheduler wing;
     Boardcore::TaskScheduler zvk;
     Boardcore::TaskScheduler sensors;
     Boardcore::TaskScheduler others;

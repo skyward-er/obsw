@@ -84,6 +84,8 @@ bool NASController::start()
     scheduler.disableTask(anasID);
     scheduler.disableTask(nasdaqID);
 
+    getModule<AlgoReference>()->subscribeReferenceChanges(this);
+
     return true;
 }
 
@@ -91,8 +93,7 @@ NASControllerState NASController::getState() { return state; }
 
 NASState NASController::getNASState()
 {
-    if (state == NASControllerState::ACTIVE_ASCENT ||
-        state == NASControllerState::ARMED)
+    if (state == NASControllerState::ACTIVE_ASCENT)
     {
         auto anasState = getANASState();
         NASState state(anasState);
@@ -116,8 +117,7 @@ ANASState NASController::getANASState()
 
     uint64_t timestamp = TimestampTimer::getTimestamp();
 
-    ANASState state(timestamp, rawOutput.Position, rawOutput.Velocity,
-                    rawOutput.Quaternion);
+    ANASState state(timestamp, rawOutput);
 
     return state;
 }
@@ -130,8 +130,27 @@ NASDAQState NASController::getNASDAQState()
 
     uint64_t timestamp = TimestampTimer::getTimestamp();
 
-    NASDAQState state(timestamp, rawOutput.Position, rawOutput.Velocity);
+    NASDAQState state(timestamp, rawOutput);
     return state;
+}
+
+Eigen::Vector4f NASController::getANASTriad()
+{
+    Lock<FastMutex> lock{nasMutex};
+    return anasTriad;
+}
+
+bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
+{
+    Lock<FastMutex> lock{nasMutex};
+
+    if (state == NASControllerState::READY)
+    {
+        anasTriad = quat;
+        return true;
+    }
+
+    return false;
 }
 
 void NASController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
@@ -141,8 +160,7 @@ void NASController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 
 void NASController::updateANAS()
 {
-    if (state == NASControllerState::ACTIVE_ASCENT ||
-        state == NASControllerState::ARMED)
+    if (state == NASControllerState::ACTIVE_ASCENT)
     {
         Lock<FastMutex> lock{nasMutex};
 
@@ -235,12 +253,9 @@ void NASController::updateNASDAQ()
         NASDAQLogsWrapper logs(TimestampTimer::getTimestamp(),
                                nasdaq.getNASDAQ_Logs_OBSW());
 
-        auto rawOutput = nasdaq.getNASDAQ_Out();
-
         uint64_t timestamp = TimestampTimer::getTimestamp();
 
-        NASDAQState nasdaqState(timestamp, rawOutput.Position,
-                                rawOutput.Velocity);
+        NASDAQState nasdaqState(timestamp, nasdaq.getNASDAQ_Out());
 
         getModule<StatsRecorder>()->updateNASDAQ(nasdaqState);
         sdLogger.log(logs);
@@ -276,22 +291,22 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
 
     // Use the triad to compute initial state
     StateInitializer init;
-    Eigen::Vector4f quat = init.triad(accAcc, magAcc, ReferenceConfig::nedMag);
+    auto triad = init.triad(accAcc, magAcc, {ref.magN, ref.magE, ref.magD});
 
     ANASReference anasRef = {
         .GroundTemperature = ref.refTemperature,
         .GroundPressure    = ref.refPressure,
         .InitialPosition   = {0, 0, 0},
         .InitialVelocity   = {0, 0, 0},
-        .InitialQuaternion = {quat[0], quat[1], quat[2], quat[3]}};
-
-    Lock<FastMutex> lock{nasMutex};
-    anas.setANAS_Reference(anasRef);
+        .InitialQuaternion = {triad[0], triad[1], triad[2], triad[3]}};
 
     // NASDAQ setup
     NASDAQReference nasdaqRef = {.GroundTemperature = ref.refTemperature,
                                  .GroundPressure    = ref.refPressure};
 
+    Lock<FastMutex> lock{nasMutex};
+    anasTriad = triad;
+    anas.setANAS_Reference(anasRef);
     nasdaq.setNASDAQ_Reference(nasdaqRef);
 }
 
@@ -360,43 +375,7 @@ void NASController::state_ready(const Event& event)
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
-            transition(&NASController::state_armed);
-            break;
-        }
-    }
-}
-
-void NASController::state_armed(const Event& event)
-{
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            updateAndLogStatus(NASControllerState::ARMED);
-
-            TaskScheduler& scheduler =
-                getModule<BoardScheduler>()->getNasScheduler();
-
-            scheduler.enableTask(anasID);
-            break;
-        }
-
-        case FLIGHT_LIFTOFF:
-        {
             transition(&NASController::state_active_ascent);
-            break;
-        }
-
-        case FLIGHT_LANDING_DETECTED:
-        {
-            transition(&NASController::state_end);
-            break;
-        }
-
-        case NAS_FORCE_STOP:
-        case FLIGHT_DISARMED:
-        {
-            transition(&NASController::state_ready);
             break;
         }
     }
@@ -409,6 +388,12 @@ void NASController::state_active_ascent(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
+
+            TaskScheduler& scheduler =
+                getModule<BoardScheduler>()->getNasScheduler();
+
+            scheduler.enableTask(anasID);
+
             break;
         }
         case FLIGHT_APOGEE_DETECTED:
