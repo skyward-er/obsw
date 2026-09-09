@@ -27,6 +27,7 @@
 #include <Main/Radio/Radio.h>
 #include <common/Events.h>
 #include <drivers/timer/TimestampTimer.h>
+#include <interfaces/poweroff.h>
 
 using namespace std::chrono;
 using namespace Common;
@@ -39,7 +40,7 @@ namespace Main
 void enterHilMode()
 {
     PersistentVars::setHilMode(true);
-    reboot();
+    miosix::reboot();
 }
 
 void exitHilMode()
@@ -48,7 +49,7 @@ void exitHilMode()
     if (PersistentVars::getHilMode())
     {
         PersistentVars::setHilMode(false);
-        reboot();
+        miosix::reboot();
     }
 }
 
@@ -121,7 +122,7 @@ State FlightModeManager::state_on_ground(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
-            reboot();
+            miosix::reboot();
             return HANDLED;
         }
         case TMTC_EXIT_HIL_MODE:
@@ -909,7 +910,7 @@ State FlightModeManager::state_landed(const Event& event)
         }
         case TMTC_RESET_BOARD:
         {
-            reboot();
+            miosix::reboot();
             return HANDLED;
         }
         default:

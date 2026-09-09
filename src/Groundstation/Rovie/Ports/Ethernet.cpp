@@ -41,7 +41,7 @@ void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
 
 void setIRQWiz5500(Wiz5500* instance)
 {
-    FastInterruptDisableLock dl;
+    FastGlobalIrqLock dl;
     gWiz5500 = instance;
 }
 
