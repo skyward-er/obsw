@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <algorithms/NAS/NASState.h>
+#include <algorithms/AlgorithmsData.h>
 #include <miosix.h>
 #include <sensors/SensorData.h>
 #include <utils/DependencyManager/DependencyManager.h>

@@ -33,6 +33,7 @@
 #include <Motor/StateMachines/MEAController/MEAController.h>
 #include <diagnostic/CpuMeter/CpuMeter.h>
 #include <interfaces-impl/hwmapping.h>
+#include <interfaces-impl/bsp_impl.h>
 #include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

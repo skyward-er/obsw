@@ -184,7 +184,7 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
 
 void MotorStatus::handleMea(const Boardcore::Canbus::CanMessage& msg)
 {
-    meaMass.store(meaMassFromCanMessage(msg));
+    meaMass.store(CanMEAInitialMassFromCanMessage(msg).mass);
 }
 
 void MotorStatus::handleMeaStatus(const Boardcore::Canbus::CanMessage& msg)

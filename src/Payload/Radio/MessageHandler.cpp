@@ -521,10 +521,6 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.nas_bias_x      = nasState.bx;
             tm.nas_bias_y      = nasState.by;
             tm.nas_bias_z      = nasState.bz;
-            tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
-            tm.ref_latitude    = ref.refLatitude;
-            tm.ref_longitude   = ref.refLongitude;
             tm.state           = static_cast<uint8_t>(state);
 
             mavlink_msg_nas_tm_encode(config::Mavlink::SYSTEM_ID,
@@ -772,8 +768,9 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
             tm.ref_altitude    = ref.refAltitude;
             tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
-            tm.ref_latitude    = ref.refLatitude;
-            tm.ref_longitude   = ref.refLongitude;
+            tm.magnetic_field_north = ref.magN;
+            tm.magnetic_field_east  = ref.magE;
+            tm.magnetic_field_down  = ref.magD;
             tm.msl_pressure    = ref.mslPressure;
             tm.msl_temperature = ref.mslTemperature;
 

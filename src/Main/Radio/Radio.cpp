@@ -718,8 +718,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.ref_altitude    = ref.refAltitude;
             tm.ref_pressure    = ref.refPressure;
             tm.ref_temperature = ref.refTemperature;
-            tm.ref_latitude    = ref.refLatitude;
-            tm.ref_longitude   = ref.refLongitude;
+            tm.magnetic_field_north = ref.magN;
+            tm.magnetic_field_east  = ref.magE;
+            tm.magnetic_field_down  = ref.magD;
             tm.msl_pressure    = ref.mslPressure;
             tm.msl_temperature = ref.mslTemperature;
 
@@ -819,8 +820,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             NASController* nas = getModule<NASController>();
 
             ANASState state = nas->getANASState();
-            ReferenceValues ref =
-                getModule<AlgoReference>()->getReferenceValues();
             auto triad = nas->getANASTriad();
 
             tm.timestamp       = state.timestamp;
@@ -835,8 +834,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.nas_q1          = state.qy;
             tm.nas_q2          = state.qz;
             tm.nas_q3          = state.qw;
-            tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
             tm.initial_q0      = triad[0];
             tm.initial_q1      = triad[1];
             tm.initial_q2      = triad[2];
@@ -899,7 +896,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             // Sensors
             tm.pressure_digi    = pressDigi.pressure;
-            tm.dynamic_pressure = pitotDynamic.pressure;
+            tm.total_pressure   = pitotDynamic.pressure;
 
             tm.acc_x = imu.accelerationX;
             tm.acc_y = imu.accelerationY;
