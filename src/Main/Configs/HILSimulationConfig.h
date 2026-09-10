@@ -45,7 +45,7 @@ constexpr auto SIMULATION_RATE = 10_hz;
 
 // Period of "sampling" of can sensors for non-FullHIL simulations
 constexpr auto BARO_CHAMBER_RATE = 50_hz;
-constexpr auto BARO_PITOT_RATE   = 20_hz;
+constexpr auto BARO_PITOT_RATE   = 25_hz;
 
 // Number of samples per sensor at each simulator iteration
 constexpr int N_DATA_ACCEL        = 10;  // #samples

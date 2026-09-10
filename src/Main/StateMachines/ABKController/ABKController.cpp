@@ -72,6 +72,7 @@ bool ABKController::start()
 
 ABKLogs ABKController::getLogs()
 {
+    Lock<FastMutex>{abkMutex};
     ABKLogs logs = abk.getABK_Logs_OBSW();
     return logs;
 }
@@ -98,6 +99,7 @@ void ABKController::update()
         getModule<Actuators>()->setAbkPosition(abk.getABK_Control());
 
         // log the data
+        Lock<FastMutex>{abkMutex};
         ABKLogsData logs{TimestampTimer::getTimestamp(),
                          abk.getABK_Logs_OBSW()};
         sdLogger.log(logs);

@@ -68,6 +68,8 @@ private:
 
     uint16_t shadowModeTimeoutEvent = 0;
 
+    miosix::FastMutex abkMutex;
+
     size_t abkTaskId;
     ABK::ABK abk;
 };

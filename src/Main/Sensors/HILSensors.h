@@ -72,32 +72,15 @@ private:
     {
         using namespace Boardcore;
 
-        // If full hil, use the can received samples
-        // if (!getModule<MainHIL>()->isFullHIL())
-        // {
-        //     // Adding to sensorManager's scheduler a task to "sample" the
-        //     // combustion chamber pressure coming from motor
-        //     getSensorsScheduler().addTask(
-        //         [this]()
-        //         {
-        //             getModule<Common::MotorStatus>()
-        //                 ->lockData()
-        //                 ->combustionChamberPressure = updateCCData();
-        //         },
-        //         Config::HIL::BARO_CHAMBER_RATE);
+        getSensorsScheduler().addTask(
+            [this]()
+            { setCanPitotStaticPressure(updateStaticPressurePitot()); },
+            Config::HIL::BARO_PITOT_RATE);
 
-        //     // Adding to sensorManager's scheduler a task to "sample" the
-        //     // pitot static and dynamic pressure coming from payload
-        //     getSensorsScheduler().addTask(
-        //         [this]()
-        //         { setCanPitotStaticPressure(updateStaticPressurePitot()); },
-        //         Config::HIL::BARO_PITOT_RATE);
-
-        //     getSensorsScheduler().addTask(
-        //         [this]()
-        //         { setCanPitotDynamicPressure(updateDynamicPressurePitot());
-        //         }, Config::HIL::BARO_PITOT_RATE);
-        // }
+        getSensorsScheduler().addTask(
+            [this]()
+            { setCanPitotTotalPressure(updateTotalPressurePitot()); },
+            Config::HIL::BARO_PITOT_RATE);
 
         hillificator<>(lps22df, enableHw,
                        [this]() { return updateLPS22DFData(); });
@@ -320,13 +303,13 @@ private:
     Boardcore::IMUData updateIMUData(Main::Sensors& sensors)
     {
 #if defined(DUAL_LSM6)
-#warning "Dual LSM6 usage is not supported in HIL mode at the moment, using VN100"
+#warning \
+    "Dual LSM6 usage is not supported in HIL mode at the moment, using VN100"
 #endif
         auto imu6 = Config::Sensors::IMU::USE_CALIBRATED_VN100
                         ? getCalibratedVN100LastSample()
                         : getVN100LastSample();
         auto mag  = getLIS2MDLRcsLastSample();
-
 
         return Boardcore::IMUData{imu6, imu6, mag};
     };
@@ -345,7 +328,7 @@ private:
         return data;
     };
 
-    Boardcore::PressureData updateDynamicPressurePitot()
+    Boardcore::PressureData updateTotalPressurePitot()
     {
         Boardcore::PressureData data;
 
