@@ -1062,10 +1062,10 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             mavlink_message_t msg;
             mavlink_rocket_stats_ascent_tm_t tm;
 
-            PinHandler* pinHandler = getModule<PinHandler>();
-            ADAController* ada     = getModule<ADAController>();
-            NASController* nas     = getModule<NASController>();
-            SDAController* sda     = getModule<SDAController>();
+            PinHandler* pinHandler  = getModule<PinHandler>();
+            ADAController* ada      = getModule<ADAController>();
+            NASController* nas      = getModule<NASController>();
+            SDAController* sda      = getModule<SDAController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();

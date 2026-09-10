@@ -440,10 +440,10 @@ State FlightModeManager::state_disarmed(const Event& event)
             EventBroker::getInstance().post(ZVK_RESET, TOPIC_ZVK);
             return HANDLED;
         }
-        {
-            EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
-            return HANDLED;
-        }
+            {
+                EventBroker::getInstance().post(ADA_RESET, TOPIC_ADA);
+                return HANDLED;
+            }
         default:
         {
             return UNHANDLED;

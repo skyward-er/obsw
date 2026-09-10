@@ -22,9 +22,9 @@
 
 #include "Sensors.h"
 
+#include <Main/AlgoReference/AlgoReference.h>
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/StateMachines/ZVKController/ZVKController.h>
-#include <Main/AlgoReference/AlgoReference.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 
@@ -195,12 +195,12 @@ CalibrationData Sensors::getCalibration()
         .magBiasX         = magBias.x(),
         .magBiasY         = magBias.y(),
         .magBiasZ         = magBias.z(),
-        .magScale00     = magScale(0, 0),
-        .magScale01     = magScale(0, 1),
-        .magScale02     = magScale(0, 2),
-        .magScale11     = magScale(1, 1),
-        .magScale12     = magScale(1, 2),
-        .magScale22     = magScale(2, 2),
+        .magScale00       = magScale(0, 0),
+        .magScale01       = magScale(0, 1),
+        .magScale02       = magScale(0, 2),
+        .magScale11       = magScale(1, 1),
+        .magScale12       = magScale(1, 2),
+        .magScale22       = magScale(2, 2),
         .pitotDynamicBias = pitotDynamicBias,
     };
 }
@@ -225,11 +225,12 @@ bool Sensors::saveMagCalibration()
 {
     std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
-    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
-    float fieldMagnitude = std::sqrt(ref.magN*ref.magN + ref.magE*ref.magE + ref.magD*ref.magD);
+    ReferenceValues ref  = getModule<AlgoReference>()->getReferenceValues();
+    float fieldMagnitude = std::sqrt(ref.magN * ref.magN + ref.magE * ref.magE +
+                                     ref.magD * ref.magD);
 
-
-    TwelveParametersCorrector calibration = magCalibrator.computeResultSym(fieldMagnitude);
+    TwelveParametersCorrector calibration =
+        magCalibrator.computeResultSym(fieldMagnitude);
     if (!magCalibrator.isLastSymFitValidEllipsoid())
     {
         LOG_WARN(logger,
@@ -533,7 +534,7 @@ PressureData Sensors::getCanPitotDynamicPressure()
     return PressureData{
         .pressureTimestamp = canPitotTotalPressure.pressureTimestamp,
         .pressure          = canPitotTotalPressure.pressure -
-                    canPitotStaticPressure.pressure - pitotDynamicBias,
+                             canPitotStaticPressure.pressure - pitotDynamicBias,
     };
 }
 
