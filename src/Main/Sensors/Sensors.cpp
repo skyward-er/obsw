@@ -24,6 +24,7 @@
 
 #include <Main/Configs/SensorsConfig.h>
 #include <Main/StateMachines/ZVKController/ZVKController.h>
+#include <Main/AlgoReference/AlgoReference.h>
 #include <interfaces-impl/hwmapping.h>
 #include <sensors/calibration/BiasCalibration/BiasCalibration.h>
 

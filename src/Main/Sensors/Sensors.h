@@ -55,10 +55,11 @@ namespace Main
 {
 
 class ZVKController;
+class AlgoReference;
 
 class Sensors
     : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, StatsRecorder,
-                                           ZVKController>
+                                           ZVKController, AlgoReference>
 {
 public:
     Sensors() {}
