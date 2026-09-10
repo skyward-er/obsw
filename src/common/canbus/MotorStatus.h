@@ -76,6 +76,7 @@ struct MotorStatus : public Boardcore::Injectable
         float meaInitialMass       = 0.0f;
         float meaPressure          = 0.0f;
         uint8_t firingHsmState     = 0;
+        uint8_t meaState = 0;
     };
 
     struct MEAData
@@ -83,6 +84,7 @@ struct MotorStatus : public Boardcore::Injectable
         float initialMass = 0.0f;
         float pressure    = 0.0f;
         uint8_t hsmState  = 0;
+        uint8_t meaState = 0;
     };
 
     /**
@@ -127,7 +129,7 @@ struct MotorStatus : public Boardcore::Injectable
         auto data = lockData();
 
         MEAData meaStatus{data->meaInitialMass, data->meaPressure,
-                      data->firingHsmState};
+                      data->firingHsmState, data->meaState};
 
         return meaStatus;
     };

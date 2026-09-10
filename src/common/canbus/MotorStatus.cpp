@@ -191,6 +191,7 @@ void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
             data.meaInitialMass = meaStatus.mass;
             data.meaPressure    = meaStatus.pressure;
             data.firingHsmState = meaStatus.hsmState;
+            data.meaState       = meaStatus.meaState;
 
             break;
         }

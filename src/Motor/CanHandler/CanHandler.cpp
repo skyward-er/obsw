@@ -310,6 +310,7 @@ bool CanHandler::start()
             data.mass     = mea->getInitialMass();
             data.pressure = mea->getLogs().Pressure;
             data.hsmState = static_cast<uint8_t>(hsm->getState());
+            data.meaState = static_cast<uint8_t>(mea->getMEAControllerState());
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),

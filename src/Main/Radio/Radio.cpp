@@ -860,7 +860,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             NASController* nas = getModule<NASController>();
 
             ANASState state = nas->getANASState();
-            auto triad = nas->getANASTriad();
+            auto triad      = nas->getANASTriad();
 
             tm.timestamp  = state.timestamp;
             tm.state      = static_cast<uint8_t>(nas->getState());
@@ -1064,7 +1064,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             ADAController* ada     = getModule<ADAController>();
             NASController* nas     = getModule<NASController>();
             SDAController* sda     = getModule<SDAController>();
-            // MEAController* mea      = getModule<MEAController>();
             ABKController* abk      = getModule<ABKController>();
             StatsRecorder* recorder = getModule<StatsRecorder>();
             MotorStatus* motor      = getModule<MotorStatus>();
@@ -1097,7 +1096,7 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.abk_state = static_cast<uint8_t>(abk->getState());
             tm.nas_state = static_cast<uint8_t>(nas->getState());
             tm.sda_state = static_cast<uint8_t>(sda->getState());
-            // tm.mea_state = static_cast<uint8_t>(mea->getState());
+            tm.mea_state = static_cast<uint8_t>(motor->getMeaStatus().meaState);
 
             // Actuators
             tm.pin_launch =
