@@ -66,28 +66,33 @@ if(TARGET main-airbrakes-demo)
     target_include_directories(main-airbrakes-demo PRIVATE ${OBSW_INCLUDE_DIRS})
 endif()
 
-sbs_declare_target(payload-entry stm32f767zi_orion_biscotto
-    src/Payload/payload-entry.cpp
-    ${PAYLOAD_COMPUTER})
-if(TARGET payload-entry)
-    target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
-endif()
-
-sbs_declare_target(payload-entry-roccaraso stm32f767zi_orion_biscotto
-    src/Payload/payload-entry.cpp
-    ${PAYLOAD_COMPUTER}
-    DEFS ROCCARASO)
-if(TARGET payload-entry-roccaraso)
-    target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
-endif()
-
-sbs_declare_target(payload-entry-euroc stm32f767zi_orion_biscotto
-    src/Payload/payload-entry.cpp
-    ${PAYLOAD_COMPUTER}
-    DEFS EUROC)
-if(TARGET payload-entry-euroc)
-    target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
-endif()
+# Disabled: the Payload NAS controller still uses the pre-Miosix3 Boardcore NAS
+# module (algorithms/NAS/NAS.h, NASConfig.h), which Boardcore dev replaced with
+# the autocoded estimators (ANAS0/NASDAQ0) and StateInitializer. The payload
+# targets only exist on this branch; they need a dedicated port to the new
+# estimator API before they can be re-enabled.
+# sbs_declare_target(payload-entry stm32f767zi_orion_biscotto
+#     src/Payload/payload-entry.cpp
+#     ${PAYLOAD_COMPUTER})
+# if(TARGET payload-entry)
+#     target_include_directories(payload-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+# endif()
+#
+# sbs_declare_target(payload-entry-roccaraso stm32f767zi_orion_biscotto
+#     src/Payload/payload-entry.cpp
+#     ${PAYLOAD_COMPUTER}
+#     DEFS ROCCARASO)
+# if(TARGET payload-entry-roccaraso)
+#     target_include_directories(payload-entry-roccaraso PRIVATE ${OBSW_INCLUDE_DIRS})
+# endif()
+#
+# sbs_declare_target(payload-entry-euroc stm32f767zi_orion_biscotto
+#     src/Payload/payload-entry.cpp
+#     ${PAYLOAD_COMPUTER}
+#     DEFS EUROC)
+# if(TARGET payload-entry-euroc)
+#     target_include_directories(payload-entry-euroc PRIVATE ${OBSW_INCLUDE_DIRS})
+# endif()
 
 sbs_declare_target(motor-entry stm32f767zi_hydra_engine
     src/Motor/motor-entry.cpp
