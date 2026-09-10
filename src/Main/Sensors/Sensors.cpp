@@ -224,7 +224,11 @@ bool Sensors::saveMagCalibration()
 {
     std::lock_guard<std::mutex> lock{magCalibrationMutex};
 
-    TwelveParametersCorrector calibration = magCalibrator.computeResultSym();
+    ReferenceValues ref = getModule<AlgoReference>()->getReferenceValues();
+    float fieldMagnitude = std::sqrt(ref.magN*ref.magN + ref.magE*ref.magE + ref.magD*ref.magD);
+
+
+    TwelveParametersCorrector calibration = magCalibrator.computeResultSym(fieldMagnitude);
     if (!magCalibrator.isLastSymFitValidEllipsoid())
     {
         LOG_WARN(logger,
