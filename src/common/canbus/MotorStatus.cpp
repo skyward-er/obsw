@@ -188,13 +188,18 @@ void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
             auto meaStatus = MEAStatusFromCanMessage(msg);
 
             sdLogger.log(meaStatus);
-            meaData = {meaStatus.mass, meaStatus.pressure, meaStatus.hsmState};
+            data.meaInitialMass = meaStatus.mass;
+            data.meaPressure    = meaStatus.pressure;
+            data.firingHsmState = meaStatus.hsmState;
+
             break;
         }
 
         case CanConfig::AlgoId::MEA_MASS:
         {
-            meaMass.store(meaMassFromCanMessage(msg));
+            auto data = meaDataFromCanMessage(msg);
+
+            meaMass.store(data.mass);
 
             break;
         }

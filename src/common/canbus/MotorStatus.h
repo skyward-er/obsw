@@ -73,6 +73,9 @@ struct MotorStatus : public Boardcore::Injectable
         bool oxSolenoidState       = false;
         bool fuelSolenoidState     = false;
         bool sparkIgniterOn        = false;
+        float meaInitialMass       = 0.0f;
+        float meaPressure          = 0.0f;
+        uint8_t firingHsmState     = 0;
     };
 
     struct MEAData
@@ -119,7 +122,15 @@ struct MotorStatus : public Boardcore::Injectable
      * initial mass, pressure, and Firing Sequence state.
      * @return The struct containing all elements cited above.
      */
-    MEAData getMeaStatus() const { return meaData; };
+    MEAData getMeaStatus()
+    {
+        auto data = lockData();
+
+        MEAData meaStatus{data->meaInitialMass, data->meaPressure,
+                      data->firingHsmState};
+
+        return meaStatus;
+    };
 
     /**
      * @brief Returns whether the motor board was detected on the CAN bus at
