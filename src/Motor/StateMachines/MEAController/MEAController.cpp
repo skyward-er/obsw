@@ -21,6 +21,7 @@
  */
 
 #include <Motor/BoardScheduler.h>
+#include <Motor/Configs/MEAConfig.h>
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceData.h>
@@ -70,9 +71,8 @@ bool MEAController::start()
 {
     TaskScheduler& scheduler = getModule<BoardScheduler>()->mea();
 
-    size_t result =
-        scheduler.addTask([this]() { update(); },
-                          getModule<BoardScheduler>()->meaControllerPriority());
+    size_t result = scheduler.addTask([this]() { update(); },
+                                      Motor::Config::MEA::UPDATE_RATE_MEA);
 
     if (result == 0)
     {
@@ -99,32 +99,42 @@ void MEAController::updateAndLogStatus(MEAControllerState state)
 void MEAController::update()
 {
     Lock<FastMutex> lock{meaMutex};
+    if (state == MEAControllerState::ACTIVE)
+    {
+        Sensors* sensors = getModule<Sensors>();
+        auto firingHSM   = getModule<FiringSequenceHSM>();
 
-    Sensors* sensors = getModule<Sensors>();
-    auto firingHSM   = getModule<FiringSequenceHSM>();
+        float CCPTMeasure  = sensors->getMainCCPressure().pressure;
+        uint64_t timestamp = TimestampTimer::getTimestamp();
+        float mainPosition = sensors->getMainFuelPosition().position;
 
-    float CCPTMeasure  = sensors->getMainCCPressure().pressure;
-    uint64_t timestamp = TimestampTimer::getTimestamp();
-    float mainPosition = sensors->getMainFuelPosition().position;
+        // Temp fix, nel mentre viene fixata la parte Autocodata di MEAIn
+        // (FSMState)
+        FSMStates hsmState = static_cast<FSMStates>(firingHSM->getState());
 
-    // Temp fix, nel mentre viene fixata la parte Autocodata di MEAIn (FSMState)
-    FSMStates hsmState = static_cast<FSMStates>(firingHSM->getState());
+        MEA_types_h_::MEAIn in = {CCPTMeasure, timestamp, mainPosition,
+                                  hsmState};
 
-    MEA_types_h_::MEAIn in = {CCPTMeasure, timestamp, mainPosition, hsmState};
+        mea.setMEA_In(in);
+        mea.step();
 
-    mea.setMEA_In(in);
-    mea.step();
-
-    timestamp = TimestampTimer::getTimestamp();
-    sdLogger.log(MEALogsWrapper{timestamp, mea.getMEA_Logs_OBSW()});
+        timestamp = TimestampTimer::getTimestamp();
+        sdLogger.log(MEALogsWrapper{timestamp, mea.getMEA_Logs_OBSW()});
+    }
 }
 
-void MEAController::calibrate() { mea.initialize(); }
+void MEAController::calibrate()
+{
+    Lock<FastMutex> lock{meaMutex};
+    mea.initialize();
+}
 
 void MEAController::setInitialMass(float mass)
 {
+    Lock<FastMutex> lock{meaMutex};
     MEAReference ref{mass};
     mea.setMEA_Reference(ref);
+    mea.initialize();
 
     initialMass = mass;
 }
@@ -133,6 +143,7 @@ float MEAController::getInitialMass() { return initialMass; }
 
 MEALogs MEAController::getLogs()
 {
+    Lock<FastMutex> lock{meaMutex};
     auto logs = mea.getMEA_Logs_OBSW();
 
     return logs;
@@ -176,7 +187,7 @@ void MEAController::state_ready(const Event& event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(MEAControllerState::ACTIVE);
+            updateAndLogStatus(MEAControllerState::READY);
             break;
         }
 

@@ -200,8 +200,7 @@ private:
 
     void handleSensors(const Boardcore::Canbus::CanMessage& msg);
     void handleActuators(const Boardcore::Canbus::CanMessage& msg);
-    void handleMea(const Boardcore::Canbus::CanMessage& msg);
-    void handleMeaStatus(const Boardcore::Canbus::CanMessage& msg);
+    void handleAlgorithms(const Boardcore::Canbus::CanMessage& msg);
 
     miosix::FastMutex mutex;  ///< Mutex to protect access to the status data
 

@@ -64,12 +64,7 @@ void MotorStatus::handleCanMessage(const Canbus::CanMessage& msg)
         }
         case CanConfig::PrimaryType::ALGORITHM:
         {
-            handleMea(msg);
-            break;
-        }
-        case CanConfig::PrimaryType::RESPONSE:
-        {
-            handleMeaStatus(msg);
+            handleAlgorithms(msg);
             break;
         }
 
@@ -182,15 +177,33 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
     }
 }
 
-void MotorStatus::handleMea(const Boardcore::Canbus::CanMessage& msg)
+void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
 {
-    meaMass.store(meaMassFromCanMessage(msg));
-}
+    auto algo = static_cast<CanConfig::AlgoId>(msg.getSecondaryType());
 
-void MotorStatus::handleMeaStatus(const Boardcore::Canbus::CanMessage& msg)
-{
-    auto meaStatus = MEAStatusFromCanMessage(msg);
-    meaData        = {meaStatus.mass, meaStatus.pressure, meaStatus.hsmState};
+    switch (algo)
+    {
+        case CanConfig::AlgoId::MEA_STATE:
+        {
+            auto meaStatus = MEAStatusFromCanMessage(msg);
+
+            sdLogger.log(meaStatus);
+            meaData = {meaStatus.mass, meaStatus.pressure, meaStatus.hsmState};
+            break;
+        }
+
+        case CanConfig::AlgoId::MEA_MASS:
+        {
+            meaMass.store(meaMassFromCanMessage(msg));
+
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
 }
 
 mavlink_motor_tm_t MotorStatus::getMotorTelemetry()

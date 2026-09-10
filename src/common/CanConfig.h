@@ -89,12 +89,13 @@ enum class Board : uint8_t
 
 enum class AlgoId : uint8_t
 {
-    MEA_STATE,
+    MEA_STATE = 0,
+    MEA_MASS,
 };
 
 enum class SensorId : uint8_t
 {
-    PITOT_STATIC_PRESSURE,
+    PITOT_STATIC_PRESSURE = 0,
     PITOT_TOTAL_PRESSURE,
     PITOT_NTC_TEMPERATURE,
     OX_TANK_PRESSURE,
@@ -142,6 +143,7 @@ enum class CommandId : uint8_t
     FIRING_PARAMETERS_REQUEST,
 };
 
+// Can bus responses are used for ad hoc replies
 enum class ResponseId : uint8_t
 {
     FIRING_PARAMETERS_RESPONSE = 0,

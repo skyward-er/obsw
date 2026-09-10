@@ -199,7 +199,7 @@ void CanHandler::sendSaveRegistry()
         static_cast<uint8_t>(CanConfig::Priority::HIGH),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::RIG),
-        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(CanConfig::CommandId::SAVE_REGISTRY),
         static_cast<uint8_t>(0x0));
 }
@@ -210,7 +210,7 @@ void CanHandler::sendClearRegistry()
         static_cast<uint8_t>(CanConfig::Priority::HIGH),
         static_cast<uint8_t>(CanConfig::PrimaryType::COMMAND),
         static_cast<uint8_t>(CanConfig::Board::RIG),
-        static_cast<uint8_t>(CanConfig::Board::MOTOR),
+        static_cast<uint8_t>(CanConfig::Board::BROADCAST),
         static_cast<uint8_t>(CanConfig::CommandId::CLEAR_REGISTRY),
         static_cast<uint8_t>(0x0));
 }

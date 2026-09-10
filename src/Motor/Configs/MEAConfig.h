@@ -1,5 +1,5 @@
-/* Copyright (c) 2024 Skyward Experimental Rocketry
- * Authors: Davide Mor
+/* Copyright (c) 2026 Skyward Experimental Rocketry
+ * Authors: Pietro Bortolus
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,29 +25,21 @@
 #include <common/ReferenceConfig.h>
 #include <units/Frequency.h>
 
-namespace Main
+namespace Motor
 {
 
 namespace Config
 {
 
-namespace NAS
+namespace MEA
 {
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE_ANAS   = 50_hz;
-constexpr Hertz UPDATE_RATE_NASDAQ = 100_hz;
-constexpr float UPDATE_RATE_ANAS_SECONDS =
-    1.0 / UPDATE_RATE_ANAS.value();  // [s]
-constexpr float UPDATE_RATE_NASDAQ_SECONDS =
-    1.0 / UPDATE_RATE_NASDAQ.value();  // [s]
+constexpr Hertz UPDATE_RATE_MEA = 50_hz;
 
-constexpr int CALIBRATION_SAMPLES_COUNT       = 20;
-constexpr unsigned int CALIBRATION_SLEEP_TIME = 100;  // [ms]
-
-}  // namespace NAS
+}  // namespace MEA
 
 }  // namespace Config
 
-}  // namespace Main
+}  // namespace Motor

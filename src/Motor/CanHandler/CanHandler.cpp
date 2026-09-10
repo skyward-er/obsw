@@ -188,7 +188,7 @@ bool CanHandler::start()
 
     if (result == 0)
     {
-        LOG_ERR(logger, "Failed to insert temperature update");
+        LOG_ERR(logger, "Failed to insert internal adc update");
         return false;
     }
 
@@ -288,10 +288,16 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::PrimaryType::ALGORITHM),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
-                static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE),
+                static_cast<uint8_t>(CanConfig::AlgoId::MEA_MASS),
                 static_cast<MeaData>(MeaData{meaState.mass}));
         },
         Config::CanHandler::MEA_MASS_SEND_RATE);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to insert MEA mass update");
+        return false;
+    }
 
     result = scheduler.addTask(
         [this]()
@@ -307,12 +313,18 @@ bool CanHandler::start()
 
             protocol.enqueueData(
                 static_cast<uint8_t>(CanConfig::Priority::HIGH),
-                static_cast<uint8_t>(CanConfig::PrimaryType::RESPONSE),
+                static_cast<uint8_t>(CanConfig::PrimaryType::ALGORITHM),
                 static_cast<uint8_t>(CanConfig::Board::MOTOR),
-                static_cast<uint8_t>(CanConfig::Board::MAIN),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(CanConfig::AlgoId::MEA_STATE), data);
         },
         Config::CanHandler::MEA_STATUS_SEND_RATE);
+
+    if (result == 0)
+    {
+        LOG_ERR(logger, "Failed to insert MEA status update");
+        return false;
+    }
 
     if (!protocol.start())
     {
