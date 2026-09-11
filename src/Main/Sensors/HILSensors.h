@@ -78,8 +78,7 @@ private:
             Config::HIL::BARO_PITOT_RATE);
 
         getSensorsScheduler().addTask(
-            [this]()
-            { setCanPitotTotalPressure(updateTotalPressurePitot()); },
+            [this]() { setCanPitotTotalPressure(updateTotalPressurePitot()); },
             Config::HIL::BARO_PITOT_RATE);
 
         hillificator<>(lps22df, enableHw,

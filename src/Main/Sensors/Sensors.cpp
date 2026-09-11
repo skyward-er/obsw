@@ -534,7 +534,7 @@ PressureData Sensors::getCanPitotDynamicPressure()
     return PressureData{
         .pressureTimestamp = canPitotTotalPressure.pressureTimestamp,
         .pressure          = canPitotTotalPressure.pressure -
-                             canPitotStaticPressure.pressure - pitotDynamicBias,
+                    canPitotStaticPressure.pressure - pitotDynamicBias,
     };
 }
 
