@@ -127,6 +127,7 @@ enum class EventId : uint8_t
     EREG_FUEL_TOGGLE,
     CLOSE_ALL_VALVES,
     WIGGLE_ALL_VALVES,
+    PURGE_OX,
 };
 
 enum class CommandId : uint8_t
@@ -165,6 +166,7 @@ static const std::map<Common::CanConfig::EventId, Common::Events> eventToEvent{
     {Common::CanConfig::EventId::EREG_OX_TOGGLE, Common::CAN_EREG_OX_TOGGLE},
     {Common::CanConfig::EventId::EREG_FUEL_TOGGLE,
      Common::CAN_EREG_FUEL_TOGGLE},
+    {Common::CanConfig::EventId::PURGE_OX, Common::CAN_PURGE_OX}
 
 };
 
@@ -202,6 +204,8 @@ inline Events canEventToEvent(uint8_t canEvent)
             return CAN_EREG_OX_TOGGLE;
         case (int)CanConfig::EventId::EREG_FUEL_TOGGLE:
             return CAN_EREG_FUEL_TOGGLE;
+        case (int)CanConfig::EventId::PURGE_OX:
+            return CAN_PURGE_OX;
         default:
             return LAST_EVENT;
     }

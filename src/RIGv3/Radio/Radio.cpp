@@ -1331,9 +1331,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::PURGE_VALVE);
+            getModule<CanHandler>()->sendEvent(CanConfig::EventId::PURGE_OX);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::PURGE_VALVE);
+            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_1_btn))

@@ -675,8 +675,13 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
                                             TOPIC_FIRING_SEQUENCE);
             break;
         }
-
+        case Common::CanConfig::EventId::PURGE_OX:
+        {
+            EventBroker::getInstance().post(CAN_PURGE_OX, TOPIC_CAN);
+            break;
+        }
         default:
+
             LOG_WARN(logger, "Received unsupported event: {}", event);
             break;
     }

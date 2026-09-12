@@ -45,6 +45,7 @@ FiringSequenceHSM::FiringSequenceHSM()
           BoardScheduler::firingSequenceHSMPriority())
 {
     EventBroker::getInstance().subscribe(this, TOPIC_FIRING_SEQUENCE);
+    EventBroker::getInstance().subscribe(this, TOPIC_CAN);
 }
 
 void FiringSequenceHSM::setFiringParams(uint32_t fullThrottleTime,
@@ -271,6 +272,28 @@ State FiringSequenceHSM::state_ready(const Event& event)
             return transition(&FiringSequenceHSM::state_firing);
         }
 
+        case CAN_PURGE_OX:
+        {
+            float pilotOxPosition =
+                getModule<Registry>()->getOrSetDefaultUnsafe(
+                    CONFIG_ID_PILOT_FLAME_OX_POSITION,
+                    Config::FiringSequence::PILOT_OX_POSITION);
+
+            getModule<Actuators>()->moveValve(ServosList::MAIN_OX_VALVE,
+                                              pilotOxPosition);
+
+            nextEventId = EventBroker::getInstance().postDelayed(
+                FIRING_SEQUENCE_PURGE_OX_STOP, TOPIC_FIRING_SEQUENCE,
+                Config::FiringSequence::PURGE_OX_TIME.count());
+            return HANDLED;
+        }
+
+        case FIRING_SEQUENCE_PURGE_OX_STOP:
+        {
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_top);
@@ -278,6 +301,7 @@ State FiringSequenceHSM::state_ready(const Event& event)
 
         case EV_EXIT:
         {
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
             return HANDLED;
         }
 

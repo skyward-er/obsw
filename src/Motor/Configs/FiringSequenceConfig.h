@@ -36,6 +36,8 @@ namespace FiringSequence
 
 static constexpr Hertz UPDATE_RATE = 100_hz;
 
+static constexpr milliseconds PURGE_OX_TIME{300};
+
 static constexpr milliseconds IGN_OX_OPENING_TIME{2500};
 static constexpr milliseconds IGN_FUEL_DELAY{100};
 static constexpr milliseconds IGN_FUEL_OPENING_TIME{2000};
