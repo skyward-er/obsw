@@ -70,7 +70,7 @@ int main()
     auto scheduler = new BoardScheduler();
     auto expander  = new GpioExpander();
 
-    Sensors* sensors = new Sensors();
+    Sensors* sensors = nullptr;
     auto actuators   = new Actuators();
     auto radio       = new Radio();
     auto canHandler  = new CanHandler();

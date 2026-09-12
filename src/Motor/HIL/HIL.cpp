@@ -108,42 +108,50 @@ void MotorHILPhasesManager::handleHSMTransition(const uint8_t hsmState)
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_CONFIG_SET,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::IGNITER:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_START,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::IGNITER_WAIT:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_IGN_FUEL,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::PILOT_FLAME:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_IGNITER_OK,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::RAMP_UP:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_PILOT_FLAME_OK,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::FULL_THROTTLE:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_FULL_THROTTLE,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::LOW_THROTTLE:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_LOW_THROTTLE,
                                  Common::TOPIC_FIRING_SEQUENCE);
+                break;
             }
             case FiringSequenceState::ENDED:
             {
                 eventBroker.post(Common::FIRING_SEQUENCE_END,
                                  Common::TOPIC_FIRING_SEQUENCE);
                 eventBroker.post(Common::MEA_STOP, Common::MEA_STOP);
+                break;
             }
             default:
             {
