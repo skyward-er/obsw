@@ -85,6 +85,7 @@ ADAController::ADAController()
           Config::Scheduler::ADA_PRIORITY},
       deploymentAltitude{Config::ADA::DEPLOYMENT_ALTITUDE_TARGET},
       shadowModeTime{Config::ADA::SHADOW_MODE_TIMEOUT},
+      drogueShadowModeTime{Config::ADA::DROGUE_SHADOW_MODE_TIMEOUT},
       ada{DEFAULT_KALMAN_CONFIG}
 {
     EventBroker::getInstance().subscribe(this, TOPIC_ADA);
@@ -155,6 +156,11 @@ std::chrono::milliseconds ADAController::getDrogueShadowModeTime()
 void ADAController::setShadowModeTime(milliseconds time)
 {
     shadowModeTime = time;
+}
+
+void ADAController::setDrogueShadowModeTime(milliseconds time)
+{
+    drogueShadowModeTime = time;
 }
 
 ADAControllerState ADAController::getState() { return state; }
@@ -476,7 +482,7 @@ void ADAController::state_drogue_shadow_mode(const Event& event)
 
             shadowModeTimeoutEvent = EventBroker::getInstance().postDelayed(
                 ADA_SHADOW_MODE_TIMEOUT, TOPIC_ADA,
-                Config::ADA::DROGUE_SHADOW_MODE_TIMEOUT.count());
+                drogueShadowModeTime.load().count());
             break;
         }
 

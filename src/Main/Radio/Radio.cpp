@@ -479,29 +479,29 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             enqueueAck(msg);
             break;
         }
-            /* TODO: FIX THIS
-            case MAVLINK_MSG_ID_SET_MEA_APOGEE_TARGET_TC:
-            {
-                float apogee =
-                    mavlink_msg_set_mea_apogee_target_tc_get_apogee_target(&msg);
 
-                getModule<MEAController>()->setApogeeTarget(apogee);
+        case MAVLINK_MSG_ID_SET_SDA_APOGEE_TARGET_TC:
+        {
+            float apogee =
+                mavlink_msg_set_sda_apogee_target_tc_get_apogee_target(&msg);
 
-                enqueueAck(msg);
-                break;
-            }
+            getModule<SDAController>()->setApogeeTarget(apogee);
 
-            case MAVLINK_MSG_ID_SET_MEA_MIN_BURN_TIME_TC:
-            {
-                uint32_t time =
-                    mavlink_msg_set_mea_min_burn_time_tc_get_min_burn_time(&msg);
+            enqueueAck(msg);
+            break;
+        }
 
-                getModule<MEAController>()->setMinBurnTime(milliseconds{time});
+        case MAVLINK_MSG_ID_SET_SDA_MIN_BURN_TIME_TC:
+        {
+            uint32_t time =
+                mavlink_msg_set_sda_min_burn_time_tc_get_min_burn_time(&msg);
 
-                enqueueAck(msg);
-                break;
-            }
-            */
+            getModule<SDAController>()->setMinBurnTime(milliseconds{time});
+
+            enqueueAck(msg);
+            break;
+        }
+
         case MAVLINK_MSG_ID_SET_SDA_MAX_BURN_TIME_TC:
         {
             uint32_t time =
@@ -518,6 +518,10 @@ void Radio::handleMessage(const mavlink_message_t& msg)
         {
             uint32_t time =
                 mavlink_msg_set_ada_shadow_mode_time_tc_get_shadow_mode_time(
+                    &msg);
+
+            uint32_t drogueTime =
+                mavlink_msg_set_ada_shadow_mode_time_tc_get_drogue_shadow_mode_time(
                     &msg);
 
             getModule<ADAController>()->setShadowModeTime(milliseconds{time});

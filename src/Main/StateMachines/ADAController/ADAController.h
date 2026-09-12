@@ -59,6 +59,7 @@ public:
     std::chrono::milliseconds getShadowModeTime();
     void setShadowModeTime(std::chrono::milliseconds time);
 
+    void setDrogueShadowModeTime(std::chrono::milliseconds time);
     std::chrono::milliseconds getDrogueShadowModeTime();
 
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
@@ -90,6 +91,7 @@ private:
 
     std::atomic<float> deploymentAltitude;  // [m]
     std::atomic<std::chrono::milliseconds> shadowModeTime;
+    std::atomic<std::chrono::milliseconds> drogueShadowModeTime;
 
     miosix::FastMutex adaMutex;
     Boardcore::ADA ada;
