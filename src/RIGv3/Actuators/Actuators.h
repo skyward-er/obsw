@@ -157,6 +157,9 @@ public:
     void armLightOn();
     void armLightOff();
 
+    void sirenOn();
+    void sirenOff();
+
     void toggleDetach();
     bool getDetachState();
 
@@ -166,6 +169,10 @@ private:
 
     TimePoint nextTaskDeadline() override;
     void task() override;
+
+    void sirenTask();
+    bool sirenState = false;
+    bool isSirenOn  = false;
 
     std::atomic<bool> started{false};
 

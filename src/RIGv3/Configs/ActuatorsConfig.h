@@ -50,6 +50,12 @@ constexpr Boardcore::I2CDriver::I2CSlaveConfig I2CExpander1Config{
 
 }  // namespace Expanders
 
+namespace Siren
+{
+/* linter off */ using namespace Boardcore::Units::Frequency;
+constexpr Hertz SIREN_UPDATE_RATE = 0.2_hz;
+}  // namespace Siren
+
 namespace Servos
 {
 /* linter off */ using namespace Boardcore::Units::Frequency;

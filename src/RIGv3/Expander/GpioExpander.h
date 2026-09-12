@@ -41,12 +41,9 @@ public:
                                     getModule<Buses>()->getGpioExpanderCsPin());
 
         expander->init();
-        expander->setPinMode(Config::GpioExpander::DWS_ENABLE_PIN.getPort(),
-                             Config::GpioExpander::DWS_ENABLE_PIN.getPin(),
+        expander->setPinMode(Config::GpioExpander::SIREN_PIN.getPort(),
+                             Config::GpioExpander::SIREN_PIN.getPin(),
                              Boardcore::MCP23S17Defs::MODE::OUTPUT);
-        // DWS enable is normally high since it powers DWS system
-        expander->setPinValue(Config::GpioExpander::DWS_ENABLE_PIN.getPort(),
-                              Config::GpioExpander::DWS_ENABLE_PIN.getPin(), 1);
 
         expander->setPinMode(Config::GpioExpander::DETACH_VALVE_PIN.getPort(),
                              Config::GpioExpander::DETACH_VALVE_PIN.getPin(),

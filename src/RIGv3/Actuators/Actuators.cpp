@@ -206,6 +206,12 @@ bool Actuators::start()
         return false;
     }
 
+    TaskScheduler& scheduler =
+        getModule<BoardScheduler>()->lowPriorityActuators();
+
+    scheduler.addTask([this]() { sirenTask(); },
+                      RIGv3::Config::Siren::SIREN_UPDATE_RATE);
+
     signalTask();
     started = true;
     return true;
@@ -269,6 +275,10 @@ void Actuators::armLightOff()
         Config::GpioExpander::ARMING_LIGHT_PIN.getPort(),
         Config::GpioExpander::ARMING_LIGHT_PIN.getPin(), 0);
 }
+
+void Actuators::sirenOn() { isSirenOn = true; }
+
+void Actuators::sirenOff() { isSirenOn = false; }
 
 void Actuators::toggleDetach()
 {
@@ -731,3 +741,21 @@ void Actuators::task()
         stopSparkPlug();
 }
 
+void Actuators::sirenTask()
+{
+    if (!isSirenOn)
+    {
+        getModule<GpioExpander>()->getExpander().setPinValue(
+            Config::GpioExpander::SIREN_PIN.getPort(),
+            Config::GpioExpander::SIREN_PIN.getPin(), 0);
+        return;
+    }
+    else
+    {
+        getModule<GpioExpander>()->getExpander().setPinValue(
+            Config::GpioExpander::SIREN_PIN.getPort(),
+            Config::GpioExpander::SIREN_PIN.getPin(), sirenState);
+
+        sirenState = !sirenState;
+    }
+}

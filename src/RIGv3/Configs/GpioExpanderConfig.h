@@ -31,7 +31,7 @@ namespace Config
 namespace GpioExpander
 {
 
-static constexpr Boardcore::ExternalGpioPin DWS_ENABLE_PIN(
+static constexpr Boardcore::ExternalGpioPin SIREN_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN0);
 static constexpr Boardcore::ExternalGpioPin DETACH_VALVE_PIN(
     Boardcore::MCP23S17Defs::PORT::PORT_A, Boardcore::MCP23S17Defs::PIN::PIN1);

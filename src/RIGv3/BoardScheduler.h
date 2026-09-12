@@ -54,6 +54,7 @@ public:
     };
 
     Boardcore::TaskScheduler& actuators() { return critical; }
+    Boardcore::TaskScheduler& lowPriorityActuators() { return low; }
     Boardcore::TaskScheduler& firingSequenceHSM() { return high; }
     Boardcore::TaskScheduler& eregOx() { return high; }
     Boardcore::TaskScheduler& eregFuel() { return high; }
@@ -138,6 +139,7 @@ private:
     Boardcore::TaskScheduler critical{Priority::CRITICAL};
     Boardcore::TaskScheduler high{Priority::HIGH};
     Boardcore::TaskScheduler medium{Priority::MEDIUM};
+    Boardcore::TaskScheduler low{Priority::LOW};
 
     std::atomic<bool> started{false};
 
