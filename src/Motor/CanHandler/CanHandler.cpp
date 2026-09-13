@@ -669,10 +669,17 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
                                             TOPIC_FIRING_SEQUENCE);
             break;
         }
+        case Common::CanConfig::EventId::ARM:
+        {
+            EventBroker::getInstance().post(FLIGHT_ARMED, TOPIC_MEA);
+            break;
+        }
+
         case Common::CanConfig::EventId::DISARM:
         {
             EventBroker::getInstance().post(FIRING_SEQUENCE_ABORT,
                                             TOPIC_FIRING_SEQUENCE);
+            EventBroker::getInstance().post(FLIGHT_DISARMED, TOPIC_MEA);
             break;
         }
         case Common::CanConfig::EventId::PURGE_OX:
@@ -680,8 +687,8 @@ void CanHandler::handleEvent(const Canbus::CanMessage& msg)
             EventBroker::getInstance().post(CAN_PURGE_OX, TOPIC_CAN);
             break;
         }
-        default:
 
+        default:
             LOG_WARN(logger, "Received unsupported event: {}", event);
             break;
     }

@@ -485,9 +485,11 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             float apogee =
                 mavlink_msg_set_sda_apogee_target_tc_get_apogee_target(&msg);
 
-            getModule<SDAController>()->setApogeeTarget(apogee);
+            if (getModule<SDAController>()->setApogeeTarget(apogee))
+                enqueueAck(msg);
+            else
+                enqueueNack(msg, 0);
 
-            enqueueAck(msg);
             break;
         }
 
@@ -525,6 +527,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                     &msg);
 
             getModule<ADAController>()->setShadowModeTime(milliseconds{time});
+            getModule<ADAController>()->setDrogueShadowModeTime(
+                milliseconds{drogueTime});
 
             enqueueAck(msg);
             break;

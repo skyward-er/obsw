@@ -94,7 +94,17 @@ void SDAController::setMinBurnTime(milliseconds time) { minBurnTime = time; }
 
 float SDAController::getApogeeTarget() { return apogeeTarget.load(); }
 
-void SDAController::setApogeeTarget(float apogee) { apogeeTarget = apogee; }
+bool SDAController::setApogeeTarget(float apogee)
+{
+    if (state != SDAControllerState::READY)
+        return false;
+
+    apogeeTarget = apogee;
+
+    Lock<FastMutex> lock{sdaMutex};
+    sda.setSDA_Target(apogee);
+    return true;
+}
 
 void SDAController::update()
 {
@@ -142,6 +152,7 @@ void SDAController::state_init(const Event& event)
             updateAndLogStatus(SDAControllerState::INIT);
 
             sda.initialize();
+            sda.setSDA_Target(apogeeTarget);
 
             // Immediately transition to ready
             transition(&SDAController::state_ready);

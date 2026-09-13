@@ -156,11 +156,13 @@ void CanHandler::handleMessage(const Canbus::CanMessage& msg)
 {
     // Handle motor messages
     auto source = static_cast<CanConfig::Board>(msg.getSource());
-    if (source == CanConfig::Board::MOTOR)
-        return getModule<MotorStatus>()->handleCanMessage(msg);
 
     CanConfig::PrimaryType type =
         static_cast<CanConfig::PrimaryType>(msg.getPrimaryType());
+
+    if (source == CanConfig::Board::MOTOR &&
+        type != CanConfig::PrimaryType::EVENTS)
+        return getModule<MotorStatus>()->handleCanMessage(msg);
 
     switch (type)
     {

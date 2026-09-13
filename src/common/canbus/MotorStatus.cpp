@@ -22,6 +22,7 @@
 
 #include "MotorStatus.h"
 
+#include <Motor/Configs/MEAConfig.h>
 #include <common/CanConfig.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <miosix.h>
@@ -200,8 +201,18 @@ void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
         {
             auto data = meaDataFromCanMessage(msg);
 
-            meaMass.store(data.mass);
+            // Check against nan and drop the sample if it is the case
+            if (!std::isfinite(data.mass))
+                break;
 
+            // Saturate mass in a safe range
+            if (data.mass < Motor::Config::MEA::MEA_MIN_MASS)
+                data.mass = Motor::Config::MEA::MEA_MIN_MASS;
+
+            else if (data.mass > Motor::Config::MEA::MEA_MAX_MASS)
+                data.mass = Motor::Config::MEA::MEA_MAX_MASS;
+
+            meaMass.store(data.mass);
             break;
         }
 

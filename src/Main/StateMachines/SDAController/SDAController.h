@@ -24,6 +24,7 @@
 
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
+#include <Main/Configs/SDAConfig.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/SDAController/SDAControllerData.h>
 #include <Main/StatsRecorder/StatsRecorder.h>
@@ -59,7 +60,7 @@ public:
     void setMinBurnTime(std::chrono::milliseconds time);
 
     float getApogeeTarget();
-    void setApogeeTarget(float apogee);
+    bool setApogeeTarget(float apogee);
 
 private:
     void update();
@@ -83,7 +84,8 @@ private:
     uint16_t shadowModeTimeoutEvent = 0;
 
     std::atomic<std::chrono::milliseconds> minBurnTime;
-    std::atomic<float> apogeeTarget;  // agl [m]
+    std::atomic<float> apogeeTarget{
+        Main::Config::SDA::SHUTDOWN_APOGEE_TARGET};  // agl [m]
 
     miosix::FastMutex sdaMutex;
     SDA::SDA sda;
