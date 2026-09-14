@@ -184,8 +184,8 @@ void FiringSequenceHSM::checkPilotFlamePressure()
 
 void FiringSequenceHSM::checkDepressurizationPressure()
 {
+    std::lock_guard<std::mutex> lock(depressurizationMutex);
     auto now = steady_clock::now();
-
     if (state == FiringSequenceState::DEPRESSURIZATION_OX)
     {
         if (getModule<Sensors>()->getOxTankPressure().pressure >=
@@ -785,9 +785,11 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
     {
         case EV_ENTRY:
         {
+            std::lock_guard<std::mutex> lock(depressurizationMutex);
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_OX);
-            getModule<Actuators>()->moveValve(ServosList::OX_VENTING_VALVE,
-                                              1.0f);
+            getModule<Actuators>()->openValveWithTime(
+                ServosList::OX_VENTING_VALVE,
+                milliseconds{OX_VENTING_CLOSING_TIMEOUT}.count());
             lastPressureOverTime = steady_clock::now();
             nextEventId          = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE, TOPIC_FIRING_SEQUENCE,
@@ -836,6 +838,7 @@ State FiringSequenceHSM::state_depressurization_prz(const Event& event)
     {
         case EV_ENTRY:
         {
+            std::lock_guard<std::mutex> lock(depressurizationMutex);
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_PRZ);
 
             getModule<Actuators>()->moveValve(ServosList::PRZ_OX_VALVE,
@@ -883,6 +886,7 @@ State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
     {
         case EV_ENTRY:
         {
+            std::lock_guard<std::mutex> lock(depressurizationMutex);
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_FUEL);
 
             getModule<Actuators>()->openValveWithTime(

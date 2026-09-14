@@ -97,6 +97,8 @@ private:
 
     std::chrono::steady_clock::time_point lastPressureOverTime;
 
+    std::mutex depressurizationMutex;
+
     uint16_t nextEventId = -1;
 
     uint8_t igniterFlameSamples = 0;
