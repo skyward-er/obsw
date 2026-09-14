@@ -82,14 +82,19 @@ bool WingController::start()
                 if (!altitudeMap.init())
                 {
                     enableFlare = false;
-                    LOG_ERR(logger, "Failed to initialize altitude map");
+                    std::cout << "Failed to initialize altitude map"
+                              << std::endl;
 
                     EventBroker::getInstance().post(WING_ERROR_LOADING_MAP,
                                                     TOPIC_WING);
                 }
                 else
+                {
                     EventBroker::getInstance().post(WING_DONE_LOADING_MAP,
                                                     TOPIC_WING);
+                    std::cout << "Successfully initialized altitude map"
+                              << std::endl;
+                }
             })
             .detach();
     }
