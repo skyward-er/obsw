@@ -174,8 +174,8 @@ constexpr auto GYR_ODR = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_104;
 constexpr auto GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = false;
+constexpr auto RATE    = 1_hz;
+constexpr auto ENABLED = true;
 }  // namespace LSM6DSRX_1
 
 namespace ADS131M08
