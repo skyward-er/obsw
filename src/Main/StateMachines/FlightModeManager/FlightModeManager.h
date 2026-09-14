@@ -88,6 +88,8 @@ private:
     bool adaReady = false;
     bool zvkReady = false;
 
+    uint32_t initOkCount = 0;
+
     int32_t missionTimeoutEvent = -1;
     int32_t engineShutdownEvent = -1;
     int32_t apogeeTimeoutEvent  = -1;

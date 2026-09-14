@@ -33,6 +33,7 @@ namespace Main
 enum class WingControllerState : uint8_t
 {
     INIT = 0,
+    INIT_ERROR,
     READY,
     DEPLOYMENT,
     OPENING_PUMPS_PULL,

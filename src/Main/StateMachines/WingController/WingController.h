@@ -97,6 +97,7 @@ public:
 private:
     // HSM states
     void state_init(const Boardcore::Event& event);
+    void state_init_error(const Boardcore::Event& event);
     void state_ready(const Boardcore::Event& event);
     void state_deployment(const Boardcore::Event& event);
     void state_opening_pumps_pull(const Boardcore::Event& event);
@@ -150,7 +151,8 @@ private:
     PRF::PRF wing;
     Boardcore::AltitudeQuadMap altitudeMap{Config::Wing::ALTITUDE_MAP_FILENAME};
 
-    bool enableFlare = Main::Config::Wing::LandingFlareConfig::ENABLED;
+    std::atomic<bool> enableFlare{
+        Main::Config::Wing::LandingFlareConfig::ENABLED};
 
     servoCommand lastServoCommands = {0.0f, 0.0f};
 

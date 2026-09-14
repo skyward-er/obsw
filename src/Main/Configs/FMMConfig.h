@@ -32,6 +32,8 @@ namespace FlightModeManager
 {
 /* linter off */ using namespace std::chrono;
 
+constexpr uint32_t REQUIRED_INIT_OK_COUNT = 2;
+
 constexpr auto MISSION_TIMEOUT = 15min;
 constexpr auto CUT_DURATION    = 1000ms;
 

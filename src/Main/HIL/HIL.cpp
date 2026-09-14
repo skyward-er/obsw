@@ -178,7 +178,7 @@ void MainHILPhasesManager::handleEventImpl(
             break;
         }
 
-        case Common::Events::FMM_INIT_OK:
+        case Common::Events::FMM_CALIBRATE:
         {
             setFlagFlightPhase(MainFlightPhases::CALIBRATION, true);
             printf("[HIL] ------- CALIBRATION ! ------- \n");

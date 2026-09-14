@@ -35,6 +35,8 @@
 #include <events/EventBroker.h>
 #include <units/Length.h>
 
+#include <thread>
+
 using namespace std::chrono;
 using namespace Boardcore;
 using namespace Common;
@@ -72,11 +74,30 @@ bool WingController::start()
         return false;
     }
 
-    if (LandingFlareConfig::ENABLED && !altitudeMap.init())
+    if (LandingFlareConfig::ENABLED)
     {
+        std::thread(
+            [this]
+            {
+                if (!altitudeMap.init())
+                {
+                    enableFlare = false;
+                    LOG_ERR(logger, "Failed to initialize altitude map");
+
+                    EventBroker::getInstance().post(WING_ERROR_LOADING_MAP,
+                                                    TOPIC_WING);
+                }
+                else
+                    EventBroker::getInstance().post(WING_DONE_LOADING_MAP,
+                                                    TOPIC_WING);
+            })
+            .detach();
+    }
+    else
+    {
+        // No loading is needed, post the event to transition to the READY state
+        EventBroker::getInstance().post(WING_DONE_LOADING_MAP, TOPIC_WING);
         enableFlare = false;
-        LOG_ERR(logger, "Failed to initialize altitude map");
-        return false;
     }
 
     if (!FSM::start())
@@ -220,6 +241,38 @@ void WingController::state_init(const Boardcore::Event& event)
                                    Config::Wing::Default::TARGET_LON});
             resetWing();
 
+            break;
+        }
+
+        case WING_DONE_LOADING_MAP:
+        {
+            EventBroker::getInstance().post(FMM_INIT_OK, TOPIC_FLIGHT);
+            transition(&WingController::state_ready);
+            break;
+        }
+
+        case WING_ERROR_LOADING_MAP:
+        {
+            EventBroker::getInstance().post(FMM_INIT_ERROR, TOPIC_FLIGHT);
+
+            transition(&WingController::state_init_error);
+            break;
+        }
+    }
+}
+
+void WingController::state_init_error(const Boardcore::Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(WingControllerState::INIT_ERROR);
+            break;
+        }
+
+        case TMTC_FORCE_INIT:
+        {
             transition(&WingController::state_ready);
             break;
         }

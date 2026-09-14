@@ -171,7 +171,15 @@ State FlightModeManager::state_init(const Event& event)
         }
         case FMM_INIT_OK:
         {
-            return transition(&FlightModeManager::state_init_done);
+            // Only transition to init_done if all the required modules have
+            // finished initializing
+
+            initOkCount++;
+            if (initOkCount >=
+                Main::Config::FlightModeManager::REQUIRED_INIT_OK_COUNT)
+                return transition(&FlightModeManager::state_init_done);
+            else
+                return HANDLED;
         }
         default:
         {
