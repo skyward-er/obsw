@@ -263,12 +263,14 @@ bool Sensors::saveMagCalibration()
 
 float Sensors::getAbkPercentage()
 {
-    float degrees = getAS5047DABKLastSample().angle * 180.0f / M_PI;
+    float rad = getAS5047DABKLastSample().angle;  // [Rad]
 
-    float percentage =
-        (degrees - Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE) /
-        (Config::Sensors::AS5047D_ABK::MAX_OPENING_ANGLE -
-         Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE);
+    float percentage = (rad - Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE) /
+                       (Config::Sensors::AS5047D_ABK::MAX_OPENING_ANGLE -
+                        Config::Sensors::AS5047D_ABK::MIN_OPENING_ANGLE);
+
+    // Clamp the percentage to the [0, 1] range
+    percentage = std::min(1.0f, std::max(0.0f, percentage));
 
     return percentage;
 }
