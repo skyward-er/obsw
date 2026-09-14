@@ -113,8 +113,7 @@ void SDAController::update()
     // Lock SDA for the whole duration of the update
     Lock<FastMutex> lock{sdaMutex};
 
-    if (curState == SDAControllerState::ARMED ||
-        curState == SDAControllerState::SHADOW_MODE ||
+    if (curState == SDAControllerState::SHADOW_MODE ||
         curState == SDAControllerState::ACTIVE ||
         curState == SDAControllerState::ACTIVE_UNPOWERED)
     {
