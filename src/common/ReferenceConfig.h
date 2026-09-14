@@ -47,13 +47,16 @@ const Eigen::Vector3f nedMag(0.594477, -0.009249, 0.804059);
 #elif defined(ROCCARASO)
 
 static const Boardcore::ReferenceValues defaultReferenceValues = {
-    1414.0,      // [m] Altitude
-    85452.0,     // [Pa] Pressure
-    278.95,      // [K] Temperature
-    41.8084579,  // [deg] Start latitude
-    14.0546408,  // [deg] Start longitude
+    1550.0,     // [m] Altitude
+    100000.0,   // [Pa] Pressure
+    294.15,     // [K] Temperature
+    42.230269,  // [deg] Start latitude
+    13.422860,  // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,
     Boardcore::Constants::MSL_TEMPERATURE,
+    0.243450,  // [Gauss] Magnetic field North
+    0.018050,  // [Gauss] Magnetic field East
+    0.402732,  // [Gauss] Magnetic field Down
 };
 
 const Eigen::Vector3f nedMag(0.523445, 0.0391427, 0.8511599);

@@ -84,8 +84,7 @@ private:
     uint16_t shadowModeTimeoutEvent = 0;
 
     std::atomic<std::chrono::milliseconds> minBurnTime;
-    std::atomic<float> apogeeTarget{
-        Main::Config::SDA::SHUTDOWN_APOGEE_TARGET};  // agl [m]
+    std::atomic<float> apogeeTarget;  // agl [m]
 
     miosix::FastMutex sdaMutex;
     SDA::SDA sda;

@@ -42,9 +42,7 @@ namespace Wing
 
 constexpr auto ALTITUDE_MAP_FILENAME = "/sd/altitude_map.bin";
 
-constexpr auto UPDATE_RATE        = 20_hz;
-constexpr auto TARGET_UPDATE_RATE = 10_hz;
-constexpr auto CUTTERS_TIMEOUT    = 1s;
+constexpr auto UPDATE_RATE = 20_hz;
 
 namespace Default
 {
@@ -52,8 +50,8 @@ namespace Default
 constexpr auto TARGET_LAT = 39.38724722f;
 constexpr auto TARGET_LON = -8.28647778f;
 #elif defined(ROCCARASO)
-constexpr auto TARGET_LAT = 41.807905240570980f;
-constexpr auto TARGET_LON = 14.057047761535994f;
+constexpr auto TARGET_LAT = 42.2247092f;
+constexpr auto TARGET_LON = 13.4310024f;
 #else  // Milan
 constexpr auto TARGET_LAT = 45.5014089f;
 constexpr auto TARGET_LON = 9.1543615f;
@@ -74,9 +72,8 @@ struct Pump
 };
 
 // Pumps are ordered from the first to activate to the last
-constexpr std::array<Pump, 3> PUMPS = {
+constexpr std::array<Pump, 2> PUMPS = {
     Pump{.pumpTime = 1s, .resetTime = 500ms},
-    Pump{.pumpTime = 2s, .resetTime = 1s},
     Pump{.pumpTime = 2s, .resetTime = 1s},
 };
 
@@ -87,11 +84,11 @@ namespace LandingFlareConfig
 
 constexpr bool ENABLED = true;
 
-constexpr float ALTITUDE         = 15;  // [m]
+constexpr float ALTITUDE         = 20;  // [m]
 constexpr int CONFIDENCE         = 10;  // [samples]
-constexpr auto DURATION          = 5min;
-constexpr auto FLARE_ANGLE_LEFT  = 720_deg;
-constexpr auto FLARE_ANGLE_RIGHT = 720_deg;
+constexpr auto DURATION          = 360s;
+constexpr auto FLARE_ANGLE_LEFT  = 972_deg;
+constexpr auto FLARE_ANGLE_RIGHT = 972_deg;
 
 }  // namespace LandingFlareConfig
 

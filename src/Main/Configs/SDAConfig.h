@@ -41,27 +41,18 @@ namespace SDA
 constexpr Hertz UPDATE_RATE = 50_hz;
 
 #ifdef ROCCARASO
-constexpr auto SHADOW_MODE_TIMEOUT     = 2200ms;
+constexpr auto SHADOW_MODE_TIMEOUT     = 3000ms;
 constexpr float SHUTDOWN_APOGEE_TARGET = 3500;  // agl [m]
 
 #else  // EUROC
-constexpr auto SHADOW_MODE_TIMEOUT     = 4000ms;
-constexpr float SHUTDOWN_APOGEE_TARGET = 3000;  // agl [m]
+constexpr auto SHADOW_MODE_TIMEOUT     = 3000ms;
+constexpr float SHUTDOWN_APOGEE_TARGET = 3500;  // agl [m]
 
 #ifndef EUROC
 #warning "SDAConfig: no mission specified, using EUROC"
 #endif
 #endif
 
-/* constexpr float CD_CORRECTION_FACTOR = 1.f;
-
-constexpr unsigned int SHUTDOWN_N_SAMPLES = 5;
-
-constexpr float SENSOR_NOISE_VARIANCE = 0.36f;
-constexpr float MODEL_NOISE_VARIANCE  = 1.0f;
-
-// Pressure threshold after which the kalman is updated
-constexpr float CC_PRESSURE_THRESHOLD = 1.0f;  // [bar] */
 }  // namespace SDA
 
 }  // namespace Config

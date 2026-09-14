@@ -45,16 +45,16 @@ constexpr float UPDATE_RATE_SECONDS = 1.0 / UPDATE_RATE.value();  // [s]
 constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
 constexpr unsigned int APOGEE_N_SAMPLES      = 5;
 
-constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 500;  // [m]
+constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 750;  // [m]
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 
 #ifdef ROCCARASO
-constexpr auto SHADOW_MODE_TIMEOUT        = 10s;
-constexpr auto DROGUE_SHADOW_MODE_TIMEOUT = 5s;
+constexpr auto SHADOW_MODE_TIMEOUT        = 12s;
+constexpr auto DROGUE_SHADOW_MODE_TIMEOUT = 3s;
 
 #else  // EUROC
 constexpr auto SHADOW_MODE_TIMEOUT        = 12s;
-constexpr auto DROGUE_SHADOW_MODE_TIMEOUT = 5s;
+constexpr auto DROGUE_SHADOW_MODE_TIMEOUT = 3s;
 
 #ifndef EUROC
 #warning "ADAConfig: no mission specified, using EUROC"

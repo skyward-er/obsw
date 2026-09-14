@@ -40,13 +40,11 @@ namespace ABK
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
 constexpr Hertz UPDATE_RATE = 20_hz;
-// Mach number below which AirBrakes can be opened
-constexpr float MACH_LIMIT = 0.8f;  // [-]
 
 #ifdef ROCCARASO
-constexpr auto SHADOW_MODE_TIMEOUT = 450ms;
+constexpr auto SHADOW_MODE_TIMEOUT = 10ms;
 #else
-constexpr auto SHADOW_MODE_TIMEOUT = 500ms;
+constexpr auto SHADOW_MODE_TIMEOUT = 10ms;
 #ifndef EUROC
 #warning "ABKConfig: no mission specified, using EUROC"
 #endif
