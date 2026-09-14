@@ -786,9 +786,8 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
         case EV_ENTRY:
         {
             updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_OX);
-            getModule<Actuators>()->openValveWithTime(
-                ServosList::OX_VENTING_VALVE,
-                milliseconds{OX_VENTING_TIMEOUT}.count());
+            getModule<Actuators>()->moveValve(ServosList::OX_VENTING_VALVE,
+                                              1.0f);
             lastPressureOverTime = steady_clock::now();
             nextEventId          = EventBroker::getInstance().postDelayed(
                 FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE, TOPIC_FIRING_SEQUENCE,

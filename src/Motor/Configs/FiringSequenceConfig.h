@@ -38,16 +38,16 @@ static constexpr Hertz UPDATE_RATE = 100_hz;
 
 static constexpr milliseconds PURGE_OX_TIME{300};
 
-static constexpr milliseconds IGN_OX_OPENING_TIME{2500};
+static constexpr milliseconds IGN_OX_OPENING_TIME{1400};
 static constexpr milliseconds IGN_FUEL_DELAY{100};
-static constexpr milliseconds IGN_FUEL_OPENING_TIME{2000};
+static constexpr milliseconds IGN_FUEL_OPENING_TIME{1200};
 static constexpr milliseconds SPARK_TIME{500};
 
-static constexpr milliseconds PILOT_FLAME_MAX_TIME{2000};
+static constexpr milliseconds PILOT_FLAME_MAX_TIME{1000};
 
-static constexpr milliseconds RAMP_UP_OPENING_TIME{500};
+static constexpr milliseconds RAMP_UP_OPENING_TIME{250};
 static constexpr milliseconds FULL_THROTTLE_TIME{3000};
-static constexpr milliseconds LOW_THROTTLE_TIME{1000};
+static constexpr milliseconds LOW_THROTTLE_TIME{1200};
 
 // placeholder values
 static constexpr float PILOT_OX_POSITION          = 0.4662f;
@@ -56,9 +56,9 @@ static constexpr float LOW_THROTTLE_OX_POSITION   = 0.5902f;
 static constexpr float LOW_THROTTLE_FUEL_POSITION = 0.6600f;
 static constexpr auto PILOT_FLAME_LEAD_TIME       = 150ms;
 
-static constexpr float IGNITER_PRESSURE_THRESHOLD         = -500.0f;  // bar
+static constexpr float IGNITER_PRESSURE_THRESHOLD         = 14.0f;  // bar
 static constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 20;
-static constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = -500.0f;  // bar
+static constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 6.0f;  // bar
 static constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 20;
 
 static constexpr float PRZ_TANK_PRESSURE_THRESHOLD = 20.0f;  // bar
@@ -71,7 +71,7 @@ constexpr float OX_PRESSURE_THRESHOLD = 10.0f;  // [bar]
 constexpr auto OX_HYSTERESIS          = 1s;
 
 constexpr float PRZ_OX_APERTURE           = 0.4f;
-constexpr float PRZ_OX_PRESSURE_THRESHOLD = 20.0f;
+constexpr float PRZ_OX_PRESSURE_THRESHOLD = 20.0f;  // [bar]
 constexpr auto PRZ_OX_HYSTERESIS          = 1s;
 constexpr auto PRZ_OX_TIMEOUT             = 60s;
 constexpr auto PRZ_FUEL_TIMEOUT           = 30s;
