@@ -42,8 +42,8 @@ constexpr auto CUT_DURATION    = 1000ms;
 constexpr auto ENGINE_SHUTDOWN_CONFIDENCE = 1000ms;
 
 #ifdef ROCCARASO
-constexpr auto ENGINE_SHUTDOWN_TIMEOUT = 2600ms;
-constexpr auto APOGEE_TIMEOUT          = 19s;
+constexpr auto ENGINE_SHUTDOWN_TIMEOUT = 5000ms;
+constexpr auto APOGEE_TIMEOUT          = 30s;
 
 #else  // EUROC
 constexpr auto ENGINE_SHUTDOWN_TIMEOUT = 5000ms;

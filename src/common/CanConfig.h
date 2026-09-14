@@ -52,7 +52,7 @@ constexpr auto STATUS_TIMEOUT = 2s;
 constexpr auto STATUS_SEND_PERIOD = 1s;
 
 #ifdef ROCCARASO
-constexpr auto DEFAULT_MEA_SHADOW_MODE_TIMEOUT = 2200ms;
+constexpr auto DEFAULT_MEA_SHADOW_MODE_TIMEOUT = 4000ms;
 #else
 constexpr auto DEFAULT_MEA_SHADOW_MODE_TIMEOUT = 4000ms;
 #endif
