@@ -296,6 +296,8 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
     ANASReference anasRef = {
         .GroundTemperature = ref.refTemperature,
         .GroundPressure    = ref.refPressure,
+        .InitialMagnetic   = {ref.magN * 1e5, ref.magE * 1e5,
+                              ref.magD * 1e5},  // Convert from Gauss to nT
         .InitialPosition   = {0, 0, 0},
         .InitialVelocity   = {0, 0, 0},
         .InitialQuaternion = {triad[0], triad[1], triad[2], triad[3]}};
