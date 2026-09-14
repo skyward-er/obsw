@@ -126,6 +126,12 @@ public:
             return false;
         }
 
+        if (!low.start())
+        {
+            LOG_ERR(logger, "Low priority scheduler failed to start");
+            return false;
+        }
+
         started = true;
         return true;
     }

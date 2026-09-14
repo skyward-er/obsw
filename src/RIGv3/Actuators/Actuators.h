@@ -171,8 +171,8 @@ private:
     void task() override;
 
     void sirenTask();
-    bool sirenState = false;
-    bool isSirenOn  = false;
+    bool sirenState = true;
+    std::atomic<bool> isSirenOn{false};
 
     std::atomic<bool> started{false};
 

@@ -748,6 +748,7 @@ void Actuators::sirenTask()
         getModule<GpioExpander>()->getExpander().setPinValue(
             Config::GpioExpander::SIREN_PIN.getPort(),
             Config::GpioExpander::SIREN_PIN.getPin(), 0);
+        sirenState = true;
         return;
     }
     else
