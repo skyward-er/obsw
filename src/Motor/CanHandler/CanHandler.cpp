@@ -269,6 +269,30 @@ bool CanHandler::start()
                           static_cast<uint8_t>(
                               sensors->getPrzFuelPosition().position),
                           actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE)});
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(0x0),
+                ValveData{
+                    TimestampTimer::getTimestamp(),
+                    ServosList::IGNITION_OX_VALVE,
+                    actuators->isValveOpen(ServosList::IGNITION_FUEL_VALVE)}),
+                actuators->isValveOpen(ServosList::IGNITION_OX_VALVE);
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(0x0),
+                ValveData{
+                    TimestampTimer::getTimestamp(),
+                    ServosList::IGNITION_FUEL_VALVE,
+                    actuators->isValveOpen(ServosList::IGNITION_FUEL_VALVE)}),
+                actuators->isValveOpen(ServosList::IGNITION_FUEL_VALVE);
         },
         Config::CanHandler::VALVE_STATE_SEND_RATE);
 
