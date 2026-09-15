@@ -1005,7 +1005,7 @@ void Sensors::rotatedImuInit()
     rotatedImu->addGyroTransformation(a);
 
     // Magnetometer
-    Matrix3f m{{-1,0, 0}, {0, 0.5f, 0.8660254f}, {0, 0.8660254f, -0.5f}};
+    Matrix3f m{{-1, 0, 0}, {0, 0.5f, 0.8660254f}, {0, 0.8660254f, -0.5f}};
     rotatedImu->addMagTransformation(m);
 }
 
