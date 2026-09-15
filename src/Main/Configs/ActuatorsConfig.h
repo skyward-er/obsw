@@ -58,8 +58,8 @@ constexpr auto INITIAL_ANGLE           = 0.0_deg;
 constexpr auto LEFT_SERVO_DIRECTION    = ServoDirection::CW;
 constexpr auto RIGHT_SERVO_DIRECTION   = ServoDirection::CCW;
 constexpr auto MAX_ANGLE               = 1080_deg;
-constexpr auto LEFT_MIN_ANGLE          = 45_deg;
-constexpr auto RIGHT_MIN_ANGLE         = 45_deg;
+constexpr auto LEFT_MIN_ANGLE          = 0_deg;
+constexpr auto RIGHT_MIN_ANGLE         = 0_deg;
 
 constexpr auto UPDATE_RATE = 50_hz;
 }  // namespace PrfServo
