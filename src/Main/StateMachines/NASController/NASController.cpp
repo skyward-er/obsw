@@ -147,6 +147,20 @@ bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
     if (state == NASControllerState::READY)
     {
         anasTriad = quat;
+
+        auto ref = getModule<AlgoReference>()->getReferenceValues();
+
+        ANASReference anasRef = {
+            .GroundTemperature = ref.refTemperature,
+            .GroundPressure    = ref.refPressure,
+            .InitialMagnetic   = {ref.magN * 1e5, ref.magE * 1e5,
+                                  ref.magD * 1e5},  // Convert from Gauss to nT
+            .InitialPosition   = {0, 0, 0},
+            .InitialVelocity   = {0, 0, 0},
+            .InitialQuaternion = {anasTriad[0], anasTriad[1], anasTriad[2],
+                                  anasTriad[3]}};
+
+        anas.setANAS_Reference(anasRef);
         return true;
     }
 
