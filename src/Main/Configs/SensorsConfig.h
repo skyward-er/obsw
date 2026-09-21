@@ -119,7 +119,7 @@ constexpr auto ENABLED = false;
 namespace H3LIS331DL
 {
 constexpr auto ODR = Boardcore::H3LIS331DLDefs::OutputDataRate::ODR_400;
-constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_100;
+constexpr auto FS  = Boardcore::H3LIS331DLDefs::FullScaleRange::FS_400;
 
 constexpr auto RATE    = 100_hz;
 constexpr auto ENABLED = true;

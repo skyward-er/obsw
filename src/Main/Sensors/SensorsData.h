@@ -172,7 +172,9 @@ struct WinchServoData
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(WinchServoData, FIELD_DEF(ServoId) FIELD_DEF(angle));
+        return STRUCT_DEF(WinchServoData,
+                          FIELD_DEF(timestamp) FIELD_DEF(ServoId)
+                              FIELD_DEF(angle) FIELD_DEF(velocity));
     }
 };
 
