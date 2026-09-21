@@ -50,4 +50,46 @@ struct ZVKControllerStatus
     }
 };
 
+struct ZVKAccBias
+{
+    uint64_t timestamp = 0;
+    float accXBias     = 0.0f;
+    float accYBias     = 0.0f;
+    float accZBias     = 0.0f;
+
+    ZVKAccBias(uint64_t timestamp, Eigen::Vector3f bias)
+        : timestamp(timestamp), accXBias(bias.x()), accYBias(bias.y()),
+          accZBias(bias.z())
+    {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ZVKAccBias,
+                          FIELD_DEF(timestamp) FIELD_DEF(accXBias)
+                              FIELD_DEF(accYBias) FIELD_DEF(accZBias));
+    }
+};
+
+struct ZVKGyroBias
+{
+    uint64_t timestamp = 0;
+    float gyroXBias    = 0.0f;
+    float gyroYBias    = 0.0f;
+    float gyroZBias    = 0.0f;
+
+    ZVKGyroBias(uint64_t timestamp, Eigen::Vector3f bias)
+        : timestamp(timestamp), gyroXBias(bias.x()), gyroYBias(bias.y()),
+          gyroZBias(bias.z())
+    {
+    }
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(ZVKGyroBias,
+                          FIELD_DEF(timestamp) FIELD_DEF(gyroXBias)
+                              FIELD_DEF(gyroYBias) FIELD_DEF(gyroZBias));
+    }
+};
+
 }  // namespace Main

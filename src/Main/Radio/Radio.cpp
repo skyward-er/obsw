@@ -438,6 +438,12 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_orientation_quat_tc_get_quat_1(&msg),
                 mavlink_msg_set_orientation_quat_tc_get_quat_2(&msg),
                 mavlink_msg_set_orientation_quat_tc_get_quat_3(&msg)});
+
+            getModule<ZVKController>()->setOrientationQuat(Eigen::Vector4f{
+                mavlink_msg_set_orientation_quat_tc_get_quat_0(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_1(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_2(&msg),
+                mavlink_msg_set_orientation_quat_tc_get_quat_3(&msg)});
             enqueueAck(msg);
             break;
         }
@@ -601,6 +607,72 @@ void Radio::handleCommand(const mavlink_message_t& msg)
         {
             enqueueSystemTm(SystemTMList::MAV_CALIBRATION_ID, msg.compid);
             enqueueAck(msg);
+            break;
+        }
+
+        case MAV_CMD_APPLY_ZVK_ACC_BIAS:
+        {
+            auto state = getModule<FlightModeManager>()->getState();
+
+            if (state == FlightModeManagerState::TEST_MODE ||
+                state == FlightModeManagerState::DISARMED)
+            {
+                getModule<Sensors>()->applyZVKAccBias();
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
+            break;
+        }
+
+        case MAV_CMD_RESET_ZVK_ACC_BIAS:
+        {
+            auto state = getModule<FlightModeManager>()->getState();
+
+            if (state == FlightModeManagerState::TEST_MODE ||
+                state == FlightModeManagerState::DISARMED)
+            {
+                getModule<Sensors>()->resetZVKAccBias();
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
+            break;
+        }
+
+        case MAV_CMD_APPLY_ZVK_GYRO_BIAS:
+        {
+            auto state = getModule<FlightModeManager>()->getState();
+            if (state == FlightModeManagerState::TEST_MODE ||
+                state == FlightModeManagerState::DISARMED)
+            {
+                getModule<Sensors>()->applyZVKGyroBias();
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
+            break;
+        }
+
+        case MAV_CMD_RESET_ZVK_GYRO_BIAS:
+        {
+            auto state = getModule<FlightModeManager>()->getState();
+            if (state == FlightModeManagerState::TEST_MODE ||
+                state == FlightModeManagerState::DISARMED)
+            {
+                getModule<Sensors>()->resetZVKGyroBias();
+                enqueueAck(msg);
+            }
+            else
+            {
+                enqueueNack(msg, 0);
+            }
             break;
         }
 
@@ -1254,29 +1326,37 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
 
             auto zvk = getModule<ZVKController>();
 
+            auto AccHBias      = zvk->getAccHBias();
+            auto GyroHBias     = zvk->getGyroHBias();
+            auto GyroLBias     = zvk->getGyroLBias();
+            auto AccLBias      = zvk->getAccLBias();
+            auto AccVN100Bias  = zvk->getAccVN100Bias();
+            auto GyroVN100Bias = zvk->getGyroVN100Bias();
+            auto triad         = zvk->getZVKTriad();
+
             tm.timestamp        = TimestampTimer::getTimestamp();
-            tm.acc0_bias_x      = zvk->getAccHBias()[0];
-            tm.acc0_bias_y      = zvk->getAccHBias()[1];
-            tm.acc0_bias_z      = zvk->getAccHBias()[2];
-            tm.gyro0_bias_x     = zvk->getGyroHBias()[0];
-            tm.gyro0_bias_y     = zvk->getGyroHBias()[1];
-            tm.gyro0_bias_z     = zvk->getGyroHBias()[2];
-            tm.acc1_bias_x      = zvk->getAccLBias()[0];
-            tm.acc1_bias_y      = zvk->getAccLBias()[1];
-            tm.acc1_bias_z      = zvk->getAccLBias()[2];
-            tm.gyro1_bias_x     = zvk->getGyroLBias()[0];
-            tm.gyro1_bias_y     = zvk->getGyroLBias()[1];
-            tm.gyro1_bias_z     = zvk->getGyroLBias()[2];
-            tm.accVN100_bias_x  = zvk->getAccVN100Bias()[0];
-            tm.accVN100_bias_y  = zvk->getAccVN100Bias()[1];
-            tm.accVN100_bias_z  = zvk->getAccVN100Bias()[2];
-            tm.gyroVN100_bias_x = zvk->getGyroVN100Bias()[0];
-            tm.gyroVN100_bias_y = zvk->getGyroVN100Bias()[1];
-            tm.gyroVN100_bias_z = zvk->getGyroVN100Bias()[2];
-            tm.triad_q0         = zvk->getZVKTriad()[0];
-            tm.triad_q1         = zvk->getZVKTriad()[1];
-            tm.triad_q2         = zvk->getZVKTriad()[2];
-            tm.triad_q3         = zvk->getZVKTriad()[3];
+            tm.acc0_bias_x      = AccHBias[0];
+            tm.acc0_bias_y      = AccHBias[1];
+            tm.acc0_bias_z      = AccHBias[2];
+            tm.gyro0_bias_x     = GyroHBias[0];
+            tm.gyro0_bias_y     = GyroHBias[1];
+            tm.gyro0_bias_z     = GyroHBias[2];
+            tm.acc1_bias_x      = AccLBias[0];
+            tm.acc1_bias_y      = AccLBias[1];
+            tm.acc1_bias_z      = AccLBias[2];
+            tm.gyro1_bias_x     = GyroLBias[0];
+            tm.gyro1_bias_y     = GyroLBias[1];
+            tm.gyro1_bias_z     = GyroLBias[2];
+            tm.accVN100_bias_x  = AccVN100Bias[0];
+            tm.accVN100_bias_y  = AccVN100Bias[1];
+            tm.accVN100_bias_z  = AccVN100Bias[2];
+            tm.gyroVN100_bias_x = GyroVN100Bias[0];
+            tm.gyroVN100_bias_y = GyroVN100Bias[1];
+            tm.gyroVN100_bias_z = GyroVN100Bias[2];
+            tm.triad_q0         = triad[0];
+            tm.triad_q1         = triad[1];
+            tm.triad_q2         = triad[2];
+            tm.triad_q3         = triad[3];
 
             mavlink_msg_zvk_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                       &msg, &tm);

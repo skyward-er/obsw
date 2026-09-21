@@ -119,6 +119,14 @@ bool ZVKController::start()
     return true;
 }
 
+void ZVKController::setOrientationQuat(const Eigen::Vector4f& quat)
+{
+    Lock<FastMutex> lock{zvkMutex};
+
+    zvkTriad = quat;
+    zvk.setAttitude_Quaternion(zvkTriad.data());
+}
+
 void ZVKController::calibrate(const Boardcore::ReferenceValues& ref)
 {
     // calculate initial attitude quaternions

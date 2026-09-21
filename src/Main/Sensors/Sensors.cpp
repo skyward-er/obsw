@@ -490,7 +490,31 @@ VN100SpiData Sensors::getCalibratedVN100LastSample()
 
 IMUData Sensors::getIMULastSample()
 {
-    return rotatedImu ? rotatedImu->getLastSample() : IMUData{};
+    auto rotatedImuData = rotatedImu ? rotatedImu->getLastSample() : IMUData{};
+
+    std::lock_guard<std::mutex> lock{zvkBiasMutex};
+    Boardcore::AccelerometerData accData{
+        rotatedImuData.accelerationTimestamp,
+        rotatedImuData.accelerationX -= zvkAccBias[0],
+        rotatedImuData.accelerationY -= zvkAccBias[1],
+        rotatedImuData.accelerationZ -= zvkAccBias[2],
+    };
+
+    Boardcore::GyroscopeData gyroData{
+        rotatedImuData.angularSpeedTimestamp,
+        rotatedImuData.angularSpeedX -= zvkGyroBias[0],
+        rotatedImuData.angularSpeedY -= zvkGyroBias[1],
+        rotatedImuData.angularSpeedZ -= zvkGyroBias[2],
+    };
+
+    Boardcore::MagnetometerData magData{
+        rotatedImuData.magneticFieldTimestamp,
+        rotatedImuData.magneticFieldX,
+        rotatedImuData.magneticFieldY,
+        rotatedImuData.magneticFieldZ,
+    };
+
+    return IMUData{accData, gyroData, magData};
 }
 
 PressureData Sensors::getAtmosPressureLastSample()
@@ -953,6 +977,49 @@ void Sensors::setUsingHGsIMU(bool usingHighGsIMU)
     isUsingHighGsIMU = usingHighGsIMU;
 }
 
+void Sensors::applyZVKAccBias()
+{
+    {
+        std::lock_guard<std::mutex> lock{zvkBiasMutex};
+        Eigen::Vector3f accBias = getModule<ZVKController>()->getAccVN100Bias();
+        zvkAccBias              = accBias;
+    }
+
+    sdLogger.log(ZVKAccBias{TimestampTimer::getTimestamp(), zvkAccBias});
+}
+
+void Sensors::resetZVKAccBias()
+{
+    {
+        std::lock_guard<std::mutex> lock{zvkBiasMutex};
+        zvkAccBias = Eigen::Vector3f::Zero();
+    }
+
+    sdLogger.log(ZVKAccBias{TimestampTimer::getTimestamp(), zvkAccBias});
+}
+
+void Sensors::applyZVKGyroBias()
+{
+    {
+        std::lock_guard<std::mutex> lock{zvkBiasMutex};
+        Eigen::Vector3f gyroBias =
+            getModule<ZVKController>()->getGyroVN100Bias();
+        zvkGyroBias = gyroBias;
+    }
+
+    sdLogger.log(ZVKGyroBias(TimestampTimer::getTimestamp(), zvkGyroBias));
+}
+
+void Sensors::resetZVKGyroBias()
+{
+    {
+        std::lock_guard<std::mutex> lock{zvkBiasMutex};
+        zvkGyroBias = Eigen::Vector3f::Zero();
+    }
+
+    sdLogger.log(ZVKGyroBias(TimestampTimer::getTimestamp(), zvkGyroBias));
+}
+
 void Sensors::rotatedImuInit()
 {
     rotatedImu = std::make_unique<RotatedIMU>(
@@ -1000,12 +1067,14 @@ void Sensors::rotatedImuInit()
         });
 
     // Accelerometer and Gyroscope
-    Matrix3f a{{0, 1, 0}, {0, 0, -1}, {1, 0, 0}};
+    Matrix3f a{{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}};
     rotatedImu->addAccTransformation(a);
     rotatedImu->addGyroTransformation(a);
 
     // Magnetometer
-    Matrix3f m{{0, -1, 0}, {-0.8660254f, 0, 0.5f}, {0.5f, 0, 0.8660254f}};
+    Matrix3f m{{0.0f, -1.0f, 0.0f},
+               {-0.8660254f, 0.0f, 0.5f},
+               {-0.5f, -0.0f, -0.8660254f}};
     rotatedImu->addMagTransformation(m);
 }
 

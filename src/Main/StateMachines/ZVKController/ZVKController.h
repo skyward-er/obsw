@@ -63,6 +63,8 @@ public:
     Eigen::Vector3f getAccVN100Bias();
     Eigen::Vector3f getGyroVN100Bias();
 
+    void setOrientationQuat(const Eigen::Vector4f& quat);
+
     void onReferenceChanged(const Boardcore::ReferenceValues& ref) override;
 
 private:

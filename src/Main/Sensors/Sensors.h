@@ -124,6 +124,12 @@ public:
      */
     void setUsingHGsIMU(bool usingHighGsIMU);
 
+    void applyZVKAccBias();
+    void resetZVKAccBias();
+
+    void applyZVKGyroBias();
+    void resetZVKGyroBias();
+
     // Methods for CanHandler
     void setCanPitotTotalPressure(Boardcore::PressureData data);
     void setCanPitotStaticPressure(Boardcore::PressureData data);
@@ -242,6 +248,10 @@ private:
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
     Common::MedianFilter<float, 3> atmosPressureFilter;
+
+    std::mutex zvkBiasMutex;
+    Eigen::Vector3f zvkAccBias{0.0f, 0.0f, 0.0f};
+    Eigen::Vector3f zvkGyroBias{0.0f, 0.0f, 0.0f};
 
     float pitotDynamicBias = 0.0f;
 
