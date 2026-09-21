@@ -353,7 +353,7 @@ int main()
     }
 
 #if defined(DUAL_LSM6)
-    auto sensorConfig = "USING LIS2MDL";
+    auto sensorConfig = "USING DUAL LSM6";
 #else
     auto sensorConfig = "USING VN100";
 #endif

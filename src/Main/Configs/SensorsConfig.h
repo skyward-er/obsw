@@ -28,7 +28,8 @@
  *  'DUAL_LSM6': uses the LSM6DSRX (double sensors) as IMU (backup)
  */
 #if defined(DUAL_LSM6)
-#warning "DUAL_LSM6 is being used instead of VN100 for IMU"
+#warning \
+    "DUAL_LSM6 is being used instead of VN100 for IMU, the zvk bias handling inside sensors.cpp does not support dual lsm6 usage"
 #else
 #warning "Using default VN100 configuration for IMU"
 #endif
