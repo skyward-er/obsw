@@ -46,6 +46,9 @@ constexpr auto SIMULATION_RATE = 10_hz;
 /** sampling periods of sensors [ms] */
 constexpr int N_DATA_BARO_CHAMBER = 10;
 
+/* "Sampling" period of Firing Sequence */
+constexpr int N_DATA_FIRING_SEQUENCE = 10;
+
 /*
  TODO : FIX THIS
 *static_assert(N_DATA_BARO_CHAMBER * SIMULATION_RATE >=

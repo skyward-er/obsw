@@ -32,6 +32,9 @@ namespace Motor
 using MotorHILCCPressureData =
     Boardcore::BarometerSimulatorData<Config::HIL::N_DATA_BARO_CHAMBER>;
 
+using MotorHILFiringSequenceData =
+    Boardcore::FiringSequenceSimulatorData<Config::HIL::N_DATA_FIRING_SEQUENCE>;
+
 enum class HILSignal : int
 {
     SIMULATION_STARTED      = 1,
@@ -74,10 +77,10 @@ struct __attribute__((packed)) MEAStateHIL
  * get the data they need
  */
 //
-struct SimulatorData
+struct __attribute__((packed)) SimulatorData
 {
     MotorHILCCPressureData pressureChamber;
-    uint8_t FiringSequenceState;
+    MotorHILFiringSequenceData FiringSequenceState;
     float signal;
 };
 
