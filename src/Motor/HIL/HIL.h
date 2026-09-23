@@ -63,7 +63,7 @@ private:
         const Boardcore::Event& e,
         std::vector<MotorFlightPhases>& changed_flags) override;
 
-    void handleHSMTransition(const uint8_t hsmState);
+    void handleHSMTransition(const float hsmState);
 
     FiringSequenceState previousState = {FiringSequenceState::INIT};
 };

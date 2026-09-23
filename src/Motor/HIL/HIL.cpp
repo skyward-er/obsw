@@ -86,10 +86,11 @@ void MotorHILPhasesManager::processFlagsImpl(
         changed_flags.push_back(MotorFlightPhases::SIMULATION_STARTED);
     }
 
-    //handleHSMTransition(); get sample from firing sequence
+    handleHSMTransition(simulatorData.FiringSequenceState
+                            .states[Config::HIL::N_DATA_FIRING_SEQUENCE - 1]);
 }
 
-void MotorHILPhasesManager::handleHSMTransition(const uint8_t hsmState)
+void MotorHILPhasesManager::handleHSMTransition(const float hsmState)
 {
     if (static_cast<uint8_t>(previousState) != hsmState)
     {
