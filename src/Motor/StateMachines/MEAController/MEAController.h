@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <Motor/Configs/MEAConfig.h>
 #include <Motor/StateMachines/MEAController/MEAControllerData.h>
 #include <algorithms/AlgorithmsData.h>
 #include <events/FSM.h>
@@ -72,7 +73,7 @@ private:
 
     void updateAndLogStatus(MEAControllerState state);
     std::atomic<MEAControllerState> state{MEAControllerState::INIT};
-    float initialMass = 0.0f;
+    float initialMass = Motor::Config::MEA::INITIAL_MASS;
 
     miosix::FastMutex meaMutex;
 };

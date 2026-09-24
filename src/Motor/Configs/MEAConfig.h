@@ -38,6 +38,8 @@ namespace MEA
 
 constexpr Hertz UPDATE_RATE_MEA = 50_hz;
 
+constexpr float INITIAL_MASS = 40.6f;  // bar
+
 constexpr float MEA_MIN_MASS = 31.3f;  // kg
 constexpr float MEA_MAX_MASS = 40.5f;  // kg
 

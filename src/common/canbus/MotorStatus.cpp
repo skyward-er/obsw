@@ -187,6 +187,7 @@ void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
         case CanConfig::AlgoId::MEA_STATE:
         {
             auto meaStatus = MEAStatusFromCanMessage(msg);
+            sdLogger.log(meaStatus);
 
             sdLogger.log(meaStatus);
             data.meaInitialMass = meaStatus.mass;
@@ -200,6 +201,7 @@ void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
         case CanConfig::AlgoId::MEA_MASS:
         {
             auto data = meaDataFromCanMessage(msg);
+            sdLogger.log(data);
 
             // Check against nan and drop the sample if it is the case
             if (!std::isfinite(data.mass))

@@ -21,7 +21,6 @@
  */
 
 #include <Motor/BoardScheduler.h>
-#include <Motor/Configs/MEAConfig.h>
 #include <Motor/PersistentVars/PersistentVars.h>
 #include <Motor/Sensors/Sensors.h>
 #include <Motor/StateMachines/FiringSequenceHSM/FiringSequenceData.h>
@@ -124,19 +123,24 @@ void MEAController::calibrate()
 {
     Lock<FastMutex> lock{meaMutex};
     mea.initialize();
+    mea.setMEA_Reference(MEAReference{initialMass});
 }
 
 void MEAController::setInitialMass(float mass)
 {
     Lock<FastMutex> lock{meaMutex};
     MEAReference ref{mass};
-    mea.setMEA_Reference(ref);
     mea.initialize();
+    mea.setMEA_Reference(ref);
 
     initialMass = mass;
 }
 
-float MEAController::getInitialMass() { return initialMass; }
+float MEAController::getInitialMass()
+{
+    Lock<FastMutex> lock{meaMutex};
+    return initialMass;
+}
 
 MEALogs MEAController::getLogs()
 {
