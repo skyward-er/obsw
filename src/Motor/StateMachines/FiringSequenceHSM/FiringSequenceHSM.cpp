@@ -234,6 +234,11 @@ State FiringSequenceHSM::state_init(const Event& event)
             return transition(&FiringSequenceHSM::state_ready);
         }
 
+        case FIRING_SEQUENCE_SAFETY_VENTING:
+        {
+            return transition(&FiringSequenceHSM::state_depressurization_ox);
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_top);
@@ -270,6 +275,11 @@ State FiringSequenceHSM::state_ready(const Event& event)
         case FIRING_SEQUENCE_START:
         {
             return transition(&FiringSequenceHSM::state_firing);
+        }
+
+        case FIRING_SEQUENCE_SAFETY_VENTING:
+        {
+            return transition(&FiringSequenceHSM::state_depressurization_ox);
         }
 
         case CAN_PURGE_OX:
@@ -751,12 +761,20 @@ State FiringSequenceHSM::state_ended(const Event& event)
             return HANDLED;
         }
 
+        case CAN_APOGEE_DETECTED:
+        {
+            nextEventId = EventBroker::getInstance().postDelayed(
+                FIRING_SEQUENCE_SAFETY_VENTING, TOPIC_FIRING_SEQUENCE, 1000);
+            return HANDLED;
+        }
+
         case FIRING_SEQUENCE_ABORT:
         {
+            EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&FiringSequenceHSM::state_ready);
         }
 
-        case CAN_APOGEE_DETECTED:
+        case FIRING_SEQUENCE_SAFETY_VENTING:
         {
             return transition(&FiringSequenceHSM::state_depressurization_ox);
         }
@@ -814,6 +832,11 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
             return transition(&FiringSequenceHSM::state_ready);
         }
 
+        case FIRING_SEQUENCE_SAFETY_VENTING:
+        {
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_ended);
@@ -850,28 +873,39 @@ State FiringSequenceHSM::state_depressurization_prz(const Event& event)
 
             return HANDLED;
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&FiringSequenceHSM::state_depressurization_fuel);
         }
+
         case FIRING_SEQUENCE_ABORT:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&FiringSequenceHSM::state_ready);
         }
+
+        case FIRING_SEQUENCE_SAFETY_VENTING:
+        {
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_ended);
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         default:
         {
             return UNHANDLED;
@@ -898,27 +932,38 @@ State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
 
             return HANDLED;
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
         case FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE:
         {
             return transition(&FiringSequenceHSM::state_depressurization_done);
         }
+
         case FIRING_SEQUENCE_ABORT:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&FiringSequenceHSM::state_ready);
         }
+
+        case FIRING_SEQUENCE_SAFETY_VENTING:
+        {
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_ended);
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         default:
         {
             return UNHANDLED;
@@ -943,18 +988,32 @@ State FiringSequenceHSM::state_depressurization_done(const Event& event)
 
             return HANDLED;
         }
+
         case EV_INIT:
         {
             return HANDLED;
         }
+
+        case FIRING_SEQUENCE_SAFETY_VENTING:
+        {
+            return HANDLED;
+        }
+
+        case FIRING_SEQUENCE_ABORT:
+        {
+            return HANDLED;
+        }
+
         case EV_EMPTY:
         {
             return tranSuper(&FiringSequenceHSM::state_ended);
         }
+
         case EV_EXIT:
         {
             return HANDLED;
         }
+
         default:
         {
             return UNHANDLED;

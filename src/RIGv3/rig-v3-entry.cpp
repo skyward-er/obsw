@@ -102,8 +102,7 @@ int main()
         manager.insert<EregControllerFuel>(eregFuel) &&
         manager.insert<FiringSequenceHSM>(firingSequenceHSM) &&
         manager.insert<MotorStatus>(motorStatus) &&
-        manager.insert<RIGv3::ValveSequenceController>(
-            valveSequenceController) &&
+        manager.insert<ValveSequenceController>(valveSequenceController) &&
         manager.inject();
 
     if (!initResult)

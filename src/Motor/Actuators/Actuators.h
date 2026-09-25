@@ -168,7 +168,7 @@ private:
     std::unique_ptr<Boardcore::SparkPlug> spark;
 
     // Timestamp for automatic venting after inactivity for safety reasons
-    TimePoint safetyVentingTs;
+    TimePoint safetyVentingTs = noActionNeeded;
 
     TimePoint sparkPlugCloseTs = noActionNeeded;
 
