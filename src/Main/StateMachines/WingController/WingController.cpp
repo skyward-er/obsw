@@ -127,7 +127,10 @@ bool WingController::setTargetCoordinates(float latitude, float longitude)
     if (state != WingControllerState::READY)
         return false;
 
-    wing.setPRF_Reference({0.0f, latitude, longitude});
+    // change the target coordinates but keep the map center the same
+    wing.setPRF_Reference({0.0f, latitude, longitude,
+                           Config::Wing::Default::TARGET_LAT,
+                           Config::Wing::Default::TARGET_LON});
     targetPositionGEO = Coordinates{latitude, longitude};
     return true;
 }
@@ -242,8 +245,13 @@ void WingController::state_init(const Boardcore::Event& event)
             updateAndLogStatus(WingControllerState::INIT);
 
             wing.initialize();
+
+            // Initially set both the target and map center to the defaults
             wing.setPRF_Reference({0.0f, Config::Wing::Default::TARGET_LAT,
+                                   Config::Wing::Default::TARGET_LON,
+                                   Config::Wing::Default::TARGET_LAT,
                                    Config::Wing::Default::TARGET_LON});
+
             resetWing();
 
             break;

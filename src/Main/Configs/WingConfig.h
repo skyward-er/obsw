@@ -47,8 +47,8 @@ constexpr auto UPDATE_RATE = 20_hz;
 namespace Default
 {
 #if defined(EUROC)
-constexpr auto TARGET_LAT = 39.38724722f;
-constexpr auto TARGET_LON = -8.28647778f;
+constexpr auto TARGET_LAT = 39.387253f;
+constexpr auto TARGET_LON = -8.2879418f;
 #elif defined(ROCCARASO)
 constexpr auto TARGET_LAT = 42.2247092f;
 constexpr auto TARGET_LON = 13.4310024f;
@@ -84,8 +84,8 @@ namespace LandingFlareConfig
 
 constexpr bool ENABLED = true;
 
-constexpr float ALTITUDE         = 20;  // [m]
-constexpr int CONFIDENCE         = 10;  // [samples]
+constexpr float ALTITUDE         = 50.0f;  // [m]
+constexpr int CONFIDENCE         = 10;     // [samples]
 constexpr auto DURATION          = 360s;
 constexpr auto FLARE_ANGLE_LEFT  = 972_deg;
 constexpr auto FLARE_ANGLE_RIGHT = 972_deg;
