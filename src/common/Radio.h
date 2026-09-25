@@ -29,7 +29,7 @@ namespace Common
 {
 
 static constexpr Boardcore::SX1278Fsk::Config MAIN_RADIO_CONFIG = {
-    .freq_rf    = 868000000,
+    .freq_rf    = 868200000,
     .freq_dev   = 50000,
     .bitrate    = 48000,
     .rx_bw      = Boardcore::SX1278Fsk::Config::RxBw::HZ_125000,
@@ -57,7 +57,7 @@ static constexpr Boardcore::SX1278Lora::Config RIG_RADIO_CONFIG = {
     .coding_rate            = Boardcore::SX1278Lora::Config::Cr::CR_1,
     .spreading_factor       = Boardcore::SX1278Lora::Config::Sf::SF_7,
     .low_data_rate_optimize = false,
-    .freq_rf                = 434000000,
+    .freq_rf                = 867800000,
     .ocp                    = 120,
     .power                  = 2,
     .enable_crc             = false};
