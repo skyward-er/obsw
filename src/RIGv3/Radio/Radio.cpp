@@ -920,7 +920,25 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             enqueueMessage(msg);
             return true;
         }
+        case MAV_GSE_TESTING_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_gse_testing_tm_t tm = {0};
 
+            Sensors* sensors = getModule<Sensors>();
+
+            tm.timestamp = TimestampTimer::getTimestamp();
+
+            // Sensors
+            tm.ox_reg_out_pressure = sensors->getOxRegOutPressure().pressure;
+            tm.fuel_reg_out_pressure =
+                sensors->getFuelRegOutPressure().pressure;
+
+            mavlink_msg_gse_testing_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                              requestId, &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
         case MAV_MOTOR_ID:
         {
             auto motor = getModule<MotorStatus>();
@@ -950,29 +968,32 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                 tm.prz_ox_valve_state =
                     (getModule<EregControllerOx>()->getState() !=
                      EregState::CLOSED);
+
+                // Temp - Only needed for the first Hesperia's CFT
                 tm.prz_fuel_valve_state =
-                    (getModule<EregControllerFuel>()->getState() !=
-                     EregState::CLOSED);
+                    actuators->isValveOpen(ServosList::PRZ_FUEL_VALVE);
+                // (getModule<EregControllerFuel>()->getState() !=
+                //  EregState::CLOSED);
 
                 // As we approach the real flight, the encoders used for the
                 // rocket valves have been removed, so the following code is
-                // commented out. If you want to use it, you need to implement
-                // the encoder reading in the sensors module.
+                // commented out. If you want to use it, you will need to
+                // re-implement the encoder readings in the sensors module.
 
-                // tm.prz_ox_valve_position =
-                //     static_cast<uint8_t>(sensors->getOxRegPosition().position);
-                // tm.prz_fuel_valve_position = static_cast<uint8_t>(
-                //     sensors->getFuelRegPosition().position);
+                tm.prz_ox_valve_position =
+                    static_cast<uint8_t>(sensors->getOxRegPosition().position);
+                tm.prz_fuel_valve_position = static_cast<uint8_t>(
+                    sensors->getFuelRegPosition().position);
 
-                // tm.main_ox_valve_state =
-                //     actuators->isValveOpen(ServosList::MAIN_OX_VALVE);
-                // tm.main_fuel_valve_state =
-                //     actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE);
+                tm.main_ox_valve_state =
+                    actuators->isValveOpen(ServosList::MAIN_OX_VALVE);
+                tm.main_fuel_valve_state =
+                    actuators->isValveOpen(ServosList::MAIN_FUEL_VALVE);
 
-                // tm.main_fuel_valve_position = static_cast<uint8_t>(
-                //     sensors->getMainFuelPosition().position);
-                // tm.main_ox_valve_position =
-                //     static_cast<uint8_t>(sensors->getMainOxPosition().position);
+                tm.main_fuel_valve_position = static_cast<uint8_t>(
+                    sensors->getMainFuelPosition().position);
+                tm.main_ox_valve_position =
+                    static_cast<uint8_t>(sensors->getMainOxPosition().position);
 
                 tm.ox_solenoid_state =
                     actuators->isValveOpen(ServosList::IGNITION_OX_VALVE);
@@ -1300,14 +1321,16 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(prz_fuel_btn))
         {
             // The OX pressurize switch was pressed
-            EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+
+            getModule<Actuators>()->toggleValve(ServosList::PRZ_FUEL_VALVE);
 
             // send event to the CAN bus
-            getModule<CanHandler>()->sendEvent(
-                CanConfig::EventId::EREG_FUEL_TOGGLE);
-            lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
+            // getModule<CanHandler>()->sendEvent(
+            //     CanConfig::EventId::EREG_FUEL_TOGGLE);
+            // lastManualActuation = currentTime;
+            // enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_venting_btn))
@@ -1322,36 +1345,44 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(detach_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleDetach();
-            lastManualActuation = currentTime;
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<Actuators>()->toggleDetach();
+            // lastManualActuation = currentTime;
+            getModule<ValveSequenceController>()->fullStepValve(
+                ServosList::MAIN_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_0_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<CanHandler>()->sendEvent(CanConfig::EventId::PURGE_OX);
-            lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<CanHandler>()->sendEvent(CanConfig::EventId::PURGE_OX);
+            // lastManualActuation = currentTime;
+            // enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+            getModule<ValveSequenceController>()->fullStepValve(
+                ServosList::PRZ_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_1_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::MAIN_OX_VALVE);
-            lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<Actuators>()->toggleValve(ServosList::MAIN_OX_VALVE);
+            // lastManualActuation = currentTime;
+            // enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->animateValve(ServosList::MAIN_FUEL_VALVE,
+                                                 0.4f, 20000);
         }
 
         if (BUTTON_PRESSED(spare_2_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::MAIN_FUEL_VALVE);
-            lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<Actuators>()->toggleValve(ServosList::MAIN_FUEL_VALVE);
+            // lastManualActuation = currentTime;
+            // enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
+            getModule<Actuators>()->animateValve(ServosList::PRZ_OX_VALVE, 0.4f,
+                                                 20000);
         }
 
         if (BUTTON_PRESSED(spare_3_btn))
@@ -1366,18 +1397,22 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(spare_4_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleSparkPlug();
-            lastManualActuation = currentTime;
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<Actuators>()->toggleSparkPlug();
+            // lastManualActuation = currentTime;
+            getModule<ValveSequenceController>()->fullStepValve(
+                ServosList::MAIN_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_5_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
-            lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
+            // lastManualActuation = currentTime;
+            // enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
+            getModule<Actuators>()->animateValve(ServosList::MAIN_OX_VALVE,
+                                                 0.4f, 20000);
         }
 
         if (SWITCH_CHANGED(tars_switch))
@@ -1427,6 +1462,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     // Send GSE and motor telemetry
     enqueueSystemTm(MAV_GSE_ID, Config::Radio::MAV_DEFAULT_REQUEST_ID);
     enqueueSystemTm(MAV_MOTOR_ID, Config::Radio::MAV_DEFAULT_REQUEST_ID);
+    enqueueSystemTm(MAV_GSE_TESTING_ID, Config::Radio::MAV_DEFAULT_REQUEST_ID);
     // Acknowledge the state
     enqueueAck(msg);
 

@@ -137,8 +137,8 @@ constexpr bool ENABLED = true;
 
 using Channel = Boardcore::ADS131M08Defs::Channel;
 
-constexpr auto MAIN_OX_ENCODER_CHANNEL   = Channel::CHANNEL_0;
-constexpr auto MAIN_FUEL_ENCODER_CHANNEL = Channel::CHANNEL_1;
+constexpr auto MAIN_OX_ENCODER_CHANNEL   = Channel::CHANNEL_1;
+constexpr auto MAIN_FUEL_ENCODER_CHANNEL = Channel::CHANNEL_6;
 constexpr auto PRZ_OX_ENCODER_CHANNEL    = Channel::CHANNEL_2;
 constexpr auto PRZ_FUEL_ENCODER_CHANNEL  = Channel::CHANNEL_3;
 constexpr auto INJ_OX_PT_CHANNEL         = Channel::CHANNEL_5;
@@ -186,7 +186,8 @@ constexpr float OX_TANK_MAX_PRESSURE         = 100.0f;  // bar
 constexpr float FUEL_TANK_MAX_PRESSURE       = 100.0f;  // bar
 constexpr float IGNITER_CHAMBER_MAX_PRESSURE = 40.0f;   // bar
 constexpr float MAIN_CHAMBER_MAX_PRESSURE    = 100.0f;  // bar
-
+constexpr float INJ_OX_MAX_PRESSURE          = 100.0f;  // bar
+constexpr float INJ_FUEL_MAX_PRESSURE        = 100.0f;  // bar
 }  // namespace Trafag
 
 namespace Encoder

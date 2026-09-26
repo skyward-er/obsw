@@ -122,6 +122,9 @@ enum ConfigurationKeys
     CONFIG_ID_IGN_CHAMBER_PT_SHUNT_RESISTANCE,
     CONFIG_ID_MAIN_CHAMBER_PT_SHUNT_RESISTANCE,
 
+    // ADC 3
+    CONFIG_ID_INJ_OX_PT_SHUNT_RESISTANCE,
+    CONFIG_ID_INJ_FUEL_PT_SHUNT_RESISTANCE,
 };
 
 const char* configurationIdToName(Boardcore::ConfigurationId id);

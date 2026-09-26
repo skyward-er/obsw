@@ -51,6 +51,8 @@ public:
 
     void requestAsyncAutomaticWiggle(uint8_t requestId);
 
+    void fullStepValve(ServosList valve);
+
 private:
     void handleEvent(const Boardcore::Event& ev) override;
 

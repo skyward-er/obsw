@@ -253,12 +253,13 @@ int main()
         std::cerr << "*** Failed to start eregControllerOx ***" << std::endl;
     }
 
-    std::cout << "Starting eregControllerFuel" << std::endl;
-    if (!eregFuel->start())
-    {
-        initResult = false;
-        std::cerr << "*** Failed to start eregControllerFuel ***" << std::endl;
-    }
+    // std::cout << "Starting eregControllerFuel" << std::endl;
+    // if (!eregFuel->start())
+    // {
+    //     initResult = false;
+    //     std::cerr << "*** Failed to start eregControllerFuel ***" <<
+    //     std::endl;
+    // }
 
     std::cout << "Starting ValveSequenceController" << std::endl;
     if (!valveSequenceController->start())

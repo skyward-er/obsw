@@ -79,6 +79,14 @@ void ValveSequenceController::requestAsyncAutomaticWiggle(uint8_t requestId)
 
 void ValveSequenceController::closeValves()
 {
+    getModule<Actuators>()->closeValve(PRZ_FUEL_VALVE);
+    EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
+                                    TOPIC_EREG_FUEL);
+    getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
+    getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
+
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
+
     getModule<Actuators>()->closeValve(PRZ_FILLING_VALVE);
     getModule<Actuators>()->closeValve(PRZ_RELEASE_VALVE);
     getModule<Actuators>()->closeValve(OX_FILLING_VALVE);
@@ -98,14 +106,6 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
     getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
-
-    Thread::sleep(Config::VALVE_CLOSING_DELAY);
-
-    getModule<Actuators>()->closeValve(PRZ_FUEL_VALVE);
-    EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
-                                    TOPIC_EREG_FUEL);
-    getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
-    getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 }
 
 void ValveSequenceController::wiggleValves()
@@ -188,13 +188,15 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleResult.oxVentingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -208,13 +210,15 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleResult.oxVentingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -292,5 +296,14 @@ void ValveSequenceController::wiggleValves()
         [&]() { return getModule<Sensors>()->getOxReleasePosition().position; },
         Config::RIGValveBit::OX_RELEASE_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_RELEASE);
+}
+
+void ValveSequenceController::fullStepValve(ServosList valve)
+{
+    for (int i = 1; i < 21; i++)
+    {
+        getModule<Actuators>()->moveValve(valve, i * 0.05f);
+        Thread::sleep(500);
+    }
 }
 }  // namespace RIGv3
