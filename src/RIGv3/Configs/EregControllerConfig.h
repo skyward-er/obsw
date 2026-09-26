@@ -69,15 +69,15 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.1227f,
-    .minValveAngle    = 15.32f,
+    .minServoPosition = 0.1637f,
+    .minValveAngle    = 25.8f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
                        0.0036f},
 
-    .polyServoCoeff = {1.5602e-009f, -293.5560e-009f, 20.4441e-006f,
-                       -621.5611e-006f, 16.1300e-003f, 3.1566e-003f},
+    .polyServoCoeff = {948.7709e-012f, -188.0458e-009f, 13.9728e-006f,
+                       -445.8199e-006f, 14.1668e-003f, 6.8644e-003f},
 };
 
 }  // namespace EregOx
