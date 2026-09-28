@@ -35,8 +35,9 @@ enum class NASControllerState : uint8_t
     INIT = 0,
     CALIBRATING,
     READY,
-    ACTIVE_ASCENT,
-    DESCENT,
+    ACTIVE,   // Running but not flying
+    ASCENT,   // Running and flying during ascent phase
+    DESCENT,  // Running and flying during descent phase
     END
 };
 

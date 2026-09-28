@@ -34,11 +34,40 @@
 
 #include <algorithm>
 
-using namespace Main;
 using namespace Boardcore;
 using namespace Common;
 using namespace miosix;
 using namespace Eigen;
+
+namespace Main
+{
+
+/**
+ * @brief Returns ANAS reference values for the given reference values and triad
+ */
+ANASReference makeANASReference(const ReferenceValues& ref,
+                                const Vector4f& triad)
+{
+    return {
+        .GroundTemperature = ref.refTemperature,
+        .GroundPressure    = ref.refPressure,
+        .InitialMagnetic   = {ref.magN * 1e5f, ref.magE * 1e5f,
+                              ref.magD * 1e5f},  // Convert from Gauss to nT
+        .InitialPosition   = {0, 0, 0},
+        .InitialVelocity   = {0, 0, 0},
+        .InitialQuaternion = {triad[0], triad[1], triad[2], triad[3]},
+        // clang-format off
+        .InitialCovariance = {0.1f, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0.1f, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0.1f, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0.1f, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0.1f, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0.1f, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 1e-4f, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 1e-4f, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0, 1e-4f}};
+    // clang-format on
+}
 
 NASController::NASController()
     : FSM{&NASController::state_init, miosix::STACK_DEFAULT_FOR_PTHREAD,
@@ -93,7 +122,8 @@ NASControllerState NASController::getState() { return state; }
 
 NASState NASController::getNASState()
 {
-    if (state == NASControllerState::ACTIVE_ASCENT)
+    if (state == NASControllerState::ACTIVE ||
+        state == NASControllerState::ASCENT)
     {
         auto anasState = getANASState();
         NASState state(anasState);
@@ -149,25 +179,7 @@ bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
         anasTriad = quat;
 
         auto ref = getModule<AlgoReference>()->getReferenceValues();
-
-        ANASReference anasRef = {
-            .GroundTemperature = ref.refTemperature,
-            .GroundPressure    = ref.refPressure,
-            .InitialMagnetic   = {ref.magN * 1e5f, ref.magE * 1e5f,
-                                  ref.magD * 1e5f},  // Convert from Gauss to nT
-            .InitialPosition   = {0, 0, 0},
-            .InitialVelocity   = {0, 0, 0},
-            .InitialQuaternion = {anasTriad[0], anasTriad[1], anasTriad[2],
-                                  anasTriad[3]},
-            .InitialCovariance = {0.1f, 0, 0, 0, 0, 0, 0, 0, 0,
-                                  0, 0.1f, 0, 0, 0, 0, 0, 0, 0,
-                                  0, 0, 0.1f, 0, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0.1f, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0.1f, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0.1f, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0, 1e-4f, 0, 0,
-                                  0, 0, 0, 0, 0, 0, 0, 1e-4f, 0,
-                                  0, 0, 0, 0, 0, 0, 0, 0, 1e-4f}};
+        ANASReference anasRef = makeANASReference(ref, anasTriad);
 
         anas.setANAS_Reference(anasRef);
         return true;
@@ -183,7 +195,8 @@ void NASController::onReferenceChanged(const Boardcore::ReferenceValues& ref)
 
 void NASController::updateANAS()
 {
-    if (state == NASControllerState::ACTIVE_ASCENT)
+    if (state == NASControllerState::ACTIVE ||
+        state == NASControllerState::ASCENT)
     {
         Lock<FastMutex> lock{nasMutex};
 
@@ -221,7 +234,7 @@ void NASController::updateANAS()
                                mag.magneticFieldZ},
             .MagTimestamp   = {mag.magneticFieldTimestamp},
             .ABKCommand     = sensors->getAbkPercentage(),
-            .FlyingState    = (state == NASControllerState::ACTIVE_ASCENT)}; // Non va messo in base a NAS controller ma in base alla FMM
+            .FlyingState    = (state == NASControllerState::ASCENT)};
 
         anas.setANAS_In(inputs);
         anas.step();
@@ -316,24 +329,7 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
     StateInitializer init;
     auto triad = init.triad(accAcc, magAcc, {ref.magN, ref.magE, ref.magD});
 
-    ANASReference anasRef = {
-        .GroundTemperature = ref.refTemperature,
-        .GroundPressure    = ref.refPressure,
-        .InitialMagnetic   = {ref.magN * 1e5f, ref.magE * 1e5f,
-                              ref.magD * 1e5f},  // Convert from Gauss to nT
-        .InitialPosition   = {0, 0, 0},
-        .InitialVelocity   = {0, 0, 0},
-        .InitialQuaternion = {triad[0], triad[1], triad[2], triad[3]},
-        .InitialCovariance = {0.1f, 0, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0.1f, 0, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0.1f, 0, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0.1f, 0, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0.1f, 0, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0.1f, 0, 0, 0,
-                                0, 0, 0, 0, 0, 0, 1e-4f, 0, 0,
-                                0, 0, 0, 0, 0, 0, 0, 1e-4f, 0,
-                                0, 0, 0, 0, 0, 0, 0, 0, 1e-4f}};
-
+    ANASReference anasRef = makeANASReference(ref, triad);
     // NASDAQ setup
     NASDAQReference nasdaqRef = {.GroundTemperature = ref.refTemperature,
                                  .GroundPressure    = ref.refPressure};
@@ -409,19 +405,19 @@ void NASController::state_ready(const Event& event)
         case NAS_FORCE_START:
         case FLIGHT_ARMED:
         {
-            transition(&NASController::state_active_ascent);
+            transition(&NASController::state_active);
             break;
         }
     }
 }
 
-void NASController::state_active_ascent(const Event& event)
+void NASController::state_active(const Event& event)
 {
     switch (event)
     {
         case EV_ENTRY:
         {
-            updateAndLogStatus(NASControllerState::ACTIVE_ASCENT);
+            updateAndLogStatus(NASControllerState::ACTIVE);
 
             TaskScheduler& scheduler =
                 getModule<BoardScheduler>()->getNasScheduler();
@@ -430,9 +426,9 @@ void NASController::state_active_ascent(const Event& event)
 
             break;
         }
-        case FLIGHT_APOGEE_DETECTED:
+        case FLIGHT_LIFTOFF:
         {
-            transition(&NASController::state_active_descent);
+            transition(&NASController::state_ascent);
             break;
         }
         case FLIGHT_LANDING_DETECTED:
@@ -449,7 +445,40 @@ void NASController::state_active_ascent(const Event& event)
     }
 }
 
-void NASController::state_active_descent(const Event& event)
+void NASController::state_ascent(const Event& event)
+{
+    switch (event)
+    {
+        case EV_ENTRY:
+        {
+            updateAndLogStatus(NASControllerState::ASCENT);
+
+            TaskScheduler& scheduler =
+                getModule<BoardScheduler>()->getNasScheduler();
+
+            scheduler.enableTask(anasID);
+
+            break;
+        }
+        case FLIGHT_APOGEE_DETECTED:
+        {
+            transition(&NASController::state_descent);
+            break;
+        }
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&NASController::state_end);
+            break;
+        }
+        case NAS_FORCE_STOP:
+        case FLIGHT_DISARMED:
+        {
+            transition(&NASController::state_ready);
+        }
+    }
+}
+
+void NASController::state_descent(const Event& event)
 {
     switch (event)
     {
@@ -496,3 +525,5 @@ void NASController::updateAndLogStatus(NASControllerState state)
     NASControllerStatus data = {TimestampTimer::getTimestamp(), state};
     sdLogger.log(data);
 }
+
+}  // namespace Main
