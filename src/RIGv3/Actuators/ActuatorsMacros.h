@@ -185,7 +185,7 @@
     }
 
 #define MAKE_SIMPLE_PCA_SERVO_VALVE(name, pca, channel)         \
-    ManualValveInfo                                             \
+    ValveInfo                                                   \
     {                                                           \
         std::make_unique<ServoPCAValve>(                        \
             ValveConfig{                                        \

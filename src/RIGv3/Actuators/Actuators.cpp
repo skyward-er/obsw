@@ -53,7 +53,7 @@ void Actuators::ValveInfo::backstep()
 
 void Actuators::ValveInfo::openValve()
 {
-    valve->currentPosition = maxAperature;
+    valve->currentPosition = maxAperture;
     valve->direction       = Valve::Direction::OPEN;
     backstepTs =
         Clock::now() + milliseconds{Config::Servos::SERVO_BACKSTEP_DELAY};
@@ -197,6 +197,7 @@ bool Actuators::start()
 
     prz_3wayValveInfo.valve->enable();
     prz_3wayValveInfo.closeValve();
+    prz_3wayValveStateChanged = false;
 
     spark->enable();
 
@@ -250,8 +251,7 @@ void Actuators::initializeValves()
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
         MAIN_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_5));
 
-    // Since the 3way servo does not need to be closed after a set time
-    // we can reuse the animateValve method
+    // The 3-way servo moves directly between its endpoints.
     prz_3wayValveInfo = MAKE_SIMPLE_PCA_SERVO_VALVE(
         PRZ_3W, expander0, PCA9685Utils::Channel::CHANNEL_0);
 
@@ -346,8 +346,8 @@ bool Actuators::openValve(ServosList servo)
     if (info == nullptr)
         return false;
 
-    uint32_t time      = getValveOpeningTime(servo);
-    info->maxAperature = getModule<Registry>()->getOrSetDefaultUnsafe(
+    uint32_t time     = getValveOpeningTime(servo);
+    info->maxAperture = getModule<Registry>()->getOrSetDefaultUnsafe(
         info->valve->getMaxApertureRegKey(),
         info->valve->getDefaultMaxAperture());
 
@@ -367,7 +367,7 @@ bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
         return false;
 
     getModule<CanHandler>()->sendServoOpenCommand(servo, time);
-    info->maxAperature = getModule<Registry>()->getOrSetDefaultUnsafe(
+    info->maxAperture = getModule<Registry>()->getOrSetDefaultUnsafe(
         info->valve->getMaxApertureRegKey(),
         info->valve->getDefaultMaxAperture());
 
@@ -526,11 +526,14 @@ void Actuators::logValveMovement(int idx, float position)
 
 void Actuators::set3wayValveState(bool state)
 {
-    prz_3wayValveState = state;
-    if (state)
-        prz_3wayValveInfo.animateValve(1.0f, 0);
-    else
-        prz_3wayValveInfo.closeValve();
+    {
+        Lock<FastMutex> lock(infosMutex);
+        if (prz_3wayValveState == state)
+            return;
+
+        prz_3wayValveState        = state;
+        prz_3wayValveStateChanged = true;
+    }
 
     signalTask();
 }
@@ -655,7 +658,10 @@ SignaledDeadlineTask::TimePoint Actuators::nextTaskDeadline()
             nextDeadline = std::min(nextDeadline, info.closeTs);
     }
 
-    // 3-way valve is not a timed valve, only needs backstep handling
+    // A pending 3-way command must run even if its wakeup was missed.
+    if (prz_3wayValveStateChanged)
+        return Clock::now();
+
     if (prz_3wayValveInfo.backstepTs != noActionNeeded)
         nextDeadline = std::min(nextDeadline, prz_3wayValveInfo.backstepTs);
 
@@ -723,17 +729,19 @@ void Actuators::task()
         }
     }
 
-    if (prz_3wayValveInfo.backstepTs != noActionNeeded &&
-        currentTime > prz_3wayValveInfo.backstepTs)
+    if (prz_3wayValveStateChanged)
+    {
+        prz_3wayValveStateChanged = false;
+        if (prz_3wayValveState)
+            prz_3wayValveInfo.openValve();
+        else
+            prz_3wayValveInfo.closeValve();
+    }
+    else if (prz_3wayValveInfo.backstepTs != noActionNeeded &&
+             currentTime > prz_3wayValveInfo.backstepTs)
     {
         // Backstep the 3-way valve servo a little to avoid strain
         prz_3wayValveInfo.backstep();
-    }
-    else if (prz_3wayValveInfo.updateTs != noActionNeeded &&
-             currentTime > prz_3wayValveInfo.updateTs)
-    {
-        // Animate valve step
-        prz_3wayValveInfo.advanceAnimation();
     }
 
     // handle spark plug timing

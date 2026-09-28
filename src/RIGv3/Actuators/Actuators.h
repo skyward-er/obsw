@@ -53,7 +53,8 @@ private:
     struct ValveInfo
     {
         explicit ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
-            : valve(std::move(valve))
+            : valve(std::move(valve)),
+              maxAperture(this->valve->getDefaultMaxAperture())
         {
         }
 
@@ -85,7 +86,7 @@ private:
 
         bool isValveOpen();
 
-        float maxAperature = valve->getDefaultMaxAperture();
+        float maxAperture = 0.0f;
     };
 
     struct ManualValveInfo : public ValveInfo
@@ -188,9 +189,9 @@ private:
     std::shared_ptr<Boardcore::PCA9685> expander1;
 
     // PRZ 3-way valve info
-    ManualValveInfo prz_3wayValveInfo;
+    ValveInfo prz_3wayValveInfo;
     std::atomic<bool> prz_3wayValveState{false};
-    std::atomic<bool> prz_3wayValveStateChanged{true};
+    std::atomic<bool> prz_3wayValveStateChanged{false};
 
     std::unique_ptr<Boardcore::SparkPlug> spark;
     TimePoint sparkPlugCloseTs = noActionNeeded;
