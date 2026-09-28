@@ -153,12 +153,21 @@ bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
         ANASReference anasRef = {
             .GroundTemperature = ref.refTemperature,
             .GroundPressure    = ref.refPressure,
-            .InitialMagnetic   = {ref.magN * 1e5, ref.magE * 1e5,
-                                  ref.magD * 1e5},  // Convert from Gauss to nT
+            .InitialMagnetic   = {ref.magN * 1e5f, ref.magE * 1e5f,
+                                  ref.magD * 1e5f},  // Convert from Gauss to nT
             .InitialPosition   = {0, 0, 0},
             .InitialVelocity   = {0, 0, 0},
             .InitialQuaternion = {anasTriad[0], anasTriad[1], anasTriad[2],
-                                  anasTriad[3]}};
+                                  anasTriad[3]},
+            .InitialCovariance = {0.1f, 0, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0.1f, 0, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0.1f, 0, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0.1f, 0, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0.1f, 0, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0.1f, 0, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 1e-4f, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 1e-4f, 0,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 1e-4f}};
 
         anas.setANAS_Reference(anasRef);
         return true;
@@ -212,7 +221,7 @@ void NASController::updateANAS()
                                mag.magneticFieldZ},
             .MagTimestamp   = {mag.magneticFieldTimestamp},
             .ABKCommand     = sensors->getAbkPercentage(),
-            .FlyingState    = (state == NASControllerState::ACTIVE_ASCENT)};
+            .FlyingState    = (state == NASControllerState::ACTIVE_ASCENT)}; // Non va messo in base a NAS controller ma in base alla FMM
 
         anas.setANAS_In(inputs);
         anas.step();
@@ -310,11 +319,20 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
     ANASReference anasRef = {
         .GroundTemperature = ref.refTemperature,
         .GroundPressure    = ref.refPressure,
-        .InitialMagnetic   = {ref.magN * 1e5, ref.magE * 1e5,
-                              ref.magD * 1e5},  // Convert from Gauss to nT
+        .InitialMagnetic   = {ref.magN * 1e5f, ref.magE * 1e5f,
+                              ref.magD * 1e5f},  // Convert from Gauss to nT
         .InitialPosition   = {0, 0, 0},
         .InitialVelocity   = {0, 0, 0},
-        .InitialQuaternion = {triad[0], triad[1], triad[2], triad[3]}};
+        .InitialQuaternion = {triad[0], triad[1], triad[2], triad[3]},
+        .InitialCovariance = {0.1f, 0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0.1f, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0.1f, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0.1f, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0.1f, 0, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0.1f, 0, 0, 0,
+                                0, 0, 0, 0, 0, 0, 1e-4f, 0, 0,
+                                0, 0, 0, 0, 0, 0, 0, 1e-4f, 0,
+                                0, 0, 0, 0, 0, 0, 0, 0, 1e-4f}};
 
     // NASDAQ setup
     NASDAQReference nasdaqRef = {.GroundTemperature = ref.refTemperature,
