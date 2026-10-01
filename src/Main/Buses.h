@@ -37,7 +37,7 @@ class Buses : public Boardcore::Injectable
 public:
     Buses()
         : spi6(makeSPI(SPI6)), spi1(makeSPI(SPI1)), spi3(makeSPI(SPI3)),
-          spi4(makeSPI(SPI4))
+          spi2(makeSPI(SPI2)), spi4(makeSPI(SPI4))
     {
     }
 

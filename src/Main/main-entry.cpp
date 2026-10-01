@@ -381,14 +381,14 @@ int main()
     while (true)
     {
         sdLogger.log(sdLogger.getStats());
-        CpuMeterData cpuStats = CpuMeter::getCpuStats();
-        CpuMeter::resetCpuStats();
+        // CpuMeterData cpuStats = CpuMeter::getCpuStats();
+        // CpuMeter::resetCpuStats();
 
-        printf(
-            "CPU Load: %.2f%% (min: %.2f%%, max: %.2f%%, stdDev: %.2f%%, "
-            "samples: %ld)\n",
-            cpuStats.mean, cpuStats.minValue, cpuStats.maxValue,
-            cpuStats.stdDev, cpuStats.nSamples);
+        // printf(
+        //     "CPU Load: %.2f%% (min: %.2f%%, max: %.2f%%, stdDev: %.2f%%, "
+        //     "samples: %ld)\n",
+        //     cpuStats.mean, cpuStats.minValue, cpuStats.maxValue,
+        //     cpuStats.stdDev, cpuStats.nSamples);
 
         // Toggle LED
         gpioExpander.setPinValue(Main::Config::ExternalPin::LED_0.getPort(),

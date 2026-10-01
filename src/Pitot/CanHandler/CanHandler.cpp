@@ -140,9 +140,9 @@ bool CanHandler::start()
         [this]()
         {
             auto staticPressure =
-                getModule<Sensors>()->getStaticPressureLastSample();
+                getModule<Sensors>()->getStaticPressureLastSample().pressure;
             auto totalPressure =
-                getModule<Sensors>()->getTotalPressureLastSample();
+                getModule<Sensors>()->getTotalPressureLastSample().pressure;
 
             auto ntcTemperature =
                 getModule<Sensors>()->getHeatingPadNTCLastSample();
