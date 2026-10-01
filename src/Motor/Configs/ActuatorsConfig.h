@@ -58,6 +58,7 @@ constexpr auto SAFETY_VENTING_DURATION = 10min;  // How long to vent
 
 constexpr uint32_t DEFAULT_OX_VEN_OPENING_TIME    = 15000;
 constexpr uint32_t DEFAULT_FUEL_VEN_OPENING_TIME  = 15000;
+constexpr uint32_t DEFAULT_FUEL_DUMP_OPENING_TIME = 15000;
 constexpr uint32_t DEFAULT_PRZ_OX_OPENING_TIME    = 15000;
 constexpr uint32_t DEFAULT_PRZ_FUEL_OPENING_TIME  = 15000;
 constexpr uint32_t DEFAULT_MAIN_OX_OPENING_TIME   = 15000;
@@ -67,6 +68,7 @@ constexpr uint32_t DEFAULT_IGN_FUEL_OPENING_TIME  = 15000;
 
 constexpr float DEFAULT_OX_VEN_MAX_APERTURE    = 1.0;
 constexpr float DEFAULT_FUEL_VEN_MAX_APERTURE  = 1.0;
+constexpr float DEFAULT_FUEL_DUMP_MAX_APERTURE = 1.0;
 constexpr float DEFAULT_PRZ_OX_MAX_APERTURE    = 1.0;
 constexpr float DEFAULT_PRZ_FUEL_MAX_APERTURE  = 1.0;
 constexpr float DEFAULT_MAIN_OX_MAX_APERTURE   = 1.0;
@@ -76,6 +78,7 @@ constexpr float DEFAULT_IGN_FUEL_MAX_APERTURE  = 1.0;
 
 constexpr float OX_VEN_LIMIT    = 0.9f;
 constexpr float FUEL_VEN_LIMIT  = 0.9f;
+constexpr float FUEL_DUMP_LIMIT = 0.9f;
 constexpr float PRZ_OX_LIMIT    = 0.9f;
 constexpr float PRZ_FUEL_LIMIT  = 0.85f;
 constexpr float MAIN_OX_LIMIT   = 1.0f;
@@ -83,8 +86,10 @@ constexpr float MAIN_FUEL_LIMIT = 1.0f;
 constexpr float IGN_FUEL_LIMIT  = 1.0;
 constexpr float IGN_OX_LIMIT    = 1.0;
 
-constexpr bool OX_VEN_FLIPPED    = false;
-constexpr bool FUEL_VEN_FLIPPED  = true;
+constexpr bool OX_VEN_FLIPPED   = false;
+constexpr bool FUEL_VEN_FLIPPED = true;
+// Check
+constexpr bool FUEL_DUMP_FLIPPED = false;
 constexpr bool PRZ_OX_FLIPPED    = false;
 constexpr bool PRZ_FUEL_FLIPPED  = true;
 constexpr bool MAIN_OX_FLIPPED   = true;

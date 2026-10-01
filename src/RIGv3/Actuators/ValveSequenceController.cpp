@@ -54,9 +54,10 @@ void ValveSequenceController::handleEvent(const Event& ev)
                 wiggleResult.mainOxSuccess, wiggleResult.mainFuelSuccess,
                 wiggleResult.przOxSuccess, wiggleResult.przFuelSuccess,
                 wiggleResult.oxVentingSuccess, wiggleResult.fuelVentingSuccess,
-                wiggleResult.prz3WaySuccess, wiggleResult.przFillingSuccess,
-                wiggleResult.przReleaseSuccess, wiggleResult.oxFillingSuccess,
-                wiggleResult.oxReleaseSuccess, lastRequestId);
+                wiggleResult.fuelDumpingSuccess, wiggleResult.prz3WaySuccess,
+                wiggleResult.przFillingSuccess, wiggleResult.przReleaseSuccess,
+                wiggleResult.oxFillingSuccess, wiggleResult.oxReleaseSuccess,
+                lastRequestId);
             break;
         }
 
@@ -88,19 +89,20 @@ void ValveSequenceController::closeValves()
 
     getModule<Actuators>()->closeValve(OX_VENTING_VALVE);
     getModule<Actuators>()->closeValve(FUEL_VENTING_VALVE);
+    getModule<Actuators>()->closeValve(FUEL_DUMPING_VALVE);
     getModule<Actuators>()->closeValve(OX_DETACH_SERVO);
-    getModule<Actuators>()->closeValve(FUEL_DETACH_SERVO);
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
+    getModule<Actuators>()->closeValve(FUEL_DETACH_SERVO);
     getModule<Actuators>()->closeValve(PURGE_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
-    getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
-    EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
+    getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
+    EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
     getModule<Actuators>()->closeValve(PRZ_FUEL_VALVE);
     EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
                                     TOPIC_EREG_FUEL);
@@ -188,13 +190,15 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleResult.oxVentingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -208,13 +212,15 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleResult.oxVentingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -292,5 +298,33 @@ void ValveSequenceController::wiggleValves()
         [&]() { return getModule<Sensors>()->getOxReleasePosition().position; },
         Config::RIGValveBit::OX_RELEASE_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_RELEASE);
+
+    getModule<Actuators>()->openValveWithTime(FUEL_DUMPING_VALVE, 6500);
+
+    Thread::sleep(Config::VALVE_WIGGLE_DELAY);
+
+    wiggleResult.fuelDumpingSuccess = isValveOpen(
+        [&]()
+        {
+            return getModule<MotorStatus>()
+                ->lockData()
+                ->fuelDumpingValvePosition;
+        },
+        Config::MotorValveBit::FUEL_DUMPING_VALVE_BIT,
+        Config::VALVE_OPENING_THRESHOLD_FUEL_DUMPING);
+
+    getModule<Actuators>()->closeValve(FUEL_DUMPING_VALVE);
+
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
+
+    wiggleResult.fuelDumpingSuccess &= isValveClosed(
+        [&]()
+        {
+            return getModule<MotorStatus>()
+                ->lockData()
+                ->fuelDumpingValvePosition;
+        },
+        Config::MotorValveBit::FUEL_DUMPING_VALVE_BIT,
+        Config::VALVE_CLOSED_THRESHOLD_FUEL_DUMPING);
 }
 }  // namespace RIGv3

@@ -204,6 +204,7 @@ void Actuators::initializeValves()
 {
     valveInfos.push_back(MAKE_SERVO_VALVE(OX_VEN));
     valveInfos.push_back(MAKE_SERVO_VALVE(FUEL_VEN));
+    valveInfos.push_back(MAKE_SERVO_VALVE(FUEL_DUMP));
 
     // "Manual" servo valves, instead of only being fully open or closed, can be
     // moved to any position in the range [0, 1].
@@ -470,10 +471,12 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
             return &valveInfos[0];
         case FUEL_VENTING_VALVE:
             return &valveInfos[1];
-        case IGNITION_OX_VALVE:
+        case FUEL_DUMPING_VALVE:
             return &valveInfos[2];
-        case IGNITION_FUEL_VALVE:
+        case IGNITION_OX_VALVE:
             return &valveInfos[3];
+        case IGNITION_FUEL_VALVE:
+            return &valveInfos[4];
 
         case PRZ_OX_VALVE:
             return &manualValveInfos[0];

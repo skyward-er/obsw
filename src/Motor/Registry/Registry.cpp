@@ -61,6 +61,10 @@ const char* Motor::configurationIdToName(ConfigurationId id)
             return "FUEL_VEN_OPENING_TIME";
         case CONFIG_ID_FUEL_VEN_MAX_APERTURE:
             return "FUEL_VEN_MAX_APERTURE";
+        case CONFIG_ID_FUEL_DUMP_OPENING_TIME:
+            return "FUEL_DUMP_OPENING_TIME";
+        case CONFIG_ID_FUEL_DUMP_MAX_APERTURE:
+            return "FUEL_DUMP_MAX_APERTURE";
         case CONFIG_ID_IGN_OX_OPENING_TIME:
             return "IGN_OX_OPENING_TIME";
         case CONFIG_ID_IGN_OX_MAX_APERTURE:

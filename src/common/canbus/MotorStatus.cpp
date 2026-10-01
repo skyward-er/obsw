@@ -140,6 +140,11 @@ void MotorStatus::handleActuators(const Canbus::CanMessage& msg)
             data.fuelVentingValvePosition = valveData.position;
             break;
 
+        case ServosList::FUEL_DUMPING_VALVE:
+            data.fuelDumpingValveState    = valveData.open;
+            data.fuelDumpingValvePosition = valveData.position;
+            break;
+
         case ServosList::PRZ_OX_VALVE:
             data.przOxValveState    = valveData.open;
             data.przOxValvePosition = valveData.position;
@@ -243,6 +248,8 @@ mavlink_motor_tm_t MotorStatus::getMotorTelemetry()
         .ox_venting_valve_position   = data.oxVentingValvePosition,
         .fuel_venting_valve_state    = data.fuelVentingValveState,
         .fuel_venting_valve_position = data.fuelVentingValvePosition,
+        .fuel_dumping_valve_state    = data.fuelDumpingValveState,
+        .fuel_dumping_valve_position = data.fuelDumpingValvePosition,
         .prz_ox_valve_state          = data.przOxValveState,
         .prz_ox_valve_position       = data.przOxValvePosition,
         .prz_fuel_valve_state        = data.przFuelValveState,

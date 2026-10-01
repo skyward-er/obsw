@@ -74,6 +74,7 @@ public:
     Boardcore::ServoPositionData getPrzFuelPosition();
     Boardcore::ServoPositionData getVentingOxPosition();
     Boardcore::ServoPositionData getVentingFuelPosition();
+    Boardcore::ServoPositionData getDumpingFuelPosition();
 
     std::vector<Boardcore::SensorInfo> getSensorInfos();
 
@@ -101,6 +102,7 @@ protected:
     std::unique_ptr<Boardcore::AnalogEncoder> przFuelPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> ventingOxPosition;
     std::unique_ptr<Boardcore::AnalogEncoder> ventingFuelPosition;
+    std::unique_ptr<Boardcore::AnalogEncoder> dumpingFuelPosition;
 
     std::unique_ptr<Boardcore::SensorManager> manager;
 
@@ -152,6 +154,9 @@ private:
 
     void ventingFuelPositionInit();
     void ventingFuelPositionCallback();
+
+    void dumpingFuelPositionInit();
+    void dumpingFuelPositionCallback();
 
     bool sensorManagerInit();
 

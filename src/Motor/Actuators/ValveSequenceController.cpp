@@ -67,6 +67,11 @@ void ValveSequenceController::closeValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
+    LOG_INFO(logger, "Closing dumping valves");
+    getModule<Actuators>()->closeValve(FUEL_DUMPING_VALVE);
+
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
+
     LOG_INFO(logger, "Closing ignition valves");
     getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);

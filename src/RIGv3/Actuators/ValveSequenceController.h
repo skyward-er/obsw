@@ -85,6 +85,7 @@ private:
         bool przReleaseSuccess : 1;
         bool oxFillingSuccess : 1;
         bool oxReleaseSuccess : 1;
+        bool fuelDumpingSuccess : 1;
     } wiggleResult{};
 
     uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;

@@ -59,6 +59,7 @@ struct MotorStatus : public Boardcore::Injectable
 
         uint8_t oxVentingValvePosition   = 0;
         uint8_t fuelVentingValvePosition = 0;
+        uint8_t fuelDumpingValvePosition = 0;
         uint8_t przOxValvePosition       = 0;
         uint8_t przFuelValvePosition     = 0;
         uint8_t mainOxValvePosition      = 0;
@@ -66,6 +67,7 @@ struct MotorStatus : public Boardcore::Injectable
 
         bool oxVentingValveState   = false;
         bool fuelVentingValveState = false;
+        bool fuelDumpingValveState = false;
         bool przOxValveState       = false;
         bool przFuelValveState     = false;
         bool mainOxValveState      = false;

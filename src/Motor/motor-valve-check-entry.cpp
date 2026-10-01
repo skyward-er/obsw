@@ -74,9 +74,10 @@ struct ValveEntry
 };
 static const ValveEntry valveEntries[] = {
     // {"OX_VENTING", OX_VENTING_VALVE}, {"FUEL_VENTING", FUEL_VENTING_VALVE},
-    {"VENT_OX", OX_VENTING_VALVE},  {"VENT_FUEL", FUEL_VENTING_VALVE},
-    {"MAIN_FUEL", MAIN_FUEL_VALVE}, {"MAIN_OX", MAIN_OX_VALVE},
-    {"PRZ_FUEL", PRZ_FUEL_VALVE},   {"PRZ_OX", PRZ_OX_VALVE},
+    {"VENT_OX", OX_VENTING_VALVE},     {"VENT_FUEL", FUEL_VENTING_VALVE},
+    {"DUMP_FUEL", FUEL_DUMPING_VALVE}, {"MAIN_FUEL", MAIN_FUEL_VALVE},
+    {"MAIN_OX", MAIN_OX_VALVE},        {"PRZ_FUEL", PRZ_FUEL_VALVE},
+    {"PRZ_OX", PRZ_OX_VALVE},
 
 };
 ServosList getValveFromString(const std::string& name)
@@ -370,7 +371,7 @@ int main()
         std::cout << "Commands:\n";
         std::cout << "  animate <VALVE_NAME|number> to <POSITION> in "
                      "<MILLISECONDS>\n";
-        std::cout << "  step [<VALVE_NAME|number>]  (no arg: PRZ_OX, PRZ_FUEL, "
+        std::cout << "  step (no arg: PRZ_OX, PRZ_FUEL, "
                      "MAIN_OX, MAIN_FUEL)\n";
         std::cout << "  sweep <VALVE_NAME|number>  (animate 0.4 -> 0.0)\n";
         std::cout << "  wiggle <VALVE_NAME|number>\n";
