@@ -231,6 +231,19 @@ bool CanHandler::start()
                 static_cast<uint8_t>(CanConfig::Board::BROADCAST),
                 static_cast<uint8_t>(0x0),
                 ValveData{
+                    TimestampTimer::getTimestamp(),
+                    ServosList::FUEL_DUMPING_VALVE,
+                    static_cast<uint8_t>(
+                        sensors->getDumpingFuelPosition().position),
+                    actuators->isValveOpen(ServosList::FUEL_DUMPING_VALVE)});
+
+            protocol.enqueueData(
+                static_cast<uint8_t>(CanConfig::Priority::HIGH),
+                static_cast<uint8_t>(CanConfig::PrimaryType::ACTUATORS),
+                static_cast<uint8_t>(CanConfig::Board::MOTOR),
+                static_cast<uint8_t>(CanConfig::Board::BROADCAST),
+                static_cast<uint8_t>(0x0),
+                ValveData{
                     TimestampTimer::getTimestamp(), ServosList::MAIN_OX_VALVE,
                     static_cast<uint8_t>(sensors->getMainOxPosition().position),
                     actuators->isValveOpen(ServosList::MAIN_OX_VALVE)});

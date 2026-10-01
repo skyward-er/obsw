@@ -109,7 +109,9 @@ inline const char* servoToString(ServosList servo)
         case ServosList::OX_VENTING_VALVE:
             return "OX_VENTING_VALVE";
         case ServosList::FUEL_VENTING_VALVE:
-            return "FUEL_PISSING_VALVE";
+            return "FUEL_VENTING_VALVE";
+        case ServosList::FUEL_DUMPING_VALVE:
+            return "FUEL_DUMPING_VALVE";
         case ServosList::PRZ_FILLING_VALVE:
             return "PRZ_FILLING_VALVE";
         case ServosList::PRZ_RELEASE_VALVE:

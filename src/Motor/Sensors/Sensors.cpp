@@ -57,6 +57,7 @@ bool Sensors::start()
         przFuelPositionInit();
         przOxPositionInit();
         ventingFuelPositionInit();
+        dumpingFuelPositionInit();
         ventingOxPositionInit();
     }
 
@@ -170,6 +171,7 @@ void Sensors::calibrateEncoders()
     przFuelPosition->calibrate();
     przOxPosition->calibrate();
     ventingFuelPosition->calibrate();
+    dumpingFuelPosition->calibrate();
     ventingOxPosition->calibrate();
 }
 
@@ -261,6 +263,12 @@ ServoPositionData Sensors::getVentingFuelPosition()
                                : ServoPositionData{};
 }
 
+ServoPositionData Sensors::getDumpingFuelPosition()
+{
+    return dumpingFuelPosition ? dumpingFuelPosition->getLastSample()
+                               : ServoPositionData{};
+}
+
 VoltageData Sensors::getBatteryVoltage()
 {
     using namespace Config::Sensors::InternalADC;
@@ -330,6 +338,7 @@ std::vector<SensorInfo> Sensors::getSensorInfos()
         PUSH_SENSOR_INFO(przFuelPosition, "PrzFuelPosition");
         PUSH_SENSOR_INFO(przOxPosition, "PrzOxPosition");
         PUSH_SENSOR_INFO(ventingFuelPosition, "VentingFuelPosition");
+        PUSH_SENSOR_INFO(dumpingFuelPosition, "DumpingFuelPosition");
         PUSH_SENSOR_INFO(ventingOxPosition, "VentingOxPosition");
 
         return infos;
@@ -458,6 +467,13 @@ void Sensors::adc2Init()
 
     config.channelsConfig[(
         int)Config::Sensors::ADC_2::FUEL_VENTING_EN_CHANNEL] = {
+        .enabled = true,
+        .pga     = ADS131M08Defs::PGA::PGA_1,
+        .offset  = 0,
+        .gain    = 1.0};
+
+    config.channelsConfig[(
+        int)Config::Sensors::ADC_2::FUEL_DUMPING_EN_CHANNEL] = {
         .enabled = true,
         .pga     = ADS131M08Defs::PGA::PGA_1,
         .offset  = 0,
@@ -753,6 +769,27 @@ void Sensors::ventingFuelPositionCallback()
     sdLogger.log(VentingFuelPositionData{getVentingFuelPosition()});
 }
 
+void Sensors::dumpingFuelPositionInit()
+{
+    dumpingFuelPosition = std::make_unique<AnalogEncoder>(
+        [this]()
+        {
+            auto sample = getADC2LastSample();
+            return sample.getVoltage(
+                Config::Sensors::ADC_2::FUEL_DUMPING_EN_CHANNEL);
+        },
+        Config::Sensors::Encoder::DEFAULT_SHUNT_RESISTANCE,
+        Config::Sensors::Encoder::FULLSCALE_VOLTAGE,
+        Config::Sensors::Encoder::SENSOR_RESISTANCE,
+        Config::Sensors::Encoder::CURRENT_GAIN,
+        Config::Sensors::Encoder::MAX_ANGLE);
+}
+
+void Sensors::dumpingFuelPositionCallback()
+{
+    sdLogger.log(DumpingFuelPositionData{getDumpingFuelPosition()});
+}
+
 bool Sensors::sensorManagerInit()
 {
     SensorManager::SensorMap_t map;
@@ -871,6 +908,13 @@ bool Sensors::sensorManagerInit()
         map.emplace(std::make_pair(ventingFuelPosition.get(), info));
     }
 
+    if (dumpingFuelPosition)
+    {
+        SensorInfo info{"DumpingFuelPosition", Config::Sensors::ADC_2::RATE,
+                        [this]() { dumpingFuelPositionCallback(); }};
+        map.emplace(std::make_pair(dumpingFuelPosition.get(), info));
+    }
+
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
     return manager->start();
 }
@@ -890,18 +934,17 @@ void Sensors::checkPrzTankOverpressure()
         auto actuators = getModule<Actuators>();
 
         // Apri al 100% OX Vent -> Prz Ox aprire 30% ( Da verificare ) per 5s
-        bool alreadyOpen =
-            actuators->isValveOpen(ServosList::OX_VENTING_VALVE) &&
-            actuators->isValveOpen(ServosList::PRZ_OX_VALVE);
-
+        bool alreadyOpen = actuators->isValveOpen(ServosList::OX_VENTING_VALVE);
         if (!alreadyOpen)
         {
             actuators->openValveWithTime(
                 ServosList::OX_VENTING_VALVE,
                 milliseconds{VENTING_DURATION}.count());
 
-            actuators->animateValve(ServosList::PRZ_OX_VALVE, .3f,
-                                    milliseconds{VENTING_DURATION}.count());
+            // TODO FIXARE ASSOLUTAMENTE!!!
+            // Da capire per quanto nel caso Ereg Ox apre
+            // Però di base va bene che l'Ereg ox sia in PRIMA pressurizzazione
+            // e provi a pressurizzare aprendo PRZ OXs
         }
 
         przTankPressureOkTime = now;

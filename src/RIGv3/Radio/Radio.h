@@ -68,9 +68,10 @@ public:
     bool enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
                                bool przOxSuccess, bool przFuelSuccess,
                                bool oxVentingSuccess, bool fuelVentingSuccess,
-                               bool prz3WaySuccess, bool przFillingSuccess,
-                               bool przReleaseSuccess, bool oxFillingSuccess,
-                               bool oxReleaseSuccess, uint8_t requestId);
+                               bool fuelDumpingSuccess, bool prz3WaySuccess,
+                               bool przFillingSuccess, bool przReleaseSuccess,
+                               bool oxFillingSuccess, bool oxReleaseSuccess,
+                               uint8_t requestId);
 
     bool enqueueFiringParametersResponse(
         uint32_t fullThrottleTime, uint32_t lowThrottleTime,

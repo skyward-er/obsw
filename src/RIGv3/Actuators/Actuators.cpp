@@ -234,6 +234,8 @@ void Actuators::initializeValves()
         OX_VEN, expander1, PCA9685Utils::Channel::CHANNEL_0));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         FUEL_VEN, expander1, PCA9685Utils::Channel::CHANNEL_1));
+    valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
+        FUEL_DUMP, expander1, PCA9685Utils::Channel::CHANNEL_6));
 
     // Solenoid valves connected to the gpio expander
     valveInfos.push_back(MAKE_EXTERNAL_SOLENOID_VALVE(
@@ -584,12 +586,14 @@ Actuators::ValveInfo* Actuators::getValve(ServosList servo)
             return &valveInfos[4];
         case FUEL_VENTING_VALVE:
             return &valveInfos[5];
-        case PURGE_VALVE:
+        case FUEL_DUMPING_VALVE:
             return &valveInfos[6];
-        case IGNITION_OX_VALVE:
+        case PURGE_VALVE:
             return &valveInfos[7];
-        case IGNITION_FUEL_VALVE:
+        case IGNITION_OX_VALVE:
             return &valveInfos[8];
+        case IGNITION_FUEL_VALVE:
+            return &valveInfos[9];
 
         // Manual valves
         case PRZ_OX_VALVE:

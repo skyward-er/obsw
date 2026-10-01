@@ -236,4 +236,20 @@ struct VentingFuelPositionData : Boardcore::ServoPositionData
     }
 };
 
+struct DumpingFuelPositionData : Boardcore::ServoPositionData
+{
+    explicit DumpingFuelPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData{data}
+    {
+    }
+
+    DumpingFuelPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(DumpingFuelPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
 }  // namespace Motor

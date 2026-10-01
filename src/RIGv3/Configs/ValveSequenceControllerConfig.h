@@ -38,7 +38,8 @@ enum MotorValveBit : uint8_t
     PRZ_OX_VALVE_BIT       = 2,
     PRZ_FUEL_VALVE_BIT     = 3,
     OX_VENTING_VALVE_BIT   = 4,
-    FUEL_VENTING_VALVE_BIT = 5
+    FUEL_VENTING_VALVE_BIT = 5,
+    FUEL_DUMPING_VALVE_BIT = 6
 };
 
 enum RIGValveBit : uint8_t
@@ -66,6 +67,8 @@ constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_RELEASE = 40;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_FILLING  = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_OX_RELEASE  = 40;
 
+constexpr uint8_t VALVE_OPENING_THRESHOLD_FUEL_DUMPING = 40;
+
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_OX      = 5;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_MAIN_FUEL    = 5;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_OX       = 5;
@@ -73,11 +76,12 @@ constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FUEL     = 5;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_VENTING   = 5;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 5;
 
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_3WAY    = 5;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FILLING = 5;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_RELEASE = 5;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_FILLING  = 5;
-constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_RELEASE  = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_3WAY     = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_FILLING  = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_PRZ_RELEASE  = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_FILLING   = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_RELEASE   = 5;
+constexpr uint8_t VALVE_CLOSED_THRESHOLD_FUEL_DUMPING = 5;
 
 constexpr auto VALVE_WIGGLE_DELAY  = 2000;  // [ms]
 constexpr auto VALVE_CLOSING_DELAY = 2000;  // [ms]

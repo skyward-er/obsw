@@ -80,7 +80,7 @@ constexpr auto PRZ_OX_EN_CHANNEL       = Channel::CHANNEL_2;
 constexpr auto PRZ_FUEL_EN_CHANNEL     = Channel::CHANNEL_3;
 constexpr auto OX_VENTING_EN_CHANNEL   = Channel::CHANNEL_4;
 constexpr auto FUEL_VENTING_EN_CHANNEL = Channel::CHANNEL_5;
-// constexpr auto EXTRA_TOP_EN_CHANNEL    = Channel::CHANNEL_6;
+constexpr auto FUEL_DUMPING_EN_CHANNEL = Channel::CHANNEL_6;
 // constexpr auto EXTRA_BOTTOM_EN_CHANNEL = Channel::CHANNEL_7;
 
 constexpr auto RATE    = 100_hz;

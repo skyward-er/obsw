@@ -671,7 +671,8 @@ bool Radio::enqueueValveInfoTm(ServosList valveId, uint8_t requestId)
 bool Radio::enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
                                   bool przOxSuccess, bool przFuelSuccess,
                                   bool oxVentingSuccess,
-                                  bool fuelVentingSuccess, bool prz3WaySuccess,
+                                  bool fuelVentingSuccess,
+                                  bool fuelDumpingSuccess, bool prz3WaySuccess,
                                   bool przFillingSuccess,
                                   bool przReleaseSuccess, bool oxFillingSuccess,
                                   bool oxReleaseSuccess, uint8_t requestId)
@@ -686,6 +687,7 @@ bool Radio::enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
     tm.prz_fuel_success     = przFuelSuccess ? 1 : 0;
     tm.ox_venting_success   = oxVentingSuccess ? 1 : 0;
     tm.fuel_venting_success = fuelVentingSuccess ? 1 : 0;
+    tm.fuel_dumping_success = fuelDumpingSuccess ? 1 : 0;
     tm.prz_3way_success     = prz3WaySuccess ? 1 : 0;
     tm.prz_filling_success  = przFillingSuccess ? 1 : 0;
     tm.prz_release_success  = przReleaseSuccess ? 1 : 0;
@@ -946,6 +948,9 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                     actuators->isValveOpen(ServosList::OX_VENTING_VALVE);
                 tm.fuel_venting_valve_state =
                     actuators->isValveOpen(ServosList::FUEL_VENTING_VALVE);
+
+                tm.fuel_dumping_valve_state =
+                    actuators->isValveOpen(ServosList::FUEL_DUMPING_VALVE);
 
                 tm.prz_ox_valve_state =
                     (getModule<EregControllerOx>()->getState() !=
