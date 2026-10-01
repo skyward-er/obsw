@@ -172,15 +172,14 @@ Eigen::Vector4f NASController::getANASTriad()
 
 bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
 {
-    Lock<FastMutex> lock{nasMutex};
-
-    if (state == NASControllerState::READY)
+    if (state == NASControllerState::READY || state == NASControllerState::ACTIVE)
     {
         anasTriad = quat;
 
         auto ref = getModule<AlgoReference>()->getReferenceValues();
         ANASReference anasRef = makeANASReference(ref, anasTriad);
 
+        calibrate(ref);
         anas.setANAS_Reference(anasRef);
         return true;
     }
@@ -203,7 +202,6 @@ void NASController::updateANAS()
         Sensors* sensors = getModule<Sensors>();
 
         auto imu          = sensors->getIMULastSample();
-        auto mag          = sensors->getCalibratedLIS2MDLRcsLastSample();
         auto gps          = sensors->getUBXGPSLastSample();
         auto baro         = sensors->getAtmosPressureLastSample();
         auto staticPitot  = sensors->getCanPitotStaticPressure();
@@ -230,9 +228,9 @@ void NASController::updateANAS()
 
             .PitotMeasure   = {staticPitot.pressure, dynamicPitot.pressure},
             .PitotTimestamp = staticPitot.pressureTimestamp,
-            .MagMeasure     = {mag.magneticFieldX, mag.magneticFieldY,
-                               mag.magneticFieldZ},
-            .MagTimestamp   = {mag.magneticFieldTimestamp},
+            .MagMeasure     = {imu.magneticFieldX, imu.magneticFieldY,
+                               imu.magneticFieldZ},
+            .MagTimestamp   = {imu.magneticFieldTimestamp},
             .ABKCommand     = sensors->getAbkPercentage(),
             .FlyingState    = (state == NASControllerState::ASCENT)};
 
@@ -309,10 +307,9 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
     for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
     {
         auto imuData = sensors->getIMULastSample();
-        auto magData = sensors->getCalibratedLIS2MDLRcsLastSample();
 
         Vector3f acc = static_cast<AccelerometerData>(imuData);
-        Vector3f mag = static_cast<MagnetometerData>(magData);
+        Vector3f mag = static_cast<MagnetometerData>(imuData);
 
         accAcc += acc;
         magAcc += mag;

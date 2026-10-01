@@ -138,10 +138,9 @@ void ZVKController::calibrate(const Boardcore::ReferenceValues& ref)
     for (int i = 0; i < Config::NAS::CALIBRATION_SAMPLES_COUNT; i++)
     {
         auto imuData = sensors->getIMULastSample();
-        auto magData = sensors->getCalibratedLIS2MDLRcsLastSample();
 
         Vector3f acc = static_cast<AccelerometerData>(imuData);
-        Vector3f mag = static_cast<MagnetometerData>(magData);
+        Vector3f mag = static_cast<MagnetometerData>(imuData);
 
         accAcc += acc;
         magAcc += mag;
