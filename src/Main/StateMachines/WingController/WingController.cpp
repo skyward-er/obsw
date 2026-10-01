@@ -403,6 +403,12 @@ void WingController::state_opening_pumps_pull(const Boardcore::Event& event)
             break;
         }
 
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&WingController::state_landed);
+            break;
+        }
+
         case DPL_PUMPS_RELEASE:
         {
             transition(&WingController::state_opening_pumps_release);
@@ -458,6 +464,12 @@ void WingController::state_opening_pumps_release(const Boardcore::Event& event)
         case DPL_DONE:
         {
             transition(&WingController::state_guided_descent);
+            break;
+        }
+
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&WingController::state_landed);
             break;
         }
 
