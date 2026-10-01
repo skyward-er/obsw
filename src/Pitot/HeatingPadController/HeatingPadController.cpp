@@ -128,8 +128,8 @@ void HeatingPadController::update()
 
     if (!heatingPadSense() != pinEnabled)
     {
-        LOG_WARN(logger, "Heating pad sense mismatch: SENSE:{}, ENABLED:{} ",
-                 heatingPadSense(), pinEnabled);
+        // LOG_WARN(logger, "Heating pad sense mismatch: SENSE:{}, ENABLED:{} ",
+        //          heatingPadSense(), pinEnabled);
     }
 
     float temperature =

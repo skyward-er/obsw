@@ -36,8 +36,8 @@ class Buses : public Boardcore::Injectable
 {
 public:
     Buses()
-        : spi6(makeSPI(SPI6)), spi1(makeSPI(SPI1)), spi2(makeSPI(SPI2)),
-          spi3(makeSPI(SPI3)), spi4(makeSPI(SPI4))
+        : spi6(makeSPI(SPI6)), spi1(makeSPI(SPI1)), spi3(makeSPI(SPI3)),
+          spi4(makeSPI(SPI4))
     {
     }
 
@@ -68,21 +68,21 @@ private:
                      : (spi == SPI2) ? 2
                      : (spi == SPI3) ? 3
                      : (spi == SPI4) ? 4
-                     : (spi == SPI5) ? 5
+                     //  : (spi == SPI5) ? 5
                      : (spi == SPI6) ? 6
                                      : 0;
         auto txId  = (spi == SPI1)   ? DMADefs::Peripherals::PE_SPI1_TX
                      : (spi == SPI2) ? DMADefs::Peripherals::PE_SPI2_TX
                      : (spi == SPI3) ? DMADefs::Peripherals::PE_SPI3_TX
                      : (spi == SPI4) ? DMADefs::Peripherals::PE_SPI4_TX
-                     : (spi == SPI5) ? DMADefs::Peripherals::PE_SPI5_TX
+                     //  : (spi == SPI5) ? DMADefs::Peripherals::PE_SPI5_TX
                      : (spi == SPI6) ? DMADefs::Peripherals::PE_SPI6_TX
                                      : DMADefs::Peripherals::PE_MEM_ONLY;
         auto rxId  = (spi == SPI1)   ? DMADefs::Peripherals::PE_SPI1_RX
                      : (spi == SPI2) ? DMADefs::Peripherals::PE_SPI2_RX
                      : (spi == SPI3) ? DMADefs::Peripherals::PE_SPI3_RX
                      : (spi == SPI4) ? DMADefs::Peripherals::PE_SPI4_RX
-                     : (spi == SPI5) ? DMADefs::Peripherals::PE_SPI5_RX
+                     //  : (spi == SPI5) ? DMADefs::Peripherals::PE_SPI5_RX
                      : (spi == SPI6) ? DMADefs::Peripherals::PE_SPI6_RX
                                      : DMADefs::Peripherals::PE_MEM_ONLY;
 
@@ -103,11 +103,10 @@ private:
                                                       std::move(rxStream));
     }
 
-    // Initialized in this order to favor DMA to SPI6 (radio)
     std::unique_ptr<Boardcore::SPIBusInterface> spi6;
     std::unique_ptr<Boardcore::SPIBusInterface> spi1;
-    std::unique_ptr<Boardcore::SPIBusInterface> spi2;
     std::unique_ptr<Boardcore::SPIBusInterface> spi3;
+    std::unique_ptr<Boardcore::SPIBusInterface> spi2;
     std::unique_ptr<Boardcore::SPIBusInterface> spi4;
 
     Boardcore::USART usart4{UART4, 230400, 1024};

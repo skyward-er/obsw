@@ -171,6 +171,10 @@ int main()
     {
         sdLogger.log(sdLogger.getStats());
 
+        std::cout << "ND030A Temperature: "
+                  << sensors->getND030ADataLastSample().temperature << " C"
+                  << std::endl;
+
         Thread::sleep(1000);
     }
 
