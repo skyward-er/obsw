@@ -28,7 +28,7 @@
 #include <diagnostic/PrintLogger.h>
 #include <events/FSM.h>
 #include <prf/PRF.h>
-#include <utils/AltitudeMap/AltitudeQuadMap.h>
+#include <utils/AltitudeMap/AltitudeMap.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <Eigen/Core>
@@ -149,7 +149,7 @@ private:
     std::atomic<bool> started{false};
 
     PRF::PRF wing;
-    Boardcore::AltitudeQuadMap altitudeMap{Config::Wing::ALTITUDE_MAP_FILENAME};
+    Boardcore::AltitudeMap altitudeMap{Config::Wing::ALTITUDE_MAP_FILENAME};
 
     std::atomic<bool> enableFlare{
         Main::Config::Wing::LandingFlareConfig::ENABLED};
