@@ -722,6 +722,8 @@ State FlightModeManager::state_powered_ascent(const Event& event)
         {
             return HANDLED;
         }
+
+        case TMTC_FORCE_ENGINE_SHUTDOWN:
         case SDA_SHUTDOWN_DETECTED:
         case FMM_ENGINE_TIMEOUT:
         {
