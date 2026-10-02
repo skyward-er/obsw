@@ -60,6 +60,8 @@ static constexpr float IGNITER_PRESSURE_THRESHOLD         = 14.0f;  // bar
 static constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 20;
 static constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 6.0f;  // bar
 static constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 20;
+constexpr float MAIN_CHAMBER_SAFETY_THRESHOLD = 35.0f * 1.5f;  // bar
+constexpr float MAIN_CHAMBER_SAFETY_SAMPLES   = 30;
 
 static constexpr float PRZ_TANK_PRESSURE_THRESHOLD = 20.0f;  // bar
 static constexpr float OX_TANK_PRESSURE_THRESHOLD  = 10.0f;  // bar

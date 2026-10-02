@@ -82,6 +82,7 @@ private:
     Boardcore::State state_full_throttle(const Boardcore::Event& event);
     Boardcore::State state_low_throttle(const Boardcore::Event& event);
     Boardcore::State state_ended(const Boardcore::Event& event);
+    Boardcore::State state_depressurization(const Boardcore::Event& event);
     Boardcore::State state_depressurization_ox(const Boardcore::Event& event);
     Boardcore::State state_depressurization_prz(const Boardcore::Event& event);
     Boardcore::State state_depressurization_fuel(const Boardcore::Event& event);
@@ -101,8 +102,9 @@ private:
 
     uint16_t nextEventId = -1;
 
-    uint8_t igniterFlameSamples = 0;
-    uint8_t pilotFlameSamples   = 0;
+    uint8_t igniterFlameSamples              = 0;
+    uint8_t pilotFlameSamples                = 0;
+    uint8_t chamberOverpressurizationSamples = 0;
 
     float igniterPressureThreshold    = 0.0f;
     float pilotFlamePressureThreshold = 0.0f;

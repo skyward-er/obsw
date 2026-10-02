@@ -42,11 +42,12 @@ enum class FiringSequenceState : uint8_t
     RAMP_UP,
     FULL_THROTTLE,
     LOW_THROTTLE,
+    ENDED,
+    DEPRESSURIZATION,
     DEPRESSURIZATION_OX,
     DEPRESSURIZATION_PRZ,
     DEPRESSURIZATION_FUEL,
     DEPRESSURIZATION_DONE,
-    ENDED,
     INVALID,
 };
 
@@ -74,6 +75,10 @@ inline std::string to_string(FiringSequenceState state)
             return "FULL_THROTTLE";
         case FiringSequenceState::LOW_THROTTLE:
             return "LOW_THROTTLE";
+        case FiringSequenceState::ENDED:
+            return "ENDED";
+        case FiringSequenceState::DEPRESSURIZATION:
+            return "DEPRESSURIZATION";
         case FiringSequenceState::DEPRESSURIZATION_OX:
             return "DEPRESSURIZATION_OX";
         case FiringSequenceState::DEPRESSURIZATION_PRZ:
@@ -82,8 +87,6 @@ inline std::string to_string(FiringSequenceState state)
             return "DEPRESSURIZATION_FUEL";
         case FiringSequenceState::DEPRESSURIZATION_DONE:
             return "DEPRESSURIZATION_DONE";
-        case FiringSequenceState::ENDED:
-            return "ENDED";
         default:
             return "UNKNOWN";
     }
