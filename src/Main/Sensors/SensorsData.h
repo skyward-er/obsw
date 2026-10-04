@@ -26,6 +26,7 @@
 #include <sensors/AS5047D/AS5047DData.h>
 #include <sensors/LIS2MDL/LIS2MDLData.h>
 #include <sensors/LSM6DSRX/LSM6DSRXData.h>
+#include <sensors/ND015X/ND015XData.h>
 #include <sensors/SensorData.h>
 
 #include <reflect.hpp>
@@ -33,10 +34,10 @@
 namespace Main
 {
 
-struct StaticPressure0Data : public Boardcore::PressureData
+struct StaticPressure0Data : public Boardcore::ND015XData
 {
-    explicit StaticPressure0Data(const Boardcore::PressureData& data)
-        : Boardcore::PressureData(data)
+    explicit StaticPressure0Data(const Boardcore::ND015XData& data)
+        : Boardcore::ND015XData(data)
     {
     }
 
@@ -45,14 +46,14 @@ struct StaticPressure0Data : public Boardcore::PressureData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(StaticPressure0Data,
-                          EXTEND_DEF(Boardcore::PressureData));
+                          EXTEND_DEF(Boardcore::ND015XData));
     }
 };
 
-struct StaticPressure1Data : Boardcore::PressureData
+struct StaticPressure1Data : Boardcore::ND015XData
 {
-    explicit StaticPressure1Data(const Boardcore::PressureData& data)
-        : Boardcore::PressureData(data)
+    explicit StaticPressure1Data(const Boardcore::ND015XData& data)
+        : Boardcore::ND015XData(data)
     {
     }
 
@@ -61,14 +62,14 @@ struct StaticPressure1Data : Boardcore::PressureData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(StaticPressure1Data,
-                          EXTEND_DEF(Boardcore::PressureData));
+                          EXTEND_DEF(Boardcore::ND015XData));
     }
 };
 
-struct StaticPressure2Data : Boardcore::PressureData
+struct StaticPressure2Data : Boardcore::ND015XData
 {
-    explicit StaticPressure2Data(const Boardcore::PressureData& data)
-        : Boardcore::PressureData(data)
+    explicit StaticPressure2Data(const Boardcore::ND015XData& data)
+        : Boardcore::ND015XData(data)
     {
     }
 
@@ -77,7 +78,7 @@ struct StaticPressure2Data : Boardcore::PressureData
     static constexpr auto reflect()
     {
         return STRUCT_DEF(StaticPressure2Data,
-                          EXTEND_DEF(Boardcore::PressureData));
+                          EXTEND_DEF(Boardcore::ND015XData));
     }
 };
 

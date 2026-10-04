@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <sensors/ND015X/ND015XData.h>
+#include <sensors/ND030X/ND030XData.h>
 #include <sensors/SensorData.h>
 
 #include <reflect.hpp>
@@ -31,35 +33,34 @@ namespace Pitot
 
 // Wrappers to differentiate static and dynamic pressure for logging
 
-struct StaticPressureData : public Boardcore::PressureData
+struct StaticPressureData : public Boardcore::ND015XData
 {
     StaticPressureData() = default;
 
-    explicit StaticPressureData(const Boardcore::PressureData& data)
-        : Boardcore::PressureData(data)
+    explicit StaticPressureData(const Boardcore::ND015XData& data)
+        : Boardcore::ND015XData(data)
     {
     }
 
     static constexpr auto reflect()
     {
         return STRUCT_DEF(StaticPressureData,
-                          EXTEND_DEF(Boardcore::PressureData));
+                          EXTEND_DEF(Boardcore::ND015XData));
     }
 };
 
-struct TotalPressureData : public Boardcore::PressureData
+struct TotalPressureData : public Boardcore::ND030XData
 {
     TotalPressureData() = default;
 
-    explicit TotalPressureData(const Boardcore::PressureData& data)
-        : Boardcore::PressureData(data)
+    explicit TotalPressureData(const Boardcore::ND030XData& data)
+        : Boardcore::ND030XData(data)
     {
     }
 
     static constexpr auto reflect()
     {
-        return STRUCT_DEF(TotalPressureData,
-                          EXTEND_DEF(Boardcore::PressureData));
+        return STRUCT_DEF(TotalPressureData, EXTEND_DEF(Boardcore::ND030XData));
     }
 };
 

@@ -153,14 +153,14 @@ bool CanHandler::start()
                 static_cast<uint8_t>(Board::PITOT),
                 static_cast<uint8_t>(Board::BROADCAST),
                 static_cast<uint8_t>(SensorId::PITOT_STATIC_PRESSURE),
-                staticPressure);
+                staticPressure.pressure);
             protocol->enqueueData(
                 static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::SENSORS),
                 static_cast<uint8_t>(Board::PITOT),
                 static_cast<uint8_t>(Board::BROADCAST),
                 static_cast<uint8_t>(SensorId::PITOT_TOTAL_PRESSURE),
-                totalPressure);
+                totalPressure.pressure);
             protocol->enqueueData(
                 static_cast<uint8_t>(Priority::MEDIUM),
                 static_cast<uint8_t>(PrimaryType::SENSORS),
