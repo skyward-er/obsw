@@ -190,15 +190,13 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleResult.oxVentingSuccess = isValveOpen(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess = isValveOpen(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -212,15 +210,13 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleResult.oxVentingSuccess &= isValveClosed(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess &= isValveClosed(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -304,8 +300,7 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleResult.fuelDumpingSuccess = isValveOpen(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelDumpingValvePosition;
@@ -318,8 +313,7 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleResult.fuelDumpingSuccess &= isValveClosed(
-        [&]()
-        {
+        [&]() {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelDumpingValvePosition;
