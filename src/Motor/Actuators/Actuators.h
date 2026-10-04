@@ -121,8 +121,6 @@ public:
     [[nodiscard]] bool start();
 
     bool wiggleValve(ServosList servo);
-    bool toggleValve(ServosList servo);
-    bool openValve(ServosList servo);
     bool openValveWithTime(ServosList servo, uint32_t time);
     bool moveValve(ServosList servo, float position);
     bool animateValve(ServosList servo, float position, uint32_t time);

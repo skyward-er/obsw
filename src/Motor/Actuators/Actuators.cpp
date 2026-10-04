@@ -219,45 +219,11 @@ void Actuators::initializeValves()
     valveInfos.push_back(
         MAKE_SOLENOID_VALVE(IGN_FUEL, solenoidal::igniterFuel::getPin()));
 }
+
 bool Actuators::wiggleValve(ServosList servo)
 {
     // Wiggle means open the servo for 1s
     return openValveWithTime(servo, 1000);
-}
-
-bool Actuators::toggleValve(ServosList servo)
-{
-    ValveInfo* info = getValve(servo);
-    if (info == nullptr)
-        return false;
-
-    if (info->closeTs == noActionNeeded)
-    {
-        // The servo is closed, open it
-        openValve(servo);
-    }
-    else
-    {
-        // The servo is open, close it
-        closeValve(servo);
-    }
-
-    return true;
-}
-
-bool Actuators::openValve(ServosList servo)
-{
-    Lock<FastMutex> lock(infosMutex);
-    ValveInfo* info = getValve(servo);
-    if (info == nullptr)
-        return false;
-
-    uint32_t time = getServoOpeningTime(servo);
-
-    info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
-
-    signalTask();
-    return true;
 }
 
 bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
@@ -267,11 +233,12 @@ bool Actuators::openValveWithTime(ServosList servo, uint32_t time)
     if (info == nullptr)
         return false;
 
+    auto currentTime = Clock::now();
     // tell the task to open this valve
-    info->closeTs = Clock::now() + nanoseconds{msToNs(time)};
+    info->closeTs = currentTime + nanoseconds{msToNs(time)};
 
     // Reset the safety venting timestamp
-    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
+    safetyVentingTs = currentTime + Config::Servos::SAFETY_VENTING_TIMEOUT;
 
     signalTask();
     return true;
@@ -283,12 +250,13 @@ bool Actuators::closeValve(ServosList servo)
     ValveInfo* info = getValve(servo);
     if (info == nullptr)
         return false;
+    auto currentTime = Clock::now();
 
     // tell the task to close this valve
-    info->closeTs = Clock::now();
+    info->closeTs = currentTime;
 
     // Reset the safety venting timestamp
-    safetyVentingTs = Clock::now() + Config::Servos::SAFETY_VENTING_TIMEOUT;
+    safetyVentingTs = currentTime + Config::Servos::SAFETY_VENTING_TIMEOUT;
 
     signalTask();
     return true;

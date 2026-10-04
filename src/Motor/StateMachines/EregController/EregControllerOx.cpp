@@ -121,7 +121,6 @@ void EregControllerOx::update()
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
-        // TODO: put venting valve in the config
         getModule<Actuators>()->closeValve(Config::EregOx::EREG_SERVO);
         getModule<Actuators>()->openValveWithTime(
             Config::EregOx::VENTING_SERVO,
