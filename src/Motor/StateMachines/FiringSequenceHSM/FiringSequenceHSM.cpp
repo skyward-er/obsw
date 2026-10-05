@@ -317,6 +317,8 @@ State FiringSequenceHSM::state_ready(const Event& event)
                     CONFIG_ID_PILOT_FLAME_OX_POSITION,
                     Config::FiringSequence::PILOT_OX_POSITION);
 
+            // close the valve to reset the safety venting timer
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
             getModule<Actuators>()->moveValve(ServosList::MAIN_OX_VALVE,
                                               pilotOxPosition);
 
