@@ -69,8 +69,8 @@ constexpr auto SERVO_TWIRL_RADIUS = 0.5f;  // [%]
 constexpr unsigned int ABK_MIN_PULSE = 500;
 constexpr unsigned int ABK_MAX_PULSE = 2440;
 
-constexpr float ABK_MAX_POS = 0.96f;
-constexpr float ABK_MIN_POS = 0.025f;
+constexpr float ABK_MAX_POS = 0.965f;
+constexpr float ABK_MIN_POS = 0.035f;
 
 // Buzzer configs
 constexpr uint16_t BUZZER_FREQUENCY = 500;
