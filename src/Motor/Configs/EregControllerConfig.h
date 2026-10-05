@@ -38,7 +38,7 @@ namespace EregFuel
 /* linter off */ using namespace std::chrono;
 
 constexpr ServosList EREG_SERVO    = ServosList::PRZ_FUEL_VALVE;
-constexpr ServosList VENTING_SERVO = ServosList::FUEL_DUMPING_VALVE;
+constexpr ServosList VENTING_SERVO = ServosList::FUEL_VENTING_VALVE;
 constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]

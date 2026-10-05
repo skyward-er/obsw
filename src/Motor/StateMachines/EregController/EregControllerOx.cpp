@@ -198,6 +198,8 @@ void EregControllerOx::state_closed(const Event& event)
         case EREG_TOGGLE:
         case EREG_PRESSURIZE:
         {
+            // Close the valve to reset the safety venting timer
+            getModule<Actuators>()->closeValve(Config::EregOx::EREG_SERVO);
             transition(&EregControllerOx::state_pressurizing);
             break;
         }
