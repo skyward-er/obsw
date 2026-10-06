@@ -276,7 +276,7 @@ bool Actuators::moveValve(ServosList servo, float position)
     return true;
 }
 
-bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
+bool Actuators::animateValve(ManualValve servo, float position, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
     ManualValveInfo* info = getManualValve(servo);

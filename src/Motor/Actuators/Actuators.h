@@ -33,6 +33,7 @@
 #include <common/MavlinkHydra.h>
 #include <scheduler/SignaledDeadlineTask.h>
 #include <utils/DependencyManager/DependencyManager.h>
+#include <type_traits>
 
 namespace Motor
 {
@@ -120,10 +121,27 @@ public:
 
     [[nodiscard]] bool start();
 
+    struct ManualValve {
+    ServosList value;
+
+    struct ManualValve {
+        ServosList value;
+
+        constexpr ManualValve(ServosList v) : value(v) {
+            if consteval {
+                if (v < 15 || v > 18) {
+                    throw "Error: Tried to call animateValve on a non-manual valve.";
+                }
+            }
+        }
+
+        constexpr operator ServosList() const { return value; }
+    };
+
     bool wiggleValve(ServosList servo);
     bool openValveWithTime(ServosList servo, uint32_t time);
     bool moveValve(ServosList servo, float position);
-    bool animateValve(ServosList servo, float position, uint32_t time);
+    bool animateValve(ManualValve servo, float position, uint32_t time);
 
     bool closeValve(ServosList servo);
     void closeAllValves();
@@ -172,6 +190,7 @@ private:
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("actuators");
+
 };
 
 }  // namespace Motor

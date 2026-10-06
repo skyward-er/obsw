@@ -350,6 +350,12 @@ int main()
     // From here on main thread will do non-critical stuff, set lowest priority
     Thread::setPriority(BoardScheduler::Priority::LOW);
 
+    constexpr ServosList PRZ_OX_VALVE   = ServosList::PRZ_OX_VALVE;
+    constexpr ServosList AIR_BRAKES_SERVO = ServosList::AIR_BRAKES_SERVO;
+
+    actuators->animateValve(PRZ_OX_VALVE, 0.4, 1000);
+    actuators->animateValve(AIR_BRAKES_SERVO, 0.4, 1000);
+
     while (true)
     {
         // Log logger and CPU stats
