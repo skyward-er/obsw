@@ -189,9 +189,9 @@ constexpr auto CAM_VBAT_CH  = Boardcore::InternalADC::Channel::CH1;
 constexpr auto COTS_VBAT_CH = Boardcore::InternalADC::Channel::CH2;
 constexpr auto CURRENT_CH   = Boardcore::InternalADC::Channel::CH3;
 
-constexpr auto VBAT_SCALE      = 7.060606f;
-constexpr auto CAM_VBAT_SCALE  = 7.060606f;
-constexpr auto COTS_VBAT_SCALE = 7.060606f;
+constexpr auto VBAT_SCALE      = 7.3979f;
+constexpr auto CAM_VBAT_SCALE  = 7.3979f;
+constexpr auto COTS_VBAT_SCALE = 7.3979f;
 
 constexpr auto CURRENT_SCALE  = 27.361111f;
 constexpr auto CURRENT_OFFSET = -3.3f;
