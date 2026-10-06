@@ -143,16 +143,6 @@ constexpr auto RATE    = 10_hz;
 constexpr bool ENABLED = true;
 }  // namespace InternalADC
 
-namespace PrzTankOverpressure
-{
-constexpr auto CHECK_RATE = 10_hz;
-
-// 1.15 times the setpoint regulation - 220 * 1.15 = 253
-constexpr float PRESSURE_THRESHOLD = 253.f;  // bar
-constexpr auto HYSTERESIS          = 1s;
-constexpr auto VENTING_DURATION    = 5000ms;
-}  // namespace PrzTankOverpressure
-
 }  // namespace Sensors
 
 }  // namespace Config

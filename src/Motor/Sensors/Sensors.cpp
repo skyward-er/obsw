@@ -64,16 +64,6 @@ bool Sensors::start()
     if (Config::Sensors::InternalADC::ENABLED)
         internalAdcInit();
 
-    uint8_t taskId = getModule<BoardScheduler>()->sensors().addTask(
-        [this] { checkPrzTankOverpressure(); },
-        Config::Sensors::PrzTankOverpressure::CHECK_RATE);
-
-    if (!taskId)
-    {
-        LOG_ERR(logger, "Failed to create PrzTankOverpressure task");
-        return false;
-    }
-
     if (!postSensorCreationHook())
     {
         LOG_ERR(logger, "Failed to call postSensorCreationHook");
@@ -918,36 +908,3 @@ bool Sensors::sensorManagerInit()
     manager = std::make_unique<SensorManager>(map, &getSensorsScheduler());
     return manager->start();
 }
-
-void Sensors::checkPrzTankOverpressure()
-{
-    using namespace Config::Sensors::PrzTankOverpressure;
-    auto sample = getPrzTankPressure();
-
-    auto now = std::chrono::steady_clock::now();
-
-    if (sample.pressure < PRESSURE_THRESHOLD)
-        przTankPressureOkTime = now;
-
-    if (now - przTankPressureOkTime > HYSTERESIS)
-    {
-        auto actuators = getModule<Actuators>();
-
-        // Apri al 100% OX Vent -> Prz Ox aprire 30% ( Da verificare ) per 5s
-        bool alreadyOpen = actuators->isValveOpen(ServosList::OX_VENTING_VALVE);
-        if (!alreadyOpen)
-        {
-            actuators->openValveWithTime(
-                ServosList::OX_VENTING_VALVE,
-                milliseconds{VENTING_DURATION}.count());
-
-            // TODO FIXARE ASSOLUTAMENTE!!!
-            // Da capire per quanto nel caso Ereg Ox apre
-            // Però di base va bene che l'Ereg ox sia in PRIMA pressurizzazione
-            // e provi a pressurizzare aprendo PRZ OXs
-        }
-
-        przTankPressureOkTime = now;
-    }
-}
-
