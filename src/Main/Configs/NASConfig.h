@@ -36,7 +36,7 @@ namespace NAS
 
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE_ANAS   = 50_hz;
+constexpr Hertz UPDATE_RATE_ANAS   = 100_hz;
 constexpr Hertz UPDATE_RATE_NASDAQ = 100_hz;
 constexpr float UPDATE_RATE_ANAS_SECONDS =
     1.0 / UPDATE_RATE_ANAS.value();  // [s]

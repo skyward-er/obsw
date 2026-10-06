@@ -38,7 +38,7 @@ namespace SDA
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr Hertz UPDATE_RATE = 50_hz;
+constexpr Hertz UPDATE_RATE = 100_hz;
 
 #ifdef ROCCARASO
 constexpr auto SHADOW_MODE_TIMEOUT     = 3000ms;
