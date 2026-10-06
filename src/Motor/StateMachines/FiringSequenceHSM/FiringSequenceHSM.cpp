@@ -210,6 +210,8 @@ void FiringSequenceHSM::checkDepressurizationPressure()
 {
     std::lock_guard<std::mutex> lock(depressurizationMutex);
     auto now = steady_clock::now();
+    // We only check the pressure of the Ox Tank as only the OX_PRZ valve is
+    // used for depressurization.
     if (state == FiringSequenceState::DEPRESSURIZATION_PROPELLANT_VENT)
     {
         if (getModule<Sensors>()->getOxTankPressure().pressure >=
@@ -800,7 +802,8 @@ State FiringSequenceHSM::state_ended(const Event& event)
         case CAN_APOGEE_DETECTED:
         {
             nextEventId = EventBroker::getInstance().postDelayed(
-                FIRING_SEQUENCE_SAFETY_VENTING, TOPIC_FIRING_SEQUENCE, 1000);
+                FIRING_SEQUENCE_SAFETY_VENTING, TOPIC_FIRING_SEQUENCE,
+                Config::FiringSequence::APOGEE_VENTING_DELAY.count());
             return HANDLED;
         }
 
