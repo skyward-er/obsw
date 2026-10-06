@@ -49,6 +49,8 @@ static constexpr milliseconds RAMP_UP_OPENING_TIME{250};
 static constexpr milliseconds FULL_THROTTLE_TIME{3000};
 static constexpr milliseconds LOW_THROTTLE_TIME{1200};
 
+static constexpr milliseconds APOGEE_VENTING_DELAY{5000};
+
 // placeholder values
 static constexpr float PILOT_OX_POSITION          = 0.4662f;
 static constexpr float PILOT_FUEL_POSITION        = 0.5088f;
@@ -63,22 +65,21 @@ static constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 20;
 constexpr float MAIN_CHAMBER_SAFETY_THRESHOLD = 35.0f * 1.5f;  // bar
 constexpr float MAIN_CHAMBER_SAFETY_SAMPLES   = 30;
 
-static constexpr float PRZ_TANK_PRESSURE_THRESHOLD = 20.0f;  // bar
-static constexpr float OX_TANK_PRESSURE_THRESHOLD  = 10.0f;  // bar
+static constexpr float PRZ_TANK_PRESSURE_THRESHOLD  = 20.0f;  // bar
+static constexpr float OX_TANK_PRESSURE_THRESHOLD   = 10.0f;  // bar
+static constexpr float FUEL_TANK_PRESSURE_THRESHOLD = 10.0f;  // bar
 
 namespace Depressurization
 {
 constexpr auto VENTING_TIMEOUT              = 60s;
-constexpr auto OX_VENTING_CLOSING_TIMEOUT   = 20min;  // 15 minutes
-constexpr auto FUEL_VENTING_CLOSING_TIMEOUT = 20min;  // 15 minutes
-constexpr float OX_PRESSURE_THRESHOLD       = 10.0f;  // [bar]
+constexpr auto OX_VENTING_CLOSING_TIMEOUT   = 20min;
+constexpr auto FUEL_VENTING_CLOSING_TIMEOUT = 60s;
 constexpr auto OX_HYSTERESIS                = 1s;
+constexpr auto FUEL_HYSTERESIS              = 1s;
 
-constexpr float PRZ_OX_APERTURE           = 0.4f;
-constexpr float PRZ_OX_PRESSURE_THRESHOLD = 20.0f;  // [bar]
-constexpr auto PRZ_OX_HYSTERESIS          = 1s;
-constexpr auto PRZ_OX_TIMEOUT             = 60s;
-constexpr auto PRZ_FUEL_TIMEOUT           = 30s;
+constexpr float PRZ_OX_APERTURE  = 0.4f;
+constexpr auto PRZ_OX_HYSTERESIS = 1s;
+constexpr auto PRZ_OX_TIMEOUT    = 60s;
 }  // namespace Depressurization
 
 }  // namespace FiringSequence
