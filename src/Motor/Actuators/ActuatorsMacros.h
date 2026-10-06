@@ -131,7 +131,7 @@
                 MIOSIX_SERVOS_##name##_TIM,                                    \
                 TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,           \
                 Config::Servos::SMALL_MIN_PULSE,                               \
-                Config::Servos::SMALL_MAX_PULSE, Config::Servos::FREQUENCY), ) \
+                Config::Servos::SMALL_MAX_PULSE, Config::Servos::FREQUENCY)),  \
     }
 
 /**
