@@ -882,7 +882,8 @@ State FiringSequenceHSM::state_depressurization_propellant_vent(
         case EV_ENTRY:
         {
             std::lock_guard<std::mutex> lock(depressurizationMutex);
-            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_VENT);
+            updateAndLogStatus(
+                FiringSequenceState::DEPRESSURIZATION_PROPELLANT_VENT);
             getModule<Actuators>()->openValveWithTime(
                 ServosList::OX_VENTING_VALVE,
                 milliseconds{OX_VENTING_CLOSING_TIMEOUT}.count());
