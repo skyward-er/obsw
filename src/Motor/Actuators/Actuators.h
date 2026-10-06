@@ -122,15 +122,12 @@ public:
     [[nodiscard]] bool start();
 
     struct ManualValve {
-    ServosList value;
-
-    struct ManualValve {
         ServosList value;
 
         constexpr ManualValve(ServosList v) : value(v) {
             if consteval {
                 if (v < 15 || v > 18) {
-                    throw "Error: Tried to call animateValve on a non-manual valve.";
+                    throw "Error: Tried to use a non-manual valve for a manual valve method";
                 }
             }
         }
@@ -165,7 +162,7 @@ public:
 
 private:
     ValveInfo* getValve(ServosList servo);
-    ManualValveInfo* getManualValve(ServosList servo);
+    ManualValveInfo* getManualValve(ManualValve servo);
 
     void unsafeStartSparkPlug();
     void unsafeStopSparkPlug();
