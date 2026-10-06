@@ -83,9 +83,9 @@ private:
     Boardcore::State state_low_throttle(const Boardcore::Event& event);
     Boardcore::State state_ended(const Boardcore::Event& event);
     Boardcore::State state_depressurization(const Boardcore::Event& event);
-    Boardcore::State state_depressurization_ox(const Boardcore::Event& event);
+    Boardcore::State state_depressurization_propellant_vent(
+        const Boardcore::Event& event);
     Boardcore::State state_depressurization_prz(const Boardcore::Event& event);
-    Boardcore::State state_depressurization_fuel(const Boardcore::Event& event);
     Boardcore::State state_depressurization_done(const Boardcore::Event& event);
 
     void updateAndLogStatus(FiringSequenceState state);

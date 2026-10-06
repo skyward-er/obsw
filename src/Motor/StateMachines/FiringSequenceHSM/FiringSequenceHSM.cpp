@@ -210,7 +210,7 @@ void FiringSequenceHSM::checkDepressurizationPressure()
 {
     std::lock_guard<std::mutex> lock(depressurizationMutex);
     auto now = steady_clock::now();
-    if (state == FiringSequenceState::DEPRESSURIZATION_OX)
+    if (state == FiringSequenceState::DEPRESSURIZATION_PROPELLANT_VENT)
     {
         if (getModule<Sensors>()->getOxTankPressure().pressure >=
             Config::FiringSequence::OX_TANK_PRESSURE_THRESHOLD)
@@ -219,7 +219,7 @@ void FiringSequenceHSM::checkDepressurizationPressure()
             Config::FiringSequence::Depressurization::OX_HYSTERESIS)
         {
             EventBroker::getInstance().post(
-                FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE,
+                FIRING_SEQUENCE_DEPRESSURIZATION_PROPELLANT_VENT_DONE,
                 TOPIC_FIRING_SEQUENCE);
         }
     }
@@ -260,7 +260,8 @@ State FiringSequenceHSM::state_init(const Event& event)
 
         case FIRING_SEQUENCE_SAFETY_VENTING:
         {
-            return transition(&FiringSequenceHSM::state_depressurization_ox);
+            return transition(
+                &FiringSequenceHSM::state_depressurization_propellant_vent);
         }
 
         case EV_EMPTY:
@@ -307,7 +308,8 @@ State FiringSequenceHSM::state_ready(const Event& event)
 
         case FIRING_SEQUENCE_SAFETY_VENTING:
         {
-            return transition(&FiringSequenceHSM::state_depressurization_ox);
+            return transition(
+                &FiringSequenceHSM::state_depressurization_propellant_vent);
         }
 
         case CAN_PURGE_OX:
@@ -812,7 +814,8 @@ State FiringSequenceHSM::state_ended(const Event& event)
 
         case FIRING_SEQUENCE_SAFETY_VENTING:
         {
-            return transition(&FiringSequenceHSM::state_depressurization_ox);
+            return transition(
+                &FiringSequenceHSM::state_depressurization_propellant_vent);
         }
 
         case EV_EMPTY:
@@ -849,7 +852,8 @@ State FiringSequenceHSM::state_depressurization(const Event& event)
 
         case EV_INIT:
         {
-            return transition(&FiringSequenceHSM::state_depressurization_ox);
+            return transition(
+                &FiringSequenceHSM::state_depressurization_propellant_vent);
         }
 
         case EV_EMPTY:
@@ -869,7 +873,8 @@ State FiringSequenceHSM::state_depressurization(const Event& event)
     }
 }
 
-State FiringSequenceHSM::state_depressurization_ox(const Event& event)
+State FiringSequenceHSM::state_depressurization_propellant_vent(
+    const Event& event)
 {
     using namespace Config::FiringSequence::Depressurization;
     switch (event)
@@ -877,14 +882,17 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
         case EV_ENTRY:
         {
             std::lock_guard<std::mutex> lock(depressurizationMutex);
-            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_OX);
+            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_VENT);
             getModule<Actuators>()->openValveWithTime(
                 ServosList::OX_VENTING_VALVE,
                 milliseconds{OX_VENTING_CLOSING_TIMEOUT}.count());
+            getModule<Actuators>()->openValveWithTime(
+                ServosList::FUEL_VENTING_VALVE,
+                milliseconds{FUEL_VENTING_CLOSING_TIMEOUT}.count());
             lastPressureOverTime = steady_clock::now();
             nextEventId          = EventBroker::getInstance().postDelayed(
-                FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE, TOPIC_FIRING_SEQUENCE,
-                milliseconds{OX_VENTING_TIMEOUT}.count());
+                FIRING_SEQUENCE_DEPRESSURIZATION_PROPELLANT_VENT_DONE,
+                TOPIC_FIRING_SEQUENCE, milliseconds{VENTING_TIMEOUT}.count());
             return HANDLED;
         }
 
@@ -893,7 +901,7 @@ State FiringSequenceHSM::state_depressurization_ox(const Event& event)
             return HANDLED;
         }
 
-        case FIRING_SEQUENCE_DEPRESSURIZATION_OX_DONE:
+        case FIRING_SEQUENCE_DEPRESSURIZATION_PROPELLANT_VENT_DONE:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
             return transition(&FiringSequenceHSM::state_depressurization_prz);
@@ -944,53 +952,6 @@ State FiringSequenceHSM::state_depressurization_prz(const Event& event)
         case FIRING_SEQUENCE_DEPRESSURIZATION_PRZ_DONE:
         {
             EventBroker::getInstance().removeDelayed(nextEventId);
-            return transition(&FiringSequenceHSM::state_depressurization_fuel);
-        }
-
-        case EV_EMPTY:
-        {
-            return tranSuper(&FiringSequenceHSM::state_depressurization);
-        }
-
-        case EV_EXIT:
-        {
-            return HANDLED;
-        }
-
-        default:
-        {
-            return UNHANDLED;
-        }
-    }
-}
-
-State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
-{
-    using namespace Config::FiringSequence::Depressurization;
-    switch (event)
-    {
-        case EV_ENTRY:
-        {
-            std::lock_guard<std::mutex> lock(depressurizationMutex);
-            updateAndLogStatus(FiringSequenceState::DEPRESSURIZATION_FUEL);
-
-            getModule<Actuators>()->openValveWithTime(
-                ServosList::PRZ_FUEL_VALVE,
-                milliseconds{PRZ_FUEL_TIMEOUT}.count());
-            nextEventId = EventBroker::getInstance().postDelayed(
-                FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE,
-                TOPIC_FIRING_SEQUENCE, milliseconds{PRZ_FUEL_TIMEOUT}.count());
-
-            return HANDLED;
-        }
-
-        case EV_INIT:
-        {
-            return HANDLED;
-        }
-
-        case FIRING_SEQUENCE_DEPRESSURIZATION_FUEL_DONE:
-        {
             return transition(&FiringSequenceHSM::state_depressurization_done);
         }
 
@@ -1010,6 +971,7 @@ State FiringSequenceHSM::state_depressurization_fuel(const Event& event)
         }
     }
 }
+
 State FiringSequenceHSM::state_depressurization_done(const Event& event)
 {
     switch (event)
