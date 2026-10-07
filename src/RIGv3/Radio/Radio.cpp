@@ -1372,8 +1372,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleSparkPlug();
+            getModule<Actuators>()->toggleValve(ServosList::FUEL_DUMPING_VALVE);
             lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::FUEL_DUMPING_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_5_btn))

@@ -53,7 +53,7 @@ constexpr auto ANIMATION_UPDATE_PERIOD = 10ms;
 
 constexpr auto MOVE_SERVO_TIMEOUT = 10000ms;
 
-constexpr auto SAFETY_VENTING_TIMEOUT  = 45min;
+constexpr auto SAFETY_VENTING_TIMEOUT  = 60min;
 constexpr auto SAFETY_VENTING_DURATION = 10min;  // How long to vent
 
 constexpr uint32_t DEFAULT_OX_VEN_OPENING_TIME    = 15000;
@@ -86,10 +86,9 @@ constexpr float MAIN_FUEL_LIMIT = 1.0f;
 constexpr float IGN_FUEL_LIMIT  = 1.0;
 constexpr float IGN_OX_LIMIT    = 1.0;
 
-constexpr bool OX_VEN_FLIPPED   = false;
-constexpr bool FUEL_VEN_FLIPPED = true;
-// Check
-constexpr bool FUEL_DUMP_FLIPPED = false;
+constexpr bool OX_VEN_FLIPPED    = false;
+constexpr bool FUEL_VEN_FLIPPED  = true;
+constexpr bool FUEL_DUMP_FLIPPED = true;
 constexpr bool PRZ_OX_FLIPPED    = false;
 constexpr bool PRZ_FUEL_FLIPPED  = true;
 constexpr bool MAIN_OX_FLIPPED   = true;
