@@ -184,6 +184,7 @@ bool NASController::setOrientationQuat(const Eigen::Vector4f& quat)
         calibrate(ref);
 
         // Set the new orientation
+        anasTriad = quat;
         anas.setANAS_Reference(anasRef);
         return true;
     }

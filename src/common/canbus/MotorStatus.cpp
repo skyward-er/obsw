@@ -194,7 +194,6 @@ void MotorStatus::handleAlgorithms(const Canbus::CanMessage& msg)
             auto meaStatus = MEAStatusFromCanMessage(msg);
             sdLogger.log(meaStatus);
 
-            sdLogger.log(meaStatus);
             data.meaInitialMass = meaStatus.mass;
             data.meaPressure    = meaStatus.pressure;
             data.firingHsmState = meaStatus.hsmState;

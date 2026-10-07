@@ -495,16 +495,16 @@ IMUData Sensors::getIMULastSample()
     std::lock_guard<std::mutex> lock{zvkBiasMutex};
     Boardcore::AccelerometerData accData{
         rotatedImuData.accelerationTimestamp,
-        rotatedImuData.accelerationX -= zvkAccBias[0],
-        rotatedImuData.accelerationY -= zvkAccBias[1],
-        rotatedImuData.accelerationZ -= zvkAccBias[2],
+        rotatedImuData.accelerationX - zvkAccBias[0],
+        rotatedImuData.accelerationY - zvkAccBias[1],
+        rotatedImuData.accelerationZ - zvkAccBias[2],
     };
 
     Boardcore::GyroscopeData gyroData{
         rotatedImuData.angularSpeedTimestamp,
-        rotatedImuData.angularSpeedX -= zvkGyroBias[0],
-        rotatedImuData.angularSpeedY -= zvkGyroBias[1],
-        rotatedImuData.angularSpeedZ -= zvkGyroBias[2],
+        rotatedImuData.angularSpeedX - zvkGyroBias[0],
+        rotatedImuData.angularSpeedY - zvkGyroBias[1],
+        rotatedImuData.angularSpeedZ - zvkGyroBias[2],
     };
 
     Boardcore::MagnetometerData magData{
