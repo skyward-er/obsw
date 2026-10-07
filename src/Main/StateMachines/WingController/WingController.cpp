@@ -307,6 +307,12 @@ void WingController::state_ready(const Boardcore::Event& event)
             transition(&WingController::state_deployment);
             break;
         }
+
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&WingController::state_landed);
+            break;
+        }
     }
 }
 
@@ -347,6 +353,12 @@ void WingController::state_deployment(const Boardcore::Event& event)
 
             resetWing();
 
+            break;
+        }
+
+        case FLIGHT_LANDING_DETECTED:
+        {
+            transition(&WingController::state_landed);
             break;
         }
 

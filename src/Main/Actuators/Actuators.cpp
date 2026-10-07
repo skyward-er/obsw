@@ -132,24 +132,30 @@ bool Actuators::start()
     result = scheduler.addTask(
         [this]
         {
-            if (leftServo.enabled)
             {
-                auto servoLeftAngle =
-                    getModule<Sensors>()->getAS5047DLeftLastSample();
+                miosix::Lock<miosix::FastMutex> lock(leftServo.mutex);
+                if (leftServo.enabled)
+                {
+                    auto servoLeftAngle =
+                        getModule<Sensors>()->getAS5047DLeftLastSample();
 
-                updateServoState(
-                    PARAFOIL_LEFT_SERVO,
-                    Radian(servoLeftAngle.angle - leftServo.zeroAngle.value()));
+                    updateServoState(PARAFOIL_LEFT_SERVO,
+                                     Radian(servoLeftAngle.angle -
+                                            leftServo.zeroAngle.value()));
+                }
             }
 
-            if (rightServo.enabled)
             {
-                auto servoRightAngle =
-                    getModule<Sensors>()->getAS5047DRightLastSample();
+                miosix::Lock<miosix::FastMutex> lock(rightServo.mutex);
+                if (rightServo.enabled)
+                {
+                    auto servoRightAngle =
+                        getModule<Sensors>()->getAS5047DRightLastSample();
 
-                updateServoState(PARAFOIL_RIGHT_SERVO,
-                                 Radian(servoRightAngle.angle -
-                                        rightServo.zeroAngle.value()));
+                    updateServoState(PARAFOIL_RIGHT_SERVO,
+                                     Radian(servoRightAngle.angle -
+                                            rightServo.zeroAngle.value()));
+                }
             }
         },
         PrfServo::UPDATE_RATE);
