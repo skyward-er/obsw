@@ -52,10 +52,10 @@ static constexpr milliseconds LOW_THROTTLE_TIME{1200};
 static constexpr milliseconds APOGEE_VENTING_DELAY{5000};
 
 // placeholder values
-static constexpr float PILOT_OX_POSITION          = 0.4662f;
-static constexpr float PILOT_FUEL_POSITION        = 0.5088f;
-static constexpr float LOW_THROTTLE_OX_POSITION   = 0.5902f;
-static constexpr float LOW_THROTTLE_FUEL_POSITION = 0.6600f;
+static constexpr float PILOT_OX_POSITION          = 0.4640f;
+static constexpr float PILOT_FUEL_POSITION        = 0.5221f;
+static constexpr float LOW_THROTTLE_OX_POSITION   = 0.5870f;
+static constexpr float LOW_THROTTLE_FUEL_POSITION = 0.6763f;
 static constexpr auto PILOT_FLAME_LEAD_TIME       = 150ms;
 
 static constexpr float IGNITER_PRESSURE_THRESHOLD         = 14.0f;  // bar
