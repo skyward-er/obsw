@@ -61,20 +61,9 @@ void ValveSequenceController::handleEvent(const Event& ev)
 
 void ValveSequenceController::closeValves()
 {
-    LOG_INFO(logger, "Closing venting valves");
-    getModule<Actuators>()->closeValve(OX_VENTING_VALVE);
-    getModule<Actuators>()->closeValve(FUEL_VENTING_VALVE);
-
-    Thread::sleep(Config::VALVE_CLOSING_DELAY);
-
-    LOG_INFO(logger, "Closing dumping valves");
-    getModule<Actuators>()->closeValve(FUEL_DUMPING_VALVE);
-
-    Thread::sleep(Config::VALVE_CLOSING_DELAY);
-
-    LOG_INFO(logger, "Closing ignition valves");
-    getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
-    getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);
+    LOG_INFO(logger, "Closing Main valves");
+    getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
+    getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
@@ -87,9 +76,20 @@ void ValveSequenceController::closeValves()
 
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
-    LOG_INFO(logger, "Closing Main valves");
-    getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
-    getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
+    LOG_INFO(logger, "Closing ignition valves");
+    getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
+    getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);
+
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
+
+    LOG_INFO(logger, "Closing venting valves");
+    getModule<Actuators>()->closeValve(OX_VENTING_VALVE);
+    getModule<Actuators>()->closeValve(FUEL_VENTING_VALVE);
+
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
+
+    LOG_INFO(logger, "Closing dumping valves");
+    getModule<Actuators>()->closeValve(FUEL_DUMPING_VALVE);
 
     LOG_INFO(logger, "Closed all valves");
 }

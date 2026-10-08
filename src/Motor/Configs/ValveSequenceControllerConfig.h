@@ -52,7 +52,7 @@ constexpr auto VALVE_CLOSED_THRESHOLD_OX_VENTING   = 10.0f;
 constexpr auto VALVE_CLOSED_THRESHOLD_FUEL_VENTING = 10.0f;
 
 constexpr auto VALVE_WIGGLE_DELAY  = 1000;  // [ms]
-constexpr auto VALVE_CLOSING_DELAY = 6500;  // [ms]
+constexpr auto VALVE_CLOSING_DELAY = 1000;  // [ms]
 
 }  // namespace Config
 }  // namespace Motor
