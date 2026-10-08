@@ -53,8 +53,8 @@ constexpr auto TARGET_LON = -8.2879418f;
 constexpr auto TARGET_LAT = 42.2247092f;
 constexpr auto TARGET_LON = 13.4310024f;
 #else  // Milan
-constexpr auto TARGET_LAT = 45.5014089f;
-constexpr auto TARGET_LON = 9.1543615f;
+constexpr auto TARGET_LAT = 45.49924050f;
+constexpr auto TARGET_LON = 9.15891883f;
 #endif
 }  // namespace Default
 namespace Deployment

@@ -64,14 +64,16 @@ const Eigen::Vector3f nedMag(0.523445, 0.0391427, 0.8511599);
 #else  // Milan
 
 static const Boardcore::ReferenceValues defaultReferenceValues = {
-    135.0,              // [m] Altitude
-    99714.0,            // [Pa] Pressure
+    132.8,              // [m] Altitude
+    99740.0,            // [Pa] Pressure5
     278.27,             // [K] Temperature
     45.50106793771145,  // [deg] Start latitude
     9.156376900740167,  // [deg] Start longitude
     Boardcore::Constants::MSL_PRESSURE,
     Boardcore::Constants::MSL_TEMPERATURE,
 };
+
+const Eigen::Vector3f nedMag(0.4732, 0.0272, 0.8805);
 
 #endif
 
