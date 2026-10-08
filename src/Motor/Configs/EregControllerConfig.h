@@ -68,16 +68,15 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.1486f,
-    .minValveAngle    = 22.8f,
+    .minServoPosition = 0.2167f,
+    .minValveAngle    = 28.5f,
     .maxCv            = 0.912291f,
 
     .polyValveCoeff = {11.5576f, -27.1038f, 23.5596f, -9.4317f, 2.3962f,
                        0.0032f},
 
-    .polyServoCoeff = {523.9735e-012f, -109.5398e-009f, 9.3893e-006f,
-                       -357.9286e-006f, 14.5807e-003f, 3.7033e-003f},
-};
+    .polyServoCoeff = {708.6363e-012f, -140.2557e-009f, 10.8313e-006f,
+                       -386.5761e-006f, 15.7138e-003f, 4.6120e-003f}};
 
 }  // namespace EregFuel
 
@@ -118,16 +117,15 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.1580f,
-    .minValveAngle    = 23.6f,
+    .minServoPosition = 0.2188f,
+    .minValveAngle    = 27.2f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
                        0.0036f},
 
-    .polyServoCoeff = {732.2123e-012f, -126.0129e-009f, 8.7960e-006f,
-                       -282.0294e-006f, 13.5809e-003f, 7.3421e-003f},
-};
+    .polyServoCoeff = {1.1544e-009f, -238.4822e-009f, 18.8952e-006f,
+                       -681.2201e-006f, 19.5795e-003f, 6.5635e-003f}};
 
 }  // namespace EregOx
 }  // namespace Config
