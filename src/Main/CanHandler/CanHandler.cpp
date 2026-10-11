@@ -317,7 +317,7 @@ void CanHandler::handleCommand(const Canbus::CanMessage& msg)
         CanServoCommand data = servoCommandFromCanMessage(msg);
         sdLogger.log(data);
     }
-    if (commandId == CanConfig::CommandId::FIRING_SEQUENCE_CONFIG)
+    else if (commandId == CanConfig::CommandId::FIRING_SEQUENCE_CONFIG)
     {
         CanSequenceConfig config = sequenceConfigFromCanMessage(msg);
         sdLogger.log(config);

@@ -393,6 +393,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                     &msg);
 
             getModule<CanHandler>()->sendEregServoCoeff(eregId, coefficients);
+
+            return enqueueAck(msg);
         }
 
         case MAVLINK_MSG_ID_SET_EREG_CONSTANTS_TC:

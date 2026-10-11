@@ -292,7 +292,7 @@ bool CanHandler::start()
                 ValveData{
                     TimestampTimer::getTimestamp(),
                     ServosList::IGNITION_OX_VALVE,
-                    actuators->isValveOpen(ServosList::IGNITION_FUEL_VALVE)}),
+                    actuators->isValveOpen(ServosList::IGNITION_OX_VALVE)}),
                 actuators->isValveOpen(ServosList::IGNITION_OX_VALVE);
 
             protocol.enqueueData(
@@ -758,7 +758,11 @@ void CanHandler::handleStatus(const Canbus::CanMessage& msg)
             status.mainState      = deviceStatus.state;
             break;
         }
-
+        case CanConfig::Board::RIG:
+        {
+            // Avoid logging an error if the RIG is connected
+            break;
+        }
         default:
         {
             LOG_WARN(logger, "Received unsupported status: {}", source);
