@@ -738,7 +738,7 @@ State FlightModeManager::state_powered_ascent(const Event& event)
 
             // log engine shutdown
             getModule<StatsRecorder>()->shutdownDetected(
-                mslAlt, TimestampTimer::getTimestamp());
+                TimestampTimer::getTimestamp(), mslAlt);
             return transition(&FlightModeManager::state_unpowered_ascent);
         }
         case FMM_APOGEE_TIMEOUT:
