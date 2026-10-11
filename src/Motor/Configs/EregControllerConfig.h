@@ -43,11 +43,12 @@ constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 53.0f;  // [Bar]
-constexpr float PILOT_FLAME_INTEGRAL = 0.0502f;
-constexpr float RAMPUP_INTEGRAL      = 0.2511f;
-constexpr Hertz UPDATE_RATE          = 100_hz;
-constexpr int FILTER_SAMPLES         = 3;
+constexpr float TARGET_PRESSURE        = 53.0f;  // [Bar]
+constexpr float PRESSURE_SAFETY_MARGIN = 1.25f;  // [Bar]
+constexpr float PILOT_FLAME_INTEGRAL   = 0.0502f;
+constexpr float RAMPUP_INTEGRAL        = 0.2511f;
+constexpr Hertz UPDATE_RATE            = 100_hz;
+constexpr int FILTER_SAMPLES           = 3;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
@@ -92,11 +93,12 @@ constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE      = 55.0f;  // [Bar]
-constexpr float PILOT_FLAME_INTEGRAL = 0.1844f;
-constexpr float RAMPUP_INTEGRAL      = 1.4346f;
-constexpr Hertz UPDATE_RATE          = 100_hz;
-constexpr int FILTER_SAMPLES         = 3;
+constexpr float TARGET_PRESSURE        = 55.0f;  // [Bar]
+constexpr float PRESSURE_SAFETY_MARGIN = 1.2f;   // [Bar]
+constexpr float PILOT_FLAME_INTEGRAL   = 0.1844f;
+constexpr float RAMPUP_INTEGRAL        = 1.4346f;
+constexpr Hertz UPDATE_RATE            = 100_hz;
+constexpr int FILTER_SAMPLES           = 3;
 
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 

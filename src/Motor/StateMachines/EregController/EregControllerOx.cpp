@@ -117,7 +117,8 @@ void EregControllerOx::update()
     logData.filteredUpstreamPressure   = upstreamPressureFilter.calcMean();
     logData.timestamp                  = TimestampTimer::getTimestamp();
 
-    if (logData.filteredDownstreamPressure > targetPressure * 1.15)
+    if (logData.filteredDownstreamPressure >
+        targetPressure * Config::EregOx::PRESSURE_SAFETY_MARGIN)
     {
         EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
 
