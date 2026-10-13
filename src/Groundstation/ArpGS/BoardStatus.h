@@ -23,6 +23,9 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Groundstation/ArpGS/Ports/Ethernet.h>
+#include <Groundstation/ArpGS/Radio/Radio.h>
+#include <Groundstation/ArpGS/Radio/RadioData.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
@@ -30,15 +33,12 @@
 #include <Groundstation/Common/Config/RadioConfig.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Radio/Radio.h>
-#include <Groundstation/LyraGS/Radio/RadioData.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
 #include <utils/collections/CircularBuffer.h>
 
-namespace LyraGS
+namespace ArpGS
 {
 class RadioMain;
 class RadioPayload;
@@ -149,4 +149,4 @@ private:
     bool isArp             = false;
 };
 
-}  // namespace LyraGS
+}  // namespace ArpGS

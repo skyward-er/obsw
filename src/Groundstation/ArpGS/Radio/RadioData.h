@@ -22,24 +22,38 @@
 
 #pragma once
 
-#include <drivers/spi/SPIBus.h>
-#include <drivers/usart/USART.h>
-#include <utils/DependencyManager/DependencyManager.h>
+#include <stdint.h>
 
-#include "interfaces-impl/hwmapping.h"
+#include <iostream>
+#include <reflect.hpp>
+#include <string>
 
-namespace LyraGS
+/**
+ * @brief Logging struct for the main radio informations
+ *
+ */
+
+namespace ArpGS
 {
-class Buses : public Boardcore::Injectable
+struct MainRadioLog
 {
-public:
-    Boardcore::SPIBus& getRadio() { return radio1_bus; }
+    uint64_t timestamp                    = 0;
+    uint16_t main_packet_tx_error_count   = 0;
+    uint32_t main_tx_bitrate              = 0;
+    uint16_t main_packet_rx_success_count = 0;
+    uint16_t main_packet_rx_drop_count    = 0;
+    uint32_t main_rx_bitrate              = 0;
+    float main_rx_rssi                    = 0;
 
-    Boardcore::SPIBus radio1_bus{MIOSIX_RADIO1_SPI};
-    Boardcore::SPIBus radio2_bus{MIOSIX_RADIO2_SPI};
-    Boardcore::USART usart2{USART2, 115200};
-    Boardcore::USART uart4{UART4, 115200};
-    Boardcore::SPIBus ethernet_bus{MIOSIX_ETHERNET_SPI};
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(
+            MainRadioLog,
+            FIELD_DEF(timestamp) FIELD_DEF(main_packet_tx_error_count)
+                FIELD_DEF(main_tx_bitrate)
+                    FIELD_DEF(main_packet_rx_success_count)
+                        FIELD_DEF(main_packet_rx_drop_count)
+                            FIELD_DEF(main_rx_bitrate) FIELD_DEF(main_rx_rssi));
+    }
 };
-
-}  // namespace LyraGS
+}  // namespace ArpGS

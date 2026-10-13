@@ -22,9 +22,9 @@
 
 #pragma once
 
+#include <Groundstation/ArpGS/Ports/Ethernet.h>
+#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
 #include <Groundstation/Common/HubBase.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 #include <common/MavlinkHydra.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
@@ -35,8 +35,8 @@ namespace GroundstationBase
  */
 class Hub : public Boardcore::InjectableWithDeps<
                 Boardcore::InjectableBase<Groundstation::HubBase>,
-                LyraGS::BoardStatus, LyraGS::RadioMain, LyraGS::RadioPayload,
-                LyraGS::SerialLyraGS, LyraGS::EthernetGS>
+                ArpGS::BoardStatus, ArpGS::RadioMain, ArpGS::RadioPayload,
+                ArpGS::SerialArpGS, ArpGS::EthernetGS>
 {
 public:
     /**

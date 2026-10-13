@@ -22,16 +22,16 @@
 
 #pragma once
 
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Buses.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <Groundstation/LyraGS/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace LyraGS
+namespace ArpGS
 {
 
 class BoardStatus;
@@ -89,4 +89,4 @@ private:
     bool txEnable  = true;
 };
 
-}  // namespace LyraGS
+}  // namespace ArpGS

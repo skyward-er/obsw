@@ -20,47 +20,55 @@
  * THE SOFTWARE.
  */
 
-#include "SerialLyraGS.h"
+#include "Ethernet.h"
 
-using namespace Groundstation;
-using namespace LyraGS;
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Buses.h>
+#include <interfaces-impl/hwmapping.h>
 
-bool SerialLyraGS::start()
+using namespace Boardcore;
+using namespace ArpGS;
+
+namespace ArpGS
 {
-    auto mav_handler = [this](SerialMavDriver* channel,
-                              const mavlink_message_t& msg) { handleMsg(msg); };
+EthernetGS* ethernetGSGlobal = nullptr;
+}
 
-    mav_driver = std::make_unique<SerialMavDriver>(this, mav_handler, 0, 10);
+void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
+{
+    if (ethernetGSGlobal)
+        ethernetGSGlobal->handleINTn();
+}
 
-    if (!mav_driver->start())
+namespace ArpGS
+{
+
+bool EthernetGS::start()
+{
+    std::shared_ptr<Wiz5500> wiz5500 = std::make_shared<Wiz5500>(
+        getModule<Buses>()->ethernet_bus, miosix::ethernet::cs::getPin(),
+        miosix::ethernet::intr::getPin(), SPI::ClockDivider::DIV_64);
+
+    // First check if the device is even connected
+    bool present = wiz5500->checkVersion();
+
+    if (!present)
         return false;
 
+    if (!EthernetBase::start(wiz5500))
+        return false;
+
+    ethernetGSGlobal = this;
+    getModule<BoardStatus>()->setEthernetPresent(true);
+
     return true;
 }
 
-void SerialLyraGS::sendMsg(const mavlink_message_t& msg)
-{
-    if (mav_driver && mav_driver->isStarted())
-        mav_driver->enqueueMsg(msg);
-}
+void EthernetGS::sendMsg(const mavlink_message_t& msg) { Super::sendMsg(msg); };
 
-void SerialLyraGS::handleMsg(const mavlink_message_t& msg)
+void EthernetGS::handleINTn() { EthernetBase::handleINTn(); }
+Boardcore::Wiz5500::PhyState EthernetGS::getState()
 {
-    // Dispatch the message through the hub.
-    getModule<HubBase>()->dispatchOutgoingMsg(msg);
-}
-
-ssize_t SerialLyraGS::receive(uint8_t* pkt, size_t max_len)
-{
-    Boardcore::USART& serial = getModule<Buses>()->uart4;
-    size_t bytesRead         = 0;
-    bool result              = serial.readBlocking(pkt, max_len, bytesRead);
-    return result ? bytesRead : 0;
-}
-
-bool SerialLyraGS::send(uint8_t* pkt, size_t len)
-{
-    Boardcore::USART& serial = getModule<Buses>()->uart4;
-    serial.write(pkt, len);
-    return true;
-}
+    return Super::getState();
+};
+}  // namespace ArpGS

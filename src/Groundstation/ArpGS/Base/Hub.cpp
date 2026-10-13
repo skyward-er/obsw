@@ -22,31 +22,31 @@
 
 #include "Hub.h"
 
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Ports/Ethernet.h>
+#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <Groundstation/LyraGS/Ports/Ethernet.h>
-#include <Groundstation/LyraGS/Ports/SerialLyraGS.h>
 
 using namespace Groundstation;
 using namespace GroundstationBase;
 using namespace Boardcore;
-using namespace LyraGS;
+using namespace ArpGS;
 
 void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 {
-    LyraGS::BoardStatus* status = getModule<LyraGS::BoardStatus>();
+    ArpGS::BoardStatus* status = getModule<ArpGS::BoardStatus>();
 
     bool send_ok = false;
 
     if (status->isMainRadioPresent() && msg.sysid == MAV_SYSID_MAIN)
     {
-        LyraGS::RadioMain* radio = getModule<LyraGS::RadioMain>();
+        ArpGS::RadioMain* radio = getModule<ArpGS::RadioMain>();
         send_ok |= radio->sendMsg(msg);
     }
 
     if (status->isPayloadRadioPresent() && msg.sysid == MAV_SYSID_PAYLOAD)
     {
-        LyraGS::RadioPayload* radio = getModule<LyraGS::RadioPayload>();
+        ArpGS::RadioPayload* radio = getModule<ArpGS::RadioPayload>();
         send_ok |= radio->sendMsg(msg);
     }
 
@@ -61,14 +61,14 @@ void Hub::dispatchOutgoingMsg(const mavlink_message_t& msg)
 
 void Hub::dispatchIncomingMsg(const mavlink_message_t& msg)
 {
-    LyraGS::BoardStatus* status = getModule<LyraGS::BoardStatus>();
+    ArpGS::BoardStatus* status = getModule<ArpGS::BoardStatus>();
 
-    SerialLyraGS* serial = getModule<SerialLyraGS>();
+    SerialArpGS* serial = getModule<SerialArpGS>();
     serial->sendMsg(msg);
 
     if (status->isEthernetPresent())
     {
-        LyraGS::EthernetGS* ethernet = getModule<LyraGS::EthernetGS>();
+        ArpGS::EthernetGS* ethernet = getModule<ArpGS::EthernetGS>();
         ethernet->sendMsg(msg);
     }
 }
