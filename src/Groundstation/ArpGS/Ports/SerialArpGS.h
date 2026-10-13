@@ -23,10 +23,10 @@
 #pragma once
 
 #include <ActiveObject.h>
+#include <Groundstation/ArpGS/BoardStatus.h>
+#include <Groundstation/ArpGS/Buses.h>
 #include <Groundstation/Common/Ports/EthernetBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <Groundstation/LyraGS/Buses.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>
@@ -35,7 +35,7 @@
 
 #include <memory>
 
-namespace LyraGS
+namespace ArpGS
 {
 
 using SerialMavDriver =
@@ -44,12 +44,12 @@ using SerialMavDriver =
 /**
  * @brief Class responsible for UART communication.
  */
-class SerialLyraGS : public Boardcore::InjectableWithDeps<
-                         Boardcore::InjectableBase<Groundstation::Serial>,
-                         Buses, Groundstation::HubBase>
+class SerialArpGS : public Boardcore::InjectableWithDeps<
+                        Boardcore::InjectableBase<Groundstation::Serial>, Buses,
+                        Groundstation::HubBase>
 {
 public:
-    SerialLyraGS() {}
+    SerialArpGS() {}
 
     /**
      * @brief Initialize the serial module.
@@ -75,4 +75,4 @@ private:
     std::unique_ptr<SerialMavDriver> mav_driver;
 };
 
-}  // namespace LyraGS
+}  // namespace ArpGS

@@ -172,9 +172,17 @@ if(TARGET nokia-groundstation-entry)
     target_include_directories(nokia-groundstation-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 endif()
 
-sbs_declare_target(lyra-gs-entry stm32f767zi_lyra_gs
-    src/Groundstation/LyraGS/lyra-gs-entry.cpp
-    ${LYRA_GS} ${GROUNDSTATION_COMMON})
-if(TARGET lyra-gs-entry)
-    target_include_directories(lyra-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+sbs_declare_target(arp-gs-entry stm32f767zi_lyra_gs
+    src/Groundstation/ArpGS/arp-gs-entry.cpp
+    ${ARPGS} ${RADIO_GS} ${GROUNDSTATION_COMMON}
+    DEFS ARP_GS_ONLY)
+if(TARGET arp-gs-entry)
+    target_include_directories(arp-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+endif()
+
+sbs_declare_target(radio-gs-entry stm32f767zi_lyra_gs
+    src/Groundstation/radio-gs-entry.cpp
+    ${RADIO_GS} ${GROUNDSTATION_COMMON})
+if(TARGET radio-gs-entry)
+    target_include_directories(radio-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 endif()

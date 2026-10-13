@@ -20,30 +20,47 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#include "SerialArpGS.h"
 
-#include <Groundstation/Common/Ports/EthernetBase.h>
-#include <Groundstation/LyraGS/BoardStatus.h>
-#include <utils/DependencyManager/DependencyManager.h>
+using namespace Groundstation;
+using namespace ArpGS;
 
-namespace LyraGS
+bool SerialArpGS::start()
 {
-class BoardStatus;
+    auto mav_handler = [this](SerialMavDriver* channel,
+                              const mavlink_message_t& msg) { handleMsg(msg); };
 
-class EthernetGS : public Boardcore::InjectableWithDeps<
-                       Boardcore::InjectableBase<Groundstation::EthernetBase>,
-                       Buses, BoardStatus>
+    mav_driver = std::make_unique<SerialMavDriver>(this, mav_handler, 0, 10);
+
+    if (!mav_driver->start())
+        return false;
+
+    return true;
+}
+
+void SerialArpGS::sendMsg(const mavlink_message_t& msg)
 {
-public:
-    EthernetGS() : Super{} {}
-    EthernetGS(bool randomIp, uint8_t ipOffset, bool sniffing)
-        : Super{randomIp, ipOffset, sniffing}
-    {
-    }
-    [[nodiscard]] bool start();
-    void sendMsg(const mavlink_message_t& msg);
-    void handleINTn();
-    Boardcore::Wiz5500::PhyState getState();
-};
+    if (mav_driver && mav_driver->isStarted())
+        mav_driver->enqueueMsg(msg);
+}
 
-}  // namespace LyraGS
+void SerialArpGS::handleMsg(const mavlink_message_t& msg)
+{
+    // Dispatch the message through the hub.
+    getModule<HubBase>()->dispatchOutgoingMsg(msg);
+}
+
+ssize_t SerialArpGS::receive(uint8_t* pkt, size_t max_len)
+{
+    Boardcore::USART& serial = getModule<Buses>()->uart4;
+    size_t bytesRead         = 0;
+    bool result              = serial.readBlocking(pkt, max_len, bytesRead);
+    return result ? bytesRead : 0;
+}
+
+bool SerialArpGS::send(uint8_t* pkt, size_t len)
+{
+    Boardcore::USART& serial = getModule<Buses>()->uart4;
+    serial.write(pkt, len);
+    return true;
+}
