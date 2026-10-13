@@ -56,75 +56,48 @@
  */
 
 /**
- * @brief Shorthand to create a ServoInfo struct for a big servo (AGFRC 74kg)
- * from the servo name
+ * @brief Shorthand to create a ServoInfo struct for a servo (AGFRC 74kg or MKS
+ * 16kg) from the servo name
  */
-#define MAKE_SERVO(name)                                          \
-    ServoInfo                                                     \
-    {                                                             \
-        std::make_unique<Servo>(                                  \
-            MIOSIX_SERVOS_##name##_TIM,                           \
-            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,  \
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE, \
-            Config::Servos::FREQUENCY),                           \
-            ServoInfo::ServoConfig                                \
-        {                                                         \
-            .limit   = Config::Servos::name##_LIMIT,              \
-            .flipped = Config::Servos::name##_FLIPPED,            \
-            .defaultOpeningTime =                                 \
-                Config::Servos::DEFAULT_##name##_OPENING_TIME,    \
-            .defaultMaxAperture =                                 \
-                Config::Servos::DEFAULT_##name##_MAX_APERTURE,    \
-            .openingEvent      = Common::MOTOR_##name##_OPEN,     \
-            .closingEvent      = Common::MOTOR_##name##_CLOSE,    \
-            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME, \
-            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE  \
-        }                                                         \
-    }
-
-/**
- * @brief Shorthand to create a ServoInfo struct for a small servo (MKS 16kg)
- * from the servo name
- */
-#define MAKE_SMALL_SERVO(name)                                                \
-    ServoInfo                                                                 \
-    {                                                                         \
-        std::make_unique<Servo>(                                              \
-            MIOSIX_SERVOS_##name##_TIM,                                       \
-            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,              \
-            Config::Servos::SMALL_MIN_PULSE, Config::Servos::SMALL_MAX_PULSE, \
-            Config::Servos::FREQUENCY),                                       \
-            ServoInfo::ServoConfig                                            \
-        {                                                                     \
-            .limit   = Config::Servos::name##_LIMIT,                          \
-            .flipped = Config::Servos::name##_FLIPPED,                        \
-            .defaultOpeningTime =                                             \
-                Config::Servos::DEFAULT_##name##_OPENING_TIME,                \
-            .defaultMaxAperture =                                             \
-                Config::Servos::DEFAULT_##name##_MAX_APERTURE,                \
-            .openingEvent      = Common::MOTOR_##name##_OPEN,                 \
-            .closingEvent      = Common::MOTOR_##name##_CLOSE,                \
-            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,             \
-            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE              \
-        }                                                                     \
+#define MAKE_SERVO(name)                                                  \
+    ServoInfo                                                             \
+    {                                                                     \
+        std::make_unique<Servo>(                                          \
+            MIOSIX_SERVOS_##name##_TIM,                                   \
+            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,          \
+            Config::Servos::name##_MIN_PULSE,                             \
+            Config::Servos::name##_MAX_PULSE, Config::Servos::FREQUENCY), \
+            ServoInfo::ServoConfig                                        \
+        {                                                                 \
+            .limit   = Config::Servos::name##_LIMIT,                      \
+            .flipped = Config::Servos::name##_FLIPPED,                    \
+            .defaultOpeningTime =                                         \
+                Config::Servos::DEFAULT_##name##_OPENING_TIME,            \
+            .defaultMaxAperture =                                         \
+                Config::Servos::DEFAULT_##name##_MAX_APERTURE,            \
+            .openingEvent      = Common::MOTOR_##name##_OPEN,             \
+            .closingEvent      = Common::MOTOR_##name##_CLOSE,            \
+            .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,         \
+            .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE          \
+        }                                                                 \
     }
 
 /**
  * @brief Shorthand to create a non-atomic ServoInfo struct from the servo name
  */
-#define MAKE_SIMPLE_SERVO(name)                                   \
-    ServoInfo                                                     \
-    {                                                             \
-        std::make_unique<Servo>(                                  \
-            MIOSIX_SERVOS_##name##_TIM,                           \
-            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,  \
-            Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE, \
-            Config::Servos::FREQUENCY),                           \
-            ServoInfo::ServoConfig                                \
-        {                                                         \
-            .limit        = Config::Servos::name##_LIMIT,         \
-            .flipped      = Config::Servos::name##_FLIPPED,       \
-            .openingEvent = Common::MOTOR_##name##_OPEN,          \
-            .closingEvent = Common::MOTOR_##name##_CLOSE,         \
-        }                                                         \
+#define MAKE_SIMPLE_SERVO(name)                                           \
+    ServoInfo                                                             \
+    {                                                                     \
+        std::make_unique<Servo>(                                          \
+            MIOSIX_SERVOS_##name##_TIM,                                   \
+            TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,          \
+            Config::Servos::name##_MIN_PULSE,                             \
+            Config::Servos::name##_MAX_PULSE, Config::Servos::FREQUENCY), \
+            ServoInfo::ServoConfig                                        \
+        {                                                                 \
+            .limit        = Config::Servos::name##_LIMIT,                 \
+            .flipped      = Config::Servos::name##_FLIPPED,               \
+            .openingEvent = Common::MOTOR_##name##_OPEN,                  \
+            .closingEvent = Common::MOTOR_##name##_CLOSE,                 \
+        }                                                                 \
     }
