@@ -419,7 +419,7 @@ int main()
                     std::cout << "Animating valve " << words[1]
                               << " to position " << position << " in "
                               << duration << " ms" << std::endl;
-                    actuators->animateValve(valve, position, duration);
+                    actuators->animateValve(ActuatorsManualCheck::ManualValve::unchecked(valve), position, duration);
                 }
                 else if (words[0] == "step")
                 {
@@ -441,9 +441,9 @@ int main()
                 else if (words[0] == "sweep")
                 {
                     std::cout << "\nSweeping valve " << words[1] << std::endl;
-                    actuators->animateValve(valve, 0.4f, 5000);
+                    actuators->animateValve(ActuatorsManualCheck::ManualValve::unchecked(valve), 0.4f, 5000);
                     Thread::sleep(5000);
-                    actuators->animateValve(valve, 0.0f, 5000);
+                    actuators->animateValve(ActuatorsManualCheck::ManualValve::unchecked(valve), 0.0f, 5000);
                 }
                 else if (words[0] == "wiggle")
                 {
