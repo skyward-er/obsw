@@ -42,19 +42,30 @@ struct ManualValve
 {
     ServosList value;
 
-    consteval ManualValve(ServosList&& x) : value(x)
+    consteval ManualValve(ServosList x) : value(x)
     {
         if (!is_manual(x))
             throw "Tried to call a manual valve method on a non-manual valve";
     }
 
-    consteval ManualValve(const ServosList& x) : value(x)
+    // When working with runtime values, we cannot check if the valve is manual
+    // or not, so we provide a way to construct a ManualValve without checking
+    // it.
+    // This should be used with care, and only when the user is sure that the
+    // valve is manual.
+    // For example
+    // ServosList servo = static_cast<ServosList>(msg.servo_id);
+    // moveValve(ManualValve::unchecked(servo), position);
+    static ManualValve unchecked(ServosList x)
     {
-        if (!is_manual(x))
-            throw "Tried to call a manual valve method on a non-manual valve";
+        return ManualValve(x, UncheckedTag{});
     }
 
-    ManualValve(ServosList& x) : value(x) {}
+private:
+    struct UncheckedTag
+    {
+    };
+    ManualValve(ServosList x, UncheckedTag) : value(x) {}
 };
 
 }  // namespace ActuatorsManualCheck
