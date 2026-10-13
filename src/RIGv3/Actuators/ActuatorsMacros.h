@@ -61,8 +61,8 @@
  */
 
 /**
- * @brief Shorthand to create a ValveInfo struct for a big servo (AGFRC 74kg)
- * from the servo name
+ * @brief Shorthand to create a ValveInfo struct for a servo (AGFRC 74kg or MKS
+ * 16kg) from the servo name
  */
 #define MAKE_SERVO_VALVE(name)                                                 \
     ValveInfo                                                                  \
@@ -81,33 +81,8 @@
             std::make_unique<Servo>(                                           \
                 MIOSIX_SERVOS_##name##_TIM,                                    \
                 TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,           \
-                Config::Servos::MIN_PULSE, Config::Servos::MAX_PULSE,          \
-                Config::Servos::FREQUENCY)),                                   \
-    }
-
-/**
- * @brief Shorthand to create a ValveInfo struct for a small servo (MKS 16kg)
- * from the servo name
- */
-#define MAKE_SMALL_SERVO_VALVE(name)                                           \
-    ValveInfo                                                                  \
-    {                                                                          \
-        std::make_unique<ServoValve>(                                          \
-            ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
-                        .flipped = Config::Servos::name##_FLIPPED,             \
-                        .defaultOpeningTime =                                  \
-                            Config::Servos::DEFAULT_##name##_OPENING_TIME,     \
-                        .defaultMaxAperture =                                  \
-                            Config::Servos::DEFAULT_##name##_MAX_APERTURE,     \
-                        .openingEvent      = Common::MOTOR_##name##_OPEN,      \
-                        .closingEvent      = Common::MOTOR_##name##_CLOSE,     \
-                        .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,  \
-                        .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE}, \
-            std::make_unique<Servo>(                                           \
-                MIOSIX_SERVOS_##name##_TIM,                                    \
-                TimerUtils::Channel::MIOSIX_SERVOS_##name##_CHANNEL,           \
-                Config::Servos::SMALL_MIN_PULSE,                               \
-                Config::Servos::SMALL_MAX_PULSE, Config::Servos::FREQUENCY), ) \
+                Config::Servos::name##_MIN_PULSE,                              \
+                Config::Servos::name##_MAX_PULSE, Config::Servos::FREQUENCY)), \
     }
 
 /**
@@ -144,8 +119,8 @@
                         .closingEvent      = Common::MOTOR_##name##_CLOSE,     \
                         .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,  \
                         .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE}, \
-            pca, channel, Config::Servos::MIN_PULSE,                           \
-            Config::Servos::MAX_PULSE)                                         \
+            pca, channel, Config::Servos::name##_MIN_PULSE,                    \
+            Config::Servos::name##_MAX_PULSE)                                  \
     }
 
 #define MAKE_MANUAL_PCA_SERVO_VALVE(name, pca, channel)                        \
@@ -162,26 +137,8 @@
                         .closingEvent      = Common::MOTOR_##name##_CLOSE,     \
                         .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,  \
                         .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE}, \
-            pca, channel, Config::Servos::MIN_PULSE,                           \
-            Config::Servos::MAX_PULSE)                                         \
-    }
-
-#define MAKE_SMALL_PCA_SERVO_VALVE(name, pca, channel)                         \
-    ValveInfo                                                                  \
-    {                                                                          \
-        std::make_unique<ServoPCAValve>(                                       \
-            ValveConfig{.limit   = Config::Servos::name##_LIMIT,               \
-                        .flipped = Config::Servos::name##_FLIPPED,             \
-                        .defaultOpeningTime =                                  \
-                            Config::Servos::DEFAULT_##name##_OPENING_TIME,     \
-                        .defaultMaxAperture =                                  \
-                            Config::Servos::DEFAULT_##name##_MAX_APERTURE,     \
-                        .openingEvent      = Common::MOTOR_##name##_OPEN,      \
-                        .closingEvent      = Common::MOTOR_##name##_CLOSE,     \
-                        .openingTimeRegKey = CONFIG_ID_##name##_OPENING_TIME,  \
-                        .maxApertureRegKey = CONFIG_ID_##name##_MAX_APERTURE}, \
-            pca, channel, Config::Servos::SMALL_MIN_PULSE,                     \
-            Config::Servos::SMALL_MAX_PULSE)                                   \
+            pca, channel, Config::Servos::name##_MIN_PULSE,                    \
+            Config::Servos::name##_MAX_PULSE)                                  \
     }
 
 #define MAKE_SIMPLE_PCA_SERVO_VALVE(name, pca, channel)         \

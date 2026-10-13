@@ -384,10 +384,11 @@ bool Actuators::closeValve(ServosList servo)
     return true;
 }
 
-bool Actuators::moveValve(ServosList servo, float position)
+bool Actuators::moveValve(ActuatorsManualCheck::ManualValve servo,
+                          float position)
 {
     Lock<FastMutex> lock(infosMutex);
-    ManualValveInfo* info = getManualValve(servo);
+    ManualValveInfo* info = getManualValve(servo.value);
     if (info == nullptr)
         return false;
 
@@ -398,14 +399,15 @@ bool Actuators::moveValve(ServosList servo, float position)
     return true;
 }
 
-bool Actuators::animateValve(ServosList servo, float position, uint32_t time)
+bool Actuators::animateValve(ActuatorsManualCheck::ManualValve servo,
+                             float position, uint32_t time)
 {
     Lock<FastMutex> lock(infosMutex);
-    ManualValveInfo* info = getManualValve(servo);
+    ManualValveInfo* info = getManualValve(servo.value);
     if (info == nullptr)
         return false;
 
-    getModule<CanHandler>()->sendServoOpenCommand(servo, time);
+    getModule<CanHandler>()->sendServoOpenCommand(servo.value, time);
     info->animateValve(position, time);
     signalTask();
     return true;

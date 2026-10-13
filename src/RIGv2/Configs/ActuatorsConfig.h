@@ -94,6 +94,30 @@ constexpr bool OX_VEN_FLIPPED = true;
 constexpr bool N2_QUE_FLIPPED = false;
 constexpr bool MAIN_FLIPPED   = true;
 
+constexpr unsigned int OX_FIL_MIN_PULSE = MIN_PULSE;
+constexpr unsigned int OX_REL_MIN_PULSE = MIN_PULSE;
+constexpr unsigned int OX_DET_MIN_PULSE = SMALL_MIN_PULSE;
+constexpr unsigned int N2_3W_MIN_PULSE  = MIN_PULSE;
+constexpr unsigned int N2_FIL_MIN_PULSE = SMALL_MIN_PULSE;
+constexpr unsigned int N2_REL_MIN_PULSE = SMALL_MIN_PULSE;
+constexpr unsigned int N2_DET_MIN_PULSE = SMALL_MIN_PULSE;
+constexpr unsigned int NITR_MIN_PULSE   = MIN_PULSE;
+constexpr unsigned int OX_VEN_MIN_PULSE = MIN_PULSE;
+constexpr unsigned int N2_QUE_MIN_PULSE = SMALL_MIN_PULSE;
+constexpr unsigned int MAIN_MIN_PULSE   = MIN_PULSE;
+
+constexpr unsigned int OX_FIL_MAX_PULSE = MAX_PULSE;
+constexpr unsigned int OX_REL_MAX_PULSE = MAX_PULSE;
+constexpr unsigned int OX_DET_MAX_PULSE = SMALL_MAX_PULSE;
+constexpr unsigned int N2_3W_MAX_PULSE  = MAX_PULSE;
+constexpr unsigned int N2_FIL_MAX_PULSE = SMALL_MAX_PULSE;
+constexpr unsigned int N2_REL_MAX_PULSE = SMALL_MAX_PULSE;
+constexpr unsigned int N2_DET_MAX_PULSE = SMALL_MAX_PULSE;
+constexpr unsigned int NITR_MAX_PULSE   = MAX_PULSE;
+constexpr unsigned int OX_VEN_MAX_PULSE = MAX_PULSE;
+constexpr unsigned int N2_QUE_MAX_PULSE = SMALL_MAX_PULSE;
+constexpr unsigned int MAIN_MAX_PULSE   = MAX_PULSE;
+
 }  // namespace Servos
 }  // namespace Config
 }  // namespace RIGv2

@@ -34,6 +34,8 @@
 #include <scheduler/SignaledDeadlineTask.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include "ActuatorsManualCheck.h"
+
 namespace Motor
 {
 
@@ -124,8 +126,9 @@ public:
     bool toggleValve(ServosList servo);
     bool openValve(ServosList servo);
     bool openValveWithTime(ServosList servo, uint32_t time);
-    bool moveValve(ServosList servo, float position);
-    bool animateValve(ServosList servo, float position, uint32_t time);
+    bool moveValve(ActuatorsManualCheck::ManualValve servo, float position);
+    bool animateValve(ActuatorsManualCheck::ManualValve servo, float position,
+                      uint32_t time);
 
     bool closeValve(ServosList servo);
     void closeAllValves();

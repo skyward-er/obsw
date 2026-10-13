@@ -92,6 +92,23 @@ constexpr bool MAIN_FUEL_FLIPPED = true;
 constexpr bool IGN_OX_FLIPPED    = false;
 constexpr bool IGN_FUEL_FLIPPED  = false;
 
+constexpr unsigned int OX_VEN_MIN_PULSE    = MIN_PULSE;
+constexpr unsigned int FUEL_VEN_MIN_PULSE  = MIN_PULSE;
+constexpr unsigned int PRZ_OX_MIN_PULSE    = MIN_PULSE;
+constexpr unsigned int PRZ_FUEL_MIN_PULSE  = MIN_PULSE;
+constexpr unsigned int MAIN_OX_MIN_PULSE   = MIN_PULSE;
+constexpr unsigned int MAIN_FUEL_MIN_PULSE = MIN_PULSE;
+
+constexpr unsigned int OX_VEN_MAX_PULSE    = MAX_PULSE;
+constexpr unsigned int FUEL_VEN_MAX_PULSE  = MAX_PULSE;
+constexpr unsigned int PRZ_OX_MAX_PULSE    = MAX_PULSE;
+constexpr unsigned int PRZ_FUEL_MAX_PULSE  = MAX_PULSE;
+constexpr unsigned int MAIN_OX_MAX_PULSE   = MAX_PULSE;
+constexpr unsigned int MAIN_FUEL_MAX_PULSE = MAX_PULSE;
+
+constexpr std::array MANUAL_VALVES = {MAIN_OX_VALVE, MAIN_FUEL_VALVE,
+                                      PRZ_OX_VALVE, PRZ_FUEL_VALVE};
+
 }  // namespace Servos
 }  // namespace Config
 }  // namespace Motor

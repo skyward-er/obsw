@@ -36,6 +36,8 @@
 #include <scheduler/SignaledDeadlineTask.h>
 #include <scheduler/TaskScheduler.h>
 
+#include "ActuatorsManualCheck.h"
+
 namespace RIGv3
 {
 
@@ -131,8 +133,9 @@ public:
     bool toggleValve(ServosList servo);
     bool openValve(ServosList servo);
     bool openValveWithTime(ServosList servo, uint32_t time);
-    bool moveValve(ServosList servo, float position);
-    bool animateValve(ServosList servo, float position, uint32_t time);
+    bool moveValve(ActuatorsManualCheck::ManualValve servo, float position);
+    bool animateValve(ActuatorsManualCheck::ManualValve servo, float position,
+                      uint32_t time);
 
     bool closeValve(ServosList servo);
     void closeAllValves();
