@@ -182,7 +182,7 @@ bool checkDipMatchesBinary(const DipStatus& dipRead, bool expectedArp,
     {
         std::cout << "[error] Dip switch / firmware mismatch! This board is "
                      "flashed with "
-                  << (expectedArp ? "arp-gs-entry" : "radio-gs-entry")
+                  << (expectedArp ? "arp-gs-entry" : "gs-entry")
                   << " firmware, but the dip switch ARP bit reads "
                   << (dipRead.isARP ? "ON" : "OFF")
                   << ". Check that the correct firmware is flashed on this "

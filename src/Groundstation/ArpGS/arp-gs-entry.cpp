@@ -45,7 +45,7 @@ using namespace Antennas;
 /**
  * @brief ARP GS entrypoint.
  *
- * Builds on the same common base as radio-gs-entry.cpp (see
+ * Builds on the same common base as gs-entry.cpp (see
  * GsEntryCommon.h), adding the ARP-specific modules.
  *
  * Initializes the shared + ARP-specific software modules
