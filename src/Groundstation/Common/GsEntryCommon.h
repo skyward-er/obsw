@@ -121,7 +121,7 @@ void reportCommonStatus(ArpGS::BoardStatus* boardStatus,
  * built to be
  *
  * @param isItArp what this compiled binary is (true = arp-gs-entry, false =
- * radio-gs-entry)
+ * gs-entry)
  */
 bool checkDipMatchesBinary(const DipStatus& dipRead, bool isItArp,
                            Boardcore::PrintLogger& logger);
