@@ -27,7 +27,7 @@
 
 #include <chrono>
 
-#include "Groundstation/ArpGS/Buses.h"
+#include "Groundstation/GS/Buses.h"
 #include "sensors/SensorManager.h"
 #include "sensors/Vectornav/VN300/VN300.h"
 

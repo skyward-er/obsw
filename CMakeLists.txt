@@ -181,7 +181,7 @@ if(TARGET arp-gs-entry)
 endif()
 
 sbs_declare_target(gs-entry stm32f767zi_lyra_gs
-    src/Groundstation/gs-entry.cpp
+    src/Groundstation/GS/gs-entry.cpp
     ${RADIO_GS} ${GROUNDSTATION_COMMON})
 if(TARGET gs-entry)
     target_include_directories(gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})

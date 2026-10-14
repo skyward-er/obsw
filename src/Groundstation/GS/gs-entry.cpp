@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/ArpGS/Base/Hub.h>
+#include <Groundstation/GS/Base/Hub.h>
 #include <Groundstation/Common/GsEntryCommon.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>

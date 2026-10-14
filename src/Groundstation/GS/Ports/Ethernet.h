@@ -22,57 +22,29 @@
 
 #pragma once
 
-#include <ActiveObject.h>
-#include <Groundstation/ArpGS/BoardStatus.h>
-#include <Groundstation/ArpGS/Buses.h>
+#include <Groundstation/GS/BoardStatus.h>
+#include <Groundstation/GS/Buses.h>
 #include <Groundstation/Common/Ports/EthernetBase.h>
-#include <Groundstation/Common/Ports/Serial.h>
-#include <common/MavlinkHydra.h>
-#include <drivers/usart/USART.h>
-#include <filesystem/console/console_device.h>
-#include <radio/MavlinkDriver/MavlinkDriver.h>
 #include <utils/DependencyManager/DependencyManager.h>
-
-#include <memory>
 
 namespace ArpGS
 {
+class BoardStatus;
 
-using SerialMavDriver =
-    Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
-
-/**
- * @brief Class responsible for UART communication.
- */
-class SerialArpGS : public Boardcore::InjectableWithDeps<
-                        Boardcore::InjectableBase<Groundstation::Serial>, Buses,
-                        Groundstation::HubBase>
+class EthernetGS : public Boardcore::InjectableWithDeps<
+                       Boardcore::InjectableBase<Groundstation::EthernetBase>,
+                       Buses, BoardStatus>
 {
 public:
-    SerialArpGS() {}
-
-    /**
-     * @brief Initialize the serial module.
-     */
+    EthernetGS() : Super{} {}
+    EthernetGS(bool randomIp, uint8_t ipOffset, bool sniffing)
+        : Super{randomIp, ipOffset, sniffing}
+    {
+    }
     [[nodiscard]] bool start();
-
-    /**
-     * @brief Send a mavlink message through this port.
-     */
     void sendMsg(const mavlink_message_t& msg);
-
-private:
-    /**
-     * @brief Called internally when a message is received.
-     */
-    void handleMsg(const mavlink_message_t& msg);
-
-    ssize_t receive(uint8_t* pkt, size_t max_len) override;
-
-    bool send(uint8_t* pkt, size_t len) override;
-
-    miosix::FastMutex mutex;
-    std::unique_ptr<SerialMavDriver> mav_driver;
+    void handleINTn();
+    Boardcore::Wiz5500::PhyState getState();
 };
 
 }  // namespace ArpGS

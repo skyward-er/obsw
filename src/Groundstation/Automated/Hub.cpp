@@ -22,9 +22,9 @@
 
 #include "Hub.h"
 
-#include <Groundstation/ArpGS/Ports/Ethernet.h>
-#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
-#include <Groundstation/ArpGS/Radio/Radio.h>
+#include <Groundstation/GS/Ports/Ethernet.h>
+#include <Groundstation/GS/Ports/SerialArpGS.h>
+#include <Groundstation/GS/Radio/Radio.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>

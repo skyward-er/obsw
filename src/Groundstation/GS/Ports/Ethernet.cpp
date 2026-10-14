@@ -22,8 +22,8 @@
 
 #include "Ethernet.h"
 
-#include <Groundstation/ArpGS/BoardStatus.h>
-#include <Groundstation/ArpGS/Buses.h>
+#include <Groundstation/GS/BoardStatus.h>
+#include <Groundstation/GS/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 
 using namespace Boardcore;

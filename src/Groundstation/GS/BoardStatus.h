@@ -23,9 +23,9 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <Groundstation/ArpGS/Ports/Ethernet.h>
-#include <Groundstation/ArpGS/Radio/Radio.h>
-#include <Groundstation/ArpGS/Radio/RadioData.h>
+#include <Groundstation/GS/Ports/Ethernet.h>
+#include <Groundstation/GS/Radio/Radio.h>
+#include <Groundstation/GS/Radio/RadioData.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>

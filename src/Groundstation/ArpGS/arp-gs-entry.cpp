@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/ArpGS/Base/Hub.h>
+#include <Groundstation/GS/Base/Hub.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
