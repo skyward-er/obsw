@@ -136,13 +136,14 @@ set (ARPGS
     src/Groundstation/Automated/Actuators/Actuators.cpp
     src/Groundstation/Automated/Sensors/Sensors.cpp
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
+    src/Groundstation/Automated/ArpStatus.cpp
 )
 
 set(RADIO_GS
-    src/Groundstation/ArpGS/Radio/Radio.cpp
-    src/Groundstation/ArpGS/Ports/Ethernet.cpp
-    src/Groundstation/ArpGS/BoardStatus.cpp
-    src/Groundstation/ArpGS/Base/Hub.cpp
+    src/Groundstation/GS/Radio/Radio.cpp
+    src/Groundstation/GS/Ports/Ethernet.cpp
+    src/Groundstation/GS/BoardStatus.cpp
+    src/Groundstation/GS/Base/Hub.cpp
     src/Groundstation/Common/GsEntryCommon.cpp   
-    src/Groundstation/ArpGS/Ports/SerialArpGS.cpp
+    src/Groundstation/GS/Ports/SerialArpGS.cpp
 )

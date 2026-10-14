@@ -22,29 +22,34 @@
 
 #pragma once
 
-#include <Groundstation/ArpGS/BoardStatus.h>
-#include <Groundstation/ArpGS/Buses.h>
-#include <Groundstation/Common/Ports/EthernetBase.h>
+#include <Groundstation/GS/Ports/Ethernet.h>
+#include <Groundstation/GS/Ports/SerialArpGS.h>
+#include <Groundstation/Common/HubBase.h>
+#include <common/MavlinkHydra.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
-namespace ArpGS
+namespace GroundstationBase
 {
-class BoardStatus;
-
-class EthernetGS : public Boardcore::InjectableWithDeps<
-                       Boardcore::InjectableBase<Groundstation::EthernetBase>,
-                       Buses, BoardStatus>
+/**
+ * @brief Central hub connecting all outgoing and ingoing modules.
+ */
+class Hub : public Boardcore::InjectableWithDeps<
+                Boardcore::InjectableBase<Groundstation::HubBase>,
+                ArpGS::BoardStatus, ArpGS::RadioMain, ArpGS::RadioPayload,
+                ArpGS::SerialArpGS, ArpGS::EthernetGS>
 {
 public:
-    EthernetGS() : Super{} {}
-    EthernetGS(bool randomIp, uint8_t ipOffset, bool sniffing)
-        : Super{randomIp, ipOffset, sniffing}
-    {
-    }
-    [[nodiscard]] bool start();
-    void sendMsg(const mavlink_message_t& msg);
-    void handleINTn();
-    Boardcore::Wiz5500::PhyState getState();
+    /**
+     * @brief Dispatch to the correct interface and outgoing packet (gs ->
+     * rocket).
+     */
+    void dispatchOutgoingMsg(const mavlink_message_t& msg) override;
+
+    /**
+     * @brief Dispatch to the correct interface and incoming packet (rocket ->
+     * gs).
+     */
+    void dispatchIncomingMsg(const mavlink_message_t& msg) override;
 };
 
-}  // namespace ArpGS
+}  // namespace GroundstationBase

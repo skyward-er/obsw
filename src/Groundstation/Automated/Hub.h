@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include <Groundstation/ArpGS/BoardStatus.h>
-#include <Groundstation/ArpGS/Ports/Ethernet.h>
-#include <Groundstation/ArpGS/Ports/SerialArpGS.h>
-#include <Groundstation/ArpGS/Radio/Radio.h>
+#include <Groundstation/GS/BoardStatus.h>
+#include <Groundstation/GS/Ports/Ethernet.h>
+#include <Groundstation/GS/Ports/SerialArpGS.h>
+#include <Groundstation/GS/Radio/Radio.h>
 #include <Groundstation/Automated/HubData.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/HubBase.h>

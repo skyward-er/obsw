@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Groundstation/ArpGS/BoardStatus.h>
-#include <Groundstation/ArpGS/Buses.h>
+#include <Groundstation/GS/BoardStatus.h>
+#include <Groundstation/GS/Buses.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
