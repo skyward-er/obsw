@@ -60,7 +60,7 @@ constexpr auto TARGET_LON = 9.15891883f;
 namespace Deployment
 {
 
-constexpr auto PUMP_DELAY       = 4s;
+constexpr auto PUMP_DELAY       = 3s;
 constexpr auto PUMP_TIMEOUT     = 15s;
 constexpr auto PUMP_ANGLE_LEFT  = 720_deg;
 constexpr auto PUMP_ANGLE_RIGHT = 720_deg;
@@ -73,8 +73,8 @@ struct Pump
 
 // Pumps are ordered from the first to activate to the last
 constexpr std::array<Pump, 2> PUMPS = {
-    Pump{.pumpTime = 1s, .resetTime = 500ms},
-    Pump{.pumpTime = 2s, .resetTime = 1s},
+    Pump{.pumpTime = 1000ms, .resetTime = 500ms},
+    Pump{.pumpTime = 1000ms, .resetTime = 500ms},
 };
 
 }  // namespace Deployment
@@ -84,7 +84,7 @@ namespace LandingFlareConfig
 
 constexpr bool ENABLED = true;
 
-constexpr float ALTITUDE         = 50.0f;  // [m]
+constexpr float ALTITUDE         = 25.0f;  // [m]
 constexpr int CONFIDENCE         = 10;     // [samples]
 constexpr auto DURATION          = 360s;
 constexpr auto FLARE_ANGLE_LEFT  = 972_deg;
