@@ -455,7 +455,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             getModule<ADAController>()->setDeploymentAltitude(altitude);
 
-            if (altitude < 200 || altitude > 1000)
+            if (altitude < 200 || altitude > 2000)
                 enqueueWack(msg, 0);
             else
                 enqueueAck(msg);
