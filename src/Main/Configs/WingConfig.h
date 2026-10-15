@@ -47,8 +47,8 @@ constexpr auto UPDATE_RATE = 20_hz;
 namespace Default
 {
 #if defined(EUROC)
-constexpr auto TARGET_LAT = 39.387253f;
-constexpr auto TARGET_LON = -8.2879418f;
+constexpr auto TARGET_LAT = 39.387247f;
+constexpr auto TARGET_LON = -8.286478f;
 #elif defined(ROCCARASO)
 constexpr auto TARGET_LAT = 42.2247092f;
 constexpr auto TARGET_LON = 13.4310024f;
