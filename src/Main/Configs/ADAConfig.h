@@ -42,10 +42,10 @@ namespace ADA
 constexpr Hertz UPDATE_RATE         = 50_hz;
 constexpr float UPDATE_RATE_SECONDS = 1.0 / UPDATE_RATE.value();  // [s]
 
-constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5;  // [m/s]
+constexpr float APOGEE_VERTICAL_SPEED_TARGET = 2.5f;  // [m/s]
 constexpr unsigned int APOGEE_N_SAMPLES      = 5;
 
-constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 750;  // [m]
+constexpr float DEPLOYMENT_ALTITUDE_TARGET  = 450.0f;  // [m]
 constexpr unsigned int DEPLOYMENT_N_SAMPLES = 5;
 
 #ifdef ROCCARASO
