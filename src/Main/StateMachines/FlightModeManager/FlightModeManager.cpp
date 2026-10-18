@@ -609,8 +609,13 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case TMTC_FORCE_LAUNCH:
         {
+            auto timeSinceLiftoff =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    duration_cast<milliseconds>(
+                        microseconds{TimestampTimer::getTimestamp()}));
+
             getModule<StatsRecorder>()->liftoffDetected(
-                TimestampTimer::getTimestamp());
+                microseconds(timeSinceLiftoff).count());
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
             return transition(&FlightModeManager::state_flying);
         }
