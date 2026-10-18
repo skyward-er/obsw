@@ -490,31 +490,7 @@ VN100SpiData Sensors::getCalibratedVN100LastSample()
 
 IMUData Sensors::getIMULastSample()
 {
-    auto rotatedImuData = rotatedImu ? rotatedImu->getLastSample() : IMUData{};
-
-    std::lock_guard<std::mutex> lock{zvkBiasMutex};
-    Boardcore::AccelerometerData accData{
-        rotatedImuData.accelerationTimestamp,
-        rotatedImuData.accelerationX - zvkAccBias[0],
-        rotatedImuData.accelerationY - zvkAccBias[1],
-        rotatedImuData.accelerationZ - zvkAccBias[2],
-    };
-
-    Boardcore::GyroscopeData gyroData{
-        rotatedImuData.angularSpeedTimestamp,
-        rotatedImuData.angularSpeedX - zvkGyroBias[0],
-        rotatedImuData.angularSpeedY - zvkGyroBias[1],
-        rotatedImuData.angularSpeedZ - zvkGyroBias[2],
-    };
-
-    Boardcore::MagnetometerData magData{
-        rotatedImuData.magneticFieldTimestamp,
-        rotatedImuData.magneticFieldX,
-        rotatedImuData.magneticFieldY,
-        rotatedImuData.magneticFieldZ,
-    };
-
-    return IMUData{accData, gyroData, magData};
+    return IMUData{rotatedImu ? rotatedImu->getLastSample() : IMUData{}};
 }
 
 PressureData Sensors::getAtmosPressureLastSample()
@@ -1054,14 +1030,24 @@ void Sensors::rotatedImuInit()
                               ? getCalibratedVN100LastSample()
                               : getVN100LastSample();
 
-            Boardcore::AccelerometerData accData(
-                vnData.accelerationTimestamp, vnData.accelerationX,
-                vnData.accelerationY, vnData.accelerationZ);
-            Boardcore::GyroscopeData gyroData(
-                vnData.angularSpeedTimestamp, vnData.angularSpeedX,
-                vnData.angularSpeedY, vnData.angularSpeedZ);
+            // Apply ZVK bias correction
+            {
+                std::lock_guard<std::mutex> lock{zvkBiasMutex};
 
-            return IMUData{accData, gyroData, magData};
+                Boardcore::AccelerometerData accData(
+                    vnData.accelerationTimestamp,
+                    vnData.accelerationX - zvkAccBias[0],
+                    vnData.accelerationY - zvkAccBias[1],
+                    vnData.accelerationZ - zvkAccBias[2]);
+
+                Boardcore::GyroscopeData gyroData(
+                    vnData.angularSpeedTimestamp,
+                    vnData.angularSpeedX - zvkGyroBias[0],
+                    vnData.angularSpeedY - zvkGyroBias[1],
+                    vnData.angularSpeedZ - zvkGyroBias[2]);
+
+                return IMUData{accData, gyroData, magData};
+            }
 
 #endif
         });
