@@ -609,8 +609,14 @@ State FlightModeManager::state_armed(const Event& event)
         }
         case TMTC_FORCE_LAUNCH:
         {
+            auto timeSinceLiftoff =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    duration_cast<milliseconds>(
+                        microseconds{TimestampTimer::getTimestamp()}));
+
             getModule<StatsRecorder>()->liftoffDetected(
-                TimestampTimer::getTimestamp());
+                microseconds(timeSinceLiftoff).count());
+
             getModule<CanHandler>()->sendEvent(CanConfig::EventId::LIFTOFF);
             return transition(&FlightModeManager::state_flying);
         }
@@ -737,8 +743,14 @@ State FlightModeManager::state_powered_ascent(const Event& event)
                 getModule<ADAController>()->getADAState().mslAltitude;
 
             // log engine shutdown
+            auto timeSinceLiftoff =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    duration_cast<milliseconds>(
+                        microseconds{TimestampTimer::getTimestamp()}));
+
             getModule<StatsRecorder>()->shutdownDetected(
-                TimestampTimer::getTimestamp(), mslAlt);
+                microseconds(timeSinceLiftoff).count(), mslAlt);
+
             return transition(&FlightModeManager::state_unpowered_ascent);
         }
         case FMM_APOGEE_TIMEOUT:

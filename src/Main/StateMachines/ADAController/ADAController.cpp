@@ -248,9 +248,14 @@ void ADAController::update()
                 auto totalPress  = sensors->getCanPitotTotalPressure();
 
                 // Notify stats recorder
+                auto timeSinceLiftoff =
+                    getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                        duration_cast<milliseconds>(
+                            microseconds{TimestampTimer::getTimestamp()}));
+
                 getModule<StatsRecorder>()->apogeeDetected(
-                    TimestampTimer::getTimestamp(), gps.latitude, gps.longitude,
-                    adaState.aglAltitude, staticPress.pressure,
+                    microseconds{timeSinceLiftoff}.count(), gps.latitude,
+                    gps.longitude, adaState.aglAltitude, staticPress.pressure,
                     totalPress.pressure);
 
                 EventBroker::getInstance().post(ADA_APOGEE_DETECTED, TOPIC_ADA);
@@ -271,8 +276,13 @@ void ADAController::update()
         if (adaDetectedDeployments > Config::ADA::DEPLOYMENT_N_SAMPLES)
         {
             // Notify stats recorder
+            auto timeSinceLiftoff =
+                getModule<AlgoReference>()->computeTimeSinceLiftoff(
+                    duration_cast<milliseconds>(
+                        microseconds{TimestampTimer::getTimestamp()}));
+
             getModule<StatsRecorder>()->deploymentDetected(
-                TimestampTimer::getTimestamp(), adaState.mslAltitude);
+                microseconds(timeSinceLiftoff).count(), adaState.mslAltitude);
 
             EventBroker::getInstance().post(ADA_DEPLOY_ALTITUDE_DETECTED,
                                             TOPIC_ADA);
