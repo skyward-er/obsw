@@ -322,7 +322,21 @@ LSM6DSRXData Sensors::getLSM6DSRXHighLastSample()
 
 VN100SpiData Sensors::getVN100LastSample()
 {
-    return vn100 ? vn100->getLastSample() : VN100SpiData{};
+    auto data = vn100 ? vn100->getLastSample() : VN100SpiData{};
+
+    // Apply zvk bias correction to the raw sensor data
+    {
+        std::lock_guard<std::mutex> lock{zvkBiasMutex};
+        data.accelerationX -= zvkAccBias[0];
+        data.accelerationY -= zvkAccBias[1];
+        data.accelerationZ -= zvkAccBias[2];
+
+        data.angularSpeedX -= zvkGyroBias[0];
+        data.angularSpeedY -= zvkGyroBias[1];
+        data.angularSpeedZ -= zvkGyroBias[2];
+    }
+
+    return data;
 }
 
 InternalADCData Sensors::getInternalADCLastSample()
@@ -490,31 +504,7 @@ VN100SpiData Sensors::getCalibratedVN100LastSample()
 
 IMUData Sensors::getIMULastSample()
 {
-    auto rotatedImuData = rotatedImu ? rotatedImu->getLastSample() : IMUData{};
-
-    std::lock_guard<std::mutex> lock{zvkBiasMutex};
-    Boardcore::AccelerometerData accData{
-        rotatedImuData.accelerationTimestamp,
-        rotatedImuData.accelerationX - zvkAccBias[0],
-        rotatedImuData.accelerationY - zvkAccBias[1],
-        rotatedImuData.accelerationZ - zvkAccBias[2],
-    };
-
-    Boardcore::GyroscopeData gyroData{
-        rotatedImuData.angularSpeedTimestamp,
-        rotatedImuData.angularSpeedX - zvkGyroBias[0],
-        rotatedImuData.angularSpeedY - zvkGyroBias[1],
-        rotatedImuData.angularSpeedZ - zvkGyroBias[2],
-    };
-
-    Boardcore::MagnetometerData magData{
-        rotatedImuData.magneticFieldTimestamp,
-        rotatedImuData.magneticFieldX,
-        rotatedImuData.magneticFieldY,
-        rotatedImuData.magneticFieldZ,
-    };
-
-    return IMUData{accData, gyroData, magData};
+    return IMUData{rotatedImu ? rotatedImu->getLastSample() : IMUData{}};
 }
 
 PressureData Sensors::getAtmosPressureLastSample()
@@ -1062,7 +1052,6 @@ void Sensors::rotatedImuInit()
                 vnData.angularSpeedY, vnData.angularSpeedZ);
 
             return IMUData{accData, gyroData, magData};
-
 #endif
         });
 
