@@ -338,7 +338,9 @@ void NASController::calibrate(const Boardcore::ReferenceValues& ref)
 
     Lock<FastMutex> lock{nasMutex};
     anasTriad = triad;
+    anas.initialize();
     anas.setANAS_Reference(anasRef);
+    nasdaq.initialize();
     nasdaq.setNASDAQ_Reference(nasdaqRef);
 }
 
