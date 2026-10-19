@@ -46,7 +46,7 @@ public:
     T calcMedian()
     {
         std::sort(values.begin(), values.end());
-        return values[idx / 2];
+        return values[Max / 2];
     }
 
 private:

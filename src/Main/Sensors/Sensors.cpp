@@ -509,6 +509,7 @@ IMUData Sensors::getIMULastSample()
 
 PressureData Sensors::getAtmosPressureLastSample()
 {
+    Common::MedianFilter<float, 3> atmosPressureFilter;
     auto atmosPressure = PressureData{};
 
     atmosPressureFilter.add(getND015A0LastSample().pressure);

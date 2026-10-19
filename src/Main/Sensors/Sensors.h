@@ -247,8 +247,6 @@ private:
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("sensors");
 
-    Common::MedianFilter<float, 3> atmosPressureFilter;
-
     std::mutex zvkBiasMutex;
     Eigen::Vector3f zvkAccBias{0.0f, 0.0f, 0.0f};
     Eigen::Vector3f zvkGyroBias{0.0f, 0.0f, 0.0f};
