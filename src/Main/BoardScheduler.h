@@ -39,6 +39,7 @@ public:
           abk{Main::Config::Scheduler::ABK_PRIORITY},
           wing{Main::Config::Scheduler::WING_PRIORITY},
           zvk{Main::Config::Scheduler::ZVK_PRIORITY},
+          catse{Main::Config::Scheduler::CATSE_PRIORITY},
           sensors{Main::Config::Scheduler::SENSORS_PRIORITY},
           others{Main::Config::Scheduler::OTHERS_PRIORITY}
     {
@@ -82,6 +83,12 @@ public:
             return false;
         }
 
+        if (!catse.start())
+        {
+            LOG_ERR(logger, "Failed to start CATSE scheduler");
+            return false;
+        }
+
         if (!sensors.start())
         {
             LOG_ERR(logger, "Failed to start Sensors scheduler");
@@ -112,6 +119,8 @@ public:
 
     Boardcore::TaskScheduler& getZvkScheduler() { return zvk; }
 
+    Boardcore::TaskScheduler& getCatseScheduler() { return catse; }
+
     Boardcore::TaskScheduler& getSensorsScheduler() { return sensors; }
 
     Boardcore::TaskScheduler& getPinObserverScheduler() { return sensors; }
@@ -137,6 +146,7 @@ private:
     Boardcore::TaskScheduler abk;
     Boardcore::TaskScheduler wing;
     Boardcore::TaskScheduler zvk;
+    Boardcore::TaskScheduler catse;
     Boardcore::TaskScheduler sensors;
     Boardcore::TaskScheduler others;
 };

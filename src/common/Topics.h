@@ -35,6 +35,7 @@ enum Topics : uint8_t
     TOPIC_ADA,
     TOPIC_MEA,
     TOPIC_SDA,
+    TOPIC_CATSE,
     TOPIC_ARP,
     TOPIC_DPL,
     TOPIC_CAN,
@@ -59,6 +60,7 @@ const std::vector<uint8_t> TOPICS_LIST{
     TOPIC_ARP,   TOPIC_DPL,     TOPIC_CAN,       TOPIC_FLIGHT,
     TOPIC_FMM,   TOPIC_FSR,     TOPIC_NAS,       TOPIC_TMTC,
     TOPIC_MOTOR, TOPIC_EREG_OX, TOPIC_EREG_FUEL, TOPIC_FIRING_SEQUENCE,
-    TOPIC_TARS,  TOPIC_ALT,     TOPIC_WING,      TOPIC_ZVK};
+    TOPIC_TARS,  TOPIC_ALT,     TOPIC_WING,      TOPIC_ZVK,
+    TOPIC_CATSE};
 
 }  // namespace Common

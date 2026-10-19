@@ -42,6 +42,7 @@ set(MAIN_COMPUTER
     src/Main/StateMachines/SDAController/SDAController.cpp
     src/Main/StateMachines/WingController/WingController.cpp
     src/Main/StateMachines/ZVKController/ZVKController.cpp
+    src/Main/StateMachines/CATSEController/CATSEController.cpp
     src/Main/StatsRecorder/StatsRecorder.cpp
 )
 

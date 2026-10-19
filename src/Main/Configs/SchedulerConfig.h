@@ -45,6 +45,8 @@ static const miosix::Priority ADA_PRIORITY = miosix::PRIORITY_MAX - 1;
 static const miosix::Priority ZVK_PRIORITY = miosix::PRIORITY_MAX - 2;
 // Used for WING related activities (state machines/scheduler)
 static const miosix::Priority WING_PRIORITY = miosix::PRIORITY_MAX - 2;
+// Used for CATSE related activities (state machines/scheduler)
+static const miosix::Priority CATSE_PRIORITY = miosix::PRIORITY_MAX - 2;
 
 // Used for Sensors TaskScheduler
 static const miosix::Priority SENSORS_PRIORITY = miosix::PRIORITY_MAX - 1;

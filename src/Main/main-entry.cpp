@@ -35,6 +35,7 @@
 #include <Main/Sensors/Sensors.h>
 #include <Main/StateMachines/ABKController/ABKController.h>
 #include <Main/StateMachines/ADAController/ADAController.h>
+#include <Main/StateMachines/CATSEController/CATSEController.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManager.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <Main/StateMachines/SDAController/SDAController.h>
@@ -83,6 +84,7 @@ int main()
     auto sda         = new SDAController();
     auto zvk         = new ZVKController();
     auto wing        = new WingController();
+    auto catse       = new CATSEController();
     auto recorder    = new StatsRecorder();
     auto motorStatus = new MotorStatus();
     MainHIL* hil     = nullptr;
@@ -130,6 +132,7 @@ int main()
                   manager.insert<ABKController>(abk) &&
                   manager.insert<SDAController>(sda) &&
                   manager.insert<WingController>(wing) &&
+                  manager.insert<CATSEController>(catse) &&
                   manager.insert<ZVKController>(zvk) &&
                   manager.insert<StatsRecorder>(recorder) &&
                   manager.insert<MotorStatus>(motorStatus) && manager.inject();
@@ -260,6 +263,13 @@ int main()
     {
         initResult = false;
         std::cerr << "*** Failed to start WingController ***" << std::endl;
+    }
+
+    std::cout << "Starting CATSEController" << std::endl;
+    if (!catse->start())
+    {
+        initResult = false;
+        std::cerr << "*** Failed to start CATSEController ***" << std::endl;
     }
 
     std::cout << "Starting ZVKController" << std::endl;
