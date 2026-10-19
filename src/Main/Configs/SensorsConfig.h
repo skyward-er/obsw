@@ -146,7 +146,7 @@ namespace LSM6DSRX_0
 constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/accCalibration0.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/gyroCalibration0.csv";
 
-constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
+constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G4;
 constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_104;
 constexpr auto ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
@@ -156,8 +156,8 @@ constexpr auto GYR_ODR = Boardcore::LSM6DSRXConfig::GYR_ODR::HZ_104;
 constexpr auto GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
-constexpr auto RATE    = 50_hz;
-constexpr auto ENABLED = true;
+constexpr auto RATE    = 100_hz;
+constexpr auto ENABLED = false;
 }  // namespace LSM6DSRX_0
 
 namespace LSM6DSRX_1
@@ -165,7 +165,7 @@ namespace LSM6DSRX_1
 constexpr auto ACC_CALIBRATION_FILENAME  = "/sd/accCalibration1.csv";
 constexpr auto GYRO_CALIBRATION_FILENAME = "/sd/gyroCalibration1.csv";
 
-constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G4;
+constexpr auto ACC_FS  = Boardcore::LSM6DSRXConfig::ACC_FULLSCALE::G16;
 constexpr auto ACC_ODR = Boardcore::LSM6DSRXConfig::ACC_ODR::HZ_104;
 constexpr auto ACC_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
@@ -176,7 +176,7 @@ constexpr auto GYR_OP_MODE =
     Boardcore::LSM6DSRXConfig::OPERATING_MODE::HIGH_PERFORMANCE;
 
 constexpr auto RATE    = 100_hz;
-constexpr auto ENABLED = false;
+constexpr auto ENABLED = true;
 }  // namespace LSM6DSRX_1
 
 namespace ADS131M08
