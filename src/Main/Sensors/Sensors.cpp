@@ -523,7 +523,7 @@ PressureData Sensors::getAtmosPressureLastSample()
 
 TemperatureData Sensors::getTemperatureLastSample()
 {
-    return getLSM6DSRXLowLastSample();
+    return getLSM6DSRXHighLastSample();
 }
 
 PressureData Sensors::getCanPitotTotalPressure()
