@@ -26,6 +26,7 @@
 #include <Main/AlgoReference/AlgoReference.h>
 #include <Main/BoardScheduler.h>
 #include <Main/StateMachines/ABKController/ABKControllerData.h>
+#include <Main/StateMachines/CATSEController/CATSEController.h>
 #include <Main/StateMachines/NASController/NASController.h>
 #include <abk/ABK.h>
 #include <events/FSM.h>
@@ -37,7 +38,8 @@ namespace Main
 class ABKController
     : public Boardcore::FSM<ABKController>,
       public Boardcore::InjectableWithDeps<BoardScheduler, Actuators,
-                                           NASController, Common::MotorStatus>
+                                           NASController, CATSEController,
+                                           Common::MotorStatus>
 {
 public:
     ABKController();

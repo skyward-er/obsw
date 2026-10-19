@@ -83,12 +83,16 @@ void ABKController::update()
 {
     if (state == ABKControllerState::ACTIVE)
     {
-        auto anasState = getModule<NASController>()->getANASState();
+        auto anasState  = getModule<NASController>()->getANASState();
+        auto catseState = getModule<CATSEController>()->getCATSEState();
         ABKIn input{
-            .MEAMass      = getModule<MotorStatus>()->getMeaMass(),
-            .ANASPosition = {anasState.n, anasState.e, anasState.d},
-            .ANASVelocity = {anasState.vn, anasState.ve, anasState.vd},
-            .ANASMach     = anasState.machNumber,
+            .CATSNavigation = {catseState.verticalPosition,
+                               catseState.verticalVelocity,
+                               catseState.correctedAcceleration},
+            .MEAMass        = getModule<MotorStatus>()->getMeaMass(),
+            .ANASPosition   = {anasState.n, anasState.e, anasState.d},
+            .ANASVelocity   = {anasState.vn, anasState.ve, anasState.vd},
+            .ANASMach       = anasState.machNumber,
         };
 
         abk.setABK_In(input);

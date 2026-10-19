@@ -40,8 +40,8 @@ constexpr Hertz UPDATE_RATE_MEA = 50_hz;
 
 constexpr float INITIAL_MASS = 42.9f;  // bar
 
-constexpr float MEA_MIN_MASS = 33.7f;  // kg
-constexpr float MEA_MAX_MASS = 42.9f;  // kg
+constexpr float MEA_MIN_MASS = 32.1f;  // kg
+constexpr float MEA_MAX_MASS = 41.3f;  // kg
 
 }  // namespace MEA
 
