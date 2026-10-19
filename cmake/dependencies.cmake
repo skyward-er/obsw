@@ -135,6 +135,7 @@ set (ARPGS
     src/Groundstation/Automated/Actuators/Actuators.cpp
     src/Groundstation/Automated/Sensors/Sensors.cpp
     src/Groundstation/Automated/PinHandler/PinHandler.cpp
+    src/Groundstation/Automated/ArpStatus.cpp
 )
 
 set(RADIO_GS

@@ -26,9 +26,6 @@
 #include <Groundstation/GS/Ports/Ethernet.h>
 #include <Groundstation/GS/Radio/Radio.h>
 #include <Groundstation/GS/Radio/RadioData.h>
-#include <Groundstation/Automated/Actuators/Actuators.h>
-#include <Groundstation/Automated/SMA/SMA.h>
-#include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Config/RadioConfig.h>
 #include <Groundstation/Common/HubBase.h>
@@ -82,14 +79,11 @@ private:
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class BoardStatus
-    : public Boardcore::InjectableWithDeps<
-          Antennas::Actuators, Antennas::SMA, Antennas::Sensors,
-          Groundstation::HubBase, RadioMain, RadioPayload, EthernetGS>,
-      private Boardcore::ActiveObject
+class BoardStatus : public Boardcore::InjectableWithDeps<RadioMain, RadioPayload, EthernetGS, Groundstation::HubBase>,
+                    private Boardcore::ActiveObject
 {
 public:
-    explicit BoardStatus(bool isArp) : isArp{isArp}
+    explicit BoardStatus(bool isArp)
     {
         if (isArp)
         {
@@ -120,7 +114,6 @@ public:
     void setEthernetPresent(bool present);
 
 private:
-    void sendArpTm();
     void sendRadioLinkTm();
     void run() override;
 
@@ -146,7 +139,6 @@ private:
     uint8_t radio_433_type = RADIO_433_TYPE_NONE;
     uint8_t radio_868_type = RADIO_868_TYPE_NONE;
     bool ethernet_present  = false;
-    bool isArp             = false;
 };
 
 }  // namespace ArpGS

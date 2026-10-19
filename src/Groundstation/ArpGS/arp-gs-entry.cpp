@@ -29,6 +29,7 @@
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/GsEntryCommon.h>
 #include <common/Events.h>
+#include <Groundstation/Automated/ArpStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
 #include <miosix.h>
@@ -75,6 +76,7 @@ int main()
     Antennas::SMA* sma               = new Antennas::SMA();
     Antennas::PinHandler* pinHandler = new Antennas::PinHandler();
     Antennas::Leds* leds             = new Antennas::Leds();
+
     ok &= manager.insert(sma);
     ok &= manager.insert(actuators);
     ok &= manager.insert(sensors);
@@ -83,6 +85,9 @@ int main()
 
     HubBase* hub = new Antennas::Hub();
     ok &= manager.insert<HubBase>(hub);
+
+    Antennas::ArpStatus* arpStatus = new Antennas::ArpStatus();
+    ok &= manager.insert<ArpStatus>(arpStatus);
 
     if (!ok)
     {
@@ -134,6 +139,13 @@ int main()
     if (!pinHandler->start())
     {
         std::cout << "[error] Failed to start PinHandler!" << std::endl;
+        ok2 = false;
+    }
+
+    LOG_INFO(logger, "arpStatus starting... \n");
+    if (!arpStatus->start())
+    {
+        std::cout << "[ERROR] Failed to start Arp Status" << std::endl;
         ok2 = false;
     }
 
