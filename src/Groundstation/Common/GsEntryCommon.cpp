@@ -23,9 +23,9 @@
 #include "GsEntryCommon.h"
 
 #include <drivers/DipSwitch/DipSwitch.h>
+#include <interfaces-impl/bsp_impl.h>
 #include <logger/Logger.h>
 #include <miosix.h>
-#include <interfaces-impl/bsp_impl.h>
 
 using namespace Boardcore;
 using namespace miosix;

@@ -21,13 +21,13 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/GS/Base/Hub.h>
 #include <Groundstation/Common/GsEntryCommon.h>
+#include <Groundstation/GS/Base/Hub.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
-#include <miosix.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Boardcore;

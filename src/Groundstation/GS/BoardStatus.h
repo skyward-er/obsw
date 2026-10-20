@@ -23,13 +23,13 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <Groundstation/GS/Ports/Ethernet.h>
-#include <Groundstation/GS/Radio/Radio.h>
-#include <Groundstation/GS/Radio/RadioData.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/Common/Config/RadioConfig.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
+#include <Groundstation/GS/Ports/Ethernet.h>
+#include <Groundstation/GS/Radio/Radio.h>
+#include <Groundstation/GS/Radio/RadioData.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/timer/TimestampTimer.h>
 #include <utils/DependencyManager/DependencyManager.h>
@@ -79,8 +79,10 @@ private:
 /**
  * @brief Class responsible for keeping track of radio status and metrics.
  */
-class BoardStatus : public Boardcore::InjectableWithDeps<RadioMain, RadioPayload, EthernetGS, Groundstation::HubBase>,
-                    private Boardcore::ActiveObject
+class BoardStatus
+    : public Boardcore::InjectableWithDeps<RadioMain, RadioPayload, EthernetGS,
+                                           Groundstation::HubBase>,
+      private Boardcore::ActiveObject
 {
 public:
     explicit BoardStatus(bool isArp)

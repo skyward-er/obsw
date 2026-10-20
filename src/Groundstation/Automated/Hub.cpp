@@ -22,12 +22,12 @@
 
 #include "Hub.h"
 
-#include <Groundstation/GS/Ports/Ethernet.h>
-#include <Groundstation/GS/Ports/SerialArpGS.h>
-#include <Groundstation/GS/Radio/Radio.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Common/Config/GeneralConfig.h>
+#include <Groundstation/GS/Ports/Ethernet.h>
+#include <Groundstation/GS/Ports/SerialArpGS.h>
+#include <Groundstation/GS/Radio/Radio.h>
 #include <Main/StateMachines/FlightModeManager/FlightModeManagerData.h>
 #include <algorithms/AlgorithmsData.h>
 #include <common/Events.h>

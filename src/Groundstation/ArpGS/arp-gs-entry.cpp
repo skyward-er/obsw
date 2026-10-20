@@ -20,20 +20,20 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/GS/Base/Hub.h>
 #include <Groundstation/Automated/Actuators/Actuators.h>
+#include <Groundstation/Automated/ArpStatus.h>
 #include <Groundstation/Automated/Hub.h>
 #include <Groundstation/Automated/Leds/Leds.h>
 #include <Groundstation/Automated/PinHandler/PinHandler.h>
 #include <Groundstation/Automated/SMA/SMA.h>
 #include <Groundstation/Automated/Sensors/Sensors.h>
 #include <Groundstation/Common/GsEntryCommon.h>
+#include <Groundstation/GS/Base/Hub.h>
 #include <common/Events.h>
-#include <Groundstation/Automated/ArpStatus.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
-#include <miosix.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <thread>

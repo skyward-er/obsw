@@ -22,13 +22,13 @@
 
 #pragma once
 
+#include <Groundstation/Automated/BoardScheduler.h>
+#include <Groundstation/Common/Ports/EthernetSniffer.h>
 #include <Groundstation/GS/BoardStatus.h>
 #include <Groundstation/GS/Buses.h>
 #include <Groundstation/GS/Ports/Ethernet.h>
 #include <Groundstation/GS/Ports/SerialArpGS.h>
 #include <Groundstation/GS/Radio/Radio.h>
-#include <Groundstation/Automated/BoardScheduler.h>
-#include <Groundstation/Common/Ports/EthernetSniffer.h>
 #include <diagnostic/PrintLogger.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
