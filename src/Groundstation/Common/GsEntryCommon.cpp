@@ -56,17 +56,18 @@ DipStatus readDipStatus()
     return dipRead;
 }
 
-bool insertCommonModules(DependencyManager& manager, const DipStatus& dipRead,
-                         CommonModules& outMods)
+bool insertCommonModules(Boardcore::DependencyManager& manager, const DipStatus& dipRead,
+                         bool isArp, CommonModules& outMods)
 {
+
     outMods.scheduler = new Antennas::BoardScheduler();
     outMods.buses     = new ArpGS::Buses();
     outMods.serial    = new ArpGS::SerialArpGS();
     outMods.radioMain =
         new ArpGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
-    outMods.boardStatus = new ArpGS::BoardStatus(dipRead.isARP);
+    outMods.boardStatus = new ArpGS::BoardStatus(isArp);
     outMods.ethernet = new ArpGS::EthernetGS(randomIp, dipRead.ipConfig,
-                                             dipRead.isARP & ethernetSniffing);
+                                             isArp & ethernetSniffing);
     outMods.ethernetSniffer = new EthernetSniffer();
     outMods.radioPayload    = new ArpGS::RadioPayload(dipRead.payloadHasBackup,
                                                       dipRead.payloadTXenable);
@@ -83,15 +84,13 @@ bool insertCommonModules(DependencyManager& manager, const DipStatus& dipRead,
     return ok;
 }
 
-bool startCommonModules(CommonModules& mods, const DipStatus& dipRead,
-                        PrintLogger& logger, bool& initFatal)
+bool startCommonModules(CommonModules& mods, bool isArp, Boardcore::PrintLogger& logger, bool& initFatal)
 {
     bool ok   = true;
     initFatal = false;
 
 #ifndef NO_SD_LOGGING
-    if (!Logger::getInstance().start() && dipRead.isARP)
-    {
+    if (!Logger::getInstance().start() && isArp){
         std::cout << "ERROR: Failed to start Logger" << std::endl;
         ok = false;
     }
@@ -116,8 +115,8 @@ bool startCommonModules(CommonModules& mods, const DipStatus& dipRead,
     if (!mods.radioPayload->start())
     {
         std::cout << "[error] Failed to start payload radio!" << std::endl;
-        // Payload module is needed just for GS, not for ARP
-        ok &= dipRead.isARP;
+        // Payload radio is required for GS, optional for ARP
+        ok &= isArp;
     }
 
     LOG_INFO(logger, "DEBUG: ethernet starting...\n");

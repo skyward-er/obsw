@@ -67,27 +67,47 @@ int main()
     DependencyManager manager;
     PrintLogger logger = Logging::getLogger("arp_gs");
 
+    // Safety check: this binary should always be ARP. If the dip switch says ARP
+    // mode is OFF, the wrong firmware is flashed on this board, so it falls back and 
+    // flashes the normal gs instead
+    bool runAsArp = checkDipMatchesBinary(dipRead, /*expectedArp=*/true, logger);
+    if (!runAsArp)
+    {
+        std::cout << "[warning] DipSwitch and flashed firmware do not match: running GS-only, ARP modules will NOT be started." << std::endl;
+    }
+
     CommonModules mods{};
-    bool ok = insertCommonModules(manager, dipRead, mods);
+    bool ok = insertCommonModules(manager, dipRead, runAsArp, mods);
 
-    LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
-    Actuators* actuators             = new Antennas::Actuators();
-    Sensors* sensors                 = new Antennas::Sensors();
-    Antennas::SMA* sma               = new Antennas::SMA();
-    Antennas::PinHandler* pinHandler = new Antennas::PinHandler();
-    Antennas::Leds* leds             = new Antennas::Leds();
+    // ARP-only modules: stay nullptr when running GS-only
+    Actuators* actuators             = nullptr;
+    Sensors* sensors                 = nullptr;
+    Antennas::SMA* sma               = nullptr;
+    Antennas::PinHandler* pinHandler = nullptr;
+    Antennas::Leds* leds             = nullptr;
+    Antennas::ArpStatus* arpStatus   = nullptr;
+    HubBase* hub                     = nullptr;
+    if (runAsArp){
+        LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
+        actuators  = new Antennas::Actuators();
+        sensors    = new Antennas::Sensors();
+        sma        = new Antennas::SMA();
+        pinHandler = new Antennas::PinHandler();
+        leds       = new Antennas::Leds();
+        arpStatus  = new Antennas::ArpStatus();
+        hub        = new Antennas::Hub();
 
-    ok &= manager.insert(sma);
-    ok &= manager.insert(actuators);
-    ok &= manager.insert(sensors);
-    ok &= manager.insert(leds);
-    ok &= manager.insert(pinHandler);
+        ok &= manager.insert(sma);
+        ok &= manager.insert(actuators);
+        ok &= manager.insert(sensors);
+        ok &= manager.insert(leds);
+        ok &= manager.insert(pinHandler);
+        ok &= manager.insert(arpStatus);
+    }
+    else
+        hub = new GroundstationBase::Hub();
 
-    HubBase* hub = new Antennas::Hub();
     ok &= manager.insert<HubBase>(hub);
-
-    Antennas::ArpStatus* arpStatus = new Antennas::ArpStatus();
-    ok &= manager.insert<ArpStatus>(arpStatus);
 
     if (!ok)
     {
@@ -108,86 +128,88 @@ int main()
     ledOff();
 
     bool initFatal = false;
-    bool ok2       = startCommonModules(mods, dipRead, logger, initFatal);
+    bool ok2       = startCommonModules(mods, runAsArp, logger, initFatal);
 
-    LOG_INFO(logger, "leds starting...\n");
-    if (!leds->start())
-    {
-        std::cout << "[error] Failed to start leds!" << std::endl;
-        ok2 = false;
+        if (runAsArp){
+        LOG_INFO(logger, "leds starting...\n");
+        if (!leds->start())
+        {  
+            std::cout << "[error] Failed to start leds!" << std::endl;
+            ok2 = false;
+        }
+
+        LOG_INFO(logger, "sensors starting...\n");
+        if (!sensors->start())
+        {
+            std::cout << "[error] Failed to start sensors!" << std::endl;
+            ok2 = false;
+        }
+
+        LOG_INFO(logger, "DEBUG: sma starting...\n");
+        if (!sma->start())
+        {
+            std::cout << "[error] Failed to start sma!" << std::endl;
+            ok2 = false;
+        }
+
+        LOG_INFO(logger, "DEBUG: actuators starting...\n");
+        actuators->start();
+        LOG_INFO(logger, "[info] Actuators started!\n");
+
+        LOG_INFO(logger, "pin handler starting...\n");
+        if (!pinHandler->start())
+        {
+            std::cout << "[error] Failed to start PinHandler!" << std::endl;
+            ok2 = false;
+        }
+
+        LOG_INFO(logger, "arpStatus starting... \n");
+        if (!arpStatus->start())
+        {
+            std::cout << "[ERROR] Failed to start Arp Status" << std::endl;
+            ok2 = false;
+        }
+
+        LOG_INFO(logger, "All modules started successfully!\n");
     }
-
-    LOG_INFO(logger, "sensors starting...\n");
-    if (!sensors->start())
-    {
-        std::cout << "[error] Failed to start sensors!" << std::endl;
-        ok2 = false;
-    }
-
-    LOG_INFO(logger, "DEBUG: sma starting...\n");
-    if (!sma->start())
-    {
-        std::cout << "[error] Failed to start sma!" << std::endl;
-        ok2 = false;
-    }
-
-    LOG_INFO(logger, "DEBUG: actuators starting...\n");
-    actuators->start();
-    LOG_INFO(logger, "[info] Actuators started!\n");
-
-    LOG_INFO(logger, "pin handler starting...\n");
-    if (!pinHandler->start())
-    {
-        std::cout << "[error] Failed to start PinHandler!" << std::endl;
-        ok2 = false;
-    }
-
-    LOG_INFO(logger, "arpStatus starting... \n");
-    if (!arpStatus->start())
-    {
-        std::cout << "[ERROR] Failed to start Arp Status" << std::endl;
-        ok2 = false;
-    }
-
-    LOG_INFO(logger, "All modules started successfully!\n");
 
     reportCommonStatus(mods.boardStatus, logger);
 
-    // Safety check: this binary is always ARP. If the dip switch says ARP
-    // mode is OFF, the wrong firmware is flashed on this board.
-    if (!checkDipMatchesBinary(dipRead, /*expectedArp=*/true, logger))
+    if (runAsArp)
     {
-        std::cout << "ARP initialization warning: dip switch / firmware "
-                     "mismatch (see above). This board will run as ARP "
-                     "regardless of the dip switch setting."
-                  << std::endl;
-    }
-
-    // If init fatal (radio_main failed), blink red endlessly -- nothing can
-    // work without it.
-    if (initFatal)
-    {
-        std::cout << "ARP's modules initialization has failed. Init fatal "
-                     "error. Cannot proceed, a restart and fix of the "
-                     "boards/module is required."
-                  << std::endl;
-        sma->setFatal();
-        // Still go to INIT_ERROR to still allow initialization
-        EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
-                                        Common::TOPIC_ARP);
+        // If init fatal (radio_main failed), blink red endlessly -- nothing
+        // can work without it.
+        if (initFatal)
+        {
+            std::cout << "ARP's modules initialization has failed. Init fatal "
+                         "error. Cannot proceed, a restart and fix of the "
+                         "boards/module is required."
+                      << std::endl;
+            sma->setFatal();
+            // Still go to INIT_ERROR to still allow initialization
+            EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
+                                            Common::TOPIC_ARP);
+        }
+        else if (!ok2)
+        {
+            std::cout << "ARP's modules initialization has failed. Init "
+                         "error. It is still possible to proceed with "
+                         "MAV_ARP_CMD_FORCE_INIT."
+                      << std::endl;
+            EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
+                                            Common::TOPIC_ARP);
+        }
+        else
+        {
+            LOG_INFO(logger, "Starting ARP");
+            EventBroker::getInstance().post(Common::ARP_INIT_OK,
+                                            Common::TOPIC_ARP);
+        }
     }
     else if (!ok2)
     {
-        std::cout << "ARP's modules initialization has failed. Init error. It "
-                     "is still possible to proceed with MAV_ARP_CMD_FORCE_INIT."
-                  << std::endl;
-        EventBroker::getInstance().post(Common::ARP_INIT_ERROR,
-                                        Common::TOPIC_ARP);
-    }
-    else
-    {
-        LOG_INFO(logger, "Starting ARP");
-        EventBroker::getInstance().post(Common::ARP_INIT_OK, Common::TOPIC_ARP);
+        // GS-only fallback: same rule as gs-entry
+        errorLoop();
     }
 
     led3On();  //< fix RED led (CU)

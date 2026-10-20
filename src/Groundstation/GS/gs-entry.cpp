@@ -58,7 +58,7 @@ int main()
     PrintLogger logger = Logging::getLogger("radio_gs");
 
     CommonModules mods{};
-    bool ok = insertCommonModules(manager, dipRead, mods);
+    bool ok = insertCommonModules(manager, dipRead, /*isArp*/ false, mods);
 
     HubBase* hub = new GroundstationBase::Hub();
     ok &= manager.insert<HubBase>(hub);
@@ -82,7 +82,7 @@ int main()
     ledOff();
 
     bool initFatal = false;
-    bool started   = startCommonModules(mods, dipRead, logger, initFatal);
+    bool started   = startCommonModules(mods, /*isArp*/ false, logger, initFatal);
 
     if (!started)
     {
