@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include <Groundstation/GS/BoardStatus.h>
-#include <Groundstation/GS/Buses.h>
 #include <Groundstation/Common/HubBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
 #include <Groundstation/Common/Radio/RadioBase.h>
+#include <Groundstation/GS/BoardStatus.h>
+#include <Groundstation/GS/Buses.h>
 #include <interfaces-impl/hwmapping.h>
 #include <radio/SX1278/SX1278Frontends.h>
 #include <utils/DependencyManager/DependencyManager.h>

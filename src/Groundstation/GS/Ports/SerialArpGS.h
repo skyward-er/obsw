@@ -23,10 +23,10 @@
 #pragma once
 
 #include <ActiveObject.h>
-#include <Groundstation/GS/BoardStatus.h>
-#include <Groundstation/GS/Buses.h>
 #include <Groundstation/Common/Ports/EthernetBase.h>
 #include <Groundstation/Common/Ports/Serial.h>
+#include <Groundstation/GS/BoardStatus.h>
+#include <Groundstation/GS/Buses.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/usart/USART.h>
 #include <filesystem/console/console_device.h>

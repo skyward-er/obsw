@@ -21,13 +21,13 @@
  * THE SOFTWARE.
  */
 
-#include <Groundstation/GS/Base/Hub.h>
 #include <Groundstation/Common/GsEntryCommon.h>
+#include <Groundstation/GS/Base/Hub.h>
 #include <common/Events.h>
 #include <diagnostic/PrintLogger.h>
 #include <events/EventBroker.h>
-#include <miosix.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Boardcore;
@@ -58,7 +58,7 @@ int main()
     PrintLogger logger = Logging::getLogger("radio_gs");
 
     CommonModules mods{};
-    bool ok = insertCommonModules(manager, dipRead, mods);
+    bool ok = insertCommonModules(manager, dipRead, /*isArp*/ false, mods);
 
     HubBase* hub = new GroundstationBase::Hub();
     ok &= manager.insert<HubBase>(hub);
@@ -82,7 +82,7 @@ int main()
     ledOff();
 
     bool initFatal = false;
-    bool started   = startCommonModules(mods, dipRead, logger, initFatal);
+    bool started   = startCommonModules(mods, /*isArp*/ false, logger, initFatal);
 
     if (!started)
     {

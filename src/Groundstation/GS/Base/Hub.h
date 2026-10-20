@@ -22,9 +22,9 @@
 
 #pragma once
 
+#include <Groundstation/Common/HubBase.h>
 #include <Groundstation/GS/Ports/Ethernet.h>
 #include <Groundstation/GS/Ports/SerialArpGS.h>
-#include <Groundstation/Common/HubBase.h>
 #include <common/MavlinkHydra.h>
 #include <utils/DependencyManager/DependencyManager.h>
 

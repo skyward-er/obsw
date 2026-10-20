@@ -22,9 +22,9 @@
 
 #pragma once
 
+#include <Groundstation/Common/Ports/EthernetBase.h>
 #include <Groundstation/GS/BoardStatus.h>
 #include <Groundstation/GS/Buses.h>
-#include <Groundstation/Common/Ports/EthernetBase.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 namespace ArpGS

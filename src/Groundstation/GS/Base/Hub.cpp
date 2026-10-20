@@ -22,10 +22,10 @@
 
 #include "Hub.h"
 
+#include <Groundstation/Common/Config/GeneralConfig.h>
 #include <Groundstation/GS/BoardStatus.h>
 #include <Groundstation/GS/Ports/Ethernet.h>
 #include <Groundstation/GS/Ports/SerialArpGS.h>
-#include <Groundstation/Common/Config/GeneralConfig.h>
 
 using namespace Groundstation;
 using namespace GroundstationBase;
