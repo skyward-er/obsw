@@ -98,16 +98,17 @@ struct CommonModules
  *
  * @return false if failed :(
  */
-bool insertCommonModules(Boardcore::DependencyManager& manager, const DipStatus& dipRead,
-                         bool isArp, CommonModules& outMods);
+bool insertCommonModules(Boardcore::DependencyManager& manager,
+                         const DipStatus& dipRead, bool isArp,
+                         CommonModules& outMods);
 
 /**
  * @brief Starts the modules common to every GS
  * @param[out] initFatal set to true if main radio failed to start
  * @return false if any critical module failed to start.
  */
-bool startCommonModules(CommonModules& mods, bool isArp,  Boardcore::PrintLogger& logger, bool& initFatal);
-
+bool startCommonModules(CommonModules& mods, bool isArp,
+                        Boardcore::PrintLogger& logger, bool& initFatal);
 
 /**
  * @brief Logs which of the common radios/ethernet are actually present and
