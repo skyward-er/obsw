@@ -248,9 +248,9 @@ void Actuators::initializeValves()
         PRZ_OX, expander1, PCA9685Utils::Channel::CHANNEL_2));
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
         PRZ_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_3));
-    manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
+    manualValveInfos.push_back(MAKE_SMALL_MANUAL_PCA_SERVO_VALVE(
         MAIN_OX, expander1, PCA9685Utils::Channel::CHANNEL_4));
-    manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
+    manualValveInfos.push_back(MAKE_SMALL_MANUAL_PCA_SERVO_VALVE(
         MAIN_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_5));
 
     // The 3-way servo moves directly between its endpoints.

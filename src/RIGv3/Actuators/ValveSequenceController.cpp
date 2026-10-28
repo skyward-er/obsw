@@ -45,6 +45,11 @@ ValveSequenceController::ValveSequenceController(unsigned int stacksize,
 }
 void ValveSequenceController::handleEvent(const Event& ev)
 {
+    {
+        Lock<FastMutex> lock(abortMutex);
+        abortFlag = false;
+    }
+
     switch (ev)
     {
         case WIGGLE_ALL_VALVES:
@@ -64,6 +69,12 @@ void ValveSequenceController::handleEvent(const Event& ev)
         case CLOSE_ALL_VALVES:
         {
             closeValves();
+            break;
+        }
+
+        case TANK_SEQUENCE:
+        {
+            tankTestSequence();
             break;
         }
 
@@ -190,13 +201,15 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleResult.oxVentingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_OPENING_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -210,13 +223,15 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleResult.oxVentingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()->lockData()->oxVentingValvePosition;
         },
         Config::MotorValveBit::OX_VENTING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_OX_VENTING);
     wiggleResult.fuelVentingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelVentingValvePosition;
@@ -300,7 +315,8 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_WIGGLE_DELAY);
 
     wiggleResult.fuelDumpingSuccess = isValveOpen(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelDumpingValvePosition;
@@ -313,12 +329,66 @@ void ValveSequenceController::wiggleValves()
     Thread::sleep(Config::VALVE_CLOSING_DELAY);
 
     wiggleResult.fuelDumpingSuccess &= isValveClosed(
-        [&]() {
+        [&]()
+        {
             return getModule<MotorStatus>()
                 ->lockData()
                 ->fuelDumpingValvePosition;
         },
         Config::MotorValveBit::FUEL_DUMPING_VALVE_BIT,
         Config::VALVE_CLOSED_THRESHOLD_FUEL_DUMPING);
+}
+
+void ValveSequenceController::postEvent(const Event& ev)
+{
+    if (ev == VALVE_SEQUENCE_ABORT)
+    {
+        Lock<FastMutex> lock(abortMutex);
+        abortFlag = true;
+        abortCv.broadcast();
+        return;
+    }
+
+    EventHandler::postEvent(ev);
+}
+
+bool ValveSequenceController::waitOrAbort(unsigned int ms)
+{
+    Lock<FastMutex> lock(abortMutex);
+    auto timeout = miosix::getTime() + msToNs(ms);
+
+    while (!abortFlag)
+        if (abortCv.timedWait(lock, timeout) ==
+            miosix::TimedWaitResult::Timeout)
+            break;
+
+    return abortFlag;
+}
+
+void ValveSequenceController::tankTestSequence()
+{
+    for (int i = 0; i < 60; i++)
+    {
+        getModule<Actuators>()->openValveWithTime(MAIN_FUEL_VALVE, 5000);
+        if (waitOrAbort(5000))
+        {
+            getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
+            return;
+        }
+
+        if (waitOrAbort(10000))
+        {
+            getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
+            return;
+        }
+
+        getModule<Actuators>()->openValveWithTime(MAIN_OX_VALVE, 10000);
+
+        if (waitOrAbort(10000))
+        {
+            getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
+            return;
+        }
+    }
 }
 }  // namespace RIGv3

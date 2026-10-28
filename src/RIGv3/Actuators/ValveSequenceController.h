@@ -53,6 +53,7 @@ public:
 
 private:
     void handleEvent(const Boardcore::Event& ev) override;
+    void postEvent(const Boardcore::Event& ev) override;
 
     /**
      * @brief Performs a wiggle on all valves.
@@ -72,6 +73,8 @@ private:
      */
     void closeValves();
 
+    void tankTestSequence();
+
     struct ValveWiggleResult
     {
         bool mainOxSuccess : 1;
@@ -89,5 +92,12 @@ private:
     } wiggleResult{};
 
     uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
+
+    bool waitOrAbort(unsigned int ms);
+
+    miosix::FastMutex abortMutex;
+    miosix::ConditionVariable abortCv;
+
+    bool abortFlag = false;
 };
 }  // namespace RIGv3

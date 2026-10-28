@@ -562,6 +562,14 @@ void Radio::handleCommand(const mavlink_message_t& msg)
             break;
         }
 
+        case MAV_CMD_ABORT_VALVE_SEQUENCE:
+        {
+            EventBroker::getInstance().post(VALVE_SEQUENCE_ABORT,
+                                            TOPIC_VALVE_SEQUENCE);
+            enqueueAck(msg);
+            break;
+        }
+
         default:
         {
             // Try to map the command to an event
@@ -1338,9 +1346,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         {
             // The detach switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<CanHandler>()->sendEvent(CanConfig::EventId::PURGE_OX);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+            EventBroker::getInstance().post(TANK_SEQUENCE,
+                                            TOPIC_VALVE_SEQUENCE);
+            // enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_1_btn))
@@ -1382,10 +1391,12 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(spare_5_btn))
         {
             // The detach switch was pressed
-            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
+            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            // getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
+            EventBroker::getInstance().post(VALVE_SEQUENCE_ABORT,
+                                            TOPIC_VALVE_SEQUENCE);
             lastManualActuation = currentTime;
-            enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
+            // enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
         }
 
         if (SWITCH_CHANGED(tars_switch))
