@@ -46,9 +46,9 @@
 #include <events/EventBroker.h>
 #include <events/EventData.h>
 #include <events/utils/EventSniffer.h>
+#include <interfaces-impl/bsp_impl.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
-#include <interfaces-impl/bsp_impl.h>
 
 #include <chrono>
 #include <iomanip>

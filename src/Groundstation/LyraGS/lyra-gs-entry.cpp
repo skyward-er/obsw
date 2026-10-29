@@ -37,8 +37,8 @@
 #include <diagnostic/PrintLogger.h>
 #include <drivers/DipSwitch/DipSwitch.h>
 #include <events/EventBroker.h>
-#include <miosix.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <thread>

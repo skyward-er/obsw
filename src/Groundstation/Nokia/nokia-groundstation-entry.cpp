@@ -24,8 +24,8 @@
 #include <Groundstation/Nokia/Buses.h>
 #include <Groundstation/Nokia/Hub.h>
 #include <Groundstation/Nokia/Radio/Radio.h>
-#include <miosix.h>
 #include <interfaces-impl/bsp_impl.h>
+#include <miosix.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 using namespace Groundstation;

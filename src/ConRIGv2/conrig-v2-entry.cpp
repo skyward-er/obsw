@@ -26,9 +26,9 @@
 #include <ConRIGv2/Buttons/Buttons.h>
 #include <ConRIGv2/Hub/Hub.h>
 #include <ConRIGv2/Radio/Radio.h>
+#include <interfaces-impl/bsp_impl.h>
 #include <interfaces-impl/hwmapping.h>
 #include <miosix.h>
-#include <interfaces-impl/bsp_impl.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
 #include <iostream>

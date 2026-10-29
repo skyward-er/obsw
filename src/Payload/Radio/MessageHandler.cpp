@@ -505,23 +505,22 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
             auto state    = parent.getModule<NASController>()->getState();
             auto nasState = parent.getModule<NASController>()->getNasState();
-            auto ref = parent.getModule<NASController>()->getReferenceValues();
 
-            tm.timestamp       = nasState.timestamp;
-            tm.nas_n           = nasState.n;
-            tm.nas_e           = nasState.e;
-            tm.nas_d           = nasState.d;
-            tm.nas_vn          = nasState.vn;
-            tm.nas_ve          = nasState.ve;
-            tm.nas_vd          = nasState.vd;
-            tm.nas_qx          = nasState.qx;
-            tm.nas_qy          = nasState.qy;
-            tm.nas_qz          = nasState.qz;
-            tm.nas_qw          = nasState.qw;
-            tm.nas_bias_x      = nasState.bx;
-            tm.nas_bias_y      = nasState.by;
-            tm.nas_bias_z      = nasState.bz;
-            tm.state           = static_cast<uint8_t>(state);
+            tm.timestamp  = nasState.timestamp;
+            tm.nas_n      = nasState.n;
+            tm.nas_e      = nasState.e;
+            tm.nas_d      = nasState.d;
+            tm.nas_vn     = nasState.vn;
+            tm.nas_ve     = nasState.ve;
+            tm.nas_vd     = nasState.vd;
+            tm.nas_qx     = nasState.qx;
+            tm.nas_qy     = nasState.qy;
+            tm.nas_qz     = nasState.qz;
+            tm.nas_qw     = nasState.qw;
+            tm.nas_bias_x = nasState.bx;
+            tm.nas_bias_y = nasState.by;
+            tm.nas_bias_z = nasState.bz;
+            tm.state      = static_cast<uint8_t>(state);
 
             mavlink_msg_nas_tm_encode(config::Mavlink::SYSTEM_ID,
                                       config::Mavlink::COMPONENT_ID, &msg, &tm);
@@ -764,15 +763,15 @@ bool Radio::MavlinkBackend::enqueueSystemTm(SystemTMList tmId)
 
             auto ref = parent.getModule<NASController>()->getReferenceValues();
 
-            tm.timestamp       = TimestampTimer::getTimestamp();
-            tm.ref_altitude    = ref.refAltitude;
-            tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.timestamp            = TimestampTimer::getTimestamp();
+            tm.ref_altitude         = ref.refAltitude;
+            tm.ref_pressure         = ref.refPressure;
+            tm.ref_temperature      = ref.refTemperature;
             tm.magnetic_field_north = ref.magN;
             tm.magnetic_field_east  = ref.magE;
             tm.magnetic_field_down  = ref.magD;
-            tm.msl_pressure    = ref.mslPressure;
-            tm.msl_temperature = ref.mslTemperature;
+            tm.msl_pressure         = ref.mslPressure;
+            tm.msl_temperature      = ref.mslTemperature;
 
             mavlink_msg_reference_tm_encode(config::Mavlink::SYSTEM_ID,
                                             config::Mavlink::COMPONENT_ID, &msg,
