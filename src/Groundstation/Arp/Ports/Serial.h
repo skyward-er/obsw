@@ -39,9 +39,11 @@ using SerialMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
 /**
- * @brief Class responsible for UART communication 
+ * @brief Class responsible for UART communication
  */
-class Serial: public Boardcore::InjectableWithDeps<Buses, Groundstation::HubBase>, public Boardcore::Transceiver
+class Serial
+    : public Boardcore::InjectableWithDeps<Buses, Groundstation::HubBase>,
+      public Boardcore::Transceiver
 {
 public:
     Serial() {}
@@ -66,7 +68,7 @@ private:
 
     bool send(uint8_t* pkt, size_t len) override;
 
-    miosix::FastMutex mutex;        //TODO: useless?
+    miosix::FastMutex mutex;  // TODO: useless?
     std::unique_ptr<SerialMavDriver> mav_driver;
 };
 

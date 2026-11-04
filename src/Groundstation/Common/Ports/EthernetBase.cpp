@@ -79,7 +79,7 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
         WizMac mac = GS_MAC_BASE;
         // Add to the mac address the offset set on the dipswitch
         mac.c += 1 + ipOffset;
-        mac = adjustMac(mac);
+        mac        = adjustMac(mac);
         currentMac = mac;
         this->wiz5500->setSourceMac(mac);
     }

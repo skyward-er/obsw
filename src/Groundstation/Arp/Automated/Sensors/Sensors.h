@@ -39,8 +39,7 @@ static constexpr uint8_t VN300_CAL_CONVERGENCE =
         ///< calibration. 5: converge in 60-90sec, 1: converge in 15-20sec
 static constexpr std::chrono::seconds VN300_CAL_TIME = std::chrono::seconds(30);
 
-class Sensors
-    : public Boardcore::InjectableWithDeps<Arp::Buses, BoardScheduler>
+class Sensors : public Boardcore::InjectableWithDeps<Arp::Buses, BoardScheduler>
 {
 public:
     Sensors();

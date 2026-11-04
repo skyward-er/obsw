@@ -20,10 +20,11 @@
  * THE SOFTWARE.
  */
 
+#include "EthernetSniffer.h"
+
 #include <Groundstation/Arp/Ports/LogSniffing.h>
 #include <Groundstation/Common/Config/EthernetConfig.h>
 #include <Groundstation/Common/HubBase.h>
-#include "EthernetSniffer.h"
 
 #include <random>
 
@@ -96,7 +97,7 @@ void EthernetSniffer::handleMsg(const mavlink_message_t& msg)
     // Just logging the FLIGHT or STATS sniffed from the rocket
     sniffedCounter++;
     Arp::LogSniffing sniffing = {TimestampTimer::getTimestamp(), msg.msgid,
-                                      sniffedCounter};
+                                 sniffedCounter};
     Logger::getInstance().log(sniffing);
 }
 
