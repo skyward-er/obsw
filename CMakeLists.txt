@@ -173,16 +173,16 @@ if(TARGET nokia-groundstation-entry)
 endif()
 
 sbs_declare_target(arp-gs-entry stm32f767zi_lyra_gs
-    src/Groundstation/ArpGS/arp-gs-entry.cpp
-    ${ARPGS} ${RADIO_GS} ${GROUNDSTATION_COMMON}
+    src/Groundstation/Arp/arp-gs-entry.cpp
+    ${GROUNDSTATION_ARP} ${GROUNDSTATION_DIP} ${GROUNDSTATION_COMMON}
     )
 if(TARGET arp-gs-entry)
     target_include_directories(arp-gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 endif()
 
 sbs_declare_target(gs-entry stm32f767zi_lyra_gs
-    src/Groundstation/GS/gs-entry.cpp
-    ${RADIO_GS} ${GROUNDSTATION_COMMON})
+    src/Groundstation/Gs/gs-entry.cpp
+    ${GROUNDSTATION_GS} ${GROUNDSTATION_DIP} ${GROUNDSTATION_COMMON})
 if(TARGET gs-entry)
     target_include_directories(gs-entry PRIVATE ${OBSW_INCLUDE_DIRS})
 endif()
