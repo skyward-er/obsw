@@ -56,7 +56,7 @@ using namespace miosix;
  *
  * Modules (Arp/):
  *  - BoardScheduler: TaskScheduler instances (SMA, sensors, others) shared by
- the ARP modules
+ *                    the ARP modules
  *  - Buses:          SPI/serial peripheral buses
  *  - Serial:         serial link
  *  - RadioMain       the radio modules((also RadioPayload))
