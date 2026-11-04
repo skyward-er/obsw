@@ -56,18 +56,18 @@ DipStatus readDipStatus()
     return dipRead;
 }
 
-bool insertCommonModules(Boardcore::DependencyManager& manager, const DipStatus& dipRead,
-                         bool isArp, CommonModules& outMods)
+bool insertCommonModules(Boardcore::DependencyManager& manager,
+                         const DipStatus& dipRead, bool isArp,
+                         CommonModules& outMods)
 {
-
     outMods.scheduler = new Antennas::BoardScheduler();
     outMods.buses     = new ArpGS::Buses();
     outMods.serial    = new ArpGS::SerialArpGS();
     outMods.radioMain =
         new ArpGS::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
-    outMods.boardStatus = new ArpGS::BoardStatus(isArp);
-    outMods.ethernet = new ArpGS::EthernetGS(randomIp, dipRead.ipConfig,
-                                             isArp & ethernetSniffing);
+    outMods.boardStatus     = new ArpGS::BoardStatus(isArp);
+    outMods.ethernet        = new ArpGS::EthernetGS(randomIp, dipRead.ipConfig,
+                                                    isArp & ethernetSniffing);
     outMods.ethernetSniffer = new EthernetSniffer();
     outMods.radioPayload    = new ArpGS::RadioPayload(dipRead.payloadHasBackup,
                                                       dipRead.payloadTXenable);
@@ -84,13 +84,15 @@ bool insertCommonModules(Boardcore::DependencyManager& manager, const DipStatus&
     return ok;
 }
 
-bool startCommonModules(CommonModules& mods, bool isArp, Boardcore::PrintLogger& logger, bool& initFatal)
+bool startCommonModules(CommonModules& mods, bool isArp,
+                        Boardcore::PrintLogger& logger, bool& initFatal)
 {
     bool ok   = true;
     initFatal = false;
 
 #ifndef NO_SD_LOGGING
-    if (!Logger::getInstance().start() && isArp){
+    if (!Logger::getInstance().start() && isArp)
+    {
         std::cout << "ERROR: Failed to start Logger" << std::endl;
         ok = false;
     }

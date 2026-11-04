@@ -1,4 +1,3 @@
-
 /* Copyright (c) 2026 Skyward Experimental Rocketry
  * Author: Tommaso Domenicali
  *
@@ -82,7 +81,7 @@ int main()
     ledOff();
 
     bool initFatal = false;
-    bool started   = startCommonModules(mods, /*isArp*/ false, logger, initFatal);
+    bool started = startCommonModules(mods, /*isArp*/ false, logger, initFatal);
 
     if (!started)
     {

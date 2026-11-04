@@ -67,13 +67,16 @@ int main()
     DependencyManager manager;
     PrintLogger logger = Logging::getLogger("arp_gs");
 
-    // Safety check: this binary should always be ARP. If the dip switch says ARP
-    // mode is OFF, the wrong firmware is flashed on this board, so it falls back and 
-    // flashes the normal gs instead
-    bool runAsArp = checkDipMatchesBinary(dipRead, /*expectedArp=*/true, logger);
+    // Safety check: this binary should always be ARP. If the dip switch says
+    // ARP mode is OFF, the wrong firmware is flashed on this board, so it falls
+    // back and flashes the normal gs instead
+    bool runAsArp =
+        checkDipMatchesBinary(dipRead, /*expectedArp=*/true, logger);
     if (!runAsArp)
     {
-        std::cout << "[warning] DipSwitch and flashed firmware do not match: running GS-only, ARP modules will NOT be started." << std::endl;
+        std::cout << "[warning] DipSwitch and flashed firmware do not match: "
+                     "running GS-only, ARP modules will NOT be started."
+                  << std::endl;
     }
 
     CommonModules mods{};
@@ -87,7 +90,8 @@ int main()
     Antennas::Leds* leds             = nullptr;
     Antennas::ArpStatus* arpStatus   = nullptr;
     HubBase* hub                     = nullptr;
-    if (runAsArp){
+    if (runAsArp)
+    {
         LOG_DEBUG(logger, "[debug] Inserting ARP Ground Station modules\n");
         actuators  = new Antennas::Actuators();
         sensors    = new Antennas::Sensors();
@@ -130,10 +134,11 @@ int main()
     bool initFatal = false;
     bool ok2       = startCommonModules(mods, runAsArp, logger, initFatal);
 
-        if (runAsArp){
+    if (runAsArp)
+    {
         LOG_INFO(logger, "leds starting...\n");
         if (!leds->start())
-        {  
+        {
             std::cout << "[error] Failed to start leds!" << std::endl;
             ok2 = false;
         }
