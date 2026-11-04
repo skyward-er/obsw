@@ -35,8 +35,9 @@
 namespace Arp
 {
 
-class EthernetSniffer : public Boardcore::Transceiver,
-                        public Boardcore::InjectableWithDeps<Groundstation::HubBase>
+class EthernetSniffer
+    : public Boardcore::Transceiver,
+      public Boardcore::InjectableWithDeps<Groundstation::HubBase>
 {
 public:
     void handleINTn();

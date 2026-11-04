@@ -33,10 +33,10 @@ namespace Gs
 /**
  * @brief Central hub connecting all outgoing and ingoing modules.
  */
-class Hub : public Boardcore::InjectableWithDeps<
-                Boardcore::InjectableBase<Groundstation::HubBase>,
-                Gs::BoardStatus, Gs::RadioMain, Gs::RadioPayload,
-                Gs::Serial, Gs::EthernetGS>
+class Hub
+    : public Boardcore::InjectableWithDeps<
+          Boardcore::InjectableBase<Groundstation::HubBase>, Gs::BoardStatus,
+          Gs::RadioMain, Gs::RadioPayload, Gs::Serial, Gs::EthernetGS>
 {
 public:
     /**

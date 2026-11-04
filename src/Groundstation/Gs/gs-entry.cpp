@@ -38,6 +38,23 @@
 using namespace Boardcore;
 using namespace miosix;
 
+/**
+ * @brief Entry point of the plain groundstations
+ *
+ * Build/flash: ./sbs build gs-entry
+ *
+ * Modules (Gs/):
+ *  - Buses:          SPI peripheral buses
+ *  - Serial:         serial link to the PC
+ *  - RadioMain:      the radio modules (also RadioPayload)
+ *  - EthernetGS:     Ethernet link
+ *  - Hub:            routes packets between radios, Ethernet and serial
+ *  - BoardStatus:    periodic board telemetry (radio/Ethernet state, bitrates)
+ *
+ * Shared code (DIP, HubBase, configs, base classes) is in Common/.
+ *!* Arp/ and Gs/ are independent: never include each other  *!*
+ */
+
 namespace
 {
 
@@ -114,20 +131,26 @@ int main()
 
     PrintLogger logger = Logging::getLogger("radio_gs");
 
-    // This binary is the radio-only one: if the dip switch says ARP mode is ON the board is probably flashed with the wrong firmware. Only a warning
+    // This binary is the radio-only one: if the dip switch says ARP mode is ON
+    // the board is probably flashed with the wrong firmware. Only a warning
     if (dipRead.isARP)
     {
-        std::cout << "[warning] Dip switch ARP bit is ON, but this board is flashed with the radio-only GS firmware (gs-entry)! "
-                     "ARP features are NOT available. If this board is meant to be an ARP flash arp-gs-entry, otherwise turn OFF the ARP bit (dip switch 1)."
-        << std::endl;
+        std::cout << "[warning] Dip switch ARP bit is ON, but this board is "
+                     "flashed with the radio-only GS firmware (gs-entry)! "
+                     "ARP features are NOT available. If this board is meant "
+                     "to be an ARP flash arp-gs-entry, otherwise turn OFF the "
+                     "ARP bit (dip switch 1)."
+                  << std::endl;
     }
 
     DependencyManager manager;
 
     auto* buses  = new Gs::Buses();
     auto* serial = new Gs::Serial();
-    auto* radioMain = new Gs::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
-    auto* radioPayload = new Gs::RadioPayload(dipRead.payloadHasBackup, dipRead.payloadTXenable);
+    auto* radioMain =
+        new Gs::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
+    auto* radioPayload =
+        new Gs::RadioPayload(dipRead.payloadHasBackup, dipRead.payloadTXenable);
     auto* ethernet    = new Gs::EthernetGS(RANDOM_IP, dipRead.ipConfig);
     auto* boardStatus = new Gs::BoardStatus();
     Groundstation::HubBase* hub = new Gs::Hub();

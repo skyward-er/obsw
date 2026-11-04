@@ -714,15 +714,15 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             ReferenceValues ref =
                 getModule<AlgoReference>()->getReferenceValues();
 
-            tm.timestamp       = TimestampTimer::getTimestamp();
-            tm.ref_altitude    = ref.refAltitude;
-            tm.ref_pressure    = ref.refPressure;
-            tm.ref_temperature = ref.refTemperature;
+            tm.timestamp            = TimestampTimer::getTimestamp();
+            tm.ref_altitude         = ref.refAltitude;
+            tm.ref_pressure         = ref.refPressure;
+            tm.ref_temperature      = ref.refTemperature;
             tm.magnetic_field_north = ref.magN;
             tm.magnetic_field_east  = ref.magE;
             tm.magnetic_field_down  = ref.magD;
-            tm.msl_pressure    = ref.mslPressure;
-            tm.msl_temperature = ref.mslTemperature;
+            tm.msl_pressure         = ref.mslPressure;
+            tm.msl_temperature      = ref.mslTemperature;
 
             mavlink_msg_reference_tm_encode(Config::Radio::MAV_SYSTEM_ID,
                                             requestId, &msg, &tm);
@@ -820,24 +820,24 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             NASController* nas = getModule<NASController>();
 
             ANASState state = nas->getANASState();
-            auto triad = nas->getANASTriad();
+            auto triad      = nas->getANASTriad();
 
-            tm.timestamp       = state.timestamp;
-            tm.state           = static_cast<uint8_t>(nas->getState());
-            tm.nas_n           = state.n;
-            tm.nas_e           = state.e;
-            tm.nas_d           = state.d;
-            tm.nas_vn          = state.vn;
-            tm.nas_ve          = state.ve;
-            tm.nas_vd          = state.vd;
-            tm.nas_q0          = state.qx;
-            tm.nas_q1          = state.qy;
-            tm.nas_q2          = state.qz;
-            tm.nas_q3          = state.qw;
-            tm.initial_q0      = triad[0];
-            tm.initial_q1      = triad[1];
-            tm.initial_q2      = triad[2];
-            tm.initial_q3      = triad[3];
+            tm.timestamp  = state.timestamp;
+            tm.state      = static_cast<uint8_t>(nas->getState());
+            tm.nas_n      = state.n;
+            tm.nas_e      = state.e;
+            tm.nas_d      = state.d;
+            tm.nas_vn     = state.vn;
+            tm.nas_ve     = state.ve;
+            tm.nas_vd     = state.vd;
+            tm.nas_q0     = state.qx;
+            tm.nas_q1     = state.qy;
+            tm.nas_q2     = state.qz;
+            tm.nas_q3     = state.qw;
+            tm.initial_q0 = triad[0];
+            tm.initial_q1 = triad[1];
+            tm.initial_q2 = triad[2];
+            tm.initial_q3 = triad[3];
 
             mavlink_msg_nas_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                       &msg, &tm);
@@ -895,8 +895,8 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
             tm.sda_apogee     = sda->getPredictedApogee();
 
             // Sensors
-            tm.pressure_digi    = pressDigi.pressure;
-            tm.total_pressure   = pitotDynamic.pressure;
+            tm.pressure_digi  = pressDigi.pressure;
+            tm.total_pressure = pitotDynamic.pressure;
 
             tm.acc_x = imu.accelerationX;
             tm.acc_y = imu.accelerationY;

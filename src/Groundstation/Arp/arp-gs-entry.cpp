@@ -49,6 +49,32 @@
 using namespace Boardcore;
 using namespace miosix;
 
+/**
+ * @brief Entry point of the ARP groundstation
+ *
+ * Build/flash: ./sbs build arp-gs-entry
+ *
+ * Modules (Arp/):
+ *  - BoardScheduler: TaskScheduler instances (SMA, sensors, others) shared by
+ the ARP modules
+ *  - Buses:          SPI/serial peripheral buses
+ *  - Serial:         serial link
+ *  - RadioMain       the radio modules((also RadioPayload))
+ *  - EthernetGS:     Ethernet link
+ *  - EthernetSniffer: second Ethernet port that sniffs traffic
+ *  - Hub:            routes packets between radios, Ethernet and serial
+ *  - BoardStatus:    periodic board telemetry (radio/Ethernet state, bitrates)
+ *  - Actuators:      the two stepper motors (horizontal/vertical) of arp
+ *  - Sensors:        VN300 IMU/GPS, read through SensorManager
+ *  - SMA:            "State Machine (for) Arp"
+ *  - PinHandler:     reads the ARM and ACTIVE switches
+ *  - Leds:           leds :)
+ *  - ArpStatus:      periodic ARP-only telemetry (mavlink_arp_tm_t)
+
+ * Shared code (DIP, HubBase, configs, base classes) is in Common/.
+    *!* Arp/ and Gs/ are independent: never include each other  *!*
+ */
+
 namespace
 {
 
@@ -134,32 +160,34 @@ int main()
     // steppers included), just signal the error.
     if (!dipRead.isARP)
     {
-        std::cout << "[error] Dip switch / firmware mismatch! This board is flashed with the ARP firmware (arp-gs-entry), but the "
-                     "dip switch ARP bit is OFF. Turn ON the ARP bit (dip switch 1) or flash the radio-only gs-entry firmware."
+        std::cout << "[error] Dip switch / firmware mismatch! This board is "
+                     "flashed with the ARP firmware (arp-gs-entry), but the "
+                     "dip switch ARP bit is OFF. Turn ON the ARP bit (dip "
+                     "switch 1) or flash the radio-only gs-entry firmware."
                   << std::endl;
         errorLoop();
     }
 
     DependencyManager manager;
 
-    auto* scheduler    = new Arp::BoardScheduler();
-    auto* buses        = new Arp::Buses();
-    auto* serial       = new Arp::Serial();
-    auto* radioMain    = new Arp::RadioMain(dipRead.mainHasBackup,
-                                            dipRead.mainTXenable);
-    auto* boardStatus  = new Arp::BoardStatus();
-    auto* ethernet     = new Arp::EthernetGS(RANDOM_IP, dipRead.ipConfig,
-                                             ETHERNET_SNIFFING);
+    auto* scheduler = new Arp::BoardScheduler();
+    auto* buses     = new Arp::Buses();
+    auto* serial    = new Arp::Serial();
+    auto* radioMain =
+        new Arp::RadioMain(dipRead.mainHasBackup, dipRead.mainTXenable);
+    auto* boardStatus = new Arp::BoardStatus();
+    auto* ethernet =
+        new Arp::EthernetGS(RANDOM_IP, dipRead.ipConfig, ETHERNET_SNIFFING);
     auto* sniffer      = new Arp::EthernetSniffer();
     auto* radioPayload = new Arp::RadioPayload(dipRead.payloadHasBackup,
                                                dipRead.payloadTXenable);
 
-    auto* actuators   = new Arp::Actuators();
-    auto* sensors     = new Arp::Sensors();
-    auto* sma         = new Arp::SMA();
-    auto* pinHandler  = new Arp::PinHandler();
-    auto* leds        = new Arp::Leds();
-    auto* arpStatus   = new Arp::ArpStatus();
+    auto* actuators             = new Arp::Actuators();
+    auto* sensors               = new Arp::Sensors();
+    auto* sma                   = new Arp::SMA();
+    auto* pinHandler            = new Arp::PinHandler();
+    auto* leds                  = new Arp::Leds();
+    auto* arpStatus             = new Arp::ArpStatus();
     Groundstation::HubBase* hub = new Arp::Hub();
 
     bool ok = true;
@@ -323,8 +351,7 @@ int main()
     else
     {
         LOG_INFO(logger, "Starting ARP");
-        EventBroker::getInstance().post(Common::ARP_INIT_OK,
-                                        Common::TOPIC_ARP);
+        EventBroker::getInstance().post(Common::ARP_INIT_OK, Common::TOPIC_ARP);
     }
 
     led3On();  //< fix RED led (CU)

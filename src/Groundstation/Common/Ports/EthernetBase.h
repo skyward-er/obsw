@@ -40,9 +40,8 @@ static constexpr uint16_t RECEIVE_PORT_TIMEOUT_MS = 500;
 using EthernetMavDriver =
     Boardcore::MavlinkDriver<1024, 10, MAVLINK_MAX_DIALECT_PAYLOAD_SIZE>;
 
-class EthernetBase
-    : public Boardcore::Transceiver,
-      public Boardcore::InjectableWithDeps<HubBase>
+class EthernetBase : public Boardcore::Transceiver,
+                     public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
     EthernetBase() {};
@@ -64,12 +63,10 @@ protected:
     bool start(std::shared_ptr<Boardcore::Wiz5500> wiz5500);
 
     /**
-    @brief Lets you modify the MAC, called onyl when the offset is caused by the dip switch. Default returns the unmodified MAC
+    @brief Lets you modify the MAC, called onyl when the offset is caused by the
+    dip switch. Default returns the unmodified MAC
     */
-    virtual Boardcore::WizMac adjustMac(Boardcore::WizMac mac)
-    {
-        return mac;
-    }
+    virtual Boardcore::WizMac adjustMac(Boardcore::WizMac mac) { return mac; }
 
     std::shared_ptr<Boardcore::Wiz5500> wiz5500;
 
