@@ -49,7 +49,6 @@ set(MAIN_COMPUTER
 set(GROUNDSTATION_COMMON
     src/Groundstation/Common/Radio/RadioBase.cpp
     src/Groundstation/Common/Ports/EthernetBase.cpp
-    src/Groundstation/Common/Ports/EthernetSniffer.cpp
     src/Groundstation/Common/Ports/EthernetUtils.cpp
     src/Groundstation/Common/Ports/Serial.cpp
     src/Groundstation/Common/HubBase.cpp
@@ -129,21 +128,29 @@ set(GROUNDSTATION_NOKIA
     src/Groundstation/Nokia/Hub.cpp
 )
 
-set (ARPGS
-    src/Groundstation/Automated/Hub.cpp
-    src/Groundstation/Automated/Leds/Leds.cpp
-    src/Groundstation/Automated/SMA/SMA.cpp
-    src/Groundstation/Automated/Actuators/Actuators.cpp
-    src/Groundstation/Automated/Sensors/Sensors.cpp
-    src/Groundstation/Automated/PinHandler/PinHandler.cpp
-    src/Groundstation/Automated/ArpStatus.cpp
+set(GROUNDSTATION_DIP
+    src/Groundstation/Common/DipStatus.cpp
 )
 
-set(RADIO_GS
-    src/Groundstation/GS/Radio/Radio.cpp
-    src/Groundstation/GS/Ports/Ethernet.cpp
-    src/Groundstation/GS/BoardStatus.cpp
-    src/Groundstation/GS/Base/Hub.cpp
-    src/Groundstation/Common/GsEntryCommon.cpp   
-    src/Groundstation/GS/Ports/SerialArpGS.cpp
+set(GROUNDSTATION_ARP
+    src/Groundstation/Arp/Hub.cpp
+    src/Groundstation/Arp/BoardStatus.cpp
+    src/Groundstation/Arp/Radio/Radio.cpp
+    src/Groundstation/Arp/Ports/Ethernet.cpp
+    src/Groundstation/Arp/Ports/EthernetSniffer.cpp
+    src/Groundstation/Arp/Ports/Serial.cpp
+    src/Groundstation/Arp/Automated/Leds/Leds.cpp
+    src/Groundstation/Arp/Automated/SMA/SMA.cpp
+    src/Groundstation/Arp/Automated/Actuators/Actuators.cpp
+    src/Groundstation/Arp/Automated/Sensors/Sensors.cpp
+    src/Groundstation/Arp/Automated/PinHandler/PinHandler.cpp
+    src/Groundstation/Arp/Automated/ArpStatus.cpp
+)
+
+set(GROUNDSTATION_GS
+    src/Groundstation/Gs/Hub.cpp
+    src/Groundstation/Gs/BoardStatus.cpp
+    src/Groundstation/Gs/Radio/Radio.cpp
+    src/Groundstation/Gs/Ports/Ethernet.cpp
+    src/Groundstation/Gs/Ports/Serial.cpp
 )

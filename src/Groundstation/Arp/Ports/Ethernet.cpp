@@ -1,0 +1,98 @@
+/* Copyright (c) 2023 Skyward Experimental Rocketry
+ * Author: Davide Mor
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#include "Ethernet.h"
+
+#include <Groundstation/Arp/BoardStatus.h>
+#include <Groundstation/Arp/Buses.h>
+#include <Groundstation/Common/Config/EthernetConfig.h>
+#include <interfaces-impl/hwmapping.h>
+
+using namespace Boardcore;
+using namespace Arp;
+
+namespace Arp
+{
+EthernetGS* ethernetGSGlobal = nullptr;
+}
+
+void __attribute__((used)) MIOSIX_ETHERNET_IRQ()
+{
+    if (ethernetGSGlobal)
+        ethernetGSGlobal->handleINTn();
+}
+
+namespace Arp
+{
+
+bool EthernetGS::start()
+{
+    std::shared_ptr<Wiz5500> wiz5500 = std::make_shared<Wiz5500>(
+        getModule<Buses>()->ethernet_bus, miosix::ethernet::cs::getPin(),
+        miosix::ethernet::intr::getPin(), SPI::ClockDivider::DIV_64);
+
+    // First check if the device is even connected
+    bool present = wiz5500->checkVersion();
+
+    if (!present)
+        return false;
+
+    if (!EthernetBase::start(wiz5500))
+        return false;
+
+    // In sniffing mode initialize and start the EthernetSniffer
+    if (sniffOtherGs)
+    {
+        getModule<EthernetSniffer>()->init(1, Groundstation::SEND_PORT,
+                                           Groundstation::RECV_PORT);
+        if (!getModule<EthernetSniffer>()->start(this->wiz5500))
+            return false;
+    }
+
+    ethernetGSGlobal = this;
+    getModule<BoardStatus>()->setEthernetPresent(true);
+
+    return true;
+}
+
+WizMac EthernetGS::adjustMac(WizMac mac)
+{
+    if (sniffOtherGs)
+    {
+        mac.a += 1;
+        mac.b += 1;
+        mac.c += 1;
+        mac.d += 1;
+        mac.e += 1;
+        mac.f += 1;
+    }
+    return mac;
+}
+
+void EthernetGS::sendMsg(const mavlink_message_t& msg) { Super::sendMsg(msg); };
+
+void EthernetGS::handleINTn() { EthernetBase::handleINTn(); }
+Boardcore::Wiz5500::PhyState EthernetGS::getState()
+{
+    return Super::getState();
+};
+}  // namespace Arp

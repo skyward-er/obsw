@@ -24,7 +24,6 @@
 
 #include <ActiveObject.h>
 #include <Groundstation/Common/HubBase.h>
-#include <Groundstation/Common/Ports/EthernetSniffer.h>
 #include <common/MavlinkHydra.h>
 #include <drivers/WIZ5500/WIZ5500.h>
 #include <radio/MavlinkDriver/MavlinkDriver.h>
@@ -43,12 +42,12 @@ using EthernetMavDriver =
 
 class EthernetBase
     : public Boardcore::Transceiver,
-      public Boardcore::InjectableWithDeps<HubBase, EthernetSniffer>
+      public Boardcore::InjectableWithDeps<HubBase>
 {
 public:
     EthernetBase() {};
-    EthernetBase(bool randomIp, uint8_t ipOffset, bool sniffing)
-        : randomIp{randomIp}, ipOffset{ipOffset}, sniffOtherGs{sniffing} {};
+    EthernetBase(bool randomIp, uint8_t ipOffset)
+        : randomIp{randomIp}, ipOffset{ipOffset} {};
 
     void handleINTn();
 
@@ -63,6 +62,15 @@ public:
 
 protected:
     bool start(std::shared_ptr<Boardcore::Wiz5500> wiz5500);
+
+    /**
+    @brief Lets you modify the MAC, called onyl when the offset is caused by the dip switch. Default returns the unmodified MAC
+    */
+    virtual Boardcore::WizMac adjustMac(Boardcore::WizMac mac)
+    {
+        return mac;
+    }
+
     std::shared_ptr<Boardcore::Wiz5500> wiz5500;
 
 private:
@@ -83,8 +91,7 @@ private:
     Boardcore::WizIp currentIp   = {};
     Boardcore::WizMac currentMac = {};
 
-    bool sniffOtherGs = false;
-    bool firstPort    = true;
+    bool firstPort = true;
 };
 
 }  // namespace Groundstation

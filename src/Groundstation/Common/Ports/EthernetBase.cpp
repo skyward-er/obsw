@@ -79,17 +79,7 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
         WizMac mac = GS_MAC_BASE;
         // Add to the mac address the offset set on the dipswitch
         mac.c += 1 + ipOffset;
-        // In case of sniffing change ulteriorly the MAC to avoid switch to
-        // filter based on not whole MAC...
-        if (sniffOtherGs)
-        {
-            mac.a += 1;
-            mac.b += 1;
-            mac.c += 1;
-            mac.d += 1;
-            mac.e += 1;
-            mac.f += 1;
-        }
+        mac = adjustMac(mac);
         currentMac = mac;
         this->wiz5500->setSourceMac(mac);
     }
@@ -126,14 +116,6 @@ bool EthernetBase::start(std::shared_ptr<Boardcore::Wiz5500> wiz5500)
 
     if (!mav_driver->start())
         return false;
-
-    // In case of sniffing mode initialize and start the EthernetSniffer
-    if (sniffOtherGs)
-    {
-        getModule<EthernetSniffer>()->init(1, SEND_PORT, RECV_PORT);
-        if (!getModule<EthernetSniffer>()->start(this->wiz5500))
-            return false;
-    }
 
     TRACE("[info] Ethernet module started correctly\n");
     return true;
