@@ -1321,16 +1321,14 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(prz_fuel_btn))
         {
             // The OX pressurize switch was pressed
-            // EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
-            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-
-            getModule<Actuators>()->toggleValve(ServosList::PRZ_FUEL_VALVE);
+            EventBroker::getInstance().post(EREG_TOGGLE, TOPIC_EREG_FUEL);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
 
             // send event to the CAN bus
-            // getModule<CanHandler>()->sendEvent(
-            //     CanConfig::EventId::EREG_FUEL_TOGGLE);
-            // lastManualActuation = currentTime;
-            // enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
+            getModule<CanHandler>()->sendEvent(
+                CanConfig::EventId::EREG_FUEL_TOGGLE);
+            lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::PRZ_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(ox_venting_btn))
@@ -1348,8 +1346,10 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             // getModule<Actuators>()->toggleDetach();
             // lastManualActuation = currentTime;
-            getModule<ValveSequenceController>()->fullStepValve(
-                ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->animateValve(ServosList::MAIN_OX_VALVE,
+                                                 0.4f, 20000);
+            getModule<Actuators>()->animateValve(ServosList::MAIN_FUEL_VALVE,
+                                                 0.4f, 20000);
         }
 
         if (BUTTON_PRESSED(spare_0_btn))
@@ -1360,29 +1360,34 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             // lastManualActuation = currentTime;
             // enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
             getModule<ValveSequenceController>()->fullStepValve(
+                ServosList::MAIN_OX_VALVE);
+            getModule<ValveSequenceController>()->fullStepValve(
+                ServosList::MAIN_FUEL_VALVE);
+            getModule<ValveSequenceController>()->fullStepValve(
                 ServosList::PRZ_OX_VALVE);
+            getModule<ValveSequenceController>()->fullStepValve(
+                ServosList::PRZ_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_1_btn))
         {
             // The detach switch was pressed
-            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            // getModule<Actuators>()->toggleValve(ServosList::MAIN_OX_VALVE);
-            // lastManualActuation = currentTime;
-            // enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
-            getModule<Actuators>()->animateValve(ServosList::MAIN_FUEL_VALVE,
-                                                 0.4f, 20000);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleValve(ServosList::MAIN_OX_VALVE);
+            lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_2_btn))
         {
             // The detach switch was pressed
-            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            // getModule<Actuators>()->toggleValve(ServosList::MAIN_FUEL_VALVE);
-            // lastManualActuation = currentTime;
-            // enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
-            getModule<Actuators>()->animateValve(ServosList::PRZ_OX_VALVE, 0.4f,
-                                                 20000);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleValve(ServosList::MAIN_FUEL_VALVE);
+            lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::MAIN_FUEL_VALVE);
+            // getModule<Actuators>()->animateValve(ServosList::PRZ_OX_VALVE,
+            // 0.4f,
+            //                                      20000);
         }
 
         if (BUTTON_PRESSED(spare_3_btn))
@@ -1400,8 +1405,6 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             // getModule<Actuators>()->toggleSparkPlug();
             // lastManualActuation = currentTime;
-            getModule<ValveSequenceController>()->fullStepValve(
-                ServosList::MAIN_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_5_btn))
@@ -1411,7 +1414,9 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
             // getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
             // lastManualActuation = currentTime;
             // enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
-            getModule<Actuators>()->animateValve(ServosList::MAIN_OX_VALVE,
+            getModule<Actuators>()->animateValve(ServosList::PRZ_OX_VALVE, 0.4f,
+                                                 20000);
+            getModule<Actuators>()->animateValve(ServosList::PRZ_FUEL_VALVE,
                                                  0.4f, 20000);
         }
 

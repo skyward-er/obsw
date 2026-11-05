@@ -300,6 +300,7 @@ void ValveSequenceController::wiggleValves()
 
 void ValveSequenceController::fullStepValve(ServosList valve)
 {
+    getModule<Actuators>()->closeValve(valve);
     for (int i = 1; i < 21; i++)
     {
         getModule<Actuators>()->moveValve(valve, i * 0.05f);
