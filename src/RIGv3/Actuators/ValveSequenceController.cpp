@@ -91,6 +91,16 @@ void ValveSequenceController::requestAsyncAutomaticWiggle(uint8_t requestId)
 
 void ValveSequenceController::closeValves()
 {
+    getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
+    EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
+
+    getModule<Actuators>()->closeValve(PRZ_FUEL_VALVE);
+    EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
+                                    TOPIC_EREG_FUEL);
+    getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
+    getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
+
+    Thread::sleep(Config::VALVE_CLOSING_DELAY);
     getModule<Actuators>()->closeValve(PRZ_FILLING_VALVE);
     getModule<Actuators>()->closeValve(PRZ_RELEASE_VALVE);
     getModule<Actuators>()->closeValve(OX_FILLING_VALVE);
@@ -109,16 +119,6 @@ void ValveSequenceController::closeValves()
     getModule<Actuators>()->closeValve(PURGE_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_FUEL_VALVE);
     getModule<Actuators>()->closeValve(IGNITION_OX_VALVE);
-
-    Thread::sleep(Config::VALVE_CLOSING_DELAY);
-
-    getModule<Actuators>()->closeValve(PRZ_OX_VALVE);
-    EventBroker::getInstance().post(Common::Events::EREG_CLOSE, TOPIC_EREG_OX);
-    getModule<Actuators>()->closeValve(PRZ_FUEL_VALVE);
-    EventBroker::getInstance().post(Common::Events::EREG_CLOSE,
-                                    TOPIC_EREG_FUEL);
-    getModule<Actuators>()->closeValve(MAIN_OX_VALVE);
-    getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
 }
 
 void ValveSequenceController::wiggleValves()
@@ -389,6 +389,16 @@ void ValveSequenceController::tankTestSequence()
             getModule<Actuators>()->closeValve(MAIN_FUEL_VALVE);
             return;
         }
+    }
+}
+
+void ValveSequenceController::fullStepValve(ServosList valve)
+{
+    getModule<Actuators>()->closeValve(valve);
+    for (int i = 1; i < 21; i++)
+    {
+        getModule<Actuators>()->moveValve(valve, i * 0.05f);
+        Thread::sleep(500);
     }
 }
 }  // namespace RIGv3

@@ -670,6 +670,8 @@ State FiringSequenceHSM::state_ended(const Event& event)
         {
             EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_OX);
             EventBroker::getInstance().post(EREG_CLOSE, TOPIC_EREG_FUEL);
+            getModule<Actuators>()->closeValve(ServosList::MAIN_OX_VALVE);
+            getModule<Actuators>()->closeValve(ServosList::MAIN_FUEL_VALVE);
             getModule<Actuators>()->closeAllValves();
             return HANDLED;
         }

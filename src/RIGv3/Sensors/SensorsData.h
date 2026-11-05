@@ -329,6 +329,69 @@ struct ADC3Data : Boardcore::ADS131M08Data
         return STRUCT_DEF(ADC3Data, EXTEND_DEF(Boardcore::ADS131M08Data));
     }
 };
+struct MainOxPositionData : Boardcore::ServoPositionData
+{
+    explicit MainOxPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData(data)
+    {
+    }
+
+    MainOxPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(MainOxPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct MainFuelPositionData : Boardcore::ServoPositionData
+{
+    explicit MainFuelPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData(data)
+    {
+    }
+
+    MainFuelPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(MainFuelPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct OxRegPositionData : Boardcore::ServoPositionData
+{
+    explicit OxRegPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData(data)
+    {
+    }
+
+    OxRegPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(OxRegPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
+
+struct FuelRegPositionData : Boardcore::ServoPositionData
+{
+    explicit FuelRegPositionData(const Boardcore::ServoPositionData& data)
+        : Boardcore::ServoPositionData(data)
+    {
+    }
+
+    FuelRegPositionData() {}
+
+    static constexpr auto reflect()
+    {
+        return STRUCT_DEF(FuelRegPositionData,
+                          EXTEND_DEF(Boardcore::ServoPositionData));
+    }
+};
 
 struct RocketWeightData : Boardcore::LoadCellData
 {
