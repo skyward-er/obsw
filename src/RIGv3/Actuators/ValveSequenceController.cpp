@@ -394,11 +394,11 @@ void ValveSequenceController::tankTestSequence()
 
 void ValveSequenceController::fullStepValve(ServosList valve)
 {
-    getModule<Actuators>()->closeValve(valve);
+    // getModule<Actuators>()->closeValve(valve);
     for (int i = 1; i < 21; i++)
     {
         getModule<Actuators>()->moveValve(valve, i * 0.05f);
-        Thread::sleep(500);
+        waitOrAbort(500);
     }
 }
 }  // namespace RIGv3
