@@ -181,10 +181,10 @@ constexpr float OX_VESSEL_MAX_PRESSURE    = 100.0f;  // bar
 constexpr float OX_FILLING_MAX_PRESSURE   = 100.0f;  // bar
 
 constexpr float PRZ_TANK_MAX_PRESSURE        = 400.0f;  // bar
-constexpr float REG_OUT_MAX_PRESSURE         = 250.0f;  // bar
-constexpr float OX_TANK_MAX_PRESSURE         = 400.0f;  // bar
+constexpr float REG_OUT_MAX_PRESSURE         = 100.0f;  // bar
+constexpr float OX_TANK_MAX_PRESSURE         = 100.0f;  // bar
 constexpr float FUEL_TANK_MAX_PRESSURE       = 100.0f;  // bar
-constexpr float IGNITER_CHAMBER_MAX_PRESSURE = 40.0f;   // bar
+constexpr float IGNITER_CHAMBER_MAX_PRESSURE = 100.0f;  // bar
 constexpr float MAIN_CHAMBER_MAX_PRESSURE    = 100.0f;  // bar
 constexpr float INJ_OX_MAX_PRESSURE          = 100.0f;  // bar
 constexpr float INJ_FUEL_MAX_PRESSURE        = 100.0f;  // bar
