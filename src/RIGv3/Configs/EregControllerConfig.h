@@ -44,7 +44,7 @@ constexpr auto VENTING_TIME        = 5000ms;
 
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
-constexpr float TARGET_PRESSURE       = 67.0f;  // [Bar]
+constexpr float TARGET_PRESSURE       = 68.0f;  // [Bar]
 constexpr float PILOT_FLAME_PRECHARGE = 0.1844f;
 constexpr float RAMPUP_PRECHARGE      = 1.4346f;
 constexpr Hertz UPDATE_RATE           = 100_hz;
@@ -69,14 +69,14 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.2257f,
-    .minValveAngle    = 20.4f,
+    .minServoPosition = 0.2221f,
+    .minValveAngle    = 22.0f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
                        0.0036f},
 
-    .polyServoCoeff = {1.2520e-009f, -2267.1442e-009f, 21.7022e-006f,
+    .polyServoCoeff = {1.2520e-009f, -267.1442e-009f, 21.7022e-006f,
                        -796.9306e-006f, 21.4935e-003f, 18.3633e-003f},
 };
 
@@ -94,8 +94,8 @@ constexpr auto VENTING_TIME        = 5000ms;
 constexpr float PRESSURE_THRESHOLD = 0.01f;  // [Bar]
 
 constexpr float TARGET_PRESSURE       = 66.0f;  // [Bar]
-constexpr float PILOT_FLAME_PRECHARGE = 0.0502f;
-constexpr float RAMPUP_PRECHARGE      = 0.2511f;
+constexpr float PILOT_FLAME_PRECHARGE = 0.1054f;
+constexpr float RAMPUP_PRECHARGE      = 0.5273f;
 constexpr Hertz UPDATE_RATE           = 100_hz;
 constexpr int FILTER_SAMPLES          = 3;
 
@@ -118,8 +118,8 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.2511f,
-    .minValveAngle    = 32.0f,
+    .minServoPosition = 0.2145f,
+    .minValveAngle    = 36.0f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
