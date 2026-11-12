@@ -231,7 +231,7 @@ void Actuators::initializeValves()
         OX_REL, expander0, PCA9685Utils::Channel::CHANNEL_4));
 
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
-        OX_VEN, expander1, PCA9685Utils::Channel::CHANNEL_0));
+        OX_VEN, expander1, PCA9685Utils::Channel::CHANNEL_7));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         FUEL_VEN, expander1, PCA9685Utils::Channel::CHANNEL_1));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
