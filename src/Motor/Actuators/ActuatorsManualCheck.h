@@ -42,6 +42,8 @@ struct ManualValve
 {
     ServosList value;
 
+    explicit ManualValve() {}
+
     consteval ManualValve(ServosList x) : value(x)
     {
         if (!is_manual(x))
