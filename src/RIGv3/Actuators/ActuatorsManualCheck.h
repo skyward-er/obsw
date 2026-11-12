@@ -42,8 +42,7 @@ struct ManualValve
 {
     ServosList value;
 
-    explicit ManualValve() {}
-
+    // cppcheck-suppress noExplicitConstructor
     consteval ManualValve(ServosList x) : value(x)
     {
         if (!is_manual(x))
