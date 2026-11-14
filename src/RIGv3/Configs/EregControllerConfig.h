@@ -53,7 +53,7 @@ constexpr int FILTER_SAMPLES          = 3;
 constexpr float UPDATE_RATE_SECONDS = 1 / UPDATE_RATE.value();  // [s]
 
 const static Boardcore::EregPIDConfig STABILIZING_CONFIG = {
-    .KP = 0.01f,
+    .KP = 0.03f,
     .KI = 0.0f,
     .KD = 0.0f,
 
@@ -69,7 +69,7 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.289f,
+    .minServoPosition = 0.223f,
     .minValveAngle    = 21.05f,
     .maxCv            = 0.981898f,
 
@@ -110,7 +110,7 @@ const static Boardcore::EregPIDConfig STABILIZING_CONFIG = {
 };
 
 const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
-    .KP = 1.4f,
+    .KP = 1.2f,
     .KI = 0.2f,
     .KD = 0.02f,
 
@@ -118,7 +118,7 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.331f,
+    .minServoPosition = 0.252f,
     .minValveAngle    = 32.0f,
     .maxCv            = 0.981898f,
 

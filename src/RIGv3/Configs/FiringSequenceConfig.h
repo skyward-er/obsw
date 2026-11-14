@@ -41,15 +41,15 @@ constexpr auto IGN_FUEL_DELAY        = 100ms;
 constexpr auto IGN_FUEL_OPENING_TIME = 2000ms;
 constexpr auto SPARK_TIME            = 500ms;
 
-constexpr auto PILOT_FLAME_MAX_TIME           = 1000ms;
-constexpr auto PILOT_FUEL_LEAD_TIME           = 150ms;
+constexpr auto PILOT_FLAME_MAX_TIME           = 1200ms;
+constexpr auto PILOT_FUEL_LEAD_TIME           = 350ms;
 constexpr auto PILOT_OX_RAMP_TIME             = 500ms;
 constexpr float MAIN_CHAMBER_SAFETY_THRESHOLD = 35.0f * 1.5f;  // bar
 constexpr float MAIN_CHAMBER_SAFETY_SAMPLES   = 3;
 
 constexpr auto RAMP_UP_OPENING_TIME = 500ms;
-constexpr auto FULL_THROTTLE_TIME   = 4200ms;
-constexpr auto LOW_THROTTLE_TIME    = 100ms;
+constexpr auto FULL_THROTTLE_TIME   = 1200ms;
+constexpr auto LOW_THROTTLE_TIME    = 10ms;
 
 // placeholder values
 constexpr float PILOT_OX_POSITION          = 0.266f;

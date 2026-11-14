@@ -1432,7 +1432,7 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
 
         if (BUTTON_PRESSED(spare_5_btn))
         {
-            // The Ignition Ox switch was pressed
+            // The Igniter Ox switch was pressed
             EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
             getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
             lastManualActuation = currentTime;
