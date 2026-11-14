@@ -1369,21 +1369,29 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(spare_0_btn))
         {
             // The Purge switch was pressed
-            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+
+            // Only when the motor board is connected,
             // getModule<CanHandler>()->sendEvent(CanConfig::EventId::PURGE_OX);
-            // lastManualActuation = currentTime;
-            // enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
+
+            // Only for the RIGv3 - Yes, it's not CAN, but it's a quick way to
+            // test the purge sequence
+            EventBroker::getInstance().post(CAN_PURGE_OX,
+                                            TOPIC_FIRING_SEQUENCE);
+
+            lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::MAIN_OX_VALVE);
 
             // EventBroker::getInstance().post(TANK_SEQUENCE,
             //                                 TOPIC_VALVE_SEQUENCE);
-            getModule<ValveSequenceController>()->fullStepValve(
-                ServosList::MAIN_OX_VALVE);
-            getModule<ValveSequenceController>()->fullStepValve(
-                ServosList::MAIN_FUEL_VALVE);
-            getModule<ValveSequenceController>()->fullStepValve(
-                ServosList::PRZ_OX_VALVE);
-            getModule<ValveSequenceController>()->fullStepValve(
-                ServosList::PRZ_FUEL_VALVE);
+            // getModule<ValveSequenceController>()->fullStepValve(
+            //     ServosList::MAIN_OX_VALVE);
+            // getModule<ValveSequenceController>()->fullStepValve(
+            //     ServosList::MAIN_FUEL_VALVE);
+            // getModule<ValveSequenceController>()->fullStepValve(
+            //     ServosList::PRZ_OX_VALVE);
+            // getModule<ValveSequenceController>()->fullStepValve(
+            //     ServosList::PRZ_FUEL_VALVE);
         }
 
         if (BUTTON_PRESSED(spare_1_btn))
@@ -1425,18 +1433,19 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
         if (BUTTON_PRESSED(spare_5_btn))
         {
             // The Ignition Ox switch was pressed
-            // EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
-            // getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
-            // enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
+            EventBroker::getInstance().post(MOTOR_MANUAL_ACTION, TOPIC_TARS);
+            getModule<Actuators>()->toggleValve(ServosList::IGNITION_OX_VALVE);
+            lastManualActuation = currentTime;
+            enqueueValveInfoTm(ServosList::IGNITION_OX_VALVE);
 
             // EventBroker::getInstance().post(VALVE_SEQUENCE_ABORT,
             //                                 TOPIC_VALVE_SEQUENCE);
 
-            getModule<Actuators>()->animateValve(ServosList::PRZ_OX_VALVE, 0.4f,
-                                                 20000);
-            getModule<Actuators>()->animateValve(ServosList::PRZ_FUEL_VALVE,
-                                                 0.4f, 20000);
-            lastManualActuation = currentTime;
+            // getModule<Actuators>()->animateValve(ServosList::PRZ_OX_VALVE,
+            // 0.4f,
+            //                                      20000);
+            // getModule<Actuators>()->animateValve(ServosList::PRZ_FUEL_VALVE,
+            //                                      0.4f, 20000);
         }
 
         if (SWITCH_CHANGED(tars_switch))
