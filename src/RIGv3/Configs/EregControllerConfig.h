@@ -69,15 +69,15 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.2221f,
-    .minValveAngle    = 22.0f,
+    .minServoPosition = 0.289f,
+    .minValveAngle    = 21.05f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
                        0.0036f},
 
-    .polyServoCoeff = {1.2520e-009f, -267.1442e-009f, 21.7022e-006f,
-                       -796.9306e-006f, 21.4935e-003f, 18.3633e-003f},
+    .polyServoCoeff = {1.5723e-009f, -330.7213e-009f, 26.2786e-006f,
+                       -937.6824e-006f, 23.0584e-003f, 32.6552e-003f},
 };
 
 }  // namespace EregOx
@@ -118,8 +118,8 @@ const static Boardcore::EregPIDConfig DISCHARGING_CONFIG = {
 };
 
 const static Boardcore::EregValveInfo VALVE_INFO = {
-    .minServoPosition = 0.2145f,
-    .minValveAngle    = 36.0f,
+    .minServoPosition = 0.331f,
+    .minValveAngle    = 32.0f,
     .maxCv            = 0.981898f,
 
     .polyValveCoeff = {9.7769f, -23.6167f, 21.5392f, -9.2101f, 2.4963f,
