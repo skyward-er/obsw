@@ -62,9 +62,9 @@ private:
 
     bool started = false;
     std::unique_ptr<Groundstation::EthernetMavDriver> mav_driver;
-    uint16_t portNr;
-    uint16_t srcPort;
-    uint16_t dstPort;
+    uint16_t portNr         = 0;
+    uint16_t srcPort        = 0;
+    uint16_t dstPort        = 0;
     uint32_t sniffedCounter = 0;
 };
 
