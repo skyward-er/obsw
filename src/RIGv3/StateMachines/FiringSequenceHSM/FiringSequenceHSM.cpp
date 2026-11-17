@@ -43,7 +43,7 @@ FiringSequenceHSM::FiringSequenceHSM()
     EventBroker::getInstance().subscribe(this, TOPIC_FIRING_SEQUENCE);
 }
 
-void FiringSequenceHSM::setFiringParams(uint32_t pilotFuelLeadTime,
+bool FiringSequenceHSM::setFiringParams(uint32_t pilotFuelLeadTime,
                                         uint32_t fullThrottleTime,
                                         uint32_t lowThrottleTime,
                                         float oxPilotFlamePosition,
@@ -51,31 +51,44 @@ void FiringSequenceHSM::setFiringParams(uint32_t pilotFuelLeadTime,
                                         float oxLowThrottlePosition,
                                         float fuelLowThrottlePosition)
 {
-    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FUEL_LEAD_TIME,
-                                     pilotFuelLeadTime);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_FULL_THROTTLE_TIME,
-                                     fullThrottleTime);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_TIME,
-                                     lowThrottleTime);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_OX_POSITION,
-                                     oxPilotFlamePosition);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
-                                     fuelPilotFlamePosition);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_OX_POSITION,
-                                     oxLowThrottlePosition);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_FUEL_POSITION,
-                                     fuelLowThrottlePosition);
+    bool ok = getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FUEL_LEAD_TIME,
+                                               pilotFuelLeadTime) ==
+              RegistryError::OK;
+    ok &=
+        getModule<Registry>()->setUnsafe(CONFIG_ID_FULL_THROTTLE_TIME,
+                                         fullThrottleTime) == RegistryError::OK;
+    ok &=
+        getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_TIME,
+                                         lowThrottleTime) == RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_OX_POSITION,
+                                           oxPilotFlamePosition) ==
+          RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
+                                           fuelPilotFlamePosition) ==
+          RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_OX_POSITION,
+                                           oxLowThrottlePosition) ==
+          RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_LOW_THROTTLE_FUEL_POSITION,
+                                           fuelLowThrottlePosition) ==
+          RegistryError::OK;
 
+    // Might need to change it later - For now, even if the registry fails to
+    // set the parameters, we still consider them set, as they are still stored
+    // in the RAM
     paramsSet = true;
+    return ok;
 }
 
-void FiringSequenceHSM::setPressureThresholds(float igniterThreshold,
+bool FiringSequenceHSM::setPressureThresholds(float igniterThreshold,
                                               float pilotFlameThreshold)
 {
-    getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,
-                                     igniterThreshold);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
-                                     pilotFlameThreshold);
+    bool ok =
+        getModule<Registry>()->setUnsafe(CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,
+                                         igniterThreshold) == RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(
+              CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD, pilotFlameThreshold) ==
+          RegistryError::OK;
 
     igniterPressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
         CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,
@@ -84,6 +97,8 @@ void FiringSequenceHSM::setPressureThresholds(float igniterThreshold,
     pilotFlamePressureThreshold = getModule<Registry>()->getOrSetDefaultUnsafe(
         CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
         Config::FiringSequence::PILOT_FLAME_PRESSURE_THRESHOLD);
+
+    return ok;
 }
 
 bool FiringSequenceHSM::start()

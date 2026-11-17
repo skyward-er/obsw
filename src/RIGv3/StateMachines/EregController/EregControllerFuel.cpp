@@ -286,25 +286,28 @@ void EregControllerFuel::state_firing(const Event& event)
     }
 }
 
-void EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
+bool EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
                                          EregPIDConfig newDischargeConfig)
 {
-    getModule<Registry>()->setUnsafe(
-        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KP,
-        newPressurizationConfig.KP);
-    getModule<Registry>()->setUnsafe(
-        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KI,
-        newPressurizationConfig.KI);
-    getModule<Registry>()->setUnsafe(
-        CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KD,
-        newPressurizationConfig.KD);
+    bool ok = getModule<Registry>()->setUnsafe(
+                  CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KP,
+                  newPressurizationConfig.KP) == RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(
+              CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KI,
+              newPressurizationConfig.KI) == RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(
+              CONFIG_ID_EREG_FUEL_FIRST_PRESSURIZATION_KD,
+              newPressurizationConfig.KD) == RegistryError::OK;
 
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KP,
-                                     newDischargeConfig.KP);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KI,
-                                     newDischargeConfig.KI);
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KD,
-                                     newDischargeConfig.KD);
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KP,
+                                           newDischargeConfig.KP) ==
+          RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KI,
+                                           newDischargeConfig.KI) ==
+          RegistryError::OK;
+    ok &= getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_RAMPUP_KD,
+                                           newDischargeConfig.KD) ==
+          RegistryError::OK;
 
     pressurizationConfig.KP = newPressurizationConfig.KP;
     pressurizationConfig.KI = newPressurizationConfig.KI;
@@ -313,14 +316,19 @@ void EregControllerFuel::changePIDConfig(EregPIDConfig newPressurizationConfig,
     dischargeConfig.KP = newDischargeConfig.KP;
     dischargeConfig.KI = newDischargeConfig.KI;
     dischargeConfig.KD = newDischargeConfig.KD;
+
+    return ok;
 }
 
-void EregControllerFuel::changeTargetPressure(float newTargetPressure)
+bool EregControllerFuel::changeTargetPressure(float newTargetPressure)
 {
-    getModule<Registry>()->setUnsafe(CONFIG_ID_EREG_FUEL_TARGET_PRESSURE,
-                                     newTargetPressure);
+    bool ok = getModule<Registry>()->setUnsafe(
+                  CONFIG_ID_EREG_FUEL_TARGET_PRESSURE, newTargetPressure) ==
+              RegistryError::OK;
 
     targetPressure = newTargetPressure;
+
+    return ok;
 }
 
 void EregControllerFuel::updateAndLogStatus(EregState state)

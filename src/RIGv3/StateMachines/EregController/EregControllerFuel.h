@@ -47,10 +47,10 @@ public:
 
     EregState getState();
 
-    void changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
+    bool changePIDConfig(Boardcore::EregPIDConfig newPressurizationConfig,
                          Boardcore::EregPIDConfig newDischargeConfig);
 
-    void changeTargetPressure(float newTargetPressure);
+    bool changeTargetPressure(float newTargetPressure);
 
 private:
     void update();
