@@ -31,6 +31,9 @@
 #include <events/EventHandler.h>
 #include <utils/DependencyManager/DependencyManager.h>
 
+#include <atomic>
+#include <functional>
+
 namespace RIGv3
 {
 class Actuators;
@@ -50,7 +53,7 @@ public:
             BoardScheduler::valveSequenceControllerPriority());
 
     void requestAsyncAutomaticWiggle(uint8_t requestId);
-
+    bool requestAsyncWiggleCheck(ServosList servo, uint8_t requestId);
     void fullStepValve(ServosList valve);
 
 private:
@@ -93,13 +96,20 @@ private:
         bool fuelDumpingSuccess : 1;
     } wiggleResult{};
 
-    uint8_t lastRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
+    void wiggleCheck();
 
     bool waitOrAbort(unsigned int ms);
 
+    std::function<float()> wiggleCheckEncoder = nullptr;
+
+    ServosList wiggleCheckServo  = MAIN_OX_VALVE;
+    uint8_t wiggleCheckRequestId = Config::Radio::MAV_DEFAULT_REQUEST_ID;
+    uint8_t lastRequestId        = Config::Radio::MAV_DEFAULT_REQUEST_ID;
+
+    std::atomic<bool> wiggleCheckRunning{false};
+
     miosix::FastMutex abortMutex;
     miosix::ConditionVariable abortCv;
-
     bool abortFlag = false;
 };
 }  // namespace RIGv3

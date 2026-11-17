@@ -54,7 +54,7 @@ enum RIGValveBit : uint8_t
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr uint8_t VALVE_OPENING_THRESHOLD_MAIN_OX      = 60;  // [percent]
+constexpr uint8_t VALVE_OPENING_THRESHOLD_MAIN_OX      = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_MAIN_FUEL    = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_OX       = 60;
 constexpr uint8_t VALVE_OPENING_THRESHOLD_PRZ_FUEL     = 60;
@@ -83,8 +83,13 @@ constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_FILLING   = 5;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_OX_RELEASE   = 5;
 constexpr uint8_t VALVE_CLOSED_THRESHOLD_FUEL_DUMPING = 5;
 
-constexpr auto VALVE_WIGGLE_DELAY  = 2000;  // [ms]
-constexpr auto VALVE_CLOSING_DELAY = 2000;  // [ms]
+constexpr auto VALVE_WIGGLE_CHECK_TIME       = 1000;  // [ms]
+constexpr auto VALVE_WIGGLE_CHECK_CLOSE_TIME = 1000;  // [ms]
+constexpr auto VALVE_WIGGLE_DELAY            = 2000;  // [ms]
+constexpr auto VALVE_CLOSING_DELAY           = 2000;  // [ms]
+
+constexpr int WIGGLE_CHECK_REPETITIONS         = 3;
+constexpr float DEFAULT_WIGGLE_CHECK_THRESHOLD = 30.0f;  // [percent]
 
 }  // namespace Config
 }  // namespace RIGv3

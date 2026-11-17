@@ -27,10 +27,12 @@
 #include <RIGv3/CanHandler/CanHandler.h>
 #include <RIGv3/Expander/GpioExpander.h>
 #include <RIGv3/Registry/Registry.h>
+#include <RIGv3/Sensors/Sensors.h>
 #include <Valve/Valve.h>
 #include <actuators/Servo/Servo.h>
 #include <actuators/SparkPlug.h>
 #include <common/MavlinkHydra.h>
+#include <common/canbus/MotorStatus.h>
 #include <drivers/PCA9685/PCA9685.h>
 #include <miosix.h>
 #include <scheduler/SignaledDeadlineTask.h>
@@ -40,11 +42,10 @@ namespace RIGv3
 {
 
 class ValveSequenceController;
-class Actuators
-    : public Boardcore::InjectableWithDeps<Buses, BoardScheduler, CanHandler,
-                                           Registry, GpioExpander,
-                                           ValveSequenceController>,
-      public Boardcore::SignaledDeadlineTask
+class Actuators : public Boardcore::InjectableWithDeps<
+                      Buses, BoardScheduler, CanHandler, Registry, GpioExpander,
+                      ValveSequenceController, Sensors, Common::MotorStatus>,
+                  public Boardcore::SignaledDeadlineTask
 {
 private:
     // Sentinel value for when no action is needed
@@ -52,9 +53,11 @@ private:
 
     struct ValveInfo
     {
-        explicit ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
+        explicit ValveInfo(std::unique_ptr<Boardcore::Valve>&& valve,
+                           std::function<float()> encoder = nullptr)
             : valve(std::move(valve)),
-              maxAperture(this->valve->getDefaultMaxAperture())
+              maxAperture(this->valve->getDefaultMaxAperture()),
+              encoder(std::move(encoder))
         {
         }
 
@@ -87,12 +90,16 @@ private:
         bool isValveOpen();
 
         float maxAperture = 0.0f;
+
+        ///< Function to read the encoder value
+        std::function<float()> encoder = nullptr;
     };
 
     struct ManualValveInfo : public ValveInfo
     {
-        explicit ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve)
-            : ValveInfo(std::move(valve))
+        explicit ManualValveInfo(std::unique_ptr<Boardcore::Valve>&& valve,
+                                 std::function<float()> encoder = nullptr)
+            : ValveInfo(std::move(valve), std::move(encoder))
         {
         }
 
@@ -142,6 +149,9 @@ public:
     bool isValveOpen(ServosList servo);
     uint32_t getValveOpeningTime(ServosList servo);
     float getServoMaxAperture(ServosList servo);
+    float getOpenPosition(ServosList servo);
+
+    std::function<float()> getEncoder(ServosList servo);
 
     ValveState getValveState(ServosList servo);
     inline void logValveMovement(int idx, float position);

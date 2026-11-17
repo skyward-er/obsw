@@ -65,6 +65,9 @@ public:
 
     Boardcore::MavlinkStatus getMavStatus();
 
+    bool enqueueWiggleCheckTm(ServosList servo, bool success,
+                              uint8_t requestId);
+
     bool enqueueWiggleResultTm(bool mainOxSuccess, bool mainFuelSuccess,
                                bool przOxSuccess, bool przFuelSuccess,
                                bool oxVentingSuccess, bool fuelVentingSuccess,
@@ -81,6 +84,7 @@ public:
         uint8_t requestId);
 
 private:
+    bool enqueueRigFiringParameters(uint8_t requestId);
     void enqueueAck(const mavlink_message_t& msg);
     void enqueueWack(const mavlink_message_t& msg, uint8_t errorId);
     void enqueueNack(const mavlink_message_t& msg, uint8_t errorId);
@@ -99,6 +103,8 @@ private:
 
     bool enqueueSystemTm(uint8_t tmId, uint8_t requestId);
     bool enqueueSensorTm(uint8_t tmId, uint8_t requestId);
+
+    void saveRegistry(const mavlink_message_t& msg);
 
     Boardcore::Logger& sdLogger   = Boardcore::Logger::getInstance();
     Boardcore::PrintLogger logger = Boardcore::Logging::getLogger("radio");

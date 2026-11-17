@@ -114,6 +114,23 @@ constexpr float DEFAULT_IGN_OX_MAX_APERTURE    = 1.0;
 constexpr float DEFAULT_IGN_FUEL_MAX_APERTURE  = 1.0;
 constexpr float DEFAULT_PURGE_MAX_APERTURE     = 1.0;
 
+constexpr float DEFAULT_PRZ_FIL_OPEN_POSITION   = 0.99;
+constexpr float DEFAULT_PRZ_REL_OPEN_POSITION   = 0.42;
+constexpr float DEFAULT_OX_FIL_OPEN_POSITION    = 0.79;
+constexpr float DEFAULT_OX_REL_OPEN_POSITION    = 0.58;
+constexpr float DEFAULT_PRZ_DET_OPEN_POSITION   = 0.50;
+constexpr float DEFAULT_OX_DET_OPEN_POSITION    = 0.50;
+constexpr float DEFAULT_OX_VEN_OPEN_POSITION    = 0.50;
+constexpr float DEFAULT_FUEL_VEN_OPEN_POSITION  = 0.50;
+constexpr float DEFAULT_FUEL_DUMP_OPEN_POSITION = 0.50;
+constexpr float DEFAULT_PRZ_OX_OPEN_POSITION    = 0.50;
+constexpr float DEFAULT_PRZ_FUEL_OPEN_POSITION  = 0.50;
+constexpr float DEFAULT_MAIN_OX_OPEN_POSITION   = 0.50;
+constexpr float DEFAULT_MAIN_FUEL_OPEN_POSITION = 0.50;
+constexpr float DEFAULT_IGN_OX_OPEN_POSITION    = 0.50;
+constexpr float DEFAULT_IGN_FUEL_OPEN_POSITION  = 0.50;
+constexpr float DEFAULT_PURGE_OPEN_POSITION     = 0.50;
+
 constexpr float PRZ_3W_LIMIT    = 1.0;
 constexpr float PRZ_FIL_LIMIT   = 1.0;
 constexpr float PRZ_REL_LIMIT   = 0.9;

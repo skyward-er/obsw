@@ -78,6 +78,12 @@ void ValveSequenceController::handleEvent(const Event& ev)
             break;
         }
 
+        case WIGGLE_VALVE_CHECK:
+        {
+            wiggleCheck();
+            break;
+        }
+
         default:
             break;
     }
@@ -365,6 +371,47 @@ bool ValveSequenceController::waitOrAbort(unsigned int ms)
     return abortFlag;
 }
 
+void ValveSequenceController::wiggleCheck()
+{
+    auto actuators = getModule<Actuators>();
+
+    const float expected =
+        actuators->getOpenPosition(wiggleCheckServo) * 100.0f;
+
+    const float threshold = Config::DEFAULT_WIGGLE_CHECK_THRESHOLD;
+
+    bool success = true;
+
+    for (int i = 0; i < Config::WIGGLE_CHECK_REPETITIONS && success; i++)
+    {
+        actuators->openValveWithTime(wiggleCheckServo,
+                                     Config::VALVE_WIGGLE_CHECK_TIME + 500);
+        success &= !waitOrAbort(Config::VALVE_WIGGLE_CHECK_TIME);
+
+        float measured = wiggleCheckEncoder();
+
+        TRACE(
+            "Wiggle check {}: expected {:.1f}, measured {:.1f}, "
+            "threshold "
+            "{:.1f}",
+            i, expected, measured, threshold);
+
+        success &= std::abs(measured - expected) <= threshold;
+
+        actuators->closeValve(wiggleCheckServo);
+        success &= !waitOrAbort(Config::VALVE_WIGGLE_CHECK_CLOSE_TIME);
+    }
+
+    // Make sure the valve is closed before aborting
+    actuators->closeValve(wiggleCheckServo);
+
+    getModule<Radio>()->enqueueWiggleCheckTm(wiggleCheckServo, success,
+                                             wiggleCheckRequestId);
+
+    wiggleCheckEncoder = nullptr;
+    wiggleCheckRunning = false;
+}
+
 void ValveSequenceController::tankTestSequence()
 {
     for (int i = 0; i < 60; i++)
@@ -401,4 +448,22 @@ void ValveSequenceController::fullStepValve(ServosList valve)
         waitOrAbort(500);
     }
 }
+
+bool ValveSequenceController::requestAsyncWiggleCheck(ServosList servo,
+                                                      uint8_t requestId)
+{
+    auto encoder = getModule<Actuators>()->getEncoder(servo);
+    if (encoder == nullptr)
+        return false;
+
+    if (wiggleCheckRunning.exchange(true))
+        return false;
+
+    wiggleCheckServo     = servo;
+    wiggleCheckEncoder   = std::move(encoder);
+    wiggleCheckRequestId = requestId;
+    EventBroker::getInstance().post(WIGGLE_VALVE_CHECK, TOPIC_VALVE_SEQUENCE);
+    return true;
+}
+
 }  // namespace RIGv3

@@ -23,6 +23,7 @@
 #include "Radio.h"
 
 #include <ConRIGv2/Configs/RadioConfig.h>
+#include <RIGv3/Configs/FiringSequenceConfig.h>
 #include <common/Events.h>
 #include <common/Radio.h>
 #include <common/canbus/MotorStatus.h>
@@ -197,8 +198,16 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             if (tmId == MAV_FIRING_SEQUENCE_ID)
             {
-                getModule<MotorStatus>()->setLastMsg(msg);
-                getModule<CanHandler>()->requestFiringParameters(msg.compid);
+                if (getModule<MotorStatus>()->detected())
+                {
+                    getModule<MotorStatus>()->setLastMsg(msg);
+                    getModule<CanHandler>()->requestFiringParameters(
+                        msg.compid);
+                }
+                else if (enqueueRigFiringParameters(msg.compid))
+                    enqueueAck(msg);
+                else
+                    enqueueNack(msg, 0);
                 break;
             }
 
@@ -206,7 +215,6 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 enqueueAck(msg);
             else
                 enqueueNack(msg, 0);
-
             break;
         }
 
@@ -239,6 +247,21 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             {
                 enqueueNack(msg, 0);
             }
+            break;
+        }
+
+        case MAVLINK_MSG_ID_WIGGLE_VALVE_CHECK_TC:
+        {
+            ServosList servo = static_cast<ServosList>(
+                mavlink_msg_wiggle_valve_check_tc_get_servo_id(&msg));
+
+            if (getModule<GroundModeManager>()->getState() ==
+                    GroundModeManagerState::DISARMED &&
+                getModule<ValveSequenceController>()->requestAsyncWiggleCheck(
+                    servo, msg.compid))
+                enqueueAck(msg);
+            else
+                enqueueNack(msg, 0);
             break;
         }
 
@@ -300,12 +323,16 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 fullThrottleTime, lowThrottleTime, pilotFuelLeadTime,
                 pilotFlameOxPosition, pilotFlameFuelPosition);
 
-            getModule<FiringSequenceHSM>()->setFiringParams(
-                pilotFuelLeadTime, fullThrottleTime, lowThrottleTime,
-                pilotFlameOxPosition, pilotFlameFuelPosition,
-                lowThrottleOxPosition, lowThrottleFuelPosition);
+            if (!getModule<FiringSequenceHSM>()->setFiringParams(
+                    pilotFuelLeadTime, fullThrottleTime, lowThrottleTime,
+                    pilotFlameOxPosition, pilotFlameFuelPosition,
+                    lowThrottleOxPosition, lowThrottleFuelPosition))
+            {
+                enqueueNack(msg, 0);
+                break;
+            }
 
-            enqueueAck(msg);
+            saveRegistry(msg);
             break;
         }
 
@@ -322,9 +349,14 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             getModule<CanHandler>()->sendIgnitionThresholds(
                 ignPressureThreshold, pilotPressureThreshold);
 
-            getModule<FiringSequenceHSM>()->setPressureThresholds(
-                ignPressureThreshold, pilotPressureThreshold);
-            enqueueAck(msg);
+            if (!getModule<FiringSequenceHSM>()->setPressureThresholds(
+                    ignPressureThreshold, pilotPressureThreshold))
+            {
+                enqueueNack(msg, 0);
+                break;
+            }
+
+            saveRegistry(msg);
             break;
         }
 
@@ -363,7 +395,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 break;
             }
 
-            enqueueAck(msg);
+            saveRegistry(msg);
             break;
         }
 
@@ -394,7 +426,7 @@ void Radio::handleMessage(const mavlink_message_t& msg)
 
             getModule<CanHandler>()->sendEregServoCoeff(eregId, coefficients);
 
-            return enqueueAck(msg);
+            return saveRegistry(msg);
         }
 
         case MAVLINK_MSG_ID_SET_EREG_CONSTANTS_TC:
@@ -414,17 +446,24 @@ void Radio::handleMessage(const mavlink_message_t& msg)
             if (mavlink_msg_set_ereg_constants_tc_get_ereg(&msg) == EREG_OX &&
                 getModule<EregControllerOx>()->getState() == EregState::CLOSED)
             {
-                getModule<EregControllerOx>()->changePIDConfig(
-                    pressurizationConfig, dischargeConfig);
-                return enqueueAck(msg);
+                if (!getModule<EregControllerOx>()->changePIDConfig(
+                        pressurizationConfig, dischargeConfig))
+                {
+                    return enqueueNack(msg, 0);
+                }
+                return saveRegistry(msg);
+                ;
             }
             if (mavlink_msg_set_ereg_constants_tc_get_ereg(&msg) == EREG_FUEL &&
                 getModule<EregControllerFuel>()->getState() ==
                     EregState::CLOSED)
             {
-                getModule<EregControllerFuel>()->changePIDConfig(
-                    pressurizationConfig, dischargeConfig);
-                return enqueueAck(msg);
+                if (!getModule<EregControllerFuel>()->changePIDConfig(
+                        pressurizationConfig, dischargeConfig))
+                {
+                    return enqueueNack(msg, 0);
+                }
+                return saveRegistry(msg);
             }
 
             getModule<CanHandler>()->sendEregPIDConfigs(
@@ -447,7 +486,8 @@ void Radio::handleMessage(const mavlink_message_t& msg)
                 mavlink_msg_set_ereg_target_tc_get_ox_target(&msg),
                 mavlink_msg_set_ereg_target_tc_get_fuel_target(&msg));
 
-            return enqueueAck(msg);
+            return saveRegistry(msg);
+            ;
         }
 
         case MAVLINK_MSG_ID_REMOTE_POWER_ON_TC:
@@ -532,10 +572,7 @@ void Radio::handleCommand(const mavlink_message_t& msg)
 
         case MAV_CMD_REGISTRY_SAVE:
         {
-            if (getModule<Registry>()->save() == RegistryError::OK)
-                enqueueAck(msg);
-            else
-                enqueueNack(msg, 0);
+            saveRegistry(msg);
             break;
         }
 
@@ -674,6 +711,64 @@ bool Radio::enqueueValveInfoTm(ServosList valveId, uint8_t requestId)
 
     mavlink_msg_valve_info_tm_encode(Config::Radio::MAV_SYSTEM_ID, requestId,
                                      &msg, &tm);
+    enqueueMessage(msg);
+    return true;
+}
+
+bool Radio::enqueueWiggleCheckTm(ServosList servo, bool success,
+                                 uint8_t requestId)
+{
+    mavlink_message_t msg;
+    mavlink_wiggle_valve_check_tm_t tm;
+
+    tm.timestamp = TimestampTimer::getTimestamp();
+    tm.servo_id  = servo;
+    tm.success   = success ? 1 : 0;
+    mavlink_msg_wiggle_valve_check_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                             requestId, &msg, &tm);
+
+    enqueueMessage(msg);
+    return true;
+}
+
+bool Radio::enqueueRigFiringParameters(uint8_t requestId)
+{
+    auto registry = getModule<Registry>();
+    mavlink_message_t msg;
+    mavlink_firing_sequence_parameters_tm_t tm;
+
+    tm.timestamp          = TimestampTimer::getTimestamp();
+    tm.full_throttle_time = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_FULL_THROTTLE_TIME,
+        static_cast<uint32_t>(
+            Config::FiringSequence::FULL_THROTTLE_TIME.count()));
+    tm.low_throttle_time = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_LOW_THROTTLE_TIME,
+        static_cast<uint32_t>(
+            Config::FiringSequence::LOW_THROTTLE_TIME.count()));
+    tm.pilot_lead_time = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_PILOT_FUEL_LEAD_TIME,
+        static_cast<uint32_t>(
+            Config::FiringSequence::PILOT_FUEL_LEAD_TIME.count()));
+    tm.pilot_flame_ox_position = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_PILOT_FLAME_OX_POSITION,
+        Config::FiringSequence::PILOT_OX_POSITION);
+    tm.pilot_flame_fuel_position = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_PILOT_FLAME_FUEL_POSITION,
+        Config::FiringSequence::PILOT_FUEL_POSITION);
+    tm.igniter_threshold = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_IGNITER_PRESSURE_THRESHOLD,
+        Config::FiringSequence::IGNITER_PRESSURE_THRESHOLD);
+    tm.pilot_flame_threshold = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_PILOT_FLAME_PRESSURE_THRESHOLD,
+        Config::FiringSequence::PILOT_FLAME_PRESSURE_THRESHOLD);
+    tm.ereg_ox_target = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_OX_TARGET_PRESSURE, Config::EregOx::TARGET_PRESSURE);
+    tm.ereg_fuel_target = registry->getOrSetDefaultUnsafe(
+        CONFIG_ID_EREG_FUEL_TARGET_PRESSURE, Config::EregFuel::TARGET_PRESSURE);
+
+    mavlink_msg_firing_sequence_parameters_tm_encode(
+        Config::Radio::MAV_SYSTEM_ID, requestId, &msg, &tm);
     enqueueMessage(msg);
     return true;
 }
@@ -988,11 +1083,6 @@ bool Radio::enqueueSystemTm(uint8_t tmId, uint8_t requestId)
                 tm.prz_fuel_valve_state =
                     (getModule<EregControllerFuel>()->getState() !=
                      EregState::CLOSED);
-
-                // As we approach the real flight, the encoders used for the
-                // rocket valves have been removed, so the following code is
-                // commented out. If you want to use it, you need to implement
-                // the encoder reading in the sensors module.
 
                 tm.prz_ox_valve_position =
                     static_cast<uint8_t>(sensors->getOxRegPosition().position);
@@ -1504,4 +1594,13 @@ void Radio::handleConrigState(const mavlink_message_t& msg)
     flushMessages();
 
     lastConrigState = state;
+}
+
+void Radio::saveRegistry(const mavlink_message_t& msg)
+{
+    getModule<CanHandler>()->sendSaveRegistry();
+    if (getModule<Registry>()->save() == RegistryError::OK)
+        enqueueAck(msg);
+    else
+        enqueueNack(msg, 0);
 }

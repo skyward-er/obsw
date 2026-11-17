@@ -222,13 +222,17 @@ void Actuators::initializeValves()
 {
     // Servo valves connected to the PCA9685 expanders
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
-        PRZ_FIL, expander0, PCA9685Utils::Channel::CHANNEL_1));
+        PRZ_FIL, expander0, PCA9685Utils::Channel::CHANNEL_1,
+        SENSOR_ENCODER(getPrzFillingPosition)));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
-        PRZ_REL, expander0, PCA9685Utils::Channel::CHANNEL_2));
+        PRZ_REL, expander0, PCA9685Utils::Channel::CHANNEL_2,
+        SENSOR_ENCODER(getPrzReleasePosition)));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
-        OX_FIL, expander0, PCA9685Utils::Channel::CHANNEL_3));
+        OX_FIL, expander0, PCA9685Utils::Channel::CHANNEL_3,
+        SENSOR_ENCODER(getOxFillingPosition)));
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
-        OX_REL, expander0, PCA9685Utils::Channel::CHANNEL_4));
+        OX_REL, expander0, PCA9685Utils::Channel::CHANNEL_4,
+        SENSOR_ENCODER(getOxReleasePosition)));
 
     valveInfos.push_back(MAKE_PCA_SERVO_VALVE(
         OX_VEN, expander1, PCA9685Utils::Channel::CHANNEL_7));
@@ -245,17 +249,22 @@ void Actuators::initializeValves()
     // "Manual" servo valves, instead of only being fully open or closed,
     // can be moved to any position in the range [0, 1].
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
-        PRZ_OX, expander1, PCA9685Utils::Channel::CHANNEL_2));
+        PRZ_OX, expander1, PCA9685Utils::Channel::CHANNEL_2,
+        MOTOR_ENCODER(przOxValvePosition, getOxRegPosition)));
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
-        PRZ_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_3));
+        PRZ_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_3,
+        MOTOR_ENCODER(przFuelValvePosition, getFuelRegPosition)));
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
-        MAIN_OX, expander1, PCA9685Utils::Channel::CHANNEL_4));
+        MAIN_OX, expander1, PCA9685Utils::Channel::CHANNEL_4,
+        MOTOR_ENCODER(mainOxValvePosition, getMainOxPosition)));
     manualValveInfos.push_back(MAKE_MANUAL_PCA_SERVO_VALVE(
-        MAIN_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_5));
+        MAIN_FUEL, expander1, PCA9685Utils::Channel::CHANNEL_5,
+        MOTOR_ENCODER(mainFuelValvePosition, getMainFuelPosition)));
 
     // The 3-way servo moves directly between its endpoints.
     prz_3wayValveInfo = MAKE_SIMPLE_PCA_SERVO_VALVE(
-        PRZ_3W, expander0, PCA9685Utils::Channel::CHANNEL_0);
+        PRZ_3W, expander0, PCA9685Utils::Channel::CHANNEL_0,
+        SENSOR_ENCODER(getPrz3WayPosition));
 
     // Solenoid valves connected directly to the micro
     valveInfos.push_back(
@@ -489,6 +498,27 @@ float Actuators::getServoMaxAperture(ServosList servo)
     return getModule<Registry>()->getOrSetDefaultUnsafe(
         info->valve->getMaxApertureRegKey(),
         info->valve->getDefaultMaxAperture());
+}
+
+float Actuators::getOpenPosition(ServosList servo)
+{
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return 0;
+
+    return getModule<Registry>()->getOrSetDefaultUnsafe(
+        info->valve->getOpenPositionRegKey(),
+        info->valve->getDefaultOpenPosition());
+}
+
+std::function<float()> Actuators::getEncoder(ServosList servo)
+{
+    Lock<FastMutex> lock(infosMutex);
+    ValveInfo* info = getValve(servo);
+    if (info == nullptr)
+        return nullptr;
+
+    return info->encoder;
 }
 
 Actuators::ValveState Actuators::getValveState(ServosList servo)
