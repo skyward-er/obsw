@@ -34,16 +34,15 @@ namespace FiringSequence
 /* linter off */ using namespace std::chrono;
 /* linter off */ using namespace Boardcore::Units::Frequency;
 
-constexpr auto UPDATE_RATE = 10_hz;
+constexpr auto UPDATE_RATE = 50_hz;
 
-constexpr auto IGN_OX_OPENING_TIME   = 2500ms;
+constexpr auto IGN_OX_OPENING_TIME   = 1400ms;
 constexpr auto IGN_FUEL_DELAY        = 100ms;
-constexpr auto IGN_FUEL_OPENING_TIME = 2000ms;
+constexpr auto IGN_FUEL_OPENING_TIME = 1200ms;
 constexpr auto SPARK_TIME            = 500ms;
 
 constexpr auto PILOT_FLAME_MAX_TIME           = 1200ms;
-constexpr auto PILOT_FUEL_LEAD_TIME           = 350ms;
-constexpr auto PILOT_OX_RAMP_TIME             = 500ms;
+constexpr auto PILOT_FUEL_LEAD_TIME           = 300ms;
 constexpr float MAIN_CHAMBER_SAFETY_THRESHOLD = 35.0f * 1.5f;  // bar
 constexpr float MAIN_CHAMBER_SAFETY_SAMPLES   = 3;
 
@@ -60,9 +59,9 @@ constexpr float LOW_THROTTLE_FUEL_POSITION = 0.0f;
 static constexpr milliseconds PURGE_OX_TIME{300};
 
 constexpr float IGNITER_PRESSURE_THRESHOLD         = 15.0f;  // bar
-constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 3;
+constexpr uint8_t IGNITER_CONFIRMATION_SAMPLES     = 5;
 constexpr float PILOT_FLAME_PRESSURE_THRESHOLD     = 6.0f;  // bar
-constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 3;
+constexpr uint8_t PILOT_FLAME_CONFIRMATION_SAMPLES = 15;
 
 }  // namespace FiringSequence
 }  // namespace Config

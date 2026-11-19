@@ -426,9 +426,8 @@ State FiringSequenceHSM::state_pilot_flame(const Event& event)
                     Config::FiringSequence::PILOT_OX_POSITION);
 
             // open main oxidizer to pilot flame position
-            getModule<Actuators>()->animateValve(
-                ServosList::MAIN_OX_VALVE, oxPilotPosition,
-                Config::FiringSequence::PILOT_OX_RAMP_TIME.count());
+            getModule<Actuators>()->moveValve(ServosList::MAIN_OX_VALVE,
+                                              oxPilotPosition);
 
             return transition(&FiringSequenceHSM::state_pilot_flame_wait);
         }
