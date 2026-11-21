@@ -1,0 +1,17 @@
+#pragma once
+#include <cstdint>
+
+// clang-format off
+namespace RIGv3
+{
+    namespace Config
+    {
+        namespace Version
+        {
+        constexpr uint32_t OBSW_COMMIT      = 0x@OBSW_COMMIT@;  //find ref @ CMAkeLists.txt
+        constexpr uint32_t BOARDCORE_COMMIT = 0x@BOARDCORE_COMMIT@;
+        constexpr uint32_t MAVLINK_COMMIT   = 0x@MAVLINK_COMMIT@;
+        
+        }  // namespace Version
+    }  // namespace Config
+}  // namespace RIGv3

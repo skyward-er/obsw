@@ -24,6 +24,7 @@
 
 #include <ConRIGv2/Configs/RadioConfig.h>
 #include <RIGv3/Configs/FiringSequenceConfig.h>
+#include <RIGv3/Configs/versionConfig.h>
 #include <common/Events.h>
 #include <common/Radio.h>
 #include <common/canbus/MotorStatus.h>
@@ -36,6 +37,9 @@
 #include <atomic>
 #include <chrono>
 #include <unordered_map>
+
+#include "RIGv3/Configs/RadioConfig.h"
+#include "mavlink_lib/hydra/mavlink_msg_rig_hash_tm.h"
 
 using namespace std::chrono;
 using namespace Boardcore;
@@ -1334,6 +1338,19 @@ bool Radio::enqueueSensorTm(uint8_t tmId, uint8_t requestId)
             return true;
         }
 
+        case MAV_RIG_COMMIT_ID:
+        {
+            mavlink_message_t msg;
+            mavlink_rig_hash_tm_t tm;
+            tm.obsw_commit      = RIGv3::Config::Version::OBSW_COMMIT;
+            tm.boardcore_commit = RIGv3::Config::Version::BOARDCORE_COMMIT;
+            tm.mavlink_commit   = RIGv3::Config::Version::MAVLINK_COMMIT;
+
+            mavlink_msg_rig_hash_tm_encode(Config::Radio::MAV_SYSTEM_ID,
+                                           requestId, &msg, &tm);
+            enqueueMessage(msg);
+            return true;
+        }
         default:
         {
             return false;

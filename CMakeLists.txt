@@ -75,13 +75,33 @@ sbs_target(pitot-entry stm32f767zi_pitot)
 #target_include_directories(rig-v2-adc-test PRIVATE ${OBSW_INCLUDE_DIRS})
 #sbs_target(rig-v2-adc-test stm32f767zi_rig_v2)
 
+    ### for commmit hash:  ###
+set(BOARDCORE_DIR ${CMAKE_SOURCE_DIR}/skyward-boardcore)
+set(MAVLINK_DIR   ${BOARDCORE_DIR}/libs/mavlink-skyward-lib)
+
+set(RIG_V3_VERSION_DIR    ${CMAKE_BINARY_DIR}/generated/rig-v3)
+set(RIG_V3_VERSION_HEADER ${RIG_V3_VERSION_DIR}/RIGv3/Configs/versionConfig.h)
+
+add_custom_target(rig-v3-version
+    COMMAND ${CMAKE_COMMAND}
+        -DOBSW_DIR=${CMAKE_SOURCE_DIR}
+        -DBOARDCORE_DIR=${BOARDCORE_DIR}
+        -DMAVLINK_DIR=${MAVLINK_DIR}
+        -DTEMPLATE=${CMAKE_SOURCE_DIR}/cmake/versionConfig.h.in
+        -DOUT_FILE=${RIG_V3_VERSION_HEADER}
+        -P ${CMAKE_SOURCE_DIR}/cmake/gen_version.cmake
+    BYPRODUCTS ${RIG_V3_VERSION_HEADER}
+    VERBATIM)
+
 add_executable(rig-v3-entry src/RIGv3/rig-v3-entry.cpp ${RIG_V3_COMPUTER})
-target_include_directories(rig-v3-entry PRIVATE ${OBSW_INCLUDE_DIRS})
+target_include_directories(rig-v3-entry PRIVATE ${OBSW_INCLUDE_DIRS} ${RIG_V3_VERSION_DIR})
+add_dependencies(rig-v3-entry rig-v3-version)
 sbs_target(rig-v3-entry stm32f767zi_rig_v3)
 
-add_executable(rig-v3-adc-test src/RIGv3/rig-v3-adc-test.cpp ${RIG_V3_COMPUTER})
+
+add_executable(rig-v3-adc-test src/RIGv3/rig-v3-adc-test.cpp ${RIG_V3_COMPUTER})    #TODO: add version control?
 target_include_directories(rig-v3-adc-test PRIVATE ${OBSW_INCLUDE_DIRS})
-sbs_target(rig-v3-adc-test stm32f767zi_rig_v3)
+sbs_target(rig-v3-adc-test stm32f767zi_rig_v3) 
 
 add_executable(con_rig-entry src/ConRIG/con_rig-entry.cpp ${CON_RIG_COMPUTER})
 target_include_directories(con_rig-entry PRIVATE ${OBSW_INCLUDE_DIRS})
