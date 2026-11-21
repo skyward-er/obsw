@@ -36,9 +36,9 @@ namespace FiringSequence
 
 constexpr auto UPDATE_RATE = 50_hz;
 
-constexpr auto IGN_OX_OPENING_TIME   = 1400ms;
+constexpr auto IGN_OX_OPENING_TIME   = 1700ms;
 constexpr auto IGN_FUEL_DELAY        = 100ms;
-constexpr auto IGN_FUEL_OPENING_TIME = 1200ms;
+constexpr auto IGN_FUEL_OPENING_TIME = 1500ms;
 constexpr auto SPARK_TIME            = 500ms;
 
 constexpr auto PILOT_FLAME_MAX_TIME           = 1200ms;
